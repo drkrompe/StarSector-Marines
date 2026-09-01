@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.CampaignMechFabricationResources;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -67,13 +68,16 @@ public final class MechLabScreen implements Screen {
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new MechLabViewModel(reactor, roster.mechBay());
+            viewModel = new MechLabViewModel(reactor, roster.mechBay(),
+                    new CampaignMechFabricationResources(), this::syncGantryScene);
+            syncGantryScene();
             cameraController = new MechLabCameraController(
                     MechLabCameraController.on(bayFraming(), berths()));
             cameraController.snap(false, viewModel.selectedGantryIndex(),
                     viewModel.gantryVariants().size());
         } else {
             viewModel.refresh();
+            syncGantryScene();
         }
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -94,7 +98,7 @@ public final class MechLabScreen implements Screen {
             previewSprites().ensureLayeredMechSprites();
             previewSprites().ensureMechLabFxSprites();
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::gantryVariants,
+                    new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             () -> previewSprites().layeredMechSprites(),
@@ -205,6 +209,11 @@ public final class MechLabScreen implements Screen {
      */
     private BattleSprites previewSprites() {
         return context.companyDeck().sprites();
+    }
+
+    private void syncGantryScene() {
+        if (context == null || viewModel == null || context.companyDeck() == null) return;
+        context.companyDeck().scene().syncGantries(viewModel.gantryDeployments());
     }
 
     /** The berths standing in that bay, in the order the deck authored them. */

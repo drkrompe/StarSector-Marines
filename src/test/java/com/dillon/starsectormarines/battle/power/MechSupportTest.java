@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.air.MechSupportPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -188,7 +190,10 @@ public class MechSupportTest {
                 .health(100_000f).attackDamage(0f));
         MechSupport power = MechSupport.configured(List.of(new MechDeploymentSpec(
                 MechVariant.HOUND, MechRole.ASSAULT,
-                MissileReplenisherComponent.ACCELERATED_FEED)));
+                MissileReplenisherComponent.ACCELERATED_FEED,
+                MechWeaponComponent.QUARRY_BREAKER_CANNON,
+                MechWeaponComponent.PIONEER_ROCKET_CRADLE,
+                null)));
         sim.setCommandPowers(List.of(power));
         sim.getCommandPowerService().requestActivation(power.id, 15, 15);
         sim.advance(BattleSimulation.TICK_DT);
@@ -216,5 +221,9 @@ public class MechSupportTest {
                 sim.world().mechLoadout(mech).deployedRole());
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
                 sim.world().mechLoadout(mech).missileReplenisher());
+        assertEquals(MechWeaponComponent.QUARRY_BREAKER_CANNON,
+                sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS).component);
+        assertEquals(MechWeaponComponent.PIONEER_ROCKET_CRADLE,
+                sim.world().mechLoadout(mech).mount(MechMountSlot.LEFT_SHOULDER).component);
     }
 }

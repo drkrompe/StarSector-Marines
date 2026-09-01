@@ -7,7 +7,10 @@ package com.dillon.starsectormarines.battle.mech;
 public record MechDeploymentSpec(
         MechVariant variant,
         MechRole role,
-        MissileReplenisherComponent missileReplenisher) {
+        MissileReplenisherComponent missileReplenisher,
+        MechWeaponComponent arms,
+        MechWeaponComponent leftShoulder,
+        MechWeaponComponent rightShoulder) {
 
     public MechDeploymentSpec {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
@@ -15,10 +18,20 @@ public record MechDeploymentSpec(
         if (missileReplenisher == null) {
             missileReplenisher = MissileReplenisherComponent.STANDARD;
         }
+        if (arms == null) arms = variant.arms;
+    }
+
+    public MechDeploymentSpec(MechVariant variant, MechRole role,
+                              MissileReplenisherComponent missileReplenisher) {
+        this(variant, role, missileReplenisher,
+                variant != null ? variant.arms : null,
+                variant != null ? variant.leftShoulder : null,
+                variant != null ? variant.rightShoulder : null);
     }
 
     public static MechDeploymentSpec standard(MechVariant variant) {
         return new MechDeploymentSpec(variant, variant.defaultRole,
-                MissileReplenisherComponent.STANDARD);
+                MissileReplenisherComponent.STANDARD,
+                variant.arms, variant.leftShoulder, variant.rightShoulder);
     }
 }

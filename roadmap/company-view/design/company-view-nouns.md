@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — faction-authored Armory loadouts and individual issued
-equipment carry vanilla faction flags, while company-authored definitions remain
-unbadged; long dossier field notes scroll instead of clipping.
+Updated: 2026-09-01 — the Mech Lab fabricates and installs discoverable weapon
+assemblies or complete chassis from player cargo, using vanilla commodity icons.
 
 ## Purpose
 
@@ -64,9 +63,9 @@ company view composes their stable outputs.
   stationed, recovering or understrength, or part of a live mission snapshot.
   It is not independently persisted.
 - **Mech Lab** — the shipboard room over the persistent support squad and finite
-  mech subsystem stock defined by `mechs-nouns.md`. It presents
-  chassis and hardpoints but mutates only inventory authorities that actually
-  exist.
+  mech component stock defined by `mechs-nouns.md`. It presents and refits typed
+  hardpoints, and uses vacant gantries to fabricate persistent chassis, but mutates
+  them only through the cargo-backed campaign workshop authority.
 - **Barracks** — the read-only shipboard quarters browser for squads currently
   carried aboard the flagship. It presents roster truth through a physical room;
   it does not author equipment, recovery, stationing, or personnel state.
@@ -261,8 +260,8 @@ support squad of up to four chassis. The retained room shows the whole squad and
 separate asset-selection screen; choosing an assigned chassis opens its existing
 gantry without changing lance composition.
 The fitting header also provides explicit previous/next controls over the lance's four
-numbered gantry pads. Reaching a vacant station clears the chassis selection and returns
-the room to its overview treatment; the asset browser remains the direct way to jump
+numbered gantry pads. Reaching a vacant station clears the chassis selection and opens
+the chassis fabrication catalog; the asset browser remains the direct way to jump
 across lances.
 Entering the room or selecting a lance presents the wider facility first. This
 overview has no selected chassis and therefore renders neither equipment selectors nor
@@ -275,9 +274,9 @@ reveals the fitting controls. Selecting the already-occupied `MECH LAB` room rou
 clears that selection and returns to the lance overview rather than acting as a dead
 control. The focused workspace gives its three primary regions to the equipment
 catalog, a wide top-down fabrication bay, and the socket rack. Selecting a location
-scopes the equipment catalog. The catalog may inspect fixed
-chassis, weapon, and ammunition assemblies, but exposes a commit action only when a
-real campaign inventory and install command exist.
+scopes the equipment catalog. Refittable hardpoints list compatible registered
+assemblies, their finite owned/free count, provenance, capacity, and material bill.
+Fixed cores and ammunition remain inspection-only.
 
 The fabrication bay is a diegetic, flat top-down ship facility rather than a neutral
 diagram or pseudo-3D illustration. Its floor, walls, four hazard pads, registered
@@ -290,13 +289,21 @@ second schedule, labor, inventory, or refit authority. Wide-screen layout is the
 reference composition; narrow and user-scaled layouts retain access through bounded
 scrolling rather than compressing the room until every label is simultaneously visible.
 
-The intended weapon-refit interaction is dragging a component into a typed, sized
-socket. Ballistic, energy, missile, and omni are compatibility rules; component slot
-cost and chassis budgets remain independent constraints. Dragging is only a proposed
-placement. One atomic domain command must validate compatibility, capacity, budgets,
-and finite stock before mutating anything. The current slice labels the fixed weapon
-sockets but does not invent those missing authorities; only the missile mini-fab is
-swappable.
+The weapon-refit catalog is the current click-to-commit form of a future drag gesture.
+Ballistic, energy, missile, and omni are compatibility rules; component slot cost and
+the fabrication bill remain independent constraints. A free owned assembly installs
+directly. If none is free, one atomic campaign command rechecks player cargo, consumes
+the whole bill, adds one finite assembly, and installs it while returning the outgoing
+assembly to stores. The missile mini-fab retains its existing finite-stock command;
+cores and integral ammunition remain locked.
+
+A vacant gantry presents the three established chassis patterns rather than fake
+equipment controls. A successful commit consumes ordinary fleet cargo and creates a
+persistent campaign mech with stable identity, default doctrine, standard replenisher,
+and its complete standard roll-out fit. It cannot exceed the lance's four physical
+gantries. Material badges resolve names and icon paths from Starsector's live commodity
+specifications—supplies, heavy machinery, metals, and rare metals use the artwork that
+ships with the base game rather than copied mod assets.
 
 The same selection-and-catalog grammar may serve tanks and future scarce heavy armor.
 Each asset class still supplies its own projection and socket layout, so a shared
@@ -620,8 +627,9 @@ production vehicle deployment seam exists.
 - Fire teams are equipment/AI/lift units, not player command targets.
 - Weapon and armor doctrines are reusable squad designs authored from collected
   templates; every changed issue remains bounded by ordinary fleet cargo.
-- Mech subsystems are finite physical stock; installed copies remain counted,
-  and the Mech Lab cannot create a second inventory authority.
+- Mech weapon assemblies and subsystems are finite physical stock; installed copies
+  remain counted, while their fabrication spends player cargo through one campaign
+  authority. The Mech Lab cannot create a second inventory or commodity-art catalog.
 - A failed squad equipment issue changes neither materialized kit nor either doctrine id.
 - Per-soldier kit remains the battle-facing materialization until the deployment
   seam explicitly adopts another representation.

@@ -329,7 +329,9 @@ public final class World {
     }
     /** Grant the mech-loadout capability at spawn (archetype row-move). Serial-only — never mid-{@code Query} walk. */
     public void attachMechLoadout(long id, MechLoadoutComponent loadout) {
-        entityWorld.addComponent(id, components.MECH_LOADOUT);
+        if (!entityWorld.has(id, components.MECH_LOADOUT)) {
+            entityWorld.addComponent(id, components.MECH_LOADOUT);
+        }
         entityWorld.setObject(id, components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE, loadout);
         setAttackRange(id, loadout.maxWeaponRange());
         if (entityWorld.has(id, components.MECH_LAYERED_ANIMATION)) {

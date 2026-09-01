@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
@@ -50,7 +51,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(
             RenderLayer.UNITS, RenderLayer.VEHICLES);
 
-    private final Supplier<List<MechVariant>> variants;
+    private final Supplier<List<MechDeploymentSpec>> deployments;
     private final IntSupplier selectedGantry;
     private final Supplier<SocketId> selectedSocket;
     private final Supplier<LayeredMechAssets> assets;
@@ -71,7 +72,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<List<Gantry>> berths;
     private final DoubleSupplier elapsedSeconds;
 
-    public MechLabDollCanvas(Supplier<List<MechVariant>> variants,
+    public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
                              IntSupplier selectedGantry,
                              Supplier<SocketId> selectedSocket,
                              Supplier<LayeredMechAssets> assets,
@@ -82,15 +83,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<ShipDeckBattleScene.RoomView> roomView,
                              Supplier<List<Gantry>> berths,
                              DoubleSupplier elapsedSeconds) {
-        if (variants == null || selectedGantry == null || selectedSocket == null
+        if (deployments == null || selectedGantry == null || selectedSocket == null
                 || assets == null || weldingTorch == null || weldingSparks == null
                 || fittingOverlaysVisible == null
                 || ship == null || roomView == null || berths == null
                 || elapsedSeconds == null) {
             throw new IllegalArgumentException(
-                    "variants, gantry, socket, mech assets, a ship and elapsed time are required");
+                    "deployments, gantry, socket, mech assets, a ship and elapsed time are required");
         }
-        this.variants = variants;
+        this.deployments = deployments;
         this.selectedGantry = selectedGantry;
         this.selectedSocket = selectedSocket;
         this.assets = assets;
@@ -108,9 +109,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         float time = (float) elapsedSeconds.getAsDouble();
-        List<MechVariant> lance = variants.get();
+        List<MechDeploymentSpec> lance = deployments.get();
         int gantryIndex = selectedIndex(selectedGantry.getAsInt());
-        MechVariant selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
+        MechDeploymentSpec selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
+        MechVariant selectedVariant = selected != null ? selected.variant() : null;
         if (assets.get() == null) return;
 
         ShipDeckBattleScene aboard = ship.get();
@@ -144,14 +146,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float berthY = berthCellY(standing, gantryIndex);
         BattleCamera sceneCamera = aboard.cameraFor(
                 bay, 0f, 0f, host[0].width(), host[0].height());
-        SceneProjection projection = selected != null
-                ? SceneProjection.forLive(sceneCamera, host[0], selected, berthX, berthY)
+        SceneProjection projection = selectedVariant != null
+                ? SceneProjection.forLive(sceneCamera, host[0], selectedVariant, berthX, berthY)
                 : null;
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
-            drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
-                    selectedSocket.get(), projection);
+            drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
+                    selected, selectedSocket.get(), projection);
         }
         if (projection != null) {
             drawTechnicianFx(context, projection, berthX, berthY,
@@ -193,7 +195,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
-                                           SocketId selectedSocket,
+                                           MechDeploymentSpec deployment, SocketId selectedSocket,
                                            SceneProjection projection) {
         float radians = (float) Math.toRadians(layout.doll().facingDegrees());
         float cos = (float) Math.cos(radians);
@@ -201,7 +203,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDef socket : layout.sockets()) {
             SocketDropTarget target = socketDropTarget(socket, projection.actorX(),
                     projection.actorY(), projection.hullX(), projection.hullY(), cos, sin);
-            boolean occupied = layout.occupied(socket.id());
+            boolean occupied = occupied(deployment, socket.id());
             boolean selected = socket.id() == selectedSocket;
             Color base = socketColor(socket.type());
             int fillAlpha = selected ? 138 : occupied ? 72 : 112;
@@ -218,6 +220,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     selected ? 2f : 1f);
             drawCapacityCells(c, target, base, selected, occupied);
         }
+    }
+
+    private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
+        return switch (socket) {
+            case CORE, AMMO_RESERVE, MINI_FAB -> true;
+            case ARMS -> deployment.arms() != null;
+            case LEFT_SHOULDER -> deployment.leftShoulder() != null;
+            case RIGHT_SHOULDER -> deployment.rightShoulder() != null;
+        };
     }
 
     static SocketDropTarget socketDropTarget(DollDef doll, SocketDef socket,
