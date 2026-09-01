@@ -1,8 +1,8 @@
 # Precincts
 
-Status: ACTIVE — adopted. The noun, multi-seed growth, three claim policies,
-the derived allowance, programmed fill and the walled boundary are built;
-seeding is not.
+Status: ACTIVE — adopted. The model is assembled end to end: places are seeded
+from a world or authored, grown, claimed, allowed ground, filled, walled and
+gated. What remains is wiring it into a recipe and the shape work below.
 
 Written: 2026-09-01
 
@@ -201,12 +201,69 @@ street plan and almost no ground. A precinct's allowance has to be derived from
 what it holds, the way `compound-programs.md` sizes a fortress envelope from its
 program, rather than picked as a free number.
 
+## A claim must not come out geometric
+
+A four-neighbour flood expands by Manhattan distance, so a claim grown from one
+seed is a **perfect diamond** — which is what the first rendered garrison was,
+and it reads as a generated shape rather than as a place. Eight-neighbour trades
+the diamond for a square and is no better.
+
+The expansion is therefore cost-ordered with the cost perturbed by a
+`PatchField`, the same coherent-noise field the wild ground uses. Coherent
+rather than per-cell random for the same reason it is there: per-cell noise
+gives a fringe on a diamond, where a coherent field bends the outline into lobes
+and bays. Each precinct gets its own field so two places do not bulge alike.
+
+## Connectedness is solved for, not hoped for
+
+Growth joins two places only by accident: an arm stops when it runs into an
+existing band, so precincts whose networks run near each other without touching
+stay separate road systems. Measured over four derived maps, three came out
+already whole and one came out **in three pieces** — an intermittent structural
+fault, invisible in a picture and severe for anything that drives.
+
+`PrecinctInterconnect` labels the components, floods the ground between them
+from all of them at once, and takes the cheapest meeting point between each pair
+in increasing order until one network remains. That is a minimum spanning tree
+over the components, so a three-piece map gains two links rather than three, and
+a whole one is not cut at all. Each side of a link is walked back along the
+flood's own parent pointers, so it bends around what the flood bent around; a
+straight link would be quicker to write and would drive through buildings.
+
+## The partition must be handed one place's parcels, not the map's
+
+`GrownTrunkPlan.grow` returns sub-rects decomposed from frontage across the
+whole map. Handed to `BspPartitionStage` as-is, every cell near any road becomes
+a parcel and the fill builds city over everything — measured, four places
+rendered as one continuous conurbation with a ragged edge, 616 points of
+interest and no visible boundary between a town, a garrison and two hamlets. The
+claims had been computed and then ignored.
+
+The skeleton stage now decomposes each zoned precinct's own claimed ground and
+hands the partition only that; unclaimed ground becomes hinterland. A programmed
+precinct is left out entirely, because its interior is packed from authored
+footprints rather than subdivided, and handing it to BSP fills it with ordinary
+city before the packer ever sees it. The same map then renders as four places
+with country between them, at 339 points of interest.
+
 ## Still open
 
-1. **Whether `Compound` collapses into this.** A compound is already a claimed
+0. **A walled precinct has too many gates.** Every arm crossing the outline is a
+   gate, and a rendered garrison came out with eleven — which is not a fortified
+   place. A fortress should keep the few crossings it wants and wall off the
+   rest; the roads that then dead-end at the wall are ordinary. The rule that a
+   gate is a discovered crossing still holds, but which crossings become gates
+   is a decision the precinct has not been given yet.
+
+1. **Settlement claims read as collars, not districts.** A zoned precinct's
+   allowance spreads two or three cells either side of its arms, so it draws as
+   a road network with a shoulder rather than as a place with streets in it.
+   Either the frontage depth is too shallow for the map scale or the allowance
+   wants a different derivation.
+2. **Whether `Compound` collapses into this.** A compound is already a claimed
    group of leaves with a purpose; it may be a small precinct, or a distinct
    thing that lives *inside* one.
-2. **What `BiomeKind` becomes.** It is read as front-line progression ordering
+3. **What `BiomeKind` becomes.** It is read as front-line progression ordering
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.
