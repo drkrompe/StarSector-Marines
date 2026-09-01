@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.OrderCatalog;
+import com.dillon.starsectormarines.battle.command.OrderCatalog.Arm;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -294,6 +296,40 @@ class SquadMoveOrderSystemTest {
                         "each chassis should take a position inside the lance's area");
             }
         }
+    }
+
+    /**
+     * The same lance, the same click, two different answers — and neither of
+     * them is this system's opinion. Both assertions are stated against the
+     * catalog rather than against the rule, so the day a lance is given the
+     * attack move this test changes with the row instead of contradicting it.
+     */
+    @Test
+    void aLanceGetsTheOrdersTheCatalogAdmitsItToAndNoOthers() {
+        BattleSimulation sim = openSimulation(64, 32);
+        Squad lance = squad(sim, Faction.MARINE, UnitType.HEAVY_MECH,
+                10, 16, 2);
+
+        sim.getSquadMoveOrderService().requestMove(lance.id, 40, 16);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertFalse(OrderCatalog.playerOrder(AssignmentKind.ATTACK_MOVE)
+                        .allows(Arm.MECH),
+                "a lance takes its move order per chassis, not as an assignment");
+        assertNull(sim.getSquadMoveOrderService().activeOrder(lance.id));
+        assertNull(lance.playerTacticalOrder(),
+                "a refused request must not leave an order standing on the lance");
+
+        sim.getSquadMoveOrderService().requestDefendArea(lance.id, 40, 16);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        assertTrue(OrderCatalog.playerOrder(AssignmentKind.DEFEND_AREA)
+                        .allows(Arm.MECH),
+                "area defence is the one order both arms take from the player");
+        assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(lance.id));
+        assertEquals(AssignmentKind.DEFEND_AREA,
+                lance.assignmentForExecution().kind());
     }
 
     @Test
