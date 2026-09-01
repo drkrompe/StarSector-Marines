@@ -4,9 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — machine berths retain exact even or odd footprints, so parked
-assets centre continuously within their pads, present toward the bay's inboard service
-space, and receive technician effects at authored machine or fixture focus points.
+Updated: 2026-09-01 — a berth authors safe service stands while its live occupant
+supplies an oriented body envelope. Technician effects therefore land on compact
+walkers, elongated vehicles, or authored fixture points without treating every berth
+occupant as a mech.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -113,7 +114,10 @@ authored content.
 - A **berthed machine** is a unit, never scenery. It arrives from a roster with
   its real variant and loadout, so what stands in a bay is the same entity that
   would walk out of it. Berth cells therefore stay clear in the map — a berth
-  with a fixture in it is a bay nothing can be put into.
+  with a fixture in it is a bay nothing can be put into. For service work it
+  supplies an oriented body envelope: its centre, facing, half-beam, and half-length.
+  This is machine geometry, not mech geometry, so a long vehicle and a compact walker
+  can occupy the same authored berth without sharing false weld points.
 - The **spine** is the primary fore-aft circulation corridor. It is the deck's
   authored main line, not whichever corridor turns out longest. Compartments do
   not all hang off it: a deck where every room opens on the spine is a comb, and
@@ -496,11 +500,15 @@ know what the host parks; occupancy is a runtime fact about a deck, so an empty
 bay is somewhere to walk through rather than somewhere to weld.
 
 A vehicle-bay berth publishes five distinct access points around an occupied machine:
-two at its shoulders, two at its waist, and one at its head. Their focus coordinates
-are the actual hull or fixture positions. Any room-view effect projects those world
-coordinates through the same camera as the deck; it must not relocate every torch
-relative to the currently selected machine, because selection is UI state and the work
-continues throughout the room.
+two at its shoulders, two at its waist, and one at its head. Those are safe places for
+people to stand, not guesses about the occupant's surface. When the host publishes the
+live task, it intersects each stand-to-centre line with the occupant's oriented service
+envelope and draws the focus slightly inside the painted body. A compact walker can
+therefore expose a short round envelope while a tracked or wheeled vehicle exposes a
+long one. Work on a fixture keeps the point of interest its fitting authored. Any
+room-view effect projects those world coordinates through the same camera as the deck;
+it must not relocate every torch relative to the currently selected machine, because
+selection is UI state and the work continues throughout the room.
 
 This is the difference between a generated room and a dead one, and it is the
 standing reason fixtures must declare affordance rather than only appearance. The
