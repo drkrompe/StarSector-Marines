@@ -20,10 +20,27 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
  * nowhere viable to stand, the rest are tried in turn rather than the arrival
  * being refused — a map with a walled rear is a worse arrival, not an absent
  * one.
+ *
+ * <p>An aircraft asks the same question and gets the same edge, off the map
+ * rather than on it. Which side of the map somebody comes from is a fact about
+ * the battle rather than about how they travel, so a lift that crossed on at a
+ * different edge from the walk it replaces would be two answers to one
+ * question — and one of them would be wrong.
  */
 public final class MapEntry {
 
     private MapEntry() { }
+
+    /**
+     * How far outside the grid an aircraft crosses on, in cells.
+     *
+     * <p>Far enough that a craft fades in rather than appearing over the
+     * perimeter, near enough that the approach is not most of the sortie.
+     */
+    private static final float OFFMAP_PAD = 8f;
+
+    /** How much further out again the craft leaves, so departure clears the map. */
+    private static final float OFFMAP_EXIT = 4f;
 
     /** The four ways onto a map. */
     private enum Edge { NORTH, SOUTH, EAST, WEST }
@@ -51,6 +68,36 @@ public final class MapEntry {
             if (cell != null) return cell;
         }
         return null;
+    }
+
+    /**
+     * Where an aircraft carrying this side crosses onto the map, and where it
+     * leaves again — both off the grid, beyond that side's own rear edge.
+     *
+     * <p>Lined up laterally with wherever the craft is going, so an approach
+     * runs in rather than across. Unlike the on-foot answer this cannot fail:
+     * an aircraft needs somewhere to stand at the far end of the journey and
+     * nowhere in particular to fly over on the way.
+     *
+     * @return {@code {entryX, entryY, exitX, exitY}} in cell coordinates
+     */
+    public static float[] airForSide(Faction side, TraversalAxis axis,
+                                     float towardX, float towardY,
+                                     int gridWidth, int gridHeight) {
+        return switch (rearEdge(side, axis)) {
+            case NORTH -> new float[]{
+                    towardX, gridHeight + OFFMAP_PAD,
+                    towardX, gridHeight + OFFMAP_PAD + OFFMAP_EXIT};
+            case SOUTH -> new float[]{
+                    towardX, -OFFMAP_PAD,
+                    towardX, -OFFMAP_PAD - OFFMAP_EXIT};
+            case EAST -> new float[]{
+                    gridWidth + OFFMAP_PAD, towardY,
+                    gridWidth + OFFMAP_PAD + OFFMAP_EXIT, towardY};
+            case WEST -> new float[]{
+                    -OFFMAP_PAD, towardY,
+                    -OFFMAP_PAD - OFFMAP_EXIT, towardY};
+        };
     }
 
     private static Edge rearEdge(Faction side, TraversalAxis axis) {

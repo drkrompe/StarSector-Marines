@@ -61,6 +61,12 @@ WEAPONS = (
     Weapon("weapon-concepts/lions-guard-thermal-lance.png",
            "lions-guard-thermal-lance.png",
            "lions-guard-thermal-lance.png", (76, 132)),
+    Weapon("weapon-concepts/muster-autogun.png", "muster-autogun.png",
+           "muster-autogun.png", (62, 128)),
+    Weapon("weapon-concepts/quarry-breaker-cannon.png", "quarry-breaker-cannon.png",
+           "quarry-breaker-cannon.png", (72, 124)),
+    Weapon("weapon-concepts/pioneer-rocket-cradle.png", "pioneer-rocket-cradle.png",
+           "pioneer-rocket-cradle.png", (76, 112)),
 )
 
 CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-sirocco.png")

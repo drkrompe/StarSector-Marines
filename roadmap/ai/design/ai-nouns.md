@@ -7,6 +7,10 @@ Written: 2026-08-23
 Updated: 2026-09-01 — an order that names a room may now close its own firing
 gap, contained to that room rather than excluded from the improvement outright.
 
+Earlier 2026-09-01 — a works-crew replacement now arrives the way its own side
+can: the defender walks on at their rear edge, the marines fly to a stand-off
+short of the work and walk the rest.
+
 Earlier 2026-08-31 — finished the goal ladder's floor: yielding an order is
 now a state a squad can be in rather than an absence of one, so a squad that
 declines its own assignment stands to instead of standing plan-less.
@@ -366,12 +370,31 @@ defender turns out marine technicians, which is what makes a facility worth
 garrisoning rather than only worth clearing. A worked room with no compound over
 it is nobody's and is never refilled at all.
 
-Replacements arrive **on foot at their own side's rear edge** and walk to the
-work, which is the whole cost of the arrangement: a body in the open for a
-minute, and a building not working while it crosses. Nothing about that walk is
-special — the replacement is put on the map holding the billet's own rotation,
-and the ambient service paths them to its first stop exactly as it would
-somebody crossing a room.
+Replacements arrive **from their own side of the map** and finish on foot, which
+is the whole cost of the arrangement: a body in the open, and a building not
+working while it crosses. Nothing about the walk is special — the replacement is
+put on the map holding the billet's own rotation, and the ambient service paths
+them to its first stop exactly as it would somebody crossing a room.
+
+**The defender walks on; the marines fly most of the way and walk the rest.**
+Not a fairness knob — it is what each side has. A garrison's rear is the map
+edge, so its people simply come from it. An attacker has no rear on this planet
+at all and everybody they field arrived by air, so a marine relief is a sortie:
+it crosses on off-map, sets down a stand-off out from the work, and walks in from
+there. Which edge each side comes from is one answer shared by the walk and the
+flight, because it is a fact about the battle rather than about how somebody
+travels.
+
+The stand-off is what keeps the flight from being a spawner with an aircraft
+drawn around it. A lift that put its passenger at the bench would make a facility
+deep inside held ground exactly as cheap to re-crew as one on the perimeter; a
+lift that stops short leaves the contested half of the journey contested, and
+adds a crossing of its own that can be intercepted. **A billet a lift is on its
+way to is answered for, not filled** — the shed still is not working, and a
+flight lost reopens the seat on the same cadence a dead technician does, which is
+what makes shooting one down worth the rounds. A map with nowhere to put an
+aircraft down falls back to the walk rather than refusing the relief, the same
+way a walled rear edge is a worse arrival rather than an absent one.
 
 **A worker stops for a round, not for a visitor.** Whether authored work yields
 is a question about the actor, and there are two honest answers. A civilian

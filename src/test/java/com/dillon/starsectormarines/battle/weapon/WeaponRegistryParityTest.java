@@ -111,6 +111,28 @@ class WeaponRegistryParityTest {
                 "graphics/missiles/shell_hellbore.png", 0.40f, "hellbore_fire");
         assertEquals(88f, demolition.contactDamage, EPS);
         assertEquals(26f, demolition.contactPenetration, EPS);
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_MUSTER_AUTOGUN_ID),
+                26f, 9f, 0.48f, 2.4f, 4f,
+                6, 0.12f, 1.35f, 240f, 0.108333f, 0f,
+                0.35f, 2, 0f, false, false, 1f,
+                new Color(0xFF, 0xD6, 0x9A), ImpactKind.KINETIC,
+                "graphics/missiles/shell_small_yellow.png", 0.16f,
+                "light_autocannon_fire");
+        WeaponDef quarry = WeaponRegistry.require(WeaponRegistry.MECH_QUARRY_BREAKER_ID);
+        assertMech(quarry,
+                17f, 34f, 0.42f, 5.5f, 8f,
+                1, 0f, 1.35f, 53.125f, 0.32f, 0f,
+                1.1f, 55, 1f, false, false, 1f,
+                new Color(0xFF, 0xBE, 0x70), ImpactKind.CANNON_HE,
+                "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
+        assertEquals(50f, quarry.contactDamage, EPS);
+        assertEquals(12f, quarry.contactPenetration, EPS);
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_PIONEER_ROCKET_ID),
+                20f, 18f, 0.42f, 7f, 7f,
+                4, 0.18f, 0.9f, 30.76923f, 0.65f, 0f,
+                0.9f, 12, 0.9f, true, false, false, 1f,
+                new Color(0xFF, 0xB8, 0x6A), ImpactKind.HE,
+                "graphics/missiles/missile_SRM.png", 0.34f, "pilum_lrm_fire");
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID),
                 18f, 49.5f, 0.55f, 5.5f, 14f,
                 4, 0.10f, 0f, 32.727272f, 0.55f, 0f,
@@ -326,6 +348,27 @@ class WeaponRegistryParityTest {
                                    String projectileSpritePath,
                                    float projectileVisualCells,
                                    String fireSoundId) {
+        assertMech(weapon, range, damage, accuracy, cooldown, penetration,
+                burstCount, burstSpacing, hitSpread, roundVelocity, flightSec,
+                arcHeight, aoeRadius, wallDamage, wallDamageRadius, authoredTrail,
+                authoredTrail, indirectFire, noLosAccuracyMult, tracer, impact,
+                projectileSpritePath, projectileVisualCells, fireSoundId);
+    }
+
+    private static void assertMech(WeaponDef weapon,
+                                   float range, float damage, float accuracy,
+                                   float cooldown, float penetration,
+                                   int burstCount, float burstSpacing,
+                                   float hitSpread, float roundVelocity,
+                                   float flightSec, float arcHeight,
+                                   float aoeRadius, int wallDamage,
+                                   float wallDamageRadius, boolean authoredTrail,
+                                   boolean boostRamp, boolean indirectFire,
+                                   float noLosAccuracyMult,
+                                   Color tracer, ImpactKind impact,
+                                   String projectileSpritePath,
+                                   float projectileVisualCells,
+                                   String fireSoundId) {
         assertEquals(range, weapon.range(), EPS, weapon + " range");
         assertEquals(damage, weapon.damage(), EPS, weapon + " damage");
         assertEquals(accuracy, weapon.accuracy(), EPS, weapon + " accuracy");
@@ -345,7 +388,7 @@ class WeaponRegistryParityTest {
                 weapon + " authored trail");
         assertEquals(authoredTrail, weapon.interceptableProjectile,
                 weapon + " interceptable projectile");
-        assertEquals(authoredTrail, weapon.boostRamp, weapon + " boost ramp");
+        assertEquals(boostRamp, weapon.boostRamp, weapon + " boost ramp");
         assertEquals(indirectFire, weapon.indirectFire, weapon + " indirect fire");
         assertEquals(noLosAccuracyMult, weapon.noLosAccuracyMult, EPS,
                 weapon + " no-LOS accuracy");

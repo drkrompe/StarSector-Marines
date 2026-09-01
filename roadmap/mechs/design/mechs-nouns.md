@@ -4,11 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — extended appearance-only livery onto authored equipment
-casing without surrendering shared hardware geometry; added exact-Mech tactical
-move orders and a distinct lance-wide Defend Area order with reachable placement,
-combat-active positioning, and mission handback; a field works is now tooled for
-its map's own faction and issues that faction's fit.
+Updated: 2026-09-01 — registered the common-market Muster autogun, Quarry
+breaker cannon, and Pioneer utility rocket cradle as lower-tier component
+families without assigning them as faction spawn defaults.
 
 ## Purpose
 
@@ -160,6 +158,15 @@ Siroccos replace the right LRM rack with a short-ranged thermal lance whose
 directional contact burn and one-cell impact bloom reward aggressive support.
 These signature fits belong to the exact campaign faction ids `hegemony`,
 `luddic_path`, and `lions_guard`; the Diktat does not inherit Guard prototypes.
+The commercial floor is separate from those signatures. A Muster autogun is a
+cheap direct-fire arm available as paired or nose packaging; a Quarry breaker is
+a finite, inaccurate centerline industrial cannon whose main virtue is structural
+damage; a Pioneer cradle fires four loose, straight-flight utility rockets from
+a shoulder mount. These components are weaker because their original users
+optimized for cost, security, mining, or public works—not because Independent,
+pirate, or salvaged equipment is inherently low quality. They enter the weapon
+catalog and livery family now, while future subsystem inventory and markets own
+their acquisition. No faction doctrine receives one implicitly.
 The Hound is a quick close-assault strider that lacks long-range pressure. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
@@ -262,7 +269,7 @@ campaign faction id selects the marine livery and the target faction id (or an
 explicit defender comparison override) selects the defender livery. Tactical
 `MARINE`/`DEFENDER` identity remains only the lookup side; it does not become a
 campaign faction. The renderer resolves one complete livery family for that
-side—three chassis plus six weapon casings—with unknown human factions using
+side—three chassis plus thirteen weapon casings—with unknown human factions using
 the practical Independent/mercenary treatment and automated or absent identity
 retaining the base art. If any painted layer is unavailable, the entire mech
 uses the complete base family rather than mixing liveries. This bridge is
