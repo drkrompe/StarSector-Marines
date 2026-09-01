@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -21,6 +22,7 @@ import com.dillon.starsectormarines.campaign.PatronArchetype;
 import com.dillon.starsectormarines.campaign.PatronBriefingContextComposer;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ops.intel.DefenseLevel;
 import com.dillon.starsectormarines.ops.intel.IntelReader;
 import com.dillon.starsectormarines.ops.intel.PlanetIntel;
@@ -131,9 +133,10 @@ public final class MissionGenerator {
                 int employerShuttles = rollEmployerShuttles(r, risk, requiredDrops);
                 String id = "debug:" + type.name() + ":" + tier.name() + ":" + index++;
                 String name = type.name() + " — " + tier.displayName;
+                int recommendedSquads = MissionForceEnvelope.recommendedSquads(type, tier);
                 String flavor = "DEBUG: " + type.name() + " at " + tier.displayName
-                        + " — wants " + tier.squadsDemanded
-                        + (tier.squadsDemanded == 1 ? " squad." : " squads.");
+                        + " — wants " + recommendedSquads
+                        + (recommendedSquads == 1 ? " squad." : " squads.");
 
                 out.add(Mission.builder()
                         .id(id)
@@ -433,7 +436,7 @@ public final class MissionGenerator {
                 .payout(basePayout)
                 .risk(risk)
                 .tier(tier)
-                .requirements(forceEnvelopeRequirements(tier))
+                .requirements(forceEnvelopeRequirements(missionType, tier))
                 .flavor(flavor)
                 .mapPosition(x, y)
                 .clientFighterSupport(clientSupport)
@@ -652,6 +655,12 @@ public final class MissionGenerator {
 
     static int requiredDropsFor(MissionType type, OperationTier tier) {
         OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
+        if (type == MissionType.CONQUEST) {
+            int seats = MissionForceEnvelope.recommendedPersonnel(type, resolved);
+            int seatsPerSortie = MarineArrivalPolicy.PAIRED_HALF_SQUAD
+                    .seatsPerSortie(ShuttleType.AEROSHUTTLE);
+            return (seats + seatsPerSortie - 1) / seatsPerSortie;
+        }
         float weight = type != null ? type.liftWeight : 0.6f;
         return Math.max(2, Math.round(resolved.drops * weight));
     }
@@ -674,10 +683,11 @@ public final class MissionGenerator {
                 missionType != null ? missionType.tierFloor : null);
     }
 
-    static String forceEnvelopeRequirements(OperationTier tier) {
+    static String forceEnvelopeRequirements(MissionType type, OperationTier tier) {
         OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
-        return "Minimum 1 fire team · Recommended " + resolved.squadsDemanded
-                + (resolved.squadsDemanded == 1 ? " squad" : " squads");
+        int recommendedSquads = MissionForceEnvelope.recommendedSquads(type, resolved);
+        return "Minimum 1 fire team · Recommended " + recommendedSquads
+                + (recommendedSquads == 1 ? " squad" : " squads");
     }
 
     /**

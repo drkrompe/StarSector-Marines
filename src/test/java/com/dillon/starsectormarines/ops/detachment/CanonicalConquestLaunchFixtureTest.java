@@ -42,15 +42,18 @@ class CanonicalConquestLaunchFixtureTest {
             throws Exception {
         assertCanonical("conquest-reinforced-south-v3.json",
                 reinforcedSouth(), DebugCompanyStage.REINFORCED,
+                17,
                 List.of(6, 6, 6, 6, 5, 5));
         assertCanonical("conquest-full-strength-west-v3.json",
                 fullStrengthWest(), DebugCompanyStage.FULL_STRENGTH,
+                34,
                 List.of(12, 12, 11, 11, 11, 11));
     }
 
     private static void assertCanonical(
             String resourceName, BattleLaunchFixture authored,
-            DebugCompanyStage stage, List<Integer> expectedCycles)
+            DebugCompanyStage stage, int expectedSquads,
+            List<Integer> expectedCycles)
             throws Exception {
         String resource = "/battle-fixtures/" + resourceName;
         JSONObject checkedIn;
@@ -81,10 +84,10 @@ class CanonicalConquestLaunchFixtureTest {
                         && shuttle.seatsPerSortie == 6));
 
         List<MarineSeatCommitment> seats = fixture.launch().marineSeats();
-        assertEquals(stage.marines(), seats.size());
-        assertEquals(stage.squads, seats.stream()
+        assertEquals(expectedSquads * MarineSquad.CAPACITY, seats.size());
+        assertEquals(expectedSquads, seats.stream()
                 .map(MarineSeatCommitment::campaignSquadId).distinct().count());
-        assertEquals(stage.squads, seats.stream()
+        assertEquals(expectedSquads, seats.stream()
                 .filter(MarineSeatCommitment::campaignSquadLeader).count());
         assertTrue(seats.stream().allMatch(seat ->
                 seat.campaignSquadStrength() == MarineSquad.CAPACITY));
@@ -95,7 +98,7 @@ class CanonicalConquestLaunchFixtureTest {
                 EnumSet.of(EconomicFunction.HABITATION,
                         EconomicFunction.SPACEPORT),
                 SurfacePalette.ROCK, SettlementLink.ROAD);
-        return fixture("reinforced", 1L, DebugCompanyStage.REINFORCED,
+        return fixture("reinforced", 1L, DebugCompanyStage.REINFORCED, 17,
                 72_112L, false, OperationTier.REINFORCED, RiskLevel.LOW,
                 target, List.of(new FighterWingCommitment(FighterProfile.TALON,
                         Faction.DEFENDER, 1, 15f, 30f)));
@@ -108,23 +111,23 @@ class CanonicalConquestLaunchFixtureTest {
                         EconomicFunction.SPACEPORT),
                 SurfacePalette.ROCK, SettlementLink.ROAD);
         return fixture("full-strength", 4_096L,
-                DebugCompanyStage.FULL_STRENGTH, 95_408L, true,
+                DebugCompanyStage.FULL_STRENGTH, 34, 95_408L, true,
                 OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM,
                 target, List.of());
     }
 
     private static BattleLaunchFixture fixture(
             String identityPrefix, long seed, DebugCompanyStage stage,
-            long companySeed, boolean heavyArmor, OperationTier tier,
+            int squadCount, long companySeed, boolean heavyArmor, OperationTier tier,
             RiskLevel risk, TargetProfile target,
             List<FighterWingCommitment> enemyFighterSupport) {
         MarineRoster roster = DebugCompany.roster(
-                stage, stage.squads, new Random(companySeed));
+                stage, squadCount, new Random(companySeed));
         CampaignMarineDeployment deployment =
                 CampaignMarineDeployment.freezeSelection(
                         roster,
                         new LinkedHashSet<>(DebugCompany.lineSquadIds(roster)),
-                        stage.marines());
+                        squadCount * MarineSquad.CAPACITY);
         List<MarineSeatCommitment> seats = stableIdentities(
                 identityPrefix, deployment.commitments());
         ShuttleArrivalPlan arrival = new ShuttleArrivalPlan(

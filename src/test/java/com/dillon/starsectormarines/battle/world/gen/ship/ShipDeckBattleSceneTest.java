@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.ambient.JobBoard;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -295,9 +297,12 @@ final class ShipDeckBattleSceneTest {
         List<Affordance> idle = bayRotation(deck, graph, List.of());
         assertTrue(idle.containsAll(List.of(Affordance.STOW, Affordance.READOUT)),
                 "an idle bay gave a technician no parts to run and nothing to read: " + idle);
-        assertTrue(!idle.contains(Affordance.SERVICE),
-                "an empty bay put a technician to work servicing a machine that is not there");
 
+        // The room's own claim, and the one that matters: an empty bay offers no
+        // servicing. Asked of the bay rather than of the rotation, because a
+        // shift reaches for its jobs wherever the ship publishes them - a
+        // technician with nothing to weld here walks to the boat bay, which is
+        // the model working rather than the bay inventing work.
         assertEquals(List.of(), servicing(deck, graph, List.of()),
                 "an empty bay published servicing work");
         // Per berth rather than per machine: the fitting stands a technician on
@@ -311,6 +316,48 @@ final class ShipDeckBattleSceneTest {
                 "a full bay does not offer every berth's servicing work");
         assertTrue(bayRotation(deck, graph, List.of(variant)).contains(Affordance.SERVICE),
                 "a machine was parked and no technician's rotation included servicing it");
+    }
+
+    /**
+     * A ship's boat bays are a field, and her crew turn her boats round.
+     *
+     * <p>The bay is registered as an airfield rather than given a shipboard
+     * imitation of one, so the boat standing in a berth, the servicing published
+     * beside it, and the hull that work puts back are the same three things a
+     * garrison apron already has. What this pins is the wiring between them:
+     * boats on the deck, owned by the ship, and a berth that is measurably
+     * better off after her crew have had time with it.
+     *
+     * <p>A whole deck, deliberately, because that wiring is the claim — the
+     * pieces are each covered on their own where they live.
+     */
+    @Test
+    void aShipsCrewTurnHerBoatsRound() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            AirfieldService bays = scene.simulation().getAirfieldService();
+            assertTrue(bays.berths().size() > 1,
+                    "a transport's boat bays registered " + bays.berths().size() + " berths");
+            assertEquals(Faction.MARINE, bays.owner(), "the ship's own bays are not hers");
+
+            scene.manDeck();
+            scene.advanceTo(1f);
+            for (AirfieldService.Berth boat : bays.berths()) {
+                assertTrue(boat.airframeId != 0L
+                                && scene.simulation().world().isAlive(boat.airframeId),
+                        "a bay was registered with nothing standing in it");
+            }
+
+            AirfieldService.Berth hurt = bays.berths().get(0);
+            float whole = scene.simulation().world().maxHp(hurt.airframeId);
+            scene.simulation().world().setHp(hurt.airframeId, whole * 0.4f);
+            scene.advanceTo(121f);
+
+            assertTrue(scene.simulation().world().hp(hurt.airframeId) > whole * 0.4f,
+                    "two minutes of a ship's time put no hull back on her damaged boat");
+        }
     }
 
     /** Only the berths a lance can be stood in. */
