@@ -25,13 +25,8 @@ public class MarineRosterScript implements EveryFrameScript {
         return roster;
     }
 
-    /**
-     * Ensures the one-time starting company exists independently of whichever
-     * company surface the player opens first. Kept on the campaign roster
-     * holder so read-only screens never become the authority that creates it.
-     */
+    /** Ensures structural company state without granting personnel or machinery. */
     public void ensureStartingCompany() {
-        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         roster.reserveSquad();
     }
 

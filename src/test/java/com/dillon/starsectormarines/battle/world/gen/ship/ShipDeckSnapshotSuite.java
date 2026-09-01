@@ -546,12 +546,12 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     }
 
     /**
-     * The lance a new company starts with, straight from the campaign authority
+     * The lance a new company owns, straight from the campaign authority
      * that the Mech Lab screen reads.
      *
      * <p>Deliberately not a hand-written variant list. The point of showing
      * machines in the bay is to see the player's own, so the evidence takes them
-     * from {@link MechBay} and inherits whatever the starter squad becomes.
+     * from {@link MechBay}; a new campaign therefore photographs vacant berths.
      */
     private static List<MechVariant> startingLance() {
         CampaignMechSquad squad = new MechBay().activeSquad();

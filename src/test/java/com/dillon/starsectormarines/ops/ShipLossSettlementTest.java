@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -79,7 +81,11 @@ class ShipLossSettlementTest {
     @DisplayName("the company keeps its designs and its machines, and loses its spares")
     void designsAndMachinesSurviveTheSparesDoNot() {
         MarineRoster roster = company();
+        assertNotNull(roster.mechBay().fabricateChassis(
+                roster.mechBay().activeSquad().id(), MechVariant.BULWARK));
         roster.mechBay().addReplenisher(MissileReplenisherComponent.STANDARD.id(), 4);
+        roster.mechBay().addReplenisher(
+                MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
         int designs = roster.armory().ownedEquipmentTemplateIds().size();
         int machines = roster.mechBay().squads().get(0).mechs().size();
         int doctrines = roster.armory().weaponDoctrines().size();
