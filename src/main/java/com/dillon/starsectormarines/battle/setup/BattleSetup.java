@@ -380,10 +380,15 @@ public final class BattleSetup {
         // Defense posts stamp before sim construction for the same reason —
         // the embankment ring cells flip walkability, and the zone graph the
         // sim builds on construction needs to reflect that.
-        List<DefensePost> defensePosts = new ArrayList<>();
-        DefensePostStamper.stampNonConquest(map.grid, map.topology,
-                RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
-                map.pointsOfInterest, map.doodads, defensePosts, rng);
+        List<DefensePost> defensePosts = new ArrayList<>(map.defensePosts);
+        // A fortified place stated its own emplacements, so the setup-time
+        // scatter is skipped: a second random layer on top of an authored
+        // fortification was never a decision anybody made.
+        if (defensePosts.isEmpty()) {
+            DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                    RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
+                    map.pointsOfInterest, map.doodads, defensePosts, rng);
+        }
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
                 assignments, defensePosts, marineFighterSupport,
@@ -647,10 +652,15 @@ public final class BattleSetup {
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
-        List<DefensePost> defensePosts = new ArrayList<>();
-        DefensePostStamper.stampNonConquest(map.grid, map.topology,
-                RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
-                map.pointsOfInterest, map.doodads, defensePosts, rng);
+        List<DefensePost> defensePosts = new ArrayList<>(map.defensePosts);
+        // A fortified place stated its own emplacements, so the setup-time
+        // scatter is skipped: a second random layer on top of an authored
+        // fortification was never a decision anybody made.
+        if (defensePosts.isEmpty()) {
+            DefensePostStamper.stampNonConquest(map.grid, map.topology,
+                    RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
+                    map.pointsOfInterest, map.doodads, defensePosts, rng);
+        }
         DefenderForcePlan defenders = defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
                 marineFighterSupport, enemyFighterSupport, groundRoster);
