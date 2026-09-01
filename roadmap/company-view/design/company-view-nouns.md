@@ -308,8 +308,9 @@ movement, inspection, and coordination. Every occupied berth publishes two shoul
 two waist, and one head service point, and the torch and sparks project the task's
 authored focus in world space so work lands on the machine or fixture rather than open
 deck. Machines stand at the continuous centre of their exact berth footprint and face
-the room's shared inboard service space while parked; their berth heading remains the
-way out. Those actors are presentation-only and do not create a second schedule, labor,
+cardinally along the berth's long axis toward its mouth and the room's shared inboard
+service lane; that same authored heading remains their way out. Those actors are
+presentation-only and do not create a second schedule, labor,
 inventory, or refit authority. Wide-screen layout is the
 reference composition; narrow and user-scaled layouts retain access through bounded
 scrolling rather than compressing the room until every label is simultaneously visible.

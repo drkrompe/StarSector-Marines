@@ -204,14 +204,13 @@ final class ShipDeckBattleSceneTest {
         }
     }
 
-    /** Parked machines are centred on their exact footprints and presented inboard. */
+    /** Parked machines are centred and face cardinally along each berth's inboard axis. */
     @Test
-    void berthedMachinesAreCentredAndFaceIntoTheBay() {
+    void berthedMachinesAreCentredAndFaceCardinallyIntoTheBay() {
         ShipDeckGenerator generator = new ShipDeckGenerator();
         MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
                 deck, generator.getLastDeckGraph(), SEED, null)) {
-            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
             List<Gantry> berths = machineBerths(scene.gantries());
             List<MechVariant> lance = new ArrayList<>();
             for (int index = 0; index < berths.size(); index++) lance.add(MechVariant.BULWARK);
@@ -228,16 +227,16 @@ final class ShipDeckBattleSceneTest {
                         0.001f, "the machine is not centred across its reserved footprint");
                 assertEquals(berth.worldCenterY(), scene.simulation().world().y(machines[index]),
                         0.001f, "the machine is not centred down its reserved footprint");
-                float dx = bay.left() + bay.width() * 0.5f - berth.worldCenterX();
-                float dy = bay.top() + bay.depth() * 0.5f - berth.worldCenterY();
-                float expected = (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
-                expected = (expected % 360f + 360f) % 360f;
+                float expected = (berth.facing.degrees() % 360f + 360f) % 360f;
                 float actual = entities.getFloat(machines[index],
                         components.MECH_LAYERED_ANIMATION,
                         BattleComponents.MECH_LAYERED_FACING_DEGREES);
                 actual = (actual % 360f + 360f) % 360f;
                 assertEquals(expected, actual, 0.01f,
-                        "the machine in berth " + (index + 1) + " is not facing inboard");
+                        "the machine in berth " + (index + 1)
+                                + " is not facing down its authored inboard axis");
+                assertEquals(0f, actual % 90f, 0.01f,
+                        "the machine in berth " + (index + 1) + " is not cardinally aligned");
                 headings.add(actual);
             }
             assertTrue(headings.size() > 1,
