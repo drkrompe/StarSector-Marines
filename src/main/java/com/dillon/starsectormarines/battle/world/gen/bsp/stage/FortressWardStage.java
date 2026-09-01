@@ -223,7 +223,7 @@ public final class FortressWardStage implements GenStage {
         int lateralRoom = lateralHi - lateralLo + 1;
         if (lateralRoom < MIN_DEPTH) return null;
 
-        int ground = FortressProgram.envelopeArea(FortressProgram.ward());
+        int ground = FortressProgram.ward().envelopeArea();
         int lateral = Math.max(MIN_DEPTH, ceilDiv(ground, depth));
         while (lateral < lateralRoom) {
             int[] candidate = rect(alongY, depthLo, depthHi,
@@ -291,7 +291,7 @@ public final class FortressWardStage implements GenStage {
         // packing slack they start going unplaced, and a base is not worth a
         // third of the fortress.
         int remaining = wardW * wardH - spanX * spanY;
-        if (remaining < FortressProgram.buildingGround(FortressProgram.ward())) return null;
+        if (remaining < FortressProgram.ward().buildingGround()) return null;
 
         boolean citadelLow = citadel != null
                 && (alongY ? (citadel.left + citadel.right) / 2 < (ward[0] + ward[2]) / 2
