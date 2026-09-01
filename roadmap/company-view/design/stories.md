@@ -1,8 +1,8 @@
 # Company view open work
 
-Status: ACTIVE — 10 open stories
+Status: ACTIVE — 9 open stories
 Written: 2026-08-23
-Updated: 2026-08-29 — the battle HUD rollup is folded; C15 remains the Armory
+Updated: 2026-09-01 — C8 is folded and deleted; C15 remains the Armory
 inspect/edit workflow.
 
 Read `company-view-nouns.md` before changing a company-view story.
@@ -13,7 +13,6 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c3-company-card-stack.md` | Planned | Depends on C2; expands the shipped HQ roster area. |
 | `c4-whereabouts-and-deployed-state.md` | Planned | Depends on C2 and C3; derives whereabouts rather than persisting them. |
 | `c6-after-action-by-fireteam.md` | Planned | Depends on shipped deployment identity; coordinate officer outcomes with C13. Its squad attribution is shipped — the frozen `IDENTITY_CAMPAIGN_SQUAD_ID` the squad career fold uses. |
-| `c8-lift-capacity-and-multi-pass-drops.md` | Ready | Slices 1–3 are folded; only explicit safe rejoin for late arrivals remains. |
 | `c11-the-contract-board.md` | Planned | Uses the shipped campaign-map home; owns offers, not obligation clocks. |
 | `c12-the-debug-company.md` | Deferred | Slices 1–2 are folded; combined arms waits for player-side vehicle deployment. |
 | `c13-the-task-force.md` | Partial | Slice 1 is folded; per-officer outcomes and scalable assignment remain. |

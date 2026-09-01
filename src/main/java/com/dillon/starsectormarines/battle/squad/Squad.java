@@ -24,7 +24,9 @@ import java.util.Collection;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.LongPredicate;
 
 /**
@@ -442,6 +444,48 @@ public final class Squad {
     public boolean fireTeamBroken(int teamIndex) {
         FireTeamMorale team = fireTeamMorale.get(Math.max(0, teamIndex));
         return team != null && team.broken;
+    }
+
+    /**
+     * Members closing on this squad rather than executing its plan — the
+     * campaign marines who landed after it stopped forming up and stepped off.
+     * Written on landing and cleared by the marine's own rejoin reflex once it
+     * is back inside cohesion.
+     *
+     * <p>Concurrent because the two writers sit on opposite sides of the tick:
+     * the landing is a serial system pass, the clear happens in the parallel
+     * per-unit dispatch. Empty for every squad that has never had a late
+     * arrival, which is nearly all of them, and {@link #isRejoining(long)}
+     * checks that before it boxes anything.
+     *
+     * <p>A dead member's id may linger here. Harmless by construction — every
+     * reader asks about a unit it is already dispatching — and cheaper than
+     * hooking the death path for a set that is normally empty.
+     */
+    private final Set<Long> rejoining = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Whether {@code unitId} is closing on the squad rather than taking part in
+     * its plan. Pure read, safe from the parallel dispatch, and never creates
+     * an entry.
+     */
+    public boolean isRejoining(long unitId) {
+        return !rejoining.isEmpty() && rejoining.contains(unitId);
+    }
+
+    /** Marks {@code unitId} a late arrival. Called only from the landing path. */
+    public void markRejoining(long unitId) {
+        rejoining.add(unitId);
+    }
+
+    /** Returns {@code unitId} to ordinary membership. Called only from the rejoin reflex. */
+    public void clearRejoining(long unitId) {
+        rejoining.remove(unitId);
+    }
+
+    /** How many members are still closing on the squad. Diagnostics and evidence. */
+    public int rejoiningCount() {
+        return rejoining.size();
     }
     /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
     public float centroidX = 0f;

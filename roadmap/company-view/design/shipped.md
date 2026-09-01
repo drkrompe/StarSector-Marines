@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-29 — folded the scale-invariant battle HUD into the company-view model.
+Updated: 2026-09-01 — folded the late-arrival rejoin state into the company-view and AI models.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -15,3 +15,4 @@ Updated: 2026-08-29 — folded the scale-invariant battle HUD into the company-v
 | `c5-battle-hud-company-rollup.md` | 2026-08-29 | this change | `company-view-nouns.md` — scale-invariant task-force status and selection-scoped squad diagnostics |
 | `c17-the-boat-deck.md` | 2026-09-01 | this change | `company-view-nouns.md` — Boat Deck room, campaign boats, fittings and the boat workshop; `air-nouns.md` — boat pattern versus fitted boat; `ui-nouns.md` — the BOATS page route |
 | `c18-a-lost-boat-is-lost.md` | 2026-09-01 | this change | `company-view-nouns.md` — lost boats, vacant berths, passenger casualties and boat fabrication; `air-nouns.md` — the air-loss ledger |
+| `c8-lift-capacity-and-multi-pass-drops.md` | 2026-09-01 | this change | `company-view-nouns.md` — Lift and arrival: the rejoining late arrival; `ai-nouns.md` — where the rejoin reflex ranks |
