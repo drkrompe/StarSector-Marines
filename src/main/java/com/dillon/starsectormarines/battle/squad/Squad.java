@@ -374,6 +374,13 @@ public final class Squad {
      */
     public DefensePost defensePost;
 
+    /**
+     * The memo behind {@code AttackMove.maneuverAim}: the flank cell this squad
+     * last resolved, so the A* fan-out that resolves one is paid once per squad
+     * per tick rather than once per member. See {@link FlankAimMemo}.
+     */
+    public final FlankAimMemo flankAim = new FlankAimMemo();
+
     // ---- Per-tick cached aggregates ----
     // Refreshed once per sim tick by SquadAlertSystem, so
     // behaviors can read them in O(1) instead of re-walking the unit list.
