@@ -712,6 +712,11 @@ public class BattleSprites {
                 root + "pather-demolition-cannon.png");
         LayeredSpriteCache thermalLance = loadLayeredSprite(
                 root + "lions-guard-thermal-lance.png");
+        LayeredSpriteCache musterAutogun = loadLayeredSprite(root + "muster-autogun.png");
+        LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
+                root + "quarry-breaker-cannon.png");
+        LayeredSpriteCache pioneerRocketCradle = loadLayeredSprite(
+                root + "pioneer-rocket-cradle.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (chassis == null || socketedChassis == null || houndChassis == null
@@ -719,14 +724,17 @@ public class BattleSprites {
                 || linearCannon == null || heavyCannon == null
                 || srm == null || lrm == null || shoulderLaser == null
                 || pulseLaserArm == null || bastionAutocannon == null
-                || demolitionCannon == null || thermalLance == null || flash == null) {
+                || demolitionCannon == null || thermalLance == null
+                || musterAutogun == null || quarryBreakerCannon == null
+                || pioneerRocketCradle == null || flash == null) {
             LOG.warn("BattleSprites: modular mech layers incomplete; legacy heavy-mech sheet remains active");
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
                 houndChassis, siroccoChassis, foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
-                demolitionCannon, thermalLance, flash);
+                demolitionCannon, thermalLance, musterAutogun,
+                quarryBreakerCannon, pioneerRocketCradle, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (MechLivery livery : MechLivery.values()) {
             if (livery == MechLivery.BASE) continue;
@@ -757,11 +765,18 @@ public class BattleSprites {
                 root + "pather-demolition-cannon.png");
         LayeredSpriteCache thermalLance = loadLayeredSprite(
                 root + "lions-guard-thermal-lance.png");
+        LayeredSpriteCache musterAutogun = loadLayeredSprite(root + "muster-autogun.png");
+        LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
+                root + "quarry-breaker-cannon.png");
+        LayeredSpriteCache pioneerRocketCradle = loadLayeredSprite(
+                root + "pioneer-rocket-cradle.png");
         if (chassis == null || houndChassis == null || siroccoChassis == null
                 || arm == null || linearCannon == null || heavyCannon == null
                 || srm == null || lrm == null || shoulderLaser == null
                 || pulseLaserArm == null || bastionAutocannon == null
-                || demolitionCannon == null || thermalLance == null) {
+                || demolitionCannon == null || thermalLance == null
+                || musterAutogun == null || quarryBreakerCannon == null
+                || pioneerRocketCradle == null) {
             LOG.warn("BattleSprites: modular mech livery " + livery
                     + " incomplete; actors using it keep the complete base set");
             return;
@@ -770,7 +785,8 @@ public class BattleSprites {
                 chassis, socketedChassis, houndChassis, siroccoChassis,
                 foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
-                demolitionCannon, thermalLance, flash));
+                demolitionCannon, thermalLance, musterAutogun,
+                quarryBreakerCannon, pioneerRocketCradle, flash));
     }
 
     private void loadLayeredFamily(LayeredArmorFamily familyId, String family,
