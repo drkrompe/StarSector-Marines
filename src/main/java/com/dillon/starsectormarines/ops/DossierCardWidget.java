@@ -157,6 +157,10 @@ public class DossierCardWidget extends BaseWidget {
             sb.append(mission.targetPlanetName);
         }
         if (sb.length() > 0) sb.append("  ·  ");
+        sb.append(mission.tier.displayName).append("  ·  ")
+                .append(mission.tier.squadsDemanded)
+                .append(mission.tier.squadsDemanded == 1 ? " squad" : " squads");
+        sb.append("  ·  ");
         sb.append("$").append(NumberFormat.getIntegerInstance().format(mission.payout));
         int salvage = mission.salvageNegotiated & 0xFF;
         if (salvage > 0) {

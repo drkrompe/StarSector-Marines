@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
+import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -128,6 +129,13 @@ public final class MissionLaunch {
                                 committedPowerSources);
         if (debugMechs != null) det = debugMechs.applyTo(det);
         det = CommandDeck.apply(det, selectedPowerIds);
+        if (MissionForceEnvelope.allowsUnderstrength(m)) {
+            int selectedPersonnel = selectedMarineSeats(ctx);
+            det = new Detachment(
+                    DetachmentResolver.buildShuttleManifestForPersonnel(
+                            m, committedShuttles, selectedPersonnel),
+                    det.marineWings, det.powers);
+        }
 
         // Heavy-armaments availability on the target world drives whether the
         // defender side fields a HEAVY_MECH (see BattleSetup).
@@ -300,6 +308,13 @@ public final class MissionLaunch {
             MarineRoster company = ctx.getDebugCompanyRoster();
             return company != null ? company.lineReadySoldiers().size() : 0;
         }
+        MarineRosterScript personnel = MarineRosterScript.getInstance();
+        if (personnel == null) return 0;
+        return PersonnelReadiness.assessSelection(personnel.roster(),
+                ctx.getSelectedMarineSquadIds(), 0).selectedReady();
+    }
+
+    private static int selectedMarineSeats(MarineOpsContext ctx) {
         MarineRosterScript personnel = MarineRosterScript.getInstance();
         if (personnel == null) return 0;
         return PersonnelReadiness.assessSelection(personnel.roster(),

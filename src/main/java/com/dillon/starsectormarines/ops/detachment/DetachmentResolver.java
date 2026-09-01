@@ -163,6 +163,38 @@ public final class DetachmentResolver {
         return out;
     }
 
+    /**
+     * Keeps employer personnel unchanged while sizing the player's real craft to
+     * the exact named force selected for an understrength ordinary operation.
+     */
+    public static List<ShuttleAssignment> buildShuttleManifestForPersonnel(
+            Mission m, List<ShuttleType> playerShuttles, int playerPersonnel) {
+        if (!MissionForceEnvelope.allowsUnderstrength(m)) {
+            return buildShuttleManifest(m, playerShuttles);
+        }
+        List<ShuttleAssignment> authored = buildShuttleManifest(m, playerShuttles);
+        int employerPhysical = employerPhysicalShipCount(m);
+        List<ShuttleAssignment> out = new ArrayList<>();
+        for (int i = 0; i < Math.min(employerPhysical, authored.size()); i++) {
+            out.add(authored.get(i));
+        }
+
+        int remaining = Math.max(0, playerPersonnel);
+        if (remaining == 0 || playerShuttles == null || playerShuttles.isEmpty()) {
+            return out;
+        }
+        for (int i = 0; i < playerShuttles.size() && remaining > 0; i++) {
+            ShuttleType type = playerShuttles.get(i);
+            int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(type);
+            int passengers = i == playerShuttles.size() - 1
+                    ? remaining : Math.min(remaining, seatsPerSortie);
+            int cycles = (passengers + seatsPerSortie - 1) / seatsPerSortie;
+            out.add(new ShuttleAssignment(type, cycles, seatsPerSortie, passengers));
+            remaining -= passengers;
+        }
+        return out;
+    }
+
     // ---- enemy heavy-armor gate (moved verbatim from the briefing screens) ----
 
     /**
