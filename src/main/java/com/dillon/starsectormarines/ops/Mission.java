@@ -49,9 +49,11 @@ public final class Mission {
      */
     public final List<String>  employerPowerIds;
     /**
-     * Total marine drops the mission needs delivered. With cycling, one
+     * Total landing sorties the mission needs delivered. With cycling, one
      * physical transport can cover multiple drops by flying repeat sorties —
-     * so this is "marines that have to land," not "transports required."
+     * the arrival policy decides whether one sortie holds a full load or a
+     * six-seat Conquest half-squad. This is not a raw marine count or a number
+     * of physical transports.
      * Mission is gated when {@link #employerShuttles} covers all the drops
      * AND the player has zero transports to contribute (i.e., {@code
      * employerShuttles >= requiredDrops || playerTransports >= 1}).

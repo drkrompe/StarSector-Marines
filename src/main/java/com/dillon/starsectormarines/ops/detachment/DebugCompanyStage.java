@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.marine.Rank;
  *
  * <p><b>The top two stages exceed their officer's command cap on purpose.</b>
  * Conquest cycles every selected squad through its reusable descent pair, so
- * the fixture can exercise hundreds of marines while {@code Rank.COLONEL}
+ * the fixture can exercise more than a thousand marines while {@code Rank.COLONEL}
  * tops out at 24 squads. {@link #exceedsCommandCap()} reports that rather than
  * hiding it: the mission ladder has outgrown the command ladder, and the
  * fixture is where that shows up first. Debug missions bypass the cap
@@ -41,19 +41,21 @@ public enum DebugCompanyStage {
             Rank.MAJOR, DebugBilletPlan.HARDENED),
 
     /**
-     * Reinforced for a major contract — seventeen squads, a little over two
-     * hundred marines, at the quality a rapidly-grown company actually
-     * carries. Sized from play: roughly what a CONQUEST at HIGH risk was
-     * reported to need.
+     * Reinforced for a major contract — forty-two squads, five hundred and four
+     * marines. In Conquest this is fourteen paired waves per shuttle across the
+     * three-lane ferry.
      */
-    REINFORCED("Reinforced", 17, 3 * MechSupport.LANCE_SIZE,
+    REINFORCED("Reinforced", MissionForceEnvelope.REINFORCED_CONQUEST_SQUADS,
+            3 * MechSupport.LANCE_SIZE,
             Rank.LT_COLONEL, DebugBilletPlan.HARDENED),
 
     /**
-     * Everything the company has — thirty-four squads, four hundred and eight
-     * marines. Conquest extends its shuttle cycles to carry the entire force.
+     * Everything the company has — eighty-four squads, 1,008 marines. Conquest
+     * delivers the entire force through twenty-eight cycles on each of its six
+     * reusable lane shuttles.
      */
-    FULL_STRENGTH("Full Strength", 34, 6 * MechSupport.LANCE_SIZE,
+    FULL_STRENGTH("Full Strength", MissionForceEnvelope.FULL_STRENGTH_CONQUEST_SQUADS,
+            6 * MechSupport.LANCE_SIZE,
             Rank.COLONEL, DebugBilletPlan.HARDENED);
 
     public final String displayName;
@@ -92,7 +94,7 @@ public enum DebugCompanyStage {
         return values[(ordinal() + 1) % values.length];
     }
 
-    /** One-line briefing summary at a given size: "Reinforced — 17 squads, 204 marines". */
+    /** One-line briefing summary at a given size: "Reinforced — 42 squads, 504 marines". */
     public String summary(int squadCount) {
         int count = Math.max(0, squadCount);
         long marines = (long) count * MarineSquad.CAPACITY;

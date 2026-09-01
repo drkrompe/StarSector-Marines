@@ -22,8 +22,8 @@ import java.util.Set;
  * The organization was multi-officer all along; only the deployment layer was
  * singular, capping a whole operation at one officer's
  * {@code Rank.squadCommandCap}. That is what stopped a company from putting
- * four hundred marines on a CONQUEST at HIGH risk, which authorises forty
- * drops — 480 seats of lift.
+ * a thousand marines into a Full Strength CONQUEST, whose six reusable lane
+ * shuttles each fly twenty-eight six-seat sorties.
  *
  * <p><b>The rule.</b> A selected squad is led by its home officer. A squad
  * with no home officer — the default, since {@code createSquad} assigns none
