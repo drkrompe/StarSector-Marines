@@ -66,7 +66,7 @@ public final class GrownTrunkSkeletonStage implements GenStage {
      * {@link TrunkSkeletonStage#run} solves for its one fixed
      * {@code intersection} rect.
      */
-    private static void paintCrossings(CellTopology topology, List<TrunkPlan.TrunkSegment> trunks) {
+    static void paintCrossings(CellTopology topology, List<TrunkPlan.TrunkSegment> trunks) {
         for (int i = 0; i < trunks.size(); i++) {
             TrunkPlan.TrunkSegment a = trunks.get(i);
             if (!a.horizontal) continue;
@@ -100,7 +100,7 @@ public final class GrownTrunkSkeletonStage implements GenStage {
      * requested flanks fall back to painting the entire band as
      * {@link GroundKind#SIDEWALK}.
      */
-    private static void paintTrunkGround(CellTopology topology, boolean[][] trunkPainted, TrunkPlan.TrunkSegment trunk) {
+    static void paintTrunkGround(CellTopology topology, boolean[][] trunkPainted, TrunkPlan.TrunkSegment trunk) {
         int flank = trunk.kind.sidewalkFlankWidth;
         int bandWidth = trunk.horizontal
                 ? (trunk.bottom - trunk.top + 1)
@@ -138,7 +138,7 @@ public final class GrownTrunkSkeletonStage implements GenStage {
      * already marked in {@code trunkPainted} so a road that clips a
      * hinterland rect still wins.
      */
-    private static void paintHinterland(CellTopology topology, boolean[][] trunkPainted, List<SubRect> hinterland) {
+    static void paintHinterland(CellTopology topology, boolean[][] trunkPainted, List<SubRect> hinterland) {
         for (int i = 0; i < hinterland.size(); i++) {
             SubRect rect = hinterland.get(i);
             for (int y = rect.y0; y <= rect.y1; y++) {

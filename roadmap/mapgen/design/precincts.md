@@ -214,6 +214,38 @@ rather than per-cell random for the same reason it is there: per-cell noise
 gives a fringe on a diamond, where a coherent field bends the outline into lobes
 and bays. Each precinct gets its own field so two places do not bulge alike.
 
+## Connectedness is solved for, not hoped for
+
+Growth joins two places only by accident: an arm stops when it runs into an
+existing band, so precincts whose networks run near each other without touching
+stay separate road systems. Measured over four derived maps, three came out
+already whole and one came out **in three pieces** — an intermittent structural
+fault, invisible in a picture and severe for anything that drives.
+
+`PrecinctInterconnect` labels the components, floods the ground between them
+from all of them at once, and takes the cheapest meeting point between each pair
+in increasing order until one network remains. That is a minimum spanning tree
+over the components, so a three-piece map gains two links rather than three, and
+a whole one is not cut at all. Each side of a link is walked back along the
+flood's own parent pointers, so it bends around what the flood bent around; a
+straight link would be quicker to write and would drive through buildings.
+
+## The partition must be handed one place's parcels, not the map's
+
+`GrownTrunkPlan.grow` returns sub-rects decomposed from frontage across the
+whole map. Handed to `BspPartitionStage` as-is, every cell near any road becomes
+a parcel and the fill builds city over everything — measured, four places
+rendered as one continuous conurbation with a ragged edge, 616 points of
+interest and no visible boundary between a town, a garrison and two hamlets. The
+claims had been computed and then ignored.
+
+The skeleton stage now decomposes each zoned precinct's own claimed ground and
+hands the partition only that; unclaimed ground becomes hinterland. A programmed
+precinct is left out entirely, because its interior is packed from authored
+footprints rather than subdivided, and handing it to BSP fills it with ordinary
+city before the packer ever sees it. The same map then renders as four places
+with country between them, at 339 points of interest.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
