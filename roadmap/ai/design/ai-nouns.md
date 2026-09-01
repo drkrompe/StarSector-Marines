@@ -4,8 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — berth-bound work is a round of the machines, so a crew
-comes round to every stand in its room instead of pinning one each.
+Updated: 2026-09-01 — a workplace is bounded by its own trade rather than by
+the scarcest thing on the rotation, and berth-bound work is a round of the
+machines, so a crew comes round to every stand in its room instead of pinning
+one each.
 
 Earlier 2026-09-01 — an order that names a room may now close its own firing
 gap, contained to that room rather than excluded from the improvement outright.
@@ -341,10 +343,27 @@ How many a posting holds is two different questions and the purpose decides
 which. **A berthing holds its beds**: a bunkroom with nine racks and two lockers
 quarters nine people who occasionally wait for a locker, and reading it as
 quartering two empties a ship of three quarters of her complement to spare a
-queue nobody would ever see. **A workplace holds what it can keep busy**, which
-is its scarcest job: a bay with eight berths and one terminal cannot occupy eight
-technicians on a rotation that includes the terminal, and pretending otherwise
-puts seven of them in a line.
+queue nobody would ever see. **A workplace holds what its own trade can keep
+busy** — a bay of eight berths holds the hands its berths can occupy, and the
+one terminal in the corner has no vote.
+
+That last clause was the other way round for a while: capacity was the
+*scarcest* job on the rotation, on the reasoning that eight technicians cannot
+work a rotation that includes a single terminal without seven of them queueing
+for it. The arithmetic is right and the conclusion is not, because nobody
+queues — a full job is passed over rather than waited at, so a technician who
+finds the terminal taken goes to a machine instead. It cost an airfield most of
+its ground crew: twelve places to service aircraft, six boards to read them off,
+and the boards decided, so a field that could occupy twelve hands stood six and
+the number the caller asked for was silently reduced by a fact about signage.
+The same reasoning already excused a circuit from the bound; this is that
+reasoning applied to the rest of the rotation.
+
+What still bounds a workplace is its trade, which is a real bound and not an
+absence of one — two stands are two machines' worth of work however many
+terminals are bolted to the wall. And the caller's own watch size still applies
+on top, because a garrison's field is meant to be short-handed: what an aircraft
+waits for is its turn.
 
 Where somebody is **based** is likewise not everywhere their loop reaches, nor
 everywhere they work. A role is based where its **trade** is — the first of its
