@@ -102,10 +102,18 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * and has no drain outside a live context. Nothing is lost — a deck that has
      * not been fought over has no bullet holes in it — but a boarding action
      * drawn to an image would notice, so this is a real bound and not a taste.
+     *
+     * <p>Aircraft are here for the half of a boat's life the unit pass does not
+     * cover. A boat standing in its berth is an ordinary unit aboard and draws
+     * with the rest of them; a boat that has left it is an aircraft, and
+     * without this layer it would vanish off the whole-ship view the moment it
+     * lifted and be back in its bay when it landed. The Boat Deck draws both
+     * for the same reason, and a view of the whole ship is the one place a
+     * turnaround can be watched from end to end.
      */
     public static final EnumSet<RenderLayer> DECK_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.VEHICLES,
-            RenderLayer.DOODADS, RenderLayer.UNITS);
+            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES);
 
     /**
      * Most a single {@link #advanceTo} will actually run, however far the clock
