@@ -4,8 +4,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — a selected Marine infantry squad can be contextually
-ordered to secure an uncaptured compound through `MARINE_HELD` completion.
+Updated: 2026-09-01 — Full Strength now authors eighty-four squads / 1,008
+marines into one three-lane battle through the existing six-shuttle ferry.
 
 Earlier 2026-08-29 — a mission now states the map features it requires and a
 map that falls short is re-rolled rather than played.
@@ -68,8 +68,11 @@ the resulting disadvantage, while campaign economy remains free to let a
 wealthy player commit more.
 
 Defender intensity and mission lift demand are separate expressions of
-Conquest scale. Raising the population of the siege does not claim that the
-briefing, carrier, or meta layer must provide proportionally more drops.
+Conquest scale. Live play establishes the current Full Strength assault envelope
+at eighty-four squads / 1,008 marines against the nominal 630-defender siege,
+rather than deriving it arithmetically from that initial population. Reinforced
+Conquest is forty-two squads / 504 marines. The briefing and lift gate state
+those authored commitments honestly.
 
 ## Arrival doctrine
 
@@ -82,7 +85,9 @@ three drop zones with one dedicated pair per zone. Each pair approaches the
 area's two distinct berths, leaves after every drop, re-arms off-map, and
 reuses those berths for later squads. Initial launch and re-arm variance are
 seeded construction facts, so craft do not fly in lockstep while fixture
-replays remain deterministic. The authored drop demand is a minimum
+replays remain deterministic. Full Strength authors 168 six-seat half-squad
+sorties, balanced as twenty-eight cycles on each of the six Aeroshuttles, so all
+1,008 named marines enter the one battle. The authored drop demand is a minimum
 commitment, not a ceiling: every selected campaign or debug squad is added to
 the cycle plan instead of remaining in an implicit orbital reserve.
 Their passengers join one twelve-marine ground squad, form up before executing

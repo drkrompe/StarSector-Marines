@@ -74,18 +74,18 @@ class ConquestArrivalPlanTest {
     }
 
     @Test
-    void selectedConquestCompanyBeyondFormerDebugCeilingBalancesEverySquad() {
+    void thousandMarineConquestBalancesEverySquadAcrossSixLaneShuttles() {
         ShuttleArrivalPlan plan = new ShuttleArrivalPlan(
                 MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0);
 
         ShuttleArrivalPlan.ResolvedManifest resolved = plan.resolveManifest(
-                List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 40, 6)),
-                41 * 12);
+                List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 168, 6)),
+                84 * 12);
 
         assertEquals(6, resolved.assignments().size());
-        assertEquals(List.of(14, 14, 14, 14, 13, 13), resolved.assignments().stream()
+        assertEquals(List.of(28, 28, 28, 28, 28, 28), resolved.assignments().stream()
                 .map(assignment -> assignment.cycles).toList());
-        assertEquals(41 * 12, resolved.assignments().stream()
+        assertEquals(84 * 12, resolved.assignments().stream()
                 .mapToInt(assignment -> assignment.cycles
                         * assignment.seatsPerSortie)
                 .sum());
@@ -96,9 +96,9 @@ class ConquestArrivalPlanTest {
                 FlybyRoster.EMPTY, plan)) {
             List<ShuttleMission> launched = missions(sim);
             assertEquals(6, launched.size());
-            assertEquals(List.of(14, 14, 14, 14, 13, 13), launched.stream()
+            assertEquals(List.of(28, 28, 28, 28, 28, 28), launched.stream()
                     .map(mission -> mission.totalCycles).toList());
-            assertEquals(41 * 12, launched.stream()
+            assertEquals(84 * 12, launched.stream()
                     .mapToInt(mission -> mission.totalCycles
                             * mission.seatsPerSortie)
                     .sum());

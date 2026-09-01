@@ -329,9 +329,10 @@ public class BriefingScreen implements Screen {
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Operation Scale",
                 labelX, y, LABEL_COLOR));
+        int recommendedSquads = MissionForceEnvelope.recommendedSquads(m);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                m.tier.displayName + " · recommends " + m.tier.squadsDemanded
-                        + (m.tier.squadsDemanded == 1 ? " squad" : " squads"),
+                m.tier.displayName + " · recommends " + recommendedSquads
+                        + (recommendedSquads == 1 ? " squad" : " squads"),
                 valueX, y, VALUE_COLOR));
         y -= ROW_GAP;
 
@@ -488,8 +489,9 @@ public class BriefingScreen implements Screen {
             String personnelLine = MissionForceEnvelope.allowsUnderstrength(m)
                     ? readiness.selectedReady() + " ready · minimum "
                             + readiness.requiredSeats() + " · recommend "
-                            + m.tier.squadsDemanded
-                            + (m.tier.squadsDemanded == 1 ? " squad" : " squads")
+                            + MissionForceEnvelope.recommendedSquads(m)
+                            + (MissionForceEnvelope.recommendedSquads(m) == 1
+                                    ? " squad" : " squads")
                     : readiness.selectedReady() + "/" + readiness.requiredSeats()
                             + " selected · " + readiness.companyReady()
                             + " company · " + readiness.selectedShortfall() + " short";

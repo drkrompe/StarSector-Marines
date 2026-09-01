@@ -56,7 +56,7 @@ class AirframeCookOffSystemTest {
     private static long parkedAircraft(BattleSimulation sim, int x, int y, Airframe airframe) {
         sim.getAirfieldService().addBerth(
                 LandingPad.garrison(x, y, LandingPad.Approach.SOUTH), airframe, 0f);
-        new AirfieldSystem(Faction.DEFENDER)
+        new AirfieldSystem()
                 .tick(BattleSimulation.TICK_DT, sim, sim.getAirfieldService());
         List<AirfieldService.Berth> berths = sim.getAirfieldService().berths();
         return berths.get(berths.size() - 1).airframeId;

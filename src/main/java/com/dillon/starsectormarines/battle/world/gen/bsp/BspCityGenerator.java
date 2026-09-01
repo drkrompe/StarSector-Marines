@@ -52,6 +52,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctSkeletonStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
@@ -126,6 +129,8 @@ public final class BspCityGenerator implements MapGenerator {
 
     /** Diamond defense-station recipe — cardinal ports converging inward to a besieged core. Selected via {@link #generateDiamondStation}. */
     private final GenRecipe diamondStationRecipe;
+
+    private PrecinctPlan precinctOverride;
 
     public BspCityGenerator() {
         // Default every kind to a stub. Real fillers replace these via
@@ -231,6 +236,11 @@ public final class BspCityGenerator implements MapGenerator {
      */
     private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
                                         GenStage landingLinkStage) {
+        return buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage, null);
+    }
+
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
+                                        GenStage landingLinkStage, GenStage wardStage) {
         return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -244,6 +254,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new FillDispatchStage(fillers, compoundFillers), // Step 3
                 hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
                 new PedestrianFrameStage(),                 // Step 3a'
+                wardStage,                                  // Step 3b'' precinct-only; null omits it
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
@@ -348,6 +359,16 @@ public final class BspCityGenerator implements MapGenerator {
      *
      * @return this, for chaining
      */
+    /**
+     * Build this map out of the places in {@code plan} rather than as one
+     * settlement. The comparison and authoring path for {@code precincts.md};
+     * no campaign battle reaches it.
+     */
+    public BspCityGenerator usePrecincts(PrecinctPlan plan) {
+        this.precinctOverride = plan;
+        return this;
+    }
+
     public BspCityGenerator useGrownRoads(GrownTrunkPlan.Profile profile) {
         this.grownOverride = profile;
         return this;
@@ -389,6 +410,15 @@ public final class BspCityGenerator implements MapGenerator {
                 : null;
     }
 
+    /**
+     * A map made of several places rather than one settlement. Reached only
+     * through an explicit {@link #usePrecincts}; nothing derives it yet.
+     */
+    private GenRecipe precinctRecipe(PrecinctPlan plan) {
+        return buildLegacyRecipe(new PrecinctSkeletonStage(plan),
+                new HinterlandFillStage(), null, new PrecinctWardStage());
+    }
+
     private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
         return buildLegacyRecipe(new GrownTrunkSkeletonStage(profile),
                 new HinterlandFillStage(), landingLinkStageFor(profile));
@@ -422,6 +452,7 @@ public final class BspCityGenerator implements MapGenerator {
      * density the campaign would never choose.
      */
     private GenRecipe recipeFor(TraversalAxis axis, TargetProfile profile) {
+        if (precinctOverride != null) return precinctRecipe(precinctOverride);
         if (axis != null) {
             return grownOverride == null ? conquestRecipe : grownConquestRecipe(grownOverride);
         }
