@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
+import com.dillon.starsectormarines.battle.world.gen.PatchField;
+
 import java.util.Random;
 
 /**
@@ -63,6 +65,14 @@ import java.util.Random;
  */
 public final class NatureZoneFiller implements BlockFiller {
 
+    /**
+     * Patch size for the base-ground field, in cells. Sized against a leaf
+     * rather than against the map: leaves here run from about 5 cells to the
+     * low twenties, so a patch wants to be a feature within one rather than
+     * larger than most of them.
+     */
+    private static final float PATCH_CELLS = 6f;
+
     private final BlockKind kind;
 
     public NatureZoneFiller(BlockKind kind) {
@@ -86,7 +96,7 @@ public final class NatureZoneFiller implements BlockFiller {
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         SurfacePalette palette = (profile == null) ? null : profile.surface();
         FillerParams params = (mapping == null) ? null : mapping.fillerParams(kind, palette);
-        paintBase(leaf, grid, topology, rng, params);
+        paintBase(leaf, grid, topology, rng, params, new PatchField(ctx.seed, PATCH_CELLS));
         TileRegistry reg = TileRegistry.installed();
         // Overlays need both the tile defs (TileRegistry) and the pools/chances
         // (FillerParams). Skip them if either is unavailable — base ground is still
@@ -100,15 +110,15 @@ public final class NatureZoneFiller implements BlockFiller {
      * GroundKind — water cells are flipped to non-walkable + see-through;
      * everything else stays walkable.
      */
-    private void paintBase(BlockLeaf leaf, NavigationGrid grid,
-                           CellTopology topology, Random rng, FillerParams params) {
+    private void paintBase(BlockLeaf leaf, NavigationGrid grid, CellTopology topology,
+                           Random rng, FillerParams params, PatchField patches) {
         if (kind == BlockKind.NATURE_WETLAND) {
             paintWetlandBase(leaf, grid, topology, rng);
             return;
         }
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
-                GroundKind g = pickBaseGround(rng, params);
+                GroundKind g = pickBaseGround(patches.sample(x, y), params);
                 topology.setGroundKind(x, y, g);
                 grid.setWalkableFloor(x, y);
             }
@@ -120,9 +130,9 @@ public final class NatureZoneFiller implements BlockFiller {
      * data-driven weighted ground pool. The {@code params == null} fallback (no
      * registry — degraded) paints the kind's dominant ground uniformly.
      */
-    private GroundKind pickBaseGround(Random rng, FillerParams params) {
+    private GroundKind pickBaseGround(float roll, FillerParams params) {
         GroundKind dominant = (kind == BlockKind.NATURE_GRASSLAND) ? GroundKind.GRASS : GroundKind.SAND;
-        return (params == null) ? dominant : params.pickGround(rng, dominant);
+        return (params == null) ? dominant : params.pickGround(roll, dominant);
     }
 
     /**

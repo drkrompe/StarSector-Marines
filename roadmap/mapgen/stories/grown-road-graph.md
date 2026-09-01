@@ -5,9 +5,8 @@ Conquest keeps the stock crossroad. The `BiomeKind` question is what remains.
 
 Written: 2026-08-30
 
-Updated: 2026-08-31 — density collapsed to `Profile.of(density)` and measured
-monotonic; the zoning concern retracted as unfounded; the hinterland now dressed
-by `HinterlandFillStage`.
+Updated: 2026-09-01 — the class ladder gained its third rung, taking the plan's
+paved share from 47% to 38%; wild ground now draws from a coherent field.
 
 ## What this is
 
@@ -57,15 +56,41 @@ staggered junctions, streets that do not run edge to edge — and carries more
 content (seed 777: 175 doodads against 174; seed 42: 172 against 151). `town`
 and `hamlet` produce genuine settlement with open country around it.
 
+## The class ladder reaches a back street
+
+Every arm below the first branch used to be drawn as a width-5 cross-street,
+because `TrunkKind` had exactly two values and the stock plan — which lays
+exactly two trunks — needed exactly two. Applied to a graph of twenty-five
+junctions that meant the plan alone paved 47% of an 80x80 map before BSP frames
+or any filler ran, against the stock crossroad's 19%, and the city read as
+buildings marooned in a continuous grey plane.
+
+A third rung at width 3 — `Bsp.ROAD_WIDTH_MIN`, the same floor the BSP frames
+already use — takes that to 38%. Measured on the plan's own mask over twenty
+seeds at 80x80: two rungs 33–54%, three rungs 27–46%. The end-to-end reading on
+the full generator over four seeds moves with it — street share 57.8% to 53.2%,
+and the share of street cells further than 2 cells from anything that is not
+street, which is to say wider than any road the partition may carve, 28.0% to
+18.5%. Seed 42 gains buildings rather than merely losing road: interior cells
+142 to 462, POIs 19 to 26, doodads 191 to 214.
+
+The distributions overlap per seed, so `GrownTrunkClassLadderTest` states the
+mean rather than a per-seed cap, and says why in its own Javadoc.
+
 ## What is not right yet
 
-**Hinterland terrain is noise, not landscape.** `HinterlandFillStage` dresses it
-now, but the ground pick is one independent `rng` draw per cell against an
-80/15/5 grass/dirt/sand weighting, so dirt appears as isolated speckles rather
-than as coherent patches. It reads as rough ground at map zoom and as static
-close up. Two things are missing and both are real work: a spatially coherent
-field to drive the pick, and edge frames — the nature sheet has none, so any
-grass/dirt boundary is a hard cell edge whatever chooses it.
+**Hinterland terrain has its patches and still has no edges.** The pick now
+draws against a `PatchField` rather than an independent roll per cell, so the
+minority grounds arrive as patches of bare earth and sand rather than as
+speckle: on a verdant world, neighbouring wild cells agree 93% of the time
+against 69% before, with the authored mix unchanged to a tenth of a point. The
+palettes whose pool is dominated by one ground — rock, arid, frozen — are
+untouched by construction, which is why the measurement has to be taken on a
+verdant world to say anything at all.
+
+What is still missing is edge frames: the nature sheet has none, so a
+grass/dirt boundary is a hard cell edge whatever chooses it. Patches make that
+*more* visible than speckle did, since there is now a boundary to notice.
 
 **There are no trees.** The whole plant vocabulary is `nature.shrub-1..3` and
 `nature.tuft-1..3` on the sliced nature sheet, all `validOn` grass, and there
