@@ -180,7 +180,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,player-order,point-defence,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,firing-line,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,player-order,point-defence,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
@@ -519,6 +519,7 @@ The discovered suite ids and default output directories are:
 | `ships-boats` | One hull's own boats: a bay with its rank of shuttles, every bay ringed with the door it launches through, and an animated turnaround — a boat leaving its berth, the berth standing empty, and the boat home again | `build/snapshots/ships-boats/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
 | `ui` | Marine Ops screens at authored viewport sizes, including the scale-invariant battle task-force plate and MLX command rail | `build/snapshots/ui/` |
+| `firing-line` | Two animated loops of six marines in column in a corridor: the file shooting through its own men, and the same file stepping a cell out of each other's lanes. The acceptance for the friendly-lane step-aside | `build/snapshots/firing-line/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 | `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
@@ -771,6 +772,40 @@ mission it masks while it stands. The release now asks
 records the handback at tick 600 with the mission replanned on that same tick
 and the squad 15.7 cells further east by the end; under fire it hands back at
 590. Every verdict passes, and the bar was not moved to get there.
+
+`FiringLineScene` is the eighth: six marines in column in a corridor, four
+defenders at the end of it, and one question — does a marine with his own man in
+front of him step out of the lane instead of shooting through him? It is the
+acceptance for `LaneSidestep`, the third measured attempt at a fault the
+decision side had never asked about at all: every line test bottoms out in the
+navigation grid, which holds terrain and no units, while the ballistic model has
+always given a friendly met before the target about a third of a chance of
+catching the round. Two earlier attempts answered it by switching target and
+both lost Conquest captures; this one steps aside instead.
+
+**A corridor three cells wide answers the question by removing the option.**
+That was the first version, and it looks right — a file down the middle with a
+lane either side of it. It recorded not one sidestep in nine hundred ticks. A
+firing lane is a cell and a half of half-width, so leaving one takes more than a
+cell of lateral movement, and three cells offer exactly one. The reading — no
+sidesteps, identical friendly fire in both loops — was indistinguishable from a
+reflex that did not work. Five cells is the narrowest passage in which stepping
+aside is a move that exists.
+
+**The standing firing line holds no pursuit target, which is the other thing it
+found.** A planted squad runs `OverwatchPosture`, which deliberately sets no
+`COMBAT_TARGET_ID` and leaves the shooting to the dispatcher's opportunity pass.
+A reflex gated on the pursuit target alone could therefore never fire in the
+case it was written for. The registered threat is the persistent answer — the
+firing system will not let a round go until it matches — and asking for it is
+what made the scene say anything at all.
+
+What it records: the control puts 5.9 HP into its own men and the subject puts
+none, both loops land the identical 100.0 HP on the enemy, and all six marines
+are alive at the end of both. Four sidesteps carry the whole difference. What
+Conquest records is the opposite: reinforced-south takes 4 compounds with it on
+against 14 with it off, so the reflex ships **off** behind
+`battle.infantry.laneSidestep` and the scene turns it on for its own loop.
 
 **A scene answers rather than merely records.** A `BehaviorScene` returns one
 `SceneReport` per loop — its verdicts and the readings they were judged from —

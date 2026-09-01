@@ -5,7 +5,9 @@
  * <br>Charter:  the infantry GOAP composer ({@code GoapInfantryBehavior})
  *           and its disjoint goal/posture/action set, the marine's declared
  *           reflex chain ({@code InfantryReflexes} — the ordered interrupts
- *           that pre-empt the plan step, whose order is a pinned law),
+ *           that pre-empt the plan step, whose order is a pinned law, and
+ *           whose last entry is the {@code LaneSidestep} step-aside that
+ *           moves a marine out of a squadmate's line of fire),
  *           combatant behavior
  *           ({@code CombatantBehavior}), cohesion + prep
  *           ({@code InfantryCohesion}, {@code InfantryUnitPrep}), marine

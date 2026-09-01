@@ -22,7 +22,7 @@ import java.util.List;
  * the step itself: a committed aim finishes before anything else is considered,
  * grenade evasion outranks a shot of opportunity, and a marine whose fire team
  * has broken peels to cover instead of executing a step he is no longer in the
- * pool for. {@code InfantryReflexOrderTest} states that list literally; changing
+ * pool for, rather than adjusting his firing position on the way out. {@code InfantryReflexOrderTest} states that list literally; changing
  * it is a behaviour change to be measured, not a tidy-up.
  *
  * @see com.dillon.starsectormarines.battle.mech.MechReflexes the same shape for a lance
@@ -154,6 +154,28 @@ public final class InfantryReflexes {
         }
     };
 
+    /**
+     * A marine with one of his own in his firing lane moves a cell rather than
+     * shooting through them or picking somebody else to shoot at.
+     *
+     * <p>Last, and below {@link #BROKEN_FIRE_TEAM} on purpose: a marine whose
+     * fire team has broken is leaving, not adjusting his firing position, and
+     * the two would otherwise fight over the same tick with the smaller
+     * question winning. It is the lowest-ranked reflex because it is the least
+     * urgent thing on this list — nothing here is about to kill him — and
+     * because everything above it is about a shot or a hazard already in
+     * flight.
+     *
+     * @see LaneSidestep for what it will and will not trade to clear the lane
+     */
+    public static final Reflex LANE_SIDESTEP = new Reflex() {
+        @Override public String name() { return "LANE_SIDESTEP"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return LaneSidestep.stepOutOfLane(unit, sim);
+        }
+    };
+
     /** The marine's reflex chain, highest priority first. */
     public static final List<Reflex> CHAIN = List.of(
             COMMITTED_AIM,
@@ -163,12 +185,22 @@ public final class InfantryReflexes {
             OPPORTUNITY_SPECIAL,
             HARDENED_OPPORTUNITY,
             ONSET_SCREEN,
-            BROKEN_FIRE_TEAM);
+            BROKEN_FIRE_TEAM,
+            LANE_SIDESTEP);
 
     /**
      * The chain up to but excluding {@link #BROKEN_FIRE_TEAM} — the prefix that
      * needs no squad state and is therefore askable of a lone marine.
      * {@code GoapInfantryBehavior.prepareForAction} is its one caller.
+     *
+     * <p>{@link #LANE_SIDESTEP} is outside it too, and not because it wants a
+     * squad. Its one caller is a coordinated action that owns where the marine
+     * is standing for the length of a bound; a reflex that walks him two cells
+     * to clear a lane would be a second author of the same movement, and the
+     * bound is the one that knows where the marine is supposed to end up.
+     * Written as an index rather than {@code size() - 1} so appending the next
+     * reflex cannot silently readmit the broken-fire-team peel here.
      */
-    static final List<Reflex> PREPARATION_CHAIN = CHAIN.subList(0, CHAIN.size() - 1);
+    static final List<Reflex> PREPARATION_CHAIN =
+            CHAIN.subList(0, CHAIN.indexOf(BROKEN_FIRE_TEAM));
 }
