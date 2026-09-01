@@ -1019,6 +1019,30 @@ alone says nothing about what the contact is, whether it can be safely walked
 past, or whether somebody is already answering it. It stays behind
 `battle.squad.contactDrill` for the next attempt at that trigger.
 
+**Preferring a target you are not shooting your own man to reach is likewise
+built, measured, and off.** Nothing on the decision side had ever asked whether
+a friendly stood in the lane — every line test bottoms out in the navigation
+grid, which holds terrain and no units — while the ballistic model had always
+answered from the round's side, giving a friendly met before the target about a
+third of a chance of catching it at half damage. So a marine with a squadmate in
+front read its lane as clear and fired into their back indefinitely. Against a
+control on the same tree, preferring the clean shot cost the reinforced-south
+fixture four of its fourteen captures and four of its eleven held compounds, and
+killed 56 fewer defenders while losing more marines.
+
+The reason is worth keeping whatever is tried next. **A blocked lane usually
+means a squadmate is between this marine and the enemy the squad is already
+engaging**, which is a firing line working correctly; moving somebody onto a
+different target breaks up concentrated fire, and concentration is what kills.
+The weight was not the problem — reduced to a pure tiebreak between near-equal
+targets it reproduced almost the whole loss — so this is not a constant wanting
+tuning. What the measurement does not condemn is the lane test itself, and the
+likelier answer is a different verb: **step aside rather than switch**, which
+keeps the squad's fire concentrated and stops shooting its own man, where
+retargeting trades the second for the first. It stays behind
+`battle.targeting.friendlyLanePenalty`, and the geometry it would be built on is
+shared with the mech overwatch position search rather than restated.
+
 Two laws survived the attempt and are worth keeping whatever the trigger
 becomes. **A forced commit must not outlive its cause**: setting the commit flag
 every tick a contact stands there defeats the hysteresis underneath it, so an
