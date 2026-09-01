@@ -110,9 +110,11 @@ public final class World {
     public boolean hasPosition(long id) { return entityWorld.has(id, components.POSITION); }
 
     public float x(long id) {
-        if (entityWorld.has(id, components.POSITION)) {
-            return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
-        }
+        // One location probe rather than has()+getFloat()'s two: this is the
+        // most-read accessor in the sim and the pair showed up in a profile.
+        // NaN is the sentinel because no live position can be one.
+        float px = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X, Float.NaN);
+        if (!Float.isNaN(px)) return px;
         GroundBody body = groundBody(id);
         if (body != null) return body.x;
         // POSITION is checked above, so a drone — which carries both a cell and
@@ -122,9 +124,8 @@ public final class World {
         return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
     }
     public float y(long id) {
-        if (entityWorld.has(id, components.POSITION)) {
-            return entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
-        }
+        float py = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y, Float.NaN);
+        if (!Float.isNaN(py)) return py;
         GroundBody body = groundBody(id);
         if (body != null) return body.y;
         AirBody flier = kinematics(id);
