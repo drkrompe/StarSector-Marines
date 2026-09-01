@@ -38,7 +38,7 @@ class WardAirbasePlacementTest {
         AirbaseLot.Facing facing = AirbaseLot.Facing.of(AXIS);
         int spanX = AirbaseLot.reservedSpanX(AirbaseLot.Size.FIELD, facing);
         int spanY = AirbaseLot.reservedSpanY(AirbaseLot.Size.FIELD, facing);
-        int needed = FortressProgram.buildingGround(FortressProgram.ward());
+        int needed = FortressProgram.ward().buildingGround();
         // Wide enough for the lot plus the buildings' ground at this depth.
         int width = spanX + ceilDiv(needed, spanY) + 4;
         return new int[]{ 10, 10, 10 + width - 1, 10 + spanY - 1 };

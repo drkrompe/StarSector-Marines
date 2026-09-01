@@ -1,6 +1,7 @@
 # Fortress-first conquest
 
-Status: IN PROGRESS — the ward is being separated from the band that placed it.
+Status: IN PROGRESS — the ward is separated from the band that placed it and
+the program is asked for; the district itself is next and must be grown.
 
 Written: 2026-09-01
 
@@ -66,15 +67,48 @@ Splitting that is the first slice and it changes no output: the band becomes one
 supplier of a rect among others, and conquest keeps passing the same rect it
 computes today.
 
+## The fortress is grown too, and the wall comes last
+
+The trap in this story is to move the fortress around while leaving it the
+shape it has: a rectangle, packed inside a rectangular envelope, with a wall
+stamped around the rectangle. That would put an organic city around a
+rectilinear keep and make the fortress the least interesting thing on the map —
+the exact inversion of what a conquest climax should be.
+
+**The district is grown with the same junction-graph growth the city uses, and
+the fortification wall is then drawn around what grew.** That is the order
+`compound-programs.md` already argues for in its own terms — interior first,
+wall second, the wall a consequence rather than a frame — carried one level up
+from a building program to a whole district.
+
+This is a smaller change than it sounds, because **the packer is already
+shape-agnostic**. `FortressInterior.pack` takes a buildable mask and a
+circulation mask, not a rectangle; `Bounds.of` reads its extent off the mask.
+The rectangle enters only through `wardRect`. So growing the fortress means
+handing the packer the grown district's own masks — its arms as circulation,
+what the arms left as buildable — instead of a rect and its cut roadways.
+
+Three things fall out of that order rather than needing to be built:
+
+- **The wall follows the fortress.** Its envelope is the outline of what grew,
+  so it is irregular, and its kill-zone buffer is measured from real structure.
+- **The gates are where the arteries already are.** A grown arm that runs out
+  of the district crosses the wall line exactly once; that crossing is a gate,
+  rather than a gate being placed and a road then being found for it.
+- **The arteries out are the arms themselves**, continued into the city growth
+  beyond, which is what makes them drivable end to end rather than a corridor
+  reserved after the fact.
+
 ## Slices
 
 | # | Slice | State |
 |---|---|---|
-| 1 | The ward is told where it goes; band derivation becomes one supplier | in progress |
-| 2 | The program is asked for, and may ask for none or many of a facility | |
-| 3 | A map scale sized for a fortress with a city around it | |
-| 4 | The city grows from the fortress's gates, on an authored number of sides | |
-| 5 | Arteries out of each gate, drivable, joined to the grown network | |
+| 1 | The ward is told where it goes; band derivation becomes one supplier | done |
+| 2 | The program is asked for, and may owe none or many of a facility | done |
+| 3 | The district is **grown**, and the packer is handed its masks rather than a rect | next |
+| 4 | The wall is drawn around what grew; gates are where the arms cross it | |
+| 5 | The city grows outward from those gates, on an authored number of sides | |
+| 6 | A map scale sized for a fortress with a city around it | |
 
 ## Constraints
 
