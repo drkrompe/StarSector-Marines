@@ -72,6 +72,7 @@ public final class CompanyHqScreen implements Screen {
                 this::onBarracks,
                 this::onArmory,
                 this::onMechLab,
+                this::onBoatDeck,
                 this::onShipTransfer,
                 this::onShipView,
                 this::onClose,
@@ -104,7 +105,7 @@ public final class CompanyHqScreen implements Screen {
         for (String id : List.of(
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks", "page-nav-armory",
-                "page-nav-mech-lab",
+                "page-nav-mech-lab", "page-nav-boats",
                 "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
                 "company-hq-ship", "company-hq-ship-view",
@@ -133,6 +134,10 @@ public final class CompanyHqScreen implements Screen {
 
     private void onMechLab() {
         if (context != null) context.goTo(ScreenId.MECH_LAB);
+    }
+
+    private void onBoatDeck() {
+        if (context != null) context.goTo(ScreenId.BOAT_DECK);
     }
 
     private void onShipTransfer() {

@@ -28,6 +28,8 @@ public enum ScreenId {
     FLEET_ARMORY,
     /** Retained support-lance and mech-subsystem room; safe without a planet. */
     MECH_LAB(true),
+    /** The company's own boats and their fittings, over the ship's hangars. */
+    BOAT_DECK(true),
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,

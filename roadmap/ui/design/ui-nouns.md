@@ -4,9 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — cargo-backed retained controls resolve commodity names
-and image paths from Starsector's live commodity specifications instead of a
-second UI-owned icon catalog.
+Updated: 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
+on the hangar the way the Mech Lab is gated on the vehicle bay.
 
 Earlier 2026-08-31 — primary world selection now distinguishes a click from a
 drag marquee and deterministically selects one player squad or combat Mech
@@ -84,11 +83,19 @@ them.
   quantities, but neither markup nor the view model hardcodes a parallel catalog;
   tests provide deterministic paths through the same seam.
 - A **surface** is a document plus its view model, navigation behavior, and host
-  lifecycle. Fleet Armory, Company HQ, Mech Lab, and the UI workbench are surfaces.
+  lifecycle. Fleet Armory, Company HQ, Mech Lab, Boat Deck, and the UI workbench
+  are surfaces.
 - A **shipboard room** is the fiction and navigation identity of a player-facing
-  company surface. The bridge Company HQ, Fleet Armory, and Mech Lab are current
+  company surface. The bridge Company HQ, Fleet Armory, Barracks, Mech Lab, and
+  Boat Deck are current
   rooms; the retained document remains the implementation surface underneath that
   spatial frame.
+- A **page route** is one button on the shell's persistent navigation, and a
+  route that names a compartment is answered by the ship rather than by the page:
+  a hull that has no such place shows the button greyed and unreachable, and one
+  whose deck is still being laid out shows it waiting and keeps its action.
+  `BOATS` names the hangar exactly as `MECH LAB` names the vehicle bay, so the
+  gating is a property of the route rather than something each screen remembers.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.

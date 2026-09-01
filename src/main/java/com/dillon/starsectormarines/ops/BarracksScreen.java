@@ -121,7 +121,8 @@ public final class BarracksScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> { },
                 () -> context.openCompanyArmoryFrom(ScreenId.BARRACKS),
-                () -> context.goTo(ScreenId.MECH_LAB));
+                () -> context.goTo(ScreenId.MECH_LAB),
+                () -> context.goTo(ScreenId.BOAT_DECK));
         return props;
     }
 
@@ -129,7 +130,8 @@ public final class BarracksScreen implements Screen {
         for (String id : List.of(
                 "barracks-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-barracks", "page-nav-armory",
-                "page-nav-mech-lab", "barracks-room-bar", "barracks-body",
+                "page-nav-mech-lab", "page-nav-boats",
+                "barracks-room-bar", "barracks-body",
                 "barracks-squad-list", "barracks-stage", "barracks-canvas",
                 "barracks-muster-list")) {
             component.requireElement(id);

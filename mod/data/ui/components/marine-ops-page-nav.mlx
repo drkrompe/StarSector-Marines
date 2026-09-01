@@ -1,4 +1,4 @@
-<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,contextLabel">
+<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,contextLabel">
   <div id="marine-ops-page-nav" class="panel surface-dark">
     <div id="marine-ops-page-routes">
       <button id="page-nav-return" onclick="{returnAction}">RETURN</button>
@@ -6,6 +6,7 @@
       <button id="page-nav-barracks" class="{barracksClasses}" onclick="{barracksAction}">BARRACKS</button>
       <button id="page-nav-armory" class="{armoryClasses}" onclick="{armoryAction}">ARMORY</button>
       <button id="page-nav-mech-lab" class="{mechLabClasses}" onclick="{mechLabAction}">MECH LAB</button>
+      <button id="page-nav-boats" class="{boatsClasses}" onclick="{boatsAction}">BOATS</button>
     </div>
     <div id="marine-ops-page-context" class="label heading tone-edge">{contextLabel}</div>
   </div>
@@ -19,7 +20,7 @@
     gap: 8px;
   }
 
-  #marine-ops-page-routes { flex-direction: row; width: 662px; gap: 6px; }
+  #marine-ops-page-routes { flex-direction: row; width: 680px; gap: 6px; }
   #marine-ops-page-routes button {
     width: 108px;
     padding: 3px 8px;

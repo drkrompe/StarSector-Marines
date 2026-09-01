@@ -66,18 +66,18 @@ public final class MechFabricationCatalog {
                 provenance, null, variant, cost(supplies, machinery, metals, rareMetals));
     }
 
-    private static MechFabricationCost cost(int supplies, int machinery,
+    private static FabricationCost cost(int supplies, int machinery,
                                             int metals, int rareMetals) {
-        return new MechFabricationCost(List.of(
-                new MechFabricationCost.Line(Commodities.SUPPLIES, supplies),
-                new MechFabricationCost.Line(Commodities.HEAVY_MACHINERY, machinery),
-                new MechFabricationCost.Line(Commodities.METALS, metals),
-                new MechFabricationCost.Line(Commodities.RARE_METALS, rareMetals)));
+        return new FabricationCost(List.of(
+                new FabricationCost.Line(Commodities.SUPPLIES, supplies),
+                new FabricationCost.Line(Commodities.HEAVY_MACHINERY, machinery),
+                new FabricationCost.Line(Commodities.METALS, metals),
+                new FabricationCost.Line(Commodities.RARE_METALS, rareMetals)));
     }
 
     public record Recipe(String id, String displayName, String provenance,
                          MechWeaponComponent component, MechVariant variant,
-                         MechFabricationCost cost) {
+                         FabricationCost cost) {
         public Recipe {
             if ((component == null) == (variant == null)) {
                 throw new IllegalArgumentException("recipe requires one fabrication target");

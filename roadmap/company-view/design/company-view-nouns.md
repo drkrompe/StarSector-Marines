@@ -4,10 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — berth service separates the safe place a technician stands
-from the live body they work on. Walkers, vehicles, and later heavy assets publish an
-oriented service envelope from their own dimensions, while fixture jobs retain their
-authored point of interest.
+Updated: 2026-09-01 — the Boat Deck is the third authoring room: the company's
+own ship's boats, their fittings, and the hangar they stand in.
 
 ## Purpose
 
@@ -15,9 +13,10 @@ Company view makes the player's force legible as an organization wherever a
 decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
-player-order layer. The Fleet Armory and Mech Lab are its deliberate authoring
-seams: the former assigns reusable weapon and armor equipment definitions to
-whole squads while preserving exact materialized kits; the latter refits
+player-order layer. The Fleet Armory, the Mech Lab and the Boat Deck are its
+deliberate authoring
+seams: the first assigns reusable weapon and armor equipment definitions to
+whole squads while preserving exact materialized kits; the second refits
 persistent support squads.
 
 This domain owns the shared language and presentation shape of the company. It
@@ -75,6 +74,19 @@ company view composes their stable outputs.
 - **Barracks** — the read-only shipboard quarters browser for squads currently
   carried aboard the flagship. It presents roster truth through a physical room;
   it does not author equipment, recovery, stationing, or personnel state.
+- **Boat Deck** — the shipboard room over the company's ship's boats, standing
+  in the hull's own hangars. It presents the deck and refits one boat at a time,
+  mutating nothing except through the cargo-backed boat workshop.
+- **Campaign boat** — one persistent, company-owned ship's boat: a stable id, a
+  tail name, the pattern it is built on, and one fitting in each of its slots.
+  It is the campaign authority that freezes a battle airframe; the sortie flying
+  that frame never reaches back into it. `air-nouns.md` owns the pattern and the
+  frozen frame.
+- **Fitting** — installed work in one of a boat's **slots**: plating, which is
+  hull, and drive, which is speed and acceleration. Each slot has a standard
+  fitting every boat is built with and upgrade tiers above it.
+- **Boat workshop** — the atomic cargo-backed authority that installs a fitting.
+  It shares the fleet's hold with the Mech Lab rather than owning a second one.
 
 ## Surface boundary
 
@@ -344,6 +356,63 @@ count against owned quantity and the target's current component returns before
 the candidate is checked. The active squad freezes into plain deployment values
 only when a sourced Mech Support power is resolved, preserving the same rule as
 personnel deployment: campaign objects do not enter battle.
+
+## Boat Deck
+
+The Boat Deck is the Mech Lab's grammar over a different noun: the room shows
+the hull's hangar as it actually is with the boats standing on their berths, an
+overview card per berth, and — once a berth is chosen — that boat's slots and a
+catalog scoped to the selected one. Selecting the already-open `BOATS` route
+puts the deck back rather than acting as a dead control, the way the lab's own
+route does. A hull with more than one hangar gets the same fore-to-aft pager,
+and one with none shows the route greyed, exactly as a hull with no vehicle bay
+shows no lab.
+
+**The hull comes with her boats.** A campaign starts with every berth holding
+the hull's own pattern at standard fit. A boat is never something the company
+must buy before it can leave the ship, so there is no vacant-berth fabrication
+here and nothing corresponding to the lab's chassis forge — a berth cannot
+become empty yet, and a forge for it would be code that cannot run.
+
+**The boats are the company's; the berths are the ship's.** The boat deck never
+holds a berth count of its own: how many berths there are is asked of the hull,
+and what stands in them is what the company owns. When the company moves ship
+its boats go into the new hull's berths in berth order up to her count; boats
+beyond it, and boats of a pattern her bays do not hold, are left with the old
+hull and the room says so in its summary. Vacant berths on the new hull are
+filled with her own boats at standard fit.
+
+That reconcile is idempotent and runs **whenever the deck is read against the
+ship the company is on** — the room attaching and the lift itself — so a stale
+deck is never presented and never flown. It is a read-time rule rather than an
+event somebody has to remember to fire on a transfer, and one authority
+(`ShipsBoatsAboard.reconcile`) knows what feeding it means; the room decides
+only when.
+
+**A fitting is installed work, not a spare.** Plating is welded on and a drive
+is built in, so unlike a mech's components there is no finite stock, nothing
+returns to stores, and the outgoing fitting is scrapped. That is the one
+deliberate departure from the mech component model and it is a fact about what a
+fitting is rather than a shortcut past inventory: the catalog rows carry a
+material bill and an affordability reason, and no owned-versus-free count,
+because there is nothing to count. Material badges resolve through the same
+shared commodity presentation the Fleet Armory and the Mech Lab use.
+
+A failed fit changes nothing but the room's feedback line — neither the boat nor
+the hold — because the workshop rechecks affordability at the commit and spends
+the whole bill before installing anything.
+
+**Presentation conveys the deck; it does not own it.** The picture is the ship's
+own hangar drawn by the deck scene, and the boats in it are the aircraft the bay
+actually keeps and turns round. What the room adds over that render is the one
+thing a render cannot say — which berth is selected — so a click on a berth and
+a click on its card are the same act. The campaign deck is one berth list across
+the whole ship while a bay knows only its own, so a bay's berths are read as its
+share of that list; the two counts are measured equal rather than guaranteed
+equal, and a disagreement in either direction is drawn honestly rather than
+thrown. Fittings do not change the picture, and they do not change the
+turnaround: a better boat is faster and tougher in the air and is not serviced
+faster on the deck.
 
 ## Shipboard Barracks
 
@@ -693,6 +762,11 @@ rejoin, participating-officer outcomes, practical large-company assignment,
 and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.
+
+Boat fittings may later be authored in data rather than in a code catalog, gain
+a hardpoint slot, and gain fabrication into a berth once a boat can be lost —
+each of those extends the same campaign authority rather than adding a second
+one, and none of them makes the room the owner of what the company has.
 
 Equipment authoring remains bounded by collected templates and atomic cargo-backed assignment;
 read surfaces remain projections of their owning campaign or frozen mission

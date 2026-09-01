@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.flyby.DebugAirRoster;
@@ -152,7 +153,7 @@ public class BriefingScreen implements Screen {
      * each {@link #rebuild()}. Indices are stable within a single briefing layout,
      * so the deselection set keeps referring to the same ships even as rows are redrawn.
      */
-    private List<ShuttleType> cachedAvailable = java.util.Collections.emptyList();
+    private List<FittedBoat> cachedAvailable = java.util.Collections.emptyList();
 
     /**
      * Synthetic transport configuration used only by debug missions. Unlike the
@@ -503,7 +504,7 @@ public class BriefingScreen implements Screen {
         }
         int maxTransports = Math.max(0, mission.requiredDrops);
         controls.add(new BriefingViewModel.DebugControl("debug-transports",
-                "Transport · " + shuttleDisplayName(debugTransportType),
+                "Transport · " + debugTransportType.displayName(),
                 Integer.toString(debugTransportCount), "<", "-", "+", ">", "TYPE",
                 "debug-cycle", false, debugTransportCount <= 0, debugTransportCount >= maxTransports,
                 false, false, this::previousDebugTransportType,
@@ -630,7 +631,7 @@ public class BriefingScreen implements Screen {
         }
         if (mission.source.isDebug()) {
             return List.of(BriefingViewModel.info("transport-debug",
-                    debugTransportCount + " × " + shuttleDisplayName(debugTransportType),
+                    debugTransportCount + " × " + debugTransportType.displayName(),
                     debugTransportType.capacity + " seats each  ·  "
                             + mission.requiredDrops + " required sorties",
                     isTransportSufficient(mission, lift()) ? "tone-good" : "tone-danger"));
@@ -640,9 +641,9 @@ public class BriefingScreen implements Screen {
                     "Mission cannot launch without lift", "tone-danger"));
         }
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        ShuttleType type = cachedAvailable.get(0);
+        ShuttleType type = cachedAvailable.get(0).pattern();
         rows.add(BriefingViewModel.info("transport-fleet",
-                cachedAvailable.size() + " × " + shuttleDisplayName(type),
+                cachedAvailable.size() + " × " + type.displayName(),
                 mission.requiredDrops + " required sorties", "tone-good"));
         String carrier = ShipsBoatsAboard.carrier();
         if (carrier != null) rows.add(BriefingViewModel.info(
@@ -1598,7 +1599,7 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Type", x, y, LABEL_COLOR));
         addDebugTransportButton(controlX, y, arrowW, "<", this::previousDebugTransportType);
         addDebugTransportButton(controlX + arrowW + 4f, y, typeW,
-                shuttleDisplayName(debugTransportType), this::nextDebugTransportType);
+                debugTransportType.displayName(), this::nextDebugTransportType);
         addDebugTransportButton(controlX + arrowW + typeW + 8f, y, arrowW,
                 ">", this::nextDebugTransportType);
         y -= ROW_GAP;
@@ -1652,11 +1653,16 @@ public class BriefingScreen implements Screen {
         rebuild();
     }
 
-    private List<ShuttleType> debugTransportRoster(Mission mission) {
+    /**
+     * A debug briefing's synthetic craft are patterns at standard fit. The
+     * picker chooses a hull rather than one of the company's boats, so there
+     * is no yard's work on them to carry.
+     */
+    private List<FittedBoat> debugTransportRoster(Mission mission) {
         int count = Math.max(0, Math.min(mission.requiredDrops, debugTransportCount));
         if (count != debugTransportCount) debugTransportCount = count;
-        List<ShuttleType> roster = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) roster.add(debugTransportType);
+        List<FittedBoat> roster = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) roster.add(FittedBoat.standard(debugTransportType));
         return roster;
     }
 
@@ -1856,19 +1862,13 @@ public class BriefingScreen implements Screen {
      * marines." Employer contributes drops up to their cover; selected player
      * transports cycle to fill any remaining gap.
      */
-    private static boolean isTransportSufficient(Mission m, List<ShuttleType> selectedShuttles) {
+    private static boolean isTransportSufficient(Mission m, List<FittedBoat> selectedShuttles) {
         if (MissionForceEnvelope.allowsUnderstrength(m)) {
             return selectedShuttles != null && !selectedShuttles.isEmpty();
         }
         return m.source.isDebug()
                 ? !selectedShuttles.isEmpty()
                 : m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
-    }
-
-    /** Title-cased shuttle name for display (VALKYRIE → "Valkyrie"). */
-    private static String shuttleDisplayName(ShuttleType t) {
-        String n = t.name();
-        return n.charAt(0) + n.substring(1).toLowerCase();
     }
 
     /**
@@ -1879,7 +1879,7 @@ public class BriefingScreen implements Screen {
      * make — what the company can put on the ground is what she carries, and
      * holding one back would be declining to use a lifeboat.
      */
-    private List<ShuttleType> lift() {
+    private List<FittedBoat> lift() {
         return cachedAvailable;
     }
 
@@ -1918,9 +1918,9 @@ public class BriefingScreen implements Screen {
             fewest = Math.min(fewest, cycles);
             most = Math.max(most, cycles);
         }
-        ShuttleType type = cachedAvailable.get(0);
+        ShuttleType type = cachedAvailable.get(0).pattern();
         StringBuilder label = new StringBuilder();
-        label.append(cachedAvailable.size()).append(" x ").append(shuttleDisplayName(type));
+        label.append(cachedAvailable.size()).append(" x ").append(type.displayName());
         if (most > 0) {
             label.append("  (").append(fewest == most ? String.valueOf(most)
                     : fewest + "-" + most).append(" sorties each)");

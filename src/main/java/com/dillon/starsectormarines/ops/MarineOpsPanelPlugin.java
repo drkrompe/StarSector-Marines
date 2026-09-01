@@ -35,7 +35,7 @@ import java.util.function.Consumer;
  * to {@code MISSION_SELECT}, {@code BRIEFING},
  * {@code SQUAD_DEPLOYMENT}, {@code BATTLE}, {@code RESULTS}, or {@code LOOT}.
  * {@code BARRACKS}, {@code FLEET_ARMORY_OVERVIEW}, {@code FLEET_ARMORY},
- * {@code MECH_LAB}, and the
+ * {@code MECH_LAB}, {@code BOAT_DECK}, and the
  * dev-only {@code UI_WORKBENCH} are safe: none reads a planet. A planet-scoped
  * host reaches everything as before.
  */
@@ -57,7 +57,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
                     ScreenId.SHIP_TRANSFER, ScreenId.UI_WORKBENCH,
                     ScreenId.MISSION_SELECT,
                     ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
-                    ScreenId.MECH_LAB,
+                    ScreenId.MECH_LAB, ScreenId.BOAT_DECK,
                     ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING);
 
     private final MarineOpsContext ctx;
@@ -91,6 +91,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.FLEET_ARMORY_OVERVIEW, new FleetArmoryOverviewScreen());
         screens.put(ScreenId.FLEET_ARMORY,  new FleetArmoryScreen());
         screens.put(ScreenId.MECH_LAB,      new MechLabScreen());
+        screens.put(ScreenId.BOAT_DECK,     new BoatDeckScreen());
         screens.put(ScreenId.BRIEFING,       new BriefingScreen());
         screens.put(ScreenId.SQUAD_DEPLOYMENT, new SquadDeploymentScreen());
         screens.put(ScreenId.STATIONING,     new StationingScreen());
