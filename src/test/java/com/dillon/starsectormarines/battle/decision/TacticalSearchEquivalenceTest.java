@@ -105,6 +105,12 @@ class TacticalSearchEquivalenceTest {
      * The target picker exactly as it read before the distance ordering: one
      * dense-order pass, a line-of-sight raycast for every hostile combatant in
      * the roster, first candidate wins a tie.
+     *
+     * <p>It carries the perception gate too, because this test asks whether the
+     * ring scan and a dense scan agree on an answer, not what the answer ought
+     * to be. A reference without the gate would be a different specification
+     * and the disagreement it reported would be about that rather than about
+     * the ordering this exists to check.
      */
     private static long referenceBestTarget(
             BattleSimulation sim, TacticalScoring scoring, float selfX, float selfY,
@@ -128,12 +134,18 @@ class TacticalSearchEquivalenceTest {
             int oy = sim.world().cellY(other);
             float d = TacticalScoring.cellDistance(
                     selfX, selfY, sim.world().x(other), sim.world().y(other));
+            boolean visible = TacticalScoring.canSeePair(grid, selfCellX, selfCellY,
+                    ox, oy, 0f, sim.vision().airLosRadius(other));
+            // The probes carry no squad, so belief is empty and knowing
+            // somebody is there means seeing them: inside this unit's own sight
+            // and with a line to them.
+            float sight = Math.max(sim.vision().visionRange(exclude),
+                    sim.world().attackRange(exclude));
+            if (!visible || d > sight) continue;
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
             }
-            boolean visible = TacticalScoring.canSeePair(grid, selfCellX, selfCellY,
-                    ox, oy, 0f, sim.vision().airLosRadius(other));
             if (!visible && !allowNoLos) continue;
             float score = scoring.scoreTargetCandidate(other, d, visible, selfFaction,
                     selfSquadId, exclude, selfCellX, selfCellY, ox, oy);

@@ -660,6 +660,40 @@ resolves to something actionable is dropped outright at the next tick. An
 unknown hostile's live position is never promoted into a squad tactical
 fact.
 
+**A unit may target only what it can know**, and there are exactly two ways to
+know a hostile is there: it can see it, or its squad believes in it. Belief is
+what a squad's members have themselves seen and heard, pooled once a tick over
+everybody in it — so it is already the comms model, and already answers the fire
+team, a fire team being part of one squad and reading the whole squad's picture.
+Nothing about acquisition needs a second tier for it.
+
+Seeing is bounded by the unit's own sight, and **reach is a floor under sight**:
+a unit can always acquire what it is able to shoot, whatever its sight stat says,
+because the alternative is somebody holding their fire while an enemy they could
+perfectly well hit shoots them to pieces. That floor is the standing invariant
+made real at the point that depends on it, rather than a property of the data
+that any writer of attack range could silently falsify.
+
+Acquisition did not always work this way, and neither departure was deliberate.
+A line of sight between two cells carries no distance with it, so anybody down an
+unobstructed lane was a target however far away they stood; and the nearest-
+hostile fallback beneath it asked for no line at all, so a unit that could see
+nothing still acquired whoever happened to be closest through the walls and
+walked at them. The second is the more corrosive of the two, because it is
+invisible from the outside: the squad moves, so it looks like it has decided
+something. It is also why an unreachable distant enemy behaved as an attractor
+rather than as a bystander, and why scenes had to seal rooms to stop it.
+
+What replaces the fallback is belief, and that is a real transfer of
+responsibility rather than a like-for-like substitution. Finding an enemy nobody
+has seen is **mission command's** job — it is the tier that holds the map and
+assigns squads to places — and acquisition's job is only to answer what this unit
+may shoot at now. Measured across the Conquest matrix the transfer holds: both
+fixtures still take compounds and still hold them at the end. It is not free,
+and the cost is not one-directional; a squad that loses sight of its target
+re-picks rather than keeping it, so retargeting rises markedly, and the balance
+of the matrix moves in both directions between fixtures rather than settling.
+
 A **contact picture** is the immutable, once-per-tick local interpretation of
 that squad's beliefs. It gives one answer for the tactical axis, threat sector,
 fresh direct motion when evidence supports it, confidence-weighted hostile
