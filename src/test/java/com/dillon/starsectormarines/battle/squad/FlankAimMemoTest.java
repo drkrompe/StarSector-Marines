@@ -68,7 +68,7 @@ class FlankAimMemoTest {
         FlankAimMemo memo = new FlankAimMemo();
         memo.store(7L, 3, 4, 100, 20, 20, true);
 
-        assertTrue(memo.isFresh(7L, 3, 4, 105));
+        assertTrue(memo.isFresh(7L, 3, 4, 100));
         assertTrue(memo.refused());
     }
 }

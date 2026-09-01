@@ -14,11 +14,10 @@ package com.dillon.starsectormarines.battle.squad;
  * conquest matrix put two thirds of the whole tick in pathfinding with almost
  * all of {@code GridPathfinder.findPath} reached this way.
  *
- * <p>The answer only moves when the contact does. It is keyed on the contact's
- * id and the raw flank cell — both integers — and refreshed every
- * {@link #REFRESH_TICKS} ticks so a squad that has walked away from where it
- * asked still gets a route computed from where it now stands. Nothing here
- * reads a clock or a hash, so a replay stays byte-stable.
+ * <p>The answer only moves when the contact does, so it is keyed on the
+ * contact's id and the raw flank cell — both integers — and expires after
+ * {@link #REFRESH_TICKS}. Nothing here reads a clock or a hash, so a replay
+ * stays byte-stable.
  *
  * <p>Mutable, allocation-free, and owned by exactly one {@link Squad}; it is
  * read and written on the sim thread inside the squad's own behavior tick.
@@ -26,12 +25,28 @@ package com.dillon.starsectormarines.battle.squad;
 public final class FlankAimMemo {
 
     /**
-     * Ticks a stored aim is trusted for — one second at 30 ticks/s. Short
-     * enough that the squad's flank never lags its contact by more than a
-     * stride, long enough that the search runs once per squad per second
-     * instead of once per member per tick.
+     * Ticks a stored aim is trusted for. <b>One, deliberately</b>: the memo is
+     * a within-tick cache and nothing more.
+     *
+     * <p>Every input to the search is squad-scoped — the raw bearing, the
+     * squad centroid the refusal is measured against, and the origin
+     * {@code snapToReachable} routes from, which is the leader's cell or the
+     * first member's, never the calling member's. So within one tick every
+     * member was already computing the identical answer, and collapsing them
+     * cannot change what the squad does. The conquest matrix says so exactly:
+     * against a same-tree control with this memo disabled, the whole evidence
+     * report — both fixtures, every diagnostic line, not merely the outcome
+     * table — came back character-for-character identical, at 288s of wall
+     * clock against the control's 365s.
+     *
+     * <p>A wider window was measured and rejected. Holding the answer for 30
+     * ticks bought a further 8% per tick and cost {@code full-strength-west}
+     * two of its three captures, terminating it 1832 ticks early; a stale
+     * flank is a squad walking at where the enemy was a second ago. Cheap
+     * where it is free and not where it is not — raise this only with fresh
+     * matrix evidence that the captures survive.
      */
-    public static final int REFRESH_TICKS = 30;
+    public static final int REFRESH_TICKS = 1;
 
     /** Contact the stored aim answers for. 0 while nothing has been stored. */
     private long contactId;
