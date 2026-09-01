@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — Mech Lab fitting uses a tall two-by-three grid; catalog and
-doll art are oriented over only the cells occupied by each installed component.
+Updated: 2026-09-01 — Fitting dolls expose only the chassis' physical mounts;
+Hound's centered dorsal rack is one mount rather than an empty twin-shoulder pair.
 
 ## Purpose
 
@@ -173,7 +173,9 @@ pirate, or salvaged equipment is inherently low quality. They enter the weapon
 catalog and livery family without becoming faction defaults. The Mech Lab exposes
 them as common-market fabrication patterns whose lower material bills preserve
 that commercial floor. No faction doctrine receives one implicitly.
-The Hound is a quick close-assault strider that lacks long-range pressure. The
+The Hound is a quick close-assault strider that lacks long-range pressure. Its
+single small missile hardpoint is a centered dorsal mount, not the first half of
+Bulwark's paired shoulder rack; no empty second shoulder exists to refit. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
 hardware identities; any deployed chassis may receive any of these doctrines:

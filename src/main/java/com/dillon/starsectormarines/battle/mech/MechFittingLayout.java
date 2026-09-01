@@ -50,15 +50,15 @@ public final class MechFittingLayout {
         public String label() { return label; }
     }
 
-    public record SocketDef(SocketId id, SocketType type,
+    public record SocketDef(SocketId id, String label, SocketType type,
                             int gridColumns, int gridRows,
                             float anchorRight, float anchorForward,
                             float dockRight, float dockForward,
                             float footprintWidthHull, float footprintHeightHull,
                             boolean factoryLocked) {
         public SocketDef {
-            if (id == null || type == null) {
-                throw new IllegalArgumentException("socket id and type are required");
+            if (id == null || label == null || label.isBlank() || type == null) {
+                throw new IllegalArgumentException("socket id, label and type are required");
             }
             if (gridColumns < 1 || gridColumns > MAX_GRID_COLUMNS
                     || gridRows < 1 || gridRows > MAX_GRID_ROWS
@@ -147,12 +147,10 @@ public final class MechFittingLayout {
         layouts.put(MechVariant.HOUND, layout(MechVariant.HOUND, 180f, List.of(
                 socket(SocketId.CORE, SocketType.CORE, 2, 2,
                         0f, 0.02f, 0f, -1.82f, 0.95f, 1.30f, true),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 2,
+                socket(SocketId.ARMS, "NOSE MOUNT", SocketType.BALLISTIC, 2, 2,
                         0f, 0.66f, 0f, 1.82f, 1.04f, 1.42f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 2,
-                        -0.62f, 0.04f, -1.76f, -1.05f, 0.90f, 1.20f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2, 2,
-                        0.62f, 0.04f, 1.76f, -1.05f, 0.90f, 1.20f, false),
+                socket(SocketId.LEFT_SHOULDER, "DORSAL MOUNT", SocketType.MISSILE, 2, 2,
+                        0f, 0.12f, -1.76f, -1.05f, 0.90f, 1.20f, false),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 1,
                         0f, -0.54f, -1.76f, 1.05f, 0.90f, 1.20f, true),
                 socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
@@ -184,7 +182,18 @@ public final class MechFittingLayout {
                                     float dockRight, float dockForward,
                                     float widthHull, float heightHull,
                                     boolean factoryLocked) {
-        return new SocketDef(id, type, gridColumns, gridRows, anchorRight, anchorForward,
+        return socket(id, id.label(), type, gridColumns, gridRows,
+                anchorRight, anchorForward, dockRight, dockForward,
+                widthHull, heightHull, factoryLocked);
+    }
+
+    private static SocketDef socket(SocketId id, String label, SocketType type,
+                                    int gridColumns, int gridRows,
+                                    float anchorRight, float anchorForward,
+                                    float dockRight, float dockForward,
+                                    float widthHull, float heightHull,
+                                    boolean factoryLocked) {
+        return new SocketDef(id, label, type, gridColumns, gridRows, anchorRight, anchorForward,
                 dockRight, dockForward,
                 widthHull, heightHull, factoryLocked);
     }

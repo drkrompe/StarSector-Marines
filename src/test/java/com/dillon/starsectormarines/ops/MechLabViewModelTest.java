@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -100,7 +101,7 @@ class MechLabViewModelTest {
                 .filter(row -> row.name().startsWith("Hound"))
                 .findFirst().orElseThrow().select().run();
         viewModel.slotRows().get().stream()
-                .filter(row -> row.name().equals("ARM ASSEMBLY"))
+                .filter(row -> row.name().equals("NOSE MOUNT"))
                 .findFirst().orElseThrow().select().run();
 
         MechLabViewModel.CatalogRow heavy = viewModel.catalogRows().get().stream()
@@ -110,6 +111,12 @@ class MechLabViewModelTest {
         assertTrue(heavy.actionDisabled());
         assertEquals(MechWeaponComponent.SINGLE_HEAVY_CANNON, heavy.weaponPreview());
         assertTrue(heavy.detail().contains("2×3 GRID"));
+        assertEquals(5, viewModel.slotRows().get().size());
+        assertTrue(viewModel.slotRows().get().stream()
+                .anyMatch(row -> row.name().equals("DORSAL MOUNT")));
+        assertFalse(viewModel.slotRows().get().stream()
+                .anyMatch(row -> row.socketId()
+                        == MechFittingLayout.SocketId.RIGHT_SHOULDER));
     }
 
     @Test
