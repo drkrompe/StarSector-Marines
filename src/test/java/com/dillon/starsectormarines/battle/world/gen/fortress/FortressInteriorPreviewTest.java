@@ -39,7 +39,7 @@ class FortressInteriorPreviewTest {
     private static final float ASPECT = 1.35f;
 
     static {
-        int ground = FortressProgram.envelopeArea(FortressProgram.garrison());
+        int ground = FortressProgram.garrison().envelopeArea();
         int side = (int) Math.ceil(Math.sqrt(ground / ASPECT));
         W = (int) Math.ceil(side * ASPECT) + 4;
         H = side + 4;
