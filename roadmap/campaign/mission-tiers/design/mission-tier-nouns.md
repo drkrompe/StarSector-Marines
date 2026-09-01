@@ -4,12 +4,19 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — made recommendations mission-shaped and set Full Strength Conquest to an 84-squad / 1,008-marine battle commitment.
+Updated: 2026-09-01 — separated total commitment from concurrent field presence for covert operations.
 
 Mission difficulty is described by two independent axes: **operation tier**
 states how large and consequential the work is, while **risk** states how far
 that work may deviate from its expected pressure. A mission is the combination
 of its type, tier, and risk; no one axis may silently stand in for the other.
+
+The force a mission recommends is likewise two different facts. **Committed
+force** is every squad assigned to the operation, including reserves.
+**Field presence** is the number of organizational squads that may be alive on
+the map or inbound at once. Most missions have unrestricted presence. A covert
+mission may cap it without pretending the operation is lower-tier or discarding
+the player's reserve commitment.
 
 ## Operation tier
 
@@ -38,6 +45,28 @@ work: such a mission may launch with one ready four-marine fire team and must
 report both that hard minimum and its recommendation. Authored story/event/debug
 work, stationing, and Conquest retain their authored gates rather than inheriting
 this exception.
+
+## Field presence
+
+A **field-presence policy** is mission-owned. It does not belong to mission type
+globally: one Sabotage may be a one-squad infiltration while another is an overt
+demolition assault, and an Extraction may be either a discreet recovery or a
+large civilian evacuation. The current production defaults use one active squad
+for Sabotage and two for Raid's target-seizure shape; authored missions may
+override either policy.
+
+The limit counts persistent campaign squad identity, not marines, fire teams,
+shuttles, or battle-created squad fragments. Every lift carrying members of an
+already-admitted squad may complete. A lift carrying a different squad remains
+off-map while every slot is occupied. Inbound lifts reserve their squad's slot,
+so staggered transports cannot burst through the cap together.
+
+Committed squads beyond the active limit are reserves. A reserve becomes
+eligible when an admitted squad has no surviving members and no members still
+inbound. A later extraction system may release a squad deliberately through the
+same boundary; the current battle lifecycle only releases losses. Replacement
+alert and reward consequences are follow-up balance rules, not reasons to leave
+the concurrency limit unenforced.
 
 ## Risk
 
