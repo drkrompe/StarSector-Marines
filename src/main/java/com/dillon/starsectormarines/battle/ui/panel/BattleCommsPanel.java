@@ -146,7 +146,7 @@ public final class BattleCommsPanel implements HudPanel {
     }
 
     private static String signpostLabel(CounterattackSystem counterattack) {
-        String district = CounterattackCommsPresenter.districtName(counterattack.getBulgeSlice()).toUpperCase();
+        String district = counterattack.getBulgeBandName().toUpperCase();
         if (counterattack.getPhase() == CounterattackSystem.Phase.TELEGRAPH) {
             return "COUNTERATTACK // " + district + " // "
                     + (int) Math.ceil(counterattack.getPhaseTimeRemaining()) + "s";
@@ -159,7 +159,7 @@ public final class BattleCommsPanel implements HudPanel {
     }
 
     private static boolean hasActiveSignpost(CounterattackSystem counterattack) {
-        if (counterattack == null || counterattack.getBulgeSlice() == null) return false;
+        if (counterattack == null || counterattack.getBulgeBandName() == null) return false;
         return counterattack.getPhase() == CounterattackSystem.Phase.TELEGRAPH
                 || counterattack.getPhase() == CounterattackSystem.Phase.ASSAULT
                 || counterattack.getPhase() == CounterattackSystem.Phase.RESOLVE;
