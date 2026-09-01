@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@link GenKey} declarations for the optional / domain overlays the BSP city
@@ -96,6 +98,18 @@ public final class BspKeys {
      * goes round the claim, and the gates are where the road crosses it.
      */
     public static final GenKey<int[][]> PRECINCT_ROAD = GenKey.of("precinctRoad");
+
+    /**
+     * What each programmed precinct owed and could not fit, by precinct name.
+     *
+     * <p>Bound even when empty, so "nothing was short" and "nobody asked" are
+     * different answers. A place that could not build its motor pool has to be
+     * able to say so: an under-provisioned installation is otherwise
+     * indistinguishable from a small one, which is the fault
+     * {@code compound-programs.md} exists to remove.
+     */
+    public static final GenKey<Map<String, List<FortressBuilding>>> UNPLACED_PROGRAM =
+            GenKey.of("unplacedProgram");
 
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
