@@ -25,18 +25,31 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
  *                authored footprints. That one field is the whole difference
  *                between a fortress and a town.
  * @param boundary whether a wall is drawn around what grew
+ * @param fortification how hard that wall is to take; {@code null} for an open place
+ * @param character what a zoned place is on the inside — the mix its parcels
+ *                are themed from and where its centre is. Required for a zoned
+ *                precinct and absent for a programmed one, whose interior is
+ *                packed rather than themed
  */
 public record Precinct(String name, int seedX, int seedY,
                        GrownTrunkPlan.Profile growth,
                        FortressProgram program,
                        Boundary boundary,
-                       Fortification fortification) {
+                       Fortification fortification,
+                       PrecinctCharacter character) {
 
     /** A place whose wall, if it has one, is of ordinary strength. */
     public Precinct(String name, int seedX, int seedY, GrownTrunkPlan.Profile growth,
                     FortressProgram program, Boundary boundary) {
         this(name, seedX, seedY, growth, program, boundary,
                 boundary == Boundary.WALLED ? Fortification.GARRISON : null);
+    }
+
+    /** A place whose interior, if it is zoned, is an ordinary town's. */
+    public Precinct(String name, int seedX, int seedY, GrownTrunkPlan.Profile growth,
+                    FortressProgram program, Boundary boundary, Fortification fortification) {
+        this(name, seedX, seedY, growth, program, boundary, fortification,
+                program == null ? PrecinctCharacter.TOWN : null);
     }
 
     /** What happens at the edge of a precinct once its interior exists. */
@@ -63,11 +76,25 @@ public record Precinct(String name, int seedX, int seedY,
             throw new IllegalArgumentException(name + " is walled but says nothing about "
                     + "how hard the wall is, which is the dial a mission needs");
         }
+        if (program == null && character == null) {
+            throw new IllegalArgumentException(name + " is zoned but says nothing about "
+                    + "what kind of place it is, so its parcels have nothing to be themed from");
+        }
+        if (program != null && character != null) {
+            throw new IllegalArgumentException(name + " is programmed, so its interior is "
+                    + "packed from its program and a character would say nothing");
+        }
     }
 
-    /** A place whose parcels are zoned and filled the ordinary way. */
+    /** A place whose parcels are zoned and filled the ordinary way, as a town. */
     public static Precinct settlement(String name, int x, int y, GrownTrunkPlan.Profile growth) {
-        return new Precinct(name, x, y, growth, null, Boundary.OPEN);
+        return settlement(name, x, y, growth, PrecinctCharacter.TOWN);
+    }
+
+    /** A zoned place of a stated kind. */
+    public static Precinct settlement(String name, int x, int y, GrownTrunkPlan.Profile growth,
+                                      PrecinctCharacter character) {
+        return new Precinct(name, x, y, growth, null, Boundary.OPEN, null, character);
     }
 
     /** A place that owes authored buildings and is walled — what a fortress is. */
@@ -80,7 +107,13 @@ public record Precinct(String name, int seedX, int seedY,
     public static Precinct garrison(String name, int x, int y,
                                     GrownTrunkPlan.Profile growth, FortressProgram program,
                                     Fortification fortification) {
-        return new Precinct(name, x, y, growth, program, Boundary.WALLED, fortification);
+        return new Precinct(name, x, y, growth, program, Boundary.WALLED, fortification, null);
+    }
+
+    /** This place, said to be a different kind of place inside. Zoned precincts only. */
+    public Precinct withCharacter(PrecinctCharacter character) {
+        return new Precinct(name, seedX, seedY, growth, program, boundary, fortification,
+                character);
     }
 
     /** Whether this precinct packs authored footprints rather than zoning its parcels. */

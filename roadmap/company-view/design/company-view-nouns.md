@@ -4,10 +4,10 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — founding actions read at the scale of what they create: a
-formation emblem in the trailing gallery card and a projected whole-pad action in a
-vacant mech gantry; parked machines are centred, presented inboard, and worked at real
-hull points.
+Updated: 2026-09-01 — berth service separates the safe place a technician stands
+from the live body they work on. Walkers, vehicles, and later heavy assets publish an
+oriented service envelope from their own dimensions, while fixture jobs retain their
+authored point of interest.
 
 ## Purpose
 
@@ -305,9 +305,12 @@ renderer and the same room vocabulary as generated facilities. The selected mech
 the battle compositor's actual layer order and hull-relative mount transforms, while
 workers use real layered infantry dolls on shared ambient routes for welding, parts
 movement, inspection, and coordination. Every occupied berth publishes two shoulder,
-two waist, and one head service point, and the torch and sparks project the task's
-authored focus in world space so work lands on the machine or fixture rather than open
-deck. Machines stand at the continuous centre of their exact berth footprint and face
+two waist, and one head places to stand. At runtime, their focus resolves against the
+parked asset's oriented service envelope, whose beam and length belong to that asset
+rather than to a mech-only UI assumption. Fixture work retains its authored point of
+interest. The torch and sparks project either focus through the room camera, so work
+lands on a walker, vehicle, or fixture rather than open deck. Machines stand at the
+continuous centre of their exact berth footprint and face
 cardinally along the berth's long axis toward its mouth and the room's shared inboard
 service lane; that same authored heading remains their way out. Those actors are
 presentation-only and do not create a second schedule, labor,

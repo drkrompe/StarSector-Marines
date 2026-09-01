@@ -1,16 +1,15 @@
 # Map generation story board
 
-Status: ACTIVE — sixteen bounded precinct, station, city, economic, or cross-feature
+Status: ACTIVE — fifteen bounded precinct, station, city, economic, or cross-feature
 stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — added precinct interior coherence, the inside half of the
-precinct model now that the outside is measured and shipped.
+Updated: 2026-09-01 — retired precinct interior coherence; a zoned precinct's
+character now reaches what is built in it.
 
 | Story | Status | Outcome |
 |---|---|---|
-| `precinct-interior-coherence.md` | PLANNED | A zoned precinct's kind reaches what is built in it. Measured, three places on one map come out 71-85% residential apiece; the fill chain reads no precinct key. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |
