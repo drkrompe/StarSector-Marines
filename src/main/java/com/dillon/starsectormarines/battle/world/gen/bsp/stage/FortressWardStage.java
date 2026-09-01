@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.fortress.WardSite;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -54,6 +55,23 @@ import java.util.List;
  * it.
  */
 public final class FortressWardStage implements GenStage {
+
+    private final WardSite.Planner planner;
+
+    /** The shipped Conquest placement: the fortress goes where the biome band is. */
+    public FortressWardStage() {
+        this(FortressWardStage::biomeBandSite);
+    }
+
+    /**
+     * A ward laid into ground somebody else chose. Every other input this stage
+     * takes already arrives from outside; placement was the exception, and it
+     * was the one that made a fortress impossible without a traversal axis.
+     */
+    public FortressWardStage(WardSite.Planner planner) {
+        this.planner = planner;
+    }
+
 
     /**
      * Cells kept between the ward and the wall's nominal line on the sides the
@@ -112,21 +130,12 @@ public final class FortressWardStage implements GenStage {
 
     @Override
     public void run(GenContext ctx) {
-        BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
-        TraversalAxis axis = ctx.get(BspKeys.AXIS);
-        if (biomeMap == null || axis == null) return;
+        WardSite site = planner.plan(ctx);
+        if (site == null) return;
+        TraversalAxis axis = site.facing();
+        int[] ward = site.rect();
 
-        int[] band = fortressBand(biomeMap, ctx.width, ctx.height);
-        if (band == null) return;
-
-        // What the ward cannot build on has to be known before it is sized, not
-        // after: roads crossing the band and the citadel standing in it take
-        // ground out of the middle, and a ward sized as though they were not
-        // there comes up short by exactly what they occupy.
         Compound citadel = findCitadel(ctx.get(BspKeys.COMPOUNDS));
-        boolean[][] roadCells = ctx.get(BspKeys.ROAD_CELLS);
-        int[] ward = wardRect(band, axis, ctx.width, ctx.height, citadel, roadCells);
-        if (ward == null) return;
 
         VehicleCorridor corridor = ctx.get(BspKeys.VEHICLE_CORRIDOR);
         boolean[][] roads = corridor != null
@@ -161,6 +170,28 @@ public final class FortressWardStage implements GenStage {
         }
         ctx.put(BspKeys.FORTRESS_WARD, ward);
         emitTacticalNodes(ctx, result);
+    }
+
+    /**
+     * The Conquest placement: the fortress stands in its biome band, arranged
+     * against the traversal axis.
+     *
+     * <p>What the ward cannot build on has to be known before it is sized, not
+     * after: roads crossing the band and the citadel standing in it take ground
+     * out of the middle, and a ward sized as though they were not there comes
+     * up short by exactly what they occupy. That is why this reads the compound
+     * and road masks to size a rect rather than simply handing over the band.
+     */
+    private static WardSite biomeBandSite(GenContext ctx) {
+        BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
+        TraversalAxis axis = ctx.get(BspKeys.AXIS);
+        if (biomeMap == null || axis == null) return null;
+        int[] band = fortressBand(biomeMap, ctx.width, ctx.height);
+        if (band == null) return null;
+        Compound citadel = findCitadel(ctx.get(BspKeys.COMPOUNDS));
+        int[] rect = wardRect(band, axis, ctx.width, ctx.height, citadel,
+                ctx.get(BspKeys.ROAD_CELLS));
+        return rect == null ? null : new WardSite(rect, axis);
     }
 
     /**
