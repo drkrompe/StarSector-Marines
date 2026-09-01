@@ -4,11 +4,14 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-30 — a track with no believed front now stages forward, bounded
-by its neighbours' lead, instead of standing still waiting for a sighting only
-advancing can produce. Earlier: a compact player-facing three-lane projection in
-the battle HUD; lane-stage standoff read from the squad's own corridor so a
-front believed off that line does not withhold orders.
+Updated: 2026-09-01 — a home-track bound on marine capture allocation is built
+and measured; it stops the far-track walk and costs the reinforced fixture nine
+held compounds, so it ships off behind its own switch. Earlier 2026-08-30 — a track with no
+believed front now stages forward, bounded by its neighbours' lead, instead of
+standing still waiting for a sighting only advancing can produce; a compact
+player-facing three-lane projection in the battle HUD; lane-stage standoff read
+from the squad's own corridor so a front believed off that line does not
+withhold orders.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -26,6 +29,42 @@ occupancy permits a measured probe, not a declaration of clearance. Fresh
 distant capture allocations preserve squads already committed or adjacent, use
 squads without useful front work first, and retain at least one executable
 front squad while actionable resistance exists when force size permits.
+
+**Capture allocation is the one map-global thing in a command built out of
+tracks, and bounding it to the home track loses the battle.** The front push
+supports a neighbouring track and no further; the distant capture fill ranks
+every uncaptured compound on the map against every uncommitted squad on
+straight-line distance alone, and the preserve pass then keeps whatever that
+produced for the rest of the battle. The observed cost is a squad walking the
+width of the map to a compound two tracks from where it was born, its own track
+left to a fraction of its strength facing known contacts and the receiving track
+already crowded — a squad out of the fight for about a minute, and a track that
+does not advance while it is gone.
+
+The bound that answers it is built and measured: pair a fresh detachment only
+with a compound at most one track from home, and let it take a *neighbour's*
+compound only while its own track has nothing worth doing — neither a defender
+zone the front push would send it to, nor an uncaptured compound of its own.
+Its own track's compound it may always take, ordering among the survivors is
+unchanged, and a squad already holding a capture or standing at one keeps it
+whatever track it is on, because those are about ground already reached. It does
+what it claims — fresh far-track pairings go to zero — and on the reinforced
+fixture it takes 6 compounds and holds 2 where the unbounded fill takes 12 and
+holds 11. That is what the far-track walk was buying: a map whose compounds are
+spread across three tracks does not offer every track work of its own, and a
+squad refused a distant capture mostly stays where it is. It ships **off**;
+held compounds are the outcome a Conquest is decided on. The switch and the
+per-fixture numbers live on `ConquestCommand.HOME_TRACK_CAPTURES_PROPERTY`.
+
+The reported cost is real, so the useful next question is narrower than the one
+that was asked: not *whether* a squad may cross tracks for a compound, but
+which far compound and how many squads may go. A squad refused by the bound and
+left with nothing else already publishes its own assignment reason, because a
+far-track refusal and an empty map are otherwise the same sentence.
+
+The two convergence phases are map-global for a reason no measurement can move:
+once the keep or one contested compound is the whole remaining objective, there
+is no other front to hold.
 
 When belief shows open-ground resistance but no discrete room is assignable,
 an advance-track order stages behind the hostile frontier, bounded by friendly
