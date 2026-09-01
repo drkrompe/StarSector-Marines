@@ -12,9 +12,19 @@ import java.util.List;
  *
  * <p>Both are read off what grew rather than chosen. The outline is wherever a
  * precinct's claim stops, so it follows the shape the growth actually took; a
- * gate is wherever one of its roads runs out through that outline, so it is a
- * road that already exists with a hole in the wall where it leaves rather than
- * a hole rolled somewhere and a road found for it afterwards.
+ * gate is wherever a road runs out through that outline, so it is a road that
+ * already exists with a hole in the wall where it leaves rather than a hole
+ * rolled somewhere and a road found for it afterwards.
+ *
+ * <p><b>Whose road it is does not matter.</b> A road inside a precinct's claim
+ * is that precinct's circulation whoever grew it — {@link PrecinctFill#masks}
+ * has always read it that way, and an artery between two places is in both of
+ * them — so the crossing rule asks that a road leaves, not that this precinct
+ * built it. Asking whose it was is what sealed a garrison on the raid evidence
+ * fixture: its claim pooled far past the ends of its own short arms, so the
+ * settlement's arms crossed its outline in many places and its own in none, and
+ * all 23 points of interest on the defender's side came out with route length 0
+ * from the landing pad.
  *
  * <p>That inversion is the point. The shipped wall stamper rolls one to three
  * gate positions along a rectangle's south side, then separately tries to make
@@ -99,10 +109,20 @@ public final class PrecinctBoundary {
     /**
      * Where roads leave the precinct.
      *
-     * <p>An outline cell carrying this precinct's road, whose outward neighbour
-     * is also road, is a way through. Contiguous such cells are one gate rather
-     * than several, because a width-five arm leaving the precinct is one road
-     * and not five holes.
+     * <p>An outline cell carrying road, whose outward neighbour is also road,
+     * is a way through. Contiguous such cells are one gate rather than several,
+     * because a width-five arm leaving the precinct is one road and not five
+     * holes.
+     *
+     * <p>Road of <em>any</em> owner counts on both sides. A precinct is
+     * circulated by whatever road lies in its claim, so a neighbour's arm that
+     * runs through the place is a way in and out of it exactly as its own arm
+     * would be; requiring this precinct's own road sealed a garrison whose claim
+     * had grown past the reach of its arms, and did it silently.
+     *
+     * <p>A neighbour off the map does not count. A road that leaves the map is
+     * a hole in the wall onto nothing anybody in the battle can stand on, so it
+     * is wall rather than gate.
      *
      * @param owner per-cell road ownership from {@link GrownTrunkPlan.Grown}
      */
@@ -112,7 +132,7 @@ public final class PrecinctBoundary {
         boolean[][] crossing = new boolean[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                if (!outline[x][y] || owner[x][y] != who) continue;
+                if (!outline[x][y] || owner[x][y] == GrownTrunkPlan.UNOWNED) continue;
                 for (int[] step : STEPS) {
                     int nx = x + step[0];
                     int ny = y + step[1];

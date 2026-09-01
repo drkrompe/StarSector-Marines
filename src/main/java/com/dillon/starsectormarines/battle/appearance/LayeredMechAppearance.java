@@ -21,6 +21,8 @@ public final class LayeredMechAppearance {
      */
     public static final float MAX_TORSO_TWIST_DEGREES = 145f;
 
+    /** Explicitly empty arm hardpoint for bare-chassis and fitting previews. */
+    public static final int ARMS_NONE = -1;
     public static final int ARMS_CHAINGUN = 0;
     public static final int ARMS_LINEAR_CANNON = 1;
     public static final int ARMS_NOSE_CHAINGUN = 2;

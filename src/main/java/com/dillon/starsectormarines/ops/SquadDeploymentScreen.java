@@ -1,185 +1,566 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.LoadoutEffectiveness;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
-import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
+import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
-import com.dillon.starsectormarines.ui.ButtonWidget;
-import com.dillon.starsectormarines.ui.Fonts;
-import com.dillon.starsectormarines.ui.LabelWidget;
-import com.dillon.starsectormarines.ui.WidgetRoot;
-import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.ui.PositionAPI;
+import com.dillon.starsectormarines.battle.ui.panel.WeaponSymbols;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 
-import java.awt.Color;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-/** Compact pre-battle whole-squad assignment surface. */
-public final class SquadDeploymentScreen implements Screen {
+/** MLX-authored pre-battle whole-squad assignment workspace. */
+public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
 
-    private static final float PAD = 18f;
-    private static final float GAP = 12f;
-    private static final float ROW_H = 48f;
-    private static final float BUTTON_H = 32f;
-    private static final Color HEADER = new Color(0xC8, 0xE0, 0xFF);
-    private static final Color MUTED = new Color(0x8F, 0xA8, 0xC0);
-    private static final Color READY = new Color(0x80, 0xD8, 0x98);
-    private static final Color SELECTED = new Color(0xFF, 0xD0, 0x60);
-    private static final Color BAD = new Color(0xE0, 0x70, 0x70);
+    static final String ROOT_COMPONENT = "squad-deployment";
+    static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/squad-deployment.mlx");
 
-    private final WidgetRoot widgets = new WidgetRoot();
-    private PositionAPI position;
-    private MarineOpsContext ctx;
     private MarineRoster roster;
+    private List<SquadRow> projectedRows = List.of();
+    private MemberInspector memberInspector = MemberInspector.empty();
 
-    @Override
-    public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
-        this.position = position;
-        this.ctx = ctx;
-        MarineRosterScript script = MarineRosterScript.getInstance();
-        roster = script != null ? script.roster() : null;
-        rebuild();
+    public SquadDeploymentScreen() {
+        super(ROOT_COMPONENT, COMPONENT_PATHS);
     }
 
-    private void rebuild() {
-        widgets.clear();
-        if (position == null || ctx == null) return;
-        float left = position.getX() + PAD;
-        float top = position.getY() + position.getHeight() - PAD;
-        int capacity = ctx.getMarineDeploymentCapacity();
-        Mission mission = ctx.getSelectedMission();
+    @Override
+    protected void onAttach() {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        roster = script != null ? script.roster() : null;
+    }
+
+    @Override
+    protected Map<String, Object> props() {
+        Mission mission = context != null ? context.getSelectedMission() : null;
+        int capacity = context != null ? context.getMarineDeploymentCapacity() : 0;
         if (mission != null && mission.type == MissionType.CONQUEST) {
             int selected = PersonnelReadiness.assessSelection(roster,
-                    ctx.getSelectedMarineSquadIds(), 0).selectedReady();
+                    context.getSelectedMarineSquadIds(), 0).selectedReady();
             capacity = Math.max(capacity, selected);
         }
         PersonnelReadiness readiness = PersonnelReadiness.assessSelection(
-                roster, ctx.getSelectedMarineSquadIds(), capacity);
-        TaskForce force = TaskForce.of(roster, ctx.getSelectedCaptain(),
-                ctx.getSelectedMarineSquadIds());
+                roster, context != null ? context.getSelectedMarineSquadIds() : null,
+                capacity);
+        TaskForce force = TaskForce.of(roster,
+                context != null ? context.getSelectedCaptain() : null,
+                context != null ? context.getSelectedMarineSquadIds() : null);
 
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "Pre-Battle Squad Assignment", left, top, HEADER));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Select persistent squads; fire teams form around their actual lifts.",
-                left, top - 30f, MUTED));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "READY SEATS  " + Math.min(readiness.selectedReady(), capacity)
-                        + " / " + capacity + "   COMPANY " + readiness.companyReady()
-                        + "   SHORT " + readiness.selectedShortfall()
-                        + "   SQUADS " + force.squadCount()
-                        + (readiness.selectedReady() > capacity
-                                ? "   (" + (readiness.selectedReady() - capacity)
-                                        + " reserve)" : ""),
-                left, top - 60f, readiness.ready() ? READY : BAD));
-        // Command is per officer now, so the headline number is the task
-        // force rather than one captain's remaining cap.
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "COMMAND  " + force.summary(),
-                left, top - 84f, force.isValid() ? MUTED : BAD));
+        Map<String, Object> props = baseProps();
+        props.put("missionName", mission != null ? mission.name : "No mission selected");
+        props.put("missionMeta", mission != null
+                ? mission.tier.displayName + " · " + mission.type.name()
+                : "Return to briefing and choose an operation.");
+        props.put("readinessTone", "label title "
+                + (readiness.ready() ? "tone-good" : "tone-danger"));
+        props.put("readinessSummary", readiness.selectedReady() + " / " + capacity + " seats filled");
+        props.put("commandSummary", force.summary());
+        props.put("capacitySummary", capacity + " ready seats · "
+                + readiness.companyReady() + " marines company-wide");
+        props.put("reserveSummary", reserveSummary(readiness, capacity));
+        projectedRows = squadRows();
+        props.put("squadRows", projectedRows);
+        props.put("emptyMessage", roster == null ? "Persistent roster unavailable." : "");
+        putEmptyInspector(props);
+        props.put("backAction", (Runnable) this::onBack);
+        props.put("armoryAction", (Runnable) this::onArmory);
+        return props;
+    }
 
-        if (roster == null) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "Persistent roster unavailable.", left, top - 124f, BAD));
-        } else {
-            float colW = (position.getWidth() - 2f * PAD - GAP) / 2f;
-            int rowsPerCol = Math.max(1, (int) ((position.getHeight() - 174f) / ROW_H));
-            int index = 0;
-            for (MarineSquad squad : roster.squads()) {
-                if (squad.reserve()) continue;
-                if (index >= rowsPerCol * 2) break;
-                int col = index / rowsPerCol;
-                int row = index % rowsPerCol;
-                addSquad(squad, left + col * (colW + GAP), top - 124f - row * ROW_H, colW);
-                index++;
+    static Map<String, Object> previewProps() {
+        Map<String, Object> props = baseProps();
+        Runnable none = () -> { };
+        props.put("missionName", "SABOTAGE — First Contract");
+        props.put("missionMeta", "First Contract · SABOTAGE");
+        props.put("readinessTone", "label title tone-good");
+        props.put("readinessSummary", "12 / 12 seats filled");
+        props.put("commandSummary", "1 officer · 1 squad · 12 marines");
+        props.put("capacitySummary", "12 ready seats · 48 marines company-wide");
+        props.put("reserveSummary", "No reserve commitment · 1 squad active in the field");
+        List<SquadRow> squads = List.of(
+                previewRow(0, "1st Squad", "12 / 12 RTD", "Selected", true, none),
+                previewRow(1, "2nd Squad", "11 / 12 RTD", "Available", false, none),
+                previewRow(2, "3rd Squad", "8 / 12 RTD", "Available", false, none),
+                previewRow(3, "4th Squad", "12 / 12 RTD", "Command limit", false, none));
+        props.put("squadRows", squads);
+        props.put("emptyMessage", "");
+        putInspector(props, squads.get(0).fireTeams().get(0).members().get(0));
+        props.put("backAction", none);
+        props.put("armoryAction", none);
+        return props;
+    }
+
+    private static Map<String, Object> baseProps() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("title", "Squad Assignment");
+        return props;
+    }
+
+    private List<SquadRow> squadRows() {
+        if (roster == null || context == null) return List.of();
+        List<SquadRow> rows = new ArrayList<>();
+        for (MarineSquad squad : roster.squads()) {
+            if (squad.reserve()) continue;
+            boolean selected = context.isMarineSquadSelected(squad.id());
+            boolean canToggle = selected || CaptainDeploymentPolicy.canAdd(
+                    roster, context.getSelectedCaptain(),
+                    context.getSelectedMarineSquadIds(), squad.id());
+            int ready = roster.readyCount(squad);
+            int wia = countStatus(squad, MarineSoldierStatus.WIA);
+            int mia = countStatus(squad, MarineSoldierStatus.MIA);
+            int kia = countStatus(squad, MarineSoldierStatus.KIA);
+            String casualties = casualtySummary(wia, mia, kia);
+            String base = "deployment-squad-" + rows.size();
+            CommanderRow commander = commanderRow(squad, selected, canToggle);
+            rows.add(new SquadRow(base, "deployment-squad-card"
+                    + (selected ? " selected" : ""), squad.name(),
+                    ready + " / " + MarineSquad.CAPACITY + " RTD",
+                    "label heading squad-card-readiness " + (selected ? "tone-accent"
+                            : canToggle ? "tone-good" : "tone-danger"),
+                    loadoutSummary(squad), commander.portrait(), commander.name(),
+                    commander.status(), commander.statusClasses(),
+                    casualties, "label squad-card-casualty "
+                            + (casualties.isEmpty() ? "tone-muted" : "tone-danger"),
+                    fireTeams(squad, selected), !canToggle, () -> toggle(squad.id())));
+        }
+        return List.copyOf(rows);
+    }
+
+    private static SquadRow previewRow(int index, String name, String readiness,
+                                       String status, boolean selected, Runnable action) {
+        String base = "deployment-preview-" + index;
+        return new SquadRow(base, "deployment-squad-card" + (selected ? " selected" : ""),
+                name, readiness, "label heading squad-card-readiness "
+                        + (selected ? "tone-accent" : "tone-good"),
+                "Field Rifles / Standard Plate",
+                "graphics/portraits/portrait_mercenary01.png", "Lt. Mira Hale",
+                "HOME COMMAND · " + status.toUpperCase(Locale.ROOT),
+                "label heading squad-card-commander-status "
+                        + (index == 3 ? "tone-danger" : selected ? "tone-accent" : "tone-good"),
+                index == 2 ? "3 WIA · 1 KIA" : "", "label squad-card-casualty "
+                        + (index == 2 ? "tone-danger" : "tone-muted"),
+                previewTeams(index, selected), index == 3, action);
+    }
+
+    private List<FireTeamRow> fireTeams(MarineSquad squad, boolean selected) {
+        List<String> manning = roster.manningMemberIds(squad);
+        List<FireTeamRow> teams = new ArrayList<>(MarineSquad.TEAMS_PER_SQUAD);
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            List<MemberRow> members = new ArrayList<>(MarineSquad.TEAM_SIZE);
+            for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
+                int billet = team * MarineSquad.TEAM_SIZE + slot;
+                MarineSoldier soldier = billet < manning.size()
+                        ? roster.soldierById(manning.get(billet)) : null;
+                members.add(memberRow(squad, soldier, team, slot, selected));
             }
+            String id = "deployment-member-team-" + squad.id() + "-" + team;
+            teams.add(new FireTeamRow(id, id + "-label", "TEAM " + (char) ('A' + team),
+                    List.copyOf(members)));
         }
-
-        addButton(left, position.getY() + PAD, 160f, "Back to Briefing",
-                () -> ctx.goTo(ScreenId.BRIEFING), HEADER);
-        addButton(left + 172f, position.getY() + PAD, 184f, "Manage Personnel",
-                () -> ctx.openCompanyArmoryFrom(ScreenId.SQUAD_DEPLOYMENT), HEADER);
+        return List.copyOf(teams);
     }
 
-    /** Names the officer who would take this squad out, when it is not the commander. */
-    private String leaderSuffix(MarineSquad squad) {
-        MarineCaptain home = roster.captainForSquad(squad.id());
-        if (home == null) return "";
-        MarineCaptain commander = ctx.getSelectedCaptain();
-        if (commander != null && commander.id().equals(home.id())) return "";
-        return "   " + home.rank().displayName() + " " + home.name();
+    private MemberRow memberRow(MarineSquad squad, MarineSoldier soldier,
+                                int team, int slot, boolean selected) {
+        String id = "deployment-member-" + squad.id() + "-" + team + "-" + slot;
+        if (soldier == null) return vacantMember(id, team, slot);
+        boolean ready = soldier.status() == MarineSoldierStatus.ACTIVE;
+        boolean leader = soldier.id().equals(squad.leaderSoldierId());
+        var primary = soldier.primaryDef();
+        MarineArmorCatalogDef armor = soldier.armorDef();
+        var special = soldier.specialEquipmentDef();
+        int firepower = LoadoutEffectiveness.billetWeaponRating(
+                primary, soldier.primaryGrade());
+        int protection = LoadoutEffectiveness.billetArmorRating(armor);
+        String classes = "deployment-member" + (ready ? " ready" : " unavailable")
+                + (selected && ready ? " committed" : "") + (leader ? " leader" : "");
+        String equipment = WeaponSymbols.primaryAbbrev(primary, soldier.primaryGrade())
+                + (special != null ? "  " + WeaponSymbols.specialAbbrev(special) : "");
+        return new MemberRow(id, classes, compactName(soldier), equipment,
+                meter(firepower, "#78d494"), meter(protection, "#6ed7ff"),
+                soldier.enlistedRank().displayName() + " " + soldier.name(),
+                "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1)
+                        + " · " + statusLabel(soldier),
+                "FIREPOWER " + firepower, "PROTECTION " + protection,
+                "PRIMARY · " + primary.catalogName(soldier.primaryGrade())
+                        + " · " + soldier.primaryGrade().displayName,
+                "ARMOR · " + armor.displayName() + " · " + armor.role().displayName(),
+                special != null ? "SPECIAL · " + special.displayName() : "SPECIAL · NONE",
+                armor.hasIntegralSystem()
+                        ? "SUIT SYSTEM · " + IntegralSystemCopy.summary(armor)
+                        : "SUIT SYSTEM · NONE",
+                "PROFILE · " + soldier.profile().experienceTier().displayName + " / "
+                        + soldier.aptitude().displayName);
     }
 
-    private void addSquad(MarineSquad squad, float x, float y, float w) {
-        boolean selected = ctx.isMarineSquadSelected(squad.id());
-        boolean canToggle = selected || CaptainDeploymentPolicy.canAdd(
-                roster, ctx.getSelectedCaptain(),
-                ctx.getSelectedMarineSquadIds(), squad.id());
-        int ready = roster.readyCount(squad);
-        widgets.add(new ButtonWidget(x, y - BUTTON_H + 6f, w, BUTTON_H,
-                canToggle ? () -> {
-                    ctx.toggleMarineSquad(squad.id());
-                    rebuild();
-                } : null));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                (selected ? "[X] " : "[ ] ") + squad.name() + "   " + ready + "/"
-                        + MarineSquad.CAPACITY + " RTD"
-                        + leaderSuffix(squad)
-                        + (!canToggle ? "   COMMAND LIMIT" : ""),
-                x + 8f, y, selected ? SELECTED : canToggle ? HEADER : BAD));
+    private static MemberRow vacantMember(String id, int team, int slot) {
+        return new MemberRow(id, "deployment-member vacant", "VACANT", "NO KIT",
+                meter(0, "#78d494"), meter(0, "#6ed7ff"), "Vacant billet",
+                "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1),
+                "FIREPOWER 0", "PROTECTION 0",
+                "PRIMARY · NONE", "ARMOR · NONE", "SPECIAL · NONE",
+                "SUIT SYSTEM · NONE", "PROFILE · NO MARINE WILL DEPLOY");
+    }
 
-        String loadout = loadoutSummary(squad, w - 36f);
-        if (!loadout.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    loadout, x + 28f, y - 20f, MUTED));
+    private static List<FireTeamRow> previewTeams(int squadIndex, boolean selected) {
+        String[] names = {"Hale", "Vega", "Okafor", "Chen", "Singh", "Ibarra",
+                "Sato", "Nwosu", "Kovacs", "Park", "Voss", "Reyes"};
+        String[] weapons = {"RIF-II", "RIF-II", "SAW-II", "RKT", "DMR-II", "RIF-II",
+                "SMG-I", "FRG", "RIF-II", "SMK", "SAW-II", "RIF-II"};
+        List<FireTeamRow> teams = new ArrayList<>();
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            List<MemberRow> members = new ArrayList<>();
+            for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
+                int billet = team * MarineSquad.TEAM_SIZE + slot;
+                String id = "deployment-preview-member-" + squadIndex + "-" + team + "-" + slot;
+                if (squadIndex == 2 && billet == 11) {
+                    members.add(vacantMember(id, team, slot));
+                    continue;
+                }
+                boolean unavailable = squadIndex == 2 && billet >= 7 && billet <= 9;
+                int firepower = Math.min(92, 38 + billet * 4 + squadIndex * 3);
+                int protection = Math.min(88, 42 + (billet % 4) * 9 + squadIndex * 2);
+                String classes = "deployment-member " + (unavailable ? "unavailable" : "ready")
+                        + (selected && !unavailable ? " committed" : "")
+                        + (billet == 0 ? " leader" : "");
+                members.add(new MemberRow(id, classes, names[billet], weapons[billet],
+                        meter(firepower, "#78d494"), meter(protection, "#6ed7ff"),
+                        (billet == 0 ? "Corporal " : "Marine ") + names[billet],
+                        "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1)
+                                + " · " + (unavailable ? "WIA" : "READY"),
+                        "FIREPOWER " + firepower, "PROTECTION " + protection,
+                        "PRIMARY · M-42 FIELD RIFLE · SERVICE",
+                        "ARMOR · STANDARD LINE PLATE · LINE",
+                        billet % 3 == 0 ? "SPECIAL · FRAGMENTATION GRENADES"
+                                : "SPECIAL · NONE",
+                        billet == 0 ? "SUIT SYSTEM · BREACHER ASSIST · READY"
+                                : "SUIT SYSTEM · NONE",
+                        "PROFILE · REGULAR / STEADY"));
+            }
+            String id = "deployment-preview-team-" + squadIndex + "-" + team;
+            teams.add(new FireTeamRow(id, id + "-label", "TEAM " + (char) ('A' + team),
+                    List.copyOf(members)));
         }
+        return List.copyOf(teams);
+    }
 
-        int wia = 0, mia = 0, kia = 0;
+    private static String compactName(MarineSoldier soldier) {
+        String name = soldier.name() == null ? "MARINE" : soldier.name().trim();
+        int split = name.lastIndexOf(' ');
+        String compact = split >= 0 ? name.substring(split + 1) : name;
+        return (soldier.enlistedRank().leads() ? "L " : "")
+                + compact.toUpperCase(Locale.ROOT);
+    }
+
+    private static String statusLabel(MarineSoldier soldier) {
+        return switch (soldier.status()) {
+            case ACTIVE -> "READY";
+            case WIA -> "WIA · NOT DEPLOYING";
+            case MIA -> "MISSING";
+            case KIA -> "KILLED";
+        };
+    }
+
+    private static String meter(int value, String color) {
+        return "width: " + Math.max(0, Math.min(100, value))
+                + "%; background-color: " + color + ";";
+    }
+
+    private static void putEmptyInspector(Map<String, Object> props) {
+        props.put("inspectorClasses", "marine-inspector empty");
+        props.put("inspectorTitle", "HOVER A MARINE");
+        props.put("inspectorContext", "The twelve billets in each card are the people committed.");
+        props.put("inspectorFirepower", "FIREPOWER —");
+        props.put("inspectorProtection", "PROTECTION —");
+        props.put("inspectorPrimary", "PRIMARY · —");
+        props.put("inspectorArmor", "ARMOR · —");
+        props.put("inspectorSpecial", "SPECIAL · —");
+        props.put("inspectorSystem", "SUIT SYSTEM · —");
+        props.put("inspectorProfile", "PROFILE · —");
+    }
+
+    private static void putInspector(Map<String, Object> props, MemberRow member) {
+        props.put("inspectorClasses", "marine-inspector");
+        props.put("inspectorTitle", member.tooltipTitle());
+        props.put("inspectorContext", member.tooltipContext());
+        props.put("inspectorFirepower", member.tooltipFirepower());
+        props.put("inspectorProtection", member.tooltipProtection());
+        props.put("inspectorPrimary", member.tooltipPrimary());
+        props.put("inspectorArmor", member.tooltipArmor());
+        props.put("inspectorSpecial", member.tooltipSpecial());
+        props.put("inspectorSystem", member.tooltipSystem());
+        props.put("inspectorProfile", member.tooltipProfile());
+    }
+
+    @Override
+    protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
+        memberInspector = MemberInspector.bind(instance, projectedRows);
+    }
+
+    @Override
+    protected void onInputProcessed() {
+        memberInspector.update();
+    }
+
+    private void toggle(String squadId) {
+        context.toggleMarineSquad(squadId);
+        rebuildDocument();
+    }
+
+    private int countStatus(MarineSquad squad, MarineSoldierStatus status) {
+        int count = 0;
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
-            if (soldier.status() == MarineSoldierStatus.WIA) wia++;
-            else if (soldier.status() == MarineSoldierStatus.MIA) mia++;
-            else if (soldier.status() == MarineSoldierStatus.KIA) kia++;
+            if (soldier.status() == status) count++;
         }
-        String unavailable = "";
-        if (wia > 0) unavailable += wia + " WIA  ";
-        if (mia > 0) unavailable += mia + " MIA  ";
-        if (kia > 0) unavailable += kia + " KIA";
-        if (!unavailable.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, unavailable, x + w * 0.58f, y, MUTED));
-        }
+        return count;
     }
 
-    private String loadoutSummary(MarineSquad squad, float maxWidth) {
-        SquadWeaponDoctrine weapons = roster.armory()
-                .weaponDoctrineById(squad.weaponDoctrineId());
-        SquadArmorDoctrine armor = roster.armory()
-                .armorDoctrineById(squad.armorDoctrineId());
-        if (weapons == null && armor == null) return "";
+    private String loadoutSummary(MarineSquad squad) {
+        SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(squad.weaponDoctrineId());
+        SquadArmorDoctrine armor = roster.armory().armorDoctrineById(squad.armorDoctrineId());
         String weaponName = weapons != null ? weapons.displayName() : "Field weapons";
         String armorName = armor != null ? armor.displayName() : "Field armor";
-        String summary = "LOADOUT  " + weaponName + "  /  " + armorName;
-        if (Fonts.ORBITRON_20.measureWidth(summary) <= maxWidth) return summary;
-        String suffix = "...";
-        int end = summary.length();
-        while (end > 0 && Fonts.ORBITRON_20.measureWidth(
-                summary.substring(0, end) + suffix) > maxWidth) end--;
-        return summary.substring(0, end) + suffix;
+        return weaponName + " / " + armorName;
     }
 
-    private void addButton(float x, float y, float w, String label, Runnable action, Color color) {
-        widgets.add(new ButtonWidget(x, y, w, BUTTON_H, action));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label,
-                x + 8f, y + BUTTON_H - 6f, color));
+    private CommanderRow commanderRow(MarineSquad squad, boolean selected,
+                                       boolean canToggle) {
+        MarineCaptain home = roster.captainForSquad(squad.id());
+        MarineCaptain leader = CaptainDeploymentPolicy.leaderFor(
+                roster, context.getSelectedCaptain(), squad.id());
+        boolean inherited = home == null || leader == null || !home.id().equals(leader.id());
+        String commandKind = inherited ? "OPERATION COMMAND" : "HOME COMMAND";
+        String status = !canToggle ? "COMMAND LIMIT"
+                : selected ? "SELECTED" : "AVAILABLE";
+        if (leader == null) {
+            return new CommanderRow("", "No active commander",
+                    commandKind + " · " + status,
+                    "label heading squad-card-commander-status tone-danger");
+        }
+        return new CommanderRow(leader.portraitSprite(),
+                leader.rank().displayName() + " " + leader.name(),
+                commandKind + " · " + status,
+                "label heading squad-card-commander-status "
+                        + (!canToggle ? "tone-danger" : selected ? "tone-accent" : "tone-good"));
     }
 
-    @Override public void advance(float dt) { widgets.advance(dt); }
-    @Override public void render(float alphaMult) { widgets.render(alphaMult); }
-    @Override public void processInput(List<InputEventAPI> events) { widgets.processInput(events); }
+    private static String casualtySummary(int wia, int mia, int kia) {
+        List<String> parts = new ArrayList<>();
+        if (wia > 0) parts.add(wia + " WIA");
+        if (mia > 0) parts.add(mia + " MIA");
+        if (kia > 0) parts.add(kia + " KIA");
+        return String.join(" · ", parts);
+    }
+
+    private static String reserveSummary(PersonnelReadiness readiness, int capacity) {
+        int reserve = Math.max(0, readiness.selectedReady() - capacity);
+        if (reserve > 0) return reserve + " marines committed in reserve";
+        if (readiness.selectedShortfall() > 0) {
+            return readiness.selectedShortfall() + " seats remain unfilled";
+        }
+        return "No reserve commitment";
+    }
+
+    private void onBack() {
+        if (context != null) context.goTo(ScreenId.BRIEFING);
+    }
+
+    private void onArmory() {
+        if (context != null) context.openCompanyArmoryFrom(ScreenId.SQUAD_DEPLOYMENT);
+    }
+
+    @Override protected void onCancel() { onBack(); }
+
+    @Override
+    protected List<String> requiredElementIds() {
+        return List.of("squad-deployment-root", "squad-deployment-header",
+                "squad-deployment-body", "squad-deployment-summary",
+                "squad-deployment-roster", "squad-deployment-grid",
+                "squad-deployment-inspector",
+                "squad-deployment-actions", "squad-deployment-back",
+                "squad-deployment-armory");
+    }
+
+    record CommanderRow(String portrait, String name, String status,
+                        String statusClasses) { }
+
+    record SquadRow(String id, String classes, String name, String readiness,
+                    String tone, String loadout, String commanderPortrait,
+                    String commanderName, String commanderStatus,
+                    String commanderStatusClasses, String casualties,
+                    String casualtyTone, List<FireTeamRow> fireTeams,
+                    boolean disabled, Runnable action)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "classes" -> classes; case "name" -> name;
+                case "topId" -> id + "-top"; case "nameId" -> id + "-name";
+                case "readinessId" -> id + "-readiness";
+                case "loadoutId" -> id + "-loadout";
+                case "commanderId" -> id + "-commander";
+                case "commanderPortraitFrameId" -> id + "-commander-portrait-frame";
+                case "commanderPortraitId" -> id + "-commander-portrait";
+                case "commanderCopyId" -> id + "-commander-copy";
+                case "commanderNameId" -> id + "-commander-name";
+                case "commanderStatusId" -> id + "-commander-status";
+                case "casualtyId" -> id + "-casualties"; case "readiness" -> readiness;
+                case "tone" -> tone; case "loadout" -> loadout;
+                case "commanderPortrait" -> commanderPortrait;
+                case "commanderName" -> commanderName;
+                case "commanderStatus" -> commanderStatus;
+                case "commanderStatusClasses" -> commanderStatusClasses;
+                case "casualties" -> casualties; case "casualtyTone" -> casualtyTone;
+                case "fireTeams" -> fireTeams; case "fireTeamsId" -> id + "-fireteams";
+                case "disabled" -> disabled; case "action" -> action; default -> null;
+            };
+        }
+    }
+
+    record FireTeamRow(String id, String labelId, String label, List<MemberRow> members)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "labelId" -> labelId;
+                case "membersId" -> id + "-members"; case "label" -> label;
+                case "members" -> members; default -> null;
+            };
+        }
+    }
+
+    record MemberRow(String id, String classes, String name, String equipment,
+                     String firepowerStyle, String protectionStyle,
+                     String tooltipTitle, String tooltipContext,
+                     String tooltipFirepower, String tooltipProtection,
+                     String tooltipPrimary,
+                     String tooltipArmor, String tooltipSpecial,
+                     String tooltipSystem, String tooltipProfile)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "classes" -> classes;
+                case "lineId" -> id + "-line";
+                case "nameId" -> id + "-name"; case "equipmentId" -> id + "-equipment";
+                case "firepowerTrackId" -> id + "-firepower-track";
+                case "firepowerId" -> id + "-firepower";
+                case "protectionTrackId" -> id + "-protection-track";
+                case "protectionId" -> id + "-protection";
+                case "name" -> name; case "equipment" -> equipment;
+                case "firepowerStyle" -> firepowerStyle;
+                case "protectionStyle" -> protectionStyle; default -> null;
+            };
+        }
+    }
+
+    private record MemberBinding(MemberRow member, UiElement element) { }
+
+    private record InspectorElements(UiElement panel, UiElement title,
+                                     UiElement context, UiElement firepower,
+                                     UiElement protection,
+                                     UiElement primary, UiElement armor,
+                                     UiElement special, UiElement system,
+                                     UiElement profile) { }
+
+    static final class MemberInspector {
+        private static final MemberInspector EMPTY =
+                new MemberInspector(List.of(), null);
+
+        private final List<MemberBinding> bindings;
+        private final InspectorElements elements;
+        private String hoveredMemberId;
+
+        private MemberInspector(List<MemberBinding> bindings,
+                                InspectorElements elements) {
+            this.bindings = bindings;
+            this.elements = elements;
+        }
+
+        static MemberInspector empty() {
+            return EMPTY;
+        }
+
+        static MemberInspector bind(MarkupInstance instance, List<SquadRow> squads) {
+            List<MemberBinding> bindings = new ArrayList<>();
+            for (SquadRow squad : squads) {
+                for (FireTeamRow team : squad.fireTeams()) {
+                    for (MemberRow member : team.members()) {
+                        bindings.add(new MemberBinding(member,
+                                instance.requireElement(member.id())));
+                    }
+                }
+            }
+            InspectorElements elements = new InspectorElements(
+                    instance.requireElement("squad-deployment-inspector"),
+                    instance.requireElement("squad-deployment-inspector-title"),
+                    instance.requireElement("squad-deployment-inspector-context"),
+                    instance.requireElement("squad-deployment-inspector-firepower"),
+                    instance.requireElement("squad-deployment-inspector-protection"),
+                    instance.requireElement("squad-deployment-inspector-primary"),
+                    instance.requireElement("squad-deployment-inspector-armor"),
+                    instance.requireElement("squad-deployment-inspector-special"),
+                    instance.requireElement("squad-deployment-inspector-system"),
+                    instance.requireElement("squad-deployment-inspector-profile"));
+            return new MemberInspector(List.copyOf(bindings), elements);
+        }
+
+        void update() {
+            MemberRow hovered = null;
+            for (MemberBinding binding : bindings) {
+                if (binding.element().hovered()) {
+                    hovered = binding.member();
+                    break;
+                }
+            }
+            String nextId = hovered != null ? hovered.id() : null;
+            if ((nextId == null && hoveredMemberId == null)
+                    || (nextId != null && nextId.equals(hoveredMemberId))) return;
+            hoveredMemberId = nextId;
+            if (hovered == null) clear();
+            else show(hovered);
+        }
+
+        private void show(MemberRow member) {
+            if (elements == null) return;
+            elements.panel().removeClass("empty");
+            elements.title().text(member.tooltipTitle());
+            elements.context().text(member.tooltipContext());
+            elements.firepower().text(member.tooltipFirepower());
+            elements.protection().text(member.tooltipProtection());
+            elements.primary().text(member.tooltipPrimary());
+            elements.armor().text(member.tooltipArmor());
+            elements.special().text(member.tooltipSpecial());
+            elements.system().text(member.tooltipSystem());
+            elements.profile().text(member.tooltipProfile());
+        }
+
+        private void clear() {
+            if (elements == null) return;
+            elements.panel().addClass("empty");
+            elements.title().text("HOVER A MARINE");
+            elements.context().text(
+                    "The twelve billets in each card are the people committed.");
+            elements.firepower().text("FIREPOWER —");
+            elements.protection().text("PROTECTION —");
+            elements.primary().text("PRIMARY · —");
+            elements.armor().text("ARMOR · —");
+            elements.special().text("SPECIAL · —");
+            elements.system().text("SUIT SYSTEM · —");
+            elements.profile().text("PROFILE · —");
+        }
+    }
 }

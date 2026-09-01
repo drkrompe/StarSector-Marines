@@ -13,6 +13,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class LayeredMechComposerTest {
 
     @Test
+    void bareChassisPreviewOmitsEveryWeaponLayer() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<String> layers = new ArrayList<>();
+        MechVariant variant = MechVariant.BULWARK;
+
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        layers.add(fileName(sprite.sourcePath)),
+                assets, 400f, 300f, 208f,
+                0f, 0f, 0f, 0f, 0f, 0f, 0,
+                variant.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.POD_NONE, LayeredMechAppearance.POD_NONE, 1f);
+
+        assertEquals(List.of("foot.png", "foot.png", "chassis.png"), layers);
+    }
+
+    @Test
     void previewSinkReceivesCanonicalBulwarkLayerOrderAndScale() {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         List<Layer> layers = new ArrayList<>();

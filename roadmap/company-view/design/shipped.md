@@ -13,3 +13,4 @@ Updated: 2026-08-29 — folded the scale-invariant battle HUD into the company-v
 | `c9-fire-teams-as-the-maneuver-element.md` | 2026-08-23 | this change | `company-view-nouns.md` — stable battle teams, clearance-aware formations, bounding, and reachable fix-and-flank |
 | `c16-shipboard-barracks.md` | 2026-08-25 | this change | `company-view-nouns.md` — read-only quarters, roster projection, ambient tasks, and bounded live-fire presentation |
 | `c5-battle-hud-company-rollup.md` | 2026-08-29 | this change | `company-view-nouns.md` — scale-invariant task-force status and selection-scoped squad diagnostics |
+| `c17-the-boat-deck.md` | 2026-09-01 | this change | `company-view-nouns.md` — Boat Deck room, campaign boats, fittings and the boat workshop; `air-nouns.md` — boat pattern versus fitted boat; `ui-nouns.md` — the BOATS page route |

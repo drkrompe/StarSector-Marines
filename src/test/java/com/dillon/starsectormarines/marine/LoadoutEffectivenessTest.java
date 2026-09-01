@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,21 @@ class LoadoutEffectivenessTest {
         }
         assertEquals(0, LoadoutEffectiveness.weaponRating(null));
         assertEquals(0, LoadoutEffectiveness.armorRating(null));
+    }
+
+    /** The deployment roster quotes the same bounded scale for one billet. */
+    @Test
+    void anIndividualBilletUsesTheCatalogScale() {
+        WeaponDef primary = WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID);
+        MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(
+                MarineArmorPattern.ARMORLESS.id);
+
+        int firepower = LoadoutEffectiveness.billetWeaponRating(
+                primary, EquipmentGrade.SERVICE);
+        int protection = LoadoutEffectiveness.billetArmorRating(armor);
+
+        assertTrue(firepower >= 0 && firepower <= 100);
+        assertTrue(protection >= 0 && protection <= 100);
     }
 
     /**

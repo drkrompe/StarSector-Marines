@@ -41,6 +41,7 @@ final class MarineOpsPageNav {
         BARRACKS(RoomPurpose.BARRACKS, "barracks"),
         ARMORY(RoomPurpose.ARMORY, "armory"),
         MECH_LAB(RoomPurpose.VEHICLE_BAY, "mechLab"),
+        BOAT_DECK(RoomPurpose.HANGAR, "boats"),
         /**
          * Choosing the ship, which is not a place aboard one and so has no
          * button of its own: the shell is for moving around the vessel, and
@@ -100,7 +101,8 @@ final class MarineOpsPageNav {
                     Function<RoomPurpose, Aboard> aboard,
                     Runnable returnAction, Runnable hqAction,
                     Runnable barracksAction,
-                    Runnable armoryAction, Runnable mechLabAction) {
+                    Runnable armoryAction, Runnable mechLabAction,
+                    Runnable boatsAction) {
         if (props == null) throw new IllegalArgumentException("props are required");
         if (current == null) throw new IllegalArgumentException("current page is required");
         if (aboard == null) throw new IllegalArgumentException("the ship's rooms are required");
@@ -109,15 +111,17 @@ final class MarineOpsPageNav {
         put(props, Page.BARRACKS, current, aboard, barracksAction);
         put(props, Page.ARMORY, current, aboard, armoryAction);
         put(props, Page.MECH_LAB, current, aboard, mechLabAction);
+        put(props, Page.BOAT_DECK, current, aboard, boatsAction);
     }
 
     /** Compatibility helper for focused fixtures that do not exercise room routing. */
     static void put(Map<String, Object> props, Page current,
                     Function<RoomPurpose, Aboard> aboard,
                     Runnable returnAction, Runnable hqAction,
-                    Runnable armoryAction, Runnable mechLabAction) {
+                    Runnable armoryAction, Runnable mechLabAction,
+                    Runnable boatsAction) {
         put(props, current, aboard, returnAction, hqAction, () -> { },
-                armoryAction, mechLabAction);
+                armoryAction, mechLabAction, boatsAction);
     }
 
     private static void put(Map<String, Object> props, Page page, Page current,
