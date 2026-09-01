@@ -18,3 +18,4 @@ com.dillon.starsectormarines.battle.infantry.SwarmOverkillSceneSnapshotSuite
 com.dillon.starsectormarines.battle.air.ShipsBoatsSnapshotSuite
 com.dillon.starsectormarines.battle.squad.PlayerOrderSceneSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.FiringLineSceneSnapshotSuite
+com.dillon.starsectormarines.battle.decision.goap.action.ProsecutionHoldSceneSnapshotSuite
