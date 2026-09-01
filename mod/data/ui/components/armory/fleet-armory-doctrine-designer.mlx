@@ -1,6 +1,6 @@
-<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="equipment-designer-root" class="equipment-designer-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT DESIGNER" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT DESIGNER" />
 
     <div id="designer-breadcrumb" class="panel">
       <button id="designer-breadcrumb-companies" onclick="{back}">Companies</button>

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.marine.MarineSoldier;
-import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
@@ -139,27 +138,6 @@ public final class BarracksCanvas implements CanvasProducer {
             float y = corner[1];
             context.line(x, y, x + run * corner[2], y, MARK, 1f);
             context.line(x, y, x, y + run * corner[3], MARK, 1f);
-        }
-    }
-
-    private record Projection(float surfaceHeight, float scaleX, float scaleY,
-                              BattleCamera camera) {
-
-        static Projection forHost(ShipDeckBattleScene aboard,
-                                  ShipDeckBattleScene.RoomView view,
-                                  CanvasHostViewport viewport) {
-            BattleCamera camera = aboard.cameraFor(
-                    view, 0f, 0f, viewport.width(), viewport.height());
-            return new Projection(viewport.surfaceHeight(),
-                    1f / viewport.scaleX(), 1f / viewport.scaleY(), camera);
-        }
-
-        float x(float worldX) {
-            return camera.cellToScreenX(worldX) * scaleX;
-        }
-
-        float y(float worldY) {
-            return surfaceHeight - camera.cellToScreenY(worldY) * scaleY;
         }
     }
 }

@@ -14,6 +14,19 @@ import java.util.Objects;
 public final class ShuttleAssignment {
 
     public final ShuttleType type;
+    /**
+     * The frame this craft actually flies as — the pattern itself for an
+     * employer's boat or a padded fallback, and a {@link FittedBoat} for one of
+     * the company's own with a yard's work on it.
+     *
+     * <p>Carried beside {@link #type} rather than instead of it because the two
+     * answer different questions. What a craft <em>is</em> decides seats,
+     * arrival policy and the delivery-craft substitution, all of which are
+     * facts about the pattern; how much hull and speed it brings is the fit,
+     * and only the sim reads that. Never null: a plain assignment's airframe is
+     * its own type.
+     */
+    public final Airframe airframe;
     public final int cycles;
     /** Marines actually embarked per sortie; never exceeds the hull's physical capacity. */
     public final int seatsPerSortie;
@@ -29,9 +42,21 @@ public final class ShuttleAssignment {
                 Math.max(1, cycles) * seatsPerSortie);
     }
 
+    /** One of the company's own boats, flying with whatever is fitted to it. */
+    public ShuttleAssignment(FittedBoat boat, int cycles, int seatsPerSortie) {
+        this(Objects.requireNonNull(boat, "boat").pattern(), boat, cycles, seatsPerSortie,
+                Math.max(1, cycles) * seatsPerSortie);
+    }
+
     public ShuttleAssignment(ShuttleType type, int cycles, int seatsPerSortie,
                              int embarkedPersonnel) {
+        this(type, type, cycles, seatsPerSortie, embarkedPersonnel);
+    }
+
+    public ShuttleAssignment(ShuttleType type, Airframe airframe, int cycles,
+                             int seatsPerSortie, int embarkedPersonnel) {
         this.type = Objects.requireNonNull(type, "type");
+        this.airframe = airframe != null ? airframe : type;
         this.cycles = Math.max(1, cycles);
         if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
             throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
@@ -58,14 +83,16 @@ public final class ShuttleAssignment {
     public boolean equals(Object other) {
         if (this == other) return true;
         if (!(other instanceof ShuttleAssignment assignment)) return false;
-        return type == assignment.type && cycles == assignment.cycles
+        return type == assignment.type && airframe.equals(assignment.airframe)
+                && cycles == assignment.cycles
                 && seatsPerSortie == assignment.seatsPerSortie
                 && embarkedPersonnel == assignment.embarkedPersonnel;
     }
 
     @Override
     public int hashCode() {
-        int result = 31 * type.hashCode() + cycles;
+        int result = 31 * type.hashCode() + airframe.hashCode();
+        result = 31 * result + cycles;
         result = 31 * result + seatsPerSortie;
         return 31 * result + embarkedPersonnel;
     }
