@@ -52,6 +52,15 @@ public final class FiringLane {
 
         public int size() { return size; }
 
+        /** Point x of the {@code i}th gathered body, {@code 0 <= i < size()}. */
+        public float x(int i) { return xs[i]; }
+
+        /** Point y of the {@code i}th gathered body. */
+        public float y(int i) { return ys[i]; }
+
+        /** Body radius of the {@code i}th gathered body. */
+        public float radius(int i) { return radii[i]; }
+
         public void clear() { size = 0; }
 
         public void add(float x, float y, float radius) {

@@ -22,7 +22,7 @@ import java.util.List;
  * the step itself: a committed aim finishes before anything else is considered,
  * grenade evasion outranks a shot of opportunity, and a marine whose fire team
  * has broken peels to cover instead of executing a step he is no longer in the
- * pool for. {@code InfantryReflexOrderTest} states that list literally; changing
+ * pool for, rather than adjusting his firing position on the way out. {@code InfantryReflexOrderTest} states that list literally; changing
  * it is a behaviour change to be measured, not a tidy-up.
  *
  * @see com.dillon.starsectormarines.battle.mech.MechReflexes the same shape for a lance
@@ -154,7 +154,43 @@ public final class InfantryReflexes {
         }
     };
 
-    /** The marine's reflex chain, highest priority first. */
+    /**
+     * A marine with one of his own in his firing lane moves a cell rather than
+     * shooting through them or picking somebody else to shoot at.
+     *
+     * <p><b>It never interrupts</b>, in the way {@link #COOLDOWNS} never
+     * interrupts: it authors a path and declines, so the marine's assigned step
+     * still runs, still shoots, and is what walks him along it. A step-aside
+     * that consumed the tick was measured and cost compounds — see
+     * {@link LaneSidestep} — because a marine who stops shooting for a second
+     * and a half to move a cell is a marine spending the one thing a timed
+     * advance cannot spare.
+     *
+     * <p>Its rank still decides something even so. Last, and below
+     * {@link #BROKEN_FIRE_TEAM} on purpose: a marine whose fire team has broken
+     * is leaving rather than adjusting his firing position, and that reflex
+     * consumes the tick, so a peeling marine is never handed a sidestep to
+     * carry out on his way. Everything above it is about a shot or a hazard
+     * already in flight, and none of that should have a lateral step authored
+     * underneath it.
+     *
+     * @see LaneSidestep for what it will and will not trade to clear the lane
+     */
+    public static final Reflex LANE_SIDESTEP = new Reflex() {
+        @Override public String name() { return "LANE_SIDESTEP"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return LaneSidestep.stepOutOfLane(unit, sim);
+        }
+    };
+
+    /**
+     * The marine's reflex chain, highest priority first. Two entries —
+     * {@link #COOLDOWNS} and {@link #LANE_SIDESTEP} — never consume a tick;
+     * they are in the list because the list is where a reader looks to find out
+     * what happens to a marine before his step runs, and because their rank
+     * still says which interrupts pre-empt them.
+     */
     public static final List<Reflex> CHAIN = List.of(
             COMMITTED_AIM,
             COOLDOWNS,
@@ -163,12 +199,22 @@ public final class InfantryReflexes {
             OPPORTUNITY_SPECIAL,
             HARDENED_OPPORTUNITY,
             ONSET_SCREEN,
-            BROKEN_FIRE_TEAM);
+            BROKEN_FIRE_TEAM,
+            LANE_SIDESTEP);
 
     /**
      * The chain up to but excluding {@link #BROKEN_FIRE_TEAM} — the prefix that
      * needs no squad state and is therefore askable of a lone marine.
      * {@code GoapInfantryBehavior.prepareForAction} is its one caller.
+     *
+     * <p>{@link #LANE_SIDESTEP} is outside it too, and not because it wants a
+     * squad. Its one caller is a coordinated action that owns where the marine
+     * is standing for the length of a bound; a reflex that walks him two cells
+     * to clear a lane would be a second author of the same movement, and the
+     * bound is the one that knows where the marine is supposed to end up.
+     * Written as an index rather than {@code size() - 1} so appending the next
+     * reflex cannot silently readmit the broken-fire-team peel here.
      */
-    static final List<Reflex> PREPARATION_CHAIN = CHAIN.subList(0, CHAIN.size() - 1);
+    static final List<Reflex> PREPARATION_CHAIN =
+            CHAIN.subList(0, CHAIN.indexOf(BROKEN_FIRE_TEAM));
 }
