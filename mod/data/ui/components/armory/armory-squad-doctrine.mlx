@@ -1,4 +1,4 @@
-<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,issuableFilter,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
+<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,issuableFilter,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,issueCargoRows,issueCargoClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
@@ -59,6 +59,13 @@
       </div>
     </div>
 
+    <div id="issue-cargo-costs" class="{issueCargoClasses}">
+      <div each="cargo in issueCargoRows" key="{cargo.id}" id="{cargo.id}" class="{cargo.classes}">
+        <img id="{cargo.iconId}" class="cargo-cost-icon" src="{cargo.icon}" />
+        <div id="{cargo.labelId}" class="cargo-cost-label label">{cargo.label}</div>
+      </div>
+    </div>
+
     <div id="squad-equip-row">
       <div id="transaction-result" class="{transactionClasses}">{transactionSummary}</div>
       <button id="apply-squad-equipment" class="apply-button" disabled="{applyDisabled}" onclick="{apply}">{applyLabel}</button>
@@ -116,6 +123,13 @@
   .doctrine-composition { height: 18px; color: #7fb2d8; }
   .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
   .doctrine-carries { height: 18px; color: #8fd6a6; }
+  .cargo-costs { display: grid; height: 54px; gap: 4px; overflow: hidden; }
+  .cargo-costs.empty { height: 0px; gap: 0px; }
+  .cargo-cost { width: 236px; height: 25px; flex-direction: row; padding: 2px 4px; gap: 4px; border-width: 1px; border-color: #50677e; background-color: #101a25; }
+  .cargo-cost.short { border-color: #a95252; background-color: #261616; color: #f09a9a; }
+  .cargo-cost-icon { width: 19px; height: 19px; }
+  .cargo-cost-label { width: 0px; height: 19px; flex-grow: 1; padding: 2px 0px; color: #b8c6d6; }
+  .cargo-cost.short .cargo-cost-label { color: #f09a9a; }
   #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
   .apply-button { padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }

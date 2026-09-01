@@ -1,11 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
-import com.fs.starfarer.api.campaign.econ.CommoditySpecAPI;
-
-import java.util.Locale;
 
 /** Live player-fleet cargo and vanilla commodity presentation for the Mech Lab. */
 public final class CampaignMechFabricationResources implements MechFabricationResources {
@@ -19,15 +16,12 @@ public final class CampaignMechFabricationResources implements MechFabricationRe
 
     @Override
     public String commodityName(String commodityId) {
-        CommoditySpecAPI spec = spec(commodityId);
-        return spec != null ? spec.getName() : commodityId.replace('_', ' ')
-                .toUpperCase(Locale.ROOT);
+        return CampaignCommodityPresentation.INSTANCE.commodityName(commodityId);
     }
 
     @Override
     public String commodityIcon(String commodityId) {
-        CommoditySpecAPI spec = spec(commodityId);
-        return spec != null && spec.getIconName() != null ? spec.getIconName() : "";
+        return CampaignCommodityPresentation.INSTANCE.commodityIcon(commodityId);
     }
 
     @Override
@@ -38,11 +32,6 @@ public final class CampaignMechFabricationResources implements MechFabricationRe
             cargo.removeCommodity(line.commodityId(), line.quantity());
         }
         return true;
-    }
-
-    private static CommoditySpecAPI spec(String commodityId) {
-        SettingsAPI settings = Global.getSettings();
-        return settings != null ? settings.getCommoditySpec(commodityId) : null;
     }
 
     private static CargoAPI cargo() {

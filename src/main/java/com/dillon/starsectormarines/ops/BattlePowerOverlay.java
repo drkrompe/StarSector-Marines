@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -47,7 +48,8 @@ final class BattlePowerOverlay {
 
     BattlePowerOverlay(Consumer<String> targetingToggle,
                        Supplier<String> targetingPowerId) {
-        model = new BattlePowerOverlayModel(reactor, targetingToggle);
+        model = new BattlePowerOverlayModel(reactor, targetingToggle,
+                CampaignCommodityPresentation.INSTANCE);
         this.targetingPowerId = targetingPowerId;
     }
 
@@ -70,6 +72,7 @@ final class BattlePowerOverlay {
                     "battle-power-targeting-label", "battle-power-deck",
                     "battle-power-resources", "battle-power-cp",
                     "battle-power-cp-fill", "battle-power-supplies",
+                    "battle-power-supplies-icon",
                     "battle-power-cards")) {
                 candidate.requireElement(id);
             }

@@ -2,9 +2,11 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ final class BattlePowerOverlayModel {
     private final MutableSignal<String> commandPoints;
     private final MutableSignal<String> commandPointFillStyle;
     private final MutableSignal<String> supplies;
+    private final MutableSignal<String> suppliesIcon;
     private final MutableSignal<List<PowerCard>> powerCards;
     private final MutableSignal<String> targetingClasses;
     private final MutableSignal<String> targetingLabel;
@@ -36,10 +39,16 @@ final class BattlePowerOverlayModel {
     private final Map<String, Runnable> actions = new HashMap<>();
 
     BattlePowerOverlayModel(Reactor reactor, Consumer<String> targetingToggle) {
+        this(reactor, targetingToggle, CommodityPresentation.NONE);
+    }
+
+    BattlePowerOverlayModel(Reactor reactor, Consumer<String> targetingToggle,
+                            CommodityPresentation commodities) {
         this.targetingToggle = targetingToggle;
         commandPoints = reactor.signal("CP 0 / 0");
         commandPointFillStyle = reactor.signal("width: 0%;");
         supplies = reactor.signal("SUP 0");
+        suppliesIcon = reactor.signal(commodities.commodityIcon(Commodities.SUPPLIES));
         powerCards = reactor.signal(List.of());
         targetingClasses = reactor.signal(TARGETING_HIDDEN);
         targetingLabel = reactor.signal("");
@@ -50,6 +59,7 @@ final class BattlePowerOverlayModel {
         props.put("commandPoints", commandPoints);
         props.put("commandPointFillStyle", commandPointFillStyle);
         props.put("supplies", supplies);
+        props.put("suppliesIcon", suppliesIcon);
         props.put("powerCards", powerCards);
         props.put("targetingClasses", targetingClasses);
         props.put("targetingLabel", targetingLabel);

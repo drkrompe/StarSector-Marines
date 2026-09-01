@@ -1,4 +1,4 @@
-<template props="commandPoints,commandPointFillStyle,supplies,powerCards,targetingClasses,targetingLabel">
+<template props="commandPoints,commandPointFillStyle,supplies,suppliesIcon,powerCards,targetingClasses,targetingLabel">
   <div id="battle-power-overlay" class="battle-power-overlay">
     <div id="battle-power-targeting" class="{targetingClasses}">
       <div id="battle-power-targeting-label" class="label heading targeting-label">{targetingLabel}</div>
@@ -11,7 +11,10 @@
         <div id="battle-power-cp-track" class="resource-track">
           <div id="battle-power-cp-fill" class="resource-fill" style="{commandPointFillStyle}" />
         </div>
-        <div id="battle-power-supplies" class="label resource-supplies">{supplies}</div>
+        <div id="battle-power-supplies" class="resource-supplies">
+          <img id="battle-power-supplies-icon" class="resource-supplies-icon" src="{suppliesIcon}" />
+          <div id="battle-power-supplies-label" class="label resource-supplies-label">{supplies}</div>
+        </div>
       </div>
       <div id="battle-power-cards" class="power-cards">
         <button each="power in powerCards" key="{power.id}" id="{power.id}" class="{power.classes}" style="{power.style}" disabled="{power.disabled}" onclick="{power.action}">
@@ -82,7 +85,9 @@
   .resource-cp { width: 100%; height: 12px; color: #c8e0ff; }
   .resource-track { width: 100%; height: 3px; background-color: #172231; }
   .resource-fill { height: 100%; background-color: #6ed7ff; }
-  .resource-supplies { width: 100%; height: 12px; color: #8294a8; }
+  .resource-supplies { width: 100%; height: 14px; flex-direction: row; gap: 4px; color: #8294a8; }
+  .resource-supplies-icon { width: 14px; height: 14px; }
+  .resource-supplies-label { width: 0px; height: 14px; flex-grow: 1; color: #8294a8; }
 
   .power-cards {
     height: 52px;

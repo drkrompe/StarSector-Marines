@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
@@ -664,7 +667,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BufferedImage image = renderBattleHudCommandOverlay(
                 context, renderer, width, height);
         Reactor reactor = new Reactor();
-        BattlePowerOverlayModel model = new BattlePowerOverlayModel(reactor, ignored -> { });
+        BattlePowerOverlayModel model = new BattlePowerOverlayModel(
+                reactor, ignored -> { }, snapshotCommodities());
         List<BattlePowerOverlayModel.PowerState> powers = List.of(
                 power("recon_ping", "Recon Ping", 2f, 0, 7.4f, -1),
                 power("mech_support", "Mech Support", 4f, 0, 0f, 2),
@@ -1138,14 +1142,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         MarineSquad squad = roster.squads().get(0);
-        Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
-        postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
-        postBattle.put(squad.memberIds().get(MarineSquad.CAPACITY - 1),
-                MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
-        roster.recruitToSquad(roster.reserveSquad().id());
+        if (!pickerOpen) {
+            Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
+            postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
+            postBattle.put(squad.memberIds().get(MarineSquad.CAPACITY - 1),
+                    MarineSoldierStatus.KIA);
+            roster.applySoldierOutcome(postBattle, 100f, 1.25f);
+            roster.recruitToSquad(roster.reserveSquad().id());
+        }
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 100d);
+                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources());
         if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().get(1).select().run();
         if (fireteam && armorPicker) viewModel.showArmorPickerAction().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
@@ -1388,6 +1394,49 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         };
     }
 
+    private static EquipmentIssueResources snapshotEquipmentResources() {
+        return new EquipmentIssueResources() {
+            private final EquipmentTemplateCost available =
+                    new EquipmentTemplateCost(2_000, 2_000, 2_000, 2_000);
+
+            @Override public EquipmentTemplateCost available() { return available; }
+            @Override public boolean spend(EquipmentTemplateCost cost) { return cost != null; }
+            @Override public String commodityName(String commodityId) {
+                return snapshotCommodities().commodityName(commodityId);
+            }
+            @Override public String commodityIcon(String commodityId) {
+                return snapshotCommodities().commodityIcon(commodityId);
+            }
+        };
+    }
+
+    private static CommodityPresentation snapshotCommodities() {
+        return new CommodityPresentation() {
+            @Override public String commodityName(String commodityId) {
+                return switch (commodityId) {
+                    case Commodities.SUPPLIES -> "Supplies";
+                    case Commodities.HAND_WEAPONS -> "Heavy Armaments";
+                    case Commodities.HEAVY_MACHINERY -> "Heavy Machinery";
+                    case Commodities.FOOD -> "Food";
+                    case Commodities.MARINES -> "Marines";
+                    default -> CommodityPresentation.super.commodityName(commodityId);
+                };
+            }
+
+            @Override public String commodityIcon(String commodityId) {
+                return switch (commodityId) {
+                    case Commodities.SUPPLIES -> "graphics/icons/cargo/supplies.png";
+                    case Commodities.HAND_WEAPONS -> "graphics/icons/cargo/heavyweapons.png";
+                    case Commodities.HEAVY_MACHINERY ->
+                            "graphics/icons/cargo/heavymachinery.png";
+                    case Commodities.FOOD -> "graphics/icons/cargo/food.png";
+                    case Commodities.MARINES -> "graphics/icons/cargo/marine.png";
+                    default -> "";
+                };
+            }
+        };
+    }
+
     private static BufferedImage renderRelative(HeadlessUiRenderer renderer,
                                                 UiDocument document,
                                                 int width, int height,
@@ -1454,6 +1503,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
+        props.put("issueCargoRows", viewModel.issueCargoRows());
+        props.put("issueCargoClasses", viewModel.issueCargoClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -42,6 +43,7 @@ import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
 
@@ -720,6 +722,15 @@ public class BriefingScreen implements Screen {
                         : this::openSquadDeployment;
         ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H, deployAction);
         widgets.add(deploy);
+        boolean showMarineCommodity = readiness != null && readiness.needsPersonnel();
+        if (showMarineCommodity) {
+            String marineIcon = CampaignCommodityPresentation.INSTANCE
+                    .commodityIcon(Commodities.MARINES);
+            if (!marineIcon.isBlank()) {
+                widgets.add(new SpriteThumbWidget(marineIcon,
+                        deployX + 8f, btnY + (BTN_H - 22f) * 0.5f, 22f, 22f));
+            }
+        }
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 canAccept ? Strings.get("briefingAccept")
                         : !transportOk ? Strings.get("briefingAcceptBlocked")
@@ -730,7 +741,8 @@ public class BriefingScreen implements Screen {
                                                 + " · " + cargoCost + " cargo"
                                         : "Need " + personnelShortfall + " · No marines"
                                 : "Assign " + readiness.selectedShortfall(),
-                deployX + INNER_PAD, btnY + BTN_H - 6f,
+                deployX + INNER_PAD + (showMarineCommodity ? 24f : 0f),
+                btnY + BTN_H - 6f,
                 canAccept ? ACCEPT_COLOR : canReinforce ? VALUE_COLOR : BLOCKED_COLOR));
 
         ButtonWidget back = new ButtonWidget(backX, btnY, btnW, BTN_H, this::onBack);

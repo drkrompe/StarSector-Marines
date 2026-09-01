@@ -1,11 +1,22 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 /** Live player-fleet cargo authority for Fleet Armory equipment transactions. */
 public final class CampaignEquipmentIssueResources implements EquipmentIssueResources {
+
+    @Override
+    public String commodityName(String commodityId) {
+        return CampaignCommodityPresentation.INSTANCE.commodityName(commodityId);
+    }
+
+    @Override
+    public String commodityIcon(String commodityId) {
+        return CampaignCommodityPresentation.INSTANCE.commodityIcon(commodityId);
+    }
 
     @Override
     public EquipmentTemplateCost available() {

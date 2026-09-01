@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
+
 /** External cargo authority used by an equipment preview and its atomic commit. */
-public interface EquipmentIssueResources {
+public interface EquipmentIssueResources extends CommodityPresentation {
 
     EquipmentIssueResources UNLIMITED = new EquipmentIssueResources() {
         private final EquipmentTemplateCost available = new EquipmentTemplateCost(
