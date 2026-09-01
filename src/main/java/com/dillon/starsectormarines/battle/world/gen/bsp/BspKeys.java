@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
@@ -78,6 +79,23 @@ public final class BspKeys {
 
     /** Open ground the road growth never reached, left unpartitioned. Absent when the stock trunk stage ran. */
     public static final GenKey<List<TrunkPlan.SubRect>> HINTERLAND = GenKey.of("hinterland");
+
+    /** The places this map is made of, when it was grown from a precinct plan. */
+    public static final GenKey<PrecinctPlan> PRECINCTS = GenKey.of("precincts");
+
+    /**
+     * Per-cell precinct index, or {@code GrownTrunkPlan.UNOWNED} for open
+     * country. What lets a later stage fill, wall or report on one place
+     * without re-deriving where it is.
+     */
+    public static final GenKey<int[][]> PRECINCT_CLAIM = GenKey.of("precinctClaim");
+
+    /**
+     * Per-cell road ownership by precinct index. Kept beside the claim because
+     * a place's circulation and its ground are different questions: the wall
+     * goes round the claim, and the gates are where the road crosses it.
+     */
+    public static final GenKey<int[][]> PRECINCT_ROAD = GenKey.of("precinctRoad");
 
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
