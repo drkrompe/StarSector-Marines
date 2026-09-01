@@ -3,10 +3,13 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
@@ -72,6 +75,10 @@ public final class PrecinctWardStage implements GenStage {
                 for (Reserved field : fields) {
                     build(ctx, field, facing);
                 }
+                // After the lots, because authoring one clears tactical nodes
+                // standing on its reservation and a building node has no
+                // business being removed by an airfield.
+                emitTacticalNodes(ctx, result);
                 // Recorded rather than dropped. Ground is granted from the
                 // program, but granted ground is not the same as ground the
                 // packer can use: measured on a cramped map, a garrison owed
@@ -88,6 +95,77 @@ public final class PrecinctWardStage implements GenStage {
         }
         ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));
         ctx.put(BspKeys.UNPLACED_AIRFIELDS, Map.copyOf(shortFields));
+    }
+
+    /**
+     * Turns the buildings a precinct packed into things a battle can be about.
+     *
+     * <p>Without this a garrison is geometry: it has walls and roofs and no
+     * objectives, no garrison spawns and nothing for the commander tier to
+     * reason over. On a map with settlements around it that hides, because
+     * their fills emit plenty; on a remote map, where the installation is the
+     * only place, the map measures zero points of interest.
+     *
+     * <p><b>A precinct garrison keeps its own command post</b>, which is where
+     * this differs from {@link FortressWardStage}. That ward is packed around a
+     * citadel compound the conquest recipe seeded separately and its program
+     * has the keep taken out, so emitting a command post would give the map two.
+     * A precinct is self-contained: nothing else is going to provide one, and
+     * two garrisons on one map are meant to have one each.
+     */
+    private static void emitTacticalNodes(GenContext ctx, FortressInterior.Result result) {
+        for (RoomPacker.Placed room : result.placed()) {
+            TacticalNode.Kind kind = switch (room.purpose()) {
+                case KEEP_THRONE -> TacticalNode.Kind.COMMAND_POST;
+                case ARMORY -> TacticalNode.Kind.ARMORY;
+                case BARRACKS -> TacticalNode.Kind.BARRACKS;
+                // A motor pool is a store of things worth taking, which is what
+                // an armoury is to everything that reads these.
+                case VEHICLE_BAY -> TacticalNode.Kind.ARMORY;
+                case KEEP_ENTRY -> TacticalNode.Kind.GATE;
+                case CONTROL_ROOM -> TacticalNode.Kind.GUARDPOST;
+                default -> null;
+            };
+            if (kind == null) continue;
+            int[] stand = standCell(ctx, room);
+            if (stand == null) continue;
+            ctx.tactical.add(new TacticalNode(kind, stand[0], stand[1],
+                    room.originX(), room.originY(),
+                    room.originX() + room.shape().width() - 1,
+                    room.originY() + room.shape().height() - 1,
+                    Faction.DEFENDER, weight(kind), 3, false));
+        }
+    }
+
+    /**
+     * How much holding this is worth. The command post is the place, the stores
+     * are what a raid is for, and a guard post is a position rather than a
+     * prize.
+     */
+    private static int weight(TacticalNode.Kind kind) {
+        return switch (kind) {
+            case COMMAND_POST -> 90;
+            case ARMORY -> 70;
+            case BARRACKS -> 60;
+            case GATE -> 55;
+            default -> 40;
+        };
+    }
+
+    /**
+     * Somewhere inside the building a defender can actually stand.
+     *
+     * <p>A node anchored on a wall or in a doorway is a garrison point nobody
+     * can occupy and a doorway nothing may block.
+     */
+    private static int[] standCell(GenContext ctx, RoomPacker.Placed room) {
+        for (int[] cell : room.shape().filled()) {
+            int x = room.originX() + cell[0];
+            int y = room.originY() + cell[1];
+            if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
+            if (ctx.grid.isWalkable(x, y) && !ctx.grid.isDoorway(x, y)) return new int[]{x, y};
+        }
+        return null;
     }
 
     /** A lot the precinct has set aside, and the size that fitted. */
