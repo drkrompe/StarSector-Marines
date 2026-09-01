@@ -207,8 +207,7 @@ public final class BoatBayFitting implements RoomFitting {
     public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
-        int band = Math.min(WORKING_BAND,
-                Math.min((along - MIN_CLEAR) / 2, (across - MIN_CLEAR) / 2));
+        int band = band(along, across);
         if (band < 1) {
             // No room for a working band and a boat both. The deck the boat
             // needs wins, because it is the one thing this compartment is for.
@@ -332,6 +331,35 @@ public final class BoatBayFitting implements RoomFitting {
      * down it — which is what it was before boats existed and is a worse bay
      * rather than a broken one.
      */
+    /**
+     * The working band this room would lay, or 0 for one too small to have one.
+     *
+     * <p>Pulled out because the count of boats a bay holds is asked twice: once
+     * here, laying them, and once by whoever wants to know what a hull carries
+     * without generating her deck to find out. Two copies of this arithmetic
+     * would answer differently the first time either changed, and the symptom is
+     * a ship whose briefing promises lift her bays do not have.
+     */
+    private static int band(int along, int across) {
+        return Math.min(WORKING_BAND,
+                Math.min((along - MIN_CLEAR) / 2, (across - MIN_CLEAR) / 2));
+    }
+
+    /**
+     * How many boats a bay of this size holds.
+     *
+     * <p>The same walk {@link #layBoats} makes, without a floor to lay them on.
+     */
+    public static int boatsIn(int along, int across) {
+        int band = band(along, across);
+        if (band < 1) return 0;
+        int rim = band + 1;
+        int depth = depth(across - 2 * rim);
+        if (depth < MIN_BOAT_DEPTH) return 0;
+        int deckAlong = along - 2 * rim;
+        return Math.max(0, (deckAlong + BOAT_GAP) / (span(depth) + BOAT_GAP));
+    }
+
     private void layBoats(RoomFloor floor, int along, int across, int band) {
         // Inside the ring, not on it. The first clear cell inboard of every
         // bulkhead is where that run's work is done from, so a boat laid on the
@@ -340,13 +368,12 @@ public final class BoatBayFitting implements RoomFitting {
         // It would simply be published inside a boat.
         int rim = band + 1;
         int deckAlong = along - 2 * rim;
-        int deckAcross = across - 2 * rim;
-        int depth = depth(deckAcross);
+        int depth = depth(across - 2 * rim);
         if (depth < MIN_BOAT_DEPTH) return;
         int span = span(depth);
 
         int pitch = span + BOAT_GAP;
-        int boats = (deckAlong + BOAT_GAP) / pitch;
+        int boats = boatsIn(along, across);
         if (boats < 1) return;
 
         // Centred on the deck's long axis, so a bay that holds two boats in a

@@ -4,8 +4,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a ship's boats are a fitting of the hull rather than
-property brought aboard, so her bays are stocked from what she is for.
+Updated: 2026-09-01 — a hull's establishment is six boats and the lift a
+briefing plans around is those boats, read out rather than committed; a ship's
+boats are a fitting of the hull rather than property brought aboard.
 
 Earlier 2026-09-01 — a bay knows its aperture: the door in its outboard
 bulkhead, derived at placement from the run of its ring that faces space.
@@ -215,6 +216,18 @@ authored content.
   One type per hull rather than a mixed bill, because a ship's boats are a class
   she carries several of and a bay holding one of each would be a fleet in
   miniature.
+- **A hull's establishment is six boats**, which is the number the missions are
+  written around, and it is met by owing her three bays rather than by making
+  two bays longer. That was measured rather than chosen: a longer bay reaches
+  six in two rooms and packs worse, taking cruisers and capitals from one deck
+  in twelve short of rooms to four in twelve, because one long room is harder to
+  place than its area suggests. Three ordinary bays cost nothing and pack better
+  than the two she carried before.
+- **The lift is the boats aboard, and there is nothing to choose.** A briefing
+  reads out the establishment — how many, of what, off which ship — rather than
+  offering a per-hull commitment, because holding one of your own boats back is
+  declining to use a lifeboat. What a mission can still be told is how many
+  people go, which is a separate decision and stays.
 - **Servicing a boat is the same job as servicing an aircraft on an apron**, and
   is deliberately the same one: `SERVICE` published against the berth, worked in
   hand-seconds by whoever is standing at it. A ship's boats and a garrison

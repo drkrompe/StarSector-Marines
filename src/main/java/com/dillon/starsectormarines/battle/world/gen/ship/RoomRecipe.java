@@ -118,9 +118,22 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * <p>The one room that must reach the hull. A bay buried amidships opens
      * onto nothing, so this is where {@link #hullAccess} earns its place: the
      * placer has to find it a wall of the ship, not merely a wall.
+     *
+     * <p><b>How much lift one bay is worth, rather than how big a bay looks.</b>
+     * A ship's establishment is six boats, which is what the missions are
+     * written around, and a bay of this size holds two — so a transport owes
+     * three of them, and this number is what makes her ask for three.
+     *
+     * <p>Arrived at by measuring rather than by taste, because the obvious move
+     * was the wrong one. Making the bay longer instead gets to six in two rooms
+     * and packs worse: a 32-cell bay took cruisers and capitals from one deck in
+     * twelve losing rooms to four in twelve, since one long room is harder to
+     * place than its area suggests. Three ordinary bays cost nothing and in fact
+     * pack <em>better</em> than the two the hull carried before — the cruiser
+     * goes from one deck in twelve short of rooms to none.
      */
     public static final RoomRecipe SHUTTLE_BAY = new RoomRecipe(
-            RoomPurpose.HANGAR, RoomShape.rectangle(28, 16), DeckZone.MIDSHIPS, 120,
+            RoomPurpose.HANGAR, RoomShape.rectangle(28, 16), DeckZone.MIDSHIPS, 110,
             HullContact.FLANK);
 
     /**
