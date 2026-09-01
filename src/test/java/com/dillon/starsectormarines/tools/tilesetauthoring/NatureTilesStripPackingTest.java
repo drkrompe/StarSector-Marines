@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * What {@code nature-tiles}' authoring document packs out of its keyed raw
  * sheet, asked of the real document rather than of a synthetic one.
  *
- * <p>Five of its twenty frames take their picture from a tileable material
+ * <p>Seventeen of its thirty-two frames take their picture from a tileable material
  * rather than from this plate and say so; the other fifteen are crops of the
  * plate at the strip's authored scale. That declaration is what gives the sheet
  * one producer — see {@code nature-tiles-material-provenance.md} — and the
@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * frames are the wrapped material files, pixel for pixel.
  *
  * <p>Three things are worth checking here and nowhere else. The first is the
- * binding: on a strip the frame index is the address, and the twenty ids are
+ * binding: on a strip the frame index is the address, and the ids are
  * live in {@code urban.mapping.json}, so a packing the loader splits or fuses
  * differently renames content the map already selects by. The second is the
  * sprite border, which is the difference between a ground field and a lattice
@@ -67,9 +67,21 @@ class NatureTilesStripPackingTest {
     /** How much of a ground frame the renderer never draws. */
     private static final int INSET = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
 
-    /** Frame order is this sheet's only address, so the ids are listed in it. */
+    /**
+     * Frame order is this sheet's only address, so the ids are listed in it.
+     *
+     * <p>Grass and dirt run eight frames each as of 2026-09-01, which moved
+     * every frame after them. That renumbering is safe only because nothing
+     * addresses this sheet by number: {@code urban.mapping.json} and
+     * {@code TileManifest} both name ids, and the export assigns the indices.
+     * This list is the thing that would notice if a piece were reordered
+     * rather than renumbered.
+     */
     private static final List<String> FRAMES = List.of(
-            "nature.grass-1", "nature.grass-2", "nature.dirt-1", "nature.dirt-2",
+            "nature.grass-1", "nature.grass-2", "nature.grass-3", "nature.grass-4",
+            "nature.grass-5", "nature.grass-6", "nature.grass-7", "nature.grass-8",
+            "nature.dirt-1", "nature.dirt-2", "nature.dirt-3", "nature.dirt-4",
+            "nature.dirt-5", "nature.dirt-6", "nature.dirt-7", "nature.dirt-8",
             "nature.sand", "nature.water-1", "nature.water-2",
             "nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2",
             "nature.shrub-3", "nature.tuft-3",
@@ -78,7 +90,7 @@ class NatureTilesStripPackingTest {
             "nature.rock-large-1", "nature.rock-large-2", "nature.rock-large-3");
 
     @Test
-    void theDocumentDescribesTwentyPiecesInTheOrderTheShippedTilesetPins() throws Exception {
+    void theDocumentDescribesItsPiecesInTheOrderTheShippedTilesetPins() throws Exception {
         TilesetDocument document = TilesetDocument.read(DOCUMENT);
         assertTrue(document.isStrip(), "nature-tiles loads as an auto-strip; a document that "
                 + "cannot say so would re-export it as a cell grid and rename every id");
@@ -137,7 +149,7 @@ class NatureTilesStripPackingTest {
      * the gutter between pieces wider. Neither is visible in either file.
      */
     @Test
-    void theStripSlicesBackIntoTheTwentyPiecesThatWerePacked() throws Exception {
+    void theStripSlicesBackIntoThePiecesThatWerePacked() throws Exception {
         TilesetDocument document = TilesetDocument.read(DOCUMENT);
         BufferedImage atlas = atlas(document);
         writeFrameComparison(atlas, document);
@@ -204,7 +216,7 @@ class NatureTilesStripPackingTest {
                 }
             }
         }
-        assertEquals(5, declared, "the five fields that ship as materials no longer declare one, "
+        assertEquals(17, declared, "the fields that ship as materials no longer declare one, "
                 + "so this check is not measuring anything");
     }
 
