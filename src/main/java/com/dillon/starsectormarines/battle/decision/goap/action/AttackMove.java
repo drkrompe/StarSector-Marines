@@ -224,13 +224,25 @@ public final class AttackMove extends AbstractZoneAction {
         }
         int rawX = (int) Math.floor(contactX + perpX * SQUAD_FLANK_RADIUS);
         int rawY = (int) Math.floor(contactY + perpY * SQUAD_FLANK_RADIUS);
+
+        // The whole squad shares one answer here, and it only moves when the
+        // contact moves cells — but the call is per member per tick, and
+        // snapToReachable costs an A* per candidate over a radius-5 square.
+        // Ask once per squad per second instead; see FlankAimMemo.
+        int tick = sim.getSimTickIndex();
+        if (squad.flankAim.isFresh(contact, rawX, rawY, tick)) {
+            if (squad.flankAim.refused()) return new int[]{destX, destY};
+            return new int[]{squad.flankAim.aimX(), squad.flankAim.aimY()};
+        }
         int[] flank = ReinforceContact.snapToReachable(rawX, rawY, squad, sim);
 
         // snapToReachable answers with the squad's own ground when the building
         // will not support a flank. That is a refusal, not a destination: fall
         // back to the objective rather than ordering the squad to stand still.
-        if (TacticalScoring.cellDistance(flank[0] + 0.5f, flank[1] + 0.5f,
-                squad.centroidX, squad.centroidY) <= 1f) {
+        boolean refused = TacticalScoring.cellDistance(flank[0] + 0.5f, flank[1] + 0.5f,
+                squad.centroidX, squad.centroidY) <= 1f;
+        squad.flankAim.store(contact, rawX, rawY, tick, flank[0], flank[1], refused);
+        if (refused) {
             return new int[]{destX, destY};
         }
         return flank;
