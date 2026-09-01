@@ -41,26 +41,38 @@ public class TileRegistryParityTest {
     private record G(String id, String sheet, int frame, TileLayer layer, TileCover cover, boolean passable) {}
 
     private static final List<G> GOLDEN = List.of(
-            new G("nature.grass-1",       NATURE_SHEET, 0,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.grass-2",       NATURE_SHEET, 1,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.dirt-1",        NATURE_SHEET, 2,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.dirt-2",        NATURE_SHEET, 3,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.sand",          NATURE_SHEET, 4,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.water-1",       NATURE_SHEET, 5,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.water-2",       NATURE_SHEET, 6,  TileLayer.GROUND, TileCover.NONE,  true),
-            new G("nature.shrub-1",       NATURE_SHEET, 7,  TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.shrub-2",       NATURE_SHEET, 8,  TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.tuft-1",        NATURE_SHEET, 9,  TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.tuft-2",        NATURE_SHEET, 10, TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.shrub-3",       NATURE_SHEET, 11, TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.tuft-3",        NATURE_SHEET, 12, TileLayer.PLANT,  TileCover.NONE,  true),
-            new G("nature.rock-small-1",  NATURE_SHEET, 13, TileLayer.ROCK,   TileCover.NONE,  true),
-            new G("nature.rock-small-2",  NATURE_SHEET, 14, TileLayer.ROCK,   TileCover.NONE,  true),
-            new G("nature.rock-medium-1", NATURE_SHEET, 15, TileLayer.ROCK,   TileCover.LIGHT, true),
-            new G("nature.rock-medium-2", NATURE_SHEET, 16, TileLayer.ROCK,   TileCover.LIGHT, true),
-            new G("nature.rock-large-1",  NATURE_SHEET, 17, TileLayer.ROCK,   TileCover.HEAVY, false),
-            new G("nature.rock-large-2",  NATURE_SHEET, 18, TileLayer.ROCK,   TileCover.HEAVY, false),
-            new G("nature.rock-large-3",  NATURE_SHEET, 19, TileLayer.ROCK,   TileCover.HEAVY, false),
+            new G("nature.grass-1",       NATURE_SHEET, 0, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-2",       NATURE_SHEET, 1, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-3",       NATURE_SHEET, 2, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-4",       NATURE_SHEET, 3, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-5",       NATURE_SHEET, 4, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-6",       NATURE_SHEET, 5, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-7",       NATURE_SHEET, 6, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.grass-8",       NATURE_SHEET, 7, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-1",        NATURE_SHEET, 8, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-2",        NATURE_SHEET, 9, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-3",        NATURE_SHEET, 10, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-4",        NATURE_SHEET, 11, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-5",        NATURE_SHEET, 12, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-6",        NATURE_SHEET, 13, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-7",        NATURE_SHEET, 14, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.dirt-8",        NATURE_SHEET, 15, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.sand",          NATURE_SHEET, 16, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.water-1",       NATURE_SHEET, 17, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.water-2",       NATURE_SHEET, 18, TileLayer.GROUND, TileCover.NONE,  true),
+            new G("nature.shrub-1",       NATURE_SHEET, 19, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.shrub-2",       NATURE_SHEET, 20, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.tuft-1",        NATURE_SHEET, 21, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.tuft-2",        NATURE_SHEET, 22, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.shrub-3",       NATURE_SHEET, 23, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.tuft-3",        NATURE_SHEET, 24, TileLayer.PLANT,  TileCover.NONE,  true),
+            new G("nature.rock-small-1",  NATURE_SHEET, 25, TileLayer.ROCK,   TileCover.NONE,  true),
+            new G("nature.rock-small-2",  NATURE_SHEET, 26, TileLayer.ROCK,   TileCover.NONE,  true),
+            new G("nature.rock-medium-1", NATURE_SHEET, 27, TileLayer.ROCK,   TileCover.LIGHT, true),
+            new G("nature.rock-medium-2", NATURE_SHEET, 28, TileLayer.ROCK,   TileCover.LIGHT, true),
+            new G("nature.rock-large-1",  NATURE_SHEET, 29, TileLayer.ROCK,   TileCover.HEAVY, false),
+            new G("nature.rock-large-2",  NATURE_SHEET, 30, TileLayer.ROCK,   TileCover.HEAVY, false),
+            new G("nature.rock-large-3",  NATURE_SHEET, 31, TileLayer.ROCK,   TileCover.HEAVY, false),
 
             new G("urban3.street-square",    URBAN3_SHEET, 0, TileLayer.GROUND,  TileCover.NONE, true),
             new G("urban3.street-irregular", URBAN3_SHEET, 1, TileLayer.GROUND,  TileCover.NONE, true),
@@ -104,7 +116,9 @@ public class TileRegistryParityTest {
     @Test
     void canOverlayContractHolds() throws Exception {
         TileRegistry reg = loadRegistry();
-        Set<String> grasses = Set.of("nature.grass-1", "nature.grass-2");
+        Set<String> grasses = Set.of(
+                "nature.grass-1", "nature.grass-2", "nature.grass-3", "nature.grass-4",
+                "nature.grass-5", "nature.grass-6", "nature.grass-7", "nature.grass-8");
         Set<String> waters = Set.of("nature.water-1", "nature.water-2");
         List<String> plants = List.of("nature.shrub-1", "nature.shrub-2", "nature.tuft-1", "nature.tuft-2",
                 "nature.tuft-3", "nature.shrub-3");

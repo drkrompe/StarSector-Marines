@@ -13,7 +13,7 @@
       "included": true,
       "layer": "ground",
       "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png",
-      "name": "grass",
+      "name": "grass-1",
       "note": "grass field — primary outdoor surface, hash-paired with grass-2",
       "rect": [
         19,
@@ -31,9 +31,123 @@
       "id": "nature.grass-2",
       "included": true,
       "layer": "ground",
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png",
-      "name": "grass-alt",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-2.png",
+      "name": "grass-2",
       "note": "grass field, second variant — the pair is picked per cell by TileManifest",
+      "rect": [
+        141,
+        299,
+        103,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.grass-3",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-3.png",
+      "name": "grass-3",
+      "note": "grass field variant 3 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "rect": [
+        141,
+        299,
+        103,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.grass-4",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-4.png",
+      "name": "grass-4",
+      "note": "grass field variant 4 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "rect": [
+        141,
+        299,
+        103,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.grass-5",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-5.png",
+      "name": "grass-5",
+      "note": "grass field variant 5 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "rect": [
+        141,
+        299,
+        103,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.grass-6",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-6.png",
+      "name": "grass-6",
+      "note": "grass field variant 6 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "rect": [
+        141,
+        299,
+        103,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.grass-7",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-7.png",
+      "name": "grass-7",
+      "note": "grass field variant 7 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "rect": [
+        141,
+        299,
+        103,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.grass-8",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-grass-variants/grassvar-8.png",
+      "name": "grass-8",
+      "note": "grass field variant 8 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
       "rect": [
         141,
         299,
@@ -51,7 +165,7 @@
       "included": true,
       "layer": "ground",
       "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png",
-      "name": "dirt",
+      "name": "dirt-1",
       "note": "bare dirt field — hash-paired with dirt-2",
       "rect": [
         262,
@@ -69,9 +183,123 @@
       "id": "nature.dirt-2",
       "included": true,
       "layer": "ground",
-      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png",
-      "name": "dirt-alt",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-2.png",
+      "name": "dirt-2",
       "note": "bare dirt field, second variant",
+      "rect": [
+        386,
+        299,
+        104,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.dirt-3",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-3.png",
+      "name": "dirt-3",
+      "note": "bare dirt field variant 3 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "rect": [
+        386,
+        299,
+        104,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.dirt-4",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-4.png",
+      "name": "dirt-4",
+      "note": "bare dirt field variant 4 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "rect": [
+        386,
+        299,
+        104,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.dirt-5",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-5.png",
+      "name": "dirt-5",
+      "note": "bare dirt field variant 5 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "rect": [
+        386,
+        299,
+        104,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.dirt-6",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-6.png",
+      "name": "dirt-6",
+      "note": "bare dirt field variant 6 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "rect": [
+        386,
+        299,
+        104,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.dirt-7",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-7.png",
+      "name": "dirt-7",
+      "note": "bare dirt field variant 7 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "rect": [
+        386,
+        299,
+        104,
+        108
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "nature.dirt-8",
+      "included": true,
+      "layer": "ground",
+      "material": "art-source/tilesets/atlas-material-source/nature-dirt-variants/dirtvar-8.png",
+      "name": "dirt-8",
+      "note": "bare dirt field variant 8 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
       "rect": [
         386,
         299,
@@ -161,7 +389,13 @@
       ],
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
@@ -183,7 +417,13 @@
       ],
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
@@ -205,7 +445,13 @@
       ],
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
@@ -227,7 +473,13 @@
       ],
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
@@ -249,7 +501,13 @@
       ],
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
@@ -271,7 +529,13 @@
       ],
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
@@ -442,7 +706,7 @@
   "gridCols": 1,
   "gridRows": 1,
   "idPrefix": "nature",
-  "note": "Twenty frames in a row: seven repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip — the game finds the frames by alpha at load and a tile pins the frame index it resolves to — so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the seven fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nFive frames do not take their picture from this plate: grass-1, grass-2, dirt-1, dirt-2 and sand each name a tileable material under atlas-material-source/game-buffs-*, and each is exported at the material's own size plus the renderer's ground inset wrapped round it, so the inset crops back to exactly the material. The ImageGen fields underneath them are still on the plate and are deliberately not what ships: they are slabs with a lit rim and a shadowed skirt, and they repeat visibly. The other two fields, water-1 and water-2, are plate art and keep their authored spriteBorderPx.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the four field variants. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
+  "note": "Thirty-two frames in a row: twenty-one repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip \u2014 the game finds the frames by alpha at load and a tile pins the frame index it resolves to \u2014 so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nSeventeen frames do not take their picture from this plate: the eight grass, the eight dirt and sand each name a tileable material under atlas-material-source/, and each is exported at the material's own size plus the renderer's ground inset wrapped round it, so the inset crops back to exactly the material. The ImageGen fields underneath them are still on the plate and are deliberately not what ships: they are slabs with a lit rim and a shadowed skirt, and they repeat visibly. The other two fields, water-1 and water-2, are plate art and keep their authored spriteBorderPx.\n\nGrass and dirt were a pair each until 2026-09-01, and both pairs were a fiction: the two frames of each named ONE material file between them and packed byte-identical, so the hash in TileManifest chose between two copies of one picture. Every grass cell in the game was the same image, and grass is the primary outdoor surface. Each pool now runs eight frames. Slot 1 of each keeps the material that shipped, so an eighth of the cells are pixel-for-pixel what they always were, and slots 2 through 8 are siblings generated against it and shifted onto its exact mean colour \u2014 the pools got more varied without the ground changing colour.\n\nOnly three of these entries have a rect of their own: the added frames reuse the rect of the frame they vary, because a material-backed frame is sized from its material and the plate underneath it is never read. That is also why widening a pool needs no new raw art. Do not re-slice this sheet expecting to find thirty-two pieces on the plate; there are twenty, and a re-slice would orphan the twelve that are pure material.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the sixteen field variants. Nothing addresses this sheet by frame number, which is what made the renumbering safe. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
   "outputSheet": "graphics/tilesets/nature-tiles.png",
   "sheet": "art-source/tilesets/nature-tiles.raw.png",
   "sheetName": "nature-tiles",

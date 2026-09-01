@@ -70,8 +70,8 @@ public class TileRegistryCellLabelTest {
     @Test
     void slicedSheetsFallBackToTileNameByFrame() throws Exception {
         TileRegistry reg = loadAll();
-        // nature: frame 0 is nature.grass-1 (name "grass"); row is always 0 for a strip.
-        assertEquals("grass", reg.cellLabel("graphics/tilesets/nature-tiles.png", 0, 0).name);
+        // nature: frame 0 is nature.grass-1 (name "grass-1"); row is always 0 for a strip.
+        assertEquals("grass-1", reg.cellLabel("graphics/tilesets/nature-tiles.png", 0, 0).name);
 
         // urban-3: frame 5 is the south-facing bench, carrying a description too.
         CellLabel bench = reg.cellLabel("graphics/tilesets/urban-tileset-3.png", 5, 0);

@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class GroundMicroHeightSamplerTest {
@@ -47,8 +48,12 @@ class GroundMicroHeightSamplerTest {
         TileRegistry reg = TileRegistry.installed();
         String grassId = GroundTileSelector.natureTileId(CellTopology.GroundKind.GRASS, 1, 1);
         String dirtId = GroundTileSelector.natureTileId(CellTopology.GroundKind.DIRT, 2, 1);
-        assertEquals("nature.grass-1", grassId);
-        assertEquals("nature.dirt-2", dirtId);
+        // Which member of each pool the hash lands on is not the subject here and
+        // moves whenever the pool is resized -- both were widened from two frames
+        // to eight on 2026-09-01. What must hold is that the id names a frame of
+        // the right pool and the sampler resolves that exact frame.
+        assertTrue(grassId.startsWith("nature.grass-"), grassId);
+        assertTrue(dirtId.startsWith("nature.dirt-"), dirtId);
         assertSample(expectedSliced(reg.tile(grassId), natureFrames), resolver.resolve(grid, topology, 1, 1));
         assertSample(expectedSliced(reg.tile(dirtId), natureFrames), resolver.resolve(grid, topology, 2, 1));
     }
@@ -107,8 +112,12 @@ class GroundMicroHeightSamplerTest {
         GroundMicroHeightSampler.Sample grass = resolver.resolve(grid, topology, 1, 1);
         topology.setGroundKind(1, 1, CellTopology.GroundKind.DIRT);
         GroundMicroHeightSampler.Sample dirt = resolver.resolve(grid, topology, 1, 1);
-        assertEquals(expectedSliced(TileRegistry.installed().tile("nature.grass-1"), natureFrames).srcX, grass.srcX);
-        assertEquals(expectedSliced(TileRegistry.installed().tile("nature.dirt-1"), natureFrames).srcX, dirt.srcX);
+        // Named through the selector rather than pinned, so resizing a pool moves
+        // the expectation with the code instead of failing this cache check.
+        String grassId = GroundTileSelector.natureTileId(CellTopology.GroundKind.GRASS, 1, 1);
+        String dirtId = GroundTileSelector.natureTileId(CellTopology.GroundKind.DIRT, 1, 1);
+        assertEquals(expectedSliced(TileRegistry.installed().tile(grassId), natureFrames).srcX, grass.srcX);
+        assertEquals(expectedSliced(TileRegistry.installed().tile(dirtId), natureFrames).srcX, dirt.srcX);
 
         topology.setGroundKind(1, 1, CellTopology.GroundKind.STREET);
         topology.setWall(1, 2, true);
