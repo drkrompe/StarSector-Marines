@@ -30,6 +30,26 @@
         [
           2,
           1
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          6,
+          1
+        ],
+        [
+          7,
+          1
         ]
       ],
       "id": "floors.dirt"
@@ -136,26 +156,6 @@
     {
       "cells": [
         [
-          3,
-          1
-        ],
-        [
-          4,
-          1
-        ],
-        [
-          5,
-          1
-        ],
-        [
-          6,
-          1
-        ],
-        [
-          7,
-          1
-        ],
-        [
           8,
           1
         ],
@@ -165,6 +165,26 @@
         ],
         [
           10,
+          1
+        ],
+        [
+          11,
+          1
+        ],
+        [
+          12,
+          1
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          14,
+          1
+        ],
+        [
+          15,
           1
         ]
       ],
@@ -253,19 +273,19 @@
     },
     {
       "col": 0,
-      "description": "dirt-1",
+      "description": "dust-1",
       "name": "floors.dirt v1",
       "row": 1
     },
     {
       "col": 1,
-      "description": "dirt-2",
+      "description": "dust-2",
       "name": "floors.dirt v2",
       "row": 1
     },
     {
       "col": 2,
-      "description": "dirt-3",
+      "description": "dust-3",
       "name": "floors.dirt v3",
       "row": 1
     },
@@ -289,48 +309,78 @@
     },
     {
       "col": 3,
+      "description": "dust-4",
+      "name": "floors.dirt v4",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "dust-5",
+      "name": "floors.dirt v5",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "dust-6",
+      "name": "floors.dirt v6",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "dust-7",
+      "name": "floors.dirt v7",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "dust-8",
+      "name": "floors.dirt v8",
+      "row": 1
+    },
+    {
+      "col": 8,
       "description": "snowvar-1",
       "name": "floors.snow v1",
       "row": 1
     },
     {
-      "col": 4,
+      "col": 9,
       "description": "snowvar-2",
       "name": "floors.snow v2",
       "row": 1
     },
     {
-      "col": 5,
+      "col": 10,
       "description": "snowvar-3",
       "name": "floors.snow v3",
       "row": 1
     },
     {
-      "col": 6,
+      "col": 11,
       "description": "snowvar-4",
       "name": "floors.snow v4",
       "row": 1
     },
     {
-      "col": 7,
+      "col": 12,
       "description": "snowvar-5",
       "name": "floors.snow v5",
       "row": 1
     },
     {
-      "col": 8,
+      "col": 13,
       "description": "snowvar-6",
       "name": "floors.snow v6",
       "row": 1
     },
     {
-      "col": 9,
+      "col": 14,
       "description": "snowvar-7",
       "name": "floors.snow v7",
       "row": 1
     },
     {
-      "col": 10,
+      "col": 15,
       "description": "snowvar-8",
       "name": "floors.snow v8",
       "row": 1
