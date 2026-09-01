@@ -367,6 +367,48 @@ Points of interest stay at zero on a remote map, and that is right rather than
 outstanding: those come from settlement fills, and a remote map has no
 civilians.
 
+## Road in open country is a supply route or it is nothing
+
+Growth does not stop at a claim. Arms run their full length whether or not the
+place they belong to holds the ground they cross, so an installation with a
+modest claim throws a street network across the wilderness around it. Measured
+on a remote map, **two thirds of all road lay outside every precinct** — 3086
+cells, fully connected, with no dead ends, and serving nothing. A street grid in
+a field.
+
+What open-country road is *for* is the reason to keep any of it: a remote
+installation is supplied from somewhere and the road out is how. So road beyond
+every claim survives where it carries a place to the map edge, and is removed
+otherwise. On the same map that keeps three highways and prunes 2752 cells; the
+result reads as an installation in country with a couple of roads leaving it.
+
+Four things were learned by measuring rather than reasoning, and each is a rule
+rather than a number.
+
+**A route traced is one cell wide, because a breadth-first path is.** Kept as
+traced, a five-cell road becomes a footpath nothing drives — 193 cells of
+highway across five exits. The route is widened back out over the road that was
+already there, so a highway is as wide as the road it is made of and never
+wider.
+
+**A contiguous run of border road is one way out, not one per cell.** A
+three-cell-wide road traced from each of its cells comes back as three routes,
+so a map with a single supply road reported three exits and spent its whole
+budget on them.
+
+**Only a few are kept.** Growth reaching the border five times is five roads out
+of a place that needs one, and keeping them all leaves the wandering with an
+excuse. The shortest survive, because a supply road takes the near way out.
+
+**The question is whether any road reaches the border, not whether an
+open-country route does.** A dense city has streets to the edge and no open
+country at all; asked the narrow way, every city on the map had a supply road
+cut across it.
+
+A place with no road off the map at all is given one, straight and looking it,
+on the same terms as `PrecinctArtery`: it exists so a place is supplied, not to
+be a good road.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
