@@ -47,8 +47,10 @@ public class ConquestBattleSetupTest {
         // Against the scale rather than a literal: what this pins is that a low
         // tier still gets the canonical full-size grid, which stays true when
         // the map is resized and would otherwise fail for the wrong reason.
-        assertEquals(MapScale.LARGE.width, BattleSetup.CONQUEST_GRID_W);
-        assertEquals(MapScale.LARGE.height, BattleSetup.CONQUEST_GRID_H);
+        // The scale is Conquest's own rather than the largest tier's — the
+        // mission states its map, it does not scale into one.
+        assertEquals(MapScale.CONQUEST.width, BattleSetup.CONQUEST_GRID_W);
+        assertEquals(MapScale.CONQUEST.height, BattleSetup.CONQUEST_GRID_H);
         assertEquals(BattleSetup.CONQUEST_GRID_W, sim.getGrid().getWidth());
         assertEquals(BattleSetup.CONQUEST_GRID_H, sim.getGrid().getHeight());
         assertTrue(sim.getObjectives().stream().anyMatch(ConquestObjective.class::isInstance));

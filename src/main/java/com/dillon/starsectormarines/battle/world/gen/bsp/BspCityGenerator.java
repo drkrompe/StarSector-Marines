@@ -552,15 +552,21 @@ public final class BspCityGenerator implements MapGenerator {
         GenRecipe recipe = recipeFor(axis, profile, precincts);
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
+        if (precincts != null && precincts.objective() != null) {
+            requireNoCompetingKeep(ctx);
+        }
 
         return assembleResult(ctx);
     }
 
     /**
-     * A Conquest map must have exactly one canonical central keep because that
-     * command post is the required territorial climax. Zero omits the climax;
-     * more than one creates competing command posts. The objective also fails
-     * closed, but generation should reject the malformed match first.
+     * A stock-recipe Conquest map must have exactly one canonical central keep,
+     * because that command post is the required territorial climax and the
+     * recipe seeds a citadel unconditionally. Zero omits the climax; more than
+     * one creates competing command posts and
+     * {@code ConquestCommand.canonicalKeep} returns null, which disables the
+     * keep phase silently. The objective also fails closed, but generation
+     * should reject the malformed match first.
      */
     private static void requireExactlyOneCentralKeep(GenContext ctx) {
         int keeps = 0;
@@ -571,6 +577,38 @@ public final class BspCityGenerator implements MapGenerator {
             throw new IllegalStateException("Conquest map seed " + ctx.seed + " at "
                     + ctx.width + "x" + ctx.height + " generated " + keeps
                     + " COMMAND_POST nodes; expected exactly one central keep");
+        }
+    }
+
+    /**
+     * A map grown from places may hold one keep or none, never two.
+     *
+     * <p>The same law as {@link #requireExactlyOneCentralKeep} split at the one
+     * point where the two recipes genuinely differ. <b>Two is malformed
+     * either way</b>: {@code ConquestCommand.canonicalKeep} returns null for
+     * competing command posts and the keep phase then disables itself in
+     * silence, which is what the settlement's own military base used to cause
+     * before {@code MilitaryBaseFiller} stood it down to a supply hub.
+     *
+     * <p><b>Zero is not, here.</b> A precinct is packed from a program into the
+     * ground it won, and {@code precincts.md} records that granted ground is
+     * not usable ground — a garrison short of room builds what fits and reports
+     * the rest under {@code BspKeys.UNPLACED_PROGRAM}. For Assault and Raid
+     * that is simply a smaller installation; nothing about those missions needs
+     * a keep. For Conquest it is a map the mission cannot be played on, and
+     * {@code MissionMapRequirements} already answers it the right way — with
+     * another seed rather than an exception. Throwing here would take that
+     * re-roll away and turn a recoverable shortfall into a failed battle.
+     */
+    private static void requireNoCompetingKeep(GenContext ctx) {
+        int keeps = 0;
+        for (TacticalNode node : ctx.tactical) {
+            if (node.kind == TacticalNode.Kind.COMMAND_POST) keeps++;
+        }
+        if (keeps > 1) {
+            throw new IllegalStateException("Precinct map seed " + ctx.seed + " at "
+                    + ctx.width + "x" + ctx.height + " generated " + keeps
+                    + " COMMAND_POST nodes; a map has one place to take or none");
         }
     }
 
