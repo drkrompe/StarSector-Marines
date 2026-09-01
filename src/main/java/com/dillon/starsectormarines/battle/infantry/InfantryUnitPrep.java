@@ -94,6 +94,8 @@ public final class InfantryUnitPrep {
         }
         float rcd = world.repositionCooldown(id);
         if (rcd > 0f) world.setRepositionCooldown(id, rcd - BattleSimulation.TICK_DT);
+        float sidestep = world.sidestepTimer(id);
+        if (sidestep > 0f) world.setSidestepTimer(id, sidestep - BattleSimulation.TICK_DT);
     }
 
     /**
