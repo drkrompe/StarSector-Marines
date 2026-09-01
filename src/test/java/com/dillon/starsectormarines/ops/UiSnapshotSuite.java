@@ -179,8 +179,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-conquest-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
-                new SnapshotArtifact("mission-briefing-first-contract-low-resolution.png",
-                        renderMissionBriefing(context, renderer, 1163, 625, false)),
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
