@@ -64,8 +64,6 @@ public final class ShuttleMeans implements ReinforcementMeans {
      */
     private static final int SHUTTLE_MIN_CLEARANCE = 2;
 
-    /** Cells the off-map entry sits outside the grid. Mirrors {@code BattleSetup.SHUTTLE_OFFMAP_Y}; duplicated here so the means is self-contained and the existing constant stays {@code private}. */
-    private static final float OFFMAP_PAD = 8f;
 
     /**
      * Default shuttle for SMALL strength. Nimble, 4-capacity — single-squad
@@ -474,43 +472,14 @@ public final class ShuttleMeans implements ReinforcementMeans {
     }
 
     /**
-     * Entry + exit world coords for a shuttle landing at {@code (lzX, lzY)}.
-     * The entry comes from the side appropriate to the requesting faction —
-     * defender from the "end" of the {@link TraversalAxis} (the rear),
-     * marine from the "start" (the staging side). Mirrors
-     * {@code BattleSetup.shuttleEntryFor} for the marine case and inverts
-     * the axis edge for defender.
+     * The off-map point a sortie for this side crosses on at, and the one it
+     * leaves by.
      *
-     * @return {@code [entryX, entryY, exitX, exitY]}; exit sits 4 cells
-     *         further off-map so the departing leg has a moment of climb.
+     * <p>Deferred to {@link MapEntry}, which is where "which edge is this
+     * side's rear" lives for everything that arrives — on foot or in the air.
      */
     private static float[] entryForSide(Faction side, TraversalAxis axis,
                                         float lzX, float lzY, int gridW, int gridH) {
-        boolean defender = side == Faction.DEFENDER;
-        if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            if (defender) {
-                return new float[]{
-                        lzX, gridH + OFFMAP_PAD,
-                        lzX, gridH + OFFMAP_PAD + 4f};
-            }
-            return new float[]{
-                    lzX, -OFFMAP_PAD,
-                    lzX, -OFFMAP_PAD - 4f};
-        }
-        if (axis == TraversalAxis.WEST_TO_EAST) {
-            if (defender) {
-                return new float[]{
-                        gridW + OFFMAP_PAD, lzY,
-                        gridW + OFFMAP_PAD + 4f, lzY};
-            }
-            return new float[]{
-                    -OFFMAP_PAD, lzY,
-                    -OFFMAP_PAD - 4f, lzY};
-        }
-        // Null-axis default — drop from above (high y). Stable, matches the
-        // legacy fallback in BattleSetup.shuttleEntryFor.
-        return new float[]{
-                lzX, gridH + OFFMAP_PAD,
-                lzX, gridH + OFFMAP_PAD + 4f};
+        return MapEntry.airForSide(side, axis, lzX, lzY, gridW, gridH);
     }
 }
