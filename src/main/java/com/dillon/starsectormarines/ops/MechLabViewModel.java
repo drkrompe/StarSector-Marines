@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
@@ -10,6 +12,10 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechFabricationCatalog;
+import com.dillon.starsectormarines.marine.MechFabricationCost;
+import com.dillon.starsectormarines.marine.MechFabricationResources;
+import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -24,6 +30,9 @@ import java.util.Locale;
 public final class MechLabViewModel {
 
     private final MechBay bay;
+    private final MechFabricationResources resources;
+    private final MechWorkshop workshop;
+    private final Runnable bayChanged;
     private final MutableSignal<Integer> revision;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
@@ -59,9 +68,25 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> garageTitle;
 
     public MechLabViewModel(Reactor reactor, MechBay bay) {
+        this(reactor, bay, MechFabricationResources.NONE, () -> { });
+    }
+
+    public MechLabViewModel(Reactor reactor, MechBay bay,
+                            MechFabricationResources resources) {
+        this(reactor, bay, resources, () -> { });
+    }
+
+    public MechLabViewModel(Reactor reactor, MechBay bay,
+                            MechFabricationResources resources, Runnable bayChanged) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (bay == null) throw new IllegalArgumentException("mech bay is required");
+        if (resources == null || bayChanged == null) {
+            throw new IllegalArgumentException("fabrication resources and change callback are required");
+        }
         this.bay = bay;
+        this.resources = resources;
+        workshop = new MechWorkshop(bay, resources);
+        this.bayChanged = bayChanged;
         CampaignMechSquad initialSquad = bay.activeSquad();
         revision = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
@@ -71,7 +96,7 @@ public final class MechLabViewModel {
         fittingFocused = reactor.signal(false);
         assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
-                "Select an occupied gantry to begin fitting. No chassis is selected in overview.");
+                "Select an occupied gantry to refit, or a vacant gantry to fabricate a chassis.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
@@ -85,16 +110,21 @@ public final class MechLabViewModel {
         });
         selectedMechName = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
-            return mech != null ? mech.displayName() : "NO ASSET SELECTED";
+            return mech != null ? mech.displayName() : fabricatingChassis()
+                    ? String.format(Locale.ROOT, "VACANT GANTRY %02d", selectedGantryIndex() + 1)
+                    : "NO ASSET SELECTED";
         });
         selectedMechIdentity = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             return mech != null ? mech.variant().displayName + " chassis  ·  WALKER / HEAVY ASSET"
+                    : fabricatingChassis()
+                    ? "Select a discovered chassis pattern and commit fleet materials."
                     : "Select an assigned heavy asset from the active lance.";
         });
         selectedMechDoctrine = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
-            return mech != null ? roleLabel(mech.role()) : "Doctrine unavailable";
+            return mech != null ? roleLabel(mech.role()) : fabricatingChassis()
+                    ? "CHASSIS FORGE" : "Doctrine unavailable";
         });
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
@@ -102,7 +132,8 @@ public final class MechLabViewModel {
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
                 SocketId.RIGHT_SHOULDER, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)));
         slotRows = reactor.computed(() -> buildSlots(List.of(SocketId.values())));
-        selectedSlotTitle = reactor.computed(() -> selectedSlot.get().label());
+        selectedSlotTitle = reactor.computed(() -> fabricatingChassis()
+                ? "CHASSIS PATTERNS" : selectedSlot.get().label());
         selectedSlotCopy = reactor.computed(this::buildSelectedSlotCopy);
         selectedSlotRule = reactor.computed(this::buildSelectedSlotRule);
         catalogRows = reactor.computed(this::buildCatalogRows);
@@ -112,11 +143,11 @@ public final class MechLabViewModel {
                 ? "fitting-workspace hidden" : "fitting-workspace");
         fittingHeaderClasses = reactor.computed(() -> fittingFocused.get()
                 ? "asset-strip edge-surface" : "asset-strip edge-surface hidden");
-        performanceClasses = reactor.computed(() -> fittingFocused.get()
+        performanceClasses = reactor.computed(() -> fittingFocused.get() && selectedMech() != null
                 ? "performance-grid" : "performance-grid hidden");
         catalogClasses = reactor.computed(() -> fittingFocused.get()
                 ? "panel catalog-panel" : "panel catalog-panel hidden");
-        slotRackClasses = reactor.computed(() -> fittingFocused.get()
+        slotRackClasses = reactor.computed(() -> fittingFocused.get() && selectedMech() != null
                 ? "panel slot-panel" : "panel slot-panel hidden");
         overviewRailClasses = reactor.computed(() -> fittingFocused.get()
                 ? "overview-rail hidden" : "overview-rail");
@@ -174,6 +205,14 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null) return List.of();
         return squad.mechs().stream().map(CampaignMech::variant).toList();
+    }
+
+    /** Frozen fitting values used to keep the physical gantries visually honest. */
+    public List<MechDeploymentSpec> gantryDeployments() {
+        revision.get();
+        CampaignMechSquad squad = selectedSquad();
+        if (squad == null) return List.of();
+        return squad.mechs().stream().map(CampaignMech::freezeForDeployment).toList();
     }
 
     /** Selected vehicle's stable camera target within the current lance. */
@@ -254,8 +293,8 @@ public final class MechLabViewModel {
                     String.format(Locale.ROOT, "GANTRY %02d", index + 1),
                     mech != null ? mech.displayName() : "VACANT",
                     mech != null ? mech.variant().displayName + "  ·  " + roleLabel(mech.role())
-                            : "NO HEAVY ASSET ASSIGNED",
-                    mech == null, () -> selectGantry(gantry)));
+                            : "OPEN GANTRY FOR CHASSIS FABRICATION",
+                    false, () -> selectGantry(gantry)));
         }
         return List.copyOf(rows);
     }
@@ -270,10 +309,10 @@ public final class MechLabViewModel {
                         v.armorCapacity, maximum(x -> x.armorCapacity)),
                 meter("mobility", "MOBILITY", number(v.moveSpeed) + " CELLS/S",
                         v.moveSpeed, maximum(x -> x.moveSpeed)),
-                meter("range", "MAX RANGE", number(v.maxWeaponRange()) + " CELLS",
-                        v.maxWeaponRange(), maximum(MechVariant::maxWeaponRange)),
-                meter("endurance", "MISSILES", missileTriggers(v) + " TRIGGERS",
-                        missileTriggers(v), maximum(MechLabViewModel::missileTriggers)));
+                meter("range", "MAX RANGE", number(maxWeaponRange(mech)) + " CELLS",
+                        maxWeaponRange(mech), maximumWeaponRange()),
+                meter("endurance", "MISSILES", missileTriggers(mech) + " TRIGGERS",
+                        missileTriggers(mech), maximumMissileTriggers()));
     }
 
     private List<SlotRow> buildSlots(List<SocketId> slots) {
@@ -296,11 +335,13 @@ public final class MechLabViewModel {
 
     private String buildSelectedSlotCopy() {
         CampaignMech mech = selectedMech();
-        if (mech == null) return "No heavy asset selected.";
+        if (mech == null) return fabricatingChassis()
+                ? "Fabricate a complete standard-fit walker here."
+                : "No heavy asset selected.";
         return switch (selectedSlot.get()) {
             case MINI_FAB -> "Restocks missile trigger packs during battle.";
             case CORE -> "Chassis-integrated powerplant; future cores can trade output, heat and mass.";
-            case AMMO_RESERVE -> ammoSummary(mech.variant()) + ". Current bins are integral.";
+            case AMMO_RESERVE -> ammoSummary(mech) + ". Current bins are integral.";
             case ARMS, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals("Empty hardpoint")
                             ? "Empty mount. Fit compatible missile hardware here."
@@ -309,6 +350,9 @@ public final class MechLabViewModel {
     }
 
     private String buildSelectedSlotRule() {
+        if (fabricatingChassis()) {
+            return "PLAYER CARGO  ·  STANDARD FIT INCLUDED  ·  VACANT GANTRY";
+        }
         SocketDef definition = selectedSocketDefinition();
         if (definition == null) return "NO SOCKET DEFINITION";
         String authority = definition.factoryLocked()
@@ -322,16 +366,68 @@ public final class MechLabViewModel {
     private List<CatalogRow> buildCatalogRows() {
         revision.get();
         CampaignMech mech = selectedMech();
+        if (fabricatingChassis()) return chassisCatalog();
         if (selectedSlot.get() == SocketId.MINI_FAB) return replenisherCatalog(mech);
+        MechMountSlot mount = mountFor(selectedSlot.get());
+        if (mount != null && mech != null) return weaponCatalog(mech, mount);
         String base = "mech-catalog:installed:" + selectedSlot.get().name().toLowerCase(Locale.ROOT);
         SocketDef definition = selectedSocketDefinition();
-        boolean occupied = mech != null
-                && MechFittingLayout.forVariant(mech.variant()).occupied(selectedSlot.get());
+        boolean occupied = slotWeapon(mech, selectedSlot.get()) != null
+                || selectedSlot.get() == SocketId.CORE
+                || selectedSlot.get() == SocketId.AMMO_RESERVE;
         return List.of(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
-                base + ":detail", base + ":action", "catalog-row selected",
+                base + ":detail", base + ":action", base + ":materials", "catalog-row selected",
                 slotComponent(mech, selectedSlot.get()), occupied ? "INSTALLED ASSEMBLY" : "EMPTY SOCKET",
                 buildSelectedSlotRule(), definition != null && definition.factoryLocked()
-                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, () -> { }));
+                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, List.of(), () -> { }));
+    }
+
+    private List<CatalogRow> weaponCatalog(CampaignMech mech, MechMountSlot mount) {
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
+            MechWeaponComponent component = recipe.component();
+            if (!bay.canInstallWeapon(mech.id(), mount, component.id)) continue;
+            boolean installed = mech.weaponAt(mount) == component;
+            int owned = bay.ownedWeapon(component.id);
+            int fielded = bay.installedWeapon(component.id);
+            int free = bay.availableWeapon(component.id);
+            boolean fabricate = free <= 0;
+            boolean affordable = resources.canAfford(recipe.cost());
+            boolean disabled = installed || fabricate && !affordable;
+            String base = "mech-catalog:" + component.id;
+            rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
+                    base + ":detail", base + ":action", base + ":materials",
+                    installed ? "catalog-row selected" : "catalog-row", component.displayName,
+                    recipe.provenance() + "  ·  OWN " + owned + " / FREE " + free,
+                    component.hardpointType + "  ·  " + component.slotCost + " SLOT"
+                            + (component.slotCost == 1 ? "" : "S") + "  ·  RANGE "
+                            + number(component.weaponDef().range),
+                    installed ? "INSTALLED" : fabricate ? "FABRICATE + INSTALL" : "INSTALL SPARE",
+                    disabled, materialRows(base, recipe.cost()),
+                    () -> fitWeapon(mount, component)));
+        }
+        return List.copyOf(rows);
+    }
+
+    private List<CatalogRow> chassisCatalog() {
+        CampaignMechSquad squad = selectedSquad();
+        boolean hasSpace = squad != null && bay.canAddMech(squad.id());
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
+            boolean affordable = resources.canAfford(recipe.cost());
+            MechVariant variant = recipe.variant();
+            String base = "mech-catalog:" + recipe.id();
+            rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
+                    base + ":detail", base + ":action", base + ":materials", "catalog-row",
+                    recipe.displayName(), recipe.provenance(),
+                    Math.round(variant.armorCapacity) + " ARMOR  ·  "
+                            + number(variant.moveSpeed) + " MOBILITY  ·  "
+                            + roleLabel(variant.defaultRole),
+                    !hasSpace ? "LANCE FULL" : "FABRICATE CHASSIS",
+                    !hasSpace || !affordable, materialRows(base, recipe.cost()),
+                    () -> fabricateChassis(variant)));
+        }
+        return List.copyOf(rows);
     }
 
     private List<CatalogRow> replenisherCatalog(CampaignMech mech) {
@@ -344,13 +440,27 @@ public final class MechLabViewModel {
             boolean disabled = mech == null || installed || free <= 0;
             String base = "mech-catalog:" + component.id();
             rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
-                    base + ":detail", base + ":action",
+                    base + ":detail", base + ":action", base + ":materials",
                     installed ? "catalog-row selected" : "catalog-row", component.displayName(),
                     "OWN " + owned + "  ·  FIELD " + fielded + "  ·  FREE " + free,
                     "SRM " + number(component.srmReplenishmentSeconds()) + "s  ·  LRM "
                             + number(component.lrmReplenishmentSeconds()) + "s",
                     installed ? "INSTALLED" : free > 0 ? "INSTALL" : "COMMITTED",
-                    disabled, () -> install(component.id())));
+                    disabled, List.of(), () -> install(component.id())));
+        }
+        return List.copyOf(rows);
+    }
+
+    private List<MaterialRow> materialRows(String ownerId, MechFabricationCost cost) {
+        List<MaterialRow> rows = new ArrayList<>();
+        for (MechFabricationCost.Line line : cost.lines()) {
+            int available = resources.available(line.commodityId());
+            String id = ownerId + ":material:" + line.commodityId();
+            rows.add(new MaterialRow(id, id + ":icon", id + ":label",
+                    available >= line.quantity() ? "material-cost" : "material-cost short",
+                    resources.commodityIcon(line.commodityId()),
+                    resources.commodityName(line.commodityId()).toUpperCase(Locale.ROOT)
+                            + " " + available + " / " + line.quantity()));
         }
         return List.copyOf(rows);
     }
@@ -366,6 +476,7 @@ public final class MechLabViewModel {
         feedbackText.set(squad.displayName() + " is now the active Mech Support lance.");
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
+        bayChanged.run();
     }
 
     private void selectMech(String mechId) {
@@ -401,13 +512,13 @@ public final class MechLabViewModel {
         selectedGantry.set(index);
         selectedMechId.set(mech != null ? mech.id() : null);
         selectedSlot.set(SocketId.MINI_FAB);
-        fittingFocused.set(mech != null);
+        fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(mech != null
                 ? "Gantry " + String.format(Locale.ROOT, "%02d", index + 1)
                         + " selected: " + mech.displayName() + ". No campaign hardware changed."
                 : "Gantry " + String.format(Locale.ROOT, "%02d", index + 1)
-                        + " is vacant. Browse the lance to inspect an assigned asset.");
+                        + " is vacant. Select a chassis pattern to fabricate a new heavy asset.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -433,7 +544,9 @@ public final class MechLabViewModel {
         fittingFocused.set(true);
         feedbackText.set(slot.label() + " selected. " + (slot == SocketId.MINI_FAB
                 ? "Compatible fleet stock is ready for refit."
-                : "Inspection only; this hardware has no campaign refit authority yet."));
+                : mountFor(slot) != null
+                ? "Compatible owned and fabricable weapon assemblies are shown."
+                : "This chassis-integrated hardware is inspection only."));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -441,7 +554,8 @@ public final class MechLabViewModel {
         assetPickerOpen.set(false);
         fittingFocused.set(false);
         selectedMechId.set(null);
-        feedbackText.set("Lance overview restored. Select an occupied gantry to begin fitting.");
+        feedbackText.set("Lance overview restored. Select an occupied gantry to refit,"
+                + " or a vacant gantry to fabricate a chassis.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -455,6 +569,52 @@ public final class MechLabViewModel {
                 : "Refit blocked: no unassigned component is available.");
         feedbackClasses.set(installed ? "mech-lab-feedback tone-good surface-dark"
                 : "mech-lab-feedback tone-danger surface-dark");
+        if (installed) bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    private void fitWeapon(MechMountSlot mount, MechWeaponComponent component) {
+        CampaignMech mech = selectedMech();
+        if (mech == null) return;
+        MechWorkshop.Result result = workshop.fitWeapon(mech.id(), mount, component);
+        feedbackText.set(switch (result.status()) {
+            case ALREADY_INSTALLED -> component.displayName + " is already installed.";
+            case INSTALLED_FROM_STORES -> component.displayName + " installed from bay stores.";
+            case FABRICATED_AND_INSTALLED -> component.displayName
+                    + " fabricated from fleet cargo and installed.";
+            case INCOMPATIBLE -> "Refit blocked: incompatible socket type or capacity.";
+            case INSUFFICIENT_MATERIALS -> "Fabrication blocked: required fleet materials are short.";
+            default -> "Refit blocked: campaign hardware was not changed.";
+        });
+        feedbackClasses.set(result.succeeded()
+                ? "mech-lab-feedback tone-good surface-dark"
+                : "mech-lab-feedback tone-danger surface-dark");
+        if (result.succeeded()) bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    private void fabricateChassis(MechVariant variant) {
+        CampaignMechSquad squad = selectedSquad();
+        if (squad == null) return;
+        MechWorkshop.Result result = workshop.fabricateChassis(squad.id(), variant);
+        CampaignMech fabricated = result.mech();
+        if (fabricated != null) {
+            selectedMechId.set(fabricated.id());
+            selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
+            selectedSlot.set(SocketId.ARMS);
+            fittingFocused.set(true);
+        }
+        feedbackText.set(switch (result.status()) {
+            case CHASSIS_FABRICATED -> fabricated.displayName()
+                    + " fabricated with its standard roll-out fit and assigned to the lance.";
+            case INSUFFICIENT_MATERIALS -> "Chassis fabrication blocked: required fleet materials are short.";
+            case LANCE_FULL -> "Chassis fabrication blocked: this lance has no vacant gantry.";
+            default -> "Chassis fabrication blocked: campaign assets were not changed.";
+        });
+        feedbackClasses.set(result.succeeded()
+                ? "mech-lab-feedback tone-good surface-dark"
+                : "mech-lab-feedback tone-danger surface-dark");
+        if (result.succeeded()) bayChanged.run();
         revision.update(value -> value + 1);
     }
 
@@ -470,6 +630,11 @@ public final class MechLabViewModel {
         return squad != null && mechId != null ? squad.mechById(mechId) : null;
     }
 
+    private boolean fabricatingChassis() {
+        if (!fittingFocused.get() || selectedMechId.get() != null) return false;
+        return mechAt(selectedSquad(), selectedGantryIndex()) == null;
+    }
+
     private static CampaignMech mechAt(CampaignMechSquad squad, int index) {
         return squad != null && index >= 0 && index < squad.mechs().size()
                 ? squad.mechs().get(index) : null;
@@ -477,13 +642,12 @@ public final class MechLabViewModel {
 
     private static String slotComponent(CampaignMech mech, SocketId slot) {
         if (mech == null) return "NO ASSET";
-        MechVariant variant = mech.variant();
         return switch (slot) {
-            case CORE -> variant.displayName + " integrated core";
-            case ARMS -> componentName(variant.arms);
-            case LEFT_SHOULDER -> componentName(variant.leftShoulder);
-            case RIGHT_SHOULDER -> componentName(variant.rightShoulder);
-            case AMMO_RESERVE -> ammoSummary(variant);
+            case CORE -> mech.variant().displayName + " integrated core";
+            case ARMS -> componentName(mech.arms());
+            case LEFT_SHOULDER -> componentName(mech.leftShoulder());
+            case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
+            case AMMO_RESERVE -> ammoSummary(mech);
             case MINI_FAB -> mech.missileReplenisherId().equals(
                     MissileReplenisherComponent.ACCELERATED_FEED.id())
                     ? "Accelerated feed" : "Standard replenisher";
@@ -506,16 +670,59 @@ public final class MechLabViewModel {
         return component != null ? component.displayName : "Empty hardpoint";
     }
 
-    private static String ammoSummary(MechVariant variant) {
-        return missileTriggers(variant) + " missile triggers ready";
+    private static String ammoSummary(CampaignMech mech) {
+        return missileTriggers(mech) + " missile triggers ready";
     }
 
-    private static int missileTriggers(MechVariant variant) {
-        return finiteAmmo(variant.leftShoulder) + finiteAmmo(variant.rightShoulder);
+    private static int missileTriggers(CampaignMech mech) {
+        return finiteAmmo(mech.leftShoulder()) + finiteAmmo(mech.rightShoulder());
     }
 
     private static int finiteAmmo(MechWeaponComponent component) {
         return component != null && component.ammoCapacity > 0 ? component.ammoCapacity : 0;
+    }
+
+    private static float maxWeaponRange(CampaignMech mech) {
+        float max = 0f;
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponComponent component = mech.weaponAt(slot);
+            if (component != null) max = Math.max(max, component.weaponDef().range);
+        }
+        return max;
+    }
+
+    private static float maximumWeaponRange() {
+        float max = 0f;
+        for (MechWeaponComponent component : MechWeaponComponent.values()) {
+            max = Math.max(max, component.weaponDef().range);
+        }
+        return max;
+    }
+
+    private static int maximumMissileTriggers() {
+        int max = 0;
+        for (MechWeaponComponent left : MechWeaponComponent.values()) {
+            if (left.mountFamily != MechWeaponComponent.MountFamily.SHOULDER) continue;
+            for (MechWeaponComponent right : MechWeaponComponent.values()) {
+                if (right.mountFamily != MechWeaponComponent.MountFamily.SHOULDER) continue;
+                max = Math.max(max, finiteAmmo(left) + finiteAmmo(right));
+            }
+        }
+        return max;
+    }
+
+    private static MechMountSlot mountFor(SocketId slot) {
+        return switch (slot) {
+            case ARMS -> MechMountSlot.ARMS;
+            case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
+            case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
+            default -> null;
+        };
+    }
+
+    private static MechWeaponComponent slotWeapon(CampaignMech mech, SocketId slot) {
+        MechMountSlot mount = mountFor(slot);
+        return mech != null && mount != null ? mech.weaponAt(mount) : null;
     }
 
     private static PerformanceMeter meter(String suffix, String label, String value,
@@ -598,17 +805,29 @@ public final class MechLabViewModel {
     }
 
     public record CatalogRow(String id, String copyId, String nameId, String stockId,
-                             String detailId, String actionId, String classes, String name,
+                             String detailId, String actionId, String materialsId,
+                             String classes, String name,
                              String stock, String detail, String actionLabel,
-                             boolean actionDisabled, Runnable action)
+                             boolean actionDisabled, List<MaterialRow> materials, Runnable action)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "copyId" -> copyId; case "nameId" -> nameId;
             case "stockId" -> stockId; case "detailId" -> detailId; case "actionId" -> actionId;
+            case "materialsId" -> materialsId;
             case "classes" -> classes; case "name" -> name; case "stock" -> stock;
             case "detail" -> detail; case "actionLabel" -> actionLabel;
-            case "actionDisabled" -> actionDisabled; case "action" -> action;
+            case "actionDisabled" -> actionDisabled; case "materials" -> materials;
+            case "action" -> action;
             default -> throw unknown("mech-catalog", p); }; }
+    }
+
+    public record MaterialRow(String id, String iconId, String labelId,
+                              String classes, String icon, String label)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String p) { return switch (p) {
+            case "id" -> id; case "iconId" -> iconId; case "labelId" -> labelId;
+            case "classes" -> classes; case "icon" -> icon; case "label" -> label;
+            default -> throw unknown("mech-material", p); }; }
     }
 
     private static IllegalArgumentException unknown(String owner, String property) {

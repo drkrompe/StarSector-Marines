@@ -4,6 +4,11 @@ import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
@@ -232,6 +237,31 @@ final class ShipDeckBattleSceneTest {
             }
             assertTrue(headings.size() > 1,
                     "every berth faced the same way, so this proves nothing about facing");
+        }
+    }
+
+    @Test
+    void liveGantriesAdoptCampaignWeaponsAndNewlyFabricatedChassis() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            long[] machines = scene.occupyGantries(List.of(MechVariant.BULWARK));
+            scene.syncGantries(List.of(
+                    new MechDeploymentSpec(MechVariant.BULWARK, MechRole.ARMORED_SUPPORT,
+                            MissileReplenisherComponent.ACCELERATED_FEED,
+                            MechWeaponComponent.DUAL_PULSE_LASERS,
+                            MechWeaponComponent.SRM_15,
+                            MechWeaponComponent.SHOULDER_LASER_CANNON),
+                    MechDeploymentSpec.standard(MechVariant.HOUND)));
+
+            assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
+                    scene.simulation().world().mechLoadout(machines[0])
+                            .mount(MechMountSlot.ARMS).component);
+            assertEquals(MechWeaponComponent.SHOULDER_LASER_CANNON,
+                    scene.simulation().world().mechLoadout(machines[0])
+                            .mount(MechMountSlot.RIGHT_SHOULDER).component);
+            assertEquals(2, scene.simulation().liveUnitCount());
         }
     }
 

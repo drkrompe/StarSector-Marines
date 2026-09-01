@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechFabricationCost;
+import com.dillon.starsectormarines.marine.MechFabricationResources;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -248,6 +251,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)),
+                new SnapshotArtifact("mech-lab-chassis-fabrication-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                false, false, true)),
                 new SnapshotArtifact("battle-hud-task-force-wide.png",
                         renderBattleHudTaskForce(
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -1296,6 +1303,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale,
+                pickerOpen, selectHound, false);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant) throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = new MechBay();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -1305,7 +1320,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
-        MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        MechLabViewModel viewModel = new MechLabViewModel(
+                reactor, bay, snapshotMechResources());
         if (selectHound) {
             viewModel.mechRows().get().stream()
                     .filter(row -> row.name().startsWith("Hound"))
@@ -1314,6 +1330,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .filter(row -> row.name().equals("R. SHOULDER"))
                     .findFirst().orElseThrow().select().run();
         }
+        if (selectVacant) viewModel.previousGantryAction().run();
         if (pickerOpen) viewModel.openAssetPickerAction().run();
         // The lab is photographed aboard the same ship it is in game. There is
         // no substitute garage to photograph instead, and a snapshot of one
@@ -1336,7 +1353,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::gantryVariants,
+                    new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
@@ -1348,6 +1365,27 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> ship.scene().berthsIn(vehicleBay), () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
+    }
+
+    private static MechFabricationResources snapshotMechResources() {
+        return new MechFabricationResources() {
+            @Override public int available(String commodityId) { return 2_000; }
+            @Override public String commodityName(String commodityId) { return switch (commodityId) {
+                case Commodities.SUPPLIES -> "Supplies";
+                case Commodities.HEAVY_MACHINERY -> "Heavy Machinery";
+                case Commodities.METALS -> "Metals";
+                case Commodities.RARE_METALS -> "Transplutonics";
+                default -> commodityId;
+            }; }
+            @Override public String commodityIcon(String commodityId) { return switch (commodityId) {
+                case Commodities.SUPPLIES -> "graphics/icons/cargo/supplies.png";
+                case Commodities.HEAVY_MACHINERY -> "graphics/icons/cargo/heavymachinery.png";
+                case Commodities.METALS -> "graphics/icons/cargo/materials.png";
+                case Commodities.RARE_METALS -> "graphics/icons/cargo/raremetals.png";
+                default -> "";
+            }; }
+            @Override public boolean spend(MechFabricationCost cost) { return cost != null; }
+        };
     }
 
     private static BufferedImage renderRelative(HeadlessUiRenderer renderer,

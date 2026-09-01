@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.ReconPing;
@@ -272,7 +273,10 @@ class BattleFixtureJsonTest {
                         new CommandPowerCommitment(MechSupport.ID, List.of(
                                 new MechDeploymentSpec(MechVariant.SIROCCO,
                                         MechRole.LR_SUPPORT,
-                                        MissileReplenisherComponent.ACCELERATED_FEED)))),
+                                        MissileReplenisherComponent.ACCELERATED_FEED,
+                                        MechWeaponComponent.QUARRY_BREAKER_CANNON,
+                                        MechWeaponComponent.LRM_5,
+                                        MechWeaponComponent.THERMAL_LANCE)))),
                 37);
         BattleLaunchFixture fixture = new BattleLaunchFixture(construction, launch);
 
