@@ -5,7 +5,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 Written: 2026-08-23
 
 Updated: 2026-09-01 — the Boat Deck is the third authoring room: the company's
-own ship's boats, their fittings, and the hangar they stand in.
+own ship's boats, their fittings, and the hangar they stand in; deployment squad
+cards expose their twelve billets as three fire teams with hover inspection of
+each marine's issued equipment and relative firepower and protection.
 
 ## Purpose
 
@@ -103,6 +105,17 @@ its individual-kit browser, fire-team template designer, squad-arrangement edito
 and embedded Mech Lab were retired rather than retained as duplicate UI. Personnel
 reinforcement now lives on formation cards. Mech Lab has returned as its own retained
 surface over `MechBay`, not as a tab in a catch-all screen.
+
+The deployment surface remains squad-granular for commitment, but a selectable squad
+card is not merely its name. It shows the current twelve-billet establishment as three
+derived fire teams, including vacancies and personnel who are not ready to deploy.
+Each occupied billet carries compact primary/special shorthand and separate visual
+firepower and protection measures. Hover inspection names the marine, availability,
+full primary, armor, special equipment, integral suit system, and issued profile.
+Those two measures reuse `LoadoutEffectiveness` against the catalog ceiling; they do
+not collapse reach, specials, systems, morale, terrain, or orders into a fictional
+overall power score. The card remains a projection: its only command is still whole-
+squad selection.
 
 ## Organization and leadership
 

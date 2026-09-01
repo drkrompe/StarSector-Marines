@@ -92,6 +92,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/missions/mission-select.mlx");
     private static final List<String> MISSION_BRIEFING_COMPONENTS = List.of(
             "data/ui/components/missions/mission-briefing.mlx");
+    private static final List<String> SQUAD_DEPLOYMENT_COMPONENTS = List.of(
+            "data/ui/components/missions/squad-deployment.mlx");
+    private static final List<String> STATIONING_COMPONENTS = List.of(
+            "data/ui/components/missions/stationing-screen.mlx");
+    private static final List<String> MISSION_RESULTS_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-results.mlx");
+    private static final List<String> MISSION_LOOT_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-loot.mlx");
     private static final List<String> BARRACKS_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/shipboard-barracks.mlx");
@@ -190,6 +198,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-conquest-debug-expanded-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true)),
+                new SnapshotArtifact("mission-squad-deployment-wide.png",
+                        renderMissionFlow(context, renderer, SQUAD_DEPLOYMENT_COMPONENTS,
+                                SquadDeploymentScreen.ROOT_COMPONENT,
+                                SquadDeploymentScreen.previewProps())),
+                new SnapshotArtifact("mission-stationing-offer-wide.png",
+                        renderMissionFlow(context, renderer, STATIONING_COMPONENTS,
+                                StationingScreen.ROOT_COMPONENT,
+                                StationingScreen.previewProps(false, false))),
+                new SnapshotArtifact("mission-stationing-response-wide.png",
+                        renderMissionFlow(context, renderer, STATIONING_COMPONENTS,
+                                StationingScreen.ROOT_COMPONENT,
+                                StationingScreen.previewProps(true, true))),
+                new SnapshotArtifact("mission-results-wide.png",
+                        renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
+                                ResultsScreen.ROOT_COMPONENT,
+                                ResultsScreen.previewProps(true, true))),
+                new SnapshotArtifact("mission-loot-wide.png",
+                        renderMissionFlow(context, renderer, MISSION_LOOT_COMPONENTS,
+                                LootScreen.ROOT_COMPONENT, LootScreen.previewProps())),
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -962,6 +989,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    private static BufferedImage renderMissionFlow(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            List<String> components, String rootComponent,
+            Map<String, Object> props) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), components);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, rootComponent, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document,
+                    FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f);
+        }
+    }
+
     private static BufferedImage renderCompanyHq(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
@@ -1458,7 +1502,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             ship::scene,
                             () -> framing.lookingAt(camera.pose().worldX(),
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
-                            () -> ship.scene().berthsIn(vehicleBay), () -> 0d));
+                            () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
+                            () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }

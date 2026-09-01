@@ -1,19 +1,41 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechLabDollCanvasTest {
+
+    @Test
+    void weldingFxFollowWorkInTheFramedBayRatherThanAnActorBodyType() {
+        int bay = 7;
+
+        assertTrue(MechLabDollCanvas.isWeldingJob(
+                JobBoard.group(bay, Affordance.SERVICE, 2), bay, false));
+        assertTrue(MechLabDollCanvas.isWeldingJob(
+                JobBoard.group(bay, Affordance.FABRICATE), bay, false));
+        assertTrue(MechLabDollCanvas.isWeldingJob(
+                JobBoard.group(bay, Affordance.REPAIR), bay, true));
+        assertFalse(MechLabDollCanvas.isWeldingJob(
+                JobBoard.group(bay, Affordance.REPAIR), bay, false));
+        assertFalse(MechLabDollCanvas.isWeldingJob(
+                JobBoard.group(bay, Affordance.READOUT), bay, true));
+        assertFalse(MechLabDollCanvas.isWeldingJob(
+                JobBoard.group(bay + 1, Affordance.SERVICE, 2), bay, true));
+        assertFalse(MechLabDollCanvas.isWeldingJob(null, bay, true));
+    }
 
     @Test
     void vacantActionCoversTheWholeFiveBySevenFabricationPad() {
@@ -30,6 +52,17 @@ class MechLabDollCanvasTest {
         assertEquals(7f, pad.height());
         assertEquals(13.5f, north.worldCenterX());
         assertEquals(11f, north.worldCenterY());
+    }
+
+    @Test
+    void repairFocusOnTheServicePadIsNotPresentedAsMachineWelding() {
+        Gantry berth = Gantry.covering(12, 8, 3, 6,
+                Gantry.Facing.NORTH, Gantry.Holds.MACHINE);
+
+        assertTrue(MechLabDollCanvas.focusInsideServicePad(
+                List.of(berth), 13.5f, 8.5f));
+        assertFalse(MechLabDollCanvas.focusInsideServicePad(
+                List.of(berth), 18.5f, 8.5f));
     }
 
     @Test

@@ -133,7 +133,7 @@ public final class AttackMove extends AbstractZoneAction {
      */
     @Override
     protected boolean prosecutesContactOffRoute(Squad squad) {
-        return !squad.hasPlayerTacticalOrder(AssignmentKind.ATTACK_MOVE);
+        return !squad.hasPlayerOrder(AssignmentKind.ATTACK_MOVE);
     }
 
     @Override

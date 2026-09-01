@@ -1,0 +1,162 @@
+<template props="title,missionName,missionMeta,readinessTone,readinessSummary,commandSummary,capacitySummary,reserveSummary,squadRows,emptyMessage,inspectorClasses,inspectorTitle,inspectorContext,inspectorFirepower,inspectorProtection,inspectorPrimary,inspectorArmor,inspectorSpecial,inspectorSystem,inspectorProfile,backAction,armoryAction">
+  <div id="squad-deployment-root" class="squad-deployment-root">
+    <div id="squad-deployment-header" class="mission-flow-header surface-dark">
+      <div id="squad-deployment-heading" class="mission-flow-heading">
+        <div id="squad-deployment-title" class="label title tone-edge">{title}</div>
+        <div id="squad-deployment-mission" class="label tone-muted">{missionName}</div>
+      </div>
+      <div id="squad-deployment-context" class="label heading tone-accent mission-flow-context">PRE-BATTLE MUSTER</div>
+    </div>
+    <div id="squad-deployment-body" class="mission-flow-body">
+      <div id="squad-deployment-summary" class="panel deployment-summary">
+        <div id="squad-deployment-summary-heading" class="label heading tone-edge section-heading">FORCE ENVELOPE</div>
+        <div id="squad-deployment-meta" class="label title deployment-mission">{missionMeta}</div>
+        <div id="squad-deployment-ready-block" class="summary-block surface-dark">
+          <div id="squad-deployment-ready-label" class="label heading tone-muted">READY PERSONNEL</div>
+          <div id="squad-deployment-readiness" class="{readinessTone}">{readinessSummary}</div>
+        </div>
+        <div id="squad-deployment-command-block" class="summary-block surface-dark">
+          <div id="squad-deployment-command-label" class="label heading tone-muted">TASK FORCE COMMAND</div>
+          <div id="squad-deployment-command-value" class="label summary-value">{commandSummary}</div>
+        </div>
+        <div id="squad-deployment-capacity-block" class="summary-block surface-dark">
+          <div id="squad-deployment-capacity-label" class="label heading tone-muted">LIFT CAPACITY</div>
+          <div id="squad-deployment-capacity-value" class="label summary-value">{capacitySummary}</div>
+        </div>
+        <div id="squad-deployment-reserve-block" class="summary-block surface-dark">
+          <div id="squad-deployment-reserve-label" class="label heading tone-muted">RESERVE POLICY</div>
+          <div id="squad-deployment-reserve-value" class="label summary-value">{reserveSummary}</div>
+        </div>
+        <div id="squad-deployment-note" class="label tone-muted deployment-note">Whole squads are committed here. Their actual fire teams board the available lifts at launch.</div>
+        <div id="squad-deployment-inspector" class="{inspectorClasses}">
+          <div id="squad-deployment-inspector-heading" class="label heading tone-muted inspector-heading">MARINE HOVER</div>
+          <div id="squad-deployment-inspector-title" class="label heading tone-edge inspector-title">{inspectorTitle}</div>
+          <div id="squad-deployment-inspector-context" class="label tone-muted inspector-context">{inspectorContext}</div>
+          <div id="squad-deployment-inspector-ratings" class="inspector-ratings">
+            <div id="squad-deployment-inspector-firepower" class="label heading inspector-rating inspector-firepower">{inspectorFirepower}</div>
+            <div id="squad-deployment-inspector-protection" class="label heading inspector-rating inspector-protection">{inspectorProtection}</div>
+          </div>
+          <div id="squad-deployment-inspector-primary" class="label inspector-line inspector-primary">{inspectorPrimary}</div>
+          <div id="squad-deployment-inspector-armor" class="label inspector-line inspector-armor">{inspectorArmor}</div>
+          <div id="squad-deployment-inspector-special" class="label inspector-line inspector-special">{inspectorSpecial}</div>
+          <div id="squad-deployment-inspector-system" class="label inspector-line inspector-system">{inspectorSystem}</div>
+          <div id="squad-deployment-inspector-profile" class="label inspector-line tone-muted">{inspectorProfile}</div>
+          <div id="squad-deployment-inspector-caveat" class="label tone-muted inspector-caveat">Ratings omit reach, abilities, morale, terrain, and orders.</div>
+        </div>
+      </div>
+      <div id="squad-deployment-roster" class="panel deployment-roster">
+        <div id="squad-deployment-roster-heading" class="roster-heading surface-dark">
+          <div id="squad-deployment-roster-copy" class="roster-heading-copy">
+            <div id="squad-deployment-roster-title" class="label heading tone-edge section-heading">AVAILABLE LINE SQUADS</div>
+            <div id="squad-deployment-roster-subtitle" class="label tone-muted">Select formations; each card shows all twelve billets and their issued kit.</div>
+          </div>
+          <div id="squad-deployment-roster-rule" class="roster-rule">
+            <div id="squad-deployment-firepower-legend" class="label heading rule-firepower">FIREPOWER</div>
+            <div id="squad-deployment-protection-legend" class="label heading rule-protection">PROTECTION</div>
+          </div>
+        </div>
+        <div id="squad-deployment-grid" class="deployment-grid">
+          <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" disabled="{squad.disabled}" onclick="{squad.action}">
+            <div id="{squad.topId}" class="squad-card-top">
+              <div id="{squad.nameId}" class="label heading squad-card-name">{squad.name}</div>
+              <div id="{squad.readinessId}" class="{squad.tone}">{squad.readiness}</div>
+            </div>
+            <div id="{squad.loadoutId}" class="label tone-muted squad-card-loadout">{squad.loadout}</div>
+            <div id="{squad.commandId}" class="label tone-muted squad-card-command">{squad.command}</div>
+            <div id="{squad.casualtyId}" class="{squad.casualtyTone}">{squad.casualties}</div>
+            <div id="{squad.fireTeamsId}" class="deployment-fireteams">
+              <div each="team in squad.fireTeams" key="{team.id}" id="{team.id}" class="deployment-fireteam">
+                <div id="{team.labelId}" class="label heading fireteam-label">{team.label}</div>
+                <div id="{team.membersId}" class="deployment-members">
+                  <div each="member in team.members" key="{member.id}" id="{member.id}" class="{member.classes}">
+                    <div id="{member.lineId}" class="deployment-member-line">
+                      <div id="{member.nameId}" class="label deployment-member-name">{member.name}</div>
+                      <div id="{member.equipmentId}" class="label deployment-member-equipment">{member.equipment}</div>
+                    </div>
+                    <div id="{member.firepowerTrackId}" class="member-meter-track firepower-track">
+                      <div id="{member.firepowerId}" class="member-meter-fill" style="{member.firepowerStyle}" />
+                    </div>
+                    <div id="{member.protectionTrackId}" class="member-meter-track protection-track">
+                      <div id="{member.protectionId}" class="member-meter-fill" style="{member.protectionStyle}" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+        </div>
+        <div id="squad-deployment-empty" class="label tone-muted empty-copy">{emptyMessage}</div>
+      </div>
+    </div>
+    <div id="squad-deployment-actions" class="mission-flow-actions panel surface-dark">
+      <button id="squad-deployment-back" onclick="{backAction}">BACK TO BRIEFING</button>
+      <button id="squad-deployment-armory" onclick="{armoryAction}">MANAGE PERSONNEL</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .squad-deployment-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
+  .mission-flow-heading .title { height: 24px; }
+  .mission-flow-context { width: 330px; padding: 11px 4px; text-align: right; }
+  .mission-flow-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .deployment-summary { flex-direction: column; width: 390px; padding: 10px; gap: 9px; border-width: 1px; overflow: hidden; }
+  .section-heading { height: 20px; }
+  .deployment-mission { height: 56px; padding: 10px; border-width: 1px; border-color: #263b51; }
+  .summary-block { flex-direction: column; height: 72px; padding: 10px; gap: 7px; border-width: 1px; }
+  .summary-value { height: 38px; }
+  #squad-deployment-readiness { height: 29px; }
+  .deployment-note { height: 54px; padding: 10px; border-width: 1px; border-color: #263b51; white-space: normal; }
+  .marine-inspector { flex-direction: column; height: 218px; padding: 10px; gap: 5px; border-width: 1px; border-color: #4f6d8e; background-color: #0d1722; }
+  .marine-inspector.empty { border-color: #263b51; opacity: 0.72; }
+  .inspector-heading { height: 15px; }
+  .inspector-title { height: 21px; }
+  .inspector-context { height: 18px; }
+  .inspector-ratings { flex-direction: row; height: 20px; gap: 12px; }
+  .inspector-rating { width: 0px; height: 20px; flex-grow: 1; }
+  .inspector-firepower { color: #78d494; }
+  .inspector-protection { color: #6ed7ff; text-align: right; }
+  .inspector-line { height: 17px; }
+  .inspector-primary { color: #78d494; }
+  .inspector-armor { color: #6ed7ff; }
+  .inspector-special { color: #ffd464; }
+  .inspector-system { color: #c79ce8; }
+  .inspector-caveat { height: 18px; }
+  .deployment-roster { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .roster-heading { flex-direction: row; height: 60px; padding: 9px; border-width: 1px; }
+  .roster-heading-copy { flex-direction: column; flex-grow: 1; gap: 5px; }
+  .roster-rule { flex-direction: row; width: 250px; padding: 12px 4px; gap: 14px; }
+  .roster-rule .label { width: 0px; height: 18px; flex-grow: 1; text-align: right; }
+  .rule-firepower { color: #78d494; }
+  .rule-protection { color: #6ed7ff; }
+  .deployment-grid { display: grid; height: 0px; flex-grow: 1; gap: 7px; overflow: scroll; }
+  .deployment-squad-card { flex-direction: column; width: 410px; height: 246px; padding: 9px; gap: 4px; border-width: 1px; text-align: left; }
+  .deployment-squad-card.selected { background-color: #183b50; border-color: #ffd464; }
+  .squad-card-top { flex-direction: row; height: 22px; gap: 8px; }
+  .squad-card-name { width: 0px; flex-grow: 1; }
+  .squad-card-readiness { width: 90px; text-align: right; }
+  .squad-card-loadout, .squad-card-command { height: 17px; }
+  .squad-card-casualty { height: 15px; }
+  .deployment-fireteams { flex-direction: row; width: 100%; height: 134px; gap: 5px; }
+  .deployment-fireteam { flex-direction: column; width: 0px; height: 132px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; border-color: #31485f; background-color: #101925; }
+  .fireteam-label { height: 14px; color: #6ed7ff; }
+  .deployment-members { flex-direction: column; width: 100%; height: 108px; gap: 3px; }
+  .deployment-member { flex-direction: column; width: 100%; height: 20px; padding: 2px 3px; gap: 1px; border-width: 1px; border-color: #31485f; background-color: #142131; overflow: hidden; }
+  .deployment-member:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .deployment-member.committed { border-color: #806b35; }
+  .deployment-member.committed:hover { border-color: #ffd464; }
+  .deployment-member.leader .deployment-member-name { color: #ffd464; }
+  .deployment-member.unavailable { border-color: #8e4d49; background-color: #27191c; }
+  .deployment-member.vacant { opacity: 0.42; background-color: #0c121a; }
+  .deployment-member-line { flex-direction: row; width: 100%; height: 12px; gap: 3px; font-family: compact; }
+  .deployment-member-name { width: 0px; height: 12px; flex-grow: 1; color: #c8e0ff; }
+  .deployment-member-equipment { width: 46px; height: 12px; text-align: right; color: #aebdce; }
+  .member-meter-track { width: 100%; height: 2px; background-color: #172231; }
+  .member-meter-fill { height: 100%; }
+  .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
+  .mission-flow-actions button { width: 240px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
+  .empty-copy { height: 20px; }
+</style>
