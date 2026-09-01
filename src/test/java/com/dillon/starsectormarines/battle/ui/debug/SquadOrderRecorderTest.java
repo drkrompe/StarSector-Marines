@@ -151,13 +151,14 @@ class SquadOrderRecorderTest {
         sim.getSquadMoveOrderService().requestMove(squadId, 15, 9);
         sim.getSquadMoveOrderSystem().tick(sim);
 
-        assertNotNull(squad.playerTacticalOrder(),
+        assertTrue(squad.underPlayerOrder(),
                 "the move order must have been accepted, or this measures nothing");
         assertEquals("player ATTACK_MOVE cell:15,9",
                 SquadOrderRecorder.executingAssignmentLabel(squad));
         assertEquals("CLEAR_ZONE zone:194",
-                SquadOrderRecorder.assignmentLabel(squad.assignedObjective),
-                "the mission assignment underneath stays inspectable");
+                SquadOrderRecorder.assignmentLabel(
+                        SquadOrderRecorder.missionAssignment(squad, sim)),
+                "the mission the lease shelved stays inspectable");
     }
 
     /**

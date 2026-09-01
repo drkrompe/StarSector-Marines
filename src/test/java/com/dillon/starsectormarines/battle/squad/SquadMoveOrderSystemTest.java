@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.squad;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.OrderCatalog;
 import com.dillon.starsectormarines.battle.command.OrderCatalog.Arm;
@@ -63,7 +64,8 @@ class SquadMoveOrderSystemTest {
         assertEquals(objective, capture.targetNode());
         assertEquals(record.captureCellX, capture.destinationX());
         assertEquals(record.captureCellY, capture.destinationY());
-        assertSame(mission, squad.assignedObjective);
+        assertSame(mission, shelvedMission(sim, squad),
+                "the lease holds the commander's task rather than replacing it");
         assertEquals(AssignmentKind.SECURE_COMPOUND,
                 squad.assignmentForExecution().kind());
         assertEquals(captureZone, squad.assignmentForExecution().targetZoneId());
@@ -151,7 +153,8 @@ class SquadMoveOrderSystemTest {
         assertEquals(5, order.requestedY());
         assertEquals(10, order.destinationX());
         assertEquals(4, order.destinationY());
-        assertSame(mission, squad.assignedObjective);
+        assertSame(mission, shelvedMission(sim, squad),
+                "the lease holds the commander's task rather than replacing it");
         assertEquals(AssignmentKind.ATTACK_MOVE,
                 squad.assignmentForExecution().kind());
         assertEquals(10, squad.assignmentForExecution().targetCellX());
@@ -233,7 +236,8 @@ class SquadMoveOrderSystemTest {
         ActiveDefendAreaOrder order = assertInstanceOf(ActiveDefendAreaOrder.class,
                 sim.getSquadMoveOrderService().activeOrder(squad.id));
         assertEquals(20, order.radiusCells());
-        assertSame(mission, squad.assignedObjective);
+        assertSame(mission, shelvedMission(sim, squad),
+                "the lease holds the commander's task rather than replacing it");
         assertEquals(AssignmentKind.DEFEND_AREA,
                 squad.assignmentForExecution().kind());
         assertEquals(20, squad.assignmentForExecution().targetRadiusCells());
@@ -275,7 +279,8 @@ class SquadMoveOrderSystemTest {
 
         ActiveDefendAreaOrder order = assertInstanceOf(ActiveDefendAreaOrder.class,
                 sim.getSquadMoveOrderService().activeOrder(lance.id));
-        assertSame(mission, lance.assignedObjective);
+        assertSame(mission, shelvedMission(sim, lance),
+                "the lease holds the commander's task rather than replacing it");
         assertEquals(AssignmentKind.DEFEND_AREA,
                 lance.assignmentForExecution().kind());
         assertEquals(20, order.radiusCells());
@@ -317,7 +322,7 @@ class SquadMoveOrderSystemTest {
                         .allows(Arm.MECH),
                 "a lance takes its move order per chassis, not as an assignment");
         assertNull(sim.getSquadMoveOrderService().activeOrder(lance.id));
-        assertNull(lance.playerTacticalOrder(),
+        assertFalse(lance.underPlayerOrder(),
                 "a refused request must not leave an order standing on the lance");
 
         sim.getSquadMoveOrderService().requestDefendArea(lance.id, 40, 16);
@@ -400,7 +405,8 @@ class SquadMoveOrderSystemTest {
                 sim.getSquadMoveOrderService().activeOrder(guard.id));
         assertSame(AttackMoveGoal.INSTANCE, guard.currentGoal,
                 "a rescue perimeter role is mission ownership, not a player-control lock");
-        assertEquals(AssignmentKind.ESCORT, guard.assignedObjective.kind());
+        assertEquals(AssignmentKind.ESCORT, shelvedMission(sim, guard).kind(),
+                "the rescue perimeter's own task is shelved, not overwritten");
     }
 
     @Test
@@ -481,6 +487,17 @@ class SquadMoveOrderSystemTest {
         squad.centroidX = sumX / count;
         squad.centroidY = sumY / count;
         return squad;
+    }
+
+    /**
+     * The commander's task while a player's order stands on the squad — read
+     * from the shelf the lease put it on, which is where "the mission is
+     * untouched underneath" now lives.
+     */
+    private static ObjectiveAssignment shelvedMission(BattleSimulation sim,
+                                                      Squad squad) {
+        CommandDirective shelved = sim.getShelvedSquadDirective(squad.id);
+        return shelved == null ? null : shelved.assignment();
     }
 
     private static BattleSimulation openSimulation(int width, int height) {

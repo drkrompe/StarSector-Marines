@@ -4,9 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a berth authors safe service stands while its live occupant
-supplies an oriented body envelope. Technician effects therefore land on compact
-walkers, elongated vehicles, or authored fixture points without treating every berth
+Updated: 2026-09-01 — a boat bay names its outboard side, the door wall is bare
+and the boats face it; a berth authors safe service stands while its live
+occupant supplies an oriented body envelope, so technician effects land on
+walkers, vehicles, or authored fixture points without treating every berth
 occupant as a mech.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
@@ -262,13 +263,19 @@ authored content.
   deck that joins a compartment to nothing rather than to the compartment next
   door, and it is the ship's answer to the question a battle map answers with a
   map edge — which way is off, and from where.
-- **It is derived where the hull is known, not where the room is fitted.** A
-  fitting sees a floor, a pose and a set of doors and could not say which of its
-  bulkheads has vacuum behind it; the placer is what pushed the room against the
-  ship's side, and is deliberately left free to use whichever side it can reach.
-  So the aperture is the longest run of the room's own ring that lies outside the
-  hull, recovered at placement — the same question the packer asked to place the
-  room at all.
+- **A fitting cannot see the hull, but it may name the side that has to be it.**
+  A fitting still sees only a floor, a pose and a set of doors, and could not
+  say which of its bulkheads has vacuum behind it; the aperture is still
+  recovered at placement from the run of the room's own ring that lies outside
+  the hull. What changed is that a room may declare an **outboard side** in its
+  own frame, and the placer puts that side on the ship's skin rather than using
+  whichever side it can reach. So the door is on the bulkhead the arrangement
+  was built around — the deck behind it clear, the boats facing it — instead of
+  turning up wherever the packing happened to leave vacuum. A room that names
+  its outboard side is orientation-sensitive by definition, so it is placed as a
+  handed room: poses that differ only in which side faces out are exactly the
+  ones that matter, and folding them together as identical footprints leaves
+  half the hull unable to carry a door.
 - **A flank is a door; a transom is only contact.** The two hull contacts mean
   different things: a flank is where a bay launches something, a transom is where
   an engine room has to sit to be driving anything. Treating them alike would
@@ -278,11 +285,17 @@ authored content.
   whatever opens it has geometry rather than a guess. The cell just inboard is
   deck, because that is where a boat is moved before it goes and the first thing
   it stands on coming back.
-- **A berth's heading is the way out of the berth, not the way off the ship.**
-  Boats are parked backed onto the fuelling run and nosed at the deck, and the
-  door is wherever the hull turned out to be — sometimes behind them. That is
-  what the clear lane is for: a boat deck is not a drive-through, and a boat is
-  moved.
+- **The door wall is a door, and nothing stands against it.** Three of a bay's
+  bulkheads are worked and the fourth is bare deck end to end; what used to line
+  it goes to the inboard corners, where it was always going to end up. A hangar
+  is legible by its exit, and one lined with stores read as a store that happened
+  to have boats in the middle of it.
+- **A berth's heading is the way out of the berth.** A boat is parked backed onto
+  the fuelling run and nosed at the door, across the lane it leaves by. The
+  earlier reading — that the door is wherever the hull turned out to be,
+  sometimes behind the boats — described the defect this replaced rather than a
+  property worth keeping. The lane is still what a boat deck is arranged around:
+  it is not a drive-through, and a boat is moved.
 - A **small hull's boat may go unserviced**, and today does: a frigate's single
   gig bay competes for a forty-hand ship's bunks and comes out with nobody at the
   berth, while a destroyer and up turn their boats round. That is the manning

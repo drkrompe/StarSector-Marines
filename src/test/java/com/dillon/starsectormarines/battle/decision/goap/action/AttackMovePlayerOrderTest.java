@@ -52,7 +52,7 @@ class AttackMovePlayerOrderTest {
 
         sim.getSquadMoveOrderService().requestMove(squad.id, DEST_X, DEST_Y);
         sim.getSquadMoveOrderSystem().tick(sim);
-        assertTrue(squad.hasPlayerTacticalOrder(AssignmentKind.ATTACK_MOVE),
+        assertTrue(squad.hasPlayerOrder(AssignmentKind.ATTACK_MOVE),
                 "the click has to land as a player order or the test proves nothing");
 
         ActionStatus status = new AttackMove(DEST_X, DEST_Y)
