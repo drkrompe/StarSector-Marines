@@ -10,6 +10,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.function.IntPredicate;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
@@ -35,9 +36,12 @@ public final class BoatDeckCanvas implements CanvasProducer {
 
     private static final Color BACKGROUND = new Color(0x08, 0x0E, 0x15);
     private static final Color MARK = new Color(0xFF, 0xD4, 0x64, 226);
+    private static final Color VACANT = new Color(0xFF, 0xD4, 0x64, 102);
     private static final Color HOVER = new Color(0x6D, 0xD5, 0xF2, 170);
     /** How far along each side of the berth a selection corner runs, in cells. */
     private static final float MARK_CORNER = 0.9f;
+    /** Dash and gap of a vacant berth's outline, in cells. */
+    private static final float DASH = 0.5f;
     /** Hull kept around the bay, so its door is not clipped into a gap. */
     private static final int SURROUND_CELLS = 2;
 
@@ -50,6 +54,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private final Supplier<DeckGraph.Compartment> bay;
     private final IntSupplier selectedBerth;
     private final IntSupplier berthOffset;
+    private final IntPredicate berthHeld;
     private List<BerthTarget> targets = List.of();
     private int hovered = -1;
 
@@ -58,17 +63,23 @@ public final class BoatDeckCanvas implements CanvasProducer {
      *     hangar's berths in deck order rather than restarting in each bay
      * @param berthOffset how many boat berths lie in the hangars before this
      *     one, which is what turns a berth on screen into that index
+     * @param berthHeld whether the company still has a boat for a campaign
+     *     berth index; the ones it does not are drawn as the holes they are
      */
     public BoatDeckCanvas(CompanyDeck ship, Supplier<DeckGraph.Compartment> bay,
-                          IntSupplier selectedBerth, IntSupplier berthOffset) {
-        if (ship == null || bay == null || selectedBerth == null || berthOffset == null) {
+                          IntSupplier selectedBerth, IntSupplier berthOffset,
+                          IntPredicate berthHeld) {
+        if (ship == null || bay == null || selectedBerth == null || berthOffset == null
+                || berthHeld == null) {
             throw new IllegalArgumentException(
-                    "a ship, a bay, a selected berth and its offset are required");
+                    "a ship, a bay, a selected berth, its offset and what is held"
+                            + " are required");
         }
         this.ship = ship;
         this.bay = bay;
         this.selectedBerth = selectedBerth;
         this.berthOffset = berthOffset;
+        this.berthHeld = berthHeld;
     }
 
     /**
@@ -166,6 +177,11 @@ public final class BoatDeckCanvas implements CanvasProducer {
                     Math.min(left, right), Math.min(top, bottom),
                     Math.abs(right - left), Math.abs(bottom - top));
             found.add(target);
+            // The hole first, so a vacant berth the player has opened still
+            // reads as a berth under its selection bracket.
+            if (!berthHeld.test(offset + index)) {
+                dashedOutline(context, projection, berth);
+            }
             if (offset + index == selected) {
                 bracket(context, projection, berth);
             } else if (index == hovered) {
@@ -191,6 +207,43 @@ public final class BoatDeckCanvas implements CanvasProducer {
             float y = corner[1];
             context.line(x, y, x + run * corner[2], y, MARK, 2f);
             context.line(x, y, x, y + run * corner[3], MARK, 2f);
+        }
+    }
+
+    /**
+     * A berth with nothing standing in it: its whole footprint, broken.
+     *
+     * <p>Dashed rather than drawn solid because a boat's own berth marks are
+     * corners and a continuous rectangle would read as a stronger mark than the
+     * selection it sits under. There is no dash primitive, so the run is walked
+     * in cell-sized steps.
+     */
+    private static void dashedOutline(CanvasContext context, Projection projection,
+                                      Gantry berth) {
+        float left = projection.x(berth.left());
+        float right = projection.x(berth.right() + 1f);
+        float top = projection.y(berth.top() + 1f);
+        float bottom = projection.y(berth.bottom());
+        float dash = Math.abs(projection.x(DASH) - projection.x(0f));
+        dashedLine(context, left, top, right, top, dash);
+        dashedLine(context, left, bottom, right, bottom, dash);
+        dashedLine(context, left, top, left, bottom, dash);
+        dashedLine(context, right, top, right, bottom, dash);
+    }
+
+    /** @see #dashedOutline */
+    private static void dashedLine(CanvasContext context, float fromX, float fromY,
+                                   float toX, float toY, float dash) {
+        float runX = toX - fromX;
+        float runY = toY - fromY;
+        float length = (float) Math.sqrt(runX * runX + runY * runY);
+        if (!(length > 0f) || !(dash > 0f)) return;
+        float stepX = runX / length;
+        float stepY = runY / length;
+        for (float along = 0f; along < length; along += dash * 2f) {
+            float end = Math.min(length, along + dash);
+            context.line(fromX + stepX * along, fromY + stepY * along,
+                    fromX + stepX * end, fromY + stepY * end, VACANT, 2f);
         }
     }
 

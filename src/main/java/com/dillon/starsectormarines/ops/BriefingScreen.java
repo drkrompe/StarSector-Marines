@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -484,6 +485,14 @@ public class BriefingScreen implements Screen {
                     () -> adjustDebugMechCount(1), () -> adjustDebugMechCount(10),
                     this::rerollDebugMechs));
         }
+        // Only the two missions whose maps are made of places read a sprawl, so
+        // the dial is offered where it does something and nowhere else.
+        if (mission.type == MissionType.ASSAULT || mission.type == MissionType.RAID) {
+            controls.add(conquestControl("debug-map-sprawl", "Map sprawl",
+                    mission.sprawl != null ? mission.sprawl.name() : "derived",
+                    false, false,
+                    () -> cycleDebugSprawl(-1), () -> cycleDebugSprawl(1)));
+        }
         if (mission.type == MissionType.CONQUEST) {
             controls.add(conquestControl("debug-drop-zones", "Drop zones",
                     Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
@@ -521,6 +530,25 @@ public class BriefingScreen implements Screen {
                 "", "-", "+", "", "", "debug-cycle-absent",
                 true, minusDisabled, plusDisabled, true, true,
                 () -> { }, minus, plus, () -> { }, () -> { });
+    }
+
+    /**
+     * Steps the DEBUG briefing through derived, remote, balanced and dense, so
+     * the maps one market can produce can be played back to back.
+     */
+    private void cycleDebugSprawl(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        PrecinctPlan.Sprawl[] values = PrecinctPlan.Sprawl.values();
+        // Index 0 is "derived"; the sprawls follow it, so the cycle carries the
+        // absence of a statement as one of its positions.
+        int current = mission.sprawl != null ? mission.sprawl.ordinal() + 1 : 0;
+        int next = Math.floorMod(current + step, values.length + 1);
+        Mission adjusted = DebugMissionDifficulty.atSprawl(mission,
+                next == 0 ? null : values[next - 1]);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
     }
 
     private void rerollDebugMechs() {

@@ -4,8 +4,9 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a ship's boat has a pattern and a fit: the company owns
-the boat, the hull decides the pattern, and battle flies the frozen frame.
+Updated: 2026-09-01 — an air loss is a ledger entry that outlives the aircraft
+it names, so a boat shot down reaches the campaign along with whoever was
+still aboard it.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -314,6 +315,21 @@ was a constructor argument to the tick consumer while every field was a
 garrison's, which would have meant building that consumer one way for a lot and
 another for a bay over something that has nothing to do with what it does.
 `ship-interiors-nouns.md` owns the bay as a room.
+
+**An air loss outlives the aircraft it names.** A shot-down aircraft is
+released and its entity reaped, so anything a battle wants to say about it
+afterwards has to have been written down while it was still there: what it was
+flying as, whose it was, what killed it, and which marines were still aboard.
+That ledger is the simulation's and is append-only for the length of a battle;
+resolution reads it once. It is the only reason a loss can reach the campaign at
+all — a count taken at the end would be a count of what is missing, which cannot
+name a boat or a passenger.
+
+**Only the company's own boats reach the campaign.** A loss carries the campaign
+id of the boat its frame was frozen from, and a frame that was never frozen from
+one — an employer's transport, a padding craft, a fixture's plain pattern —
+carries none and is simply not the company's to lose. `company-view-nouns.md`
+owns what striking a boat off the deck then means.
 
 **A boat pattern is what the hull carries; a fitted boat is what flies.** The
 pattern is the airframe — a `ShuttleType` — and it is a fitting of the hull

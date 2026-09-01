@@ -5,13 +5,21 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.List;
 import java.util.Objects;
 
-/** Authored inputs to the production generic Extraction scenario factory. */
+/**
+ * Authored inputs to the production generic Extraction scenario factory.
+ *
+ * <p>{@code sprawl} is the battle's own statement of how settled its map is,
+ * or {@code null} to derive it from the target market. Absent from a fixture
+ * document means null, so a fixture written before the field existed replays
+ * exactly as it did.
+ */
 public record ExtractionBattleFixture(
         long seed,
         List<ShuttleAssignment> manifest,
@@ -20,7 +28,8 @@ public record ExtractionBattleFixture(
         RiskLevel risk,
         TargetProfile targetProfile,
         List<FighterWingCommitment> marineFighterSupport,
-        List<FighterWingCommitment> enemyFighterSupport) implements BattleFixture {
+        List<FighterWingCommitment> enemyFighterSupport,
+        PrecinctPlan.Sprawl sprawl) implements BattleFixture {
 
     public static final String KIND = "EXTRACTION";
 
@@ -35,16 +44,37 @@ public record ExtractionBattleFixture(
                 enemyFighterSupport, "enemyFighterSupport"));
     }
 
+    /** A fixture that says nothing about sprawl; the market derives it. */
+    public ExtractionBattleFixture(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, null);
+    }
+
     public static ExtractionBattleFixture fromFactoryInputs(
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport, null);
+    }
+
+    public static ExtractionBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport, PrecinctPlan.Sprawl sprawl) {
         return new ExtractionBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
-                FighterWingCommitment.captureRoster(enemyFighterSupport));
+                FighterWingCommitment.captureRoster(enemyFighterSupport),
+                sprawl);
     }
 
     @Override public String kind() { return KIND; }
@@ -54,6 +84,6 @@ public record ExtractionBattleFixture(
         return BattleSetup.createExtraction(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport));
+                FighterWingCommitment.toRoster(enemyFighterSupport), sprawl);
     }
 }

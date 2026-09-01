@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,6 +91,19 @@ public final class Mission {
      */
     public final String defenderFactionOverride;
     /**
+     * How much of this battle's map is settled, or null to derive it from the
+     * target market's size.
+     *
+     * <p>This is the battle's statement and not the planet's. {@code
+     * precincts.md} makes that a law: the same world can be an installation in
+     * wilderness or a city with an installation in it, and which one it is
+     * belongs to the battle. A mission that names one overrides whatever the
+     * market's size would have said; a mission that does not lets
+     * {@code SettlementZoning.sprawlFor} answer from the size.
+     */
+    public final PrecinctPlan.Sprawl sprawl;
+
+    /**
      * Fixed battle seed, or null to seed the battle off the wall clock (the
      * ordinary case — a relaunched mission should be a fresh map). Pinned only
      * where the point of the mission is comparing two launches on one
@@ -174,6 +188,7 @@ public final class Mission {
         this.targetIndustryId = b.targetIndustryId;
         this.targetFactionId  = b.targetFactionId;
         this.defenderFactionOverride = b.defenderFactionOverride;
+        this.sprawl           = b.sprawl;
         this.battleSeed       = b.battleSeed;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
@@ -228,6 +243,7 @@ public final class Mission {
         private String targetIndustryId;
         private String targetFactionId;
         private String defenderFactionOverride;
+        private PrecinctPlan.Sprawl sprawl;
         private Long battleSeed;
 
         private long contractId = -1L;
@@ -269,6 +285,7 @@ public final class Mission {
             this.targetIndustryId = m.targetIndustryId;
             this.targetFactionId = m.targetFactionId;
             this.defenderFactionOverride = m.defenderFactionOverride;
+            this.sprawl = m.sprawl;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
@@ -392,6 +409,12 @@ public final class Mission {
         /** @param defenderFactionOverride faction to defend instead of the market's owner; null to leave it alone. */
         public Builder defenderFactionOverride(String defenderFactionOverride) {
             this.defenderFactionOverride = defenderFactionOverride;
+            return this;
+        }
+
+        /** @param sprawl how settled this battle's map is; null derives it from the market. */
+        public Builder sprawl(PrecinctPlan.Sprawl sprawl) {
+            this.sprawl = sprawl;
             return this;
         }
 
