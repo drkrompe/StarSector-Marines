@@ -206,6 +206,23 @@ public final class CompanyDeck {
     }
 
     /**
+     * Every compartment of one purpose, ordered from fore to aft and then by
+     * stable deck identity. Room screens use this when a hull carries more than
+     * one facility of the same kind instead of silently trapping the camera in
+     * whichever one happened to be largest.
+     */
+    public List<DeckGraph.Compartment> rooms(RoomPurpose purpose) {
+        if (purpose == null || !ship.habitable()) return List.of();
+        List<DeckGraph.Compartment> found = new ArrayList<>();
+        for (DeckGraph.Compartment compartment : rooms().compartments()) {
+            if (compartment.purpose() == purpose) found.add(compartment);
+        }
+        found.sort(Comparator.comparingInt(DeckGraph.Compartment::foreFrame)
+                .thenComparingInt(DeckGraph.Compartment::id));
+        return List.copyOf(found);
+    }
+
+    /**
      * The generated deck: grid, topology, fixtures, and everything standing on
      * it.
      *

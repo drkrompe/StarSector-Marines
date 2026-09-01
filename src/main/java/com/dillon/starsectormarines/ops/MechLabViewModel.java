@@ -96,7 +96,7 @@ public final class MechLabViewModel {
         fittingFocused = reactor.signal(false);
         assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
-                "Select an occupied gantry to refit, or a vacant gantry to fabricate a chassis.");
+                "Select an occupied gantry to refit, or press + on a vacant pad to fabricate a chassis.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
@@ -183,6 +183,7 @@ public final class MechLabViewModel {
     public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
     public Runnable previousGantryAction() { return this::previousGantry; }
     public Runnable nextGantryAction() { return this::nextGantry; }
+    public Runnable selectGantryAction(int index) { return () -> selectGantry(index); }
     public Runnable overviewAction() { return this::showLanceOverview; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
@@ -293,8 +294,8 @@ public final class MechLabViewModel {
                     String.format(Locale.ROOT, "GANTRY %02d", index + 1),
                     mech != null ? mech.displayName() : "VACANT",
                     mech != null ? mech.variant().displayName + "  ·  " + roleLabel(mech.role())
-                            : "OPEN GANTRY FOR CHASSIS FABRICATION",
-                    false, () -> selectGantry(gantry)));
+                            : "PRESS + ON PAD TO FABRICATE",
+                    mech == null, () -> selectGantry(gantry)));
         }
         return List.copyOf(rows);
     }
@@ -555,7 +556,7 @@ public final class MechLabViewModel {
         fittingFocused.set(false);
         selectedMechId.set(null);
         feedbackText.set("Lance overview restored. Select an occupied gantry to refit,"
-                + " or a vacant gantry to fabricate a chassis.");
+                + " or press + on a vacant pad to fabricate a chassis.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
