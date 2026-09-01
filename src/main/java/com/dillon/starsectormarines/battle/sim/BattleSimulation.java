@@ -357,7 +357,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final AirfieldService airfieldService = new AirfieldService();
     private final AirfieldCrewSystem airfieldCrew = new AirfieldCrewSystem();
     /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
-    private final AirfieldSystem airfieldSystem = new AirfieldSystem(Faction.DEFENDER);
+    private final AirfieldSystem airfieldSystem = new AirfieldSystem();
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER, Faction.MARINE);

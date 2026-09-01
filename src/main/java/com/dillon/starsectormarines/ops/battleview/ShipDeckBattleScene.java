@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
@@ -210,6 +212,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // it to run. A boarding action hosted here registers its own objectives
         // and turns this back on.
         simulation.setMissionCompletionEnabled(false);
+        openTheBoatBays();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         if (sprites != null) attachRenderer(sprites);
     }
@@ -352,6 +355,65 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             loadout.installMissileReplenisher(deployment.missileReplenisher());
             simulation.world().attachMechLoadout(mech, loadout);
         }
+    }
+
+    /**
+     * What a ship's bay keeps in its berths.
+     *
+     * <p>One type for now, and the manifest will replace it: which boats a
+     * company actually has is a campaign fact, and a deck that invented its own
+     * answer would be a second opinion about the fleet. What this decides in the
+     * meantime is only what a bay looks like with something in it.
+     */
+    private static final ShuttleType SHIPS_BOAT = ShuttleType.AEROSHUTTLE;
+
+    /**
+     * Put the ship's boats in her bays and let her crew turn them round.
+     *
+     * <p>A boat bay is a field. It has berths with machines standing in them,
+     * hands who service those machines where they stand, and a turnaround paid
+     * for in hand-seconds — which is a garrison airfield exactly, indoors, and
+     * is why this installs the field's own service rather than a shipboard
+     * imitation of it. The simulation already ticks the placement and the crew,
+     * so a registered berth is a boat on the deck and a worked one without
+     * anything here having to run.
+     *
+     * <p><b>The berth is marked occupied before anybody is hired.</b> A berth's
+     * servicing is live only while something is in it, and the field puts its
+     * boats out on its first tick — so a bay asked about its units before then
+     * finds every berth empty, publishes no servicing, and is staffed as a store
+     * for the rest of the ship's life. The airfield learned this the same way;
+     * see {@code AirfieldWork.occupied}.
+     */
+    private void openTheBoatBays() {
+        AirfieldService bays = simulation.getAirfieldService();
+        bays.setOwner(Faction.MARINE);
+        // The berth a servicing job names is the deck's own berth number, and
+        // the field numbers its berths from its own first one. Built in the same
+        // loop that registers them, so there is no order for the two to disagree
+        // about - which is the failure AirfieldWork exists to avoid on a lot.
+        int[] fieldBerth = new int[gantries.size()];
+        Arrays.fill(fieldBerth, FixtureTask.NO_BERTH);
+        for (int index = 0; index < gantries.size(); index++) {
+            Gantry berth = gantries.get(index);
+            if (berth.holds != Gantry.Holds.BOAT) continue;
+            fieldBerth[index] = bays.berths().size();
+            bays.addBayBerth(berth, SHIPS_BOAT);
+            occupiedBerths[index] = true;
+        }
+        if (bays.berths().isEmpty()) return;
+
+        List<FixtureTask> servicing = new ArrayList<>();
+        for (FixtureTask task : fixtureTasks) {
+            if (task.affordance() != Affordance.SERVICE) continue;
+            if (task.berth() == FixtureTask.NO_BERTH) continue;
+            if (task.berth() >= fieldBerth.length) continue;
+            int onTheField = fieldBerth[task.berth()];
+            if (onTheField == FixtureTask.NO_BERTH) continue;
+            servicing.add(new FixtureTask(task.cellX(), task.cellY(), task.affordance(),
+                    task.fixtureX(), task.fixtureY(), onTheField, task.inService()));
+        }
+        bays.installApronWork(servicing);
     }
 
     /** The indices of every berth on the deck that holds a machine. */
