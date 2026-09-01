@@ -360,6 +360,33 @@ tasks.register('createSnapshots', JavaExec) {
     }
 }
 
+// The behaviour scenes already play under `createSnapshots`, but rendering is
+// the slow part of that run and a GIF cannot fail: a scene whose finding has
+// regressed still produces a perfectly good animation of the regression. This
+// plays the same catalog with no renderer attached and turns the verdicts into
+// an exit status, so a scene's answer can gate something. Opt-in for the reason
+// every other evidence task here is: it plays whole battles, which is evidence
+// rather than a unit test, and belongs nowhere near `test` or `check`.
+tasks.register('sceneEvidence', JavaExec) {
+    group = 'verification'
+    description = 'Play the behaviour scenes for their verdicts and report PASS/FAIL'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.battle.scene.SceneEvidenceCli'
+    workingDir projectDir
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    forwardBattleSwitches(delegate)
+    outputs.upToDateWhen { false }
+    doFirst {
+        File output = providers.gradleProperty('sceneDir').isPresent()
+                ? file(providers.gradleProperty('sceneDir').get())
+                : layout.buildDirectory.dir('reports/scenes').get().asFile
+        String selector = providers.gradleProperty('scene').getOrElse('all')
+        args projectDir.absolutePath, starsectorCore.absolutePath,
+                output.absolutePath, selector
+    }
+}
+
 tasks.register('layerAuthoring', JavaExec) {
     group = 'development'
     description = 'Launch the standalone marine/mech layer authoring workbench'

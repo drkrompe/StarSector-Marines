@@ -182,6 +182,19 @@ Do not run builds or leave generated task files there.
   a suite degrades to not drawing those sprites if it is missing. Select
   suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
+- `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
+  prints a PASS/FAIL table, one row per loop, with a line beneath each failing
+  row saying what was measured. The same scenes already play under
+  `createSnapshots`, but rendering is the slow part of that run and **a GIF
+  cannot fail**: a scene whose finding has regressed still produces a perfectly
+  good animation of the regression. This plays the same catalog with no
+  renderer attached, writes `<sceneId>/<loopId>.verdict.json` plus
+  `summary.json` / `summary.md` under `build/reports/scenes/`, and exits 1 when
+  any verdict failed. Select with `-Pscene=<id>` or a comma-separated list
+  (default `all`) and redirect the output root with `-PsceneDir=<path>`. A scene
+  that throws while standing its world up fails its own loop rather than the
+  run, so one broken scene cannot hide what the others found. Opt-in and
+  excluded from `test` / `check`: it plays whole battles, which is evidence.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
   animation playback, combined-sheet export, the shared snapshot
@@ -722,6 +735,14 @@ the committed share is 0.9, so the two agree. The case that was actually broken
 is the opposite one, a chassis many rifles deep, and Conquest is where that
 shows. The scene is kept as the control proving the swarm case does not regress,
 and as the instrument for the next attempt at it.
+
+**A scene answers rather than merely records.** A `BehaviorScene` returns one
+`SceneReport` per loop — its verdicts and the readings they were judged from —
+and registers through `META-INF/services` so `sceneEvidence` and a snapshot
+suite reach the same catalog. `sceneEvidence` plays it with no renderer and
+writes the verdicts under `build/reports/scenes/`; a `BehaviorSceneSnapshotSuite`
+subclass plays it once *with* a renderer, so the picture and the verdict come
+from the same run and cannot disagree.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
