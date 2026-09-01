@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — added faction-ground offer fit and objective mandates.
+Updated: 2026-09-01 — shipped geographically sparse persisted contract supply.
 
 | Status | Story |
 | --- | --- |

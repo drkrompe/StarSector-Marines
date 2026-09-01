@@ -42,6 +42,25 @@ public class ObjectiveFiringPositionTest {
     private static final int MEMBER_Y = 40;
     private static final float FIELD_RIFLE_RANGE = 22f;
 
+    /**
+     * The contact sits between the member and the objective and well off the
+     * axis between them, which is the shape the dump had: 28 cells from the
+     * destination, 15 off the route, and 28 from the member.
+     *
+     * <p>It was once placed 29 cells beyond the destination instead, which put
+     * it 56 cells from the member — and a marine sees 36. That geometry was
+     * only ever legal because target picking was omniscient: the member had a
+     * clear <em>line</em> to something it could not see, and the test's own
+     * account of the dump says the contact was 28 to 33 cells out. Perception
+     * gating made the fixture disagree with its own documentation, so the
+     * fixture moved.
+     */
+    private static final int CONTACT_X = 24;
+    /** 28 cells off the destination: a leash cell reaches it. */
+    private static final int NEAR_CONTACT_Y = 25;
+    /** 33 cells off the destination: no cell inside the leash reaches it. */
+    private static final int FAR_CONTACT_Y = 18;
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
@@ -72,10 +91,10 @@ public class ObjectiveFiringPositionTest {
     public void outOfRangeVisibleTargetPullsMemberToAFiringSpotInsideTheObjectiveLeash() {
         BattleSimulation sim = openSim();
         Squad squad = marine(sim);
-        // Due north of the destination, 29 cells off it — comfortably outside
-        // the field rifle's 22-cell range from the destination itself, but
-        // within reach of a cell up to 8 cells (OBJECTIVE_FIRING_LEASH) closer.
-        defender(sim, DEST_X, DEST_Y - 29);
+        // 28 cells off the destination — comfortably outside the field rifle's
+        // 22-cell range from the destination itself, but within reach of a cell
+        // up to 8 cells (OBJECTIVE_FIRING_LEASH) closer.
+        defender(sim, CONTACT_X, NEAR_CONTACT_Y);
         sim.advance(BattleSimulation.TICK_DT);
         long member = squad.leaderId;
 
@@ -111,7 +130,7 @@ public class ObjectiveFiringPositionTest {
     public void theChosenSpotIsBoundedByTheDestinationNotByHowCloseTheMemberHasWalked() {
         BattleSimulation sim = openSim();
         Squad squad = marine(sim);
-        defender(sim, DEST_X, DEST_Y - 29);
+        defender(sim, CONTACT_X, NEAR_CONTACT_Y);
         sim.advance(BattleSimulation.TICK_DT);
         long member = squad.leaderId;
 
@@ -134,10 +153,11 @@ public class ObjectiveFiringPositionTest {
     public void aTargetTooFarOffTheObjectiveIsLeftToTheOrdinaryRoute() {
         BattleSimulation sim = openSim();
         Squad squad = marine(sim);
-        // 32 cells off the destination: even the closest cell the leash
-        // allows (8 cells nearer) is still 24 cells from the target, one
-        // cell beyond the field rifle's reach. No legal spot exists.
-        defender(sim, DEST_X, DEST_Y - 32);
+        // 33 cells off the destination: even the closest cell the leash
+        // allows (8 cells nearer) is still 25 cells from the target, beyond
+        // the field rifle's reach. No legal spot exists — and the member can
+        // still see it, so the refusal is the leash's rather than perception's.
+        defender(sim, CONTACT_X, FAR_CONTACT_Y);
         sim.advance(BattleSimulation.TICK_DT);
         long member = squad.leaderId;
 

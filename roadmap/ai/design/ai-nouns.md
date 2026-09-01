@@ -4,7 +4,12 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — an order that names a room may now close its own firing
+Updated: 2026-09-01 — a workplace is bounded by its own trade rather than by
+the scarcest thing on the rotation, and berth-bound work is a round of the
+machines, so a crew comes round to every stand in its room instead of pinning
+one each.
+
+Earlier 2026-09-01 — an order that names a room may now close its own firing
 gap, contained to that room rather than excluded from the improvement outright.
 
 Earlier 2026-09-01 — a works-crew replacement now arrives the way its own side
@@ -294,6 +299,32 @@ reading either as a station would make every compartment on the ship a posting
 and put a watch in each of them; and a patrol of every compartment on a capital
 is a rotation nobody completes, whose walker is permanently in a passage.
 
+**Work on a machine is a round of the machines.** A berth-bound job is not a
+circuit — it happens in one room — but it takes the circuit's treatment for a
+related reason: the room holds several machines, and each is its own piece of
+work waiting its turn. A bench is genuinely interchangeable with the bench beside
+it, which is what a claim group means and why one stop is the right answer for
+it. Six aircraft on an apron are six turnarounds, and an hour on one of them is
+an hour the other five did not get. So a berth is **its own claim group**, and a
+shift emits one stop per berth rather than one per servicing cell — both flanks
+of one hull are two places to stand and one turnaround.
+
+Both halves are load-bearing, and either alone leaves the defect standing. With
+the machines filed under one group the claim service hands back the claim already
+held, so the walk back is to the machine never left; with one stop the rotation
+never asks for another. Measured on a conquest airfield before the rule existed:
+three technicians, six stands, and berths 2, 3 and 5 went three hundred seconds
+without a single visit while two of the field's three sheds sat on a full
+turnaround they never worked off and never flew again — a hangar with an aircraft
+in it that a player watches all battle and never sees leave.
+
+**It matters where the machines are separate work, and only there.** A vehicle
+bay builds one machine at a time from any of its gantries, so which gantry a
+technician stands at never mattered and its output is unchanged by this: measured
+either way, the same bay welds the same 254 hand-seconds in five minutes. An
+apron's stands are six independent turnarounds, so it is the case where a pinned
+crew is a field that stops flying.
+
 **A full job is passed over, not queued for.** Where the next job on the rotation
 has no free place to do it, the actor takes the one after it; where nothing on
 the rotation is free, they carry on with the job they are already doing for
@@ -312,10 +343,27 @@ How many a posting holds is two different questions and the purpose decides
 which. **A berthing holds its beds**: a bunkroom with nine racks and two lockers
 quarters nine people who occasionally wait for a locker, and reading it as
 quartering two empties a ship of three quarters of her complement to spare a
-queue nobody would ever see. **A workplace holds what it can keep busy**, which
-is its scarcest job: a bay with eight berths and one terminal cannot occupy eight
-technicians on a rotation that includes the terminal, and pretending otherwise
-puts seven of them in a line.
+queue nobody would ever see. **A workplace holds what its own trade can keep
+busy** — a bay of eight berths holds the hands its berths can occupy, and the
+one terminal in the corner has no vote.
+
+That last clause was the other way round for a while: capacity was the
+*scarcest* job on the rotation, on the reasoning that eight technicians cannot
+work a rotation that includes a single terminal without seven of them queueing
+for it. The arithmetic is right and the conclusion is not, because nobody
+queues — a full job is passed over rather than waited at, so a technician who
+finds the terminal taken goes to a machine instead. It cost an airfield most of
+its ground crew: twelve places to service aircraft, six boards to read them off,
+and the boards decided, so a field that could occupy twelve hands stood six and
+the number the caller asked for was silently reduced by a fact about signage.
+The same reasoning already excused a circuit from the bound; this is that
+reasoning applied to the rest of the rotation.
+
+What still bounds a workplace is its trade, which is a real bound and not an
+absence of one — two stands are two machines' worth of work however many
+terminals are bolted to the wall. And the caller's own watch size still applies
+on top, because a garrison's field is meant to be short-handed: what an aircraft
+waits for is its turn.
 
 Where somebody is **based** is likewise not everywhere their loop reaches, nor
 everywhere they work. A role is based where its **trade** is — the first of its
@@ -630,6 +678,40 @@ disappears over the belief lifetime, while one whose identity no longer
 resolves to something actionable is dropped outright at the next tick. An
 unknown hostile's live position is never promoted into a squad tactical
 fact.
+
+**A unit may target only what it can know**, and there are exactly two ways to
+know a hostile is there: it can see it, or its squad believes in it. Belief is
+what a squad's members have themselves seen and heard, pooled once a tick over
+everybody in it — so it is already the comms model, and already answers the fire
+team, a fire team being part of one squad and reading the whole squad's picture.
+Nothing about acquisition needs a second tier for it.
+
+Seeing is bounded by the unit's own sight, and **reach is a floor under sight**:
+a unit can always acquire what it is able to shoot, whatever its sight stat says,
+because the alternative is somebody holding their fire while an enemy they could
+perfectly well hit shoots them to pieces. That floor is the standing invariant
+made real at the point that depends on it, rather than a property of the data
+that any writer of attack range could silently falsify.
+
+Acquisition did not always work this way, and neither departure was deliberate.
+A line of sight between two cells carries no distance with it, so anybody down an
+unobstructed lane was a target however far away they stood; and the nearest-
+hostile fallback beneath it asked for no line at all, so a unit that could see
+nothing still acquired whoever happened to be closest through the walls and
+walked at them. The second is the more corrosive of the two, because it is
+invisible from the outside: the squad moves, so it looks like it has decided
+something. It is also why an unreachable distant enemy behaved as an attractor
+rather than as a bystander, and why scenes had to seal rooms to stop it.
+
+What replaces the fallback is belief, and that is a real transfer of
+responsibility rather than a like-for-like substitution. Finding an enemy nobody
+has seen is **mission command's** job — it is the tier that holds the map and
+assigns squads to places — and acquisition's job is only to answer what this unit
+may shoot at now. Measured across the Conquest matrix the transfer holds: both
+fixtures still take compounds and still hold them at the end. It is not free,
+and the cost is not one-directional; a squad that loses sight of its target
+re-picks rather than keeping it, so retargeting rises markedly, and the balance
+of the matrix moves in both directions between fixtures rather than settling.
 
 A **contact picture** is the immutable, once-per-tick local interpretation of
 that squad's beliefs. It gives one answer for the tactical axis, threat sector,

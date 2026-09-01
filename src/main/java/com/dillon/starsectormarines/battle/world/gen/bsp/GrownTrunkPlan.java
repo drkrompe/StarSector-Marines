@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan.TrunkSegment;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Random;
@@ -202,11 +203,53 @@ public final class GrownTrunkPlan {
     private GrownTrunkPlan() {}
 
     private static final class Junction {
-        final int x, y, depth;
-        Junction(int x, int y, int depth) { this.x = x; this.y = y; this.depth = depth; }
+        final int x, y, depth, owner;
+        Junction(int x, int y, int depth, int owner) {
+            this.x = x; this.y = y; this.depth = depth; this.owner = owner;
+        }
     }
 
+    /** One growth: where a place starts and how much of it there is. */
+    public record Seed(int x, int y, Profile profile) { }
+
+    /**
+     * What several seeds grew, and which of them grew each road cell.
+     *
+     * <p>{@code owner} holds a seed index per cell and {@link #UNOWNED} where no
+     * arm was painted. It is what makes the border between two places a fact
+     * about the growth rather than a partition drawn over it, and what lets an
+     * arm that joined two of them be recognised as the artery between them.
+     */
+    public record Grown(Plan plan, List<SubRect> hinterland, int[][] owner) { }
+
+    /** No arm painted this cell. */
+    public static final int UNOWNED = -1;
+
     public static Result generate(int width, int height, Random rng, Profile profile) {
+        // Seed jittered across the middle third so the centre is not a tell.
+        int seedX = width  / 3 + rng.nextInt(Math.max(1, width  / 3));
+        int seedY = height / 3 + rng.nextInt(Math.max(1, height / 3));
+        Grown grown = grow(width, height, rng, List.of(new Seed(seedX, seedY, profile)));
+        return new Result(grown.plan(), grown.hinterland());
+    }
+
+    /**
+     * Several places grown into one another.
+     *
+     * <p>They share one frontier rather than getting a graph each, and nothing
+     * arbitrates between them: {@link #walkArm} already stops one cell past
+     * first contact with an existing band, so an arm reaching a neighbour road
+     * simply joins it. The border between two precincts is therefore where
+     * their growth met, and the road between them is the arm that met it —
+     * neither is drawn, and both come out irregular.
+     *
+     * <p>Budgets are per seed. One shared budget would let whichever seed
+     * happened to branch first spend the whole map, which is the opposite of
+     * placing several places deliberately.
+     */
+    public static Grown grow(int width, int height, Random rng, List<Seed> seeds) {
+        if (seeds.isEmpty()) throw new IllegalArgumentException("nothing to grow");
+        Profile profile = seeds.get(0).profile();
         boolean[][] road = new boolean[width][height];
         for (int x = 0; x < width; x++)  { road[x][0] = true; road[x][height - 1] = true; }
         for (int y = 0; y < height; y++) { road[0][y] = true; road[width  - 1][y] = true; }
@@ -216,26 +259,31 @@ public final class GrownTrunkPlan {
         // it makes every cell on the map near a road: the hinterland collapses
         // to whatever sliver sits further than the depth from the border.
         boolean[][] bands = new boolean[width][height];
+        int[][] owner = new int[width][height];
+        for (int[] column : owner) Arrays.fill(column, UNOWNED);
         List<TrunkSegment> trunks = new ArrayList<>();
         int shortDim = Math.min(width, height);
-        int lenLo = Math.max(MIN_ARM_LEN, Math.round(shortDim * profile.armLenLoFrac));
-        int lenHi = Math.max(lenLo + 1, Math.round(shortDim * profile.armLenHiFrac));
 
-        // Seed junction, jittered across the middle third so the centre is not a tell.
-        int seedX = width  / 3 + rng.nextInt(Math.max(1, width  / 3));
-        int seedY = height / 3 + rng.nextInt(Math.max(1, height / 3));
+        int seedX = seeds.get(0).x();
+        int seedY = seeds.get(0).y();
         SubRect centre = bandRect(seedX, seedY, TrunkKind.PRIMARY.width, width, height);
 
         Deque<Junction> frontier = new ArrayDeque<>();
-        frontier.add(new Junction(seedX, seedY, 0));
-        int spent = 0;
+        int[] spent = new int[seeds.size()];
+        for (int i = 0; i < seeds.size(); i++) {
+            frontier.add(new Junction(seeds.get(i).x(), seeds.get(i).y(), 0, i));
+        }
 
-        while (!frontier.isEmpty() && spent < profile.junctionBudget) {
+        while (!frontier.isEmpty()) {
             Junction j = frontier.poll();
-            spent++;
+            Profile owning = seeds.get(j.owner).profile();
+            if (spent[j.owner] >= owning.junctionBudget) continue;
+            spent[j.owner]++;
+            int lenLo = Math.max(MIN_ARM_LEN, Math.round(shortDim * owning.armLenLoFrac));
+            int lenHi = Math.max(lenLo + 1, Math.round(shortDim * owning.armLenHiFrac));
             TrunkKind kind = LADDER[Math.min(j.depth, LADDER.length - 1)];
 
-            boolean[] dirs = pickDirections(rng, profile.fourWayChance);
+            boolean[] dirs = pickDirections(rng, owning.fourWayChance);
             for (int d = 0; d < 4; d++) {
                 if (!dirs[d]) continue;
                 int drawn = lenLo + rng.nextInt(lenHi - lenLo + 1);
@@ -243,14 +291,17 @@ public final class GrownTrunkPlan {
                 if (arm == null) continue;
                 paintBand(road, arm.rect);
                 paintBand(bands, arm.rect);
+                claimBand(owner, arm.rect, j.owner);
                 trunks.add(new TrunkSegment(arm.rect.x0, arm.rect.y0, arm.rect.x1, arm.rect.y1,
                         kind, d == DIR_E || d == DIR_W));
 
                 boolean canBranch = arm.ranFull
-                        && spent + frontier.size() < profile.junctionBudget
-                        && rng.nextFloat() < profile.branchChance
+                        && spent[j.owner] + queuedFor(frontier, j.owner) < owning.junctionBudget
+                        && rng.nextFloat() < owning.branchChance
                         && clearFor(road, width, height, arm.endX, arm.endY, arm.rect);
-                if (canBranch) frontier.add(new Junction(arm.endX, arm.endY, j.depth + 1));
+                if (canBranch) {
+                    frontier.add(new Junction(arm.endX, arm.endY, j.depth + 1, j.owner));
+                }
             }
         }
 
@@ -264,7 +315,30 @@ public final class GrownTrunkPlan {
         decompose(orOf(road, beyondFrontage, width, height), width, height, subRects);
         decompose(orOf(road, notOf(beyondFrontage, width, height), width, height), width, height, hinterland);
 
-        return new Result(new Plan(road, subRects, trunks, centre, width, height), hinterland);
+        return new Grown(new Plan(road, subRects, trunks, centre, width, height),
+                hinterland, owner);
+    }
+
+    /** How many of this seed junctions are still waiting to be spent. */
+    private static int queuedFor(Deque<Junction> frontier, int owner) {
+        int queued = 0;
+        for (Junction j : frontier) {
+            if (j.owner == owner) queued++;
+        }
+        return queued;
+    }
+
+    /**
+     * Records who painted a band. First writer wins: where an arm runs onto a
+     * neighbour road the cells already belong to the neighbour, which is what
+     * makes the join a shared artery rather than a takeover.
+     */
+    private static void claimBand(int[][] owner, SubRect r, int who) {
+        for (int y = r.y0; y <= r.y1; y++) {
+            for (int x = r.x0; x <= r.x1; x++) {
+                if (owner[x][y] == UNOWNED) owner[x][y] = who;
+            }
+        }
     }
 
     // ---- arm growth -------------------------------------------------------

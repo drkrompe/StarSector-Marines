@@ -11,119 +11,239 @@
       "frame": 0,
       "id": "nature.grass-1",
       "layer": "ground",
-      "name": "grass"
+      "name": "grass-1"
     },
     {
       "description": "grass field, second variant \u2014 the pair is picked per cell by TileManifest",
       "frame": 1,
       "id": "nature.grass-2",
       "layer": "ground",
-      "name": "grass-alt"
+      "name": "grass-2"
+    },
+    {
+      "description": "grass field variant 3 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "frame": 2,
+      "id": "nature.grass-3",
+      "layer": "ground",
+      "name": "grass-3"
+    },
+    {
+      "description": "grass field variant 4 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "frame": 3,
+      "id": "nature.grass-4",
+      "layer": "ground",
+      "name": "grass-4"
+    },
+    {
+      "description": "grass field variant 5 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "frame": 4,
+      "id": "nature.grass-5",
+      "layer": "ground",
+      "name": "grass-5"
+    },
+    {
+      "description": "grass field variant 6 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "frame": 5,
+      "id": "nature.grass-6",
+      "layer": "ground",
+      "name": "grass-6"
+    },
+    {
+      "description": "grass field variant 7 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "frame": 6,
+      "id": "nature.grass-7",
+      "layer": "ground",
+      "name": "grass-7"
+    },
+    {
+      "description": "grass field variant 8 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureGrassTileId",
+      "frame": 7,
+      "id": "nature.grass-8",
+      "layer": "ground",
+      "name": "grass-8"
     },
     {
       "description": "bare dirt field \u2014 hash-paired with dirt-2",
-      "frame": 2,
+      "frame": 8,
       "id": "nature.dirt-1",
       "layer": "ground",
-      "name": "dirt"
+      "name": "dirt-1"
     },
     {
       "description": "bare dirt field, second variant",
-      "frame": 3,
+      "frame": 9,
       "id": "nature.dirt-2",
       "layer": "ground",
-      "name": "dirt-alt"
+      "name": "dirt-2"
+    },
+    {
+      "description": "bare dirt field variant 3 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "frame": 10,
+      "id": "nature.dirt-3",
+      "layer": "ground",
+      "name": "dirt-3"
+    },
+    {
+      "description": "bare dirt field variant 4 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "frame": 11,
+      "id": "nature.dirt-4",
+      "layer": "ground",
+      "name": "dirt-4"
+    },
+    {
+      "description": "bare dirt field variant 5 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "frame": 12,
+      "id": "nature.dirt-5",
+      "layer": "ground",
+      "name": "dirt-5"
+    },
+    {
+      "description": "bare dirt field variant 6 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "frame": 13,
+      "id": "nature.dirt-6",
+      "layer": "ground",
+      "name": "dirt-6"
+    },
+    {
+      "description": "bare dirt field variant 7 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "frame": 14,
+      "id": "nature.dirt-7",
+      "layer": "ground",
+      "name": "dirt-7"
+    },
+    {
+      "description": "bare dirt field variant 8 of 8 \u2014 hash-picked per cell by TileManifest.pickNatureDirtTileId",
+      "frame": 15,
+      "id": "nature.dirt-8",
+      "layer": "ground",
+      "name": "dirt-8"
     },
     {
       "description": "sand field with dune grass \u2014 defined but not currently dispatched to; the SAND ground kind maps to floors.sand",
-      "frame": 4,
+      "frame": 16,
       "id": "nature.sand",
       "layer": "ground",
       "name": "sand"
     },
     {
       "description": "shallow water with reeds \u2014 defined but not currently dispatched to; the WATER ground kind maps to water.water",
-      "frame": 5,
+      "frame": 17,
       "id": "nature.water-1",
       "layer": "ground",
       "name": "water"
     },
     {
       "description": "open water \u2014 second water variant, likewise not dispatched to today",
-      "frame": 6,
+      "frame": 18,
       "id": "nature.water-2",
       "layer": "ground",
       "name": "water-alt"
     },
     {
       "description": "broad low rosette \u2014 the widest plant on the sheet",
-      "frame": 7,
+      "frame": 19,
       "id": "nature.shrub-1",
       "layer": "plant",
       "name": "shrub",
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
       "description": "small spiky shrub \u2014 the smallest plant, reads as scrub at cell size",
-      "frame": 8,
+      "frame": 20,
       "id": "nature.shrub-2",
       "layer": "plant",
       "name": "shrub-alt",
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
       "description": "upright grass tuft",
-      "frame": 9,
+      "frame": 21,
       "id": "nature.tuft-1",
       "layer": "plant",
       "name": "grass-tuft",
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
       "description": "wider grass tuft, second variant",
-      "frame": 10,
+      "frame": 22,
       "id": "nature.tuft-2",
       "layer": "plant",
       "name": "grass-tuft-alt",
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
       "description": "young palm \u2014 the one plant with a visible trunk",
-      "frame": 11,
+      "frame": 23,
       "id": "nature.shrub-3",
       "layer": "plant",
       "name": "shrub-variant",
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
       "description": "tall wild grass tuft \u2014 the sheet\u2019s sixth plant. It sat in the rock range and was scattered as a rock until 2026-08-29; the prompt asked for five plants and eight rock groups and the art came back with six and seven.",
-      "frame": 12,
+      "frame": 24,
       "id": "nature.tuft-3",
       "layer": "plant",
       "name": "grass-tuft-tall",
       "validOn": [
         "nature.grass-1",
-        "nature.grass-2"
+        "nature.grass-2",
+        "nature.grass-3",
+        "nature.grass-4",
+        "nature.grass-5",
+        "nature.grass-6",
+        "nature.grass-7",
+        "nature.grass-8"
       ]
     },
     {
       "description": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
-      "frame": 13,
+      "frame": 25,
       "id": "nature.rock-small-1",
       "layer": "rock",
       "name": "rocks-small",
@@ -135,7 +255,7 @@
     },
     {
       "description": "three small stones, one larger \u2014 a tighter scatter than rock-small-1",
-      "frame": 14,
+      "frame": 26,
       "id": "nature.rock-small-2",
       "layer": "rock",
       "name": "rocks-small-2",
@@ -148,7 +268,7 @@
     {
       "cover": "light",
       "description": "a boulder with two stones at its foot \u2014 light cover, still walkable",
-      "frame": 15,
+      "frame": 27,
       "id": "nature.rock-medium-1",
       "layer": "rock",
       "name": "rock-medium",
@@ -161,7 +281,7 @@
     {
       "cover": "light",
       "description": "a single tilted boulder with a detached pebble \u2014 light cover, still walkable",
-      "frame": 16,
+      "frame": 28,
       "id": "nature.rock-medium-2",
       "layer": "rock",
       "name": "rock-medium-2",
@@ -174,7 +294,7 @@
     {
       "cover": "heavy",
       "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
-      "frame": 17,
+      "frame": 29,
       "id": "nature.rock-large-1",
       "layer": "rock",
       "name": "rock-large",
@@ -188,7 +308,7 @@
     {
       "cover": "heavy",
       "description": "a leaning slab over a low stone \u2014 heavy cover, impassable",
-      "frame": 18,
+      "frame": 30,
       "id": "nature.rock-large-2",
       "layer": "rock",
       "name": "rock-large-2",
@@ -202,7 +322,7 @@
     {
       "cover": "heavy",
       "description": "the tallest stack on the sheet \u2014 heavy cover, impassable",
-      "frame": 19,
+      "frame": 31,
       "id": "nature.rock-large-3",
       "layer": "rock",
       "name": "rock-large-3",

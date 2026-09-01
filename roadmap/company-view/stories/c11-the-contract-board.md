@@ -5,9 +5,10 @@
 
 Status: PLANNED
 Written: 2026-08-22
-Updated: 2026-08-23 — migrated under `company-view-nouns.md`.
+Updated: 2026-09-01 — aligned the board with geographically sparse persisted supply.
 
 Depends on the shipped campaign-map home in `company-view-nouns.md`.
+Also depends on the sparse supply model in `contracts-nouns.md`.
 Independent of the other open stories in this track.
 
 Read `company-view-nouns.md` before changing this story.
@@ -38,20 +39,24 @@ The result is a company that finds work by flying somewhere and asking. Which
 is a fine *early-game* fiction, and a bad permanent one: it makes the sector
 feel empty in proportion to how much work is actually in it.
 
-### The caps are the real constraint
+### Scarcity is the product shape
 
-Raising visibility without raising supply produces an empty board. Today:
+The board reveals persisted work; it does not justify minting more of it. The
+standing supply ceilings are:
 
 | Knob | Value | Consequence |
 | --- | --- | --- |
 | `GLOBAL_OFFER_CAP` | 20 | The whole sector holds twenty live offers |
 | `PER_PATRON_OFFER_CAP` | 1 | A patron never shows you a choice |
+| `PER_MARKET_OFFER_CAP` | 1 | Most markets have no work, and no market becomes a stack of patrons |
+| `PER_SYSTEM_OFFER_CAP` | 3 | One system holds at most a handful of ordinary opportunities |
 | `OFFER_CHANCE_PER_DAY` | 0.05 | ~1 roll per patron per 20 days |
 
-A sector-wide board over that tuning is a twenty-row list in which comparing
-two jobs from the same employer is **impossible by construction**. The filters
-this story builds have nothing to bite on until the supply moves. So the tuning
-change is not a follow-up here; it is slice 1.
+A sector-wide board over that tuning is deliberately a travel-planning surface,
+not a supermarket. Its filters compare different employers, systems, expiry
+windows, and fieldability; they do not require several offers from one patron.
+An empty in-system result is honest and should explain that wider reach is what
+would reveal more work.
 
 That said, twenty rows also settles the layout question cheaply: at this scale
 `ScrollRegionWidget` is sufficient and pagination is over-engineering.
@@ -211,24 +216,19 @@ against `contracts-nouns.md` and `contracts-live-acceptance.md` before it lands.
 
 ## Slices
 
-1. **Supply.** Raise `GLOBAL_OFFER_CAP` and `PER_PATRON_OFFER_CAP` so a patron
-   can hold more than one open offer and the sector carries a board's worth of
-   work. Pure tuning, no UI. Verify the contracts table and
-   `ContractTableCompactor` behave at the new ceiling, and that offer lapse
-   still clears rows at the higher rate.
-2. **The board, docked and in-system.** The pane, `ScrollRegionWidget`, the
+1. **The board, docked and in-system.** The pane, `ScrollRegionWidget`, the
    row, the filters, relevance sort, and the two nearest reach tiers. No feed,
    no fees — this rung is available to everyone from the first hour and is
    already a strict improvement on flying to five planets.
-3. **The feed.** MRB threshold, activation fee, monthly maintenance as upkeep,
+2. **The feed.** MRB threshold, activation fee, monthly maintenance as upkeep,
    subscribe/cancel on this screen, and the reduced-resolution row. Cancelling
    is immediate; re-activating costs the activation fee again.
-4. **Set course.** The row's terminal action targets the patron's market, so
+3. **Set course.** The row's terminal action targets the patron's market, so
    the board closes its own loop rather than leaving the player to find the
    system on the map.
 
-Slices 2–4 are independently valuable. Slice 1 gates the usefulness of all of
-them but not their correctness.
+All three slices are independently valuable. Sparse supply is an input to the
+board rather than a tuning prerequisite owned by this story.
 
 ## Acceptance
 
@@ -277,12 +277,11 @@ campaign-map home.
   by exactly the maintenance fee.
 - **Manual smoke (shipping gate):** the board from deep space, in system, and
   docked; activate, cancel, re-activate; layout at 1.0x / 1.25x / 1.5x UI
-  scale; Set course landing on the right market; and the board at the raised
-  offer cap rather than at three rows.
+  scale; Set course landing on the right market; and an honest empty in-system
+  state alongside a system carrying the three-offer ceiling.
 
 ## Files touched
 
-- `campaign/systems/ContractGenerator.java` — the caps (slice 1).
 - `campaign/ContractBoard.java` — new; derived rows, reach resolution,
   relevance. Pure, no UI.
 - `campaign/CampaignState.java` — the subscription flag and its paid-through

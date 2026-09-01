@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.systems.StationingOfferLookup;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -153,7 +154,8 @@ public class CommsConsolePanel extends OpsPanel {
         if (selected == null) {
             float hintY = stackTop - 24f;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "Select a client to see their dossiers.",
+                    Strings.get(ctx.clients.isEmpty()
+                            ? "clientNoneAtMarket" : "clientSelectHint"),
                     stackX, hintY, EMPTY_HINT));
             return;
         }
