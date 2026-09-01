@@ -1151,6 +1151,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     /** Fixes the photographed ship's layout so the snapshots compare run to run. */
     private static final long SHIP_SEED = 0x5AFE_DECEL;
+    /** Longest a hull here takes to lay out; a capital is seconds. */
+    private static final long READY_TIMEOUT_MS = 120_000L;
     /** Hull kept around a framed compartment, matching what the screens ask for. */
     private static final int MECH_LAB_SURROUND_CELLS = 2;
 
@@ -1183,8 +1185,41 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         CompanyDeck ship = new CompanyDeck(TestHulls.transport(), SHIP_SEED,
                 null, lance, company, () -> held[0]);
         if (boatsHeld != null) held[0] = boatsHeld.apply(ship);
+        readied(ship);
         ship.advance(18f);
         return ship;
+    }
+
+    /**
+     * Hold the shutter until she is ready.
+     *
+     * <p>A deck is laid out away from the frame that asked for it, so a ship
+     * built and photographed in the same breath is photographed mid-layout —
+     * and a canvas draws a ship that is not ready yet as nothing at all, which
+     * is the correct thing for a screen to do and a blank plate here. Which
+     * plates it blanked was decided by hull size: a transport won the race and
+     * the whole-ship view's capital did not, so that one had been recording an
+     * empty panel rather than a ship.
+     *
+     * <p>An uninhabitable hull is never getting ready, so this returns at once
+     * rather than waiting out a clock for a ship that has no deck to lay.
+     */
+    private static void readied(CompanyDeck ship) {
+        long deadline = System.currentTimeMillis() + READY_TIMEOUT_MS;
+        while (ship.gettingReady()) {
+            if (System.currentTimeMillis() > deadline) {
+                throw new IllegalStateException(
+                        "the ship was still being laid out after "
+                                + READY_TIMEOUT_MS + "ms");
+            }
+            try {
+                Thread.sleep(10L);
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(
+                        "interrupted while the ship was laid out", interrupted);
+            }
+        }
     }
 
     private static BufferedImage renderBarracks(
@@ -1243,7 +1278,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         hull.silhouette(), hull.spriteName()),
                         SHIP_SEED, null, List::of,
                         () -> MarineOpsContext.companyMarines(roster), null);
-        if (hull != null) ship.advance(18f);
+        // The fallback ship came ready and advanced out of companyShip; this
+        // one was built here and has to be waited for here.
+        if (hull != null) {
+            readied(ship);
+            ship.advance(18f);
+        }
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), SHIP_VIEW_COMPONENTS);
         loader.reload();
