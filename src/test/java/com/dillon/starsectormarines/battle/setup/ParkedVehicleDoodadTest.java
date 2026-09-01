@@ -31,8 +31,20 @@ class ParkedVehicleDoodadTest {
 
     private static final int W = 60;
     private static final int H = 40;
+    /** Centre of a 3x3 blockhouse in the corner furthest from anything parked. */
+    private static final int BLOCKHOUSE = 2;
 
     private static MapResult openStreetMap() {
+        return openStreetMap(false);
+    }
+
+    /**
+     * @param orphan when true the blockhouse in the far corner has its middle
+     *               cell left walkable, so the map carries one walkable cell
+     *               nothing can reach. The walls are stamped either way, so the
+     *               two maps differ in that cell alone.
+     */
+    private static MapResult openStreetMap(boolean orphan) {
         NavigationGrid grid = new NavigationGrid(W, H);
         CellTopology topology = new CellTopology(W, H);
         for (int y = 0; y < H; y++) {
@@ -40,6 +52,16 @@ class ParkedVehicleDoodadTest {
                 grid.setWalkableFloor(x, y);
                 topology.setGroundKind(x, y, CellTopology.GroundKind.STREET);
             }
+        }
+        for (int y = BLOCKHOUSE - 1; y <= BLOCKHOUSE + 1; y++) {
+            for (int x = BLOCKHOUSE - 1; x <= BLOCKHOUSE + 1; x++) {
+                grid.setWalkable(x, y, false);
+                topology.setWall(x, y, true);
+            }
+        }
+        if (orphan) {
+            grid.setWalkableFloor(BLOCKHOUSE, BLOCKHOUSE);
+            topology.setWall(BLOCKHOUSE, BLOCKHOUSE, false);
         }
         return new MapResult(grid, topology, 10, 12, 30, 12,
                 Collections.emptyList(), Collections.emptyList(),
@@ -93,6 +115,31 @@ class ParkedVehicleDoodadTest {
         assertTrue(grid.hasLineOfSight(truck.cellX - 3, row,
                         truck.cellX + truck.footprintCellsX + 2, row),
                 "a parked truck is not a wall across the street");
+    }
+
+    /**
+     * Ground stranded somewhere else does not empty the street.
+     *
+     * <p>The connectivity guard has to ask whether <em>this truck</em> strands
+     * ground, not whether any ground anywhere is stranded. Those are the same
+     * question only on a map that is whole to begin with, and no generated one
+     * is: an interior not yet given its doorway, a cell a fill sealed. Under the
+     * map-wide form every candidate anchor on the map is refused, so the pass
+     * parks nothing at all and raises neither an exception nor a log line —
+     * which looks exactly like a stamper that was never called.
+     *
+     * <p>The blockhouse stands in both maps; the only difference is the cell at
+     * its centre, walled in the control and walkable-but-unreachable here.
+     */
+    @Test
+    void anOrphanPocketElsewhereDoesNotEmptyTheStreet() {
+        int whole = BattleSetup.stampVehicles(openStreetMap(false), new Random(11L)).size();
+        int orphaned = BattleSetup.stampVehicles(openStreetMap(true), new Random(11L)).size();
+
+        assertTrue(whole > 0, "the control parked nothing, so this measures nothing");
+        assertEquals(whole, orphaned, "the street took " + whole + " vehicles on an unbroken map "
+                + "and " + orphaned + " on the same map with one cell sealed off in a far corner, "
+                + "so the guard is answering a question about the map rather than about the stamp");
     }
 
     @Test
