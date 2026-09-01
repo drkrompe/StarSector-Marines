@@ -137,16 +137,16 @@ public final class FortressInterior {
      *               packing must leave alone and may open onto
      */
     public static Result pack(GenContext ctx, boolean[][] ground, boolean[][] muster,
-                              TraversalAxis axis, List<FortressBuilding> program) {
+                              TraversalAxis axis, FortressProgram program) {
         Bounds bounds = Bounds.of(ground, ctx.width, ctx.height);
-        if (bounds == null) return new Result(List.of(), program);
+        if (bounds == null) return new Result(List.of(), program.expanded());
 
         RoomPacker packer = new RoomPacker(
                 ctx, footings(ctx, ground, muster), muster, PALETTE, MASSING);
         List<RoomPacker.Placed> placed = new ArrayList<>();
         List<RoomShape> authored = new ArrayList<>();
         List<FortressBuilding> unplaced = new ArrayList<>();
-        for (FortressBuilding building : FortressProgram.expanded(program)) {
+        for (FortressBuilding building : program.expanded()) {
             RoomPacker.Request request = new RoomPacker.Request(
                     building.purpose(), building.shape(),
                     wardAffinity(bounds, axis, building.ward()), building.perimeter());

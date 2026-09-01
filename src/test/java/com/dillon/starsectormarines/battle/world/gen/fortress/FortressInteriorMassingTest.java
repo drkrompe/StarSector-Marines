@@ -35,13 +35,13 @@ class FortressInteriorMassingTest {
     private static final int H = DEPTH + 4;
 
     static {
-        W = FortressProgram.envelopeArea(FortressProgram.ward()) / DEPTH + 4;
+        W = FortressProgram.ward().envelopeArea() / DEPTH + 4;
     }
 
     @Test
     void noWallRunsLongEnoughToHaveNoWayRound() {
         int longest = 0;
-        for (FortressBuilding building : FortressProgram.ward()) {
+        for (FortressBuilding building : FortressProgram.ward().buildings()) {
             longest = Math.max(longest,
                     Math.max(building.shape().width(), building.shape().height()));
         }

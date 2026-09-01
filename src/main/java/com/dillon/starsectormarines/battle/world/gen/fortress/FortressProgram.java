@@ -24,9 +24,55 @@ import java.util.List;
  * because bunks rank along a passage. None of these are the rectangle a
  * partition happened to leave.
  */
-public final class FortressProgram {
+public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
 
-    private FortressProgram() {}
+    public FortressProgram {
+        buildings = List.copyOf(buildings);
+        if (airfields < 0) {
+            throw new IllegalArgumentException("a fortress cannot owe " + airfields + " airfields");
+        }
+    }
+
+    /**
+     * How many airfields a garrison keeps unless a mission says otherwise. One
+     * is the shipped answer and is a default rather than a law: a depot has
+     * none and a forward base may have two, and both are the same generator
+     * asked a different question.
+     */
+    private static final int GARRISON_AIRFIELDS = 1;
+
+    /**
+     * The same program with a different count of one purpose. Zero removes it —
+     * {@link #expanded()} simply stops emitting it — which is how a mission
+     * orders a fortress with no motor pool rather than a fortress whose motor
+     * pool failed to place.
+     */
+    public FortressProgram with(RoomPurpose purpose, int count) {
+        if (count < 0) throw new IllegalArgumentException("count " + count + " for " + purpose);
+        List<FortressBuilding> out = new ArrayList<>();
+        boolean seen = false;
+        for (FortressBuilding building : buildings) {
+            if (building.purpose() != purpose) {
+                out.add(building);
+                continue;
+            }
+            seen = true;
+            if (count > 0) {
+                out.add(new FortressBuilding(building.purpose(), building.shape(),
+                        building.ward(), building.perimeter(), count));
+            }
+        }
+        if (!seen) {
+            throw new IllegalArgumentException(
+                    "this program has no " + purpose + " to set a count for");
+        }
+        return new FortressProgram(out, airfields);
+    }
+
+    /** The same program owing a different number of airfields; zero is a fortress without one. */
+    public FortressProgram withAirfields(int count) {
+        return new FortressProgram(buildings, count);
+    }
 
     /** Machine berths per rank. Three out of one door is a motor pool, not a garage. */
     private static final int SHED_BAYS = 3;
@@ -83,8 +129,8 @@ public final class FortressProgram {
      * middle of the yard is a building, and a shed with no way out is a shed.
      * Everything else only needs to fit somewhere it belongs.
      */
-    public static List<FortressBuilding> garrison() {
-        return List.of(
+    public static FortressProgram garrison() {
+        return new FortressProgram(List.of(
                 new FortressBuilding(RoomPurpose.KEEP_THRONE, KEEP, Ward.REAR, 1),
                 new FortressBuilding(RoomPurpose.ARMORY, MAGAZINE, Ward.REAR, 2),
                 new FortressBuilding(RoomPurpose.ENGINE_ROOM, GENERATOR_HALL, Ward.REAR, 1),
@@ -101,7 +147,8 @@ public final class FortressProgram {
                 new FortressBuilding(RoomPurpose.BARRACKS, BARRACK_BLOCK, Ward.YARD, 3),
                 new FortressBuilding(RoomPurpose.MESS_HALL, MESS, Ward.YARD, 1),
                 new FortressBuilding(RoomPurpose.PARTS_CAGE, WORKSHOP, Ward.YARD, 2),
-                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 2));
+                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 2)),
+                GARRISON_AIRFIELDS);
     }
 
     /**
@@ -113,18 +160,14 @@ public final class FortressProgram {
      * program with its own keep taken out: the compound is the keep, and this is
      * what stands around it.
      */
-    public static List<FortressBuilding> ward() {
-        List<FortressBuilding> out = new ArrayList<>();
-        for (FortressBuilding building : garrison()) {
-            if (building.purpose() != RoomPurpose.KEEP_THRONE) out.add(building);
-        }
-        return List.copyOf(out);
+    public static FortressProgram ward() {
+        return garrison().with(RoomPurpose.KEEP_THRONE, 0);
     }
 
     /** Cells of building floor the program needs, walls and roadways excluded. */
-    public static int floorArea(List<FortressBuilding> program) {
+    public int floorArea() {
         int area = 0;
-        for (FortressBuilding building : program) area += building.area() * building.count();
+        for (FortressBuilding building : buildings) area += building.area() * building.count();
         return area;
     }
 
@@ -154,13 +197,13 @@ public final class FortressProgram {
      * spaced: a sizing rule measured under one packing policy does not survive
      * a change to it.
      */
-    public static int envelopeArea(List<FortressBuilding> program) {
+    public int envelopeArea() {
         // The airbase lot is ground the ward holds but no building stands on,
         // so it is added rather than scaled: the slack covers what packing
         // wastes around buildings, and a facility is not waste. The lot is
         // reserved out of the ward before packing, so this is what makes sure
         // the ward is sized to afford it.
-        return buildingGround(program) + AirbaseLot.area(AirbaseLot.Size.STATION);
+        return buildingGround() + airfields * AirbaseLot.area(AirbaseLot.Size.STATION);
     }
 
     /**
@@ -169,8 +212,8 @@ public final class FortressProgram {
      * checks what it wants to take against this: below it, buildings start
      * going unplaced.
      */
-    public static int buildingGround(List<FortressBuilding> program) {
-        return Math.round(floorArea(program) * SLACK);
+    public int buildingGround() {
+        return Math.round(floorArea() * SLACK);
     }
 
     /** Ground per cell of building floor. Measured, not guessed — see {@link #envelopeArea}. */
@@ -184,9 +227,9 @@ public final class FortressProgram {
      * purpose name so the order is a property of the program rather than of the
      * iteration that built it.
      */
-    public static List<FortressBuilding> expanded(List<FortressBuilding> program) {
+    public List<FortressBuilding> expanded() {
         List<FortressBuilding> out = new ArrayList<>();
-        for (FortressBuilding building : program) {
+        for (FortressBuilding building : buildings) {
             for (int i = 0; i < building.count(); i++) out.add(building);
         }
         out.sort((a, b) -> {
