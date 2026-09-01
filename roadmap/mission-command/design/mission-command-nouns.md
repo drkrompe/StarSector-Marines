@@ -94,7 +94,10 @@ A **command pool** is the set of squads a strategy may allocate. Born
 garrisons, payload guards, scripted actors, and reinforcement forces awaiting
 handoff stay outside it. Ownership may exist without a tactical assignment,
 which lets a delivery or special-task system reserve a squad without inventing
-a destination.
+a destination. Squads enter and leave the pool over a battle — a release, a
+handoff — so anything a strategy sizes from the pool, such as a reserve bound,
+is re-derived from the pool as it stands on each pulse rather than latched at
+the opening one.
 
 A **directive** records the optional `ObjectiveAssignment`, issuer, authority,
 reason, issue tick, target meaning, and stability or lease state. The shared

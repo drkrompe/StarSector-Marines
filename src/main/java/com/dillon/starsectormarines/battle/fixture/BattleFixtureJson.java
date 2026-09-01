@@ -322,6 +322,11 @@ public final class BattleFixtureJson {
             if (shuttle.airframe instanceof FittedBoat boat) {
                 encoded.put("platingId", boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
+                // Which of the company's boats this was, when it was one of
+                // theirs at all. A replay of a mission that lost a boat has to
+                // lose the same one, and the fit alone cannot say which of two
+                // identical Aeroshuttles burned.
+                if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
             }
             encoded.put("cycles", shuttle.cycles);
             encoded.put("seatsPerSortie", shuttle.seatsPerSortie);
@@ -349,7 +354,8 @@ public final class BattleFixtureJson {
                             BoatFitting.resolve(encoded.optString("platingId", null),
                                     BoatFittingSlot.PLATING),
                             BoatFitting.resolve(encoded.optString("driveId", null),
-                                    BoatFittingSlot.DRIVE))
+                                    BoatFittingSlot.DRIVE),
+                            encoded.optString("boatId", null))
                     : type;
             shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
                     encoded.has("embarkedPersonnel")

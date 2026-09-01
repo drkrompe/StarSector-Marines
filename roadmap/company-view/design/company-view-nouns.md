@@ -4,12 +4,11 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the Boat Deck is the third authoring room: the company's
-own ship's boats, their fittings, and the hangar they stand in; deployment squad
-cards expose their twelve billets as three fire teams with hover inspection of
-each marine's issued equipment and relative firepower and protection. Their compact
-command block uses the roster officer's persisted Starsector portrait beside rank,
-name, command relationship, and selection availability.
+Updated: 2026-09-01 — a boat can be lost: a berth stands vacant on the deck and
+on the hangar picture, whoever was aboard is fallen, and the yard builds the
+hull's own pattern back into the hole for a material bill. Deployment squad
+cards' compact command block uses the roster officer's persisted Starsector
+portrait beside rank, name, command relationship, and selection availability.
 
 ## Purpose
 
@@ -89,8 +88,20 @@ company view composes their stable outputs.
 - **Fitting** — installed work in one of a boat's **slots**: plating, which is
   hull, and drive, which is speed and acceleration. Each slot has a standard
   fitting every boat is built with and upgrade tiers above it.
-- **Boat workshop** — the atomic cargo-backed authority that installs a fitting.
-  It shares the fleet's hold with the Mech Lab rather than owning a second one.
+- **Boat workshop** — the atomic cargo-backed authority that installs a fitting
+  and builds a boat into an empty berth. It shares the fleet's hold with the
+  Mech Lab rather than owning a second one.
+- **Lost boat** — a campaign boat whose frozen frame was shot down on a mission.
+  It is struck from its berth and never comes back. `air-nouns.md` owns the
+  battle-side ledger it is read from.
+- **Vacant berth** — a berth of the hull's with nothing standing in it, which is
+  what a lost boat leaves behind and the only thing a boat can be built into.
+- **Passenger casualty** — a marine who was still aboard a boat when it was
+  lost. They are fallen the same way a marine shot on the ground is fallen and
+  roll the same recovery outcome.
+- **Boat fabrication** — the workshop building the hull's own pattern into a
+  vacant berth, at standard fit, for a bill authored per pattern. The player
+  does not choose the pattern, because the hull already has.
 
 ## Surface boundary
 
@@ -388,10 +399,36 @@ and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
 **The hull comes with her boats.** A campaign starts with every berth holding
-the hull's own pattern at standard fit. A boat is never something the company
-must buy before it can leave the ship, so there is no vacant-berth fabrication
-here and nothing corresponding to the lab's chassis forge — a berth cannot
-become empty yet, and a forge for it would be code that cannot run.
+the hull's own pattern at standard fit, so a boat is never something the company
+must buy before it can leave the ship. What it must do is replace one it has
+lost: a vacant berth is built back up through the same workshop, at standard
+fit, for a bill authored per pattern. The player names a berth rather than a
+pattern, which is the one place this departs from the lab's chassis forge — a
+lance is a choice of machines and a hangar is a fitting of the hull.
+
+**A boat that was shot down is gone.** The deck does not quietly replace it on
+the next read. Reconciling against the ship the company is already on keeps
+every berth exactly as it is, empty ones included; only a move to another hull
+compacts the survivors and fills what is left with her own boats. A read that
+refilled a hole would make the loss unobservable, which is the same as its not
+having happened.
+
+**Who was aboard went down with her.** The marines still aboard on the sortie
+that was lost are fallen, and roll the same outcome as a marine shot on the
+ground. Passengers of later cycles never left the ship and are untouched —
+neither survivors nor casualties, because their sortie never flew.
+
+**The lift is what is left.** What the deck offers a briefing is the boats
+standing in berths, so a company a boat down lifts one boat less and a company
+with none is told the mission cannot launch. That is the existing rule doing its
+job rather than a second check about losses.
+
+**The picture follows the deck.** A vacant berth has no boat standing in it on
+the hangar picture and is drawn as the hole it is; a fabricated one has a boat.
+The ship is laid out again when the set of held berths changes rather than
+patched live, because tearing a parked airframe out of a running deck scene —
+and its servicing, and the hands walking to it — is a second mechanism for a
+rare event, and one that would have to agree with the first.
 
 **The boats are the company's; the berths are the ship's.** The boat deck never
 holds a berth count of its own: how many berths there are is asked of the hull,
@@ -782,10 +819,11 @@ and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.
 
-Boat fittings may later be authored in data rather than in a code catalog, gain
-a hardpoint slot, and gain fabrication into a berth once a boat can be lost —
-each of those extends the same campaign authority rather than adding a second
-one, and none of them makes the room the owner of what the company has.
+Boat fittings may later be authored in data rather than in a code catalog and
+gain a hardpoint slot — each of those extends the same campaign authority rather
+than adding a second one, and none of them makes the room the owner of what the
+company has. Recovering a downed boat's hull or crew is deliberately not on that
+list: a lost boat is lost.
 
 Equipment authoring remains bounded by collected templates and atomic cargo-backed assignment;
 read surfaces remain projections of their owning campaign or frozen mission

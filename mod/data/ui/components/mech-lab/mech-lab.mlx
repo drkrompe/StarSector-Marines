@@ -97,8 +97,8 @@
               </div>
             </div>
             <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
-              <div id="mech-drag-drop-title" class="label heading tone-edge">DIRECT FIT ACTIVE · SIZED SLOTS</div>
-              <div id="mech-drag-drop-types" class="label heading tone-muted">BALLISTIC  ·  ENERGY  ·  MISSILE  ·  OMNI</div>
+              <div id="mech-drag-drop-title" class="label heading tone-edge">DIRECT FIT ACTIVE · RECTANGULAR FOOTPRINTS</div>
+              <div id="mech-drag-drop-types" class="label heading tone-muted">3×2 GRID  ·  BLOCKED CELLS CANNOT ACCEPT HARDWARE</div>
             </div>
           </div>
 
@@ -125,9 +125,12 @@
             <div id="mech-slot-copy" class="label tone-muted slot-copy">Select a socket to filter hardware.</div>
             <div id="mech-slot-list" class="slot-list">
               <button each="slot in slotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
-                <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
-                <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
-                <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+                <div id="{slot.copyId}" class="slot-row-copy">
+                  <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
+                  <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
+                  <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+                </div>
+                <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
               </button>
             </div>
           </div>
@@ -195,10 +198,8 @@
   .catalog-rule { height: 36px; padding: 5px; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
   .catalog-row { flex-direction: column; width: 100%; height: 198px; padding: 7px; gap: 3px; border-width: 1px; }
-  .catalog-card-body { flex-direction: row; width: 100%; height: 151px; gap: 0px; }
-  .catalog-item-copy { flex-direction: column; width: 100%; height: 151px; gap: 2px; }
-  .chassis-pattern .catalog-card-body { gap: 6px; }
-  .chassis-pattern .catalog-item-copy { width: 0px; flex-grow: 1; }
+  .catalog-card-body { flex-direction: row; width: 100%; height: 151px; gap: 6px; }
+  .catalog-item-copy { flex-direction: column; width: 0px; height: 151px; flex-grow: 1; gap: 2px; }
   .catalog-preview { width: 112px; height: 151px; border-width: 1px; }
   .catalog-name { height: 19px; }
   .catalog-stock, .catalog-detail { height: 17px; }
@@ -225,10 +226,12 @@
   .overview-station, .overview-name, .overview-detail { height: 18px; }
   .overview-browse { width: 142px; height: 76px; padding: 7px; text-align: center; }
 
-  .slot-panel { flex-direction: column; width: 245px; padding: 7px; gap: 5px; overflow: hidden; }
+  .slot-panel { flex-direction: column; width: 300px; padding: 7px; gap: 5px; overflow: hidden; }
   .slot-copy { height: 34px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-  .doll-slot { flex-direction: column; width: 100%; height: 61px; padding: 5px; gap: 1px; border-width: 1px; text-align: left; }
+  .doll-slot { flex-direction: row; width: 100%; height: 84px; padding: 5px; gap: 5px; border-width: 1px; text-align: left; }
+  .slot-row-copy { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; gap: 1px; }
+  .slot-grid { width: 98px; height: 64px; border-width: 1px; }
   .slot-name, .slot-type { height: 16px; }
   .slot-component { height: 17px; }
   .mech-lab-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }

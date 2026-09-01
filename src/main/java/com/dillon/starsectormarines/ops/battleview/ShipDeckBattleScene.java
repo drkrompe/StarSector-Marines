@@ -156,6 +156,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
     /**
+     * Which boat berths still have a boat, by the Boat Deck's own numbering, or
+     * null when nobody has said and every berth is therefore held. Copied on
+     * the way in because it is read once, while the scene is built, and the
+     * campaign deck it came off goes on changing afterwards.
+     */
+    private final boolean[] boatsHeld;
+    /**
      * Range targets already spawned, by the cell of butts they stand in. One
      * per set of butts rather than one per shooter: a lane is shot at by
      * whoever has claimed its firing point, and there is only ever one of them.
@@ -199,8 +206,22 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed,
                                BattleSprites sprites) {
+        this(deck, rooms, seed, sprites, null);
+    }
+
+    /**
+     * @param rooms the deck's compartment graph, or {@code null} for a scene
+     *              nothing will address rooms on
+     * @param boatsHeld whether the company still owns the boat for the k-th
+     *     boat berth, counting boat berths across the deck's own berth list in
+     *     order, or {@code null} for a hull whose every berth is held; see
+     *     {@link #openTheBoatBays()}
+     */
+    public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed,
+                               BattleSprites sprites, boolean[] boatsHeld) {
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
+        this.boatsHeld = boatsHeld == null ? null : boatsHeld.clone();
         gantries = deck.gantries;
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
@@ -395,6 +416,14 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * finds every berth empty, publishes no servicing, and is staffed as a store
      * for the rest of the ship's life. The airfield learned this the same way;
      * see {@code AirfieldWork.occupied}.
+     *
+     * <p><b>A berth the company has no boat for is left alone.</b> A boat that
+     * was shot down is gone, so its berth stands empty on the picture too: no
+     * aircraft is put out there, the berth is never marked occupied, and the
+     * servicing that named it drops out with the rest of the {@code NO_BERTH}
+     * remap below. The picture follows the deck rather than being patched to
+     * match it, which is why the answer arrives with the scene instead of being
+     * asked for again later.
      */
     private void openTheBoatBays() {
         AirfieldService bays = simulation.getAirfieldService();
@@ -410,9 +439,14 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // about - which is the failure AirfieldWork exists to avoid on a lot.
         int[] fieldBerth = new int[gantries.size()];
         Arrays.fill(fieldBerth, FixtureTask.NO_BERTH);
+        int boatBerth = 0;
         for (int index = 0; index < gantries.size(); index++) {
             Gantry berth = gantries.get(index);
             if (berth.holds != Gantry.Holds.BOAT) continue;
+            boolean held = boatsHeld == null || boatBerth >= boatsHeld.length
+                    || boatsHeld[boatBerth];
+            boatBerth++;
+            if (!held) continue;
             fieldBerth[index] = bays.berths().size();
             bays.addBayBerth(berth, boats, offshipFrom(berth));
             occupiedBerths[index] = true;

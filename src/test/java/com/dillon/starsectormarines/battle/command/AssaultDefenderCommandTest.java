@@ -65,6 +65,44 @@ class AssaultDefenderCommandTest {
     }
 
     @Test
+    void reserveTargetFollowsAPoolThatOnlyFillsUpAfterTheFirstPulse() {
+        BattleSimulation sim = openSim(false);
+        Set<Integer> mobile = addMobileForce(sim, 4);
+        AssignmentArbiter ownership = new AssignmentArbiter();
+        Set<Integer> held = new LinkedHashSet<>(mobile);
+        held.remove(mobile.iterator().next());
+        for (int squadId : held) {
+            ownership.claimExternal(sim.getSquad(squadId),
+                    CommandAuthority.REINFORCEMENT, "reinforcement-delivery",
+                    "awaiting handoff", sim.getSimTickIndex());
+        }
+        AssaultDefenderCommand command = new AssaultDefenderCommand(mobile);
+
+        AssaultDefenseSnapshot whileHeld = plan(command, sim, ownership);
+
+        assertEquals(1, whileHeld.mobilePool(),
+                "three of the four squads are owned elsewhere");
+        assertEquals(0, whileHeld.reserveCount(),
+                "a pool of one is routine coverage, never a reserve");
+        for (int squadId : held) {
+            ownership.releaseExternal(sim.getSquad(squadId),
+                    "reinforcement-delivery", "delivered",
+                    sim.getSimTickIndex());
+        }
+
+        AssaultDefenseSnapshot afterRelease = plan(command, sim, ownership);
+
+        assertEquals(4, afterRelease.mobilePool());
+        assertTrue(afterRelease.reserveCount() > 0,
+                "the reserve target re-derives from the pool the commander "
+                        + "has now, not the one it had at the first pulse");
+        assertTrue(afterRelease.directives().stream()
+                        .anyMatch(row -> row.role()
+                                == AssaultDefenseSnapshot.Role.RESERVE),
+                afterRelease.toString());
+    }
+
+    @Test
     void casualtyRepairsRoutineCoverageAndReplenishesReserve() {
         BattleSimulation sim = openSim(false);
         Set<Integer> mobile = addMobileForce(sim, 7);
@@ -395,5 +433,19 @@ class AssaultDefenderCommandTest {
                              BattleSimulation sim) {
         CommanderService.runSingle(command,
                 AssaultDefenderCommandDisclosure.INSTANCE, sim);
+    }
+
+    /**
+     * Plans one pulse against an ownership ledger the test controls, so a
+     * squad can be owned elsewhere on one pulse and free on the next without
+     * a delivery system to release it.
+     */
+    private static AssaultDefenseSnapshot plan(AssaultDefenderCommand command,
+                                               BattleSimulation sim,
+                                               AssignmentArbiter ownership) {
+        CommandTopology topology = CommandTopology.freeze(sim);
+        return command.plan(AssaultDefenderCommandDisclosure.INSTANCE.freeze(
+                sim, Faction.DEFENDER, topology, ownership.snapshot()))
+                .detail();
     }
 }

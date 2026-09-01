@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -67,6 +68,14 @@ public final class BoatDeckScreen implements Screen {
     private StarsectorUiInputAdapter input;
     private BoatDeckCanvas bayCanvas;
     private UiElement bayElement;
+    /**
+     * Whether the ship has to be looked up again because what is standing in
+     * her berths changed. Answered on the next advance rather than where the
+     * change happens: the change happens inside a click handler, and taking the
+     * deck out from under the document that is dispatching it is a tear-down in
+     * the middle of a traversal.
+     */
+    private boolean deckMayHaveChanged;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -88,7 +97,7 @@ public final class BoatDeckScreen implements Screen {
             selectedBayIndex.set(0);
             viewModel = new BoatDeckViewModel(reactor, roster.boatDeck(),
                     new CampaignFabricationResources(), ShipsBoatsAboard.carrier(),
-                    this::invalidateBay);
+                    this::deckChanged);
         } else {
             viewModel.refresh();
         }
@@ -108,7 +117,7 @@ public final class BoatDeckScreen implements Screen {
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             bayElement = candidate.requireElement("boat-deck-canvas");
             bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
-                    viewModel::selectedBerthIndex, this::berthOffset);
+                    viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld);
             built.canvases().set(bayElement, bayCanvas);
             bayElement.onPointerMove(this::pointAtBerth);
             bayElement.onPointerDown(this::pressBerth);
@@ -147,6 +156,15 @@ public final class BoatDeckScreen implements Screen {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
+        props.put("fabricationClasses", viewModel.fabricationClasses());
+        props.put("fabricationBerthLabel", viewModel.fabricationBerthLabel());
+        props.put("fabricationPatternName", viewModel.fabricationPatternName());
+        props.put("fabricationCopy", viewModel.fabricationCopy());
+        props.put("fabricationMaterials", viewModel.fabricationMaterials());
+        props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
+        props.put("fabricationBlocked", viewModel.fabricationBlocked());
+        props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
@@ -172,6 +190,10 @@ public final class BoatDeckScreen implements Screen {
                 "boat-previous-bay", "boat-active-bay", "boat-next-bay",
                 "boat-deck-summary", "boat-deck-body", "boat-deck-canvas",
                 "boat-overview", "boat-list", "boat-fitting",
+                "boat-fabrication", "boat-fabrication-header", "boat-fabrication-berth",
+                "boat-fabrication-pattern", "boat-fabrication-back",
+                "boat-fabrication-copy", "boat-fabrication-materials",
+                "boat-fabricate", "boat-fabrication-reason",
                 "selected-boat-name", "selected-boat-identity", "boat-back-to-deck",
                 "boat-performance-grid", "boat-slot-rack", "boat-catalog",
                 "boat-catalog-heading", "boat-catalog-copy", "boat-catalog-list",
@@ -186,6 +208,51 @@ public final class BoatDeckScreen implements Screen {
 
     private void invalidateBay() {
         if (document != null && bayElement != null) document.canvases().invalidate(bayElement);
+    }
+
+    /**
+     * What the room ran after changing something: repaint the bay, and look the
+     * ship up again in case a berth changed hands.
+     */
+    private void deckChanged() {
+        invalidateBay();
+        deckMayHaveChanged = true;
+    }
+
+    /**
+     * Whether the company still has a boat for this campaign berth.
+     *
+     * <p>A berth the campaign deck does not have at all counts as held, for the
+     * same reason the canvas draws no mark on one: the two counts are measured
+     * equal rather than guaranteed equal, and a disagreement is not a hole.
+     */
+    private boolean berthHeld(int berth) {
+        if (roster == null) return true;
+        List<CampaignBoat> berths = roster.boatDeck().boats();
+        return berth < 0 || berth >= berths.size() || berths.get(berth) != null;
+    }
+
+    /**
+     * Take delivery of a ship laid out again because her berths changed hands.
+     *
+     * <p>The picture follows the deck: a fabricated boat arrives as a
+     * regenerated ship rather than as an airframe pushed into a running scene,
+     * so what has to happen here is swapping the camera onto the new one. The
+     * document and the view model stay, because the player is still looking at
+     * the same berth of the same room.
+     */
+    private void adoptChangedDeck() {
+        deckMayHaveChanged = false;
+        if (context == null || document == null || bayElement == null) return;
+        CompanyDeck liveDeck = context.companyDeck();
+        if (liveDeck == null || liveDeck == deck) return;
+        deck = liveDeck;
+        selectedBayIndex.set(0);
+        bayCanvas = new BoatDeckCanvas(deck, this::currentBay,
+                viewModel::selectedBerthIndex, this::berthOffset, this::berthHeld);
+        document.canvases().set(bayElement, bayCanvas);
+        refreshBayPresentation();
+        invalidateBay();
     }
 
     private void pointAtBerth(UiPointerEvent event) {
@@ -277,6 +344,7 @@ public final class BoatDeckScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        if (deckMayHaveChanged) adoptChangedDeck();
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }
