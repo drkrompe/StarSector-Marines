@@ -316,6 +316,30 @@ fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation
 can use the same spatial vocabulary without importing campaign concerns.
 
+**A facility is placed where it fits, not where a constant says.** The port
+campus is the worked example: its pocket goes on the district block holding the
+largest *connected* group of pad-sized leaves, scored with the same adjacency
+the campus is later built from. Counting leaves alone would happily pick a block
+whose leaves sit either side of a trunk and can never form one facility. The
+pocket is read from the district map rather than re-derived, so there is one
+answer to where the port is instead of two constants that agree by coincidence
+until a partition changes shape underneath them.
+
+**A scorer that models a decision must predict the outcome, not the request.**
+`DistrictMap.forceThemeAt` silently declines to overwrite a waterfront district,
+so a score that counted every leaf in a block chose blocks whose coast cells
+never became port zoning — the score asked for something the map would refuse
+and then believed the answer. It skips leaves whose district cannot be reserved.
+This is the same two-places-encoding-one-decision fault as the constant above,
+and it was reintroduced inside the fix for it, which is how easy it is.
+
+**A region that must stay drivable cannot be flooded across.** A compound filler
+leaves the one-cell road centreline between members drivable, so a strict flood
+over apron ground always reports two regions whatever the campus looks like —
+the measurement was of the centreline, not of the apron. Anything measuring
+continuity across a compound has to hop a single walkable cell, which is the
+difference between a centreline and a real street.
+
 **Wild ground is drawn from a field, not a roll.** A weighted pool sampled once
 per cell produces the authored proportions and no shape at all — 15% dirt over a
 meadow arrives as isolated speckles, which reads as static rather than as
