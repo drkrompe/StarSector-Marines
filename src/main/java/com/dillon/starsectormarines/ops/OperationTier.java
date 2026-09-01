@@ -32,10 +32,10 @@ public enum OperationTier {
     FIRST_CONTRACT("First Contract", 14, 3, 1),
 
     /** Ordinary contract work for a company that has found its feet. */
-    ESTABLISHED("Established", 44, 8, 6),
+    ESTABLISHED("Established", 44, 8, 3),
 
     /** A real operation. Where today's non-CONQUEST "HIGH risk" work landed. */
-    VETERAN("Veteran", 105, 18, 10),
+    VETERAN("Veteran", 105, 18, 6),
 
     /** Multi-officer work — past what one Major may command. */
     REINFORCED("Reinforced", 175, 28, 17),
@@ -60,6 +60,18 @@ public enum OperationTier {
 
     public boolean atLeast(OperationTier floor) {
         return floor == null || ordinal() >= floor.ordinal();
+    }
+
+    /** Zero is reserved for contracts written before production tiers persisted. */
+    public byte toPersistedByte() {
+        return (byte) (ordinal() + 1);
+    }
+
+    /** Returns {@code null} for the legacy/unset sentinel or an invalid value. */
+    public static OperationTier fromPersistedByte(byte encoded) {
+        int ordinal = (encoded & 0xFF) - 1;
+        OperationTier[] values = values();
+        return ordinal >= 0 && ordinal < values.length ? values[ordinal] : null;
     }
 
     /** The lowest tier this type may be offered at, never below {@code floor}. */

@@ -205,10 +205,14 @@ final class ShipDeckBattleSceneTest {
     /**
      * A berthed machine faces the way its berth says it leaves.
      *
-     * <p>Every berth is filled here rather than only the ones the company owns,
-     * because the berths on one rank of a bay face out one way and those on the
-     * other rank face out the other. Checking the first berth alone would pass
-     * on a machine that had simply kept the heading every unit spawns with.
+     * <p>Every machine berth is filled here rather than only the ones the company
+     * owns, because the berths on one rank of a bay face out one way and those
+     * on the other rank face out the other. Checking the first berth alone would
+     * pass on a machine that had simply kept the heading every unit spawns with.
+     *
+     * <p>Machine berths specifically. A deck's berths are one list holding two
+     * kinds, and a lance stood against the whole of it would put a mech in a
+     * ship's boat.
      */
     @Test
     void berthedMachinesFaceTheWayOut() {
@@ -216,12 +220,12 @@ final class ShipDeckBattleSceneTest {
         MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
                 deck, generator.getLastDeckGraph(), SEED, null)) {
-            List<Gantry> berths = scene.gantries();
+            List<Gantry> berths = machineBerths(scene.gantries());
             List<MechVariant> lance = new ArrayList<>();
             for (int index = 0; index < berths.size(); index++) lance.add(MechVariant.BULWARK);
 
             long[] machines = scene.occupyGantries(lance);
-            assertEquals(berths.size(), machines.length, "not every berth was filled");
+            assertEquals(berths.size(), machines.length, "not every machine berth was filled");
 
             EntityWorld world = scene.simulation().getEntityWorld();
             BattleComponents components = scene.simulation().getBattleComponents();
@@ -285,7 +289,7 @@ final class ShipDeckBattleSceneTest {
         ShipDeckGenerator generator = new ShipDeckGenerator();
         MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
         DeckGraph graph = generator.getLastDeckGraph();
-        int berths = deck.gantries.size();
+        int berths = machineBerths(deck.gantries).size();
         assertTrue(berths > 1, "the bay authored " + berths + " berths, so nothing scales");
 
         List<Affordance> idle = bayRotation(deck, graph, List.of());
@@ -309,6 +313,11 @@ final class ShipDeckBattleSceneTest {
                 "a machine was parked and no technician's rotation included servicing it");
     }
 
+    /** Only the berths a lance can be stood in. */
+    private static List<Gantry> machineBerths(List<Gantry> berths) {
+        return berths.stream().filter(berth -> berth.holds == Gantry.Holds.MACHINE).toList();
+    }
+
     /** The jobs a technician posted to this deck's bay comes round to. */
     private static List<Affordance> bayRotation(MapResult deck, DeckGraph graph,
                                                 List<MechVariant> lance) {
@@ -325,9 +334,15 @@ final class ShipDeckBattleSceneTest {
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck, graph, SEED, null)) {
             scene.occupyGantries(lance);
             DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            // Marked against the berths a lance actually fills, which are the
+            // machine berths wherever they fall in the deck's list — the boat
+            // berths in between are somebody else's.
             boolean[] berthed = new boolean[deck.gantries.size()];
-            for (int index = 0; index < Math.min(lance.size(), berthed.length); index++) {
+            int filled = 0;
+            for (int index = 0; index < deck.gantries.size() && filled < lance.size(); index++) {
+                if (deck.gantries.get(index).holds != Gantry.Holds.MACHINE) continue;
                 berthed[index] = true;
+                filled++;
             }
             return JobBoard.live(deck.fixtureTasks, bay, berthed).stream()
                     .filter(task -> task.affordance() == Affordance.SERVICE)

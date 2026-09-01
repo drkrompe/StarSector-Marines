@@ -62,6 +62,7 @@ public final class ContractTableCompactor {
                 state.contractCivilWarContributionAppliedTick[from];
         state.contractSourceContractId[to] = state.contractSourceContractId[from];
         state.contractType[to] = state.contractType[from];
+        state.contractOperationTier[to] = state.contractOperationTier[from];
         state.contractState[to] = state.contractState[from];
         state.contractAcceptedTick[to] = state.contractAcceptedTick[from];
         state.contractExpiresTick[to] = state.contractExpiresTick[from];

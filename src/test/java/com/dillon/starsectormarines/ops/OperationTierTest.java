@@ -95,6 +95,23 @@ class OperationTierTest {
     }
 
     @Test
+    void recommendationsUseTheSameCampaignCompanyLadder() {
+        assertEquals(1, OperationTier.FIRST_CONTRACT.squadsDemanded);
+        assertEquals(3, OperationTier.ESTABLISHED.squadsDemanded);
+        assertEquals(6, OperationTier.VETERAN.squadsDemanded);
+        assertEquals(17, OperationTier.REINFORCED.squadsDemanded);
+        assertEquals(34, OperationTier.FULL_STRENGTH.squadsDemanded);
+    }
+
+    @Test
+    void persistedEncodingReservesZeroForLegacyRows() {
+        assertEquals(null, OperationTier.fromPersistedByte((byte) 0));
+        for (OperationTier tier : OperationTier.values()) {
+            assertSame(tier, OperationTier.fromPersistedByte(tier.toPersistedByte()));
+        }
+    }
+
+    @Test
     void aMissionWithNoTierAuthoredStillGetsACoherentOne() {
         Mission mission = Mission.builder()
                 .id("t").name("t").type(MissionType.RAID)

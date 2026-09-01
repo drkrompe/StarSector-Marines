@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 /**
- * One authored machine berth inside a vehicle bay — where a mech or a vehicle
- * stands while it is worked on.
+ * One authored berth inside a bay — where the thing the bay is for stands while
+ * it is worked on.
  *
  * <p>The same relationship a {@link LandingPad} has to a shuttle: generation
  * authors the berth and its clear footprint, and a host decides what occupies
@@ -52,12 +52,37 @@ public final class Gantry {
     /** Cell the machine stands on; the footprint extends from here. */
     public final int centerX;
     public final int centerY;
+    /**
+     * What a berth is for.
+     *
+     * <p>Stated where the berth is authored rather than worked out later from
+     * which room it fell in. Both kinds are a cleared footprint with a heading
+     * and servicing beside it, and every consumer that walks the deck's berths
+     * wants exactly one of them: a lance is stood in the machine berths, a
+     * ship's boats in the boat berths, and neither has any business in the
+     * other's. Derived from the enclosing room instead, that distinction would
+     * have to be re-derived at each of those consumers and would be wrong
+     * silently — a mech standing in a boat bay is a legal spawn.
+     */
+    public enum Holds {
+        /** A mech or a vehicle, worked on where it stands. */
+        MACHINE,
+        /** A boat, worked on between lifts. */
+        BOAT
+    }
+
     /** Clear half-extents around the center, so berths size to what they hold. */
     public final int halfWidth;
     public final int halfHeight;
     public final Facing facing;
+    public final Holds holds;
 
     public Gantry(int centerX, int centerY, int halfWidth, int halfHeight, Facing facing) {
+        this(centerX, centerY, halfWidth, halfHeight, facing, Holds.MACHINE);
+    }
+
+    public Gantry(int centerX, int centerY, int halfWidth, int halfHeight, Facing facing,
+                  Holds holds) {
         if (halfWidth < 0 || halfHeight < 0) {
             throw new IllegalArgumentException("gantry half extents must be >= 0");
         }
@@ -66,6 +91,7 @@ public final class Gantry {
         this.halfWidth = halfWidth;
         this.halfHeight = halfHeight;
         this.facing = facing == null ? Facing.NORTH : facing;
+        this.holds = holds == null ? Holds.MACHINE : holds;
     }
 
     public int left()   { return centerX - halfWidth; }

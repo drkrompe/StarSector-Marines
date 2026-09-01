@@ -308,6 +308,7 @@ public final class BattleFixtureJson {
             encoded.put("type", shuttle.type.name());
             encoded.put("cycles", shuttle.cycles);
             encoded.put("seatsPerSortie", shuttle.seatsPerSortie);
+            encoded.put("embarkedPersonnel", shuttle.embarkedPersonnel);
             shuttles.put(encoded);
         }
         return shuttles;
@@ -320,9 +321,13 @@ public final class BattleFixtureJson {
             JSONObject encoded = encodedShuttles.getJSONObject(i);
             ShuttleType type = enumValue(ShuttleType.class,
                     encoded.getString("type"), "shuttle type");
-            shuttles.add(new ShuttleAssignment(type, encoded.getInt("cycles"),
-                    encoded.has("seatsPerSortie")
-                            ? encoded.getInt("seatsPerSortie") : type.capacity));
+            int cycles = encoded.getInt("cycles");
+            int seats = encoded.has("seatsPerSortie")
+                    ? encoded.getInt("seatsPerSortie") : type.capacity;
+            shuttles.add(new ShuttleAssignment(type, cycles, seats,
+                    encoded.has("embarkedPersonnel")
+                            ? encoded.getInt("embarkedPersonnel")
+                            : cycles * seats));
         }
         return shuttles;
     }

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -23,7 +24,12 @@ class BattlePowerOverlayModelTest {
     void mlxProjectsCompactPowerStatesAndArmsAReadyCard() throws Exception {
         Reactor reactor = new Reactor();
         AtomicReference<String> toggled = new AtomicReference<>();
-        BattlePowerOverlayModel model = new BattlePowerOverlayModel(reactor, toggled::set);
+        BattlePowerOverlayModel model = new BattlePowerOverlayModel(
+                reactor, toggled::set, new CommodityPresentation() {
+                    @Override public String commodityIcon(String commodityId) {
+                        return "graphics/icons/cargo/supplies.png";
+                    }
+                });
         List<BattlePowerOverlayModel.PowerState> powers = List.of(
                 power("recon", "Recon Ping", 2f, 0, 0f, -1),
                 power("mech", "Mech Support", 4f, 0, 0f, 2),
@@ -45,7 +51,10 @@ class BattlePowerOverlayModelTest {
                     BattlePowerOverlay.DECK_HEIGHT);
 
             assertEquals("CP 3 / 10", instance.requireElement("battle-power-cp").text());
-            assertEquals("SUP 4", instance.requireElement("battle-power-supplies").text());
+            assertEquals("SUP 4",
+                    instance.requireElement("battle-power-supplies-label").text());
+            assertEquals("graphics/icons/cargo/supplies.png",
+                    instance.requireElement("battle-power-supplies-icon").imageSource());
             assertEquals(5, instance.requireElement("battle-power-cards").childCount());
             assertEquals("READY", status(instance, "recon"));
             assertEquals("LOW CP", status(instance, "mech"));

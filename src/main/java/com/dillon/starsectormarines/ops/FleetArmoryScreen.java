@@ -181,6 +181,8 @@ public final class FleetArmoryScreen implements Screen {
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
+        props.put("issueCargoRows", viewModel.issueCargoRows());
+        props.put("issueCargoClasses", viewModel.issueCargoClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
