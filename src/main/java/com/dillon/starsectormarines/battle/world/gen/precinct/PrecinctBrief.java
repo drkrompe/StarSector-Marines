@@ -21,12 +21,21 @@ import java.util.Random;
  */
 public record PrecinctBrief(String name, MapPlacement placement,
                             GrownTrunkPlan.Profile growth, FortressProgram program,
-                            Precinct.Boundary boundary, Fortification fortification) {
+                            Precinct.Boundary boundary, Fortification fortification,
+                            PrecinctCharacter character) {
 
     public PrecinctBrief(String name, MapPlacement placement, GrownTrunkPlan.Profile growth,
                          FortressProgram program, Precinct.Boundary boundary) {
         this(name, placement, growth, program, boundary,
                 boundary == Precinct.Boundary.WALLED ? Fortification.GARRISON : null);
+    }
+
+    /** A brief whose place, if it is zoned, is an ordinary town inside. */
+    public PrecinctBrief(String name, MapPlacement placement, GrownTrunkPlan.Profile growth,
+                         FortressProgram program, Precinct.Boundary boundary,
+                         Fortification fortification) {
+        this(name, placement, growth, program, boundary, fortification,
+                program == null ? PrecinctCharacter.TOWN : null);
     }
 
     public PrecinctBrief {
@@ -36,10 +45,18 @@ public record PrecinctBrief(String name, MapPlacement placement,
         if (boundary == null) throw new IllegalArgumentException(name + " has no boundary");
     }
 
-    /** A place whose parcels are zoned and filled the ordinary way. */
+    /** A place whose parcels are zoned and filled the ordinary way, as a town. */
     public static PrecinctBrief settlement(String name, MapPlacement placement,
                                            GrownTrunkPlan.Profile growth) {
-        return new PrecinctBrief(name, placement, growth, null, Precinct.Boundary.OPEN);
+        return settlement(name, placement, growth, PrecinctCharacter.TOWN);
+    }
+
+    /** A zoned place of a stated kind. */
+    public static PrecinctBrief settlement(String name, MapPlacement placement,
+                                           GrownTrunkPlan.Profile growth,
+                                           PrecinctCharacter character) {
+        return new PrecinctBrief(name, placement, growth, null, Precinct.Boundary.OPEN,
+                null, character);
     }
 
     /** A place that owes authored buildings and is walled — what a fortress is. */
@@ -55,18 +72,19 @@ public record PrecinctBrief(String name, MapPlacement placement,
                                          FortressProgram program,
                                          Fortification fortification) {
         return new PrecinctBrief(name, placement, growth, program,
-                Precinct.Boundary.WALLED, fortification);
+                Precinct.Boundary.WALLED, fortification, null);
     }
 
     /** The same place asked for somewhere else. */
     public PrecinctBrief at(MapPlacement where) {
-        return new PrecinctBrief(name, where, growth, program, boundary, fortification);
+        return new PrecinctBrief(name, where, growth, program, boundary, fortification,
+                character);
     }
 
     /** Resolves to a precinct seeded inside this brief's placement. */
     public Precinct resolve(int width, int height, int margin, Random rng) {
         int[] seed = placement.resolve(width, height, margin, rng);
         return new Precinct(name, seed[0], seed[1], growth, program, boundary,
-                fortification);
+                fortification, character);
     }
 }
