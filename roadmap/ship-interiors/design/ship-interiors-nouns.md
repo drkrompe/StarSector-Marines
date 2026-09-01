@@ -90,9 +90,9 @@ authored content.
 - A **gantry** is one authored machine berth inside a vehicle bay: the clear
   footprint a mech or a vehicle stands in, and the direction it faces to leave.
   The footprint remains an exact rectangle even when one extent is even, while a
-  parked asset uses its continuous centre and faces the room's shared inboard service
-  space. The recorded direction remains the deployment route rather than dictating a
-  storage pose.
+  parked asset uses its continuous centre and the gantry's authored cardinal heading
+  along its long axis toward the berth mouth and shared inboard service lane. That
+  heading is both the storage pose and the deployment route.
   Generation authors the berth; a host decides what occupies it. This is the
   same division a landing pad has with a shuttle, and it is what lets one
   generated bay be the player's own lab on the home deck, a half-empty bay on a

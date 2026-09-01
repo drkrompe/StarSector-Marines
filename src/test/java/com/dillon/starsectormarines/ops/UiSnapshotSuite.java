@@ -83,6 +83,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/company-hq.mlx");
+    private static final List<String> MISSION_SELECT_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-select.mlx");
+    private static final List<String> MISSION_BRIEFING_COMPONENTS = List.of(
+            "data/ui/components/missions/mission-briefing.mlx");
     private static final List<String> BARRACKS_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/shipboard-barracks.mlx");
@@ -166,6 +170,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(battleScenes,
                 context.modRoot(), context.starsectorCore());
         return List.of(
+                new SnapshotArtifact("mission-catalog-debug-wide.png",
+                        renderMissionSelect(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("mission-briefing-first-contract-wide.png",
+                        renderMissionBriefing(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("mission-briefing-conquest-wide.png",
+                        renderMissionBriefing(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                new SnapshotArtifact("mission-briefing-first-contract-low-resolution.png",
+                        renderMissionBriefing(context, renderer, 1163, 625, false)),
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -894,6 +909,40 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int alpha = Math.round(color.getAlpha()
                     * Math.max(0f, Math.min(1f, alphaMult)));
             return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+        }
+    }
+
+    private static BufferedImage renderMissionSelect(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), MISSION_SELECT_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor,
+                MissionSelectScreen.ROOT_COMPONENT,
+                MissionSelectScreen.previewProps())) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
+    private static BufferedImage renderMissionBriefing(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean conquest) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), MISSION_BRIEFING_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor,
+                BriefingScreen.ROOT_COMPONENT,
+                BriefingScreen.previewProps(conquest))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document, width, height, 1f);
         }
     }
 

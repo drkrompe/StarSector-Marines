@@ -1,0 +1,138 @@
+<template props="screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+  <div id="mission-select-root" class="mission-select-root">
+    <div id="mission-select-header" class="mission-select-header surface-dark">
+      <div id="mission-select-title-block" class="mission-select-title-block">
+        <div id="mission-select-title" class="label title tone-edge">{screenTitle}</div>
+        <div id="mission-select-location" class="label tone-muted">{locationLabel}</div>
+      </div>
+      <div id="mission-select-purpose" class="label heading tone-accent">CONTRACT BOARD</div>
+    </div>
+    <div id="mission-select-body" class="mission-select-body">
+      <div id="mission-client-panel" class="panel mission-client-panel">
+        <div id="mission-client-header" class="label heading tone-edge section-heading">{clientHeader}</div>
+        <div id="mission-client-list" class="mission-client-list">
+          <button each="client in clients" key="{client.id}" id="{client.id}" class="{client.classes}" disabled="{client.disabled}" onclick="{client.action}">
+            <img id="{client.crestId}" class="client-crest" src="{client.crest}" />
+            <div id="{client.copyId}" class="client-copy">
+              <div id="{client.nameId}" class="label heading client-name">{client.name}</div>
+              <div id="{client.repId}" class="label tone-muted client-reputation">{client.reputation}</div>
+            </div>
+          </button>
+        </div>
+        <div id="mission-client-empty" class="label tone-muted empty-copy">{clientEmpty}</div>
+        <div id="mission-client-footer" class="mission-client-footer">
+          <button id="mission-back" onclick="{backAction}">BACK</button>
+          <button id="mission-armory" onclick="{armoryAction}">ARMORY</button>
+        </div>
+      </div>
+      <div id="mission-catalog-panel" class="panel mission-catalog-panel">
+        <div id="mission-catalog-heading" class="catalog-heading surface-dark">
+          <div id="mission-catalog-kicker" class="label heading tone-edge">{catalogHeader}</div>
+          <div id="mission-catalog-title" class="label title">{missionHeader}</div>
+          <div id="mission-catalog-summary" class="label tone-muted">{missionSummary}</div>
+        </div>
+        <div id="mission-stationing-list" class="stationing-list">
+          <button each="stationing in stationingRows" key="{stationing.id}" id="{stationing.id}" class="stationing-card good-surface" onclick="{stationing.action}">
+            <div id="{stationing.titleId}" class="label heading">{stationing.title}</div>
+            <div id="{stationing.actionId}" class="label tone-good stationing-action">{stationing.actionLabel}</div>
+          </button>
+        </div>
+        <div id="mission-list" class="mission-list">
+          <button each="mission in missions" key="{mission.id}" id="{mission.id}" class="{mission.classes}" onclick="{mission.action}">
+            <div id="{mission.glyphId}" class="label title mission-glyph">{mission.glyph}</div>
+            <div id="{mission.copyId}" class="mission-card-copy">
+              <div id="{mission.titleId}" class="label heading mission-card-title">{mission.title}</div>
+              <div id="{mission.metaId}" class="label tone-muted mission-card-meta">{mission.meta}</div>
+            </div>
+            <div id="{mission.payoutId}" class="label heading mission-card-payout">{mission.payout}</div>
+          </button>
+        </div>
+        <div id="mission-list-empty" class="label tone-muted empty-copy">{missionEmpty}</div>
+      </div>
+      <div id="mission-detail-panel" class="{detailClasses}">
+        <div id="mission-detail-image-wrap" class="mission-detail-image-wrap surface-dark">
+          <img id="mission-detail-image" class="mission-detail-image" src="{planetImage}" />
+          <div id="mission-detail-image-label" class="label heading tone-edge">{detailHeader}</div>
+        </div>
+        <div id="mission-detail-copy" class="mission-detail-copy">
+          <div id="mission-detail-kicker" class="label heading tone-accent">{detailKicker}</div>
+          <div id="mission-detail-title" class="label title mission-detail-title">{detailTitle}</div>
+          <div id="mission-detail-meta" class="label tone-muted mission-detail-meta">{detailMeta}</div>
+          <div id="mission-detail-flavor" class="label mission-detail-flavor">{detailFlavor}</div>
+          <div id="mission-detail-rows" class="mission-detail-rows">
+            <div each="row in detailRows" key="{row.id}" id="{row.id}" class="detail-row">
+              <div id="{row.labelId}" class="label heading tone-muted detail-label">{row.label}</div>
+              <div id="{row.valueId}" class="label detail-value">{row.value}</div>
+            </div>
+          </div>
+        </div>
+        <div id="mission-detail-actions" class="mission-detail-actions">
+          <button id="mission-brief" class="mission-brief good-surface" disabled="{briefDisabled}" onclick="{briefAction}">BRIEF &amp; DEPLOY</button>
+          <button id="mission-collapse" disabled="{declineDisabled}" onclick="{declineAction}">COLLAPSE</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .mission-select-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .mission-select-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-select-title-block { flex-direction: column; flex-grow: 1; gap: 4px; }
+  #mission-select-title { height: 24px; }
+  #mission-select-location { height: 18px; }
+  #mission-select-purpose { width: 260px; padding: 10px 4px; text-align: right; }
+  .mission-select-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .section-heading { height: 24px; padding: 4px 5px; }
+  .mission-client-panel { flex-direction: column; width: 286px; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .mission-client-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
+  .client-card { flex-direction: row; height: 58px; padding: 7px; gap: 8px; border-width: 1px; text-align: left; }
+  .client-card.selected { background-color: #315070; border-color: #6ed7ff; }
+  .client-card.locked { opacity: 0.45; }
+  .client-crest { width: 38px; height: 38px; }
+  .client-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
+  .client-name { height: 18px; }
+  .client-reputation { height: 16px; }
+  .mission-client-footer { flex-direction: row; height: 34px; gap: 6px; }
+  .mission-client-footer button { width: 50%; padding: 5px; border-width: 1px; text-align: center; font-family: heading; }
+  .mission-catalog-panel { flex-direction: column; width: 650px; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .catalog-heading { flex-direction: column; height: 76px; padding: 8px; gap: 5px; border-width: 1px; }
+  #mission-catalog-kicker { height: 16px; }
+  #mission-catalog-title { height: 23px; }
+  #mission-catalog-summary { height: 18px; }
+  .stationing-list { flex-direction: column; gap: 5px; }
+  .stationing-card { flex-direction: row; height: 38px; padding: 8px; border-width: 1px; text-align: left; }
+  .stationing-card .label { width: 0px; flex-grow: 1; }
+  .stationing-action { text-align: right; }
+  .mission-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
+  .mission-card { flex-direction: row; height: 66px; padding: 8px; gap: 9px; border-width: 1px; text-align: left; }
+  .mission-card.selected { background-color: #315070; border-color: #ffd464; }
+  .mission-glyph { width: 31px; height: 31px; padding: 4px; text-align: center; }
+  .mission-card-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
+  .mission-card-title { height: 18px; }
+  .mission-card-meta { height: 17px; }
+  .mission-card-payout { width: 118px; height: 20px; padding: 3px; text-align: right; }
+  .type-assault .mission-glyph { color: #e98b83; }
+  .type-sabotage .mission-glyph { color: #ffd464; }
+  .type-raid .mission-glyph { color: #c9a0f0; }
+  .type-extraction .mission-glyph { color: #6ed7ff; }
+  .type-conquest .mission-glyph { color: #ff7770; }
+  .mission-detail { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .mission-detail-image-wrap { flex-direction: column; height: 182px; padding: 7px; gap: 4px; border-width: 1px; overflow: hidden; }
+  .mission-detail-image { width: 100%; height: 144px; }
+  #mission-detail-image-label { height: 18px; }
+  .mission-detail-copy { flex-direction: column; height: 0px; flex-grow: 1; padding: 6px; gap: 8px; overflow: scroll; }
+  #mission-detail-kicker { height: 18px; }
+  .mission-detail-title { height: 28px; }
+  .mission-detail-meta { height: 18px; }
+  .mission-detail-flavor { height: 62px; padding: 8px; border-width: 1px; border-color: #263b51; background-color: #0e1621; }
+  .mission-detail-rows { flex-direction: column; gap: 4px; }
+  .detail-row { flex-direction: row; height: 34px; padding: 7px 5px; gap: 8px; border-width: 1px; border-color: #263b51; }
+  .detail-label { width: 126px; }
+  .detail-value { width: 0px; flex-grow: 1; text-align: right; }
+  .mission-detail-actions { flex-direction: row; height: 36px; gap: 7px; }
+  .mission-detail-actions button { width: 50%; padding: 6px; border-width: 1px; font-family: heading; text-align: center; }
+  .mission-brief { color: #78d494; }
+  .empty-copy { height: 20px; padding: 4px; }
+</style>
