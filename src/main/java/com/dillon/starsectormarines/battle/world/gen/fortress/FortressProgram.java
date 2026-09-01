@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 /**
  * What a fortress owes, as buildings with authored footprints.
@@ -72,6 +73,74 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
     /** The same program owing a different number of airfields; zero is a fortress without one. */
     public FortressProgram withAirfields(int count) {
         return new FortressProgram(buildings, count);
+    }
+
+    /**
+     * What this garrison gives up, in order, when the ground will not take all
+     * of it.
+     *
+     * <p>Ordered by what a garrison can least afford to lose. The airfield goes
+     * first because a lot is by some way the single largest item and an air arm
+     * is the one part of an installation that can simply be elsewhere. Then the
+     * counts come down: sleeping space, then guard posts, then stores, then
+     * magazines, then sleeping space again. What is never on this ladder is the
+     * keep, the gatehouse, the vehicle shed and the mess hall — a place with
+     * none of those is not a garrison, and shrinking it into one would be worse
+     * than handing the packer more than it can seat.
+     */
+    private static final List<UnaryOperator<FortressProgram>> FIT_LADDER = List.of(
+            program -> program.airfields > 0 ? program.withAirfields(0) : program,
+            program -> program.reducedTo(RoomPurpose.BARRACKS, 2),
+            program -> program.reducedTo(RoomPurpose.CONTROL_ROOM, 2),
+            program -> program.reducedTo(RoomPurpose.STOCKROOM, 1)
+                    .reducedTo(RoomPurpose.PARTS_CAGE, 1),
+            program -> program.reducedTo(RoomPurpose.ARMORY, 1),
+            program -> program.reducedTo(RoomPurpose.BARRACKS, 1));
+
+    /**
+     * The largest version of this program whose envelope fits in
+     * {@code groundBudget}, or the smallest the ladder can reach.
+     *
+     * <p>A program is authored for the installation rather than for the map, so
+     * a garrison sized for a landing zone will not fit a skirmish map: the
+     * garrison envelope is around five thousand cells against a 144x80 map's
+     * eleven and a half thousand, and a place that takes half the map leaves
+     * nothing to approach it through.
+     *
+     * <p>Going over budget at the end of the ladder is allowed rather than
+     * refused. The packer already records what it could not place under
+     * {@code BspKeys.UNPLACED_PROGRAM}, so a cramped installation comes out
+     * short and says so, where a refusal would come out as no map at all.
+     */
+    public FortressProgram fittedTo(int groundBudget) {
+        FortressProgram fitted = this;
+        for (UnaryOperator<FortressProgram> step : FIT_LADDER) {
+            if (fitted.envelopeArea() <= groundBudget) return fitted;
+            fitted = step.apply(fitted);
+        }
+        return fitted;
+    }
+
+    /**
+     * The same program owing at most {@code count} of {@code purpose}, and
+     * unchanged where it already owes that many or fewer.
+     *
+     * <p>A rung must never raise a count: a mission that ordered one barrack
+     * block has said so, and a ladder that is trimming the program is the last
+     * thing that should hand it a second. A purpose the program does not owe at
+     * all is skipped rather than added, because {@link #with} rejects one and
+     * this is a trim rather than an order.
+     */
+    private FortressProgram reducedTo(RoomPurpose purpose, int count) {
+        return countOf(purpose) > count ? with(purpose, count) : this;
+    }
+
+    /** How many of {@code purpose} this program owes; zero when it owes none. */
+    public int countOf(RoomPurpose purpose) {
+        for (FortressBuilding building : buildings) {
+            if (building.purpose() == purpose) return building.count();
+        }
+        return 0;
     }
 
     /** Machine berths per rank. Three out of one door is a motor pool, not a garage. */

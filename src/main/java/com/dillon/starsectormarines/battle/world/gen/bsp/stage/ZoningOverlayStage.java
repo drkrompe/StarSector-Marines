@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DistrictMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.LeafAdjacency;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctZoning;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayDeque;
@@ -29,12 +31,15 @@ import java.util.Set;
  * ({@link BspKeys#AXIS} bound) a {@link BiomeMap} takes precedence — biome
  * bands run along the traversal axis and fully drive theme picks. In legacy
  * mode a {@link DistrictMap} scatters themes uniformly with a CIVIC nudge at
- * the trunk crossing.
+ * the trunk crossing — unless the map has precincts, in which case each zoned
+ * precinct lays its own character over its own claim through
+ * {@link PrecinctZoning} and the nudge is each place's own centre.
  *
  * <p>Reads {@link BspKeys#AXIS} (presence selects mode), {@link BspKeys#TRUNK_PLAN}
- * (intersection center for the CIVIC nudge) and {@link BspKeys#PARTITION} (for
- * the log line). Binds exactly one of {@link BspKeys#BIOME_MAP} /
- * {@link BspKeys#DISTRICT_MAP}.
+ * (intersection center for the CIVIC nudge), {@link BspKeys#PRECINCTS} /
+ * {@link BspKeys#PRECINCT_CLAIM} (presence selects per-precinct zoning) and
+ * {@link BspKeys#PARTITION} (for the log line). Binds exactly one of
+ * {@link BspKeys#BIOME_MAP} / {@link BspKeys#DISTRICT_MAP}.
  */
 public final class ZoningOverlayStage implements GenStage {
 
@@ -150,9 +155,21 @@ public final class ZoningOverlayStage implements GenStage {
                     + ", econ=" + functions);
         } else {
             DistrictMap districtMap = new DistrictMap(ctx.width, ctx.height, ctx.rng, functions);
-            int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
-            int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
-            districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
+            PrecinctPlan precincts = ctx.get(BspKeys.PRECINCTS);
+            int[][] claim = ctx.get(BspKeys.PRECINCT_CLAIM);
+            if (precincts != null && claim != null) {
+                // A precinct's centre is its own, not the map's. The trunk
+                // crossing is one point on a map that now has several places,
+                // so a civic nudge there could give at most one of them a core
+                // and the rest took what the scatter gave them. Each zoned
+                // precinct lays its own themes over its own claim instead, with
+                // its centre at its own seed.
+                PrecinctZoning.apply(districtMap, precincts, claim, ctx.rng);
+            } else {
+                int ixCenterX = (plan.intersection.x0 + plan.intersection.x1) / 2;
+                int ixCenterY = (plan.intersection.y0 + plan.intersection.y1) / 2;
+                districtMap.forceThemeAt(ixCenterX, ixCenterY, MapDistrictTheme.CIVIC);
+            }
             // A real campaign spaceport gets a coherent port district on the
             // marine half of ordinary urban maps. The profile previously died
             // at the launch boundary for non-conquest missions, leaving its

@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.AdvanceAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.OrderCatalog;
+import com.dillon.starsectormarines.battle.command.OrderCatalog.PlayerOrder;
 import com.dillon.starsectormarines.battle.command.ServiceAssignedObjectiveGoal;
 import com.dillon.starsectormarines.battle.command.WithdrawAssignedGoal;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -431,6 +433,10 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * until completion. Survival may still suspend it, and the order system
      * removes it before a hard withdrawal replans, but an unrelated authored
      * mission goal cannot compete merely because it also lives in MISSION.
+     *
+     * <p>Which goal a player's order must win with is {@link OrderCatalog}'s
+     * to say, not this dispatcher's — the same row the order system reads to
+     * decide who may be handed the order and when it is over.
      */
     private static Goal pickGoal(WorldState current, Squad squad,
                                  BattleSimulation sim, Set<Goal> declined) {
@@ -440,20 +446,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             return Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim, declined);
         }
 
-        Goal tacticalGoal = switch (assignment.kind()) {
-            case ATTACK_MOVE -> AttackMoveGoal.INSTANCE;
-            case SECURE_COMPOUND -> SecureCompoundGoal.INSTANCE;
-            case DEFEND_AREA -> DefendAssignedAreaGoal.INSTANCE;
-            default -> null;
-        };
         // The player's own order still outranks the authored library, but it
         // is not exempt from having to be workable: a declined tactical goal
         // yields to the non-mission ladder rather than pinning the squad to an
-        // order it cannot act on.
-        if (tacticalGoal != null
-                && !declined.contains(tacticalGoal)
-                && tacticalGoal.relevance(current, squad, sim) > 0f) {
-            return tacticalGoal;
+        // order it cannot act on. A kind with no player row goes the same way.
+        // The order system cannot produce one, but the field behind it is a
+        // plain setter, so the case is answered rather than assumed away.
+        PlayerOrder player = OrderCatalog.playerOrder(assignment.kind());
+        if (player != null
+                && !declined.contains(player.goal())
+                && player.goal().relevance(current, squad, sim) > 0f) {
+            return player.goal();
         }
         return Goal.pickMostRelevant(
                 NON_MISSION_INFANTRY_GOALS, current, squad, sim, declined);

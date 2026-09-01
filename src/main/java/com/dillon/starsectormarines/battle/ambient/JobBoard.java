@@ -28,6 +28,24 @@ public final class JobBoard {
 
     private JobBoard() { }
 
+    /** A runtime replacement for an authored fixture focus. */
+    public record Focus(float worldX, float worldY) {
+        public Focus {
+            if (!Float.isFinite(worldX) || !Float.isFinite(worldY)) {
+                throw new IllegalArgumentException("task focus must be finite");
+            }
+        }
+    }
+
+    /**
+     * Resolves what a live task is performed on, or returns {@code null} to use
+     * the fixture focus generation authored.
+     */
+    @FunctionalInterface
+    public interface FocusResolver {
+        Focus resolve(FixtureTask task);
+    }
+
     /**
      * The claim group one kind of job at one site belongs to.
      *
@@ -85,6 +103,26 @@ public final class JobBoard {
                                            List<FixtureTask> authored,
                                            JobSite site,
                                            boolean[] berthed) {
+        return publish(service, authored, site, berthed, task -> null);
+    }
+
+    /**
+     * Publishes live jobs while allowing a host to bind work to a runtime body.
+     *
+     * <p>Fixtures retain their authored focus. Berths are different: generation
+     * can reserve access and name the berth, but only its host knows whether the
+     * occupant is a compact walker or a long vehicle. The resolver supplies
+     * that last spatial fact without moving the standing point or changing the
+     * task's ownership and claim group.
+     */
+    public static List<Affordance> publish(TaskPointService service,
+                                           List<FixtureTask> authored,
+                                           JobSite site,
+                                           boolean[] berthed,
+                                           FocusResolver focusResolver) {
+        if (focusResolver == null) {
+            throw new IllegalArgumentException("task focus resolver is required");
+        }
         Map<Affordance, Integer> counts = new EnumMap<>(Affordance.class);
         // Ids are numbered within their own group, so the two flanks of one
         // stand are #0 and #1 of that stand rather than two entries in a
@@ -97,9 +135,12 @@ public final class JobBoard {
             int index = withinGroup.merge(group, 1, Integer::sum) - 1;
             String id = group + "#" + index;
             if (service.isRegistered(id)) continue;
+            Focus resolved = focusResolver.resolve(task);
+            float focusX = resolved != null ? resolved.worldX() : task.fixtureX() + 0.5f;
+            float focusY = resolved != null ? resolved.worldY() : task.fixtureY() + 0.5f;
             service.register(new TaskPoint(id, group,
                     task.cellX() + 0.5f, task.cellY() + 0.5f,
-                    task.fixtureX() + 0.5f, task.fixtureY() + 0.5f));
+                    focusX, focusY));
         }
         return List.copyOf(counts.keySet());
     }

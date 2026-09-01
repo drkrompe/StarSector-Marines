@@ -71,14 +71,18 @@ public final class AssignmentArbiter {
                 assignment, tick, -1, CommandDirective.Status.ACTIVE, ""));
     }
 
+    /**
+     * Who owns an assignment that arrived without provenance. A few kinds are
+     * only ever written by one authority — nobody but a garrison holds a node,
+     * nobody but a payload is escorted — and {@link OrderCatalog} is where that
+     * is recorded. A kind with no such owner falls to the mission commander if
+     * the faction has one and to a script if it does not.
+     */
     private static CommandAuthority externalAuthority(ObjectiveAssignment assignment,
                                                       boolean hasMissionIssuer) {
-        if (assignment.kind() == AssignmentKind.HOLD_NODE) {
-            return CommandAuthority.GARRISON;
-        }
-        if (assignment.kind() == AssignmentKind.ESCORT) {
-            return CommandAuthority.PAYLOAD;
-        }
+        CommandAuthority presumed =
+                OrderCatalog.row(assignment.kind()).externalAuthority();
+        if (presumed != null) return presumed;
         return hasMissionIssuer
                 ? CommandAuthority.MISSION_COMMAND : CommandAuthority.SCRIPTED;
     }
@@ -474,27 +478,31 @@ public final class AssignmentArbiter {
         return null;
     }
 
+    /**
+     * Why a proposal is malformed, or null when it is not. Which slots a kind
+     * owes is {@link OrderCatalog}'s to say; the topology checks below are this
+     * arbiter's, since only it holds the frozen frame to ask.
+     */
     private static String validateShape(ObjectiveAssignment assignment,
                                         CommandTopology topology) {
         if (assignment.kind() == null) return "assignment kind is required";
-        switch (assignment.kind()) {
-            case CLEAR_ZONE, SECURE_COMPOUND -> {
+        switch (OrderCatalog.row(assignment.kind()).shape()) {
+            case ZONE -> {
                 if (assignment.targetZoneId() < 0) {
                     return "assignment kind requires a target zone";
                 }
             }
-            case DEFEND_TRACK, DEFEND_SITE, DEFEND_AREA, ADVANCE_TRACK,
-                    SWEEP_SECTOR, ESCORT, WITHDRAW -> {
+            case CELL -> {
                 if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) {
                     return "assignment kind requires a complete target cell";
                 }
             }
-            case HOLD_NODE -> {
+            case NODE -> {
                 if (assignment.targetNode() == null) {
                     return "assignment kind requires a target node";
                 }
             }
-            case RUSH_OBJECTIVE -> {
+            case OBJECTIVE_AT_CELL -> {
                 if (assignment.objectiveId() < 0) {
                     return "assignment kind requires a target objective";
                 }
@@ -502,7 +510,7 @@ public final class AssignmentArbiter {
                     return "assignment kind requires a complete target cell";
                 }
             }
-            case SUPPORT -> { }
+            case NONE -> { }
         }
         if (assignment.targetZoneId() >= 0
                 && topology.zone(assignment.targetZoneId()) == null) {

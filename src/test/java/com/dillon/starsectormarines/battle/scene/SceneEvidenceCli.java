@@ -40,6 +40,7 @@ public final class SceneEvidenceCli {
         // it every aircraft in every scene is the same fallback size — a body
         // radius and a blast catch belonging to an aircraft that exists nowhere.
         InstalledHullSpecs.install(starsectorCore);
+        SceneRegistries.installArmoury(projectRoot);
 
         List<BehaviorScene> scenes;
         try {

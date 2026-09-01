@@ -22,10 +22,22 @@ final class BriefingViewModel {
         props.put("transportHeader", "Transport");
         props.put("carrierHeader", "Fighter Cover");
         props.put("employerHeader", "Employer Provides");
+        props.put("assignClasses", "");
+        props.put("assignDisabled", false);
+        props.put("debugDrawerClasses", "debug-drawer absent");
+        props.put("debugWorkspaceClasses", "debug-workspace debug-workspace-collapsed");
+        props.put("debugToggleClasses", "debug-drawer-toggle-hidden");
+        props.put("debugToggleLabel", "");
+        props.put("debugToggleDisabled", true);
+        props.put("debugToggleAction", (Runnable) () -> { });
         return props;
     }
 
     static Map<String, Object> previewProps(boolean conquest) {
+        return previewProps(conquest, false);
+    }
+
+    static Map<String, Object> previewProps(boolean conquest, boolean debugExpanded) {
         Map<String, Object> props = baseProps();
         Runnable none = () -> { };
         boolean late = conquest;
@@ -49,20 +61,28 @@ final class BriefingViewModel {
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
                 "Mira Hale", "Lieutenant · 1 squad command", false, none, null)));
         props.put("captainEmpty", "");
-        props.put("debugClasses", "panel debug-workspace");
+        props.put("debugDrawerClasses", "debug-drawer "
+                + (debugExpanded ? "expanded" : "collapsed"));
+        props.put("debugWorkspaceClasses", debugExpanded
+                ? "panel debug-workspace"
+                : "debug-workspace debug-workspace-collapsed");
+        props.put("debugToggleClasses", "debug-drawer-toggle");
+        props.put("debugToggleLabel", debugExpanded ? "HIDE" : "DEBUG");
+        props.put("debugToggleDisabled", false);
+        props.put("debugToggleAction", none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
                 : "First Contract · 1 squad · 2 sorties");
         props.put("tierSteps", tierPreview(late, none));
         props.put("debugControls", late ? List.of(
-                stepper("squads", "Company squads", "84", none),
-                stepper("mechs", "Player mechs", "8", none),
-                stepper("zones", "Drop zones", "3", none),
-                stepper("pairs", "Pairs / zone", "2", none),
-                stepper("jitter", "Timing jitter", "0.75 s", none),
-                stepper("transport", "Valkyrie transports", "84", none)) : List.of(
-                stepper("squads", "Company squads", "1", none),
-                stepper("mechs", "Player mechs", "0", none),
-                stepper("transport", "Valkyrie transports", "1", none)));
+                stepper("squads", "Company squads", "84", "", none),
+                stepper("mechs", "Player mechs", "8", "REROLL", none),
+                stepper("zones", "Drop zones", "3", "", none),
+                stepper("pairs", "Pairs / zone", "2", "", none),
+                stepper("jitter", "Timing jitter", "0.75 s", "", none),
+                stepper("transport", "Valkyrie transports", "84", "TYPE", none)) : List.of(
+                stepper("squads", "Company squads", "1", "", none),
+                stepper("mechs", "Player mechs", "0", "REROLL", none),
+                stepper("transport", "Valkyrie transports", "1", "TYPE", none)));
         props.put("airRows", List.of(
                 new AirRow("air-talon", "Talon", "[ ] ATK", "[ ] DEF", "", "", none, none),
                 new AirRow("air-dagger", "Dagger", "[ ] ATK", "[x] DEF", "", "selected", none, none)));
@@ -89,7 +109,9 @@ final class BriefingViewModel {
         props.put("employerRows", List.of(
                 info("employer-transport", "Transport", "Overridden by DEBUG picker", ""),
                 info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
-        props.put("assignLabel", late ? "COMPANY: FULL STRENGTH" : "COMPANY: FIRST CONTRACT");
+        props.put("assignLabel", "");
+        props.put("assignClasses", "briefing-assign-hidden");
+        props.put("assignDisabled", true);
         props.put("assignAction", none);
         props.put("deployLabel", "DEPLOY");
         props.put("deployClasses", "briefing-deploy good-surface");
@@ -115,9 +137,11 @@ final class BriefingViewModel {
                 numeral, label, disabled, action);
     }
 
-    private static DebugControl stepper(String key, String label, String value, Runnable action) {
+    private static DebugControl stepper(String key, String label, String value,
+                                        String cycleLabel, Runnable action) {
         return new DebugControl("debug-" + key, label, value,
-                "-10", "-", "+", "+10", "CYCLE",
+                "-10", "-", "+", "+10", cycleLabel,
+                cycleLabel.isEmpty() ? "debug-cycle-absent" : "debug-cycle",
                 false, false, false, false, false,
                 action, action, action, action, action);
     }
@@ -168,6 +192,7 @@ final class BriefingViewModel {
     record DebugControl(String id, String label, String value,
                         String farMinusLabel, String minusLabel,
                         String plusLabel, String farPlusLabel, String cycleLabel,
+                        String cycleClasses,
                         boolean farMinusDisabled, boolean minusDisabled,
                         boolean plusDisabled, boolean farPlusDisabled,
                         boolean cycleDisabled, Runnable farMinusAction,
@@ -184,6 +209,7 @@ final class BriefingViewModel {
                 case "farMinusLabel" -> farMinusLabel; case "minusLabel" -> minusLabel;
                 case "plusLabel" -> plusLabel; case "farPlusLabel" -> farPlusLabel;
                 case "cycleLabel" -> cycleLabel;
+                case "cycleClasses" -> cycleClasses;
                 case "farMinusDisabled" -> farMinusDisabled; case "minusDisabled" -> minusDisabled;
                 case "plusDisabled" -> plusDisabled; case "farPlusDisabled" -> farPlusDisabled;
                 case "cycleDisabled" -> cycleDisabled;

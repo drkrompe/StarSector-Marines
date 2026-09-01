@@ -180,7 +180,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,player-order,point-defence,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
@@ -529,6 +529,7 @@ The discovered suite ids and default output directories are:
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
 | `swarm-overkill` | One squad meeting a rush of runners a single rifle kills, both sides ordered to hold the ground so they actually fight. The no-regression control for damage-aware target crowding | `build/snapshots/swarm-overkill/` |
+| `player-order` | One squad under a long standing mission and one ground click off its axis, recorded three ways: the click answered and carried out, the same world with nobody clicking, and the same click into a picket's fire. The acceptance for the order-path rebuild | `build/snapshots/player-order/` |
 | `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
@@ -735,6 +736,41 @@ the committed share is 0.9, so the two agree. The case that was actually broken
 is the opposite one, a chassis many rifles deep, and Conquest is where that
 shows. The scene is kept as the control proving the swarm case does not regress,
 and as the instrument for the next attempt at it.
+
+`PlayerOrderScene` is the seventh: one squad, a commander's `ATTACK_MOVE` to the
+far east edge, and one player click at (40, 6) — well off that axis, so a squad
+merely continuing east cannot be mistaken for one obeying. It asks whether a
+squad takes a direct order at once, holds it, and hands back to its mission when
+done, and it is the acceptance for the order-path rebuild. Three loops: the
+click, the same world with nobody clicking, and the click into a two-marine
+picket's fire. It is the first scene on the `BehaviorScene` instrument, so it
+plays under `sceneEvidence` for its verdicts and under
+`createSnapshots -Psnapshot=player-order` for the same run's frames.
+
+**Its first run found the order path taking an order and never giving it
+back.** The first two promises held: the click was accepted on tick 61 — the
+first tick that can see it — the squad was planning under it on that same tick,
+and there was not one plan-less tick in 899. The last two did not. The squad
+walked to the ground it was pointed at, arrived around tick 640, and stayed
+there with the player's order still standing for the rest of the battle; played
+out to three thousand ticks it was the identical centroid to two decimal
+places, and the commander's mission was never resumed. The contested loop
+parked the same way, so it was not about the fight; the control held its
+mission goal for all 899 ticks, so it was not about the map.
+
+**Two rules for one arrival was one too many.** The release tested the squad
+centroid against `AttackMove.ARRIVAL_RADIUS` (2 cells); the action completes
+when somebody is inside that radius *and* everybody is inside its 5-cell
+`SQUAD_ARRIVAL_RADIUS` footprint, and an arrived member then holds its ground
+on purpose so one marine cannot complete a step the squad shares. Six people
+stopped by the action's rule settle with a centroid a little under three cells
+out — satisfying the action, missing the release by most of a cell — and
+nothing moves them again, because the order does not expire and outranks the
+mission it masks while it stands. The release now asks
+`AttackMove.squadHasArrived`, the action's own completion rule, and the scene
+records the handback at tick 600 with the mission replanned on that same tick
+and the squad 15.7 cells further east by the end; under fire it hands back at
+590. Every verdict passes, and the bar was not moved to get there.
 
 **A scene answers rather than merely records.** A `BehaviorScene` returns one
 `SceneReport` per loop — its verdicts and the readings they were judged from —

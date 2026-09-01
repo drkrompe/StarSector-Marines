@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -257,6 +258,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<AmbientTaskPose> working = new ArrayList<>();
         AmbientTaskService tasks = aboard.simulation().ambientTasks();
         for (long actor : tasks.assigned()) {
+            if (aboard.simulation().identity().type(actor) != UnitType.TECHNICIAN) continue;
             AmbientTaskPose pose = tasks.pose(actor);
             if (pose != null) working.add(pose);
         }
