@@ -4,11 +4,11 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a boat bay names its outboard side, the door wall is bare
-and the boats face it; a berth authors safe service stands while its live
-occupant supplies an oriented body envelope, so technician effects land on
-walkers, vehicles, or authored fixture points without treating every berth
-occupant as a mech.
+Updated: 2026-09-01 — a pocket no passage can reach is not deck, so a refused
+placement strikes its own ground off the search and the rooms behind it find
+the open deck instead of going unplaced; and the whole-ship view keeps a boat
+in sight after it leaves its berth, where a berthed one was always drawn as the
+unit it is.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -1199,6 +1199,39 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     acquires a watch of cooks in a room that cannot hold a range. Where the line
     falls between "the ship's galley" and "somewhere else to eat" is a judgement
     about the room, so it is stated rather than measured.
+
+26. **A pocket no passage can reach is not deck.** The packing scores a position
+    by how much of its bulkhead ring already backs onto something solid, which
+    is what makes compartments gather into blocks. It follows that the
+    best-scoring ground on a deck is the most enclosed ground on it — and a
+    pocket the earlier rooms sealed off scores best of all while being the one
+    place no passage can be cut from. A refusal there left no trace, so every
+    later room whose footprint fitted the pocket shortlisted the same
+    unreachable positions, spent its whole attempt budget on them, and was
+    published unplaced while open deck stood empty.
+
+    **A per-room attempt budget cannot see this**, because the fault is not in
+    any one room's search: eight tries into one pocket is one try repeated eight
+    times, and a hundred rooms of the same footprint is that repeated a hundred
+    times over. It is seed-dependent and, where it lands, close to total — one
+    liner laid down three hundred and thirteen compartments on one seed and a
+    hundred and forty-eight on another, short a hundred and twenty-six of her
+    berthing, with every one of the forty positions her scan offered standing
+    inside a single ten-thousand-cell pocket.
+
+    So a refusal is made progress. The pocket the refused position stands in is
+    struck off, and no later scan offers a footprint that overlaps it; where a
+    scan was drawn wholly from ground now struck, it is taken again, because the
+    deck it was reading has changed. What the mask promises is only that —
+    ground already found unreachable is not searched again — and it promises
+    nothing about the deck itself. A struck pocket is ordinary walkable cells to
+    rendering, navigation, and everything else downstream; the knowledge belongs
+    to the packing and dies with it. It only ever grows, so ground opened up
+    after it was struck would stay struck, which costs a compartment rather than
+    putting one in the wrong place. Only a refusal free to cut a fresh passage
+    strikes anything, since a pocket the pocket-filling pass cannot reach
+    *without* tunnelling is merely one no locker is worth tunnelling to, which
+    says nothing about whether the ground can be reached at all.
 
 ## Boundaries
 
