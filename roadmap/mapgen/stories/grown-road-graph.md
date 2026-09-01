@@ -5,8 +5,8 @@ Conquest keeps the stock crossroad. The `BiomeKind` question is what remains.
 
 Written: 2026-08-30
 
-Updated: 2026-09-01 — the class ladder gained its third rung; the plan's paved
-share fell from 47% to 38% of the map and the blocks stopped being islands.
+Updated: 2026-09-01 — the class ladder gained its third rung, taking the plan's
+paved share from 47% to 38%; wild ground now draws from a coherent field.
 
 ## What this is
 
@@ -79,13 +79,18 @@ mean rather than a per-seed cap, and says why in its own Javadoc.
 
 ## What is not right yet
 
-**Hinterland terrain is noise, not landscape.** `HinterlandFillStage` dresses it
-now, but the ground pick is one independent `rng` draw per cell against an
-80/15/5 grass/dirt/sand weighting, so dirt appears as isolated speckles rather
-than as coherent patches. It reads as rough ground at map zoom and as static
-close up. Two things are missing and both are real work: a spatially coherent
-field to drive the pick, and edge frames — the nature sheet has none, so any
-grass/dirt boundary is a hard cell edge whatever chooses it.
+**Hinterland terrain has its patches and still has no edges.** The pick now
+draws against a `PatchField` rather than an independent roll per cell, so the
+minority grounds arrive as patches of bare earth and sand rather than as
+speckle: on a verdant world, neighbouring wild cells agree 93% of the time
+against 69% before, with the authored mix unchanged to a tenth of a point. The
+palettes whose pool is dominated by one ground — rock, arid, frozen — are
+untouched by construction, which is why the measurement has to be taken on a
+verdant world to say anything at all.
+
+What is still missing is edge frames: the nature sheet has none, so a
+grass/dirt boundary is a hard cell edge whatever chooses it. Patches make that
+*more* visible than speckle did, since there is now a boundary to notice.
 
 **There are no trees.** The whole plant vocabulary is `nature.shrub-1..3` and
 `nature.tuft-1..3` on the sliced nature sheet, all `validOn` grass, and there
