@@ -40,6 +40,10 @@ import java.util.Map;
  * counts are asked for the same way — a place with no room for a fifth
  * emplacement gets four, and {@code PrecinctDefenceStage} records the shortfall
  * rather than dropping it.
+ *
+ * <p>Stated authored-wins, and derived when nobody states it: a {@link Demand}
+ * resolves the world's defence rating against what the mission may ask of its
+ * attacker. See {@code precincts.md}.
  */
 public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer> posts) {
 
@@ -114,6 +118,95 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
     public static final Fortification CITADEL = new Fortification(1, 1200,
             Map.of(DefensePostKind.MEDIUM, 2, DefensePostKind.LARGE, 4,
                     DefensePostKind.ARTILLERY, 2, DefensePostKind.DRONE_HUB, 1));
+
+    /**
+     * The ladder the named fortifications stand on, so one can be compared
+     * with another and a place can be said to be no harder than something.
+     */
+    public enum Strength {
+        PICKET, GARRISON, STRONGHOLD, CITADEL;
+
+        /** The named fortification at this rung. */
+        public Fortification fortification() {
+            return switch (this) {
+                case PICKET -> Fortification.PICKET;
+                case GARRISON -> Fortification.GARRISON;
+                case STRONGHOLD -> Fortification.STRONGHOLD;
+                case CITADEL -> Fortification.CITADEL;
+            };
+        }
+
+        /**
+         * What a world's defence rating says is there.
+         *
+         * <p>The rating is the campaign's weighted read of the market's own
+         * defences — ground batteries, an orbital station, a high command, a
+         * shield — on a scale of roughly zero to seven. The breakpoints are the
+         * ones the overwatch line already reads at, two and four, so the two
+         * consumers of one fact do not disagree about what a fortified world
+         * is; a citadel needs heavy batteries and a star fortress at least,
+         * which is what "nothing short of a siege" ought to cost.
+         */
+        public static Strength forDefenceRating(int rating) {
+            if (rating >= 6) return CITADEL;
+            if (rating >= 4) return STRONGHOLD;
+            if (rating >= 2) return GARRISON;
+            return PICKET;
+        }
+
+        /** This rung moved by {@code rungs}, staying on the ladder. */
+        public Strength nudged(int rungs) {
+            Strength[] ladder = values();
+            int at = Math.max(0, Math.min(ladder.length - 1, ordinal() + rungs));
+            return ladder[at];
+        }
+
+        /** The lesser of this and a ceiling; {@code null} is no ceiling. */
+        public Strength noHarderThan(Strength ceiling) {
+            if (ceiling == null || ordinal() <= ceiling.ordinal()) return this;
+            return ceiling;
+        }
+    }
+
+    /**
+     * What the mission says about what is being sent.
+     *
+     * <p>The dial has two failure modes and the world's rating alone cannot
+     * avoid either: a heavily defended world would hand a First Contract job a
+     * citadel, which is a refusal, and a market with one gun battery would hand
+     * a full-strength operation a picket, which is no climax. So a fortification
+     * is derived from two facts with different jobs. The <b>rating</b> says what
+     * is there. The <b>tier</b> says the hardest thing an operation at that
+     * scale may be asked to take, and caps it — after the risk has moved it, so
+     * that risk never lifts a place past its tier, which is the mission-tier
+     * law that a high-risk job stays recognisably smaller than the next tier's
+     * operation. The force actually sent is not consulted, for the same reason
+     * the map and the base defender count are not: a mission does not grow
+     * because the player brought more lift.
+     *
+     * @param ceiling  the hardest place this operation may be asked to take
+     * @param variance rungs the risk moves the world's answer, either way
+     */
+    public record Demand(Strength ceiling, int variance) {
+
+        public Demand {
+            if (ceiling == null) throw new IllegalArgumentException("a demand states its ceiling");
+        }
+
+        /**
+         * Nobody said. The world's rung stands, which is what a derivation with
+         * no mission behind it — a headless plan, a preview — gets.
+         */
+        public static final Demand UNSTATED = new Demand(Strength.CITADEL, 0);
+
+        /** The fortification a world of this rating gets under this demand. */
+        public Fortification resolve(int defenceRating) {
+            return Strength.forDefenceRating(defenceRating)
+                    .nudged(variance)
+                    .noHarderThan(ceiling)
+                    .fortification();
+        }
+    }
 
     public Fortification withGates(int count) {
         return new Fortification(count, wallHp, posts);

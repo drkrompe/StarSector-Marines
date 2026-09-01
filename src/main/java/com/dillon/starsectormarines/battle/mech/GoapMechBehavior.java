@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.AdvanceAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.AttackMoveGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.OrderCatalog;
+import com.dillon.starsectormarines.battle.command.OrderCatalog.PlayerOrder;
 import com.dillon.starsectormarines.battle.command.ServiceAssignedObjectiveGoal;
 import com.dillon.starsectormarines.battle.command.WithdrawAssignedGoal;
 
@@ -69,6 +71,18 @@ public final class GoapMechBehavior implements UnitBehavior {
             MechSurviveContact.INSTANCE,
             MechEliminateEnemiesGoal.INSTANCE
     );
+
+    /**
+     * Fallback library while a player order of the lance's own is declined or
+     * scores nothing. The counterpart of infantry's
+     * {@code NON_MISSION_INFANTRY_GOALS} and it states the same law: no
+     * unrelated mission goal may fill the gap the player's order left, or an
+     * authored role railroads the lance while the order still stands.
+     */
+    private static final List<Goal> NON_MISSION_MECH_GOALS = MECH_GOALS
+            .stream()
+            .filter(goal -> goal.priority() != Goal.Priority.MISSION)
+            .toList();
 
     /** Actions the planner may use. The role-anchored goals ship custom-plans that bypass the planner; the list is the registry for any future goal that wants backward-chaining search. */
     public static final List<Action> MECH_ACTIONS = List.of(
@@ -193,7 +207,7 @@ public final class GoapMechBehavior implements UnitBehavior {
         SquadPlan plan;
         Set<Goal> declined = Set.of();
         while (true) {
-            goal = Goal.pickMostRelevant(MECH_GOALS, current, squad, sim, declined);
+            goal = pickGoal(current, squad, sim, declined);
             if (goal == null) {
                 plan = null;
                 break;
@@ -237,5 +251,39 @@ public final class GoapMechBehavior implements UnitBehavior {
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
         squad.assignedObjectiveAtLastPlan = executableAssignment;
+    }
+
+    /**
+     * The goal a replan serves. This is where the two dispatchers were made to
+     * agree: a player's order names its goal in {@link OrderCatalog}, and that
+     * goal is looked up and wins outright — exactly as it does for infantry —
+     * rather than being entered into the ordinary {@link #MECH_GOALS}
+     * competition and left to win the MISSION bucket on relevance. The only
+     * order a lance can be handed today does win it, so the lookup changes
+     * nothing while it is the only one; it is what keeps the next one from
+     * having to.
+     *
+     * <p>The goal still has to be workable. A declined order, or one whose
+     * goal scores nothing, falls to {@link #NON_MISSION_MECH_GOALS} rather
+     * than to the whole ladder, and <b>that part is a deliberate change for
+     * mechs</b>: the law is the one infantry's counterpart list already
+     * states, that no unrelated authored mission goal may take a squad over
+     * while the player's order still stands.
+     */
+    private static Goal pickGoal(WorldState current, Squad squad,
+                                 BattleSimulation sim, Set<Goal> declined) {
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
+        if (assignment == null
+                || !squad.hasPlayerTacticalOrder(assignment.kind())) {
+            return Goal.pickMostRelevant(MECH_GOALS, current, squad, sim, declined);
+        }
+        PlayerOrder player = OrderCatalog.playerOrder(assignment.kind());
+        if (player != null
+                && !declined.contains(player.goal())
+                && player.goal().relevance(current, squad, sim) > 0f) {
+            return player.goal();
+        }
+        return Goal.pickMostRelevant(
+                NON_MISSION_MECH_GOALS, current, squad, sim, declined);
     }
 }

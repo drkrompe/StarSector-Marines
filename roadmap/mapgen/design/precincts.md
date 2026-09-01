@@ -7,8 +7,8 @@ packed from a program — walled and gated. What remains is the shape work below
 
 Written: 2026-09-01
 
-Updated: 2026-09-01 — folded `precinct-interior-coherence.md`: a zoned precinct
-has a character, and the district map is asked per precinct.
+Updated: 2026-09-01 — a zoned precinct has a character, and a garrison's
+fortification is derived from the world's rating under the mission's demand.
 
 ## The shift
 
@@ -458,6 +458,26 @@ a wall worth less than a demolition charge is decoration, one worth more than th
 force can spend is a detour. `PICKET` through `CITADEL` are named points on all
 three.
 
+**And derived when nobody states it, from two facts with different jobs.** The
+question was which of the world's defence rating or the force being sent should
+drive it, and the answer is neither alone. The *rating* says what is there: it
+is the campaign's own weighted read of the market's batteries, station, high
+command and shield, and it climbs the ladder at the same breakpoints the
+overwatch line already reads at — a picket below two, a garrison from two, a
+stronghold from four, a citadel from six, which takes heavy batteries and a star
+fortress at least. The *operation tier* says the hardest place a mission at that
+scale may be asked to take, and caps it: First Contract a picket, Established a
+garrison, Veteran a stronghold, Reinforced and above a citadel. *Risk* moves the
+world's answer one rung either way before the cap is applied, so a high-risk job
+never lifts a place past its tier, which is the mission-tier law that a
+high-risk operation stays recognisably smaller than the next tier's. The force
+actually sent is not consulted, for the same reason the map and the base
+defender count are not: a mission does not grow because the player brought more
+lift. A demand nobody stated leaves the world's rung standing, which is what a
+headless derivation gets. The translation from tier and risk lives at the
+launch boundary beside the map scale's, because the generator is campaign-free
+by contract and reasons only about the resolved `Fortification.Demand`.
+
 **The wall is the least of it.** A wall is a delay and a detour — it decides
 where the attack goes in and what a breach costs, and then it is over. What
 turns a place into a problem is what is shooting at the ground in front of it,
@@ -641,18 +661,13 @@ no draw it did not take before.
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.
-5. **Nothing derives `Fortification` from the campaign.** `PrecinctPlan.derive`
-   hands every garrison `GARRISON` regardless of the world's defence rating or
-   the force being sent, which is exactly the "not fun at either end" problem the
-   dial exists to solve, still unsolved at the point where it would bite. It
-   needs a decision about which of those two drives it.
-6. **A wall does not look as strong as it is.** Wall hit points are invisible: an
+5. **A wall does not look as strong as it is.** Wall hit points are invisible: an
    80hp picket fence and a 1200hp citadel wall draw with identical art on a
    one-cell line. The emplacements carry the reading now, which is most of what
    was wanted, but a thicker wall for a harder fortification would be nearly
    free — the outline is already computed — and would make the strength legible
    before contact as well as harder to breach.
-7. **Two stages on the conquest recipe have no counterpart on the precinct
+6. **Two stages on the conquest recipe have no counterpart on the precinct
    path**, both deliberately so far. `VehicleCorridorStage` is conquest-only,
    so a walled precinct's guaranteed drivable gate opens onto no reserved
    corridor; whether it needs one is a real question once armour uses these
