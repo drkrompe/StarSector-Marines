@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.marine.MechFabricationCost;
+import com.dillon.starsectormarines.marine.MechFabricationResources;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -17,6 +21,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -57,7 +62,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void selectingTypedWeaponSocketIsInspectionOnlyUntilWeaponAuthorityExists() {
+    void selectingTypedWeaponSocketDiscoversCompatibleFabricationPatterns() {
         MechBay bay = new MechBay();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
@@ -69,11 +74,15 @@ class MechLabViewModelTest {
                 .findFirst().orElseThrow().select().run();
 
         assertTrue(viewModel.fittingFocused());
-        assertTrue(viewModel.selectedSlotRule().get().contains("BALLISTIC SOCKET"));
-        assertEquals(1, viewModel.catalogRows().get().size());
-        assertTrue(viewModel.catalogRows().get().get(0).actionDisabled());
+        assertTrue(viewModel.selectedSlotRule().get().contains("OMNI SOCKET"));
+        assertTrue(viewModel.catalogRows().get().size() > 1);
+        assertTrue(viewModel.catalogRows().get().stream()
+                .anyMatch(row -> row.name().equals("Dual pulse lasers")));
+        assertTrue(viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals("Dual pulse lasers"))
+                .findFirst().orElseThrow().actionDisabled());
         assertEquals(originalReplenisher, mech.missileReplenisherId());
-        assertTrue(viewModel.feedbackText().get().contains("Inspection only"));
+        assertTrue(viewModel.feedbackText().get().contains("fabricable"));
 
         viewModel.overviewAction().run();
         assertFalse(viewModel.fittingFocused());
@@ -111,7 +120,7 @@ class MechLabViewModelTest {
         assertFalse(viewModel.overviewRailClasses().get().contains("hidden"));
         assertEquals(4, viewModel.gantryRows().get().size());
         assertFalse(viewModel.gantryRows().get().get(0).disabled());
-        assertTrue(viewModel.gantryRows().get().get(1).disabled());
+        assertFalse(viewModel.gantryRows().get().get(1).disabled());
 
         viewModel.gantryRows().get().get(0).select().run();
         assertTrue(viewModel.fittingFocused());
@@ -142,14 +151,48 @@ class MechLabViewModelTest {
         viewModel.nextGantryAction().run();
         assertEquals(3, viewModel.selectedGantryIndex());
         assertNull(viewModel.selectedVariant());
-        assertFalse(viewModel.fittingFocused());
-        assertTrue(viewModel.catalogClasses().get().contains("hidden"));
+        assertTrue(viewModel.fittingFocused());
+        assertFalse(viewModel.catalogClasses().get().contains("hidden"));
+        assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
         assertTrue(viewModel.activeGantryLabel().get().contains("VACANT"));
 
         viewModel.nextGantryAction().run();
         assertEquals(0, viewModel.selectedGantryIndex());
         viewModel.previousGantryAction().run();
         assertEquals(3, viewModel.selectedGantryIndex());
+    }
+
+    @Test
+    void commodityIconsAndCargoCountsDriveWeaponAndChassisFabrication() {
+        MechBay bay = new MechBay();
+        TestResources resources = TestResources.stocked(2_000);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources);
+        viewModel.gantryRows().get().get(0).select().run();
+        viewModel.leftSlotRows().get().stream()
+                .filter(row -> row.id().endsWith("arms"))
+                .findFirst().orElseThrow().select().run();
+
+        MechLabViewModel.CatalogRow pulse = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals("Dual pulse lasers"))
+                .findFirst().orElseThrow();
+        assertFalse(pulse.actionDisabled());
+        assertEquals(4, pulse.materials().size());
+        assertTrue(pulse.materials().stream().allMatch(row -> row.icon().startsWith(
+                "graphics/icons/cargo/")));
+        pulse.action().run();
+        assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
+                bay.mechById(MechBay.STARTER_MECH_ID).arms());
+
+        viewModel.nextGantryAction().run();
+        assertTrue(viewModel.selectedMechName().get().contains("VACANT GANTRY"));
+        MechLabViewModel.CatalogRow hound = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals("Hound chassis"))
+                .findFirst().orElseThrow();
+        assertFalse(hound.actionDisabled());
+        hound.action().run();
+        assertEquals(2, bay.activeSquad().mechs().size());
+        assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
+        assertTrue(viewModel.feedbackText().get().contains("standard roll-out fit"));
     }
 
     @Test
@@ -257,5 +300,38 @@ class MechLabViewModelTest {
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { });
         return props;
+    }
+
+    private static final class TestResources implements MechFabricationResources {
+        private final Map<String, Integer> stock = new HashMap<>();
+
+        private static TestResources stocked(int quantity) {
+            TestResources resources = new TestResources();
+            resources.stock.put(Commodities.SUPPLIES, quantity);
+            resources.stock.put(Commodities.HEAVY_MACHINERY, quantity);
+            resources.stock.put(Commodities.METALS, quantity);
+            resources.stock.put(Commodities.RARE_METALS, quantity);
+            return resources;
+        }
+
+        @Override public int available(String commodityId) {
+            return stock.getOrDefault(commodityId, 0);
+        }
+
+        @Override public String commodityName(String commodityId) {
+            return commodityId.replace('_', ' ');
+        }
+
+        @Override public String commodityIcon(String commodityId) {
+            return "graphics/icons/cargo/" + commodityId + ".png";
+        }
+
+        @Override public boolean spend(MechFabricationCost cost) {
+            if (!canAfford(cost)) return false;
+            for (MechFabricationCost.Line line : cost.lines()) {
+                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
+            }
+            return true;
+        }
     }
 }

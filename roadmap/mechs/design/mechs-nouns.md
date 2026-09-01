@@ -4,9 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — registered the common-market Muster autogun, Quarry
-breaker cannon, and Pioneer utility rocket cradle as lower-tier component
-families without assigning them as faction spawn defaults.
+Updated: 2026-09-01 — made weapon assemblies and complete standard-fit chassis
+fabricable from player-fleet commodities in the Mech Lab, with finite installed
+stock and custom hardpoints frozen through deployment.
 
 ## Purpose
 
@@ -73,7 +73,8 @@ increasing an encounter's total armored threat.
   an unfinished machine drawn as a generic mech and one that arrives with a
   working gun. It is not a mech and never becomes one — a finished machine comes
   off the stocks and an ordinary chassis stands where it stood.
-- **Subsystem inventory** is finite fleet stock. Installed components count
+- **Mech component inventory** is finite fleet stock. Installed weapon assemblies
+  and subsystems count
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
@@ -83,9 +84,9 @@ increasing an encounter's total armored threat.
   equipment, the physical workspace, and sockets. Selecting a location changes
   catalog context; it does not itself change hardware. It is an authoring surface
   over campaign authorities, not a second inventory or a battle debug picker.
-- A **socket** is one spatial equipment location on a heavy asset. Custom-refit
-  sockets will declare a compatibility type—ballistic, energy, missile, or
-  omni—and a sized capacity. A component will declare compatible types and a
+- A **socket** is one spatial equipment location on a heavy asset. Refittable
+  sockets declare a compatibility type—ballistic, energy, missile, or
+  omni—and a sized capacity. A component declares a compatible type and a
   slot cost. Each asset-class layout owns the socket's physical mount anchor,
   its equipment-dock center around the doll, and its doll-relative interaction
   footprint as well as compatibility and capacity. A leader preserves the
@@ -165,8 +166,9 @@ damage; a Pioneer cradle fires four loose, straight-flight utility rockets from
 a shoulder mount. These components are weaker because their original users
 optimized for cost, security, mining, or public works—not because Independent,
 pirate, or salvaged equipment is inherently low quality. They enter the weapon
-catalog and livery family now, while future subsystem inventory and markets own
-their acquisition. No faction doctrine receives one implicitly.
+catalog and livery family without becoming faction defaults. The Mech Lab exposes
+them as common-market fabrication patterns whose lower material bills preserve
+that commercial floor. No faction doctrine receives one implicitly.
 The Hound is a quick close-assault strider that lacks long-range pressure. The
 Sirocco is a fragile long-range specialist whose cannon is an anti-hardened
 fallback rather than a replacement close-range saturation weapon. Those are
@@ -413,8 +415,8 @@ support sortie, subject only to practical runtime resources.
   than encoding reload speed in a chassis, role, or weapon definition.
 - Owned subsystem quantity includes installed copies. A failed refit changes
   neither inventory accounting nor the target mech's installed loadout.
-- A future custom refit must validate socket type, sized capacity, component
-  inventory, and any chassis budgets in one atomic command. An omni socket
+- A custom refit validates socket type, sized capacity, component inventory,
+  and the fabrication bill in one atomic command. An omni socket
   accepts several equipment types; it does not waive slot cost or budgets.
 - Spatial selection and drag previews have no mutation authority. Dropping a
   component may propose a placement, but only a successful campaign command
@@ -462,14 +464,30 @@ support sortie, subject only to practical runtime resources.
   and exposes no equipment catalog, performance strip, or socket rack. Selecting
   an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
-  chassis-scoped controls. Returning through the current Mech Lab room route clears
+  chassis-scoped controls. Selecting a vacant gantry instead opens the chassis-pattern
+  catalog: a successful cargo-backed commit builds one persistent standard-fit chassis
+  into that exact station and immediately makes it part of the active lance. Returning
+  through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,
   pauses, or rebuilds garage contents to fake motion.
 - The fitting header exposes previous/next gantry controls and a numbered
   `01 / 04` station position. Navigation wraps across the four physical pads; arriving
-  at a vacant pad clears the fitting selection and exposes that vacancy in the overview
-  rather than rendering chassis controls against nothing. Lance browsing remains a
+  at a vacant pad clears the chassis selection and exposes fabrication patterns rather
+  than rendering chassis controls against nothing. Lance browsing remains a
   separate direct-jump surface.
+- Fabrication spends ordinary player-fleet supplies, heavy machinery, metals, and
+  rare metals. Cost rows resolve their names and icon paths from the base game's live
+  commodity specifications, so the Mech Lab does not copy or re-author cargo art.
+- A weapon commit uses a free owned assembly when available. Otherwise it rechecks the
+  complete material bill, consumes it atomically, creates one finite owned assembly,
+  and installs it; the outgoing assembly becomes free stock. A chassis commit performs
+  the same recheck before creating identity, default doctrine, standard replenisher,
+  and the variant's standard roll-out weapons. Failed compatibility, capacity, cargo,
+  or gantry checks change neither cargo nor campaign hardware.
+- The active home-deck gantries reproject the campaign loadouts after every successful
+  commit. Weapon layers and newly fabricated chassis therefore change in the physical
+  room immediately, while mission commitment separately freezes the same components
+  for battle.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
@@ -489,13 +507,12 @@ support sortie, subject only to practical runtime resources.
 A new chassis requires a distinct information or combat doctrine and a real
 capability it gives up; hardware variety alone does not earn another variant.
 
-Chassis acquisition, salvage, weapon-component inventory, engine cores, ammunition
-modules, and custom-hardpoint refit belong to progression and economy authority.
-The Mech Lab already exposes their spatial locations, socket vocabulary, and a
-context catalog, but mounts remain read-only until those acquisition, compatibility,
-capacity, budget, and component authorities exist. The missile mini-fab is currently
-the only swappable socket because it is the only one with finite inventory and an
-atomic install command.
+Salvage acquisition, engine cores, ammunition modules, recipe unlock progression,
+and chassis recovery still belong to future progression and economy authority.
+The current Mech Lab owns a bounded workshop catalog: registered weapon and chassis
+patterns, typed capacity checks, finite component stores, and atomic player-cargo
+fabrication. It does not imply that future salvage or markets should bypass those
+authorities or that every later pattern begins discovered.
 
 The doll presentation may later host tanks and other scarce heavy armor, but it must
 consume an asset-class-specific socket layout. Sharing selection, catalog, drag, and
