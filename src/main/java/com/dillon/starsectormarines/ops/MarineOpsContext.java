@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -118,6 +119,11 @@ public class MarineOpsContext {
     private CompanyDeck companyDeck;
     /** The ship {@link #companyDeck} was generated for, so a transfer rebuilds it. */
     private String companyDeckShipId;
+    /**
+     * Which berths held a boat when {@link #companyDeck} was built, as one
+     * character each, so a loss or a fabrication rebuilds it.
+     */
+    private String companyDeckBoatsHeld;
 
     public MarineOpsContext(PlanetAPI planet) {
         this.planet = planet;
@@ -142,23 +148,61 @@ public class MarineOpsContext {
      * disagree about the vessel they are both aboard. Which rooms exist is read
      * off this, so a hull with no vehicle bay has no route to a Mech Lab.
      *
-     * <p>Rebuilt when the company moves house, and only then. The deck follows
-     * the designation rather than the session, so transferring changes what the
-     * room screens show without either screen learning that a transfer
-     * happened.
+     * <p>Rebuilt when the company moves house, and when a berth changes hands.
+     * The deck follows the designation rather than the session, so transferring
+     * changes what the room screens show without either screen learning that a
+     * transfer happened — and <b>the picture follows the deck</b>, so a boat
+     * that was shot down or one built into an empty berth is answered by laying
+     * the ship out again rather than by reaching into a running scene to add or
+     * remove a parked airframe.
      */
     public CompanyDeck companyDeck() {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         String hull = aboard == null ? null : aboard.getId();
-        if (companyDeck != null && Objects.equals(hull, companyDeckShipId)) return companyDeck;
+        String held = boatsHeldSignature();
+        if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
+                && held.equals(companyDeckBoatsHeld)) {
+            return companyDeck;
+        }
         if (companyDeck != null) companyDeck.dismiss();
         companyDeckShipId = hull;
+        companyDeckBoatsHeld = held;
         CompanyShip ship = CompanyShipResolver.read(aboard);
         companyDeck = ship == null ? null : CompanyDeck.home(ship,
                 CompanyShipDesignation.deckSeedFor(hull),
                 new BattleSprites(), MarineOpsContext::companyLance,
-                MarineOpsContext::companyMarines);
+                MarineOpsContext::companyMarines,
+                MarineOpsContext::companyBoatsHeld);
         return companyDeck;
+    }
+
+    /**
+     * Which of the company's boat berths still have a boat standing in them, in
+     * berth order. Null before there is a roster to ask, which the deck reads
+     * as every berth held.
+     */
+    static boolean[] companyBoatsHeld() {
+        // Asked before the routing gate knows there is a game at all, so the
+        // sector is checked rather than assumed; MarineRosterScript walks it.
+        if (Global.getSector() == null) return null;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script == null ? null : script.roster();
+        if (roster == null) return null;
+        List<CampaignBoat> berths = roster.boatDeck().boats();
+        boolean[] held = new boolean[berths.size()];
+        for (int berth = 0; berth < berths.size(); berth++) {
+            held[berth] = berths.get(berth) != null;
+        }
+        return held;
+    }
+
+    /** {@link #companyBoatsHeld()} as a cache key. */
+    private static String boatsHeldSignature() {
+        boolean[] held = companyBoatsHeld();
+        if (held == null) return "";
+        StringBuilder signature = new StringBuilder(held.length);
+        for (boolean boat : held) signature.append(boat ? '1' : '0');
+        return signature.toString();
     }
 
     /** The machines parked in the company ship's berths: whatever the player owns. */
