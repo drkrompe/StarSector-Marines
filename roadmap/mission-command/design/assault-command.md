@@ -2,10 +2,10 @@
 
 Status: ACTIVE — paired production command is implemented; live and canonical-duration acceptance remain.
 
+Written: 2026-08-27
+
 Updated: 2026-09-01 — the force plan owes the defender commander enough
 mobile squads to hold a reserve.
-
-Written: 2026-08-27
 
 Read `mission-command-nouns.md` for the shared architecture. Assault currently
 retains elimination objective authority while its commanders solve the search
