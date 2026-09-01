@@ -73,6 +73,56 @@ class MissionMlxTest {
     }
 
     @Test
+    void squadDeploymentBuildsA1080pRosterWorkspace() throws Exception {
+        MarkupLoader loader = loader(SquadDeploymentScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(new Reactor(),
+                SquadDeploymentScreen.ROOT_COMPONENT,
+                SquadDeploymentScreen.previewProps())) {
+            instance.requireElement("squad-deployment-summary");
+            instance.requireElement("squad-deployment-grid");
+            assertTrue(instance.requireElement("deployment-preview-0").hasClass("selected"));
+        }
+    }
+
+    @Test
+    void stationingBuildsOfferAndPendingResponseModes() throws Exception {
+        MarkupLoader loader = loader(StationingScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (MarkupInstance offer = loader.build(new Reactor(),
+                StationingScreen.ROOT_COMPONENT,
+                StationingScreen.previewProps(false, false));
+             MarkupInstance response = loader.build(new Reactor(),
+                     StationingScreen.ROOT_COMPONENT,
+                     StationingScreen.previewProps(true, true))) {
+            assertFalse(offer.requireElement("stationing-primary").disabled());
+            assertTrue(offer.requireElement("stationing-secondary").hasClass("hidden"));
+            assertFalse(response.requireElement("stationing-secondary").disabled());
+            assertTrue(response.requireElement("stationing-primary").disabled());
+            assertTrue(response.requireElement("stationing-notice").hasClass("warning"));
+        }
+    }
+
+    @Test
+    void resultsAndLootBuildTheFrozenSettlementHandoff() throws Exception {
+        MarkupLoader resultsLoader = loader(ResultsScreen.COMPONENT_PATHS);
+        resultsLoader.reload();
+        MarkupLoader lootLoader = loader(LootScreen.COMPONENT_PATHS);
+        lootLoader.reload();
+        try (MarkupInstance results = resultsLoader.build(new Reactor(),
+                ResultsScreen.ROOT_COMPONENT,
+                ResultsScreen.previewProps(true, true));
+             MarkupInstance loot = lootLoader.build(new Reactor(),
+                     LootScreen.ROOT_COMPONENT,
+                     LootScreen.previewProps())) {
+            assertTrue(results.requireElement("mission-results-outcome").hasClass("victory"));
+            assertFalse(results.requireElement("mission-results-secondary").hasClass("hidden"));
+            assertTrue(loot.requireElement("loot-preview-0").hasClass("selected"));
+            assertTrue(loot.requireElement("loot-preview-4").disabled());
+        }
+    }
+
+    @Test
     void tierSelectorOwnsTheDebugCompanyStage() {
         assertEquals(DebugCompanyStage.FIRST_CONTRACT,
                 BriefingScreen.debugCompanyStageFor(OperationTier.FIRST_CONTRACT));
