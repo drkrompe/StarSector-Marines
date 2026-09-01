@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — gave production contracts persisted scale and an honest quantity/quality force envelope.
+Updated: 2026-09-01 — made recommendations mission-shaped and set Full Strength Conquest to an 84-squad / 1,008-marine battle commitment.
 
 Mission difficulty is described by two independent axes: **operation tier**
 states how large and consequential the work is, while **risk** states how far
@@ -29,12 +29,15 @@ Tier establishes the baseline rather than rubber-banding a battle. Once a
 mission is made, its map and base infantry force do not grow merely because the
 player contributes more lift.
 
-The player-facing recommendation ladder is one, three, six, seventeen, and
-thirty-four squads for First Contract through Full Strength. It is advisory for
-ordinary generated one-shot work: such a mission may launch with one ready
-four-marine fire team and must report both that hard minimum and its tier
-recommendation. Authored story/event/debug work, stationing, and Conquest retain
-their authored gates rather than inheriting this exception.
+The ordinary-operation recommendation baseline is one, three, six, seventeen,
+and thirty-four squads for First Contract through Full Strength. Mission type
+may raise that baseline when its tactical shape genuinely demands more:
+Reinforced and Full Strength Conquest recommend forty-two and eighty-four squads
+respectively. The ordinary recommendation is advisory for generated one-shot
+work: such a mission may launch with one ready four-marine fire team and must
+report both that hard minimum and its recommendation. Authored story/event/debug
+work, stationing, and Conquest retain their authored gates rather than inheriting
+this exception.
 
 ## Risk
 
@@ -57,8 +60,11 @@ high-impact defender support after the tier baseline is established. This is a
 support-eligibility gate, not whole encounter scaling. Conquest is the explicit
 exception: it is a late-game authored siege whose infantry population, mechs,
 fighter wings, and static weapons are not reduced to match the force the player
-chooses or can afford to field. Its elevated defender weight also does not
-silently raise required lift; those are independent mission expressions.
+chooses or can afford to field. Its three simultaneous lanes and sustained
+ferry battle also author a separate assault-force expression: Full Strength is
+1,008 named marines delivered as 168 six-seat sorties through six reusable
+shuttles. Defender weight does not silently calculate that lift; both values are
+accepted together for the mission.
 
 ## Offer, reward, and compatibility boundaries
 

@@ -48,7 +48,7 @@ public enum OperationTier {
     public final int defenderBase;
     /** Lift the work is written for, in drops, before the mission type's weight. */
     public final int drops;
-    /** Squads the work expects the player to field. Drives the "you field X" readout. */
+    /** Ordinary-operation squad baseline; mission shape may raise it substantially. */
     public final int squadsDemanded;
 
     OperationTier(String displayName, int defenderBase, int drops, int squadsDemanded) {
