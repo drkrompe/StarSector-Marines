@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctFill;
@@ -38,9 +39,6 @@ import java.util.Map;
  * garrisons gets two.
  */
 public final class PrecinctWardStage implements GenStage {
-
-    /** Matches the fortress wall's own, so a breach reads the same either way. */
-    private static final int WALL_HP = 240;
 
     /** Military floor, so a breached wall reads as one rather than as street. */
     private static final GroundKind WALL_GROUND = GroundKind.STRIPED;
@@ -90,7 +88,7 @@ public final class PrecinctWardStage implements GenStage {
                 }
             }
             if (precinct.boundary() == Precinct.Boundary.WALLED) {
-                stampWall(ctx, claim, road, i);
+                stampWall(ctx, claim, road, i, precinct.fortification());
             }
         }
         ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));
@@ -311,16 +309,17 @@ public final class PrecinctWardStage implements GenStage {
      * face on every open side is not decoration: without it the wall renders as
      * nothing at all.
      */
-    private static void stampWall(GenContext ctx, int[][] claim, int[][] road, int who) {
+    private static void stampWall(GenContext ctx, int[][] claim, int[][] road, int who,
+                                  Fortification fortification) {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
-        boolean[][] wall =
-                PrecinctBoundary.wall(claim, road, who, ctx.width, ctx.height);
+        boolean[][] wall = PrecinctBoundary.wall(claim, road, who, ctx.width, ctx.height,
+                fortification.gates());
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
                 if (!wall[x][y]) continue;
                 grid.setWalkable(x, y, false);
-                grid.setWallHp(x, y, WALL_HP);
+                grid.setWallHp(x, y, fortification.wallHp());
                 topology.setWall(x, y, true);
                 topology.setGroundKind(x, y, WALL_GROUND);
             }

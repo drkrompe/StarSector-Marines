@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-09-01 — the squad overview now founds complete line formations through
-an atomic, vanilla-icon cargo bill and supports an honest zero-squad campaign start.
+Updated: 2026-09-01 — squad and chassis founding now begin in contextual `+` slots,
+and the Mech Lab can page across multiple generated vehicle-bay compartments.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -39,10 +39,11 @@ breadcrumb keeps every completed level directly reachable.
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
-- **Formation founding:** the squad overview keeps one Found Squad transaction visible
-  beside the gallery, including live available/required counts and vanilla commodity
-  icons. Success creates a full twelve-marine line formation; an incomplete bill is
-  non-mutating. New campaigns use this path instead of a seeded line squad.
+- **Formation founding:** the squad overview appends one `+` card after the real squad
+  cards, including live available/required counts and vanilla commodity icons inside
+  the future formation slot. Success creates a full twelve-marine line formation; an
+  incomplete bill is non-mutating. New campaigns see this as the gallery's first and
+  only card instead of receiving a seeded line squad.
 - **Fire-team context:** Alpha, Bravo, and Charlie are compact tabs on the FIRE TEAM
   context line. Selection chooses which four of twelve projected billets to inspect;
   it never narrows or resets the squad transaction. Marine status and exact recovery
@@ -174,6 +175,11 @@ breadcrumb keeps every completed level directly reachable.
   when the canvas content box and authored surface have different aspect ratios.
 - Previous/next gantry actions are visible in the fitting header, cycle through all
   four numbered pads, and keep the room rendered when the focused pad is vacant.
+- The facility overview draws and hit-tests a `+` action over each vacant physical pad;
+  its summary cell is informational and cannot become a second chassis-founding route.
+- A ship with multiple generated vehicle-bay compartments exposes a bounded room pager,
+  orders those bays fore-to-aft, and updates both framing and breadcrumb together. The
+  pager occupies no space on a one-bay ship.
 - Location selection changes catalog context without mutating hardware. Unsupported
   core, weapon, and ammunition locations remain visibly factory locked.
 - Future drag-and-drop placement validates socket type, sized capacity, chassis

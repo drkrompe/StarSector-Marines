@@ -409,17 +409,69 @@ A place with no road off the map at all is given one, straight and looking it,
 on the same terms as `PrecinctArtery`: it exists so a place is supplied, not to
 be a good road.
 
+## A mission says roughly where, not exactly where
+
+Conquest culminates in taking an installation, so a scenario has to be able to
+put that installation somewhere and the attacking force somewhere else. A cell
+is the wrong unit to say it in — what cell means "north-east" depends on the map
+— so `MapPlacement` is a fraction of the map and a `PrecinctBrief` is a place
+stated against one. The same brief lays out at 200x140 and at 900x600.
+
+Deliberately coarse: a placement is a region to land somewhere inside, not a
+position. Two missions asking for the north-east should not produce the same
+map, and a placement that pinned a cell would be an authored map wearing a
+generator's clothes.
+
+**Placement wins over separation.** Two places asked for the same corner end up
+close together, because a mission that asks for that means it. Spacing is the
+generator's business only in a derived plan.
+
+**The spawns come from the plan, not from an axis.** A precinct map has neither
+axis nor biome bands, so `SpawnAnchorStage` was falling through to a low-X /
+high-X split that is arbitrary against wherever the objective actually grew — on
+a map whose garrison is in the west it put the attacker on top of it. The
+attacker now arrives at the stated placement and the defender stands inside the
+objective's claim.
+
+**Told nothing, the attacker still starts somewhere worth attacking from**: the
+corner furthest from the objective. A force landing beside the thing it is meant
+to take has no approach to fight through, which is most of what a conquest map
+is for.
+
+## How hard a place is to take is stated, not discovered
+
+Two failure modes, pulling opposite ways. A wall a handful of low-tier squads
+cannot breach or flank is a refusal rather than a fight; a wall a thousand
+marines walk through is not a climax. Neither is fixed by tuning one number
+harder, because it is the same number pointed at different forces. So
+`Fortification` is stated by whoever knows what is being sent.
+
+It carries two things, and they are different questions. **Gates** are about
+manoeuvre: several give an attacker somewhere to feint and somewhere to commit,
+one makes the approach the whole battle. **Wall hit points** are about materiel:
+a wall worth less than a demolition charge is decoration, one worth more than the
+force can spend is a detour. `PICKET` through `CITADEL` are named points on both.
+
+**Gate count is a cap, not a count.** Growth decides where roads cross the
+outline; the dial decides how many of those crossings stay open. A place whose
+roads all leave by one route has one gate however many it is allowed. The widest
+are kept, because a wide crossing is a main road and a narrow one is where a
+track happened to touch the line — and a sealed crossing leaves its road
+dead-ending at the wall, which is what a closed gate looks like from outside and
+needs no special handling.
+
+**One drivable crossing survives whatever the cap says.** A walled installation
+its own armour cannot leave is a defect rather than a difficulty, and it is the
+same obligation `PrecinctArtery` enforces one step earlier.
+
+The gate *defect* — a wall reading as a dashed line because eleven crossings is
+more gap than wall — turned out to have fixed itself. Pruning the wandering
+open-country road removed most of the crossings with it: measured across five
+seeds afterwards, the outline is 88–97% wall and carries 2–8 gates. What was
+missing was not fewer gates but any control over how many.
+
 ## Still open
 
-0. **A walled precinct has too many gates.** Every arm crossing the outline is a
-   gate, and a rendered garrison came out with eleven — which is not a fortified
-   place. Through the tile renderer the wall reads as a dashed line rather than
-   a wall, because it is more gap than wall. A fortress should keep the few
-   crossings it wants and wall off the rest; the roads that then dead-end at the
-   wall are ordinary. The rule that a gate is a discovered crossing still holds,
-   but which crossings become gates is a decision the precinct has not been
-   given yet. This is the most visible thing wrong with the model as it
-   stands.
 
 1. **A precinct takes what it asks for whether or not the map can spare it.** On
    a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was

@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.world.gen.fit.BoatBayFitting;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * What a hull keeps in her bays.
@@ -51,6 +56,34 @@ public final class ShipsBoats {
      * a bay holding one of each would be a fleet in miniature, which is the
      * framing this exists to replace.
      */
+    /**
+     * Every boat this hull carries, one entry per berth in her bays.
+     *
+     * <p><b>The single place anything asks what a ship's lift is.</b> A briefing
+     * that wanted to know, a bay being stocked, and a screen showing the
+     * establishment all come here, so when the boats become something the
+     * company can refit rather than merely inherit, this is the one answer that
+     * changes and every caller follows. Derived today; owned by a configuration
+     * later.
+     *
+     * <p>Counted off the hull's own room program rather than off a laid deck,
+     * because a briefing has no deck and generating one to answer a question
+     * about lift would be an odd bill to pay. It is the same arithmetic the
+     * fitting lays boats with, asked without a floor — measured equal to the
+     * berths a generated deck actually registers on every hull class.
+     */
+    public static List<ShuttleType> aboard(CompanyShip ship) {
+        if (ship == null) return List.of();
+        ShuttleType boat = carriedBy(ship.role());
+        int berths = 0;
+        for (RoomRecipe recipe : DeckSizing.programFor(ship.hullClass(), ship.role(),
+                ship.minCrew(), ship.maxCrew(), ship.cargo())) {
+            if (recipe.purpose() != RoomPurpose.HANGAR) continue;
+            berths += BoatBayFitting.boatsIn(recipe.shape().width(), recipe.shape().height());
+        }
+        return Collections.nCopies(berths, boat);
+    }
+
     public static ShuttleType carriedBy(HullRole role) {
         if (role == null) return GIG;
         return switch (role) {
