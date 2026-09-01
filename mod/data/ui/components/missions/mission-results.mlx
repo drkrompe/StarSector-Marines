@@ -1,0 +1,79 @@
+<template props="title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+  <div id="mission-results-root" class="mission-results-root">
+    <div id="mission-results-header" class="mission-flow-header surface-dark">
+      <div id="mission-results-heading" class="mission-flow-heading">
+        <div id="mission-results-title" class="label title tone-edge">{title}</div>
+        <div id="mission-results-subtitle" class="label tone-muted">Operation settlement and personnel disposition</div>
+      </div>
+      <div id="mission-results-context" class="label heading tone-accent mission-flow-context">MISSION DEBRIEF</div>
+    </div>
+    <div id="mission-results-body" class="mission-results-body">
+      <div id="mission-results-summary" class="panel results-summary">
+        <div id="mission-results-outcome" class="{outcomeClasses}">{outcomeLabel}</div>
+        <div id="mission-results-name" class="label title results-mission-name">{missionName}</div>
+        <div id="mission-results-meta" class="label tone-muted results-mission-meta">{missionMeta}</div>
+        <div id="mission-results-rows" class="result-rows surface-dark">
+          <div each="row in resultRows" key="{row.id}" id="{row.id}" class="result-row">
+            <div id="{row.labelId}" class="label heading tone-muted">{row.label}</div>
+            <div id="{row.valueId}" class="{row.tone}">{row.value}</div>
+          </div>
+        </div>
+      </div>
+      <div id="mission-results-personnel" class="panel results-personnel">
+        <div id="mission-results-personnel-heading" class="personnel-heading surface-dark">
+          <div id="mission-results-personnel-title" class="label heading tone-edge">{personnelHeader}</div>
+          <div id="mission-results-personnel-subtitle" class="label tone-muted">Frozen launch identities; settled exactly once.</div>
+        </div>
+        <div id="mission-results-squads" class="results-squad-grid">
+          <div each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="results-squad-card">
+            <div id="{squad.topId}" class="results-squad-top">
+              <div id="{squad.nameId}" class="label heading">{squad.name}</div>
+              <div id="{squad.summaryId}" class="{squad.tone}">{squad.summary}</div>
+            </div>
+            <div id="{squad.membersId}" class="label tone-muted">{squad.members}</div>
+          </div>
+        </div>
+        <div id="mission-results-personnel-empty" class="label tone-muted personnel-empty">{personnelEmpty}</div>
+      </div>
+    </div>
+    <div id="mission-results-actions" class="mission-flow-actions panel surface-dark">
+      <div id="mission-results-action-spacer" class="action-spacer"></div>
+      <button id="mission-results-secondary" class="{secondaryClasses}" onclick="{secondaryAction}">{secondaryLabel}</button>
+      <button id="mission-results-primary" class="good-surface" onclick="{primaryAction}">{primaryLabel}</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .mission-results-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
+  .mission-flow-heading .title { height: 24px; }
+  .mission-flow-context { width: 300px; padding: 11px 4px; text-align: right; }
+  .mission-results-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .results-summary { flex-direction: column; width: 560px; padding: 12px; gap: 9px; border-width: 1px; overflow: hidden; }
+  .results-outcome { height: 86px; padding: 22px 14px; border-width: 1px; font-family: title; }
+  .results-outcome.victory { color: #78d494; background-color: #132b22; border-color: #78d494; }
+  .results-outcome.defeat { color: #e98b83; background-color: #3d2a26; border-color: #e98b83; }
+  .results-mission-name { height: 34px; padding: 4px; }
+  .results-mission-meta { height: 24px; padding: 4px; }
+  .result-rows { flex-direction: column; gap: 1px; padding: 6px; border-width: 1px; }
+  .result-row { flex-direction: row; height: 49px; padding: 14px 8px; border-width: 1px; border-color: #263b51; }
+  .result-row .heading { width: 185px; }
+  .result-value { width: 0px; flex-grow: 1; text-align: right; }
+  .results-personnel { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .personnel-heading { flex-direction: row; height: 52px; padding: 10px; gap: 10px; border-width: 1px; }
+  .personnel-heading .heading { width: 520px; }
+  .personnel-heading .tone-muted { width: 0px; flex-grow: 1; text-align: right; }
+  .results-squad-grid { display: grid; height: 0px; flex-grow: 1; gap: 7px; overflow: scroll; }
+  .results-squad-card { flex-direction: column; width: 360px; height: 86px; padding: 10px; gap: 10px; border-width: 1px; border-color: #31485f; }
+  .results-squad-top { flex-direction: row; height: 20px; }
+  .results-squad-top .label { width: 0px; flex-grow: 1; }
+  .results-squad-summary { width: 190px; text-align: right; }
+  .personnel-empty { height: 22px; }
+  .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
+  .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
+  .action-spacer { width: 0px; flex-grow: 1; }
+  .hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+</style>

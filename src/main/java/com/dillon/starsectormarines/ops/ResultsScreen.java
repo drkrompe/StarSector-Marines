@@ -1,256 +1,173 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.marine.Rank;
-import com.dillon.starsectormarines.marine.Status;
-import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
-import com.dillon.starsectormarines.ui.ButtonWidget;
-import com.dillon.starsectormarines.ui.Fonts;
-import com.dillon.starsectormarines.ui.LabelWidget;
-import com.dillon.starsectormarines.ui.WidgetRoot;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.ui.PositionAPI;
 
-import java.awt.Color;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_QUADS;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
-import static org.lwjgl.opengl.GL11.glBegin;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glColor4f;
-import static org.lwjgl.opengl.GL11.glDisable;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glLineWidth;
-import static org.lwjgl.opengl.GL11.glVertex2f;
+/** MLX-authored read-only operation debrief and recovery handoff. */
+public class ResultsScreen extends MissionFlowMlxScreen {
 
-/**
- * Debrief card shown after a mission resolves. Reads
- * {@link MarineOpsContext#getLastOutcome()} and renders a centered summary —
- * outcome line, payout, casualties, captain status change, XP gained — plus a
- * Return button that drops the player back to the mission picker.
- *
- * <p>This screen is read-only; {@link MissionResolver#apply} already mutated
- * cargo and captain state before we got here. Re-entering after Return won't
- * re-apply anything because the outcome lives on the context, not on the
- * cargo's untouched state.
- */
-public class ResultsScreen implements Screen {
+    static final String ROOT_COMPONENT = "mission-results";
+    static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/mission-results.mlx");
 
-    private static final Color FRAME_COLOR    = new Color(0x4A, 0x6B, 0x8C);
-    private static final Color HEADER_COLOR   = new Color(0xC8, 0xE0, 0xFF);
-    private static final Color LABEL_COLOR    = new Color(0x8F, 0xA8, 0xC0);
-    private static final Color VALUE_COLOR    = new Color(0xE0, 0xE8, 0xFF);
-    private static final Color VICTORY_COLOR  = new Color(0x80, 0xE0, 0x80);
-    private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
-    private static final Color STATUS_ACTIVE  = new Color(0x9C, 0xCC, 0x9C);
-    private static final Color STATUS_INJURED = new Color(0xE0, 0xB0, 0x70);
-    private static final Color STATUS_KIA     = new Color(0xE0, 0x60, 0x60);
-    private static final Color PROMOTION_COLOR = new Color(0xFF, 0xD0, 0x60);
-
-    private static final float CARD_W      = 960f;
-    private static final float CARD_H      = 620f;
-    private static final float INNER_PAD   = 20f;
-    private static final float ROW_GAP     = 32f;
-    private static final float LABEL_COL_W = 200f;
-    private static final float BTN_W       = 180f;
-    private static final float BTN_H       = 36f;
-    private static final float BTN_GAP     = 16f;
-
-    private final WidgetRoot widgets = new WidgetRoot();
-
-    private PositionAPI position;
-    private MarineOpsContext ctx;
-
-    /** Card rect, captured at layout time so render can draw the frame. */
-    private float cardX, cardY;
+    public ResultsScreen() {
+        super(ROOT_COMPONENT, COMPONENT_PATHS);
+    }
 
     @Override
-    public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
-        this.position = position;
-        this.ctx = ctx;
-        rebuild();
-    }
-
-    private void rebuild() {
-        widgets.clear();
-        if (position == null || ctx == null) return;
-
-        cardX = position.getX() + (position.getWidth()  - CARD_W) / 2f;
-        cardY = position.getY() + (position.getHeight() - CARD_H) / 2f;
-
-        MissionOutcome outcome = ctx.getLastOutcome();
-
-        // Header row at top of card
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                Strings.get("resultsHeader"),
-                cardX + INNER_PAD, cardY + CARD_H - INNER_PAD, HEADER_COLOR));
-
-        // Outcome banner (large, color-coded)
+    protected Map<String, Object> props() {
+        MissionOutcome outcome = context != null ? context.getLastOutcome() : null;
         boolean victory = outcome != null && outcome.victory;
-        String outcomeText = Strings.get(victory ? "battleVictory" : "battleDefeat");
-        Color outcomeColor = victory ? VICTORY_COLOR : DEFEAT_COLOR;
-        float outcomeY = cardY + CARD_H - INNER_PAD - 40f;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_24_BOLD,
-                outcomeText, cardX + INNER_PAD, outcomeY, outcomeColor));
-
-        // Mission name below outcome
-        if (outcome != null && outcome.missionName != null) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    outcome.missionName,
-                    cardX + INNER_PAD, outcomeY - 28f, LABEL_COLOR));
-        }
-
-        // Stat rows
-        float rowY = outcomeY - 72f;
-        if (outcome != null) {
-            if (outcome.evacuationRepresentatives > 0) {
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        Strings.get("resultsEvacuationLabel"),
-                        cardX + INNER_PAD, rowY, LABEL_COLOR));
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        formatEvacuation(outcome),
-                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
-                rowY -= ROW_GAP;
-            }
-            if (outcome.colonyArchiveOutcome
-                    != AbandonedColonyArchiveOutcome.NONE) {
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        Strings.get("resultsColonyArchiveLabel"),
-                        cardX + INNER_PAD, rowY, LABEL_COLOR));
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        formatColonyArchive(outcome),
-                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
-                rowY -= ROW_GAP;
-            }
-
-            // Payout
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    Strings.get("resultsPayoutLabel"),
-                    cardX + INNER_PAD, rowY, LABEL_COLOR));
-            String payoutStr = outcome.payoutEarned > 0
-                    ? MessageFormat.format(Strings.get("payoutFmt"),
-                        NumberFormat.getIntegerInstance().format(outcome.payoutEarned))
-                    : "—";
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, payoutStr,
-                    cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
-            rowY -= ROW_GAP;
-
-            // Salvage entitlement — only when the mission carried salvage rights
-            // (contract-bound). Faction-direct missions don't roll salvage and
-            // skip this row entirely.
-            if (outcome.salvageEntitlement > 0) {
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        Strings.get("resultsSalvageLabel"),
-                        cardX + INNER_PAD, rowY, LABEL_COLOR));
-                LootManifest manifest = ctx.getLootManifest();
-                String salvageStr;
-                if (manifest != null && !manifest.isEmpty()
-                        && outcome.salvageRecoveryBonusPct > 0) {
-                    salvageStr = MessageFormat.format(Strings.get("resultsSalvageModifiedFmt"),
-                            outcome.salvageEntitlement, outcome.salvageRecoveryBonusPct,
-                            manifest.stacks.size(),
-                            NumberFormat.getIntegerInstance().format(manifest.selectionBudget));
-                } else if (manifest != null && !manifest.isEmpty()) {
-                    salvageStr = MessageFormat.format(Strings.get("resultsSalvageManifestFmt"),
-                            outcome.salvageEntitlement, manifest.stacks.size(),
-                            NumberFormat.getIntegerInstance().format(manifest.selectionBudget));
-                } else {
-                    salvageStr = MessageFormat.format(
-                            Strings.get("resultsSalvageFmt"), outcome.salvageEntitlement);
-                }
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, salvageStr,
-                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
-                rowY -= ROW_GAP;
-            }
-
-            // Casualties
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    Strings.get("resultsCasualtiesLabel"),
-                    cardX + INNER_PAD, rowY, LABEL_COLOR));
-            String casualtiesStr = MessageFormat.format(
-                    Strings.get("resultsCasualtiesFmt"),
-                    outcome.marinesLost, outcome.marinesEngaged);
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, casualtiesStr,
-                    cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
-            rowY -= ROW_GAP;
-
-            // Captain row (only if a captain led the mission)
-            if (outcome.captainId != null) {
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        Strings.get("resultsCaptainLabel"),
-                        cardX + INNER_PAD, rowY, LABEL_COLOR));
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        formatCaptainStatus(outcome),
-                        cardX + INNER_PAD + LABEL_COL_W, rowY,
-                        statusColor(outcome.newCaptainStatus)));
-                rowY -= ROW_GAP;
-            }
-
-            // XP gained (only if nonzero)
-            if (outcome.xpGained > 0) {
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        Strings.get("resultsXpLabel"),
-                        cardX + INNER_PAD, rowY, LABEL_COLOR));
-                String xpStr = MessageFormat.format(
-                        Strings.get("resultsXpFmt"), outcome.xpGained);
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, xpStr,
-                        cardX + INNER_PAD + LABEL_COL_W, rowY, VALUE_COLOR));
-                rowY -= ROW_GAP;
-            }
-
-            // Promotion (only if the mission's XP crossed a rank threshold)
-            Rank promotedTo = outcome.promotedTo;
-            if (promotedTo != null) {
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                        Strings.get("resultsPromotionLabel"),
-                        cardX + INNER_PAD, rowY, LABEL_COLOR));
-                String promoStr = MessageFormat.format(
-                        Strings.get("resultsPromotionFmt"), promotedTo.displayName());
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, promoStr,
-                        cardX + INNER_PAD + LABEL_COL_W, rowY, PROMOTION_COLOR));
-                rowY -= ROW_GAP;
-            }
-            buildSquadDebrief(outcome, cardX + 500f, outcomeY + 38f, 420f);
-        }
-
-        // Return stays available while the review-only picker is being built;
-        // salvage outcomes gain a second route into the frozen manifest.
-        float btnY = cardY + INNER_PAD;
-        LootManifest manifest = ctx.getLootManifest();
+        LootManifest manifest = context != null ? context.getLootManifest() : LootManifest.EMPTY;
+        Map<String, Object> props = baseProps();
+        props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
+        props.put("outcomeLabel", Strings.get(victory ? "battleVictory" : "battleDefeat"));
+        props.put("missionName", outcome != null && outcome.missionName != null
+                ? outcome.missionName : "Operation record unavailable");
+        props.put("missionMeta", outcomeMeta(outcome, manifest));
+        props.put("resultRows", resultRows(outcome, manifest));
+        props.put("personnelHeader", personnelHeader(outcome));
+        List<PersonnelRow> personnel = personnelRows(outcome);
+        props.put("squadRows", personnel);
+        props.put("personnelEmpty", personnel.isEmpty() ? noPersonnelMessage(outcome) : "");
         if (manifest != null && !manifest.isEmpty()) {
-            float groupW = 2f * BTN_W + BTN_GAP;
-            float leftX = cardX + (CARD_W - groupW) / 2f;
-            addButton(leftX, btnY, "resultsForfeitSalvage", this::returnToMissions);
-            addButton(leftX + BTN_W + BTN_GAP, btnY, "resultsReviewSalvage",
-                    () -> ctx.goTo(ScreenId.LOOT));
+            props.put("secondaryClasses", "danger-surface");
+            props.put("secondaryLabel", Strings.get("resultsForfeitSalvage"));
+            props.put("secondaryAction", (Runnable) this::returnToMissions);
+            props.put("primaryLabel", Strings.get("resultsReviewSalvage"));
+            props.put("primaryAction", (Runnable) () -> context.goTo(ScreenId.LOOT));
         } else {
-            float btnX = cardX + (CARD_W - BTN_W) / 2f;
-            addButton(btnX, btnY, "resultsReturn", this::returnToMissions);
+            props.put("secondaryClasses", "hidden");
+            props.put("secondaryLabel", "");
+            props.put("secondaryAction", (Runnable) () -> { });
+            props.put("primaryLabel", Strings.get("resultsReturn"));
+            props.put("primaryAction", (Runnable) this::returnToMissions);
         }
+        return props;
     }
 
-    private void buildSquadDebrief(MissionOutcome outcome, float x, float topY, float width) {
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                personnelHeader(outcome), x, topY, HEADER_COLOR));
+    static Map<String, Object> previewProps(boolean victory, boolean salvage) {
+        Runnable none = () -> { };
+        Map<String, Object> props = baseProps();
+        props.put("title", "Debrief");
+        props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
+        props.put("outcomeLabel", victory ? "VICTORY" : "DEFEAT");
+        props.put("missionName", "SABOTAGE — First Contract");
+        props.put("missionMeta", "Operation settled · employer report filed");
+        props.put("resultRows", List.of(
+                row("result-payout", "Payout", victory ? "20,500 credits" : "—", "tone-good"),
+                row("result-salvage", "Salvage", salvage ? "35% · 8 stacks · 14,200 credits" : "None", "tone-accent"),
+                row("result-casualties", "Marines lost", "1 of 12", "tone-danger"),
+                row("result-captain", "Captain", "Mira Hale — returned safely", "tone-good"),
+                row("result-xp", "Experience", "+240 XP", "tone-edge")));
+        props.put("personnelHeader", "PERSONNEL — RTD / WIA / MIA / KIA");
+        props.put("squadRows", List.of(
+                new PersonnelRow("result-squad-preview-0", "1st Squad",
+                        "10R 1W 0M 1K", "label heading results-squad-summary tone-accent",
+                        "Hale R · Chen R · Ilyin W · Okafor R · Bell K · Ruiz R"),
+                new PersonnelRow("result-squad-preview-1", "2nd Squad",
+                        "12R 0W 0M 0K", "label heading results-squad-summary tone-good",
+                        "Vale R · Sato R · Moss R · Holt R · Venn R · Ward R")));
+        props.put("personnelEmpty", "");
+        props.put("secondaryClasses", salvage ? "danger-surface" : "hidden");
+        props.put("secondaryLabel", salvage ? "FORFEIT SALVAGE" : "");
+        props.put("secondaryAction", none);
+        props.put("primaryLabel", salvage ? "REVIEW SALVAGE" : "RETURN");
+        props.put("primaryAction", none);
+        return props;
+    }
+
+    private static Map<String, Object> baseProps() {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("title", Strings.get("resultsHeader"));
+        return props;
+    }
+
+    private static String outcomeMeta(MissionOutcome outcome, LootManifest manifest) {
+        if (outcome == null) return "No frozen outcome is attached to this debrief.";
+        if (manifest != null && !manifest.isEmpty()) {
+            return "Operation settled · recovery claim ready for review";
+        }
+        return "Operation settled · no recovery claim remains";
+    }
+
+    private List<ResultRow> resultRows(MissionOutcome outcome, LootManifest manifest) {
+        if (outcome == null) return List.of();
+        List<ResultRow> rows = new ArrayList<>();
+        if (outcome.evacuationRepresentatives > 0) {
+            rows.add(row("result-evacuation", trimLabel(Strings.get("resultsEvacuationLabel")),
+                    formatEvacuation(outcome), "tone-edge"));
+        }
+        if (outcome.colonyArchiveOutcome != AbandonedColonyArchiveOutcome.NONE) {
+            rows.add(row("result-colony", trimLabel(Strings.get("resultsColonyArchiveLabel")),
+                    formatColonyArchive(outcome), outcome.colonyArchiveOutcome
+                            == AbandonedColonyArchiveOutcome.RECOVERED ? "tone-good" : "tone-danger"));
+        }
+        String payout = outcome.payoutEarned > 0
+                ? MessageFormat.format(Strings.get("payoutFmt"),
+                NumberFormat.getIntegerInstance().format(outcome.payoutEarned)) : "—";
+        rows.add(row("result-payout", trimLabel(Strings.get("resultsPayoutLabel")),
+                payout, outcome.payoutEarned > 0 ? "tone-good" : "tone-muted"));
+        if (outcome.salvageEntitlement > 0) {
+            rows.add(row("result-salvage", trimLabel(Strings.get("resultsSalvageLabel")),
+                    salvageSummary(outcome, manifest), "tone-accent"));
+        }
+        rows.add(row("result-casualties", trimLabel(Strings.get("resultsCasualtiesLabel")),
+                MessageFormat.format(Strings.get("resultsCasualtiesFmt"),
+                        outcome.marinesLost, outcome.marinesEngaged),
+                outcome.marinesLost > 0 ? "tone-danger" : "tone-good"));
+        if (outcome.captainId != null) {
+            rows.add(row("result-captain", trimLabel(Strings.get("resultsCaptainLabel")),
+                    formatCaptainStatus(outcome), statusTone(outcome.newCaptainStatus)));
+        }
+        if (outcome.xpGained > 0) {
+            rows.add(row("result-xp", trimLabel(Strings.get("resultsXpLabel")),
+                    MessageFormat.format(Strings.get("resultsXpFmt"), outcome.xpGained), "tone-edge"));
+        }
+        Rank promotedTo = outcome.promotedTo;
+        if (promotedTo != null) {
+            rows.add(row("result-promotion", trimLabel(Strings.get("resultsPromotionLabel")),
+                    MessageFormat.format(Strings.get("resultsPromotionFmt"), promotedTo.displayName()),
+                    "tone-accent"));
+        }
+        return List.copyOf(rows);
+    }
+
+    private static String salvageSummary(MissionOutcome outcome, LootManifest manifest) {
+        if (manifest != null && !manifest.isEmpty() && outcome.salvageRecoveryBonusPct > 0) {
+            return MessageFormat.format(Strings.get("resultsSalvageModifiedFmt"),
+                    outcome.salvageEntitlement, outcome.salvageRecoveryBonusPct,
+                    manifest.stacks.size(), NumberFormat.getIntegerInstance().format(manifest.selectionBudget));
+        }
+        if (manifest != null && !manifest.isEmpty()) {
+            return MessageFormat.format(Strings.get("resultsSalvageManifestFmt"),
+                    outcome.salvageEntitlement, manifest.stacks.size(),
+                    NumberFormat.getIntegerInstance().format(manifest.selectionBudget));
+        }
+        return MessageFormat.format(Strings.get("resultsSalvageFmt"), outcome.salvageEntitlement);
+    }
+
+    private List<PersonnelRow> personnelRows(MissionOutcome outcome) {
+        if (outcome == null) return List.of();
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster roster = script != null ? script.roster() : null;
         Map<String, MarineSoldierStatus> dispositions = new HashMap<>();
@@ -259,20 +176,7 @@ public class ResultsScreen implements Screen {
             MarineSoldier soldier = roster != null ? roster.soldierById(id) : null;
             dispositions.put(id, soldier != null ? soldier.status() : MarineSoldierStatus.KIA);
         }
-        List<MarineSquad> deployed = new ArrayList<>();
-        if (roster != null && !outcome.deployedFireteamIds.isEmpty()) {
-            for (String squadId : outcome.deployedFireteamIds) {
-                MarineSquad squad = roster.squadById(squadId);
-                if (squad != null && !squad.reserve()) deployed.add(squad);
-            }
-        } else if (roster != null) {
-            // Legacy outcomes predate the frozen briefing selection.
-            for (MarineSquad squad : roster.squads()) {
-                for (String id : squad.memberIds()) {
-                    if (dispositions.containsKey(id)) { deployed.add(squad); break; }
-                }
-            }
-        }
+        List<MarineSquad> deployed = deployedSquads(outcome, roster, dispositions);
         boolean namedStationing = outcome.missionSource == MissionSource.STATIONING
                 && !outcome.deployedFireteamIds.isEmpty();
         if (namedStationing && roster != null) {
@@ -282,25 +186,54 @@ public class ResultsScreen implements Screen {
                 }
             }
         }
-        if (roster == null || dispositions.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    noPersonnelMessage(outcome), x, topY - 30f, LABEL_COLOR));
-            return;
+        if (roster == null || dispositions.isEmpty()) return List.of();
+        List<PersonnelRow> rows = new ArrayList<>();
+        for (MarineSquad squad : deployed) rows.add(personnelRow(roster, squad, dispositions, rows.size()));
+        return List.copyOf(rows);
+    }
+
+    private static List<MarineSquad> deployedSquads(MissionOutcome outcome,
+                                                     MarineRoster roster,
+                                                     Map<String, MarineSoldierStatus> dispositions) {
+        List<MarineSquad> deployed = new ArrayList<>();
+        if (roster == null) return deployed;
+        if (!outcome.deployedFireteamIds.isEmpty()) {
+            for (String squadId : outcome.deployedFireteamIds) {
+                MarineSquad squad = roster.squadById(squadId);
+                if (squad != null && !squad.reserve()) deployed.add(squad);
+            }
+        } else {
+            for (MarineSquad squad : roster.squads()) {
+                for (String id : squad.memberIds()) {
+                    if (dispositions.containsKey(id)) { deployed.add(squad); break; }
+                }
+            }
         }
-        int rows = 9;
-        float gap = 14f;
-        float colW = (width - gap) / 2f;
-        for (int i = 0; i < deployed.size() && i < rows * 2; i++) {
-            int col = i / rows;
-            int row = i % rows;
-            addSquadDebrief(roster, deployed.get(i), dispositions,
-                    x + col * (colW + gap), topY - 30f - row * 50f);
+        return deployed;
+    }
+
+    private static PersonnelRow personnelRow(MarineRoster roster, MarineSquad squad,
+                                               Map<String, MarineSoldierStatus> dispositions,
+                                               int index) {
+        int rtd = 0, wia = 0, mia = 0, kia = 0;
+        StringBuilder members = new StringBuilder();
+        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+            MarineSoldierStatus status = dispositions.get(soldier.id());
+            if (status == null) continue;
+            switch (status) {
+                case ACTIVE -> rtd++;
+                case WIA -> wia++;
+                case MIA -> mia++;
+                case KIA -> kia++;
+            }
+            if (members.length() > 0) members.append(" · ");
+            members.append(shortName(soldier.name())).append(' ')
+                    .append(status == MarineSoldierStatus.ACTIVE ? 'R' : status.name().charAt(0));
         }
-        if (deployed.size() > rows * 2) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "+" + (deployed.size() - rows * 2) + " squads",
-                    x + width - 120f, cardY + 62f, LABEL_COLOR));
-        }
+        String tone = kia > 0 || mia > 0 ? "tone-danger" : wia > 0 ? "tone-accent" : "tone-good";
+        return new PersonnelRow("result-squad-" + index, squad.name(),
+                rtd + "R " + wia + "W " + mia + "M " + kia + "K",
+                "label heading results-squad-summary " + tone, members.toString());
     }
 
     static String personnelHeader(MissionOutcome outcome) {
@@ -319,55 +252,17 @@ public class ResultsScreen implements Screen {
                 : "No persistent personnel assigned.";
     }
 
-    private void addSquadDebrief(MarineRoster roster, MarineSquad squad,
-                                  Map<String, MarineSoldierStatus> dispositions,
-                                  float x, float y) {
-        int rtd = 0, wia = 0, mia = 0, kia = 0;
-        StringBuilder members = new StringBuilder();
-        for (MarineSoldier soldier : roster.squadMembers(squad)) {
-            MarineSoldierStatus status = dispositions.get(soldier.id());
-            if (status == null) continue;
-            switch (status) {
-                case ACTIVE -> rtd++;
-                case WIA -> wia++;
-                case MIA -> mia++;
-                case KIA -> kia++;
-            }
-            if (members.length() > 0) members.append(' ');
-            members.append(shortName(soldier.name()))
-                    .append(status == MarineSoldierStatus.ACTIVE ? 'R' : status.name().charAt(0));
-        }
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                squad.name() + "  " + rtd + "R " + wia + "W " + mia + "M " + kia + "K",
-                x, y, HEADER_COLOR));
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                members.toString(), x, y - 21f, VALUE_COLOR));
-    }
-
-    private static String shortName(String name) {
-        if (name == null || name.isEmpty()) return "???";
-        int split = name.lastIndexOf(' ');
-        String value = split >= 0 ? name.substring(split + 1) : name;
-        return value.substring(0, Math.min(4, value.length()));
-    }
-
     static String formatEvacuation(MissionOutcome outcome) {
         if (outcome == null || outcome.evacuationRepresentatives <= 0
-                || outcome.representativesEvacuated < 0) {
-            return "—";
-        }
+                || outcome.representativesEvacuated < 0) return "—";
         if (outcome.civiliansAtRisk > outcome.evacuationRepresentatives) {
             return MessageFormat.format(Strings.get("resultsEvacuationScaledFmt"),
-                    outcome.representativesEvacuated,
-                    outcome.evacuationRepresentatives,
-                    NumberFormat.getIntegerInstance().format(
-                            outcome.civiliansRescued),
-                    NumberFormat.getIntegerInstance().format(
-                            outcome.civiliansAtRisk));
+                    outcome.representativesEvacuated, outcome.evacuationRepresentatives,
+                    NumberFormat.getIntegerInstance().format(outcome.civiliansRescued),
+                    NumberFormat.getIntegerInstance().format(outcome.civiliansAtRisk));
         }
         return MessageFormat.format(Strings.get("resultsEvacuationFmt"),
-                outcome.representativesEvacuated,
-                outcome.evacuationRepresentatives);
+                outcome.representativesEvacuated, outcome.evacuationRepresentatives);
     }
 
     static String formatColonyArchive(MissionOutcome outcome) {
@@ -379,86 +274,84 @@ public class ResultsScreen implements Screen {
         };
     }
 
-    private void returnToMissions() {
-        ctx.forfeitLoot();
-        ctx.clearResolvedMission();
-        ctx.goTo(ScreenId.MISSION_SELECT);
+    private static String shortName(String name) {
+        if (name == null || name.isEmpty()) return "???";
+        int split = name.lastIndexOf(' ');
+        String value = split >= 0 ? name.substring(split + 1) : name;
+        return value.substring(0, Math.min(7, value.length()));
     }
 
-    private void addButton(float x, float y, String labelKey, Runnable onClick) {
-        widgets.add(new ButtonWidget(x, y, BTN_W, BTN_H, onClick));
-        String label = Strings.get(labelKey);
-        float labelW = Fonts.ORBITRON_20.measureWidth(label);
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label,
-                x + (BTN_W - labelW) / 2f, y + BTN_H - 6f, HEADER_COLOR));
+    private static String trimLabel(String label) {
+        return label != null && label.endsWith(":") ? label.substring(0, label.length() - 1) : label;
     }
 
     private String formatCaptainStatus(MissionOutcome outcome) {
-        Status status = outcome.newCaptainStatus;
-        if (status == null) status = Status.ACTIVE;
-        switch (status) {
-            case INJURED: {
-                float currentDay = Global.getSector() != null
-                        ? CampaignClock.dayFloat()
-                        : 0f;
+        Status status = outcome.newCaptainStatus != null ? outcome.newCaptainStatus : Status.ACTIVE;
+        return switch (status) {
+            case INJURED -> {
+                float currentDay = Global.getSector() != null ? CampaignClock.dayFloat() : 0f;
                 int days = Math.max(1, (int) Math.ceil(outcome.injuredUntilDay - currentDay));
-                return outcome.captainName + " — " + MessageFormat.format(
+                yield outcome.captainName + " — " + MessageFormat.format(
                         Strings.get("resultsStatusInjuredFmt"), days);
             }
-            case KIA:
-                return outcome.captainName + " — " + Strings.get("resultsStatusKia");
-            case ACTIVE:
-            default:
-                return outcome.captainName + " — " + Strings.get("resultsStatusActive");
+            case KIA -> outcome.captainName + " — " + Strings.get("resultsStatusKia");
+            case ACTIVE, GARRISONED -> outcome.captainName + " — "
+                    + Strings.get("resultsStatusActive");
+        };
+    }
+
+    private static String statusTone(Status status) {
+        if (status == Status.INJURED) return "tone-accent";
+        if (status == Status.KIA) return "tone-danger";
+        return "tone-good";
+    }
+
+    private static ResultRow row(String id, String label, String value, String tone) {
+        return new ResultRow(id, label, value, "label result-value " + tone);
+    }
+
+    private void returnToMissions() {
+        context.forfeitLoot();
+        context.clearResolvedMission();
+        context.goTo(ScreenId.MISSION_SELECT);
+    }
+
+    @Override protected void onCancel() {
+        LootManifest manifest = context != null ? context.getLootManifest() : LootManifest.EMPTY;
+        if (manifest == null || manifest.isEmpty()) returnToMissions();
+    }
+
+    @Override
+    protected List<String> requiredElementIds() {
+        return List.of("mission-results-root", "mission-results-header",
+                "mission-results-body", "mission-results-summary",
+                "mission-results-outcome", "mission-results-rows",
+                "mission-results-personnel", "mission-results-squads",
+                "mission-results-actions", "mission-results-primary",
+                "mission-results-secondary");
+    }
+
+    record ResultRow(String id, String label, String value, String tone)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "labelId" -> id + "-label";
+                case "valueId" -> id + "-value"; case "label" -> label; case "value" -> value;
+                case "tone" -> tone; default -> null;
+            };
         }
     }
 
-    private static Color statusColor(Status status) {
-        if (status == Status.INJURED) return STATUS_INJURED;
-        if (status == Status.KIA)     return STATUS_KIA;
-        return STATUS_ACTIVE;
-    }
-
-    @Override
-    public void advance(float dt) {
-        widgets.advance(dt);
-    }
-
-    @Override
-    public void processInput(List<InputEventAPI> events) {
-        widgets.processInput(events);
-    }
-
-    @Override
-    public void render(float alphaMult) {
-        if (position == null) return;
-        // Card backdrop + frame
-        drawCardFrame(alphaMult);
-        widgets.render(alphaMult);
-    }
-
-    private void drawCardFrame(float alphaMult) {
-        // Tinted backdrop
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(0x10 / 255f, 0x14 / 255f, 0x1E / 255f, 0.92f * alphaMult);
-        glBegin(GL_QUADS);
-        glVertex2f(cardX,          cardY);
-        glVertex2f(cardX + CARD_W, cardY);
-        glVertex2f(cardX + CARD_W, cardY + CARD_H);
-        glVertex2f(cardX,          cardY + CARD_H);
-        glEnd();
-
-        // Border
-        glColor4f(FRAME_COLOR.getRed() / 255f, FRAME_COLOR.getGreen() / 255f,
-                FRAME_COLOR.getBlue() / 255f, 0.9f * alphaMult);
-        glLineWidth(1f);
-        glBegin(GL_LINE_LOOP);
-        glVertex2f(cardX,          cardY);
-        glVertex2f(cardX + CARD_W, cardY);
-        glVertex2f(cardX + CARD_W, cardY + CARD_H);
-        glVertex2f(cardX,          cardY + CARD_H);
-        glEnd();
+    record PersonnelRow(String id, String name, String summary, String tone,
+                        String members) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "topId" -> id + "-top";
+                case "nameId" -> id + "-name"; case "summaryId" -> id + "-summary";
+                case "membersId" -> id + "-members"; case "name" -> name;
+                case "summary" -> summary; case "tone" -> tone;
+                case "members" -> members; default -> null;
+            };
+        }
     }
 }
