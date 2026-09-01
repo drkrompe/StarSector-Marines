@@ -29,6 +29,15 @@ public enum MechWeaponComponent {
     DEMOLITION_CANNON("Demolition cannon", MountFamily.ARMS,
             "weapon.mech-demolition-cannon", 1, 5,
             LayeredMechAppearance.ARMS_DEMOLITION_CANNON),
+    DUAL_MUSTER_AUTOGUNS("Dual Muster autoguns", MountFamily.ARMS,
+            "weapon.mech-muster-autogun", 6, -1,
+            LayeredMechAppearance.ARMS_MUSTER_AUTOGUN),
+    NOSE_MUSTER_AUTOGUN("Nose Muster autogun", MountFamily.ARMS,
+            "weapon.mech-muster-autogun", 3, -1,
+            LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN),
+    QUARRY_BREAKER_CANNON("Quarry breaker cannon", MountFamily.ARMS,
+            "weapon.mech-quarry-breaker", 1, 4,
+            LayeredMechAppearance.ARMS_QUARRY_BREAKER),
 
     SRM_5("SRM-5", MountFamily.SHOULDER, "weapon.mech-srm-pod",
             2, 6, LayeredMechAppearance.POD_SMALL_SRM),
@@ -43,7 +52,10 @@ public enum MechWeaponComponent {
             LayeredMechAppearance.POD_SHOULDER_LASER),
     THERMAL_LANCE("Thermal lance", MountFamily.SHOULDER,
             "weapon.mech-thermal-lance", 1, -1,
-            LayeredMechAppearance.POD_THERMAL_LANCE);
+            LayeredMechAppearance.POD_THERMAL_LANCE),
+    PIONEER_ROCKET_CRADLE("Pioneer rocket cradle", MountFamily.SHOULDER,
+            "weapon.mech-pioneer-rocket", 4, 3,
+            LayeredMechAppearance.POD_PIONEER_ROCKET);
 
     public enum MountFamily { ARMS, SHOULDER }
 

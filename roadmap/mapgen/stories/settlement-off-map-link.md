@@ -165,14 +165,16 @@ judging whether the new ground is better would leave neither question
 answerable.
 
 The rest of generation is on stock too, for now. The switch is one line in
-`BspCityGenerator.recipeFor`, and two things are in the way of pulling it:
+`BspCityGenerator.recipeFor`. Both things that were in the way of pulling it
+have since been fixed, so what remains is the ordering argument above rather
+than a defect — it is a decision to take deliberately, not a task that is
+blocked:
 
-**A spaceport world does not reliably get a port on a grown partition.** Over
-60 seeds with a size-5 spaceport market, the stock partition published four or
-more berths on 60 of 60 and the grown one on 33. The campus falls short because
-its candidate window is a hardcoded quadrant intersected with one trunk
-quadrant, and a grown skeleton often leaves too few connected leaves inside it.
-See `spaceport-campus-window.md`.
+~~**A spaceport world does not reliably get a port on a grown partition.**~~
+Fixed: the campus pocket is placed on the district block that actually holds a
+connected group of pad-sized leaves rather than in a hardcoded quadrant, and
+grown four-berth rates went from 33/60 to 58/60 with stock held at 60/60. See
+`mapgen-nouns.md` on placing a facility where it fits.
 
 An earlier version of this section put the stock rate at one in five and called
 the weakness pre-existing rather than grown-specific. That measurement was taken

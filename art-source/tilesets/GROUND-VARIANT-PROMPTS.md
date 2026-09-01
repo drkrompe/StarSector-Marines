@@ -122,6 +122,38 @@ powder. Eight variants:
 | 7 | two or three faint pale wind-scour streaks |
 | 8 | sparse dusting of darker grit frozen into the surface |
 
+## Families: nature grass and nature dirt -- fill the `nature-tiles` strip
+
+These are the two that actually reach the screen for `GroundKind.GRASS` and
+`GroundKind.DIRT`. Everything above is a `floors.*` pool, which
+`GroundRenderSystem` uses only when the nature strip fails to slice.
+
+Each was a *pair* that was really one picture: `nature.grass-1` and
+`nature.grass-2` named the same material file and packed byte-identical, and so
+did the two dirt frames. Both now run eight, with slot 1 keeping the shipped
+material and slots 2-8 generated against it.
+
+They differ from the families above in three ways, all of which the tools now
+take as flags:
+
+- **52x52, not 56.** A material-backed strip frame is sized from its material.
+  Pass `--cell 52` to both scripts.
+- **Aligned to the shipped material's mean, not to the batch's own.** These
+  extend a surface that already ships, so the family has to land where that
+  surface already sits or every temperate map changes colour. Grass is
+  `--mean 87.8,101.0,45.7`; dirt is `--mean 100.2,86.5,50.2`. Read the mean off
+  `atlas-material-source/game-buffs-forest/{grass,dirt}.png` rather than
+  trusting these numbers if the material is ever replaced.
+- **Wrapped by overlap, not by the four-corner blend.** Both have visible
+  structure -- blade clusters, soft cloudy mottle -- and the blend averages
+  structure away and leaves a chequerboard. Pass `--band 13 --scale 2`.
+
+The prompts asked for a flat overhead surface with no directional lighting and
+no recognisable object, eight variants differing only in the arrangement of fine
+detail; the same eight-row table the families above use. What mattered more than
+the wording was stating the average colour in the prompt *and* the reference
+file's path, then fixing the colour afterwards with `--mean` regardless.
+
 ## Running it
 
 ```bash
@@ -137,11 +169,28 @@ codex exec -s workspace-write --skip-git-repo-check "<prompt>"
 `codex exec` returns a large square picture of a material. It cannot return a
 tile: the model has no way to see its own edges, so no amount of prompting makes
 opposite ones meet. `normalize_ground_variants.py` takes the masters and
-produces the tile -- a double-sized centre crop, downscaled, then wrapped by a
-four-corner blend that is periodic by construction rather than by inspection.
+produces the tile -- a double-sized centre crop, downscaled, then wrapped.
 It also shifts each tile onto the family's mean colour, which is a constant per
 channel and leaves the texture alone; the snow batch landed at a sibling spread
 of 8.2 and came out at 0.9.
+
+**There are two wraps, and picking the wrong one is a visible fault.** The
+default four-corner blend is periodic by construction and pays for it across the
+whole tile: the four samples are equally weighted at the centre and singly
+weighted at the corners, so the tile comes out flatter in the middle than at its
+edges. On fine grain that is invisible -- it is why the regolith, dust and snow
+families score a seam ratio of zero. On a texture with features it does two
+things at once: it averages the features away, and the centre-to-edge contrast
+step reads as a chequerboard of darker squares once the tile repeats. The first
+nature-dirt batch scored 5.59 against a threshold of 3.5 for exactly that, with
+its colour already perfect.
+
+`--band N` selects the overlap wrap instead: the source is N pixels wider than
+the tile and those pixels are cross-faded back over the near edge, so the result
+is exactly periodic and exactly the source across the middle. The same batch
+scored 1.19 with its mottle intact. Blend for noise; overlap for anything you
+can point at a feature in. `--scale` controls how far the master is downscaled
+before either wrap -- drop it from 4 to 2 when the features are the point.
 
 **Do not ask the agent to do this step.** `codex` runs under a pwsh that has
 neither `magick` nor any Python its `py` launcher can find, so it will generate

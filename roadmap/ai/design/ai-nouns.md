@@ -5,10 +5,18 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 Written: 2026-08-23
 
 Updated: 2026-09-01 — berth-bound work is a round of the machines, so a crew
-comes round to every stand in its room instead of pinning one each; a works-crew
-replacement arrives the way its own side
+comes round to every stand in its room instead of pinning one each.
+
+Earlier 2026-09-01 — an order that names a room may now close its own firing
+gap, contained to that room rather than excluded from the improvement outright.
+
+Earlier 2026-09-01 — a works-crew replacement now arrives the way its own side
 can: the defender walks on at their rear edge, the marines fly to a stand-off
 short of the work and walk the rest.
+
+Earlier 2026-08-31 — finished the goal ladder's floor: yielding an order is
+now a state a squad can be in rather than an absence of one, so a squad that
+declines its own assignment stands to instead of standing plan-less.
 
 Earlier 2026-08-31 — gave the goal ladder a floor: relevance and workability
 are separated, the ladder descends past a goal that cannot be planned, and
@@ -1022,11 +1030,26 @@ firing-position search as a disguise. A fixed anchor bounds the total
 excursion to that leash from the cell the squad was actually sent to, however
 long it spends trying, and a target too far off the destination for any cell
 inside the leash to reach is simply left to the ordinary route. That
-asymmetry is the feature. The improvement is confined to orders that carry no
-target zone: the firing-position search scores walkability and leash distance
-and knows nothing of zones or portals, and a room is routinely smaller across
-than the leash, so on a crossing to a named room the better shot could sit in
-the wrong room or past a portal the squad has not been told to cross.
+asymmetry is the feature.
+
+**The footprint is the leash and, where the order names one, the room.** The
+improvement was once confined to orders carrying no target zone at all, because
+the firing-position search scores walkability, leash distance, range and line of
+fire and knows nothing of rooms or portals — and a room is routinely smaller
+across than the leash, so around a destination inside one the best cell may sit
+in the room next door or past a portal the squad has not been told to cross.
+That exclusion turned out to cost most of the behaviour: measured over a whole
+Conquest matrix, well over half the members reaching this gate were refused for
+naming a room, and a seventh of those had a legal cell inside their own leash.
+Containment is the answer rather than exclusion, and it belongs in the search,
+where every candidate can be tested rather than only the one that won. A member
+running this clause is by definition standing outside the room it was sent to,
+so confining the search to that room says something simple: if you are going to
+divert in order to shoot, divert to somewhere inside the place you were sent.
+An order naming no room — an attack move — has nothing to be contained by and
+is searched exactly as before. A threshold belongs to neither room it stands
+between and is therefore refused for free, which is right: a doorway is the one
+cell near a room that somebody meaning to hold it should not be standing in.
 
 **Squads under one attack move are a maneuver group, the way fire teams inside
 a squad are.** Left to themselves, several squads converging on one position
