@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Sector;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -206,6 +207,34 @@ public final class TacticalScoring {
      * targets blindly regardless of whether a visible candidate was available.
      */
     public static final float TARGET_NO_LOS_COST = 10f;
+
+    /**
+     * Turns off perception-gated target picking, restoring the omniscient
+     * acquisition this shipped with. On by default;
+     * {@code -Dbattle.targeting.perceptionGated=false} is the control run.
+     *
+     * <p>Two separate pieces of omniscience lived here. The visibility test is
+     * a line between two cells and carries no distance bound at all, so a
+     * marine saw anybody standing anywhere down an unobstructed lane, a
+     * corridor the length of the map included. And the any-distance fallback
+     * handed back the nearest hostile whether or not there was any line to it
+     * at all, so a unit with nothing in sight still acquired whoever happened
+     * to be closest through the walls and walked at them. Instrumented over a
+     * Conquest matrix, roughly five in six activations of one downstream
+     * consumer were acting on a target outside the marine's own sight.
+     *
+     * <p>Kept as a switch rather than deleted because the fallback is
+     * load-bearing: its own documentation says it exists so a unit pathfinds
+     * toward a target and visibility eventually opens. What replaces it has to
+     * carry that weight through belief and mission command instead, and a
+     * control is how that is measured on one tree rather than against an older
+     * commit carrying every other difference with it.
+     */
+    public static final String PERCEPTION_GATED_TARGETS_PROPERTY =
+            "battle.targeting.perceptionGated";
+
+    private static final boolean PERCEPTION_GATED_TARGETS = Boolean.parseBoolean(
+            System.getProperty(PERCEPTION_GATED_TARGETS_PROPERTY, "true"));
 
     /**
      * Penalty added when a candidate target is in a different navigation zone
@@ -568,6 +597,17 @@ public final class TacticalScoring {
         private boolean allowNoLos;
         private float minRange;
         private float maxRange;
+        /**
+         * How far the perceiver can see, in cells. Read off the unit when the
+         * caller named one, and otherwise off the caller's own reach, which is
+         * the honest bound available for a weapon mount that is not somebody
+         * with eyes. A scan run from a squad's centroid names nobody and has no
+         * sight of its own: it is left unbounded and carried by belief and by a
+         * line from where the squad is standing.
+         */
+        private float perceptionRange;
+        /** Ids this perceiver's squad believes in. Refilled once per scan. */
+        private final LongOpenHashSet believed = new LongOpenHashSet();
 
         long best;
         float bestScore;
@@ -597,12 +637,77 @@ public final class TacticalScoring {
             this.bestScore = Float.MAX_VALUE;
             this.bestAny = 0L;
             this.bestAnyDist = Float.MAX_VALUE;
+            this.perceptionRange = resolvePerceptionRange(scoring, excludeFromCrowding, maxRange);
+            believed.clear();
+            if (selfSquadId != Squad.NO_SQUAD) {
+                Squad squad = scoring.roster.getSquad(selfSquadId);
+                if (squad != null) {
+                    for (BelievedContact contact : squad.believedContacts()) {
+                        believed.add(contact.unitId());
+                    }
+                }
+            }
+        }
+
+        /**
+         * A unit sees as far as its sight stat, and never less far than it
+         * shoots.
+         *
+         * <p>{@code UnitType} states that invariant as a property of the data —
+         * sight is "strictly &ge; attackRange so a unit always spots enemies
+         * before they enter weapon range" — and a type carrying no separate
+         * sight stat is documented as inheriting its attack range, which is the
+         * turret case. But attack range is also writable at runtime, and
+         * raising it does not raise sight with it, so the invariant is one
+         * {@code setAttackRange} away from being false. Taking the larger of
+         * the two enforces it here, at the one place that now depends on it.
+         *
+         * <p>It has to hold, because the consequence of breaking it is a unit
+         * that cannot acquire something standing inside its own weapon range:
+         * it would hold its fire and be shot to pieces by an enemy it was
+         * perfectly able to hit. Nothing about perception should be able to
+         * produce that.
+         *
+         * <p>A caller that named no unit is a weapon mount rather than somebody
+         * with eyes, so its own maximum range stands in; where that is
+         * unbounded too there is nothing left to bound it with and belief
+         * carries the scan.
+         */
+        private static float resolvePerceptionRange(TacticalScoring scoring,
+                                                    long self, float maxRange) {
+            if (self != 0L && scoring.roster.isAliveById(self)) {
+                float sight = Math.max(scoring.roster.vision().visionRange(self),
+                        scoring.roster.world().attackRange(self));
+                if (sight > 0f) return sight;
+            }
+            return maxRange;
         }
 
         @Override
         public void accept(long id, float snapshotX, float snapshotY) {
             float d = cellDistance(selfX, selfY, world.x(id), world.y(id));
             if (d < minRange || d > maxRange) return;
+            int ox = world.cellX(id);
+            int oy = world.cellY(id);
+
+            // Knowability is settled before anything else, because the
+            // any-distance fallback below is a hostile this caller is about to
+            // be handed and must not be somebody nobody has seen. There are
+            // two ways to know a hostile is there and they are the two the
+            // rest of the AI already runs on: this unit's own eyes, or its
+            // squad's belief -- that same seeing pooled over everybody who
+            // shares a net, which already answers the fire team too, a fire
+            // team being part of one squad.
+            boolean visible = false;
+            boolean visibilityResolved = false;
+            if (PERCEPTION_GATED_TARGETS && !believed.contains(id)) {
+                if (d > perceptionRange) return;
+                visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
+                        shooterAirRadius, vision.targetAirLosRadius(id));
+                visibilityResolved = true;
+                if (!visible) return;
+            }
+
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = id;
@@ -611,10 +716,14 @@ public final class TacticalScoring {
             }
 
             if (d - MAX_TARGET_SCORE_BONUS > bestScore) return;
-            int ox = world.cellX(id);
-            int oy = world.cellY(id);
-            boolean visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
-                    shooterAirRadius, vision.targetAirLosRadius(id));
+            if (!visibilityResolved) {
+                // A believed contact is still looked at before it is scored as
+                // a visible one: remembering where somebody was is not a line
+                // of fire to where they are.
+                visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
+                        shooterAirRadius, vision.targetAirLosRadius(id))
+                        && (!PERCEPTION_GATED_TARGETS || d <= perceptionRange);
+            }
             if (!visible && !allowNoLos) return;
             float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
                     selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
