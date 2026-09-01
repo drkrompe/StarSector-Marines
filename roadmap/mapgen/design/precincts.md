@@ -569,6 +569,17 @@ missing was not fewer gates but any control over how many.
    was wanted, but a thicker wall for a harder fortification would be nearly
    free — the outline is already computed — and would make the strength legible
    before contact as well as harder to breach.
+7. **A zoned precinct's kind does not reach its interior.** Its parcels are cut
+   from its own claim, which works, and are then themed by
+   `DistrictMap.themeAt` — an absolute map-position lookup on a fixed grid that
+   has never heard of a precinct. Measured on two derived maps, the three zoned
+   places came out 71–85% residential apiece and an *outlying* one carried 225
+   points of interest against the main settlement's 100. Only the ward, the
+   defence and the spawn anchor read a precinct key; the whole fill chain reads
+   none. The programmed path is clear — civilian buildings within thirty cells
+   of an installation seed measured 0 and 1 — so this is the zoned half alone.
+   `precinct-interior-coherence.md` owns it.
+
 (The ground allowance is now derived — see below.)
 
 ## The allowance is derived, and there are two derivations
