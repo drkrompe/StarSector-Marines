@@ -37,7 +37,8 @@ public class InfantryReflexOrderTest {
                         "OPPORTUNITY_SPECIAL",
                         "HARDENED_OPPORTUNITY",
                         "ONSET_SCREEN",
-                        "BROKEN_FIRE_TEAM"),
+                        "BROKEN_FIRE_TEAM",
+                        "LANE_SIDESTEP"),
                 InfantryReflexes.CHAIN.stream().map(Reflex::name).toList(),
                 "the marine's reflex order is a behaviour statement - see this test's "
                         + "javadoc before changing it");

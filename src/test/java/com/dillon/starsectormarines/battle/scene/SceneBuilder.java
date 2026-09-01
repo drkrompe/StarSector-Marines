@@ -210,6 +210,8 @@ public final class SceneBuilder {
         private int size = DEFAULT_SQUAD_SIZE;
         private int atX;
         private int atY;
+        private int fileStepX;
+        private int fileStepY;
         private boolean armed = true;
         private long kitSeed = DEFAULT_KIT_SEED;
         private boolean stationary;
@@ -243,6 +245,29 @@ public final class SceneBuilder {
         public SquadSpec at(int x, int y) {
             this.atX = x;
             this.atY = y;
+            this.fileStepX = 0;
+            this.fileStepY = 0;
+            return this;
+        }
+
+        /**
+         * Single file from {@code (x, y)}, one member per {@code (stepX, stepY)}.
+         *
+         * <p>The four-to-a-row cluster is a shape the arena has to be able to
+         * hold, and a corridor cannot: laid out that way in a three-cell
+         * passage half the squad spawns inside the walls. It is also the wrong
+         * shape for a scene about who is standing in whose lane, which needs
+         * the squad in column and would otherwise be measuring a formation the
+         * builder chose rather than the one the scene is named for.
+         */
+        public SquadSpec inFile(int x, int y, int stepX, int stepY) {
+            if (stepX == 0 && stepY == 0) {
+                throw new IllegalArgumentException("A file needs a direction to run in");
+            }
+            this.atX = x;
+            this.atY = y;
+            this.fileStepX = stepX;
+            this.fileStepY = stepY;
             return this;
         }
 
@@ -305,8 +330,12 @@ public final class SceneBuilder {
                     : null;
             spawned = new long[size];
             for (int i = 0; i < size; i++) {
-                EntitySpec spec = new EntitySpec(key + "-" + i, faction, type,
-                        atX - 2 + i % 4, atY + i / 4);
+                boolean inFile = fileStepX != 0 || fileStepY != 0;
+                EntitySpec spec = inFile
+                        ? new EntitySpec(key + "-" + i, faction, type,
+                                atX + i * fileStepX, atY + i * fileStepY)
+                        : new EntitySpec(key + "-" + i, faction, type,
+                                atX - 2 + i % 4, atY + i / 4);
                 if (mechVariant != null) mechVariant.applyTo(spec);
                 if (kit != null) kit[i].seedInto(spec);
                 spec.squad(squadId);

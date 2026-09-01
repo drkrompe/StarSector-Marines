@@ -318,6 +318,17 @@ public final class World {
     public String lastReflex(long id) { return (String) entityWorld.getObject(id, components.AI_STATE, BattleComponents.AI_STATE_LAST_REFLEX); }
     public void setLastReflex(long id, String v) { entityWorld.setObject(id, components.AI_STATE, BattleComponents.AI_STATE_LAST_REFLEX, v); }
 
+    /**
+     * Sim-seconds left in a {@code battle.infantry.LaneSidestep} step-aside, or
+     * {@code 0} when the unit is not stepping out of a squadmate's firing lane.
+     * Drained by {@code InfantryUnitPrep.tickCooldowns} alongside the other
+     * per-unit timers, and the marker that lets the reflex finish its own short
+     * move on later ticks without also adopting the post-fire cover reposition,
+     * which the reposition cooldown alone cannot distinguish it from.
+     */
+    public float sidestepTimer(long id) { return entityWorld.getFloat(id, components.AI_STATE, BattleComponents.AI_STATE_SIDESTEP_TIMER); }
+    public void setSidestepTimer(long id, float v) { entityWorld.setFloat(id, components.AI_STATE, BattleComponents.AI_STATE_SIDESTEP_TIMER, v); }
+
     // Mech loadout is an OPTIONAL capability in the world's MECH_LOADOUT component
     // (one OBJECT column holding the MechLoadoutComponent state bag) — presence IS
     // "is a mech". mechLoadout returns null when absent (so the scattered
