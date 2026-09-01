@@ -1,7 +1,8 @@
 # Precincts
 
-Status: ACTIVE — adopted. The noun, multi-seed growth, both claim policies and
-the derived allowance are built; fill, boundary and seeding are not.
+Status: ACTIVE — adopted. The noun, multi-seed growth, three claim policies,
+the derived allowance and programmed fill are built; the boundary and seeding
+are not.
 
 Written: 2026-09-01
 
@@ -56,6 +57,31 @@ Two things fall out of that rather than being built:
 
 A cell belongs to the precinct whose arms are nearest to it. That gives every
 precinct an outline without anybody choosing one.
+
+## A programmed place claims differently from a settled one
+
+This was found by asserting rather than assuming, and it is the one place the
+model does not collapse to a single rule.
+
+Growing a claim outward from a precinct's **roads** gives every arm a collar a
+couple of cells deep. For a town that is exactly right — buildings line streets,
+and the ground that matters is the ground you can front onto one. For a fortress
+it is useless. Measured on a grown garrison claim: buildable ground came out as
+a ribbon whose largest inscribed square was **5 cells** and whose best rectangle
+was **107x5**, against a program owing a **31x16** vehicle shed. Nothing was
+placed at all.
+
+Growing the same allowance outward from the precinct's **seed** pools it into a
+blob instead: largest square **40**, best rectangle **61x30**. The shed fits.
+It is still grown and still irregular — it stops where it meets a neighbour, so
+its outline is a fact about what is around it — and the precinct's own arms run
+through it as circulation, which is the shipped ward's arrangement arrived at
+from the other direction.
+
+So `PrecinctClaim` has three policies and the choice is a property of the kind
+of place: `nearest()` and `budgeted()` spread along streets, `compact()` pools
+around a seed. A programmed precinct needs `compact()` and cannot use the
+others.
 
 ## Fill is a policy, not a stage
 
