@@ -16,3 +16,4 @@ com.dillon.starsectormarines.ops.battleview.SunShadowSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.YieldFreezeSceneSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.SwarmOverkillSceneSnapshotSuite
 com.dillon.starsectormarines.battle.air.ShipsBoatsSnapshotSuite
+com.dillon.starsectormarines.battle.squad.PlayerOrderSceneSnapshotSuite

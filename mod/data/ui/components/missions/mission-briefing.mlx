@@ -1,4 +1,4 @@
-<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,debugClasses,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,debugClasses,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header surface-dark">
       <div id="mission-briefing-heading" class="mission-briefing-heading">
@@ -39,8 +39,92 @@
       </div>
 
       <div id="mission-planning" class="mission-planning">
+        <div id="mission-commitment" class="panel mission-commitment">
+          <div id="mission-force-summary" class="commitment-section surface-dark">
+            <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
+            <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
+            <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
+            <div id="mission-task-force" class="info-list">
+              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
+                <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
+                <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+              </div>
+            </div>
+          </div>
+          <div id="mission-loadout-grid" class="mission-loadout-grid">
+            <div id="mission-command-deck" class="commitment-section command-deck">
+              <div id="mission-command-heading" class="section-heading-row">
+                <div id="mission-command-title" class="label heading tone-edge">{commandHeader}</div>
+                <div id="mission-command-summary" class="label heading tone-accent">{commandSummary}</div>
+              </div>
+              <div id="mission-power-list" class="command-power-list">
+                <button each="power in powerRows" key="{power.id}" id="{power.id}" class="{power.classes}" disabled="{power.disabled}" onclick="{power.action}">
+                  <div id="{power.copyId}" class="choice-copy">
+                    <div id="{power.titleId}" class="label heading choice-title">{power.title}</div>
+                    <div id="{power.detailId}" class="label tone-muted choice-detail">{power.detail}</div>
+                  </div>
+                </button>
+              </div>
+              <div id="mission-power-empty" class="label tone-muted empty-copy">{powerEmpty}</div>
+            </div>
+            <div id="mission-logistics" class="mission-logistics">
+              <div id="mission-source-block" class="commitment-section">
+                <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
+                <div id="mission-source-list" class="choice-list source-list">
+                  <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
+                    <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
+                    <div id="{source.copyId}" class="choice-copy">
+                      <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
+                      <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
+                    </div>
+                  </button>
+                </div>
+                <div id="mission-source-empty" class="label tone-muted empty-copy">{sourceEmpty}</div>
+              </div>
+              <div id="mission-support-stack" class="mission-support-stack">
+                <div id="mission-lift-block" class="commitment-grid">
+                  <div id="mission-transport-block" class="commitment-section">
+                    <div id="mission-transport-heading" class="label heading tone-edge section-heading">{transportHeader}</div>
+                    <div id="mission-transport-list" class="info-list">
+                      <div each="row in transportRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
+                        <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
+                        <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="mission-carrier-block" class="commitment-section">
+                    <div id="mission-carrier-heading" class="label heading tone-edge section-heading">{carrierHeader}</div>
+                    <div id="mission-carrier-list" class="choice-list carrier-list">
+                      <button each="carrier in carrierRows" key="{carrier.id}" id="{carrier.id}" class="{carrier.classes}" disabled="{carrier.disabled}" onclick="{carrier.action}">
+                        <div id="{carrier.copyId}" class="choice-copy">
+                          <div id="{carrier.titleId}" class="label heading choice-title">{carrier.title}</div>
+                          <div id="{carrier.detailId}" class="label tone-muted choice-detail">{carrier.detail}</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div id="mission-employer-block" class="commitment-section surface-dark">
+                  <div id="mission-employer-heading" class="label heading tone-edge section-heading">{employerHeader}</div>
+                  <div id="mission-employer-list" class="info-list">
+                    <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
+                      <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
+                      <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="mission-briefing-actions" class="mission-briefing-actions">
+            <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">{assignLabel}</button>
+            <button id="mission-deploy" class="{deployClasses}" disabled="{deployDisabled}" onclick="{deployAction}">{deployLabel}</button>
+            <button id="mission-briefing-back" onclick="{backAction}">BACK</button>
+          </div>
+        </div>
+
         <div id="mission-debug-workspace" class="{debugClasses}">
-          <div id="mission-debug-heading" class="label heading tone-accent section-heading">{debugHeader}  ·  SCALE DEMANDED</div>
+          <div id="mission-debug-heading" class="label heading tone-accent section-heading">{debugHeader}  ·  SCALE &amp; FIXTURE</div>
           <div id="mission-tier-summary" class="label tone-edge tier-summary">{tierSummary}</div>
           <div id="mission-tier-track" class="mission-tier-track">
             <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
@@ -56,95 +140,16 @@
               <div id="{control.valueId}" class="label heading debug-control-value">{control.value}</div>
               <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
               <button id="{control.farPlusId}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
-              <button id="{control.cycleId}" class="debug-cycle" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+              <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
             </div>
           </div>
+          <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
           <div id="mission-debug-air" class="mission-debug-air">
             <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row">
               <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
               <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">{air.attackLabel}</button>
               <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">{air.defendLabel}</button>
             </div>
-          </div>
-        </div>
-
-        <div id="mission-commitment" class="panel mission-commitment">
-          <div id="mission-commitment-scroll" class="mission-commitment-scroll">
-            <div id="mission-force-summary" class="commitment-section surface-dark">
-              <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
-              <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
-              <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
-              <div id="mission-task-force" class="info-list">
-                <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
-                  <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-                  <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-                </div>
-              </div>
-            </div>
-            <div id="mission-command-deck" class="commitment-section">
-              <div id="mission-command-heading" class="section-heading-row">
-                <div id="mission-command-title" class="label heading tone-edge">{commandHeader}</div>
-                <div id="mission-command-summary" class="label heading tone-accent">{commandSummary}</div>
-              </div>
-              <div id="mission-power-list" class="choice-list">
-                <button each="power in powerRows" key="{power.id}" id="{power.id}" class="{power.classes}" disabled="{power.disabled}" onclick="{power.action}">
-                  <div id="{power.copyId}" class="choice-copy">
-                    <div id="{power.titleId}" class="label heading choice-title">{power.title}</div>
-                    <div id="{power.detailId}" class="label tone-muted choice-detail">{power.detail}</div>
-                  </div>
-                </button>
-              </div>
-              <div id="mission-power-empty" class="label tone-muted empty-copy">{powerEmpty}</div>
-            </div>
-            <div id="mission-source-block" class="commitment-section">
-              <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
-              <div id="mission-source-list" class="choice-list">
-                <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
-                  <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
-                  <div id="{source.copyId}" class="choice-copy">
-                    <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
-                    <div id="{source.detailId}" class="label tone-muted choice-detail">{source.detail}</div>
-                  </div>
-                </button>
-              </div>
-              <div id="mission-source-empty" class="label tone-muted empty-copy">{sourceEmpty}</div>
-            </div>
-            <div id="mission-lift-block" class="commitment-grid">
-              <div id="mission-transport-block" class="commitment-section">
-                <div id="mission-transport-heading" class="label heading tone-edge section-heading">{transportHeader}</div>
-                <div id="mission-transport-list" class="info-list">
-                  <div each="row in transportRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
-                    <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-                    <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-                  </div>
-                </div>
-              </div>
-              <div id="mission-carrier-block" class="commitment-section">
-                <div id="mission-carrier-heading" class="label heading tone-edge section-heading">{carrierHeader}</div>
-                <div id="mission-carrier-list" class="choice-list">
-                  <button each="carrier in carrierRows" key="{carrier.id}" id="{carrier.id}" class="{carrier.classes}" disabled="{carrier.disabled}" onclick="{carrier.action}">
-                    <div id="{carrier.copyId}" class="choice-copy">
-                      <div id="{carrier.titleId}" class="label heading choice-title">{carrier.title}</div>
-                      <div id="{carrier.detailId}" class="label tone-muted choice-detail">{carrier.detail}</div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div id="mission-employer-block" class="commitment-section surface-dark">
-              <div id="mission-employer-heading" class="label heading tone-edge section-heading">{employerHeader}</div>
-              <div id="mission-employer-list" class="info-list">
-                <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
-                  <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-                  <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div id="mission-briefing-actions" class="mission-briefing-actions">
-            <button id="mission-assign" onclick="{assignAction}">{assignLabel}</button>
-            <button id="mission-deploy" class="{deployClasses}" disabled="{deployDisabled}" onclick="{deployAction}">{deployLabel}</button>
-            <button id="mission-briefing-back" onclick="{backAction}">BACK</button>
           </div>
         </div>
       </div>
@@ -162,7 +167,7 @@
   #mission-briefing-purpose { width: 280px; padding: 14px 4px; text-align: right; }
   .mission-briefing-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
   .section-heading { height: 21px; }
-  .mission-overview { flex-direction: column; width: 596px; padding: 8px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .mission-overview { flex-direction: column; width: 462px; padding: 8px; gap: 8px; border-width: 1px; overflow: hidden; }
   .mission-overview-copy { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
   .mission-flavor { height: 82px; padding: 10px; border-width: 1px; }
   .mission-info-rows, .info-list { flex-direction: column; gap: 4px; }
@@ -172,9 +177,9 @@
   .compact-row { height: 31px; padding: 6px; }
   .info-label { width: 154px; }
   .info-value { width: 0px; flex-grow: 1; text-align: right; }
-  .mission-captain-block { flex-direction: column; height: 232px; padding: 8px; gap: 5px; border-width: 1px; background-color: #0e1621; }
+  .mission-captain-block { flex-direction: column; height: 286px; padding: 8px; gap: 5px; border-width: 1px; background-color: #0e1621; }
   .mission-captain-list, .choice-list { flex-direction: column; gap: 4px; overflow: scroll; }
-  .mission-captain-list { height: 185px; }
+  .mission-captain-list { height: 239px; }
   .choice-row { flex-direction: row; height: 48px; padding: 7px; gap: 8px; border-width: 1px; text-align: left; }
   .choice-row.selected { background-color: #315070; border-color: #78d494; }
   .choice-icon { width: 34px; height: 34px; }
@@ -182,9 +187,9 @@
   .choice-title { height: 17px; }
   .choice-detail { height: 16px; }
   .empty-copy { height: 18px; padding: 3px; }
-  .mission-planning { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .debug-workspace { flex-direction: column; height: 354px; padding: 8px; gap: 6px; border-width: 1px; overflow: scroll; }
-  .debug-hidden { height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
+  .mission-planning { flex-direction: row; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .debug-workspace { flex-direction: column; width: 530px; padding: 8px; gap: 6px; border-width: 1px; overflow: hidden; }
+  .debug-hidden { width: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
   .tier-summary { height: 20px; padding: 2px; }
   .mission-tier-track { flex-direction: row; height: 58px; gap: 4px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: center; }
@@ -194,28 +199,32 @@
   .tier-label { height: 17px; text-align: center; }
   .mission-debug-controls { flex-direction: column; height: 224px; gap: 4px; }
   .debug-control-row { flex-direction: row; height: 34px; gap: 4px; }
-  .debug-control-label { width: 190px; padding: 8px 3px; }
-  .debug-control-row button { width: 44px; padding: 5px 2px; border-width: 1px; text-align: center; font-family: heading; }
-  .debug-control-row .debug-cycle { width: 72px; }
-  .debug-control-value { width: 82px; padding: 8px 4px; border-width: 1px; border-color: #263b51; text-align: center; }
-  .mission-debug-air { display: grid; height: 204px; gap: 4px; }
+  .debug-control-label { width: 148px; padding: 8px 3px; }
+  .debug-control-row button { width: 43px; padding: 5px 2px; border-width: 1px; text-align: center; font-family: heading; }
+  .debug-control-row .debug-cycle { width: 68px; }
+  .debug-control-row .debug-cycle-absent { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
+  .debug-control-value { width: 68px; padding: 8px 4px; border-width: 1px; border-color: #263b51; text-align: center; }
+  .mission-debug-air { flex-direction: column; height: 224px; gap: 4px; overflow: hidden; }
   .debug-air-row { flex-direction: row; height: 32px; gap: 4px; padding: 2px; border-width: 1px; border-color: #263b51; }
   .debug-air-label { width: 100px; padding: 6px 3px; }
   .debug-air-row button { width: 84px; padding: 4px; border-width: 1px; font-family: heading; text-align: center; }
-  .mission-commitment { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
-  .mission-commitment-scroll { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; overflow: scroll; }
+  .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .commitment-section { flex-direction: column; padding: 8px; gap: 5px; border-width: 1px; border-color: #263b51; }
-  #mission-force-summary { height: 170px; }
-  #mission-task-force { height: 100px; overflow: scroll; }
-  #mission-command-deck { height: 190px; }
-  #mission-power-list { height: 150px; }
-  #mission-source-block { height: 92px; }
-  #mission-source-list { height: 54px; }
-  .commitment-grid { flex-direction: row; height: 118px; gap: 7px; }
-  .commitment-grid .commitment-section { width: 50%; }
-  #mission-transport-list, #mission-carrier-list { height: 70px; overflow: scroll; }
-  #mission-employer-block { height: 112px; }
-  #mission-employer-list { height: 76px; overflow: scroll; }
+  #mission-force-summary { height: 246px; }
+  #mission-task-force { height: 141px; overflow: hidden; }
+  .mission-loadout-grid { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  .command-deck { width: 100%; height: 205px; }
+  .command-power-list { display: grid; height: 159px; gap: 5px; overflow: hidden; }
+  .command-power-list .choice-row { width: 250px; height: 64px; }
+  .mission-logistics { flex-direction: row; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  #mission-source-block { width: 0px; flex-grow: 1; }
+  #mission-source-list { height: 0px; flex-grow: 1; }
+  .mission-support-stack { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  .commitment-grid { flex-direction: column; height: 218px; gap: 7px; }
+  .commitment-grid .commitment-section { width: 100%; height: 103px; }
+  #mission-transport-list, #mission-carrier-list { height: 55px; overflow: hidden; }
+  #mission-employer-block { height: 0px; flex-grow: 1; }
+  #mission-employer-list { height: 0px; flex-grow: 1; overflow: hidden; }
   .commitment-summary { height: 19px; }
   .commitment-note { height: 17px; }
   .section-heading-row { flex-direction: row; height: 21px; }
@@ -223,6 +232,7 @@
   #mission-command-summary { text-align: right; }
   .mission-briefing-actions { flex-direction: row; height: 38px; gap: 7px; }
   .mission-briefing-actions button { width: 0px; flex-grow: 1; padding: 7px; border-width: 1px; font-family: heading; text-align: center; }
+  .mission-briefing-actions .briefing-assign-hidden { width: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; }
   .briefing-deploy { color: #78d494; }
   .briefing-blocked { color: #e98b83; }
 </style>
