@@ -929,6 +929,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return groundSystem == null ? null : groundSystem.moveOrders();
     }
     /** Exact-mech move executor used by the mech unit-dispatch path. */
+    @Override
     public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
     /** Player battle-only infantry squad move-order mailbox and projection. */
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
