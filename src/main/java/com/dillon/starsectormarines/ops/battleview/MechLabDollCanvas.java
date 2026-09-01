@@ -48,7 +48,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final Color VACANT_FILL = new Color(0x08, 0x18, 0x24, 214);
     private static final Color VACANT_EDGE = new Color(0x6D, 0xD5, 0xF2, 226);
     private static final Color VACANT_HOVER = new Color(0xFF, 0xD4, 0x64, 246);
-    private static final float VACANT_ACTION_SIZE = 52f;
+    private static final float VACANT_PAD_INSET_RATIO = 0.045f;
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
@@ -164,11 +164,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), projection);
         }
-        if (projection != null) {
-            drawTechnicianFx(context, projection, berthX, berthY,
-                    workingPoses(aboard), time,
-                    weldingTorch.get(), weldingSparks.get());
-        }
+        drawTechnicianFx(context, sceneCamera, host[0], workingPoses(aboard), time,
+                weldingTorch.get(), weldingSparks.get());
     }
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
@@ -192,22 +189,60 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<VacantGantryTarget> targets = new ArrayList<>();
         for (int index = Math.max(0, occupied); index < count; index++) {
             Gantry gantry = standing.get(index);
-            float centerX = camera.cellToScreenX(gantry.centerX + 0.5f) / viewport.scaleX();
-            float centerY = (viewport.height()
-                    - camera.cellToScreenY(gantry.centerY + 0.5f)) / viewport.scaleY();
+            PadBounds pad = padBounds(gantry);
+            float left = camera.cellToScreenX(pad.left()) / viewport.scaleX();
+            float right = camera.cellToScreenX(pad.right()) / viewport.scaleX();
+            float top = (viewport.height() - camera.cellToScreenY(pad.top()))
+                    / viewport.scaleY();
+            float bottom = (viewport.height() - camera.cellToScreenY(pad.bottom()))
+                    / viewport.scaleY();
+            float width = Math.abs(right - left);
+            float height = Math.abs(bottom - top);
+            float inset = Math.max(4f, Math.min(width, height) * VACANT_PAD_INSET_RATIO);
             VacantGantryTarget target = new VacantGantryTarget(index,
-                    centerX - VACANT_ACTION_SIZE * 0.5f,
-                    centerY - VACANT_ACTION_SIZE * 0.5f,
-                    VACANT_ACTION_SIZE, VACANT_ACTION_SIZE);
+                    Math.min(left, right) + inset, Math.min(top, bottom) + inset,
+                    Math.max(1f, width - inset * 2f),
+                    Math.max(1f, height - inset * 2f));
             targets.add(target);
             Color edge = index == hoveredVacantGantry ? VACANT_HOVER : VACANT_EDGE;
             context.fillRect(target.x(), target.y(), target.width(), target.height(), VACANT_FILL);
-            context.strokeRect(target.x(), target.y(), target.width(), target.height(), edge, 2f);
-            float arm = VACANT_ACTION_SIZE * 0.22f;
-            context.line(centerX - arm, centerY, centerX + arm, centerY, edge, 4f);
-            context.line(centerX, centerY - arm, centerX, centerY + arm, edge, 4f);
+            context.strokeRect(target.x(), target.y(), target.width(), target.height(), edge, 3f);
+            float centerX = target.x() + target.width() * 0.5f;
+            float centerY = target.y() + target.height() * 0.5f;
+            float shortSide = Math.min(target.width(), target.height());
+            float arm = shortSide * 0.23f;
+            float stroke = Math.max(4f, Math.min(10f, shortSide * 0.055f));
+            context.line(centerX - arm, centerY, centerX + arm, centerY, edge, stroke);
+            context.line(centerX, centerY - arm, centerX, centerY + arm, edge, stroke);
         }
         vacantGantryTargets = List.copyOf(targets);
+    }
+
+    /**
+     * The physical five-by-seven work pad around a machine berth.
+     *
+     * <p>The clear berth is three cells across and six deep. Its frame adds one
+     * cell down each flank, while the control station adds the seventh cell at
+     * the head opposite the exit direction. UI actions project this rectangle
+     * as a whole; they are not a fixed pixel box or a pretend one-cell button.
+     */
+    static PadBounds padBounds(Gantry gantry) {
+        float left = gantry.left();
+        float bottom = gantry.bottom();
+        float right = gantry.right() + 1f;
+        float top = gantry.top() + 1f;
+        if (gantry.facing.dx == 0) {
+            left -= 1f;
+            right += 1f;
+            if (gantry.facing.dy > 0) bottom -= 1f;
+            else top += 1f;
+        } else {
+            bottom -= 1f;
+            top += 1f;
+            if (gantry.facing.dx > 0) left -= 1f;
+            else right += 1f;
+        }
+        return new PadBounds(left, bottom, right, top);
     }
 
     /**
@@ -230,12 +265,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     private static float berthCellX(List<Gantry> berths, int index) {
         return berths.isEmpty() ? 0f
-                : berths.get(Math.max(0, Math.min(berths.size() - 1, index))).centerX + 0.5f;
+                : berths.get(Math.max(0, Math.min(berths.size() - 1, index))).worldCenterX();
     }
 
     private static float berthCellY(List<Gantry> berths, int index) {
         return berths.isEmpty() ? 0f
-                : berths.get(Math.max(0, Math.min(berths.size() - 1, index))).centerY + 0.5f;
+                : berths.get(Math.max(0, Math.min(berths.size() - 1, index))).worldCenterY();
     }
 
     private static int selectedIndex(int requested) {
@@ -355,6 +390,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
+    record PadBounds(float left, float bottom, float right, float top) {
+        float width() { return right - left; }
+        float height() { return top - bottom; }
+    }
+
     private static Color socketColor(SocketType type) {
         return switch (type) {
             case CORE -> new Color(0xF0, 0xC9, 0x52);
@@ -370,34 +410,40 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     }
 
-    private static void drawTechnicianFx(CanvasContext c, SceneProjection projection,
-                                         float originX, float originY,
+    private static void drawTechnicianFx(CanvasContext c, BattleCamera camera,
+                                         CanvasHostViewport viewport,
                                          List<AmbientTaskPose> poses, float time,
                                          SpriteAPI torch, SpriteAPI sparks) {
+        float cellX = camera.cellPxSize() / viewport.scaleX();
+        float cellY = camera.cellPxSize() / viewport.scaleY();
+        float surfaceWidth = c.metrics().surfaceWidth();
+        float surfaceHeight = c.metrics().surfaceHeight();
         for (int index = 0; index < poses.size(); index++) {
             AmbientTaskPose pose = poses.get(index);
             if (pose.activity() != AmbientActivity.WORKING) {
                 continue;
             }
-            float technicianX = projection.actorX()
-                    + (pose.worldX() - originX) * projection.cellX();
-            float technicianY = projection.actorY()
-                    - (pose.worldY() - originY) * projection.cellY();
-            float focusX = projection.actorX()
-                    + (pose.focusX() - originX) * projection.cellX();
-            float focusY = projection.actorY()
-                    - (pose.focusY() - originY) * projection.cellY();
+            float technicianX = camera.cellToScreenX(pose.worldX()) / viewport.scaleX();
+            float technicianY = (viewport.height() - camera.cellToScreenY(pose.worldY()))
+                    / viewport.scaleY();
+            float focusX = camera.cellToScreenX(pose.focusX()) / viewport.scaleX();
+            float focusY = (viewport.height() - camera.cellToScreenY(pose.focusY()))
+                    / viewport.scaleY();
+            if (focusX < -cellX || focusY < -cellY
+                    || focusX > surfaceWidth + cellX || focusY > surfaceHeight + cellY) {
+                continue;
+            }
             float torchX = lerp(technicianX, focusX, 0.48f);
             float torchY = lerp(technicianY, focusY, 0.48f);
             c.sprite(WELDING_TORCH_PATH, torch,
                     torchX, torchY,
-                    projection.cellX() * 0.42f, projection.cellY() * 0.72f,
+                    cellX * 0.42f, cellY * 0.72f,
                     pose.facingDegrees(), WHITE);
             int frame = Math.floorMod(
                     (int) Math.floor(time * 12f + index * 1.7f) + 2, 8);
             c.sprite(WELDING_SPARKS_PATH, sparks,
                     focusX, focusY,
-                    projection.cellX() * 1.08f, projection.cellY() * 1.08f,
+                    cellX * 1.08f, cellY * 1.08f,
                     0f, WHITE, CanvasSpriteRegion.frame(4, 2, frame), CanvasBlend.ADDITIVE);
         }
     }
