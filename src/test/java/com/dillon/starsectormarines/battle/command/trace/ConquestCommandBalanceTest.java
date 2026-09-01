@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -66,17 +67,38 @@ class ConquestCommandBalanceTest {
             boolean canonical = maxTicks == DEFAULT_MAX_TICKS
                     && System.getProperty(
                     "commander.balance.fixture.path", "").isBlank();
-            List<ReportRow> rows = new ArrayList<>(matrix.size());
+            int repeat = EvidenceFanOut.repeat();
+            List<LoadedFixture> loadedMatrix = new ArrayList<>(matrix.size());
+            List<String> runIds = new ArrayList<>(matrix.size());
+            List<Callable<RunResult>> replays = new ArrayList<>();
             for (FixtureSpec spec : matrix) {
                 LoadedFixture loaded = load(spec);
                 BattleFixture fixture = loaded.fixture;
                 String runId = reportId(spec.id, spec.external, loaded.sha256);
-                RunResult first = run(fixture, maxTicks, staging, runId);
-                RunResult second = run(fixture, maxTicks, null, runId);
-                assertByteStable(first.trace, second.trace,
-                        "command events", runId);
-                assertByteStable(first.analysis.canonicalJson(),
-                        second.analysis.canonicalJson(), "metrics", runId);
+                loadedMatrix.add(loaded);
+                runIds.add(runId);
+                for (int replica = 0; replica < repeat; replica++) {
+                    // Only the replay whose trace is published records the
+                    // frames; a replica exists to be compared, not looked at.
+                    Path visualRoot = replica == 0 ? staging : null;
+                    replays.add(() -> run(fixture, maxTicks, visualRoot, runId));
+                }
+            }
+            List<RunResult> results = EvidenceFanOut.run(replays);
+
+            List<ReportRow> rows = new ArrayList<>(matrix.size());
+            for (int index = 0; index < matrix.size(); index++) {
+                LoadedFixture loaded = loadedMatrix.get(index);
+                String runId = runIds.get(index);
+                List<RunResult> replicas = results.subList(
+                        index * repeat, (index + 1) * repeat);
+                RunResult first = replicas.get(0);
+                EvidenceFanOut.assertReplaysByteStable(runId, "command events",
+                        replicas.stream().map(RunResult::trace).toList());
+                EvidenceFanOut.assertReplaysByteStable(runId, "metrics",
+                        replicas.stream()
+                                .map(replica -> replica.analysis()
+                                        .canonicalJson()).toList());
                 assertTrue(first.trace.contains("\"perspective\":\"MARINE\""));
                 assertTrue(first.trace.contains("\"perspective\":\"DEFENDER\""));
                 Files.writeString(traces.resolve(runId + ".jsonl"), first.trace,
@@ -90,10 +112,10 @@ class ConquestCommandBalanceTest {
                         + first.analysis.run().durationTicks());
             }
             Files.writeString(staging.resolve("summary.json"),
-                    summaryJson(rows, maxTicks, canonical),
+                    summaryJson(rows, maxTicks, canonical, repeat),
                     StandardCharsets.UTF_8);
             Files.writeString(staging.resolve("summary.md"),
-                    summaryMarkdown(rows, maxTicks, canonical),
+                    summaryMarkdown(rows, maxTicks, canonical, repeat),
                     StandardCharsets.UTF_8);
             publishReports(staging, output);
         } finally {
@@ -175,26 +197,6 @@ class ConquestCommandBalanceTest {
                 HexFormat.of().formatHex(digest));
     }
 
-    private static void assertByteStable(
-            String first, String second, String evidence, String runId) {
-        if (first.equals(second)) return;
-        String[] firstLines = first.split("\\R", -1);
-        String[] secondLines = second.split("\\R", -1);
-        int shared = Math.min(firstLines.length, secondLines.length);
-        int line = 0;
-        while (line < shared && firstLines[line].equals(secondLines[line])) line++;
-        String firstValue = line < firstLines.length
-                ? firstLines[line] : "<missing>";
-        String secondValue = line < secondLines.length
-                ? secondLines[line] : "<missing>";
-        int character = firstDifferingCharacter(firstValue, secondValue);
-        throw new AssertionError("same fixture must produce byte-stable "
-                + evidence + ": " + runId + "; first difference at line "
-                + (line + 1) + ", character " + (character + 1)
-                + "\nfirst: " + excerpt(firstValue, character)
-                + "\nsecond: " + excerpt(secondValue, character));
-    }
-
     /**
      * Renders an order mix as shares of published directives, largest first.
      * Percentages are integers deliberately: this is a "what was this battle
@@ -215,23 +217,6 @@ class ConquestCommandBalanceTest {
         }
         return out.append(" of ").append(total)
                 .append(" squad-pulses.").toString();
-    }
-
-    private static int firstDifferingCharacter(String first, String second) {
-        int shared = Math.min(first.length(), second.length());
-        int character = 0;
-        while (character < shared
-                && first.charAt(character) == second.charAt(character)) character++;
-        return character;
-    }
-
-    private static String excerpt(String value, int difference) {
-        int radius = 500;
-        int start = Math.max(0, difference - radius);
-        int end = Math.min(value.length(), difference + radius);
-        return (start > 0 ? "..." : "") + value.substring(start, end)
-                + (end < value.length() ? "..." : "")
-                + " [" + value.length() + " chars]";
     }
 
     private static void validateCanonicalLaunch(
@@ -274,12 +259,13 @@ class ConquestCommandBalanceTest {
     }
 
     static String summaryJson(List<ReportRow> rows, int maxTicks,
-                              boolean canonical) {
+                              boolean canonical, int repeat) {
         StringBuilder out = new StringBuilder(2_048)
                 .append("{\"schemaVersion\":8,\"schedulerMode\":")
                 .append("\"SERIAL_DETERMINISTIC\",\"maxTicks\":")
                 .append(maxTicks)
-                .append(",\"repeatCount\":2,\"canonicalMatrix\":")
+                .append(",\"repeatCount\":").append(repeat)
+                .append(",\"canonicalMatrix\":")
                 .append(canonical).append(",\"runs\":[");
         for (int i = 0; i < rows.size(); i++) {
             if (i > 0) out.append(',');
@@ -304,16 +290,17 @@ class ConquestCommandBalanceTest {
     }
 
     static String summaryMarkdown(List<ReportRow> rows, int maxTicks,
-                                  boolean canonical) {
+                                  boolean canonical, int repeat) {
         StringBuilder out = new StringBuilder(2_048)
                 .append("# Conquest commander evidence\n\n")
-                .append("Forced-serial, zero-input production launch fixtures. ")
-                .append("A timeout is evidence, not a defender victory. The JSON ")
+                .append("Forced-serial, zero-input production launch fixtures, ")
+                .append(EvidenceFanOut.replayWording(repeat))
+                .append(". A timeout is evidence, not a defender victory. The JSON ")
                 .append("summary is the complete machine-readable record.\n\n")
                 .append("- Evidence mode: ").append(canonical
                         ? "canonical default matrix" : "ad hoc override")
                 .append("\n- Maximum ticks: ").append(maxTicks)
-                .append("\n- Replays per fixture: 2\n")
+                .append("\n- Replays per fixture: ").append(repeat).append('\n')
                 .append("- Scheduler: SERIAL_DETERMINISTIC\n\n")
                 .append("| fixture | seed | shuttle cycles | transport seats | committed marines | squads | result | winner | ticks | ")
                 .append("marine losses | defender losses | captures | final held | ")

@@ -284,6 +284,18 @@ tasks.register('commanderEvidence', Test) {
         if (!maxTicks.isBlank()) {
             systemProperty "${prefix}.maxTicks", maxTicks
         }
+        def repeat = providers.gradleProperty('repeat')
+                .orElse(providers.systemProperty('commander.evidence.repeat'))
+                .getOrElse('').trim()
+        def parallelism = providers.gradleProperty('parallelism')
+                .orElse(providers.systemProperty('commander.evidence.parallelism'))
+                .getOrElse('').trim()
+        if (!repeat.isBlank()) {
+            systemProperty 'commander.evidence.repeat', repeat
+        }
+        if (!parallelism.isBlank()) {
+            systemProperty 'commander.evidence.parallelism', parallelism
+        }
         def visualArguments = [
                 snapshotEveryTicks: 'commander.evidence.snapshot.everyTicks',
                 gifFrameDelayMillis: 'commander.evidence.snapshot.frameDelayMillis',
@@ -303,6 +315,44 @@ tasks.register('commanderEvidence', Test) {
                     'commanderEvidence requires -Pmission=conquest, sabotage, assault, raid, or extraction')
         }
     }
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// The determinism check that used to ride along on every balance run. Replaying
+// the whole matrix twice, serially, to end in an equals() is most of what a
+// commander-evidence run cost, and none of it was evidence about the battle.
+// What the check actually needs is one fixture and a few thousand ticks.
+//
+// Raising `-Pparallelism` runs the replicas side by side, which asks a second
+// question the serial form never could: whether two simulations in one JVM see
+// each other. They currently do - LosCache's enable flag and its clearAll sweep
+// are process-global rather than per sim - so that mode fails today, and is a
+// probe rather than a check until a cache belongs to the sim that owns it.
+tasks.register('simDeterminism', Test) {
+    group = 'verification'
+    description = 'Replay the conquest matrix twice for a bounded tick budget and fail on the first byte that differs.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'commander-balance'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    systemProperty 'commander.evidence.repeat', '2'
+    systemProperty 'commander.evidence.parallelism',
+            providers.gradleProperty('parallelism')
+                    .orElse(providers.systemProperty(
+                            'commander.evidence.parallelism'))
+                    .getOrElse('1').trim()
+    systemProperty 'commander.balance.maxTicks',
+            providers.gradleProperty('maxTicks').getOrElse('3000').trim()
+    systemProperty 'commander.balance.outputDir',
+            layout.buildDirectory.dir('reports/sim-determinism')
+                    .get().asFile.absolutePath
     testLogging {
         showStandardStreams = true
     }

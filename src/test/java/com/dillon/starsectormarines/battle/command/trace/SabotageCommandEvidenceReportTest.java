@@ -43,9 +43,9 @@ class SabotageCommandEvidenceReportTest {
                         "fixture", sha, fixture, analysis);
 
         String json = SabotageCommandEvidenceTest.summaryJson(
-                List.of(row), 600, false);
+                List.of(row), 600, false, 2);
         String markdown = SabotageCommandEvidenceTest.summaryMarkdown(
-                List.of(row), 600, false);
+                List.of(row), 600, false, 2);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
         assertTrue(json.contains("\"repeatCount\":2"));
