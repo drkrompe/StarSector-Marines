@@ -158,13 +158,21 @@ public final class InfantryReflexes {
      * A marine with one of his own in his firing lane moves a cell rather than
      * shooting through them or picking somebody else to shoot at.
      *
-     * <p>Last, and below {@link #BROKEN_FIRE_TEAM} on purpose: a marine whose
-     * fire team has broken is leaving, not adjusting his firing position, and
-     * the two would otherwise fight over the same tick with the smaller
-     * question winning. It is the lowest-ranked reflex because it is the least
-     * urgent thing on this list — nothing here is about to kill him — and
-     * because everything above it is about a shot or a hazard already in
-     * flight.
+     * <p><b>It never interrupts</b>, in the way {@link #COOLDOWNS} never
+     * interrupts: it authors a path and declines, so the marine's assigned step
+     * still runs, still shoots, and is what walks him along it. A step-aside
+     * that consumed the tick was measured and cost compounds — see
+     * {@link LaneSidestep} — because a marine who stops shooting for a second
+     * and a half to move a cell is a marine spending the one thing a timed
+     * advance cannot spare.
+     *
+     * <p>Its rank still decides something even so. Last, and below
+     * {@link #BROKEN_FIRE_TEAM} on purpose: a marine whose fire team has broken
+     * is leaving rather than adjusting his firing position, and that reflex
+     * consumes the tick, so a peeling marine is never handed a sidestep to
+     * carry out on his way. Everything above it is about a shot or a hazard
+     * already in flight, and none of that should have a lateral step authored
+     * underneath it.
      *
      * @see LaneSidestep for what it will and will not trade to clear the lane
      */
@@ -176,7 +184,13 @@ public final class InfantryReflexes {
         }
     };
 
-    /** The marine's reflex chain, highest priority first. */
+    /**
+     * The marine's reflex chain, highest priority first. Two entries —
+     * {@link #COOLDOWNS} and {@link #LANE_SIDESTEP} — never consume a tick;
+     * they are in the list because the list is where a reader looks to find out
+     * what happens to a marine before his step runs, and because their rank
+     * still says which interrupts pre-empt them.
+     */
     public static final List<Reflex> CHAIN = List.of(
             COMMITTED_AIM,
             COOLDOWNS,

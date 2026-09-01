@@ -62,7 +62,7 @@ import java.util.Map;
  * question of geometry.
  *
  * <h2>What it found</h2>
- * <p>Two things, and the first was about the reflex rather than about the
+ * <p>Three things, and the first was about the reflex rather than about the
  * squad. Gated on the pursuit target alone the sidestep could never fire here
  * at all: a planted squad runs {@code OverwatchPosture}, which deliberately
  * holds no pursuit target and leaves the shooting to the dispatcher's
@@ -71,11 +71,28 @@ import java.util.Map;
  * there is no pursuit target, which is the id the firing system will actually
  * let a round go at.
  *
- * <p>With that and a corridor wide enough to step in, the control puts 5.9 HP
- * into its own men and the subject puts none, both loops land the identical
- * 100.0 HP on the enemy, and all six marines are alive at the end of both. Four
- * sidesteps carry the whole difference, which is the shape of the finding: the
- * fault is a handful of rounds and the cure is a handful of steps.
+ * <p>The second is that <b>a planted step throws the move away on the tick it
+ * is authored</b>. Once the reflex stopped consuming the tick, three steps that
+ * plant a marine who can fire from where he stands — {@code OverwatchPosture}
+ * and {@code DefendArea}'s two motion branches — cleared the path out from
+ * under it. Measured: without the guards that teach them
+ * {@link LaneSidestep#isStepping}, nine sidesteps were authored and only three
+ * covered any ground; with them, every one does. That is why
+ * {@code sidesteps-complete} counts moves that <em>went somewhere</em> rather
+ * than moves that started, and why an earlier, weaker form of that verdict —
+ * "at least one of them moved" — passed on the broken version.
+ *
+ * <p>The third is that the picture stays the same either way, which is what
+ * makes the first two dangerous. Friendly fire was nought and damage on the
+ * enemy identical in the broken configuration too: the reflex fires more often
+ * to make up for its own cancelled moves, and every headline reading looks
+ * right. Only the completion count says which is happening.
+ *
+ * <p><b>Exactly one caller may move a marine per tick.</b> Handing the tick
+ * back means the plan step advances him, so the reflex must not — and a marine
+ * advanced twice simply arrives in half the ticks, which no other reading here
+ * would catch. {@code one-mover-per-tick} measures the busiest sidestep tick
+ * against one tick of the marine's own travel; it reads 1.00.
  *
  * <h2>What each loop changes</h2>
  * <p>Exactly one thing: {@code sidestep} plays with the reflex on and
@@ -133,6 +150,14 @@ public final class FiringLineScene implements BehaviorScene {
 
     /** And must keep at least this share of the control's damage on the enemy. */
     private static final float CONCENTRATION_BAR = 0.9f;
+
+    /**
+     * The most of one tick's travel a mid-sidestep marine may cover. A single
+     * mover cannot exceed one, and the slack is for the last step of a path,
+     * which is clamped to the destination rather than to the speed. Two movers
+     * would read about two.
+     */
+    private static final float DOUBLE_ADVANCE_BAR = 1.25f;
 
     @Override public String id() { return "firing-line"; }
 
@@ -250,6 +275,24 @@ public final class FiringLineScene implements BehaviorScene {
             verdicts.add(Verdict.of("sidestepped", loop.sidesteps() > 0,
                     loop.sidesteps() + " sidestep(s) taken with the reflex on, "
                             + control.sidesteps() + " with it off (wanted some, then none)"));
+            // A start that never finishes is a move a plan step threw away on
+            // the tick it was authored, which is exactly what happens when a
+            // planted posture clears the path out from under it. Cells covered
+            // is what says the marine actually went somewhere.
+            verdicts.add(Verdict.of("sidesteps-complete",
+                    loop.sidestepsThatMoved() == loop.sidesteps(),
+                    loop.sidestepsCompleted() + " of " + loop.sidesteps()
+                            + " sidestep(s) ran to completion and "
+                            + loop.sidestepsThatMoved() + " covered ground, the longest "
+                            + loop.maxSidestepMove() + " cell(s)"
+                            + " (wanted every one of them to move)"));
+            verdicts.add(Verdict.of("one-mover-per-tick",
+                    loop.worstStepRatio() <= DOUBLE_ADVANCE_BAR,
+                    String.format(Locale.ROOT,
+                            "the busiest sidestep tick moved a marine %.2f of one tick's"
+                                    + " travel (wanted at most %.2f — above that the reflex"
+                                    + " and the plan step are both advancing him)",
+                            loop.worstStepRatio(), DOUBLE_ADVANCE_BAR)));
             verdicts.add(Verdict.of("intact", loop.marinesAlive() >= control.marinesAlive(),
                     loop.marinesAlive() + " marines alive against the control's "
                             + control.marinesAlive() + " (wanted no fewer)"));
@@ -261,6 +304,10 @@ public final class FiringLineScene implements BehaviorScene {
         metrics.put("defendersKilled", loop.defendersKilled());
         metrics.put("marinesAlive", loop.marinesAlive());
         metrics.put("sidesteps", loop.sidesteps());
+        metrics.put("sidestepsCompleted", loop.sidestepsCompleted());
+        metrics.put("sidestepsThatMoved", loop.sidestepsThatMoved());
+        metrics.put("maxSidestepMoveCells", loop.maxSidestepMove());
+        metrics.put("worstTickTravelRatio", loop.worstStepRatio());
         metrics.put("maxDisplacementCells", loop.maxDisplacement());
         return new SceneReport(id(), loopId, TICKS, verdicts, metrics);
     }
@@ -282,7 +329,15 @@ public final class FiringLineScene implements BehaviorScene {
         private final int[] firstFireX;
         private final int[] firstFireY;
         private final boolean[] steppingLastTick;
+        private final int[] stepStartX;
+        private final int[] stepStartY;
+        private final float[] lastX;
+        private final float[] lastY;
         private int sidesteps;
+        private int sidestepsCompleted;
+        private int sidestepsThatMoved;
+        private int maxSidestepMove;
+        private float worstStepRatio;
         private int maxDisplacement;
         private int marinesAlive;
         private int defendersAlive;
@@ -295,6 +350,10 @@ public final class FiringLineScene implements BehaviorScene {
             this.firstFireX = new int[marines.length];
             this.firstFireY = new int[marines.length];
             this.steppingLastTick = new boolean[marines.length];
+            this.stepStartX = new int[marines.length];
+            this.stepStartY = new int[marines.length];
+            this.lastX = new float[marines.length];
+            this.lastY = new float[marines.length];
             this.marinesAlive = marines.length;
             this.defendersAlive = defenders.length;
             Arrays.fill(firstFireX, Integer.MIN_VALUE);
@@ -314,7 +373,7 @@ public final class FiringLineScene implements BehaviorScene {
                     hostileDamage[i] = telemetry.damageDealt(marine);
                     trackFooting(world, telemetry, marine, i);
                 }
-                countSidestep(world, marine, i);
+                countSidestep(sim, world, marine, i);
             }
             marinesAlive = alive;
             int standing = 0;
@@ -344,17 +403,63 @@ public final class FiringLineScene implements BehaviorScene {
         }
 
         /**
-         * Counts the starts of sidesteps rather than the ticks spent in one, so
-         * a marine who takes two seconds over a single move is one sidestep and
-         * not sixty. The reflex name is what the chain leaves behind for the
-         * per-unit dumps; nothing in the simulation reads it back, and this only
-         * reads it.
+         * Counts the starts and the finishes of sidesteps, and how far one
+         * actually carried its marine.
+         *
+         * <p><b>Read off the sidestep timer, not off the reflex chain's
+         * breadcrumb.</b> {@code lastReflex} names the reflex that
+         * <em>consumed</em> a tick, and this one deliberately does not consume
+         * any: it authors the move and declines so the marine keeps shooting
+         * while he walks. So the breadcrumb is empty on every tick of every
+         * sidestep, and the first run under that contract reported zero
+         * sidesteps beside a friendly-fire figure of nought — an instrument
+         * measuring the old design. The timer is what the reflex actually
+         * writes, so the timer is the record.
+         *
+         * <p>The completion figure is the point of the pair. A start says the
+         * reflex fired; only a finish, with cells covered between the two, says
+         * the move survived the plan step it handed the tick back to.
          */
-        private void countSidestep(World world, long marine, int i) {
+        private void countSidestep(BattleSimulation sim, World world, long marine, int i) {
             if (!world.hasAiState(marine)) return;
-            boolean stepping = "LANE_SIDESTEP".equals(world.lastReflex(marine));
-            if (stepping && !steppingLastTick[i]) sidesteps++;
+            boolean stepping = world.sidestepTimer(marine) > 0f;
+            if (stepping && !steppingLastTick[i]) {
+                sidesteps++;
+                stepStartX[i] = world.cellX(marine);
+                stepStartY[i] = world.cellY(marine);
+            } else if (!stepping && steppingLastTick[i]) {
+                sidestepsCompleted++;
+                int moved = Math.max(Math.abs(world.cellX(marine) - stepStartX[i]),
+                        Math.abs(world.cellY(marine) - stepStartY[i]));
+                if (moved > 0) sidestepsThatMoved++;
+                if (moved > maxSidestepMove) maxSidestepMove = moved;
+            }
+            if (steppingLastTick[i]) measureLastTickStep(sim, marine, i);
             steppingLastTick[i] = stepping;
+            lastX[i] = world.x(marine);
+            lastY[i] = world.y(marine);
+        }
+
+        /**
+         * How far the tick that just ran actually carried a marine who was
+         * mid-sidestep, as a fraction of what one tick of his move speed
+         * allows.
+         *
+         * <p>This is the check that the reflex and the plan step are not
+         * <em>both</em> advancing him. The reflex hands the tick back
+         * deliberately so the step can move him, which is only safe while
+         * exactly one of them does it; a ratio near two is two callers, and it
+         * would otherwise be invisible — a marine who arrives in half the ticks
+         * still arrives, and every other reading in this scene would look
+         * right.
+         */
+        private void measureLastTickStep(BattleSimulation sim, long marine, int i) {
+            float allowed = sim.movement().moveSpeed(marine) * BattleSimulation.TICK_DT;
+            if (!(allowed > 0f)) return;
+            float dx = sim.world().x(marine) - lastX[i];
+            float dy = sim.world().y(marine) - lastY[i];
+            float ratio = (float) Math.sqrt(dx * dx + dy * dy) / allowed;
+            if (ratio > worstStepRatio) worstStepRatio = ratio;
         }
 
         float friendlyFire() { return sum(friendlyFire); }
@@ -362,6 +467,14 @@ public final class FiringLineScene implements BehaviorScene {
         float hostileDamage() { return sum(hostileDamage); }
 
         int sidesteps() { return sidesteps; }
+
+        int sidestepsCompleted() { return sidestepsCompleted; }
+
+        int sidestepsThatMoved() { return sidestepsThatMoved; }
+
+        int maxSidestepMove() { return maxSidestepMove; }
+
+        float worstStepRatio() { return worstStepRatio; }
 
         int maxDisplacement() { return maxDisplacement; }
 
