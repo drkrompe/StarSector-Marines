@@ -19,7 +19,8 @@ class SnapshotDiscoveryTest {
         assertEquals(List.of("airfield-sortie", "armory", "deployable-cover", "durability-bars",
                 "firing-line", "frontage-scene",
                 "integral-system-fx", "killing-ground", "layers", "mech-doctrine", "perception-sweep",
-                "player-order", "point-defence", "runway-sortie", "ship-decks", "ships-boats", "sun-shadows",
+                "player-order", "point-defence", "prosecution-hold", "runway-sortie", "ship-decks",
+                "ships-boats", "sun-shadows",
                 "swarm-overkill",
                 "turrets", "ui", "yield-freeze"), ids);
     }
