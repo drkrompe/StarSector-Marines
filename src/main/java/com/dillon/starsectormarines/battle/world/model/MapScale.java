@@ -10,9 +10,12 @@ import com.dillon.starsectormarines.ops.RiskLevel;
  * from the mission's {@link OperationTier}: bigger operations get more terrain
  * to fight across, while risk varies pressure within that space.
  *
- * <p>Cell counts grow roughly 1× / 1.6× / 2.5× to keep the perf budget on a
- * known curve — the largest tier is still well below the conquest preview
- * size (240×160) used in the map-gen tests.
+ * <p>Cell counts grow roughly 1x / 1.6x / 2.5x across the tier band to keep the
+ * perf budget on a known curve.
+ *
+ * <p><b>{@link #CONQUEST} is not on that band.</b> It is a mission's own size
+ * rather than a tier's, and {@link #forTier} never returns it; see its own
+ * documentation for why Conquest states its map instead of scaling it.
  */
 public enum MapScale {
 
@@ -23,15 +26,33 @@ public enum MapScale {
     /**
      * Reinforced/full-strength scale. Full city push — recommended 100+ marines.
      *
-     * <p>Widened from 240x160 to make room for an airbase lot inside the
-     * fortress ward. The ward's width is capped by the map's own — the band
-     * spans it, less a wall clearance at each end — and at 240 the ward was
-     * already at that cap with, measured, exactly the old apron's two hundred
-     * cells spare beyond what its buildings need at the packing slack. A
-     * facility with a runway costs a thousand, so either the ward loses a third
-     * of its buildings or the map grows. It grows.
+     * <p>Widened from 240x160 when the fortress ward had to seat an airbase lot
+     * inside a biome band. That reason is gone: on a precinct map the ward is a
+     * place that sizes itself from its own program, so nothing here is holding
+     * ground open for a lot any more. The width stays because it is the tier's
+     * measured scale, not because of the ward.
      */
-    LARGE (280, 168);
+    LARGE (280, 168),
+
+    /**
+     * The Conquest siege, and Conquest alone.
+     *
+     * <p><b>Mission-owned rather than tier-owned.</b> Every other size on this
+     * enum answers {@link #forTier}, which is deliberate: how much ground a job
+     * gets is the operation tier's business. Conquest is the explicit exception
+     * {@code mission-tier-nouns.md} names — a late-game authored siege whose
+     * population, lanes and lift are stated rather than scaled — so its map is
+     * stated too, at every tier, and {@link #forTier} never returns this.
+     *
+     * <p><b>Measured at this size.</b> The three simultaneous tracks
+     * {@code conquest-command.md} owns, and a fortress with a city around it,
+     * were both measured at 560x336 in {@code precincts.md}: at 280x168 the
+     * grown model carries a third of the content a proportional recipe does,
+     * because a growth profile's junction budget is a constant while only arm
+     * length scales. Several places on a bigger map is the answer, and this is
+     * the map that was measured with them on it.
+     */
+    CONQUEST(560, 336);
 
     public final int width;
     public final int height;

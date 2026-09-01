@@ -110,6 +110,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
+import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -159,9 +160,9 @@ public final class BattleSetup {
     /** Default battle grid size (cells) — matches {@link MapScale#MEDIUM}. Used as the {@link com.dillon.starsectormarines.ops.BattleScreen} fallback when no simulation is active yet. The actual generated map dimensions come from {@link MapScale#forTier}. */
     public static final int GRID_W = MapScale.MEDIUM.width;
     public static final int GRID_H = MapScale.MEDIUM.height;
-    /** Canonical Conquest battlefield. Conquest does not scale with operation tier; change these together when the mode is deliberately resized. */
-    public static final int CONQUEST_GRID_W = MapScale.LARGE.width;
-    public static final int CONQUEST_GRID_H = MapScale.LARGE.height;
+    /** Canonical Conquest battlefield. Conquest does not scale with operation tier — the size is the mission's own, and {@link MapScale#CONQUEST} says why. */
+    public static final int CONQUEST_GRID_W = MapScale.CONQUEST.width;
+    public static final int CONQUEST_GRID_H = MapScale.CONQUEST.height;
 
     /** Three drops × 4 marines/shuttle keeps total marine count at 12 — matches pre-shuttle balance. */
     private static final int SHUTTLE_COUNT = 3;
@@ -214,12 +215,18 @@ public final class BattleSetup {
     private BattleSetup() {}
 
     /**
-     * Result of {@link #buildMap}: the constructed sim plus the structure units
-     * spawned for its defense posts (turrets + drone hubs, in spawn order).
-     * Standalone factories ignore {@code structures}; the combat-bridge host
-     * mirrors them as targetable proxies.
+     * Result of {@link #buildMap}: the constructed sim, the map it was built
+     * from, and the structure units spawned for its defense posts (turrets +
+     * drone hubs, in spawn order). Standalone factories ignore
+     * {@code structures}; the combat-bridge host mirrors them as targetable
+     * proxies.
+     *
+     * <p>The {@link MapResult} rides along because it is the only statement of
+     * what the generator actually produced — the front depth, the arrival areas
+     * and the landing pads are read off it and are not re-derivable from the
+     * finished sim.
      */
-    public record MapBuild(BattleSimulation sim, LongList structures) {}
+    public record MapBuild(BattleSimulation sim, MapResult map, LongList structures) {}
 
     private record DefenderForcePlan(DefenderRoster roster,
                                      List<DefensePost> defensePosts,
@@ -267,7 +274,7 @@ public final class BattleSetup {
         for (Doodad d : map.doodads) sim.addDoodad(d);
         for (Doodad d : parkedVehicles) sim.addDoodad(d);
         LongList structures = spawnDefensePostTurrets(sim, defensePosts);
-        return new MapBuild(sim, structures);
+        return new MapBuild(sim, map, structures);
     }
 
     public static BattleSimulation createPlaceholder() {
@@ -673,6 +680,58 @@ public final class BattleSetup {
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT));
+    }
+
+    /**
+     * The places a Conquest map is made of, or {@code null} to take the stock
+     * crossroad.
+     *
+     * <p>Conquest's own derivation, separate from {@link #precinctPlanFor}
+     * because it states two things that mission cannot: the objective is
+     * placed, and the sprawl is honoured exactly as it arrives.
+     *
+     * <p><b>The placement pair follows the axis.</b> Conquest already rolls a
+     * {@link TraversalAxis} per seed, and everything that plays on the map is
+     * keyed on it — both commanders' three-track layout, the shuttles' entry
+     * bearing, and the rear edge the reinforcement layer rallies toward. Until
+     * now the map underneath was a biome band painted along that same axis; a
+     * grown map has neither bands nor an axis, so the axis is instead spent
+     * saying where the two places go. {@code SOUTH_TO_NORTH} puts the objective
+     * in the {@link MapPlacement#NORTH} region and the attacker in the south,
+     * {@code WEST_TO_EAST} puts them east and west, and the map now agrees with
+     * the commanders rather than being read by them.
+     *
+     * <p><b>The sprawl is honoured as given</b>, with none of the clamping Raid
+     * needs. A lone fortress in open country is a perfectly legitimate Conquest
+     * — arguably the purest one — because everything the mission requires comes
+     * off the garrison itself: the keep, the airfield, the guard posts and the
+     * ground to land on are all the installation's, and none of them is a point
+     * of interest a settlement fill has to emit. So a {@code REMOTE} world
+     * generates as an installation in country and plays.
+     *
+     * <p>The market gate is {@link #precinctPlanFor}'s, and the defence gate is
+     * this method's own: a plan derives a garrison only from a defended world,
+     * and a Conquest map with no garrison has no keep to take. Rather than
+     * re-rolling eight seeds into an error, an undefended world falls back to
+     * the stock recipe, which stamps a fortress ward whatever the profile says.
+     */
+    static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile,
+                                        PrecinctPlan.Sprawl sprawl,
+                                        TraversalAxis axis, long seed) {
+        if (profile == null || profile.marketSize() <= 0) return null;
+        if (profile.defenseLevel() <= 0) return null;
+        PrecinctPlan.Sprawl resolved = sprawl != null
+                ? sprawl : SettlementZoning.sprawlFor(profile.marketSize());
+        MapPlacement objective = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? MapPlacement.NORTH : MapPlacement.EAST;
+        MapPlacement attackerFrom = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? MapPlacement.SOUTH : MapPlacement.WEST;
+        return PrecinctPlan.derive(profile, resolved,
+                MissionFortification.demand(tier, risk),
+                objective, attackerFrom,
+                MapScale.CONQUEST.width, MapScale.CONQUEST.height,
+                new Random(seed ^ PRECINCT_SEED_SALT));
     }
 
     /** Tier-aware catch-all with both sides' authored fighter commitments. */
@@ -1205,23 +1264,33 @@ public final class BattleSetup {
     }
 
     /**
-     * CONQUEST variant: full beach→port→city→fortress biome push with the
-     * super-wall stamper active. Map size is the mode-wide
-     * {@link #CONQUEST_GRID_W}×{@link #CONQUEST_GRID_H}, independent of tier,
-     * risk, or host; the traversal axis is rolled per-seed —
-     * SOUTH_TO_NORTH or WEST_TO_EAST, so two conquest missions on the same
-     * world play with a different attacker approach. Marines win only after
-     * capturing every defender compound, including the one required central
-     * keep ({@code COMMAND_POST}); defenders win by eliminating the marines.
+     * CONQUEST variant: a fortified installation with a settlement around it,
+     * grown as places. Map size is the mode-wide
+     * {@link #CONQUEST_GRID_W}×{@link #CONQUEST_GRID_H} — {@link MapScale#CONQUEST},
+     * a mission's own size rather than a tier's, so it is independent of tier,
+     * risk, or host. Marines win only after capturing every defender compound,
+     * including the one required central keep ({@code COMMAND_POST}); defenders
+     * win by eliminating the marines.
      *
-     * <p>Marines and defenders pin to their respective biome anchors instead
-     * of the legacy left/right halves — marine LZ in BEACH, defender garrison
-     * in FORTRESS_DISTRICT (with garrison squads at the wall's tactical nodes).
+     * <p><b>The axis places the map rather than painting it.</b> A traversal
+     * axis is still rolled per-seed — SOUTH_TO_NORTH or WEST_TO_EAST, so two
+     * conquest missions on the same world play with a different attacker
+     * approach — and everything that plays on the map still keys on it: the
+     * three-track layout, the shuttle entry bearing, the garrison system and
+     * the reinforcement rear edge. What changed is what is underneath: instead
+     * of a biome band painted along that axis, the axis chooses the placement
+     * pair the map is derived from, and the objective grows where the mission
+     * said the defender is. See {@link #conquestPlanFor}.
      *
-     * <p>Returns the full {@link MapBuild} (sim + the spawned defense-post
-     * structures). Most callers want just the sim — {@link #createConquest} is
-     * the thin delegating overload for them. The combat bridge needs the
-     * structures list to mirror them as targetable proxies, so it calls this.
+     * <p><b>The stock crossroad is still what a Conquest with nothing behind it
+     * gets.</b> A headless fixture with no market, or a world with no defences
+     * to derive a garrison from, takes the biome recipe exactly as before.
+     *
+     * <p>Returns the full {@link MapBuild} (sim + the map it was built from +
+     * the spawned defense-post structures). Most callers want just the sim —
+     * {@link #createConquest} is the thin delegating overload for them. The
+     * combat bridge needs the structures list to mirror them as targetable
+     * proxies, so it calls this.
      */
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor, RiskLevel risk,
@@ -1253,14 +1322,23 @@ public final class BattleSetup {
                         0));
     }
 
+    /** Conquest build with a fixture-captured mission arrival plan; the market derives the sprawl. */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan, null);
+    }
+
     /**
      * Conquest build carrying the battle's stated sprawl.
      *
-     * <p><b>Carried, not yet consulted.</b> Conquest still generates on the
-     * stock crossroad recipe, which has no precinct plan to hand a sprawl to;
-     * section D of {@code conquest-on-precincts.md} is what makes it read this.
-     * The parameter is here so the mission, the fixture and the factory already
-     * agree on the value when that lands.
+     * @param sprawl how settled the map is, or {@code null} to derive it from
+     *               the target market the way {@code SettlementZoning} does
      */
     public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
                                                boolean enemyHasHeavyArmor,
@@ -1270,18 +1348,6 @@ public final class BattleSetup {
                                                FlybyRoster enemyFighterSupport,
                                                ShuttleArrivalPlan arrivalPlan,
                                                PrecinctPlan.Sprawl sprawl) {
-        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
-                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan);
-    }
-
-    /** Conquest build with a fixture-captured mission arrival plan. */
-    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
-                                               boolean enemyHasHeavyArmor,
-                                               OperationTier tier, RiskLevel risk,
-                                               TargetProfile profile,
-                                               FlybyRoster marineFighterSupport,
-                                               FlybyRoster enemyFighterSupport,
-                                               ShuttleArrivalPlan arrivalPlan) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
@@ -1292,8 +1358,10 @@ public final class BattleSetup {
         // mission types from the same seed still produce comparable layouts;
         // axis flips deterministically off the first bit of our wrapper RNG.
         // The target world's profile (planetary defenses, …) rides in so the
-        // overwatch line reflects how fortified the planet is.
-        ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile);
+        // overwatch line reflects how fortified the planet is, and so the places
+        // the map is made of are derived from the world it is on.
+        ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
+                tier, risk, sprawl);
         MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1309,9 +1377,10 @@ public final class BattleSetup {
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
                 enemyFighterSupport, groundRoster);
-        // Conquest defense posts come pre-stamped by the biome-aware
-        // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
-        // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
+        // Conquest defense posts come pre-stamped by the generator — the
+        // biome-aware DefensePostStamper on the stock recipe (BEACH→PORT→
+        // kill-zone tiers + rear ARTILLERY battery), PrecinctDefence's stated
+        // loadout on a precinct map — so buildMap consumes map.defensePosts
         // directly. Each post is paired with a manned GUARDPOST squad via
         // {@link #linkGuardpostSquads} below — that's the difference from the
         // non-conquest path, which stamps the same shapes unmanned via
@@ -1396,7 +1465,7 @@ public final class BattleSetup {
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, MissionType.CONQUEST, axis,
                 groundRoster, risk, defenderCommand);
-        return new MapBuild(sim, build.structures());
+        return new MapBuild(sim, map, build.structures());
     }
 
     /**
@@ -1621,10 +1690,11 @@ public final class BattleSetup {
     }
 
     /**
-     * Tier-aware Conquest carrying the battle's stated sprawl — carried, not
-     * yet consulted; see {@link #createConquestBuild(long, List, boolean,
-     * OperationTier, RiskLevel, TargetProfile, FlybyRoster, FlybyRoster,
-     * ShuttleArrivalPlan, PrecinctPlan.Sprawl)}.
+     * Tier-aware Conquest carrying the battle's stated sprawl; {@code null}
+     * derives it from the target market. See
+     * {@link #createConquestBuild(long, List, boolean, OperationTier, RiskLevel,
+     * TargetProfile, FlybyRoster, FlybyRoster, ShuttleArrivalPlan,
+     * PrecinctPlan.Sprawl)}.
      */
     public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
                                                   boolean enemyHasHeavyArmor,
@@ -1745,11 +1815,22 @@ public final class BattleSetup {
      * so rather than handing back a map the mission cannot be played on.
      */
     private static ConquestMap conquestMap(int gridW, int gridH, long seed,
-                                           TraversalAxis axis, TargetProfile profile) {
+                                           TraversalAxis axis, TargetProfile profile,
+                                           OperationTier tier, RiskLevel risk,
+                                           PrecinctPlan.Sprawl sprawl) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < CONQUEST_MAP_ATTEMPTS; attempt++) {
             long mapSeed = seed + attempt * 0x9E3779B97F4A7C15L;
-            MapResult map = MAP_GEN.generate(gridW, gridH, mapSeed, axis, profile);
+            // Derived per attempt rather than once, because the plan is half of
+            // what the seed decides: a re-roll that kept the same places would
+            // be the same map filled differently, which is not another map.
+            PrecinctPlan plan = conquestPlanFor(tier, risk, profile, sprawl, axis, mapSeed);
+            // A plan and an axis are two different maps and the generator
+            // refuses both, so the axis rides in only when there is no plan —
+            // a marketless or undefended Conquest keeps the stock crossroad.
+            MapResult map = plan != null
+                    ? MAP_GEN.generate(gridW, gridH, mapSeed, null, profile, plan)
+                    : MAP_GEN.generate(gridW, gridH, mapSeed, axis, profile);
             missing = MissionMapRequirements.missingFrom(MissionType.CONQUEST, map);
             if (missing.isEmpty()) return new ConquestMap(map, mapSeed);
         }

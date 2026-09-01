@@ -17,11 +17,9 @@ import java.util.Objects;
  * Authored inputs to the production Conquest scenario factory.
  *
  * <p>{@code sprawl} is the battle's own statement of how settled its map is,
- * or {@code null} to derive it from the target market. Carried rather than
- * consulted for now: Conquest still generates on the stock crossroad recipe,
- * and section D of {@code conquest-on-precincts.md} is what makes it read
- * this. Absent from a fixture document means null, so a fixture written
- * before the field existed replays exactly as it did.
+ * or {@code null} to derive it from the target market. Absent from a fixture
+ * document means null, so a fixture written before the field existed still
+ * derives its own answer rather than being pinned to one.
  */
 public record ConquestBattleFixture(
         long seed,
