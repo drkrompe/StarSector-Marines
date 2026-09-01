@@ -24,10 +24,20 @@ final class BriefingViewModel {
         props.put("employerHeader", "Employer Provides");
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
+        props.put("debugDrawerClasses", "debug-drawer absent");
+        props.put("debugWorkspaceClasses", "debug-workspace debug-workspace-collapsed");
+        props.put("debugToggleClasses", "debug-drawer-toggle-hidden");
+        props.put("debugToggleLabel", "");
+        props.put("debugToggleDisabled", true);
+        props.put("debugToggleAction", (Runnable) () -> { });
         return props;
     }
 
     static Map<String, Object> previewProps(boolean conquest) {
+        return previewProps(conquest, false);
+    }
+
+    static Map<String, Object> previewProps(boolean conquest, boolean debugExpanded) {
         Map<String, Object> props = baseProps();
         Runnable none = () -> { };
         boolean late = conquest;
@@ -51,7 +61,15 @@ final class BriefingViewModel {
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
                 "Mira Hale", "Lieutenant · 1 squad command", false, none, null)));
         props.put("captainEmpty", "");
-        props.put("debugClasses", "panel debug-workspace");
+        props.put("debugDrawerClasses", "debug-drawer "
+                + (debugExpanded ? "expanded" : "collapsed"));
+        props.put("debugWorkspaceClasses", debugExpanded
+                ? "panel debug-workspace"
+                : "debug-workspace debug-workspace-collapsed");
+        props.put("debugToggleClasses", "debug-drawer-toggle");
+        props.put("debugToggleLabel", debugExpanded ? "HIDE" : "DEBUG");
+        props.put("debugToggleDisabled", false);
+        props.put("debugToggleAction", none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
                 : "First Contract · 1 squad · 2 sorties");
         props.put("tierSteps", tierPreview(late, none));
