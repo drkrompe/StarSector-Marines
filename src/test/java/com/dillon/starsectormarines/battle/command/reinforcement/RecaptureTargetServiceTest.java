@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -31,9 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * (frontline) detection, and the dispatch-dedup / reopen lifecycle (all driven
  * by the System ticking the Service).
  *
- * <p>Slices are derived from {@link BiomeMap#biomeAt} rather than hard-coded,
+ * <p>Bands are derived from {@link FrontDepth#bandAt} rather than hard-coded,
  * so the tests stay robust to the map's per-column boundary jitter — they only
- * assume the three band-center anchors land in three distinct biomes.
+ * assume the three band-center anchors land in three distinct bands.
  */
 public class RecaptureTargetServiceTest {
 
@@ -49,8 +49,9 @@ public class RecaptureTargetServiceTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static BiomeMap biomeMap() {
-        return new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(42));
+    private static FrontDepth frontDepth() {
+        return FrontDepth.fromBiomes(
+                new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(42)));
     }
 
     private static TacticalNode node(TacticalNode.Kind kind, int x, int y, Faction guard, int garrison) {
@@ -83,21 +84,21 @@ public class RecaptureTargetServiceTest {
     }
 
     @Test
-    public void bucketsEligibleDefenderNodesByBiome() {
-        BiomeMap biomes = biomeMap();
+    public void bucketsEligibleDefenderNodesByBand() {
+        FrontDepth front = frontDepth();
         TacticalNode port = node(TacticalNode.Kind.GUARDPOST, 10, 25, Faction.DEFENDER, 4);
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
 
-        BiomeKind ps = biomes.biomeAt(port.anchorX, port.anchorY);
-        BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
-        BiomeKind fs = biomes.biomeAt(fort.anchorX, fort.anchorY);
-        assertNotEquals(ps, cs, "precondition: port and city anchors are in distinct biomes");
-        assertNotEquals(cs, fs, "precondition: city and fortress anchors are in distinct biomes");
-        assertNotEquals(ps, fs, "precondition: port and fortress anchors are in distinct biomes");
+        int ps = front.bandAt(port.anchorX, port.anchorY);
+        int cs = front.bandAt(city.anchorX, city.anchorY);
+        int fs = front.bandAt(fort.anchorX, fort.anchorY);
+        assertNotEquals(ps, cs, "precondition: port and city anchors are in distinct bands");
+        assertNotEquals(cs, fs, "precondition: city and fortress anchors are in distinct bands");
+        assertNotEquals(ps, fs, "precondition: port and fortress anchors are in distinct bands");
 
         TacticalMap tmap = new TacticalMap(List.of(port, city, fort));
-        RecaptureTargetService reg = new RecaptureTargetService(tmap, biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(tmap, front);
 
         assertEquals(3, reg.allTargets().size());
         assertEquals(1, reg.targetsInSlice(ps).size());
@@ -108,14 +109,14 @@ public class RecaptureTargetServiceTest {
 
     @Test
     public void excludesIneligibleNodes() {
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode garrisoned = node(TacticalNode.Kind.GUARDPOST, 10, 55, Faction.DEFENDER, 4);
         TacticalNode airbase    = node(TacticalNode.Kind.AIRBASE, 10, 56, Faction.DEFENDER, 4);
         TacticalNode noGarrison = node(TacticalNode.Kind.GATE, 10, 57, Faction.DEFENDER, 0);
         TacticalNode marine     = node(TacticalNode.Kind.BEACHHEAD, 10, 10, Faction.MARINE, 4);
 
         TacticalMap tmap = new TacticalMap(List.of(garrisoned, airbase, noGarrison, marine));
-        RecaptureTargetService reg = new RecaptureTargetService(tmap, biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(tmap, front);
 
         assertEquals(1, reg.allTargets().size(), "only the garrisoned defender node is a recapture target");
         assertEquals(garrisoned, reg.allTargets().get(0).node);
@@ -124,12 +125,12 @@ public class RecaptureTargetServiceTest {
     @Test
     public void contestedSeedsThenDebouncesConceding() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
-        BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
+        int cs = front.bandAt(city.anchorX, city.anchorY);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(city)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         long defender = presence(sim, "city-def", 10, 55);
         sys.tick(TICK, sim);
@@ -147,14 +148,14 @@ public class RecaptureTargetServiceTest {
     @Test
     public void contestedDebouncesActivation() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
-        BiomeKind fs = biomes.biomeAt(fort.anchorX, fort.anchorY);
-        BiomeKind cs = biomes.biomeAt(10, 55);
+        int fs = front.bandAt(fort.anchorX, fort.anchorY);
+        int cs = front.bandAt(10, 55);
         assertNotEquals(fs, cs, "precondition: fortress and the seed-defender slice are distinct");
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(fort)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(fort)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         // A defender elsewhere on the seed tick so the registry locks its seed
         // with the fortress slice conceded — otherwise the first-ever defender
@@ -177,16 +178,16 @@ public class RecaptureTargetServiceTest {
     @Test
     public void eligibleRequiresOpenAndContested() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         TacticalNode port = node(TacticalNode.Kind.GUARDPOST, 10, 25, Faction.DEFENDER, 4);
-        BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
-        BiomeKind ps = biomes.biomeAt(port.anchorX, port.anchorY);
+        int cs = front.bandAt(city.anchorX, city.anchorY);
+        int ps = front.bandAt(port.anchorX, port.anchorY);
         assertNotEquals(cs, ps, "precondition: distinct slices");
 
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city, port)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(city, port)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         // Both nodes manned first (the recapture semantic is "had a garrison,
         // then lost it"), then wiped → both open. City slice has a live
@@ -213,11 +214,11 @@ public class RecaptureTargetServiceTest {
     @Test
     public void dispatchDedupAndReopenOnReplacementWipe() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(city)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         Squad original = garrison(sim, city, 3, 4);    // manned first...
         presence(sim, "city-def", 10, 53);             // keeps the slice contested throughout
@@ -253,15 +254,15 @@ public class RecaptureTargetServiceTest {
 
     @Test
     public void staleReservationCannotReleaseNewerDispatch() {
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER,
                 10, 55, Faction.DEFENDER, 4);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city)), biomes);
+                new TacticalMap(List.of(city)), front);
         RecaptureTarget target = targetFor(reg, city);
         target.manned = true;
         target.open = true;
-        reg.setContested(target.slice, true);
+        reg.setContested(target.band, true);
 
         ReinforcementDispatchReservation stale = reg.reserveDispatch(target);
         target.dispatched = false; // models timeout/arrival reopening the target
@@ -279,11 +280,11 @@ public class RecaptureTargetServiceTest {
     @Test
     public void neverMannedTargetIsNotEligible() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(city)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         // BattleSetup ran out of defenders: the node has garrisonSize > 0 but
         // no squad was ever assigned. Slice is contested (defenders alive
@@ -300,11 +301,11 @@ public class RecaptureTargetServiceTest {
     @Test
     public void dispatchTimeoutReopensTargetWithNoArrival() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(city)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         Squad original = garrison(sim, city, 3, 4);
         presence(sim, "city-def", 10, 53);
@@ -331,15 +332,15 @@ public class RecaptureTargetServiceTest {
     @Test
     public void contestedSeedDefersUntilDefendersExist() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
-        BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
+        int cs = front.bandAt(city.anchorX, city.anchorY);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(city)), biomes);
-        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, biomes);
+                new TacticalMap(List.of(city)), front);
+        RecaptureTargetSystem sys = new RecaptureTargetSystem(reg, front);
 
         // Ticks during sim-init before any defender is placed must not lock the
-        // front to "conceded".
+        // band to "conceded".
         sys.tick(TICK, sim);
         sys.tick(TICK, sim);
         assertFalse(reg.isContested(cs));

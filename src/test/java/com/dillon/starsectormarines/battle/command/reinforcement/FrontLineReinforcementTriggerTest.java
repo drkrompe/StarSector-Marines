@@ -9,9 +9,9 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Slice-3 coverage for {@link FrontLineReinforcementTrigger}: nearest-to-
- * defender slice selection, in-slice round-robin, the dispatched/conceded
+ * Slice-3 coverage for {@link FrontLineReinforcementTrigger}: shallowest-band
+ * selection, in-band round-robin, the dispatched/conceded
  * eligibility filters (inherited from {@link RecaptureTargetService}), the
- * rear-shift rally clamp, and provisional dispatch reservation/release wiring
+ * rally shift toward the objective, and provisional dispatch reservation/release wiring
  * on a full {@link FrontLineReinforcementTrigger#check} pass. Fixture
  * mirrors {@link RecaptureTargetServiceTest}.
  */
@@ -45,8 +45,9 @@ public class FrontLineReinforcementTriggerTest {
         return grid;
     }
 
-    private static BiomeMap biomeMap() {
-        return new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(42));
+    private static FrontDepth frontDepth() {
+        return FrontDepth.fromBiomes(
+                new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(42)));
     }
 
     private static TacticalNode node(int x, int y) {
@@ -65,24 +66,24 @@ public class FrontLineReinforcementTriggerTest {
     private static void makeEligible(RecaptureTargetService reg, RecaptureTarget target) {
         target.manned = true;
         target.open = true;
-        reg.setContested(target.slice, true);
+        reg.setContested(target.band, true);
     }
 
     @Test
     public void nearestToDefenderSliceWinsOverFartherSlice() {
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode port = node(10, 25);
         TacticalNode fort = node(10, 87);
-        BiomeKind ps = biomes.biomeAt(port.anchorX, port.anchorY);
-        BiomeKind fs = biomes.biomeAt(fort.anchorX, fort.anchorY);
+        int ps = front.bandAt(port.anchorX, port.anchorY);
+        int fs = front.bandAt(fort.anchorX, fort.anchorY);
         assertNotEquals(ps, fs, "precondition: port and fortress anchors sit in distinct slices");
 
-        RecaptureTargetService reg = new RecaptureTargetService(new TacticalMap(List.of(port, fort)), biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(new TacticalMap(List.of(port, fort)), front);
         makeEligible(reg, targetFor(reg, port));
         makeEligible(reg, targetFor(reg, fort));
 
         FrontLineReinforcementTrigger trigger =
-                new FrontLineReinforcementTrigger(reg, TraversalAxis.SOUTH_TO_NORTH);
+                new FrontLineReinforcementTrigger(reg, front);
         RecaptureTarget picked = trigger.selectDispatchTarget();
 
         assertEquals(fort, picked.node, "fortress (nearest-to-defender) slice wins over port");
@@ -90,19 +91,19 @@ public class FrontLineReinforcementTriggerTest {
 
     @Test
     public void roundRobinsWithinASlice() {
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode a = node(8, 90);
         TacticalNode b = node(12, 92);
-        BiomeKind sliceA = biomes.biomeAt(a.anchorX, a.anchorY);
-        BiomeKind sliceB = biomes.biomeAt(b.anchorX, b.anchorY);
+        int sliceA = front.bandAt(a.anchorX, a.anchorY);
+        int sliceB = front.bandAt(b.anchorX, b.anchorY);
         assertEquals(sliceA, sliceB, "precondition: both anchors sit in the same slice");
 
-        RecaptureTargetService reg = new RecaptureTargetService(new TacticalMap(List.of(a, b)), biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(new TacticalMap(List.of(a, b)), front);
         makeEligible(reg, targetFor(reg, a));
         makeEligible(reg, targetFor(reg, b));
 
         FrontLineReinforcementTrigger trigger =
-                new FrontLineReinforcementTrigger(reg, TraversalAxis.SOUTH_TO_NORTH);
+                new FrontLineReinforcementTrigger(reg, front);
 
         TacticalNode first = trigger.selectDispatchTarget().node;
         TacticalNode second = trigger.selectDispatchTarget().node;
@@ -114,15 +115,15 @@ public class FrontLineReinforcementTriggerTest {
 
     @Test
     public void dispatchedAndConcededTargetsAreSkipped() {
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode dispatched = node(10, 55);
         TacticalNode concededSliceTarget = node(10, 30);
-        BiomeKind heldSlice = biomes.biomeAt(dispatched.anchorX, dispatched.anchorY);
-        BiomeKind concededSlice = biomes.biomeAt(concededSliceTarget.anchorX, concededSliceTarget.anchorY);
+        int heldSlice = front.bandAt(dispatched.anchorX, dispatched.anchorY);
+        int concededSlice = front.bandAt(concededSliceTarget.anchorX, concededSliceTarget.anchorY);
         assertNotEquals(heldSlice, concededSlice, "precondition: distinct slices");
 
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(dispatched, concededSliceTarget)), biomes);
+                new TacticalMap(List.of(dispatched, concededSliceTarget)), front);
 
         RecaptureTarget dispatchedTarget = targetFor(reg, dispatched);
         dispatchedTarget.manned = true;
@@ -137,7 +138,7 @@ public class FrontLineReinforcementTriggerTest {
         // stays filtered by RecaptureTargetService.eligibleTargets() regardless of open.
 
         FrontLineReinforcementTrigger trigger =
-                new FrontLineReinforcementTrigger(reg, TraversalAxis.SOUTH_TO_NORTH);
+                new FrontLineReinforcementTrigger(reg, front);
 
         assertNull(trigger.selectDispatchTarget(),
                 "both targets ineligible — one dispatched, the other's slice conceded");
@@ -147,13 +148,13 @@ public class FrontLineReinforcementTriggerTest {
     public void checkPostsRequestAndMarksTargetDispatched() {
         NavigationGrid grid = openGrid();
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(W, H));
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(10, 87);
-        RecaptureTargetService reg = new RecaptureTargetService(new TacticalMap(List.of(fort)), biomes);
+        RecaptureTargetService reg = new RecaptureTargetService(new TacticalMap(List.of(fort)), front);
         makeEligible(reg, targetFor(reg, fort));
 
         FrontLineReinforcementTrigger trigger =
-                new FrontLineReinforcementTrigger(reg, TraversalAxis.SOUTH_TO_NORTH);
+                new FrontLineReinforcementTrigger(reg, front);
 
         List<ReinforcementRequest> posted = new ArrayList<>();
         trigger.check(sim, posted::add);
@@ -170,13 +171,13 @@ public class FrontLineReinforcementTriggerTest {
     public void terminalDispatchRejectionImmediatelyReopensReservedTarget() {
         NavigationGrid grid = openGrid();
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(W, H));
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(10, 87);
         RecaptureTargetService reg = new RecaptureTargetService(
-                new TacticalMap(List.of(fort)), biomes);
+                new TacticalMap(List.of(fort)), front);
         makeEligible(reg, targetFor(reg, fort));
         ReinforcementService service = new ReinforcementService();
-        new FrontLineReinforcementTrigger(reg, TraversalAxis.SOUTH_TO_NORTH)
+        new FrontLineReinforcementTrigger(reg, front)
                 .check(sim, service::post);
         service.addMeans(new ReinforcementMeans() {
             @Override
@@ -210,20 +211,25 @@ public class FrontLineReinforcementTriggerTest {
                 "terminal rejection releases provisional dispatch immediately");
     }
 
+    /**
+     * The rally is placed toward the objective rather than up an axis, and on
+     * the stock front those are the same answer where the axis is the whole of
+     * the vector — which is what makes the change safe on a map that already
+     * worked. Off that line it is the answer the axis could not give: a target
+     * deeper than the objective's own centre is shifted <em>back</em> toward
+     * it, where the old rule walked it further into the map edge.
+     */
     @Test
-    public void rallyRearShiftMovesTowardDefenderRearAndClampsToGridBounds() {
-        NavigationGrid grid = new NavigationGrid(W, H);
+    public void rallyShiftsTowardTheObjectiveWhicheverSideOfItTheTargetIsOn() {
+        FrontDepth front = frontDepth();
+        int[] centre = front.objectiveCentre();
 
-        int[] southToNorth = FrontLineReinforcementTrigger.rallyRearShift(10, 95, TraversalAxis.SOUTH_TO_NORTH, grid);
-        assertEquals(10, southToNorth[0]);
-        assertEquals(H - 1, southToNorth[1], "+y shift past the top edge clamps to grid height - 1");
+        int[] fromPort = FrontLineReinforcementTrigger.rallyRearShift(centre[0], 30, front);
+        assertEquals(centre[0], fromPort[0], "the vector is all y, so the step is all y");
+        assertEquals(38, fromPort[1], "eight cells toward the fortress end - the old +y shift exactly");
 
-        int[] westToEast = FrontLineReinforcementTrigger.rallyRearShift(5, 5, TraversalAxis.WEST_TO_EAST, grid);
-        assertEquals(13, westToEast[0], "WEST_TO_EAST shifts +x toward the defender rear");
-        assertEquals(5, westToEast[1]);
-
-        int[] nullAxis = FrontLineReinforcementTrigger.rallyRearShift(5, 5, null, grid);
-        assertEquals(5, nullAxis[0]);
-        assertEquals(13, nullAxis[1], "null axis defaults to the +y shift");
+        int[] fromBeyond = FrontLineReinforcementTrigger.rallyRearShift(centre[0], H - 1, front);
+        assertEquals(H - 1 - 8, fromBeyond[1],
+                "past the objective the step turns round: the rear is a place, not a direction");
     }
 }

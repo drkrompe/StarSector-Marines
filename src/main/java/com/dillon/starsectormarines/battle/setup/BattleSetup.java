@@ -1588,13 +1588,14 @@ public final class BattleSetup {
                                                   RiskLevel risk,
                                                   DeliveryDeploymentPolicy deliveryPolicy) {
         ReinforcementService rs = sim.getReinforcementService();
-        if (missionType == MissionType.CONQUEST && map.biomeMap != null
+        if (missionType == MissionType.CONQUEST && map.frontDepth != null
                 && map.tacticalMap != null && map.tacticalMap.size() > 0) {
-            RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
-            sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.biomeMap));
-            rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, axis));
+            RecaptureTargetService recaptureTargets =
+                    new RecaptureTargetService(map.tacticalMap, map.frontDepth);
+            sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.frontDepth));
+            rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, map.frontDepth));
             sim.setCounterattackSystem(new CounterattackSystem(
-                    recaptureTargets, rs, sim.getBattleResources(), axis));
+                    recaptureTargets, rs, sim.getBattleResources(), map.frontDepth));
         } else {
             rs.addTrigger(new GarrisonDepletedTrigger());
         }

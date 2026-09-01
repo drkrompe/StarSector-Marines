@@ -1,26 +1,24 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Per-tick recompute driver for {@link RecaptureTargetService} — the
  * Services-own-state / Systems-process shape. On its slow-tick cadence it
- * recomputes the contested slices (the frontline) and the per-target open
+ * recomputes the contested bands (the frontline) and the per-target open
  * state, writing the results back onto the Service.
  *
  * <p>A <b>System</b> (processor): it owns only the transient recompute
- * bookkeeping — the cadence {@link #accumulator}, the per-slice debounce
+ * bookkeeping — the cadence {@link #accumulator}, the per-band debounce
  * {@link #disagreeStreak}, and the first-observation {@link #seeded} latch.
  * Named {@code *System}, not {@code *Service}, under the
  * Service(data-owner)/System(processor) convention — see
@@ -29,8 +27,8 @@ import java.util.Map;
  * <ul>
  *   <li><b>Open targets.</b> Derived each tick from squad&rarr;node assignment,
  *       the same aggregation {@link GarrisonDepletedTrigger} uses.</li>
- *   <li><b>Contested slices.</b> Alive defender units are binned into biome
- *       slices via {@link BiomeMap#biomeAt}; presence is debounced over
+ *   <li><b>Contested bands.</b> Alive defender units are binned into front
+ *       bands via {@link FrontDepth#bandAt}; presence is debounced over
  *       {@link #PRESENCE_DEBOUNCE_TICKS} ticks in <em>both</em> directions so a
  *       lone straggler dying/respawning doesn't make the front flicker.</li>
  * </ul>
@@ -40,7 +38,7 @@ public final class RecaptureTargetSystem {
     private static final Logger LOG = Global.getLogger(RecaptureTargetSystem.class);
 
     /**
-     * Consecutive slow-ticks a slice's presence observation must disagree with
+     * Consecutive slow-ticks a band's presence observation must disagree with
      * its current contested state before the state flips. At the reinforcement
      * cadence (~1s) this is ~3s of stable presence/absence — long enough to
      * ride out a single defender dying and the next arriving, short enough to
@@ -67,21 +65,19 @@ public final class RecaptureTargetSystem {
     private static final float TICK_PERIOD = ReinforcementService.REINFORCEMENT_TICK_PERIOD;
 
     private final RecaptureTargetService targets;
-    private final BiomeMap biomeMap;
+    private final FrontDepth frontDepth;
 
-    private final EnumMap<BiomeKind, Integer> disagreeStreak = new EnumMap<>(BiomeKind.class);
+    private final int[] disagreeStreak;
     private boolean seeded = false;
     private float accumulator = 0f;
 
-    public RecaptureTargetSystem(RecaptureTargetService targets, BiomeMap biomeMap) {
+    public RecaptureTargetSystem(RecaptureTargetService targets, FrontDepth frontDepth) {
         this.targets = targets;
-        this.biomeMap = biomeMap;
-        for (BiomeKind b : BiomeKind.values()) {
-            disagreeStreak.put(b, 0);
-        }
+        this.frontDepth = frontDepth;
+        this.disagreeStreak = new int[frontDepth.bands()];
     }
 
-    /** Slow-tick: accumulate {@code dt}, then on cadence recompute contested slices and open targets. */
+    /** Slow-tick: accumulate {@code dt}, then on cadence recompute contested bands and open targets. */
     public void tick(float dt, BattleView sim) {
         if (targets.allTargets().isEmpty()) return;
         accumulator += dt;
@@ -92,40 +88,40 @@ public final class RecaptureTargetSystem {
     }
 
     private void updateContested(BattleView sim) {
-        EnumMap<BiomeKind, Integer> present = new EnumMap<>(BiomeKind.class);
+        int[] present = new int[frontDepth.bands()];
         int totalDefenders = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (sim.identity().faction(u) != Faction.DEFENDER) continue;
-            present.merge(biomeMap.biomeAt(sim.world().cellX(u), sim.world().cellY(u)), 1, Integer::sum);
+            present[frontDepth.bandAt(sim.world().cellX(u), sim.world().cellY(u))]++;
             totalDefenders++;
         }
-        for (BiomeKind b : BiomeKind.values()) {
-            boolean nowPresent = present.getOrDefault(b, 0) > 0;
+        for (int b = 0; b < present.length; b++) {
+            boolean nowPresent = present[b] > 0;
             if (!seeded) {
                 // First *real* observation seeds the stable state directly so
                 // the front starts correct rather than debouncing up from "all
                 // conceded" over the opening seconds.
                 targets.setContested(b, nowPresent);
-                disagreeStreak.put(b, 0);
+                disagreeStreak[b] = 0;
                 continue;
             }
             boolean stable = targets.isContested(b);
             if (nowPresent == stable) {
-                disagreeStreak.put(b, 0);
+                disagreeStreak[b] = 0;
             } else {
-                int streak = disagreeStreak.get(b) + 1;
+                int streak = disagreeStreak[b] + 1;
                 if (streak >= PRESENCE_DEBOUNCE_TICKS) {
                     targets.setContested(b, nowPresent);
-                    disagreeStreak.put(b, 0);
+                    disagreeStreak[b] = 0;
                 } else {
-                    disagreeStreak.put(b, streak);
+                    disagreeStreak[b] = streak;
                 }
             }
         }
         // Defer locking the seed until defenders actually exist. A tick that
         // runs during sim-init before garrisons are placed would otherwise seed
-        // every slice "conceded" and force a full debounce ramp to recover;
+        // every band "conceded" and force a full debounce ramp to recover;
         // until then each (all-conceded) tick is a harmless re-seed.
         if (totalDefenders > 0) seeded = true;
     }

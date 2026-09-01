@@ -50,6 +50,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DoorwayClearanceS
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctSkeletonStage;
@@ -214,6 +215,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new SpawnAnchorStage(),                     // spawn anchors
                 new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
+                new FrontDepthStage(),                      // the front, as a depth
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
@@ -246,6 +248,13 @@ public final class BspCityGenerator implements MapGenerator {
     private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
                                         GenStage landingLinkStage, GenStage wardStage,
                                         GenStage defenceStage) {
+        return buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage, wardStage,
+                defenceStage, null);
+    }
+
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
+                                        GenStage landingLinkStage, GenStage wardStage,
+                                        GenStage defenceStage, GenStage frontStage) {
         return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -267,6 +276,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new DoorwayClearanceStage(),                // Step 4c   nothing stands in a doorway
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new SpawnAnchorStage(),                     // spawn anchors
+                frontStage,                                 // precinct-only; null omits it
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
@@ -414,7 +424,7 @@ public final class BspCityGenerator implements MapGenerator {
     private GenRecipe precinctRecipe(PrecinctPlan plan) {
         return buildLegacyRecipe(new PrecinctSkeletonStage(plan),
                 new HinterlandFillStage(), null, new PrecinctWardStage(),
-                new PrecinctDefenceStage());
+                new PrecinctDefenceStage(), new FrontDepthStage());
     }
 
     private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
@@ -654,7 +664,8 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.defensePosts, this.lastRoadGraph, ctx.landingPads,
                 ctx.landingAreas,
                 ctx.get(BspKeys.BIOME_MAP), ctx.gantries, ctx.fixtureTasks,
-                ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR));
+                ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR),
+                ctx.get(BspKeys.FRONT_DEPTH));
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */

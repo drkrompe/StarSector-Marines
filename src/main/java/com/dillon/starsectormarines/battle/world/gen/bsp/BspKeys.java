@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,14 @@ public final class BspKeys {
 
     /** Conquest zoning overlay (beach → port → city → fortress bands). Null in legacy mode. */
     public static final GenKey<BiomeMap> BIOME_MAP = GenKey.of("biomeMap");
+
+    /**
+     * How far each cell is from the thing the battle is about — the front as a
+     * depth rather than as a biome. Bound by the closing front stage on the
+     * recipes that have an objective to be at depth zero from; absent on a map
+     * with no front at all.
+     */
+    public static final GenKey<FrontDepth> FRONT_DEPTH = GenKey.of("frontDepth");
 
     /** Legacy uniform-scatter zoning overlay. Null in conquest mode. */
     public static final GenKey<DistrictMap> DISTRICT_MAP = GenKey.of("districtMap");
