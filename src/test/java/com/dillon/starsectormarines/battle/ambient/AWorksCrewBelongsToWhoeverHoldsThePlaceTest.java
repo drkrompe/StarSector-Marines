@@ -116,6 +116,12 @@ class AWorksCrewBelongsToWhoeverHoldsThePlaceTest {
      *
      * <p>The point of the whole feature, and the half that a battle where
      * nothing changes hands can never show.
+     *
+     * <p>Run past the cooldown by rather more than a tick, because a marine
+     * relief flies the long part of the journey and is still in the air when the
+     * cooldown expires. How it travels is
+     * {@code AMarineReliefFliesInAndWalksTheRestTest}'s question; this one is
+     * only about whose it is.
      */
     @Test
     void aCapturedShedIsCrewedByWhoeverTookIt() {
@@ -123,16 +129,13 @@ class AWorksCrewBelongsToWhoeverHoldsThePlaceTest {
         works.sim.applyDamage(works.crew.get(0), 1000f, 1f);
         works.record.state = CompoundService.CompoundState.MARINE_HELD;
 
-        run(works, WorksCrewService.REPLACEMENT_SECONDS + 1f);
+        run(works, WorksCrewService.REPLACEMENT_SECONDS + 20f);
 
         assertEquals(1, technicians(works, Faction.MARINE),
                 "the marines hold the shed and it is still turning out defenders");
         long arrival = newestTechnician(works, Faction.MARINE);
         assertNotNull(works.sim.squadOf(arrival),
                 "the new crew is in no squad, so they will never shoot at anything");
-        // SOUTH_TO_NORTH puts the attacker's rear at the bottom of the map.
-        assertTrue(works.sim.world().cellY(arrival) < BAY_Y,
-                "the marine replacement came on at the defender's end of the map");
     }
 
     /**
