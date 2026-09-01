@@ -87,6 +87,17 @@ class MissionMlxTest {
             instance.requireElement("squad-deployment-summary");
             instance.requireElement("squad-deployment-grid");
             assertTrue(instance.requireElement("deployment-preview-0").hasClass("selected"));
+            assertEquals("graphics/portraits/portrait_mercenary01.png",
+                    instance.requireElement("deployment-preview-0-commander-portrait")
+                            .imageSource());
+            assertEquals("Lt. Mira Hale",
+                    instance.requireElement("deployment-preview-0-commander-name").text());
+            assertEquals("HOME COMMAND · SELECTED",
+                    instance.requireElement("deployment-preview-0-commander-status").text());
+            assertEquals("HOME COMMAND · AVAILABLE",
+                    instance.requireElement("deployment-preview-2-commander-status").text());
+            assertEquals("3 WIA · 1 KIA",
+                    instance.requireElement("deployment-preview-2-casualties").text());
             for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
                 for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
                     instance.requireElement("deployment-preview-member-0-" + team + "-" + slot);
