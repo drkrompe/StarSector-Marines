@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.action.AttackMove;
 import com.dillon.starsectormarines.battle.infantry.SecureCompoundGoal;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 
@@ -81,14 +82,35 @@ public final class OrderCatalog {
     };
 
     /**
+     * Two minutes of ship's time, the bound on an order that can finish.
+     *
+     * <p>A bound exists because completion is not guaranteed: a straggler left
+     * outside the footprint never satisfies the arrival test, and an order that
+     * cannot complete would hold the mission underneath it hostage for the rest
+     * of the battle. It is also what keeps reissuing from becoming permanent
+     * manual control — the player may re-click all day, but each click buys a
+     * bounded interval rather than tenure.
+     *
+     * <p>It is generous on purpose. Crossing a compound and taking it
+     * legitimately takes a while, and a commander that still wants the ground
+     * after the lease lapses simply issues the capture again on its next pulse.
+     */
+    public static final int LEASE_TICKS =
+            Math.round(120f / BattleSimulation.TICK_DT);
+
+    /**
      * What the player's version of a kind means to the squad that receives it.
      *
      * @param goal       the MISSION goal that must win while the order stands;
      *                   must be registered in every listed arm's goal library
      * @param arms       which dispatchers may be handed this order by the player
      * @param completion when the order is over and the mission underneath resumes
+     * @param leaseTicks how long the player's version may stand before the
+     *                   mission underneath resumes on its own, or -1 when this
+     *                   kind of order stands until it is superseded or withdrawn
      */
-    public record PlayerOrder(Goal goal, Set<Arm> arms, Completion completion) {
+    public record PlayerOrder(Goal goal, Set<Arm> arms, Completion completion,
+                              int leaseTicks) {
 
         public PlayerOrder {
             Objects.requireNonNull(goal, "goal");
@@ -101,6 +123,11 @@ public final class OrderCatalog {
 
         public boolean allows(Arm arm) {
             return arms.contains(arm);
+        }
+
+        /** The tick this order's lease may stand until, given the tick it was issued on. */
+        public int leaseUntilTick(int issuedTick) {
+            return leaseTicks < 0 ? -1 : issuedTick + leaseTicks;
         }
     }
 
@@ -136,15 +163,21 @@ public final class OrderCatalog {
         // The one order both arms take from the player; a deliberate area
         // must beat role-specific mech mission goals, which the goal's own
         // relevance arranges.
+        // Unbounded, because a defence does not finish by being reached: it
+        // stands until superseded or hard withdrawal, and a lease that lapsed
+        // under the player would abandon the ground they placed it on.
         row(AssignmentKind.DEFEND_AREA, Shape.CELL, null, new PlayerOrder(
-                DefendAssignedAreaGoal.INSTANCE, EnumSet.of(Arm.INFANTRY, Arm.MECH), PERSISTENT));
+                DefendAssignedAreaGoal.INSTANCE,
+                EnumSet.of(Arm.INFANTRY, Arm.MECH), PERSISTENT, -1));
         row(AssignmentKind.ADVANCE_TRACK, Shape.CELL, null, null);
         // Mechs take a per-chassis move order instead, which is not an
         // assignment at all; see MechMoveOrderSystem.
         row(AssignmentKind.ATTACK_MOVE, Shape.CELL, null, new PlayerOrder(
-                AttackMoveGoal.INSTANCE, EnumSet.of(Arm.INFANTRY), ARRIVED));
+                AttackMoveGoal.INSTANCE, EnumSet.of(Arm.INFANTRY), ARRIVED,
+                LEASE_TICKS));
         row(AssignmentKind.SECURE_COMPOUND, Shape.ZONE, null, new PlayerOrder(
-                SecureCompoundGoal.INSTANCE, EnumSet.of(Arm.INFANTRY), CAPTURED));
+                SecureCompoundGoal.INSTANCE, EnumSet.of(Arm.INFANTRY), CAPTURED,
+                LEASE_TICKS));
         // A held node with no issuer is a garrison's: born garrisons hold
         // nodes and nobody else writes HOLD_NODE without provenance.
         row(AssignmentKind.HOLD_NODE, Shape.NODE, CommandAuthority.GARRISON, null);

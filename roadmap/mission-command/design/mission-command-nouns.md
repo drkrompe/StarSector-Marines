@@ -4,7 +4,10 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-31 — active player infantry context now exclusively owns the
+Updated: 2026-09-01 — a player's tactical squad order is a lease taken through
+the assignment arbiter at `PLAYER_INTERVENTION`; the commander's directive is
+shelved beneath it and is what the squad resumes.
+Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
 the underlying directive remains authoritative and resumes on release.
 Earlier 2026-08-31 — a selected Marine infantry squad may hold a persistent
@@ -305,41 +308,66 @@ future request may lease a legal priority, rally, reserve commitment, focus, or
 fallback. It cannot manufacture knowledge, bypass objective law, or seize an
 externally owned squad. Expiry hands control back without a planless interval.
 
-A tactical squad move is narrower than such a directive lease: it temporarily
-supplies the selected Marine infantry squad's executable destination while its
-authoritative directive and owner remain unchanged. Local AI still decides how
-the squad crosses contact and fires, form-up and cohesion survival may suspend
-it, and hard withdrawal cancels it. Arrival removes the temporary context before
-the ordinary directive replans, so the intervention neither becomes a second
-assignment writer nor leaves an unowned interval. **Arrival is the action's
-own completion rule and nothing else**: the release asks the attack move
-whether the squad has arrived by the test the action completes on, because a
-second radius kept beside it let a squad satisfy the action, miss the release,
-and park under the player's order for the rest of the battle. Until that boundary, the
-player context is the exclusive MISSION-tier input to local planning; a
-unit-level specialist task or authored last stand cannot compete around the
-executable assignment and make the accepted order inert. Infantry assigned to
-a rescue pickup perimeter remain eligible because the intervention changes
-execution, not rescue ownership. Shelter militia remain mission-owned rather
-than becoming part of the player's deployed force.
+A tactical squad move **is** such a lease. An accepted click is a directive at
+`PLAYER_INTERVENTION` committed through the arbiter like every other assignment,
+so a player's order carries provenance, a reason, an issue tick, and a bound —
+there is no side channel by which the player points a squad somewhere. The
+commander's directive is not displaced but **shelved**: the arbiter holds it and
+puts it back when the order ends, which is what lets the handback happen without
+a tick on which the squad owns no assignment at all. A squad under a lease is
+therefore reported two ways at once — the order it is carrying out, and the
+directive it will resume — and both are read from the ledger rather than
+reconstructed.
 
-A contextual squad action applies the same execution-only authority to a legal
-mission interaction. The first production action is Conquest capture: clicking
-an uncaptured compound binds its stable authored identity to the live capture
-room and supplies the existing `SECURE_COMPOUND` context. Arrival is not
-completion; the squad approaches, clears, and holds through the ordinary local
-AI until territorial authority reports `MARINE_HELD`. Completion, hard
-withdrawal, loss, or invalidated reachability removes the temporary context and
-reveals the latest authoritative directive without an unassigned interval.
+Completion, expiry, invalidated reachability, squad ineligibility, and hard
+withdrawal all end the lease through the same door. **Completion is the action's
+own rule and nothing else**: the release asks the attack move whether the squad
+has arrived by the test the action completes on, because a second radius kept
+beside it let a squad satisfy the action, miss the release, and park under the
+player's order for the rest of the battle. **Expiry is what covers an order that
+cannot complete** — a straggler left outside the footprint forever would
+otherwise hold the mission hostage — and is why a bounded order buys a bounded
+interval of authority rather than the beginning of permanent manual control; the
+commander re-issues after expiry whatever it still wants. A defence area is the
+exception that proves the shape: it is unbounded, because it stands until
+superseded or hard withdrawal rather than finishing by being reached.
 
-A player-placed defend area is another execution-only intervention, not an
-Assault command-area claim. The player selects an eligible Marine infantry
-squad, arms the order, and places a circle twenty cells in radius around a
-reachable center. The local squad plan owns threat-facing cover, bounded firing
-positions, and moving fire inside that geometry; mission command retains its
-directive and ownership underneath. The defense persists until superseded or
-hard withdrawal rather than completing merely because the squad reached its
-center.
+Two rules keep the shelf honest. A **reissue keeps the original shelf**: a
+player changing their mind is one intervention, not their own previous order
+becoming the mission underneath. And a **commander's write during a lease is
+shelved rather than lost** — the squad hands back to what command wants now, not
+to the intent that happened to be standing when the player clicked. The one
+order a lease does not outlast is a hard withdrawal, which takes the squad
+immediately: everything else a player may issue is a place to be, and a squad
+that walks there for another two minutes first is not withdrawing.
+
+Local AI still decides how the squad crosses contact and fires, and form-up and
+cohesion survival may suspend execution without touching ownership. While the
+lease stands, the player's order is the exclusive MISSION-tier input to local
+planning; a unit-level specialist task or authored last stand cannot compete
+around the executable assignment and make the accepted order inert. Infantry
+assigned to a rescue pickup perimeter remain eligible because the intervention
+changes execution, not rescue ownership. Shelter militia remain mission-owned
+rather than becoming part of the player's deployed force.
+
+A contextual squad action is the same lease over a legal mission interaction.
+The first production action is Conquest capture: clicking an uncaptured compound
+binds its stable authored identity to the live capture room and leases the
+existing `SECURE_COMPOUND` context. Arrival is not completion; the squad
+approaches, clears, and holds through the ordinary local AI until territorial
+authority reports `MARINE_HELD`. A zone rebuilt under the order is rebound by
+reissuing the lease, which keeps the commander's directive on the shelf the
+first click put it on. Completion, hard withdrawal, loss, expiry, or invalidated
+reachability ends the lease and restores the latest authoritative directive
+without an unassigned interval.
+
+A player-placed defend area is another lease, not an Assault command-area claim.
+The player selects an eligible Marine infantry squad, arms the order, and places
+a circle twenty cells in radius around a reachable center. The local squad plan
+owns threat-facing cover, bounded firing positions, and moving fire inside that
+geometry; mission command's directive waits on the shelf underneath. This is the
+unbounded lease: the defense persists until superseded or hard withdrawal rather
+than completing merely because the squad reached its center.
 
 A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,

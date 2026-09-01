@@ -442,7 +442,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                                  BattleSimulation sim, Set<Goal> declined) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null
-                || !squad.hasPlayerTacticalOrder(assignment.kind())) {
+                || !squad.hasPlayerOrder(assignment.kind())) {
             return Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim, declined);
         }
 

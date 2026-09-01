@@ -274,7 +274,7 @@ public final class GoapMechBehavior implements UnitBehavior {
                                  BattleSimulation sim, Set<Goal> declined) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null
-                || !squad.hasPlayerTacticalOrder(assignment.kind())) {
+                || !squad.hasPlayerOrder(assignment.kind())) {
             return Goal.pickMostRelevant(MECH_GOALS, current, squad, sim, declined);
         }
         PlayerOrder player = OrderCatalog.playerOrder(assignment.kind());
