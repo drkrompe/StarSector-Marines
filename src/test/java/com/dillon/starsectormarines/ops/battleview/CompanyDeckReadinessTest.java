@@ -37,7 +37,7 @@ class CompanyDeckReadinessTest {
     @Test
     @DisplayName("she is not built by whoever asks for her, and her clock starts at zero")
     void sheIsGotReadyElsewhere() {
-        CompanyDeck ship = CompanyDeck.home(BOAT, SEED, null, null, null);
+        CompanyDeck ship = CompanyDeck.home(BOAT, SEED, null, null, null, null);
 
         // Asking for her costs the asker nothing and starts nothing running.
         assertFalse(ship.live(), "she was crewed on the thread that named her");
@@ -63,7 +63,7 @@ class CompanyDeckReadinessTest {
     @Test
     @DisplayName("a caller that insists gets the ship rather than nothing")
     void askingOutrightWaits() {
-        CompanyDeck ship = CompanyDeck.home(BOAT, SEED, null, null, null);
+        CompanyDeck ship = CompanyDeck.home(BOAT, SEED, null, null, null, null);
 
         assertTrue(ship.scene().simulation().getRoster().liveCount() > 0,
                 "she came back with nobody aboard");
@@ -79,7 +79,7 @@ class CompanyDeckReadinessTest {
     void anUnboardableHullIsNeverReady() {
         CompanyDeck fighter = CompanyDeck.home(
                 new CompanyShip(HullClass.FIGHTER, HullRole.WARSHIP, 1, 2, 0, 0.9f),
-                SEED, null, null, null);
+                SEED, null, null, null, null);
 
         assertFalse(fighter.ready());
         fighter.advance(1f / 60f);

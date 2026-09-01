@@ -80,7 +80,28 @@ public record ConquestFrontSnapshot(
             int knownHostileContacts,
             float friendlyPressure,
             float knownHostilePressure,
-            int targetZoneId) { }
+            int targetZoneId,
+            int responderCap) {
+
+        /**
+         * A picture from a command that does not bound its per-track response,
+         * which is every marine-perspective one: {@code -1} reads as "no cap
+         * published" rather than as a cap of nothing.
+         */
+        public TrackState(int index, int lateralStart, int lateralEnd,
+                          int preferredSquads, int effectiveSquads,
+                          int effectiveLiveMembers, float friendlyBodyProgress,
+                          float friendlyLeadProgress,
+                          float knownHostileFrontProgress,
+                          int knownHostileContacts, float friendlyPressure,
+                          float knownHostilePressure, int targetZoneId) {
+            this(index, lateralStart, lateralEnd, preferredSquads,
+                    effectiveSquads, effectiveLiveMembers,
+                    friendlyBodyProgress, friendlyLeadProgress,
+                    knownHostileFrontProgress, knownHostileContacts,
+                    friendlyPressure, knownHostilePressure, targetZoneId, -1);
+        }
+    }
 
     /** Frozen own-force physical facts published with this command pulse. */
     public record SquadState(

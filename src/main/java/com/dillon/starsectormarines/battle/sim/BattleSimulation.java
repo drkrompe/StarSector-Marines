@@ -45,6 +45,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
+import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
 import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -829,6 +830,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BattleComponents getBattleComponents() { return battleComponents; }
 
     public long[] getAirEntityIds()        { return airSystem.airEntityIds(); }
+    /** Every craft this battle destroyed, in the order it lost them — read once, at resolution, long after the entities were reaped. */
+    public List<AirLoss> getAirLosses()    { return airSystem.airLosses(); }
     /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }
     /** Attaches a turret loadout to an air entity (presence component). Called at setup once the craft is spawned (id minted); no-op for an empty loadout. */

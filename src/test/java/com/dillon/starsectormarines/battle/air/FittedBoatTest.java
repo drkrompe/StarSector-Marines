@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -76,6 +77,36 @@ class FittedBoatTest {
         assertEquals(one.hashCode(), same.hashCode());
         assertNotEquals(one, otherFit);
         assertNotEquals(one, otherPattern);
+    }
+
+    /**
+     * Two of the company's boats at the same fit are still two boats, and only
+     * one of them burned. Without the id in the identity a shoot-down would
+     * name whichever of them the deck happened to look at first.
+     */
+    @Test
+    void aBoatIsIdentifiedByWhichBoatItIsAndNotOnlyByHowItIsFitted() {
+        FittedBoat first = new FittedBoat(ShuttleType.AEROSHUTTLE,
+                BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "boat_01");
+        FittedBoat second = new FittedBoat(ShuttleType.AEROSHUTTLE,
+                BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "boat_02");
+        FittedBoat sameBoat = new FittedBoat(ShuttleType.AEROSHUTTLE,
+                BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "boat_01");
+
+        assertEquals("boat_01", first.boatId());
+        assertEquals(first, sameBoat);
+        assertEquals(first.hashCode(), sameBoat.hashCode());
+        assertNotEquals(first, second);
+        assertNotEquals(first, FittedBoat.standard(ShuttleType.AEROSHUTTLE),
+                "an employer's craft at the same fit is nobody's boat");
+    }
+
+    /** Nothing owns a pattern as it leaves the yard, so it names no boat. */
+    @Test
+    void aStandardFitBelongsToNoBoat() {
+        assertNull(FittedBoat.standard(ShuttleType.AEROSHUTTLE).boatId());
+        assertNull(new FittedBoat(ShuttleType.HERMES,
+                BoatFitting.ARMOURED_PLATING, BoatFitting.STANDARD_DRIVE).boatId());
     }
 
     /** A fitting names its own slot, so a drive in the plating slot is a mistake. */

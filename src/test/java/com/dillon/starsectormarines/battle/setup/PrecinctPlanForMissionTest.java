@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -84,6 +85,82 @@ class PrecinctPlanForMissionTest {
                 assertNull(plan, type + " keeps the recipe it has; only Assault and Raid are wired");
             }
         }
+    }
+
+    /**
+     * The dial the mission turns reaches the plan.
+     *
+     * <p>A remote assault is the installation and the country around it: the
+     * settlement is dropped entirely, so the only place left is the one the
+     * mission is about.
+     */
+    @Test
+    void anAssaultMayAskForAnInstallationInOpenCountry() {
+        PrecinctPlan remote = BattleSetup.precinctPlanFor(MissionType.ASSAULT,
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                MapScale.MEDIUM, SEED, PrecinctPlan.Sprawl.REMOTE);
+        assertNotNull(remote, "a remote assault still has a map made of places");
+        assertNotNull(remote.objective(),
+                "a remote map is the installation, so it must still carry one");
+        assertEquals(0, remote.precincts().stream()
+                        .filter(precinct -> !precinct.isProgrammed()).count(),
+                "a remote map came out with a town on it, which is the one thing "
+                        + "that stops it being what it is called");
+    }
+
+    /**
+     * A raid refuses the remote map even when the battle asks for one: its
+     * target is a point of interest, and only settlement fills emit those.
+     */
+    @Test
+    void aRaidClampsARemoteRequestBackToATown() {
+        PrecinctPlan raid = BattleSetup.precinctPlanFor(MissionType.RAID,
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                MapScale.MEDIUM, SEED, PrecinctPlan.Sprawl.REMOTE);
+        PrecinctPlan balanced = BattleSetup.precinctPlanFor(MissionType.RAID,
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                MapScale.MEDIUM, SEED, PrecinctPlan.Sprawl.BALANCED);
+        assertNotNull(raid, "a raid always has a map made of places");
+        assertEquals(seedsOf(balanced), seedsOf(raid),
+                "a raid asked for a remote map and got something other than the "
+                        + "balanced one the clamp promises");
+    }
+
+    /**
+     * A conurbation is more places than a town, on the same world and seed.
+     *
+     * <p>Asked at the largest scale a mission is offered at, because a place
+     * needs room to be a separate place: on a 144x80 map the seed separation
+     * seats three and both presets saturate at it, which says something about
+     * the map size rather than about the dial.
+     */
+    @Test
+    void aDenseMapIsMorePlacesThanABalancedOne() {
+        PrecinctPlan balanced = BattleSetup.precinctPlanFor(MissionType.ASSAULT,
+                OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM, MARKET,
+                MapScale.LARGE, SEED, PrecinctPlan.Sprawl.BALANCED);
+        PrecinctPlan dense = BattleSetup.precinctPlanFor(MissionType.ASSAULT,
+                OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM, MARKET,
+                MapScale.LARGE, SEED, PrecinctPlan.Sprawl.DENSE);
+        assertTrue(dense.precincts().size() > balanced.precincts().size(),
+                "dense has " + dense.precincts().size() + " places against balanced's "
+                        + balanced.precincts().size());
+    }
+
+    /** A mission that states nothing takes the answer its market's size gives. */
+    @Test
+    void aBattleThatStatesNothingTakesTheMarketsOwnAnswer() {
+        assertEquals(PrecinctPlan.Sprawl.BALANCED,
+                SettlementZoning.sprawlFor(MARKET.marketSize()),
+                "the fixture world is a town, so the derived default is the town map");
+        PrecinctPlan derived = BattleSetup.precinctPlanFor(MissionType.ASSAULT,
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                MapScale.MEDIUM, SEED);
+        PrecinctPlan stated = BattleSetup.precinctPlanFor(MissionType.ASSAULT,
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                MapScale.MEDIUM, SEED, PrecinctPlan.Sprawl.BALANCED);
+        assertEquals(seedsOf(stated), seedsOf(derived),
+                "a battle that said nothing about sprawl did not take the derived answer");
     }
 
     @Test

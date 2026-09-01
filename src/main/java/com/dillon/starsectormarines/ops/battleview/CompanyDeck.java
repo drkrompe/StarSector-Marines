@@ -71,6 +71,8 @@ public final class CompanyDeck {
     private final BattleSprites sprites;
     private final Supplier<List<MechVariant>> lance;
     private final Supplier<List<MarineSoldier>> company;
+    /** Which of her boat berths the company still has a boat for. @see #getReady() */
+    private final Supplier<boolean[]> boatsHeld;
     /**
      * Whether this is the ship the company lives aboard, whose deck is laid out
      * once and kept. @see LaidDecks
@@ -101,22 +103,28 @@ public final class CompanyDeck {
      * @param company the marines to muster into her berthing, read at the same
      *     moment; they are the ship's marine complement, so a ship given none
      *     has no marines aboard rather than anonymous ones
+     * @param boatsHeld which of her boat berths the company still has a boat
+     *     for, in the Boat Deck's own berth order, or null for a hull whose
+     *     every berth is held
      */
     public CompanyDeck(CompanyShip ship, long seed, BattleSprites sprites,
                        Supplier<List<MechVariant>> lance,
-                       Supplier<List<MarineSoldier>> company) {
-        this(ship, seed, sprites, lance, company, false);
+                       Supplier<List<MarineSoldier>> company,
+                       Supplier<boolean[]> boatsHeld) {
+        this(ship, seed, sprites, lance, company, boatsHeld, false);
     }
 
     private CompanyDeck(CompanyShip ship, long seed, BattleSprites sprites,
                         Supplier<List<MechVariant>> lance,
-                        Supplier<List<MarineSoldier>> company, boolean home) {
+                        Supplier<List<MarineSoldier>> company,
+                        Supplier<boolean[]> boatsHeld, boolean home) {
         if (ship == null) throw new IllegalArgumentException("a company ship is required");
         this.ship = ship;
         this.seed = seed;
         this.sprites = sprites;
         this.lance = lance == null ? List::of : lance;
         this.company = company == null ? List::of : company;
+        this.boatsHeld = boatsHeld == null ? () -> null : boatsHeld;
         this.home = home;
     }
 
@@ -132,13 +140,14 @@ public final class CompanyDeck {
      */
     public static CompanyDeck home(CompanyShip ship, long seed, BattleSprites sprites,
                                    Supplier<List<MechVariant>> lance,
-                                   Supplier<List<MarineSoldier>> company) {
-        return new CompanyDeck(ship, seed, sprites, lance, company, true);
+                                   Supplier<List<MarineSoldier>> company,
+                                   Supplier<boolean[]> boatsHeld) {
+        return new CompanyDeck(ship, seed, sprites, lance, company, boatsHeld, true);
     }
 
     /** A ship nobody will draw, nothing is berthed in, and nobody is billeted on. */
     public CompanyDeck(CompanyShip ship, long seed) {
-        this(ship, seed, null, null, null, false);
+        this(ship, seed, null, null, null, null, false);
     }
 
     /**
@@ -292,22 +301,26 @@ public final class CompanyDeck {
      *
      * <p>The roster is read here rather than out there. Who is aboard is
      * campaign state, the campaign is still running, and a supplier called from
-     * another thread would be reading the company while it changes.
+     * another thread would be reading the company while it changes. Which
+     * berths still hold a boat is campaign state on exactly the same terms, so
+     * it is read on this thread too.
      */
     private CompletableFuture<ShipDeckBattleScene> getReady() {
         if (gettingReady != null) return gettingReady;
         List<MechVariant> berthed = lance.get();
         List<MarineSoldier> roll = company.get();
-        gettingReady = LaidDecks.off(() -> muster(berthed, roll));
+        boolean[] held = boatsHeld.get();
+        gettingReady = LaidDecks.off(() -> muster(berthed, roll, held));
         return gettingReady;
     }
 
     /** @see #getReady() */
-    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MarineSoldier> roll) {
+    private ShipDeckBattleScene muster(List<MechVariant> berthed, List<MarineSoldier> roll,
+                                       boolean[] held) {
         work = Work.LAYING_OUT;
         generate();
         work = Work.MUSTERING;
-        ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null);
+        ShipDeckBattleScene manned = new ShipDeckBattleScene(deck, rooms, seed, null, held);
         manned.occupyGantries(berthed);
         // The company musters before the ship is crewed, so the berthing is
         // filled by marines who are on the roster rather than topped up with
