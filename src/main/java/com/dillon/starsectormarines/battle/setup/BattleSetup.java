@@ -108,6 +108,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -586,6 +587,49 @@ public final class BattleSetup {
                 type, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
     }
 
+    /**
+     * Mixed into the map seed for the plan's own draws.
+     *
+     * <p>The plan and the generator would otherwise read the same stream from
+     * the same start, so where a place is seeded and how the map is built from
+     * it would be correlated for no reason anybody chose. A fixed salt keeps
+     * the plan deterministic in the battle's seed while leaving it an
+     * independent draw; the value carries no meaning beyond being distinctive.
+     */
+    private static final long PRECINCT_SEED_SALT = 0x9E3779B97F4A7C15L;
+
+    /**
+     * The places this battle's map is made of, or {@code null} to take the map
+     * the generator already builds.
+     *
+     * <p><b>Assault and Raid only.</b> Both are search-and-strike missions whose
+     * balance is not yet pinned, so a map that is a set of places rather than
+     * one grown settlement changes something nobody has committed to a number
+     * for. Conquest stays on the stock crossroad by the standing rule in
+     * {@code precincts.md} — its biome-band recipe is the one with a judged
+     * shape — and every other mission keeps the recipe it has.
+     *
+     * <p><b>A market is what there is to derive from.</b> The gate mirrors
+     * {@code BspCityGenerator.recipeFor}: a battle with no market behind it —
+     * a headless fixture, a story op with no target planet — has no size, no
+     * defence rating and no economy to seed places from, so it takes the stock
+     * map exactly as it does today rather than a plan derived from zeroes.
+     *
+     * <p><b>{@code BALANCED} for Raid too</b>, not {@code REMOTE}. A raid wants
+     * a target, and targets are points of interest, which only settlement fills
+     * emit; a remote map is an installation in open country and has none, so
+     * {@code RaidTargetLayout} would find no candidate and throw. Making
+     * tactical nodes eligible targets is what would unlock a remote raid.
+     */
+    static PrecinctPlan precinctPlanFor(MissionType type, OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile, MapScale scale, long seed) {
+        if (type != MissionType.ASSAULT && type != MissionType.RAID) return null;
+        if (profile == null || profile.marketSize() <= 0) return null;
+        return PrecinctPlan.derive(profile, PrecinctPlan.Sprawl.BALANCED,
+                MissionFortification.demand(tier, risk),
+                scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT));
+    }
+
     /** Tier-aware catch-all with both sides' authored fighter commitments. */
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
                                                      boolean enemyHasHeavyArmor,
@@ -596,7 +640,9 @@ public final class BattleSetup {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
+        PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed);
+        MapResult map = MAP_GEN.generate(
+                scale.width, scale.height, seed, null, profile, precincts);
         Random rng = new Random(seed);
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
