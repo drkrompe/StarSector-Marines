@@ -399,7 +399,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             Gantry berth = gantries.get(index);
             if (berth.holds != Gantry.Holds.BOAT) continue;
             fieldBerth[index] = bays.berths().size();
-            bays.addBayBerth(berth, SHIPS_BOAT);
+            bays.addBayBerth(berth, SHIPS_BOAT, offshipFrom(berth));
             occupiedBerths[index] = true;
         }
         if (bays.berths().isEmpty()) return;
@@ -415,6 +415,35 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     task.fixtureX(), task.fixtureY(), onTheField, task.inService()));
         }
         bays.installApronWork(servicing);
+    }
+
+    /**
+     * How far off the hull a boat runs before it turns round.
+     *
+     * <p>Clear of the ship by more than her own bulk, so a departure reads as
+     * leaving rather than as hovering off a door — and it is what makes the
+     * berth empty for a usable stretch without a dwell timer, since the flight
+     * out and back is the duration.
+     */
+    private static final float OFFSHIP_CELLS = 16f;
+
+    /**
+     * Where a boat kept in this berth goes when it leaves, or null when its bay
+     * has no door.
+     *
+     * <p>Found by which bay the berth stands in rather than by which berth the
+     * door belongs to, because a door belongs to a room and a berth is a place
+     * in one. A berth in a bay the placer could not give a flank has nowhere to
+     * go and simply never launches.
+     */
+    private float[] offshipFrom(Gantry berth) {
+        if (rooms == null) return null;
+        for (DeckGraph.Compartment room : rooms.compartments()) {
+            if (!room.contains(berth.centerX, berth.centerY)) continue;
+            BayAperture door = rooms.apertureOf(room.id());
+            return door == null ? null : door.offshipAt(OFFSHIP_CELLS);
+        }
+        return null;
     }
 
     /**
