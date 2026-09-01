@@ -4,7 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a boat bay is a field: its berths are registered with the
+Updated: 2026-09-01 — a bay knows its aperture: the door in its outboard
+bulkhead, derived at placement from the run of its ring that faces space.
+
+Earlier 2026-09-01 — a boat bay is a field: its berths are registered with the
 airfield service, the ship owns them, and her crew turn her boats round.
 
 Earlier 2026-09-01 — a boat bay holds boats: berths that say what they hold,
@@ -209,6 +212,32 @@ authored content.
   before then finds every berth empty, publishes no servicing, and is staffed as
   a store for the rest of the ship's life. The airfield learned this the same
   way.
+- An **aperture** is the door in a bay's outboard bulkhead: where what is kept
+  in the bay leaves the ship and where it comes back. It is the one opening on a
+  deck that joins a compartment to nothing rather than to the compartment next
+  door, and it is the ship's answer to the question a battle map answers with a
+  map edge — which way is off, and from where.
+- **It is derived where the hull is known, not where the room is fitted.** A
+  fitting sees a floor, a pose and a set of doors and could not say which of its
+  bulkheads has vacuum behind it; the placer is what pushed the room against the
+  ship's side, and is deliberately left free to use whichever side it can reach.
+  So the aperture is the longest run of the room's own ring that lies outside the
+  hull, recovered at placement — the same question the packer asked to place the
+  room at all.
+- **A flank is a door; a transom is only contact.** The two hull contacts mean
+  different things: a flank is where a bay launches something, a transom is where
+  an engine room has to sit to be driving anything. Treating them alike would
+  publish an opening onto space at the back of every ship in the fleet.
+- **A door is not a hole.** Nothing is cut, the cells stay bulkhead, and the deck
+  stays sealed — what is recorded is where the door is and which way is out, so
+  whatever opens it has geometry rather than a guess. The cell just inboard is
+  deck, because that is where a boat is moved before it goes and the first thing
+  it stands on coming back.
+- **A berth's heading is the way out of the berth, not the way off the ship.**
+  Boats are parked backed onto the fuelling run and nosed at the deck, and the
+  door is wherever the hull turned out to be — sometimes behind them. That is
+  what the clear lane is for: a boat deck is not a drive-through, and a boat is
+  moved.
 - A **small hull's boat may go unserviced**, and today does: a frigate's single
   gig bay competes for a forty-hand ship's bunks and comes out with nobody at the
   berth, while a destroyer and up turn their boats round. That is the manning
