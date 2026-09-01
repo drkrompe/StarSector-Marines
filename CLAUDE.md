@@ -800,12 +800,29 @@ case it was written for. The registered threat is the persistent answer — the
 firing system will not let a round go until it matches — and asking for it is
 what made the scene say anything at all.
 
+**A reflex that hands the tick back owes two things, and the scene pins both.**
+The step-aside authors a path and declines, so the assigned step fires the
+marine and walks him — which is only safe while *exactly one* caller moves him,
+and a marine advanced twice simply arrives in half the ticks with every other
+reading looking right. `one-mover-per-tick` measures the busiest sidestep tick
+against one tick of his own travel. The other obligation is that a step which
+plants a marine who can fire from where he stands throws the authored move
+away on the tick it was made: measured, nine sidesteps with three covering any
+ground. `sidesteps-complete` counts moves that *went somewhere*, because the
+weaker form of it — "at least one moved" — passed on the broken version, as did
+the friendly-fire and damage figures. Three plant sites now consult
+`LaneSidestep.isStepping`.
+
 What it records: the control puts 5.9 HP into its own men and the subject puts
 none, both loops land the identical 100.0 HP on the enemy, and all six marines
-are alive at the end of both. Four sidesteps carry the whole difference. What
-Conquest records is the opposite: reinforced-south takes 4 compounds with it on
-against 14 with it off, so the reflex ships **off** behind
-`battle.infantry.laneSidestep` and the scene turns it on for its own loop.
+are alive at the end of both. Five sidesteps carry the whole difference, and
+every one covers ground. Conquest is where it is decided, and two shapes of the
+same step were measured there. Consuming the tick cost reinforced-south ten of
+its fourteen captures; handing it back recovers almost all of that — 12 captures
+and 11 held against the control's 14 and 9, with 56 more defenders killed. It
+ships **off** all the same, on the one clause it misses (no fixture may capture
+fewer, and 12 is fewer than 14), behind `battle.infantry.laneSidestep`, with the
+scene turning it on for its own loop.
 
 **A scene answers rather than merely records.** A `BehaviorScene` returns one
 `SceneReport` per loop — its verdicts and the readings they were judged from —

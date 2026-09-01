@@ -5,7 +5,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 Written: 2026-08-23
 
 Updated: 2026-09-01 — a masked marine steps aside rather than retargeting, and
-the third measurement of the friendly-lane question keeps it switched off.
+what the friendly-lane question costs is the tick, not the step.
 
 Earlier 2026-09-01 — what sits between a unit having a squad and executing its
 step is a declared reflex chain, one per arm, whose order is a law.
@@ -1119,20 +1119,31 @@ small: a column in a corridor puts 5.9 HP into its own men with the reflex off
 and none with it on, landing the identical damage on the enemy and losing
 nobody either way.
 
-Conquest says it costs, and by the same shape as before. Reinforced-south takes
-4 compounds with it on against 14 with it off and holds 2 against 9;
-full-strength-west gains — 4 captures against 3, 3 held against 0, and survival
-to the tick limit where the control is defeated — but the standing bar is that
-no fixture may take or hold less. **The instructive number is that the losing
-fixture also kills fewer defenders**, which is not a squad that traded shooting
-for safety; it is a squad that spent time. A sidestep holds its marine for the
-length of the move, during which no step runs and no fire intent is authored,
-and a timed advance is charged for that. So the standing law is: **a masked
-marine steps aside within cover and never retargets for a lane**, and the
-remaining candidate is to stop consuming the tick — author the path and decline,
-so the step still fires and still walks the marine along it. Three attempts have
-now measured this question; the lane test has never been what any of them
-condemned.
+Conquest was where it cost, and measuring two shapes of the same step said
+where the cost actually lived. In the first, the reflex **consumed the tick**
+and moved the marine itself: reinforced-south took 4 compounds against the
+control's 14, holding 2 against 9, while killing *fewer* defenders — not a squad
+that traded shooting for safety but one that spent time. In the second it
+**authors the move and declines**, so the assigned step fires the marine's
+weapon and walks him along the path; the same fixture then takes 12 and holds
+11, killing 56 more defenders and losing 21 fewer marines, and full-strength-west
+goes from 0 compounds held to 3.
+
+So the standing law is: **a masked marine steps aside within cover and never
+retargets for a lane, and stepping aside never costs him a shot.** A reflex that
+plants a marine for a second and a half to move him a cell is charged for it by
+any mission decided on a clock; one that hands the tick back is not. Handing it
+back has a matching obligation, which is where the remaining sharp edge is —
+**exactly one caller may move the marine per tick**, and a step that plants a
+marine who can fire from where he stands will otherwise throw the authored move
+away on the tick it was made. Both are pinned by the scene rather than left to
+be rediscovered.
+
+It is nonetheless still switched off, on one number: the bar is that no fixture
+may capture or hold fewer with it on, and reinforced-south captures 12 against
+14 even while holding 11 against 9. Four measurements across three verbs now
+agree on the part that matters for whatever is tried next — **the lane test has
+never been what any of them condemned**, and neither, now, is the step.
 
 It was retested once joining fire stopped being priced by a headcount, because
 the standing explanation was that the two were blind anti-concentration

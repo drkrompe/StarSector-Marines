@@ -13,6 +13,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,6 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * reason to act, so a test that set up the acting case and asserted a move
  * would say nothing about the declines — and the declines are the whole of what
  * keeps a reflex from inventing work.
+ *
+ * <p><b>The return value is not what separates acting from declining here</b>,
+ * because this reflex declines either way: it authors a path and hands the tick
+ * to the step, which is what shoots and what walks the marine. So every case
+ * asserts {@code false} and the path is the discriminator — set when the marine
+ * stepped, empty when he did not. A test that read the boolean would pass on a
+ * reflex that had stopped working entirely.
  *
  * <p><b>The reflex ships off and these tests turn it on.</b> That is deliberate
  * rather than a workaround: the Conquest matrix says the verb costs compounds
@@ -146,11 +155,18 @@ public class LaneSidestepTest {
         assertTrue(laneBlocked(sim, scene.shooter(), scene.target()),
                 "the lane really is blocked, or this test asserts nothing");
 
-        assertTrue(LaneSidestep.stepOutOfLane(scene.shooter(), sim),
-                "a marine shooting through his own man steps aside");
+        assertFalse(LaneSidestep.stepOutOfLane(scene.shooter(), sim),
+                "the reflex hands the tick to the step rather than consuming it, so the "
+                        + "marine still shoots and the step still moves him");
 
         int[] path = sim.world().path(scene.shooter());
-        assertFalse(Paths.isEmpty(path), "and leaves the tick holding a path to somewhere");
+        assertFalse(Paths.isEmpty(path), "but it has authored the move: a path to somewhere");
+        assertTrue(sim.world().sidestepTimer(scene.shooter()) > 0f,
+                "and marked the move as its own, so no step throws it away and the "
+                        + "reflex does not re-decide mid-move");
+        assertTrue(sim.world().repositionCooldown(scene.shooter()) > 0f,
+                "and stamped the shared short-move cooldown, so it cannot immediately "
+                        + "start a second one");
         int toX = Paths.destX(path);
         int toY = Paths.destY(path);
         assertTrue(Math.max(Math.abs(toX - SHOOTER_X), Math.abs(toY - ROW))
@@ -194,6 +210,30 @@ public class LaneSidestepTest {
 
         assertFalse(LaneSidestep.stepOutOfLane(scene.shooter(), sim));
         assertTrue(Paths.isEmpty(sim.world().path(scene.shooter())));
+    }
+
+    /**
+     * A move already under way is left alone: the reflex neither re-decides nor
+     * moves the marine, because the step it handed the tick to is what walks
+     * him. Two callers advancing one marine is the failure this contract is
+     * arranged to avoid, and it would otherwise be invisible — he would simply
+     * arrive in half the ticks.
+     */
+    @Test
+    public void aMoveAlreadyUnderWayIsNeitherRedecidedNorAdvanced() {
+        BattleSimulation sim = arena();
+        Masked scene = masked(sim, MATE_X, ROW);
+        LaneSidestep.stepOutOfLane(scene.shooter(), sim);
+        int[] authored = sim.world().path(scene.shooter());
+        float x = sim.world().x(scene.shooter());
+        float y = sim.world().y(scene.shooter());
+
+        assertFalse(LaneSidestep.stepOutOfLane(scene.shooter(), sim));
+
+        assertArrayEquals(authored, sim.world().path(scene.shooter()),
+                "the path it authored is untouched");
+        assertEquals(x, sim.world().x(scene.shooter()), "and the marine has not been moved");
+        assertEquals(y, sim.world().y(scene.shooter()));
     }
 
     /**

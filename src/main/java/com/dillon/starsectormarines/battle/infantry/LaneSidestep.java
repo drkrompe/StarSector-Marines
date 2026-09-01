@@ -13,7 +13,8 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * A marine with one of his own standing between him and what he is shooting at
  * <b>moves a cell</b>.
  *
- * <p>This is the second verb tried against the same fault. Nothing on the
+ * <p>This is the second verb tried against the same fault, in the second of
+ * two shapes. Nothing on the
  * decision side had ever asked whether a friendly stood in a firing lane —
  * every line test bottoms out in the navigation grid, which holds terrain and
  * no units — while {@code BallisticResolver} had always answered from the
@@ -60,34 +61,52 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * <p><b>It does what it says, in the small.</b> {@code FiringLineScene} puts
  * six marines in column in a corridor and records the control putting 5.9 HP
  * into its own men and the subject putting none, with the identical 100.0 HP
- * landed on the enemy and all six alive at the end of both. Four sidesteps
- * carry that difference.
+ * landed on the enemy and all six alive at the end of both. Five sidesteps
+ * carry that difference, and every one of them covers ground.
  *
- * <p><b>And Conquest says it costs, so it is off.</b> Against a control on the
- * same tree,
- * {@code conquest-reinforced-south} takes <b>4</b> compounds with the reflex on
- * against <b>14</b> with it off, and holds <b>2</b> at the end against
- * <b>9</b>, while killing 26 fewer defenders (308 against 334) and losing 21
- * fewer marines (216 against 237). {@code conquest-full-strength-west} moves
- * the other way — 4 captures against 3, 3 held against 0, 396 defenders killed
- * against 319, and it survives to the 18,000-tick limit where the control is
- * defeated at 16,236 — but the rule the story set is that no fixture may take
- * or hold less, and reinforced-south takes ten fewer.
+ * <p><b>Two shapes of it have been measured against Conquest.</b> The first
+ * consumed the tick: the reflex moved the marine itself and no plan step ran
+ * while it did. That cost {@code conquest-reinforced-south} ten of its
+ * fourteen captures — 4 against 14, holding 2 against 9 — while killing fewer
+ * defenders (308 against 334), which is not a squad that traded shooting for
+ * safety but one that spent time it did not have.
  *
- * <p>So this is the <b>third</b> measured attempt at the same fault and the
- * third that costs compounds. Two measured the switching verb; this one
- * measures the stepping verb, and the fixtures split the same way they did
- * then — one gains, the other gives up more than the gain is worth. What the
- * numbers say about <em>why</em> is worth keeping: reinforced-south kills fewer
- * defenders <em>and</em> takes fewer compounds with it on, which is not the
- * signature of a squad that traded shooting for safety. It is the signature of
- * a squad that spent time. A sidestep holds its marine for the length of the
- * move — up to {@link #HOLD_SECONDS} in which no plan step runs and no fire
- * intent is authored — and a mission decided partly on a clock charges for
- * that. <b>The candidate for a fourth attempt is therefore to stop consuming
- * the tick</b>: author the path and decline, so the step still fires and still
- * advances the marine along it. The lane test itself is not what the
- * measurement condemns, and never has been.
+ * <p>The second shape is this one, and it is the same lane test with the tick
+ * handed back. The reflex authors the path and declines; the assigned step
+ * fires the marine's weapon and walks him along it, so he shoots while he
+ * moves. That recovers almost all of the loss:
+ *
+ * <table><caption>Conquest, reflex on against the same tree with it off</caption>
+ * <tr><th>fixture</th><th>captures</th><th>held</th><th>defenders</th>
+ *     <th>marines lost</th><th>result</th></tr>
+ * <tr><td>reinforced-south, on</td><td>12</td><td>11</td><td>390</td>
+ *     <td>216</td><td>timeout at 18,000</td></tr>
+ * <tr><td>reinforced-south, off</td><td>14</td><td>9</td><td>334</td>
+ *     <td>237</td><td>timeout at 18,000</td></tr>
+ * <tr><td>full-strength-west, on</td><td>3</td><td>3</td><td>311</td>
+ *     <td>426</td><td>defeat at 16,445</td></tr>
+ * <tr><td>full-strength-west, off</td><td>3</td><td>0</td><td>319</td>
+ *     <td>425</td><td>defeat at 16,236</td></tr>
+ * </table>
+ *
+ * <p>Twelve captures against four, eleven held against two, 56 more defenders
+ * killed and 21 fewer marines lost than the tick-consuming shape — and against
+ * the control it now holds <em>more</em> on both fixtures, 11 against 9 and 3
+ * against 0, taking 12 compounds and keeping 11 where the control takes 14 and
+ * keeps 9.
+ *
+ * <p><b>It is still off, on one number.</b> The bar is that no fixture may
+ * capture or hold fewer with it on, and reinforced-south captures twelve
+ * against fourteen. That is the whole of what stands between this and the
+ * default, and it is not a bar to be moved by whoever happens to be looking at
+ * it — but it is worth stating plainly what the rest of the row says, because
+ * a squad that takes twelve and keeps eleven has not obviously done worse than
+ * one that takes fourteen and keeps nine.
+ *
+ * <p>What the two shapes together establish is where the cost lived. It was
+ * never the lane test, and never the step: it was the tick the marine spent
+ * not shooting. Four measurements across three verbs now say the same thing
+ * about this fault from three directions.
  *
  * @see FiringLane the geometry, shared with the target picker and the mech overwatch search
  * @see InfantryReflexes#LANE_SIDESTEP where it sits in the marine's reflex order
@@ -160,8 +179,17 @@ public final class LaneSidestep {
     /**
      * Runs the step-aside for one marine.
      *
-     * @return true when the tick was consumed — either the move was started, or
-     *         a move already started is still being walked.
+     * <p><b>Always declines.</b> It is a reflex by rank rather than by
+     * interruption: what it does is author a path, and the assigned step is
+     * what fires this marine's weapon and walks him along it. Consuming the
+     * tick instead — the shape the third attempt shipped — bought a
+     * cell-and-a-half of movement at the price of every shot the marine would
+     * have taken during it, and the Conquest matrix charged for that.
+     *
+     * @return always {@code false}. Movement is advanced by the plan step and
+     *         never here, which is what keeps exactly one caller moving the
+     *         marine per tick; {@code FiringLineScene}'s
+     *         {@code one-mover-per-tick} verdict is what proves it.
      */
     public static boolean stepOutOfLane(long unit, BattleControl sim) {
         World world = sim.world();
@@ -205,27 +233,29 @@ public final class LaneSidestep {
         if (path == null) return false;
 
         sim.setPath(unit, path);
-        sim.advanceMovement(unit);
         world.setRepositionCooldown(unit, RepositionToCover.COOLDOWN_SECONDS);
         world.setSidestepTimer(unit, HOLD_SECONDS);
-        return true;
+        // Authored, not executed. Declining hands the tick to the assigned
+        // step, which authors this marine's fire intent and walks him along
+        // the path we just set — so he shoots while he moves, the way he does
+        // under an attack move or after a post-fire reposition. Movement is
+        // advanced by that step and never here; see #isStepping for the two
+        // places that had to learn to advance it instead of throwing it away.
+        return false;
     }
 
     /**
-     * Walks a step-aside already under way.
+     * Bookkeeping for a step-aside already under way. Never consumes the tick.
      *
-     * <p>The move is the reflex's own for as long as it lasts, so the marine is
-     * not handed back to a step that would clear the path out from under him.
-     * It ends on arrival — the timer is dropped there rather than left to run
-     * out, so the marine is available again the moment he is standing where he
-     * meant to.
+     * <p>All it does is close the timer on arrival, rather than leaving it to
+     * run out, so the marine is free to consider another step the moment he is
+     * standing where he meant to be. While the move is still going the reflex
+     * declines <em>without re-deciding</em>: the timer is what stops it
+     * choosing a second cell out from under the first, which is the other half
+     * of why the field exists.
      */
     private static boolean continueMove(long unit, BattleControl sim, World world) {
-        if (stillWalking(unit, world)) {
-            sim.advanceMovement(unit);
-            return true;
-        }
-        world.setSidestepTimer(unit, 0f);
+        if (!stillWalking(unit, world)) world.setSidestepTimer(unit, 0f);
         return false;
     }
 
@@ -252,6 +282,32 @@ public final class LaneSidestep {
         long pursued = sim.targetOf(unit);
         if (pursued != 0L) return pursued;
         return sim.resolveUnit(sim.combat().reflexTargetId(unit));
+    }
+
+    /**
+     * True while this marine is part-way through a step-aside — the marker a
+     * plan step consults before it throws his path away.
+     *
+     * <p>Three steps plant a marine by clearing his path when he has a firing
+     * solution from where he stands, which on the tick a sidestep is authored
+     * kills the move before it has covered a cell.
+     * {@code AbstractZoneAction} already had the answer for the post-fire
+     * cover reposition — advance the short move rather than cancel it, while
+     * its owner says it is live — and this is the same rule for this move.
+     *
+     * <p>It reads the sidestep timer rather than the reposition cooldown the
+     * zone action uses, deliberately. The cooldown is shared with
+     * {@link RepositionToCover}, so guarding on it would quietly change what a
+     * planted squad does with <em>that</em> move as well, in every battle,
+     * including the control runs this reflex is measured against. The timer is
+     * set by nothing else, so with the reflex switched off these guards cannot
+     * fire and the control is the tree without them.
+     */
+    public static boolean isStepping(long unit, BattleControl sim) {
+        World world = sim.world();
+        return world.hasAiState(unit)
+                && world.sidestepTimer(unit) > 0f
+                && stillWalking(unit, world);
     }
 
     /** In transit: a marine being moved by his step, whose lane changes anyway. */
