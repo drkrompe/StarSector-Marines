@@ -87,6 +87,7 @@ public final class PrecinctSkeletonStage implements GenStage {
         ctx.put(BspKeys.HINTERLAND, hinterland);
         ctx.put(BspKeys.PRECINCTS, plan);
         ctx.put(BspKeys.PRECINCT_CLAIM, claim);
+        ctx.put(BspKeys.PRECINCT_ROAD, grown.owner());
     }
 
     /**
