@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -63,7 +63,7 @@ public final class MissionLaunch {
      */
     public static BattleSimulation buildSimulation(MarineOpsContext ctx,
                                                    Mission m,
-                                                   List<ShuttleType> committedShuttles,
+                                                   List<FittedBoat> committedShuttles,
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings) {
         Detachment available = m.source == MissionSource.STATIONING
@@ -75,7 +75,7 @@ public final class MissionLaunch {
 
     public static BattleSimulation buildSimulation(MarineOpsContext ctx,
                                                    Mission m,
-                                                   List<ShuttleType> committedShuttles,
+                                                   List<FittedBoat> committedShuttles,
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings,
                                                    Collection<String> selectedPowerIds) {
@@ -86,7 +86,7 @@ public final class MissionLaunch {
     /** Build using an explicit member-level command-power source commitment. */
     public static BattleSimulation buildSimulation(MarineOpsContext ctx,
                                                    Mission m,
-                                                   List<ShuttleType> committedShuttles,
+                                                   List<FittedBoat> committedShuttles,
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings,
                                                    Collection<String> selectedPowerIds,
@@ -98,7 +98,7 @@ public final class MissionLaunch {
     /** Build with an optional debug-only marine mech-support roster. */
     public static BattleSimulation buildSimulation(MarineOpsContext ctx,
                                                    Mission m,
-                                                   List<ShuttleType> committedShuttles,
+                                                   List<FittedBoat> committedShuttles,
                                                    FlybyRoster committedWings,
                                                    FlybyRoster debugWings,
                                                    Collection<String> selectedPowerIds,
@@ -115,7 +115,7 @@ public final class MissionLaunch {
     /** Builds and overlays a battle without publishing it to the UI context. */
     static PreparedBattle prepareSimulation(MarineOpsContext ctx,
                                             Mission m,
-                                            List<ShuttleType> committedShuttles,
+                                            List<FittedBoat> committedShuttles,
                                             FlybyRoster committedWings,
                                             FlybyRoster debugWings,
                                             Collection<String> selectedPowerIds,

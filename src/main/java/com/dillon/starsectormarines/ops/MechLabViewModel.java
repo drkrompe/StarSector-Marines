@@ -13,8 +13,8 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MechFabricationCatalog;
-import com.dillon.starsectormarines.marine.MechFabricationCost;
-import com.dillon.starsectormarines.marine.MechFabricationResources;
+import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechWorkshop;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -30,7 +30,7 @@ import java.util.Locale;
 public final class MechLabViewModel {
 
     private final MechBay bay;
-    private final MechFabricationResources resources;
+    private final FabricationResources resources;
     private final MechWorkshop workshop;
     private final Runnable bayChanged;
     private final MutableSignal<Integer> revision;
@@ -68,16 +68,16 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> garageTitle;
 
     public MechLabViewModel(Reactor reactor, MechBay bay) {
-        this(reactor, bay, MechFabricationResources.NONE, () -> { });
+        this(reactor, bay, FabricationResources.NONE, () -> { });
     }
 
     public MechLabViewModel(Reactor reactor, MechBay bay,
-                            MechFabricationResources resources) {
+                            FabricationResources resources) {
         this(reactor, bay, resources, () -> { });
     }
 
     public MechLabViewModel(Reactor reactor, MechBay bay,
-                            MechFabricationResources resources, Runnable bayChanged) {
+                            FabricationResources resources, Runnable bayChanged) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (bay == null) throw new IllegalArgumentException("mech bay is required");
         if (resources == null || bayChanged == null) {
@@ -452,9 +452,9 @@ public final class MechLabViewModel {
         return List.copyOf(rows);
     }
 
-    private List<MaterialRow> materialRows(String ownerId, MechFabricationCost cost) {
+    private List<MaterialRow> materialRows(String ownerId, FabricationCost cost) {
         List<MaterialRow> rows = new ArrayList<>();
-        for (MechFabricationCost.Line line : cost.lines()) {
+        for (FabricationCost.Line line : cost.lines()) {
             int available = resources.available(line.commodityId());
             String id = ownerId + ":material:" + line.commodityId();
             rows.add(new MaterialRow(id, id + ":icon", id + ":label",

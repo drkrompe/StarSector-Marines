@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ShuttleTransportMechanicsTest {
@@ -69,6 +71,56 @@ class ShuttleTransportMechanicsTest {
                 () -> new ShuttleAssignment(ShuttleType.VALKYRIE, 1, 13));
         assertThrows(IllegalArgumentException.class,
                 () -> new ShuttleAssignment(ShuttleType.KITE, 1, 6));
+    }
+
+    /**
+     * An assignment always has an airframe, so nothing downstream has to guess
+     * whether one was supplied. A craft nobody fitted flies as its own pattern.
+     */
+    @Test
+    void anAssignmentWithNoBoatBehindItFliesAsItsOwnPattern() {
+        ShuttleAssignment plain = new ShuttleAssignment(ShuttleType.VALKYRIE, 2);
+
+        assertSame(ShuttleType.VALKYRIE, plain.airframe);
+    }
+
+    /**
+     * Seats and cycles stay facts about the pattern — a yard's plating does not
+     * add a seat — while the frame is what the sim measures the craft by.
+     */
+    @Test
+    void anAssignmentBuiltFromABoatKeepsThePatternAndCarriesTheFit() {
+        FittedBoat boat = new FittedBoat(ShuttleType.VALKYRIE,
+                BoatFitting.REINFORCED_PLATING, BoatFitting.STANDARD_DRIVE);
+
+        ShuttleAssignment assignment = new ShuttleAssignment(boat, 2, 6);
+
+        assertEquals(ShuttleType.VALKYRIE, assignment.type);
+        assertSame(boat, assignment.airframe);
+        assertEquals(6, assignment.seatsPerSortie);
+        assertNotEquals(new ShuttleAssignment(ShuttleType.VALKYRIE, 2, 6), assignment,
+                "a fitted boat and a bare pattern are not the same commitment");
+    }
+
+    /**
+     * The whole point of the seam: what an anti-air gun has to get through is
+     * the plating the player paid for, not the pattern's factory hull.
+     */
+    @Test
+    void aSortieSpawnedFromAFittedBoatIsSeededWithThatBoatsHull() {
+        try (BattleSimulation sim = openSimulation()) {
+            FittedBoat armoured = new FittedBoat(ShuttleType.VALKYRIE,
+                    BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE);
+
+            long shuttle = sim.spawnShuttle(ShuttleType.VALKYRIE, armoured, Faction.MARINE,
+                    10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 6);
+
+            assertEquals(ShuttleType.VALKYRIE.maxHp() * 1.75f,
+                    sim.world().maxHp(shuttle), 1e-3f);
+            assertSame(armoured, sim.world().airframe(shuttle),
+                    "the steering tick reads handling off the identity, so the fit "
+                            + "has to be what is stored there");
+        }
     }
 
     @Test
