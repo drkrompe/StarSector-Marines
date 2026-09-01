@@ -5,15 +5,20 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A fit is one transaction against the fleet's hold, or it is nothing at all. */
+/**
+ * A fit or a build is one transaction against the fleet's hold, or it is
+ * nothing at all.
+ */
 class BoatWorkshopTest {
 
     @Test
@@ -98,6 +103,77 @@ class BoatWorkshopTest {
         assertNull(noBoat.boat());
         assertEquals(BoatWorkshop.Status.UNKNOWN_FITTING, noFitting.status());
         assertEquals(100, hold.available(Commodities.SUPPLIES));
+    }
+
+    @Test
+    void fabricatingIntoAVacantBerthSpendsTheBillAndStandsANewBoat() {
+        BoatDeck deck = deck();
+        String lost = deck.airworthy().get(0).id();
+        deck.lose(List.of(lost));
+        TestResources hold = TestResources.stocked(200);
+        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+        FabricationCost bill = BoatFabricationCatalog.recipe(ShuttleType.AEROSHUTTLE).bill();
+
+        BoatWorkshop.Result result = workshop.fabricate(0);
+
+        assertEquals(BoatWorkshop.Status.FABRICATED, result.status());
+        assertTrue(result.succeeded());
+        assertEquals(ShuttleType.AEROSHUTTLE, result.boat().pattern());
+        assertSame(BoatFitting.STANDARD_PLATING, result.boat().plating());
+        assertSame(BoatFitting.STANDARD_DRIVE, result.boat().drive());
+        assertNotEquals(lost, result.boat().id(), "a tail number is never reused");
+        assertSame(result.boat(), deck.boats().get(0));
+        assertEquals(List.of(), deck.vacantBerths());
+        for (FabricationCost.Line line : bill.lines()) {
+            assertEquals(200 - line.quantity(), hold.available(line.commodityId()));
+        }
+    }
+
+    /** A berth with a boat in it is not somewhere to build a second one. */
+    @Test
+    void aBerthThatIsHeldIsRefusedWithoutSpending() {
+        BoatDeck deck = deck();
+        TestResources hold = TestResources.stocked(200);
+        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+        CampaignBoat standing = deck.boats().get(0);
+
+        BoatWorkshop.Result held = workshop.fabricate(0);
+        BoatWorkshop.Result offTheEnd = workshop.fabricate(7);
+
+        assertEquals(BoatWorkshop.Status.BERTH_OCCUPIED, held.status());
+        assertSame(standing, held.boat());
+        assertEquals(BoatWorkshop.Status.NO_SUCH_BERTH, offTheEnd.status());
+        assertEquals(200, hold.available(Commodities.METALS));
+        assertEquals(2, deck.airworthy().size());
+    }
+
+    @Test
+    void aBillTheHoldCannotCoverBuildsNothing() {
+        BoatDeck deck = deck();
+        deck.lose(List.of(deck.airworthy().get(0).id()));
+        TestResources hold = TestResources.stocked(10);
+        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+
+        BoatWorkshop.Result result = workshop.fabricate(0);
+
+        assertEquals(BoatWorkshop.Status.CANNOT_AFFORD, result.status());
+        assertFalse(result.succeeded());
+        assertNull(deck.boats().get(0));
+        assertEquals(10, hold.available(Commodities.METALS));
+        assertEquals(10, hold.available(Commodities.HEAVY_MACHINERY));
+        assertEquals(10, hold.available(Commodities.SUPPLIES));
+    }
+
+    /** A deck nobody has reconciled has no berths and nothing to build into them. */
+    @Test
+    void aDeckThatDoesNotKnowWhatSheCarriesRefusesToBuild() {
+        BoatDeck deck = new BoatDeck();
+        TestResources hold = TestResources.stocked(200);
+
+        BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fabricate(0);
+
+        assertEquals(BoatWorkshop.Status.NO_SUCH_BERTH, result.status());
+        assertEquals(200, hold.available(Commodities.METALS));
     }
 
     private static BoatDeck deck() {

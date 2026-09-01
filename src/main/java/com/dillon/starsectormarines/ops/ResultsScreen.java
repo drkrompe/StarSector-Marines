@@ -110,7 +110,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return "Operation settled · no recovery claim remains";
     }
 
-    private List<ResultRow> resultRows(MissionOutcome outcome, LootManifest manifest) {
+    static List<ResultRow> resultRows(MissionOutcome outcome, LootManifest manifest) {
         if (outcome == null) return List.of();
         List<ResultRow> rows = new ArrayList<>();
         if (outcome.evacuationRepresentatives > 0) {
@@ -135,6 +135,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 MessageFormat.format(Strings.get("resultsCasualtiesFmt"),
                         outcome.marinesLost, outcome.marinesEngaged),
                 outcome.marinesLost > 0 ? "tone-danger" : "tone-good"));
+        if (!outcome.boatsLost.isEmpty()) {
+            rows.add(row("result-boats-lost", trimLabel(Strings.get("resultsBoatsLostLabel")),
+                    formatBoatsLost(outcome), "tone-danger"));
+        }
         if (outcome.captainId != null) {
             rows.add(row("result-captain", trimLabel(Strings.get("resultsCaptainLabel")),
                     formatCaptainStatus(outcome), statusTone(outcome.newCaptainStatus)));
@@ -265,6 +269,27 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 outcome.representativesEvacuated, outcome.evacuationRepresentatives);
     }
 
+    static String formatBoatsLost(MissionOutcome outcome) {
+        if (outcome == null || outcome.boatsLost.isEmpty()) return "—";
+        return MessageFormat.format(Strings.get("resultsBoatsLostFmt"),
+                outcome.boatsLost.size(), boatLossNames(outcome));
+    }
+
+    /**
+     * The lost boats by name, in the order the battle lost them. Split out
+     * because the row's phrasing is a translated format and this is not: a
+     * debrief that lists two boats has to name both of them whatever language
+     * the sentence around them is in.
+     */
+    static String boatLossNames(MissionOutcome outcome) {
+        StringBuilder names = new StringBuilder();
+        for (MissionOutcome.BoatLoss loss : outcome.boatsLost) {
+            if (names.length() > 0) names.append(", ");
+            names.append(loss.displayName());
+        }
+        return names.toString();
+    }
+
     static String formatColonyArchive(MissionOutcome outcome) {
         if (outcome == null) return "—";
         return switch (outcome.colonyArchiveOutcome) {
@@ -285,7 +310,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return label != null && label.endsWith(":") ? label.substring(0, label.length() - 1) : label;
     }
 
-    private String formatCaptainStatus(MissionOutcome outcome) {
+    private static String formatCaptainStatus(MissionOutcome outcome) {
         Status status = outcome.newCaptainStatus != null ? outcome.newCaptainStatus : Status.ACTIVE;
         return switch (status) {
             case INJURED -> {

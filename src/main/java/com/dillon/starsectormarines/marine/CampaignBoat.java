@@ -61,9 +61,15 @@ public final class CampaignBoat implements Serializable {
         return slot == BoatFittingSlot.DRIVE ? drive() : plating();
     }
 
-    /** The frame this boat flies as, with its fittings applied. */
+    /**
+     * The frame this boat flies as, with its fittings applied.
+     *
+     * <p>Carries the boat's id so a shoot-down can be traced back here at
+     * resolution. Nothing in the battle reads it — an air loss simply remembers
+     * what it was flying as, and the campaign works out afterwards whose it was.
+     */
     public FittedBoat freezeForDeployment() {
-        return new FittedBoat(pattern, plating(), drive());
+        return new FittedBoat(pattern, plating(), drive(), id);
     }
 
     /**
