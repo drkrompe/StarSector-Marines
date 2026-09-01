@@ -51,7 +51,7 @@ class AirfieldSystemTest {
         AirfieldService.Berth berth = berth(sim, 10, 10);
         assertEquals(0L, berth.airframeId, "nothing is placed before the first tick");
 
-        new AirfieldSystem(Faction.DEFENDER)
+        new AirfieldSystem()
                 .tick(1f / 30f, sim, sim.getAirfieldService());
 
         assertNotEquals(0L, berth.airframeId, "the berth has an aircraft on it");
@@ -74,7 +74,7 @@ class AirfieldSystemTest {
     void anAircraftBurnedOnItsPadIsNotReplaced() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, sim.getAirfieldService());
         long airframe = berth.airframeId;
 
@@ -104,7 +104,7 @@ class AirfieldSystemTest {
     void anAircraftBurnedOnItsPadLeavesItsHullThere() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, sim.getAirfieldService());
         assertFalse(berth.wreckOnPad, "an aircraft standing on its pad is not a wreck");
 
@@ -197,7 +197,7 @@ class AirfieldSystemTest {
         assertEquals(FighterProfile.BROADSWORD.maxHp(), shed.hullHp, 1e-3f,
                 "a fresh berth starts on its own airframe's hull");
 
-        new AirfieldSystem(Faction.DEFENDER)
+        new AirfieldSystem()
                 .tick(1f / 30f, sim, airfield);
 
         assertNotEquals(0L, shed.airframeId, "nothing was stood in the shed");
@@ -253,7 +253,7 @@ class AirfieldSystemTest {
     void theWreckBlocksTheApronWithoutBlindingIt() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, sim.getAirfieldService());
         assertTrue(sim.getGrid().isWalkable(10, 10),
                 "the aircraft standing there wrote terrain of its own");
@@ -283,7 +283,7 @@ class AirfieldSystemTest {
     void somebodyUnderTheWreckIsSteppedClear() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, sim.getAirfieldService());
         long crew = sim.spawn(new EntitySpec("crew", Faction.DEFENDER, UnitType.MARINE, 10, 10));
 
@@ -308,7 +308,7 @@ class AirfieldSystemTest {
     void theWreckWillNotSealSomebodyIn() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, sim.getAirfieldService());
         // Beside the hull rather than under it, and only once the aircraft is
         // standing there: the arrival of an immobile body already steps whoever
@@ -357,7 +357,7 @@ class AirfieldSystemTest {
     void aBasedAircraftNeverFires() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        new AirfieldSystem(Faction.DEFENDER)
+        new AirfieldSystem()
                 .tick(1f / 30f, sim, sim.getAirfieldService());
 
         assertEquals(0f, sim.world().attackDamage(berth.airframeId),
@@ -373,7 +373,7 @@ class AirfieldSystemTest {
         BattleSimulation sim = openSim();
         AirfieldService service = sim.getAirfieldService();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, service);
         long airframe = berth.airframeId;
 
@@ -419,7 +419,7 @@ class AirfieldSystemTest {
         BattleSimulation sim = openSim();
         AirfieldService service = sim.getAirfieldService();
         AirfieldService.Berth berth = berth(sim, 10, 10);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, service);
         service.launch(berth);
 

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 
 /**
@@ -20,13 +19,8 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  */
 public final class AirfieldSystem {
 
-    private final Faction faction;
     /** Names each airframe as it is placed. Monotonic — an airframe put back after a sortie is a new unit. */
     private int nextAirframeId;
-
-    public AirfieldSystem(Faction faction) {
-        this.faction = faction;
-    }
 
     /**
      * Advance every berth. Runs at full tick rate: the work is a walk of at
@@ -127,13 +121,18 @@ public final class AirfieldSystem {
      * aside by the ordinary rule for an immobile arrival — the same rule that
      * seats a turret on its mount and a machine off a shed's stocks.
      *
+     * <p>Whose aircraft it is comes from the field, not from here. A garrison's
+     * lot and a ship's boat bay are the same arrangement belonging to different
+     * sides, and a tick consumer built one way for one of them and another way
+     * for the other would be carrying a fact that is not its.
+     *
      * <p>Happens once per arrival rather than per tick: a berth reconciles
      * every tick but only places when it is holding no airframe.
      */
     private void place(BattleControl sim, AirfieldService service,
                        AirfieldService.Berth berth) {
         berth.airframeId = sim.spawn(BasedAircraft.create(
-                "af" + (nextAirframeId++), faction, berth.airframe,
+                "af" + (nextAirframeId++), service.owner(), berth.airframe,
                 berth.centerX, berth.centerY, berth.hullHp));
     }
 

@@ -39,6 +39,16 @@ class MissionForceEnvelopeTest {
     }
 
     @Test
+    void fullStrengthConquestRecommendsAThousandMarinesInOneBattle() {
+        Mission conquest = mission(MissionSource.DEBUG, MissionType.CONQUEST,
+                OperationTier.FULL_STRENGTH);
+
+        assertEquals(84, MissionForceEnvelope.recommendedSquads(conquest));
+        assertEquals(1_008, MissionForceEnvelope.recommendedPersonnel(conquest));
+        assertFalse(MissionForceEnvelope.allowsUnderstrength(conquest));
+    }
+
+    @Test
     void selectedQualityReportsVisibleIssuedBandsWithoutAnAggregateScore() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(12);

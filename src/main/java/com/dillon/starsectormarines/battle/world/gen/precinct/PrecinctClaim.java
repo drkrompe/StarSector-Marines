@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
+import com.dillon.starsectormarines.battle.world.gen.PatchField;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.PriorityQueue;
 
 /**
  * Which precinct owns which cell, once several of them have grown into one
@@ -58,6 +60,133 @@ public interface PrecinctClaim {
      */
     static PrecinctClaim budgeted() {
         return (owner, width, height, budget) -> flood(owner, width, height, budget);
+    }
+
+    /**
+     * Each precinct claimed the way its own kind wants, in one pass.
+     *
+     * <p>The two shapes are not a map-wide choice — a fortress and a town on the
+     * same map want different ones, which is the one place this model does not
+     * collapse to a single rule. What makes them a single pass rather than two
+     * is that the difference is entirely in <em>where the expansion starts</em>:
+     * a programmed precinct grows from its seed cell and pools, a zoned one
+     * grows from all of its road at once and hugs its streets. Everything after
+     * that — advancing together, the nearer source winning contested ground,
+     * stopping at an allowance — is the same for both.
+     *
+     * <p>Running them as two passes instead would let whichever went first take
+     * ground the other was entitled to, and the answer would depend on the order
+     * the precincts happened to be listed in.
+     */
+    static PrecinctClaim byKind(List<Precinct> precincts) {
+        return (owner, width, height, budget) -> {
+            int[][] claim = new int[width][height];
+            for (int[] column : claim) java.util.Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+            int[] taken = new int[precincts.size()];
+            PriorityQueue<long[]> queue = frontier();
+
+            for (int i = 0; i < precincts.size(); i++) {
+                Precinct precinct = precincts.get(i);
+                if (precinct.isProgrammed()) {
+                    int x = Math.max(0, Math.min(width - 1, precinct.seedX()));
+                    int y = Math.max(0, Math.min(height - 1, precinct.seedY()));
+                    if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
+                    claim[x][y] = i;
+                    taken[i]++;
+                    queue.add(new long[]{0L, x, y});
+                } else {
+                    for (int x = 0; x < width; x++) {
+                        for (int y = 0; y < height; y++) {
+                            if (owner[x][y] != i || claim[x][y] != GrownTrunkPlan.UNOWNED) {
+                                continue;
+                            }
+                            claim[x][y] = i;
+                            taken[i]++;
+                            queue.add(new long[]{0L, x, y});
+                        }
+                    }
+                }
+            }
+            expand(queue, claim, taken, budget, width, height,
+                    shapeFields(precincts.size()));
+            return claim;
+        };
+    }
+
+    /**
+     * Feature size of the noise that keeps a claim from coming out geometric.
+     *
+     * <p>Large enough to bend the outline into lobes and bays rather than
+     * roughen it a cell at a time, which would read as a jagged circle rather
+     * than as a place.
+     */
+    float SHAPE_FEATURE_CELLS = 18f;
+
+    /**
+     * How far the noise may push the boundary, as a share of the claim's reach.
+     * At zero the shapes are exact and geometric; too high and a precinct sends
+     * tendrils across the map instead of being somewhere.
+     */
+    float SHAPE_STRENGTH = 0.45f;
+
+    /**
+     * The shared frontier advance both shapes use once they are seeded.
+     *
+     * <p><b>Cost-ordered rather than breadth-first, and the cost is noisy.</b>
+     * A plain four-neighbour flood expands by Manhattan distance, so a claim
+     * grown from a single seed comes out a perfect diamond — which is exactly
+     * what a rendered garrison looked like, and reads as a generated shape
+     * rather than as a place. Eight-neighbour would trade the diamond for a
+     * square, which is no better.
+     *
+     * <p>Perturbing the cost with a coherent field instead makes the boundary
+     * wander: the same allowance, spent further in the directions the field
+     * happens to favour. Coherent rather than per-cell random, or the boundary
+     * would be a fringe on a diamond instead of a different shape — the same
+     * distinction {@code PatchField} exists for, reused here because a claim
+     * outline and a scatter of dirt want the same thing from noise.
+     *
+     * <p>The field is keyed on the precinct index so two places do not bulge in
+     * the same directions.
+     */
+    private static void expand(PriorityQueue<long[]> queue, int[][] claim,
+                               int[] taken, int[] budget, int width, int height,
+                               PatchField[] shape) {
+        List<int[]> steps = List.of(new int[]{1, 0}, new int[]{-1, 0},
+                new int[]{0, 1}, new int[]{0, -1});
+        while (!queue.isEmpty()) {
+            long[] at = queue.poll();
+            int x = (int) at[1];
+            int y = (int) at[2];
+            int who = claim[x][y];
+            if (budget != null && who < budget.length && taken[who] >= budget[who]) continue;
+            for (int[] step : steps) {
+                int nx = x + step[0];
+                int ny = y + step[1];
+                if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+                if (claim[nx][ny] != GrownTrunkPlan.UNOWNED) continue;
+                claim[nx][ny] = who;
+                taken[who]++;
+                float bias = shape == null ? 0f
+                        : (shape[who].sample(nx, ny) - 0.5f) * 2f * SHAPE_STRENGTH;
+                long cost = at[0] + Math.round(1000 * (1f + bias));
+                queue.add(new long[]{cost, nx, ny});
+            }
+        }
+    }
+
+    /** One shape field per precinct, so two places do not bulge alike. */
+    private static PatchField[] shapeFields(int precincts) {
+        PatchField[] out = new PatchField[precincts];
+        for (int i = 0; i < precincts; i++) {
+            out[i] = new PatchField(0x9E3779B9L * (i + 1), SHAPE_FEATURE_CELLS);
+        }
+        return out;
+    }
+
+    /** Frontier entry: {cost, x, y}, cheapest first. */
+    private static PriorityQueue<long[]> frontier() {
+        return new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
     }
 
     /**

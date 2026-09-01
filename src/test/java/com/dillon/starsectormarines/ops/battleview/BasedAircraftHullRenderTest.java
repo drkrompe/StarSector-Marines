@@ -106,7 +106,7 @@ class BasedAircraftHullRenderTest {
     private static BattleSimulation withBurnedAircraft() {
         BattleSimulation sim = openSim();
         AirfieldService.Berth berth = berth(sim);
-        AirfieldSystem system = new AirfieldSystem(Faction.DEFENDER);
+        AirfieldSystem system = new AirfieldSystem();
         system.tick(1f / 30f, sim, sim.getAirfieldService());
         sim.applyDamage(berth.airframeId, 100_000f, 100_000f);
         system.tick(1f / 30f, sim, sim.getAirfieldService());
@@ -118,7 +118,7 @@ class BasedAircraftHullRenderTest {
     void aParkedAircraftDrawsAsOneUntintedHull() {
         BattleSimulation sim = openSim();
         berth(sim);
-        new AirfieldSystem(Faction.DEFENDER).tick(1f / 30f, sim, sim.getAirfieldService());
+        new AirfieldSystem().tick(1f / 30f, sim, sim.getAirfieldService());
 
         List<DrawCommand> hulls = hullDraws(sim, DrawCommand.Kind.SPRITE);
 
@@ -186,7 +186,7 @@ class BasedAircraftHullRenderTest {
         for (float cellPx : new float[]{2f, 6f, 20f, 64f}) {
             BattleSimulation parked = openSim();
             berth(parked);
-            new AirfieldSystem(Faction.DEFENDER).tick(1f / 30f, parked, parked.getAirfieldService());
+            new AirfieldSystem().tick(1f / 30f, parked, parked.getAirfieldService());
             DrawCommand aircraft = hullDraws(parked, DrawCommand.Kind.SPRITE, cellPx).get(0);
 
             // Every strip is one lattice row tall, so the row height of the
@@ -211,7 +211,7 @@ class BasedAircraftHullRenderTest {
     void theWreckLiesWhereTheAircraftWasParked() {
         BattleSimulation parked = openSim();
         berth(parked);
-        new AirfieldSystem(Faction.DEFENDER).tick(1f / 30f, parked, parked.getAirfieldService());
+        new AirfieldSystem().tick(1f / 30f, parked, parked.getAirfieldService());
         DrawCommand aircraft = hullDraws(parked, DrawCommand.Kind.SPRITE).get(0);
         float hullPx = aircraft.height();
 

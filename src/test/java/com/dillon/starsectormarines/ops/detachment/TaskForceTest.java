@@ -18,9 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Command scoped per officer — `c13-the-task-force.md`.
  *
- * <p>The change these tests protect is a scale one: a CONQUEST at HIGH risk
- * authorises forty drops (480 seats), and play reports it wanting hundreds of
- * marines, while {@code Rank.COLONEL} may command twenty-four squads. Bounding
+ * <p>The change these tests protect is a scale one: Full Strength CONQUEST
+ * deploys eighty-four squads / 1,008 marines through six cycling lane shuttles,
+ * while {@code Rank.COLONEL} may command twenty-four squads. Bounding
  * a whole operation by one officer's cap made that undeployable. It is now
  * bounded per officer, with a compatibility rule — an unassigned squad falls
  * to the commander — that keeps a roster nobody has reorganized behaving

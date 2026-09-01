@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.setup.DefenderRoster;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
+import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -82,9 +83,9 @@ class OperationTierTest {
 
     @Test
     void liftTracksTheForceTheTierExpects() {
-        // 40 drops at a Valkyrie's twelve seats is the 480 that a full-strength
-        // conquest is written for.
-        assertEquals(40, MissionGenerator.requiredDropsFor(
+        // Conquest delivers half-squads: 168 six-seat sorties deploy 1,008
+        // marines, balanced as 28 cycles on each of six lane shuttles.
+        assertEquals(168, MissionGenerator.requiredDropsFor(
                 MissionType.CONQUEST, OperationTier.FULL_STRENGTH));
         assertEquals(630, DefenderRoster.forMission(MissionType.CONQUEST,
                 OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM, false).totalCount,
@@ -101,6 +102,10 @@ class OperationTierTest {
         assertEquals(6, OperationTier.VETERAN.squadsDemanded);
         assertEquals(17, OperationTier.REINFORCED.squadsDemanded);
         assertEquals(34, OperationTier.FULL_STRENGTH.squadsDemanded);
+        assertEquals(42, MissionForceEnvelope.recommendedSquads(
+                MissionType.CONQUEST, OperationTier.REINFORCED));
+        assertEquals(84, MissionForceEnvelope.recommendedSquads(
+                MissionType.CONQUEST, OperationTier.FULL_STRENGTH));
     }
 
     @Test
