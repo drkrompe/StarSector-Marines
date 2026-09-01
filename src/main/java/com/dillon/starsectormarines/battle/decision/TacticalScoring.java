@@ -109,6 +109,16 @@ public final class TacticalScoring {
     public static final float TARGET_SQUADMATE_EXTRA_COST = 6f;
 
     /**
+     * Turns off damage-aware crowding, restoring the per-body count this
+     * shipped with. On by default;
+     * {@code -Dbattle.targeting.committedFire=false} is the control run.
+     */
+    public static final String COMMITTED_FIRE_PROPERTY = "battle.targeting.committedFire";
+
+    private static final boolean COMMITTED_FIRE = Boolean.parseBoolean(
+            System.getProperty(COMMITTED_FIRE_PROPERTY, "true"));
+
+    /**
      * Per-ally-on-cell penalty added when picking a firing position. Pushes
      * units off cells already claimed by squadmates. Tuned against the
      * post-Slice-3 directional cover scale: a single occupant should turn a
@@ -1629,22 +1639,101 @@ public final class TacticalScoring {
      * in the small attacker list rather than O(U) over every unit — total
      * target-selection cost drops from O(U³) to O(U² + U·L).
      */
+    /**
+     * What it costs to join fire that is already going somewhere.
+     *
+     * <p>This used to count bodies: a flat {@link #TARGET_CROWDING_COST} per
+     * ally already aiming at the candidate, and again for a squadmate. Counting
+     * bodies is blind in both directions at once, and the two failures are
+     * opposite. A heavy chassis that takes most of a squad's rifles to bring
+     * down charges the same per-shooter toll as a runner one rifle kills, so
+     * the squad is pushed off the target that needs concentrating on; and a
+     * rush of weak attackers is answered at the same rate as a single tough
+     * one, so a marine still joins fire that has already killed what it was
+     * aimed at. The second is the expensive one, because those are the fights
+     * decided by how many the squad can put down per second: a marine deals 18
+     * and a swarm runner has 20, so a second rifle on the same runner is very
+     * nearly a wasted shot, and the ones still closing are unanswered.
+     *
+     * <p>So the question is how much of the target is already spoken for rather
+     * than how many people are speaking. Fire committed by allies is projected
+     * through the same armour and mitigation the round will actually meet, and
+     * weighed against what is left of the target. <b>At exactly one target's
+     * worth of committed fire this charges what the per-body version charged
+     * for one engager</b>, which keeps the old constants meaning what they
+     * meant and makes this a generalization rather than a retune: below that
+     * the toll fades towards nothing and the squad concentrates, above it the
+     * toll keeps climbing and the squad spreads.
+     *
+     * <p>The shooter's own contribution is excluded, so this steers whoever is
+     * choosing now and never argues with a marine that has already committed.
+     * That is also what keeps it from oscillating: the target a squad is
+     * killing stays killed by the people already killing it.
+     *
+     * <p>It is the same judgement {@link #shouldCommitSpecial} makes for a
+     * rocket, which has always refused to fire into a projection that already
+     * kills. Direct fire is cheaper than a rocket, so this prices the waste
+     * instead of forbidding it.
+     */
     private float scoreCrowding(Faction selfFaction, int selfSquadId, long target,
                                 long exclude) {
         LongArrayList attackers = attackerIndex.getAttackersOf(target);
         if (attackers == null) return 0f;
+        World world = roster.world();
+        float remaining = world.hp(target)
+                + (world.hasArmor(target) ? world.armor(target) : 0f);
+        float committed = 0f;
+        float committedBySquad = 0f;
         float cost = 0f;
         for (int i = 0, n = attackers.size(); i < n; i++) {
             long u = attackers.getLong(i);
             if (u == exclude || !roster.isAliveById(u)) continue;
             if (roster.identity().faction(u) != selfFaction) continue;
-            cost += TARGET_CROWDING_COST;
-            if (selfSquadId != Squad.NO_SQUAD && roster.squad().hasSquad(u)
-                    && roster.squad().squadId(u) == selfSquadId) {
-                cost += TARGET_SQUADMATE_EXTRA_COST;
+            boolean sameSquad = selfSquadId != Squad.NO_SQUAD
+                    && roster.squad().hasSquad(u)
+                    && roster.squad().squadId(u) == selfSquadId;
+            if (!COMMITTED_FIRE) {
+                cost += TARGET_CROWDING_COST;
+                if (sameSquad) cost += TARGET_SQUADMATE_EXTRA_COST;
+                continue;
             }
+            float share = projectedPrimaryDamage(u, target);
+            committed += share;
+            if (sameSquad) committedBySquad += share;
         }
-        return cost;
+        if (!COMMITTED_FIRE) return cost;
+        if (committed <= 0f || remaining <= 0f) return 0f;
+        // Squared, and the exponent is the whole difference between this
+        // working and not. Scaling the toll linearly with the committed share
+        // charges less than the per-body count did at every ordinary
+        // engagement -- one rifle on a defender is 18 into 25, a share of 0.72
+        // -- so it relaxed the spreading everywhere instead of only where the
+        // target is tough, and the matrix charged nine of reinforced-south's
+        // fourteen captures for it. Squaring holds the old figure at that
+        // ordinary anchor (0.72 squared against one engager's 6 and 6 lands
+        // within a fraction of the flat 12 it replaces) while still collapsing
+        // to nothing against a chassis many rifles deep, which is the case
+        // this exists to unblock. It is a cheap stand-in for the shape the
+        // waste actually has: near zero while the fire is still needed, rising
+        // sharply once it is not.
+        float share = committed / remaining;
+        float squadShare = committedBySquad / remaining;
+        return TARGET_CROWDING_COST * share * share
+                + TARGET_SQUADMATE_EXTRA_COST * squadShare * squadShare;
+    }
+
+    /**
+     * What one ally's primary weapon would actually take off {@code target},
+     * armour and mitigation included. Falls back to the raw attack stat for a
+     * shooter carrying no per-weapon profile.
+     */
+    private float projectedPrimaryDamage(long attacker, long target) {
+        WeaponDef weapon = roster.combat().primaryWeaponDef(attacker);
+        World world = roster.world();
+        float damage = weapon != null ? weapon.damage() : world.attackDamage(attacker);
+        float penetration = weapon != null ? weapon.penetration() : 0f;
+        return projectedResolvedDamage(target, damage, penetration,
+                world.x(attacker), world.y(attacker));
     }
 
     /**
