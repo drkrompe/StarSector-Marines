@@ -3,8 +3,9 @@ package com.dillon.starsectormarines.ops;
 /**
  * Where a mission came from. Drives the generator's emit path:
  * <ul>
- *   <li>{@link #GENERATED} — produced by {@code MissionGenerator} from planet intel.
- *       Stateless, rerolled per visit.</li>
+ *   <li>{@link #GENERATED} — projected from a persisted campaign contract.
+ *       The contract row owns availability and settlement; this value names the
+ *       ordinary battle-construction path.</li>
  *   <li>{@link #STORY} — hand-authored, eligibility-gated. Completion is
  *       persisted via {@code MarineRosterScript}'s completed-id set, but a def
  *       decides for itself whether completion retires it: one-shot beats
