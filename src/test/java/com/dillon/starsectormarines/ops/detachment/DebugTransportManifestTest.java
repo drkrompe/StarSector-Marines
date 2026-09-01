@@ -58,6 +58,26 @@ class DebugTransportManifestTest {
         assertAssignment(manifest.get(4), ShuttleType.MULE, 3);
     }
 
+    @Test
+    void understrengthProductionManifestEmbarksExactlyTheNamedForce() {
+        Mission mission = mission(MissionSource.GENERATED, 11, 4);
+
+        List<ShuttleAssignment> manifest =
+                DetachmentResolver.buildShuttleManifestForPersonnel(
+                        mission, Arrays.asList(
+                                ShuttleType.VALKYRIE, ShuttleType.VALKYRIE), 25);
+
+        assertEquals(5, manifest.size(), "three employer craft plus two player craft");
+        ShuttleAssignment firstPlayer = manifest.get(3);
+        ShuttleAssignment secondPlayer = manifest.get(4);
+        assertEquals(12, firstPlayer.embarkedPersonnel);
+        assertEquals(13, secondPlayer.embarkedPersonnel);
+        assertEquals(2, secondPlayer.cycles);
+        assertEquals(12, secondPlayer.seatsForCycle(0));
+        assertEquals(1, secondPlayer.seatsForCycle(1));
+        assertEquals(25, CampaignMarineDeployment.requiredSeats(manifest, 3));
+    }
+
     private static Mission mission(MissionSource source, int requiredDrops,
                                    int employerShuttles) {
         return Mission.builder()
