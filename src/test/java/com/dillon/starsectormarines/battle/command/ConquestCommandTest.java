@@ -1680,10 +1680,10 @@ public class ConquestCommandTest {
     }
 
     /**
-     * The home-track capture bound. It ships off — see
-     * {@code ConquestCommand.HOME_TRACK_CAPTURES_PROPERTY} for the Conquest
-     * matrix that decided that — so the tests that are about it turn it on for
-     * themselves rather than asserting a default nobody set.
+     * The home-track capture bound. It ships on, but these set it explicitly
+     * rather than leaning on the default: the switch exists so an evidence run
+     * can turn it off, and a suite that silently follows whatever the JVM was
+     * started with is a suite that goes green against the control.
      */
     @Nested
     class HomeTrackCaptureAllocation {
@@ -1728,7 +1728,7 @@ public class ConquestCommandTest {
         }
 
         @Test
-        public void theShippedDefaultIsStillTheMapGlobalFill() {
+        public void theControlSwitchRestoresTheMapGlobalFill() {
             assertEquals("battle.command.conquest.homeTrackCaptures",
                     ConquestCommand.HOME_TRACK_CAPTURES_PROPERTY,
                     "the switch name an evidence run is documented with is part "
@@ -1745,8 +1745,8 @@ public class ConquestCommandTest {
             tick(cmd, sim);
 
             assertTrue(isSecureCompound(home),
-                    "off, the pairing is map-global again — the walk the "
-                            + "Conquest matrix says is worth its cost");
+                    "off, the pairing is map-global again — the far-track walk "
+                            + "the control run is there to measure");
         }
 
         @Test
