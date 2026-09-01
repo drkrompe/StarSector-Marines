@@ -41,6 +41,12 @@ import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.SpriteThumbWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiViewport;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -53,7 +59,9 @@ import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
@@ -90,6 +98,9 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 public class BriefingScreen implements Screen {
 
     private static final Logger LOG = Global.getLogger(BriefingScreen.class);
+    static final String ROOT_COMPONENT = "mission-briefing";
+    static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/missions/mission-briefing.mlx");
 
     private static final Color FRAME_COLOR   = new Color(0x4A, 0x6B, 0x8C);
     private static final Color HEADER_COLOR  = new Color(0xC8, 0xE0, 0xFF);
@@ -123,10 +134,17 @@ public class BriefingScreen implements Screen {
     private float flavorX;
 
     private final WidgetRoot widgets = new WidgetRoot();
+    private final Reactor reactor = new Reactor();
+    private final MarkupLoader markup = new MarkupLoader(
+            path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
     private PositionAPI position;
     private MarineOpsContext ctx;
     private BriefingLayout layout;
+    private UiViewport viewport;
+    private UiDocument document;
+    private MarkupInstance markupInstance;
+    private StarsectorUiInputAdapter input;
 
     private String lastSelectedMissionId;
     /**
@@ -185,15 +203,17 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
+        boolean reactivating = input == null;
         this.position = position;
         this.ctx = ctx;
-        rebuild();
+        viewport = MarineOpsUiViewport.from(position);
+        if (document == null || reactivating) rebuild();
+        else document.layout(viewport.documentWidth(), viewport.documentHeight());
+        input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     private void rebuild() {
-        widgets.clear();
-        if (position == null || ctx == null) return;
-        layout = new BriefingLayout(position);
+        if (ctx == null) return;
         MarineRosterScript personnel = MarineRosterScript.getInstance();
         if (personnel != null) personnel.ensureStartingCompany();
 
@@ -241,16 +261,477 @@ public class BriefingScreen implements Screen {
             commandDeckInitialized = true;
         }
 
-        // Header — mission name (large), spanning the canvas top.
-        widgets.add(new LabelWidget(Fonts.ORBITRON_24_BOLD,
-                m != null ? m.name : "",
-                layout.headerX, layout.headerTextY, HEADER_COLOR));
+        installDocument();
+    }
 
-        if (m != null) {
-            buildMissionColumn(m);
-            buildDetachmentColumn(m);
+    private void installDocument() {
+        MarkupInstance candidate = markup.reloadAndBuild(
+                reactor, ROOT_COMPONENT, retainedProps());
+        UiDocument built;
+        try {
+            requireRetainedElements(candidate);
+            built = new UiDocument(candidate.root());
+            for (var style : candidate.styles()) built.addStyleSheet(style);
+            built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
+            if (viewport != null) built.layout(
+                    viewport.documentWidth(), viewport.documentHeight());
+        } catch (RuntimeException failure) {
+            candidate.close();
+            throw failure;
         }
-        buildButtons();
+        UiDocument previousDocument = document;
+        MarkupInstance previousInstance = markupInstance;
+        document = built;
+        markupInstance = candidate;
+        if (previousDocument != null) previousDocument.deactivateInput();
+        if (previousInstance != null) previousInstance.close();
+        if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
+    }
+
+    private Map<String, Object> retainedProps() {
+        Map<String, Object> props = BriefingViewModel.baseProps();
+        Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        if (mission == null) {
+            props.putAll(BriefingViewModel.previewProps(false));
+            props.put("missionTitle", "No mission selected");
+            props.put("deployDisabled", true);
+            props.put("deployAction", (Runnable) () -> { });
+            props.put("backAction", (Runnable) this::onBack);
+            return props;
+        }
+
+        props.put("missionKicker", mission.type.name() + "  ·  "
+                + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
+        props.put("missionTitle", mission.name);
+        props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
+        props.put("missionRows", retainedMissionRows(mission));
+        props.put("termActions", retainedTermActions(mission));
+        props.put("captains", retainedCaptainRows(mission));
+        props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()
+                ? Strings.get("briefingNoCaptains") : "");
+
+        boolean debug = mission.source.isDebug();
+        props.put("debugClasses", debug ? "panel debug-workspace" : "debug-hidden");
+        props.put("tierSummary", debug
+                ? mission.tier.displayName + "  ·  "
+                        + MissionForceEnvelope.recommendedSquads(mission) + " squads  ·  "
+                        + mission.requiredDrops + " sorties"
+                : "");
+        props.put("tierSteps", debug ? retainedTierSteps(mission) : List.of());
+        props.put("debugControls", debug ? retainedDebugControls(mission) : List.of());
+        props.put("airRows", debug && DevConfig.DEBUG_AIRCRAFT_PICKER
+                ? retainedAirRows() : List.of());
+
+        PersonnelReadiness readiness = !debug ? personnelReadiness(mission) : null;
+        props.put("personnelSummary", debug
+                ? ctx.getDebugCompanyStage().summary(ctx.getDebugSquadCount())
+                : retainedPersonnelSummary(mission, readiness));
+        props.put("personnelClasses", "label commitment-summary "
+                + (debug || readiness.ready() ? "tone-good" : "tone-danger"));
+        props.put("experienceSummary", debug
+                ? "DEBUG fixture company  ·  roster is not consumed"
+                : "Issued experience  ·  " + MissionForceEnvelope.selectedExperience(
+                        liveRoster(), ctx.getSelectedMarineSquadIds()).display());
+        props.put("taskForceRows", !debug && mission.source != MissionSource.STATIONING
+                ? retainedTaskForceRows() : List.of());
+
+        int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
+        props.put("commandSummary", used + " / " + CommandDeck.BUDGET + " slots");
+        props.put("powerRows", retainedPowerRows());
+        props.put("powerEmpty", cachedAvailablePowers.isEmpty()
+                ? "No powers available from fleet or employer." : "");
+        props.put("sourceRows", retainedSourceRows());
+        props.put("sourceEmpty", cachedPowerSources.isEmpty()
+                ? "No fleet ships provide command powers." : "");
+        props.put("transportRows", retainedTransportRows(mission));
+        props.put("carrierRows", retainedCarrierRows());
+        props.put("employerRows", retainedEmployerRows(mission));
+        putRetainedActions(props, mission, readiness);
+        return props;
+    }
+
+    static Map<String, Object> previewProps(boolean conquest) {
+        return BriefingViewModel.previewProps(conquest);
+    }
+
+    private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
+        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        rows.add(BriefingViewModel.info("type", "Type",
+                Strings.get(mission.type.displayKey), "tone-accent"));
+        rows.add(BriefingViewModel.info("risk", "Risk",
+                Strings.get(mission.risk.displayKey), ""));
+        int cashMult = mission.cashMultiplier & 0xFF;
+        if (cashMult <= 0) cashMult = 100;
+        long payout = (long) mission.payout * cashMult / 100L;
+        rows.add(BriefingViewModel.info("payout", "Payout",
+                NumberFormat.getIntegerInstance().format(payout) + " credits", "tone-good"));
+        int salvageBaseline = mission.contractSalvageBaseline & 0xFF;
+        if (salvageBaseline > 0) {
+            int negotiated = mission.contractSalvageNegotiated & 0xFF;
+            rows.add(BriefingViewModel.info("salvage", "Salvage rights",
+                    negotiated + "%  ·  cash " + signedPercent(cashMult - 100), ""));
+        }
+        rows.add(BriefingViewModel.info("requirements", "Requires",
+                mission.requirements, ""));
+        int recommended = MissionForceEnvelope.recommendedSquads(mission);
+        rows.add(BriefingViewModel.info("scale", "Operation scale",
+                mission.tier.displayName + "  ·  recommends " + recommended
+                        + (recommended == 1 ? " squad" : " squads"), "tone-accent"));
+        rows.add(BriefingViewModel.info("presence", "Field presence",
+                mission.fieldPresencePolicy.briefingText(), ""));
+        rows.add(BriefingViewModel.info("opposition", "Opposition",
+                MissionForceEnvelope.oppositionExpectation(mission.risk), ""));
+        rows.add(BriefingViewModel.info("enemy-air", "Enemy air",
+                summarizeWings(mission.enemyFighterSupport, Faction.DEFENDER), ""));
+        return List.copyOf(rows);
+    }
+
+    private List<BriefingViewModel.ChoiceRow> retainedCaptainRows(Mission mission) {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        List<MarineCaptain> captains;
+        if (mission.source == MissionSource.STATIONING) {
+            MarineCaptain selected = ctx.getSelectedCaptain();
+            captains = selected == null ? List.of() : List.of(selected);
+        } else {
+            captains = script != null ? script.roster().active() : List.of();
+        }
+        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
+        for (int i = 0; i < captains.size(); i++) {
+            MarineCaptain captain = captains.get(i);
+            boolean selected = captain.id().equals(ctx.getSelectedCaptainId());
+            rows.add(new BriefingViewModel.ChoiceRow("captain-" + i,
+                    "choice-row" + (selected ? " selected" : ""),
+                    captain.name(), captain.rank().displayName() + "  ·  command cap "
+                            + captain.rank().squadCommandCap() + " squads",
+                    false, () -> selectCaptain(captain, mission), captain.portraitSprite()));
+        }
+        return List.copyOf(rows);
+    }
+
+    private List<BriefingViewModel.ChoiceRow> retainedTermActions(Mission mission) {
+        int baseline = mission.contractSalvageBaseline & 0xFF;
+        if (baseline <= 0 || !negotiationOpen(mission)) return List.of();
+        int current = mission.contractSalvageNegotiated & 0xFF;
+        return List.of(
+                new BriefingViewModel.ChoiceRow("briefing-salvage-less", "choice-row",
+                        "TRADE SALVAGE FOR CASH", "-10 salvage rights  ·  higher payout",
+                        current <= 0, () -> adjustSalvage(-10), null),
+                new BriefingViewModel.ChoiceRow("briefing-salvage-more", "choice-row",
+                        "TAKE MORE SALVAGE", "+10 salvage rights  ·  lower payout",
+                        current >= baseline, () -> adjustSalvage(10), null));
+    }
+
+    private void selectCaptain(MarineCaptain captain, Mission mission) {
+        ctx.setSelectedCaptainId(captain.id());
+        initializeCaptainFormation(mission);
+        rebuild();
+    }
+
+    private List<BriefingViewModel.TierStep> retainedTierSteps(Mission mission) {
+        List<BriefingViewModel.TierStep> steps = new ArrayList<>();
+        OperationTier[] tiers = OperationTier.values();
+        String[] numerals = { "I", "II", "III", "IV", "V" };
+        for (int i = 0; i < tiers.length; i++) {
+            OperationTier tier = tiers[i];
+            boolean disabled = !tier.atLeast(mission.type.tierFloor);
+            boolean selected = tier == mission.tier;
+            steps.add(new BriefingViewModel.TierStep("briefing-tier-" + i,
+                    "tier-step" + (selected ? " selected" : "")
+                            + (disabled ? " locked" : ""),
+                    numerals[i], tier.displayName, disabled,
+                    () -> adjustDebugOperationTier(tier)));
+        }
+        return List.copyOf(steps);
+    }
+
+    private List<BriefingViewModel.DebugControl> retainedDebugControls(Mission mission) {
+        List<BriefingViewModel.DebugControl> controls = new ArrayList<>();
+        int squads = ctx.getDebugSquadCount();
+        controls.add(new BriefingViewModel.DebugControl("debug-company-squads",
+                "Company squads", Integer.toString(squads), "-10", "-", "+", "+10", "STAGE",
+                squads <= 0, squads <= 0, false, false, false,
+                () -> adjustDebugSquadCount(-10), () -> adjustDebugSquadCount(-1),
+                () -> adjustDebugSquadCount(1), () -> adjustDebugSquadCount(10),
+                this::cycleDebugCompanyStage));
+
+        if (DevConfig.DEBUG_MECH_SUPPORT_PICKER) {
+            controls.add(new BriefingViewModel.DebugControl("debug-player-mechs",
+                    "Player mechs", Integer.toString(debugMechCount), "-10", "-", "+", "+10", "REROLL",
+                    debugMechCount <= 0, debugMechCount <= 0, false, false, false,
+                    () -> adjustDebugMechCount(-10), () -> adjustDebugMechCount(-1),
+                    () -> adjustDebugMechCount(1), () -> adjustDebugMechCount(10),
+                    this::rerollDebugMechs));
+        }
+        if (mission.type == MissionType.CONQUEST) {
+            controls.add(conquestControl("debug-drop-zones", "Drop zones",
+                    Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
+                    debugConquestArrivalConfig.dropZoneCount() <= 1,
+                    debugConquestArrivalConfig.dropZoneCount() >= DEBUG_MAX_CONQUEST_DROP_ZONES,
+                    () -> adjustDebugConquestDropZones(-1), () -> adjustDebugConquestDropZones(1)));
+            controls.add(conquestControl("debug-pairs-zone", "Pairs / zone",
+                    Integer.toString(debugConquestArrivalConfig.shuttlePairsPerZone()),
+                    debugConquestArrivalConfig.shuttlePairsPerZone() <= 1,
+                    debugConquestArrivalConfig.shuttlePairsPerZone() >= DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE,
+                    () -> adjustDebugConquestPairsPerZone(-1), () -> adjustDebugConquestPairsPerZone(1)));
+            controls.add(conquestControl("debug-arrival-jitter", "Timing jitter",
+                    debugConquestArrivalConfig.timingJitterSec() + " s",
+                    debugConquestArrivalConfig.timingJitterSec() <= 0f,
+                    debugConquestArrivalConfig.timingJitterSec() >= DEBUG_MAX_CONQUEST_JITTER_SEC,
+                    () -> adjustDebugConquestJitter(-DEBUG_CONQUEST_JITTER_STEP_SEC),
+                    () -> adjustDebugConquestJitter(DEBUG_CONQUEST_JITTER_STEP_SEC)));
+        }
+        int maxTransports = Math.max(0, mission.requiredDrops);
+        controls.add(new BriefingViewModel.DebugControl("debug-transports",
+                "Transport · " + shuttleDisplayName(debugTransportType),
+                Integer.toString(debugTransportCount), "<", "-", "+", ">", "TYPE",
+                false, debugTransportCount <= 0, debugTransportCount >= maxTransports,
+                false, false, this::previousDebugTransportType,
+                () -> adjustDebugTransportCount(-1, maxTransports),
+                () -> adjustDebugTransportCount(1, maxTransports),
+                this::nextDebugTransportType, this::nextDebugTransportType));
+        return List.copyOf(controls);
+    }
+
+    private static BriefingViewModel.DebugControl conquestControl(
+            String id, String label, String value, boolean minusDisabled,
+            boolean plusDisabled, Runnable minus, Runnable plus) {
+        return new BriefingViewModel.DebugControl(id, label, value,
+                "", "-", "+", "", "", true, minusDisabled,
+                plusDisabled, true, true, () -> { }, minus, plus, () -> { }, () -> { });
+    }
+
+    private void cycleDebugCompanyStage() {
+        ctx.cycleDebugCompanyStage();
+        debugMechCount = ctx.getDebugCompanyStage().mechs;
+        rebuild();
+    }
+
+    private void rerollDebugMechs() {
+        debugMechRoll++;
+        rebuild();
+    }
+
+    private List<BriefingViewModel.AirRow> retainedAirRows() {
+        List<BriefingViewModel.AirRow> rows = new ArrayList<>();
+        for (FighterProfile profile : FighterProfile.values()) {
+            String attackKey = Faction.MARINE.name() + "|" + profile.name();
+            String defendKey = Faction.DEFENDER.name() + "|" + profile.name();
+            boolean attack = debugAirSelections.contains(attackKey);
+            boolean defend = debugAirSelections.contains(defendKey);
+            rows.add(new BriefingViewModel.AirRow("debug-air-" + profile.name().toLowerCase(),
+                    profileDisplayName(profile.name()), attack ? "[x] ATK" : "[ ] ATK",
+                    defend ? "[x] DEF" : "[ ] DEF", attack ? "selected" : "",
+                    defend ? "selected" : "", () -> toggleDebugAir(attackKey),
+                    () -> toggleDebugAir(defendKey)));
+        }
+        return List.copyOf(rows);
+    }
+
+    private void toggleDebugAir(String key) {
+        if (!debugAirSelections.remove(key)) debugAirSelections.add(key);
+        rebuild();
+    }
+
+    private String retainedPersonnelSummary(Mission mission, PersonnelReadiness readiness) {
+        if (mission.source == MissionSource.STATIONING) {
+            return readiness.selectedReady() + " / " + readiness.requiredSeats()
+                    + " ready  ·  " + readiness.selectedShortfall() + " short";
+        }
+        if (MissionForceEnvelope.allowsUnderstrength(mission)) {
+            return readiness.selectedReady() + " ready  ·  minimum "
+                    + readiness.requiredSeats() + "  ·  recommend "
+                    + MissionForceEnvelope.recommendedSquads(mission) + " squads";
+        }
+        TaskForce force = selectedTaskForce();
+        return readiness.selectedReady() + " / " + readiness.requiredSeats()
+                + " selected  ·  " + force.squadCount() + " squads  ·  "
+                + force.officerCount() + " officers";
+    }
+
+    private List<BriefingViewModel.InfoRow> retainedTaskForceRows() {
+        TaskForce force = selectedTaskForce();
+        if (force.officerCount() < 2) return List.of();
+        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        int index = 0;
+        for (TaskForce.Element element : force.elements()) {
+            boolean bad = !element.fit() || element.overCap();
+            String name = element.officer != null
+                    ? element.officer.rank().displayName() + " " + element.officer.name()
+                    : "Unassigned";
+            String detail = element.squads.size() + " squads  ·  " + element.marines
+                    + " marines" + (element.inherited ? "  ·  attached" : "");
+            rows.add(BriefingViewModel.info("task-force-" + index++, name, detail,
+                    bad ? "tone-danger" : ""));
+        }
+        return List.copyOf(rows);
+    }
+
+    private List<BriefingViewModel.ChoiceRow> retainedPowerRows() {
+        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
+        for (int i = 0; i < cachedAvailablePowers.size(); i++) {
+            CommandPower power = cachedAvailablePowers.get(i);
+            boolean selected = selectedPowerIds.contains(power.id);
+            boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
+            int weight = CommandDeck.weight(power);
+            String detail = weight + (weight == 1 ? " slot" : " slots") + "  ·  "
+                    + Math.round(power.cpCost) + " CP"
+                    + (power.supplyCost > 0 ? "  ·  " + power.supplyCost + " supplies" : "");
+            rows.add(new BriefingViewModel.ChoiceRow("briefing-power-" + i,
+                    "choice-row" + (selected ? " selected" : ""),
+                    power.displayName, detail, !selected && !canAdd,
+                    () -> togglePower(power.id), null));
+        }
+        return List.copyOf(rows);
+    }
+
+    private void togglePower(String powerId) {
+        if (!selectedPowerIds.remove(powerId)) selectedPowerIds.add(powerId);
+        rebuild();
+    }
+
+    private List<BriefingViewModel.ChoiceRow> retainedSourceRows() {
+        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
+        for (int i = 0; i < cachedPowerSources.size(); i++) {
+            PlayerFleetPowerSources.SourceShip source = cachedPowerSources.get(i);
+            boolean committed = !deselectedPowerSources.contains(source.memberId);
+            rows.add(new BriefingViewModel.ChoiceRow("briefing-source-" + i,
+                    "choice-row" + (committed ? " selected" : ""),
+                    source.shipName, summarizePowers(source.powers), false,
+                    () -> togglePowerSource(source.memberId), source.spriteName));
+        }
+        return List.copyOf(rows);
+    }
+
+    private void togglePowerSource(String memberId) {
+        if (!deselectedPowerSources.remove(memberId)) deselectedPowerSources.add(memberId);
+        rebuild();
+    }
+
+    private List<BriefingViewModel.InfoRow> retainedTransportRows(Mission mission) {
+        if (mission.source == MissionSource.STATIONING) {
+            return List.of(BriefingViewModel.info("transport-local", "Local lifts",
+                    Strings.get("briefingStationedLocalLifts"), ""));
+        }
+        if (mission.source.isDebug()) {
+            return List.of(BriefingViewModel.info("transport-debug",
+                    debugTransportCount + " × " + shuttleDisplayName(debugTransportType),
+                    debugTransportType.capacity + " seats each  ·  "
+                            + mission.requiredDrops + " required sorties",
+                    isTransportSufficient(mission, lift()) ? "tone-good" : "tone-danger"));
+        }
+        if (cachedAvailable.isEmpty()) {
+            return List.of(BriefingViewModel.info("transport-none", "No boats aboard",
+                    "Mission cannot launch without lift", "tone-danger"));
+        }
+        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        ShuttleType type = cachedAvailable.get(0);
+        rows.add(BriefingViewModel.info("transport-fleet",
+                cachedAvailable.size() + " × " + shuttleDisplayName(type),
+                mission.requiredDrops + " required sorties", "tone-good"));
+        String carrier = ShipsBoatsAboard.carrier();
+        if (carrier != null) rows.add(BriefingViewModel.info(
+                "transport-carrier", "Carried by", carrier, ""));
+        return List.copyOf(rows);
+    }
+
+    private List<BriefingViewModel.ChoiceRow> retainedCarrierRows() {
+        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
+        for (int i = 0; i < cachedCarriers.size(); i++) {
+            final int index = i;
+            PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
+            boolean committed = !deselectedCarriers.contains(i);
+            rows.add(new BriefingViewModel.ChoiceRow("briefing-carrier-" + i,
+                    "choice-row" + (committed ? " selected" : ""), carrier.shipName,
+                    carrier.bayCount() + (carrier.bayCount() == 1 ? " mapped bay" : " mapped bays"),
+                    false, () -> toggleCarrier(index), carrier.spriteName));
+        }
+        return List.copyOf(rows);
+    }
+
+    private void toggleCarrier(int index) {
+        if (!deselectedCarriers.remove(index)) deselectedCarriers.add(index);
+        rebuild();
+    }
+
+    private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
+        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        rows.add(BriefingViewModel.info("employer-transport", "Transport",
+                mission.source.isDebug() ? "Overridden by DEBUG picker"
+                        : mission.employerShuttles > 0
+                                ? mission.employerShuttles + " Aeroshuttle sorties"
+                                : Strings.get("briefingAirNone"), ""));
+        rows.add(BriefingViewModel.info("employer-air", "Allied air",
+                summarizeWings(mission.clientFighterSupport, Faction.MARINE), ""));
+        if (mission.employerPowerIds != null && !mission.employerPowerIds.isEmpty()) {
+            rows.add(BriefingViewModel.info("employer-powers", "Command powers",
+                    summarizePowerIds(mission.employerPowerIds), ""));
+        }
+        return List.copyOf(rows);
+    }
+
+    private void putRetainedActions(Map<String, Object> props, Mission mission,
+                                    PersonnelReadiness readiness) {
+        boolean debug = mission.source.isDebug();
+        boolean transportOk = mission.source == MissionSource.STATIONING
+                || isTransportSufficient(mission, lift());
+        boolean personnelOk = debug || readiness == null || readiness.ready();
+        boolean commandOk = captainCommandReady(mission);
+        boolean canAccept = transportOk && personnelOk && commandOk;
+        MarineRoster roster = liveRoster();
+        int shortfall = readiness != null ? readiness.companyShortfall() : 0;
+        int reserve = roster != null ? roster.readyReserveCount() : 0;
+        int cargo = MarinePersonnelLogistics.availableCargoMarines();
+        int reinforcement = Math.min(shortfall, reserve + cargo);
+        int cargoCost = Math.max(0, reinforcement - Math.min(shortfall, reserve));
+        boolean canReinforce = transportOk && commandOk && readiness != null
+                && readiness.needsPersonnel() && reinforcement > 0;
+
+        props.put("assignLabel", debug
+                ? "COMPANY: " + ctx.getDebugCompanyStage().displayName.toUpperCase()
+                        + " × " + ctx.getDebugSquadCount()
+                : "ASSIGN SQUADS");
+        props.put("assignAction", debug ? (Runnable) this::cycleDebugCompanyStage
+                : (Runnable) this::openSquadDeployment);
+
+        Runnable deployAction = canAccept ? this::onAccept
+                : canReinforce ? () -> reinforce(roster, shortfall)
+                : !transportOk || !commandOk || readiness == null ? () -> { }
+                : readiness.needsPersonnel() ? () -> { }
+                : this::openSquadDeployment;
+        String label = canAccept ? "DEPLOY"
+                : !transportOk ? "INSUFFICIENT TRANSPORT"
+                : !commandOk ? "SELECT COMMANDER"
+                : readiness != null && readiness.needsPersonnel()
+                        ? canReinforce ? "REINFORCE +" + reinforcement + "  ·  " + cargoCost + " CARGO"
+                                : "NEED " + shortfall + "  ·  NO MARINES"
+                        : readiness != null ? "ASSIGN " + readiness.selectedShortfall() : "BLOCKED";
+        props.put("deployLabel", label);
+        props.put("deployClasses", "briefing-deploy "
+                + (canAccept ? "good-surface" : canReinforce ? "" : "danger-surface briefing-blocked"));
+        props.put("deployDisabled", !canAccept && !canReinforce
+                && (readiness == null || readiness.needsPersonnel() || !transportOk || !commandOk));
+        props.put("deployAction", deployAction);
+        props.put("backAction", (Runnable) this::onBack);
+    }
+
+    private void reinforce(MarineRoster roster, int shortfall) {
+        MarinePersonnelLogistics.fillLineShortfall(roster, shortfall);
+        rebuild();
+    }
+
+    private static String signedPercent(int value) {
+        return (value >= 0 ? "+" : "") + value + "%";
+    }
+
+    private static void requireRetainedElements(MarkupInstance component) {
+        for (String id : List.of(
+                "mission-briefing-root", "mission-briefing-header",
+                "mission-briefing-body", "mission-overview", "mission-info-rows",
+                "mission-captain-list", "mission-planning", "mission-debug-workspace",
+                "mission-tier-track", "mission-debug-controls", "mission-commitment",
+                "mission-commitment-scroll", "mission-power-list", "mission-source-list",
+                "mission-transport-list", "mission-employer-list", "mission-assign",
+                "mission-deploy", "mission-briefing-back")) component.requireElement(id);
     }
 
     // ---- left column: mission details + salvage + captain ----
@@ -1543,21 +2024,24 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        widgets.advance(dt);
+        if (markupInstance != null) markupInstance.flush();
+        if (document != null) document.advance(dt);
     }
 
     @Override
     public void processInput(List<InputEventAPI> events) {
-        widgets.processInput(events);
+        if (input != null) input.process(events);
     }
 
     @Override
     public void render(float alphaMult) {
-        if (layout == null) return;
-        drawFrame(layout.leftCol,  alphaMult);
-        drawFrame(layout.rightCol, alphaMult);
-        renderFlavor(alphaMult);
-        widgets.render(alphaMult);
+        if (document != null && viewport != null) document.render(viewport, alphaMult);
+    }
+
+    @Override
+    public void detach() {
+        if (document != null) document.deactivateInput();
+        input = null;
     }
 
     private void renderFlavor(float alphaMult) {
