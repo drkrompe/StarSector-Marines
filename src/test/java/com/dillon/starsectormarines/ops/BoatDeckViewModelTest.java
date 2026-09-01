@@ -23,6 +23,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BoatDeckViewModelTest {
@@ -171,6 +172,130 @@ class BoatDeckViewModelTest {
     }
 
     @Test
+    void theSummaryCountsEmptyBerths() {
+        BoatDeck deck = deckOneBoatDown();
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                new Reactor(), deck, TestResources.stocked(2_000), "Valkyrie");
+
+        String summary = viewModel.deckSummary().get();
+        assertTrue(summary.startsWith("5 boats aboard"), summary);
+        assertTrue(summary.contains("1 berth empty"), summary);
+
+        deck.lose(List.of(deck.boats().get(0).id()));
+        viewModel.refresh();
+        assertTrue(viewModel.deckSummary().get().contains("2 berths empty"),
+                viewModel.deckSummary().get());
+    }
+
+    @Test
+    void aVacantBerthOffersTheHullsPatternAndItsBill() {
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                new Reactor(), deckOneBoatDown(), TestResources.stocked(2_000), "Valkyrie");
+
+        BoatDeckViewModel.BoatRow vacant = viewModel.boatRows().get().get(2);
+        assertEquals("BERTH 03", vacant.berth());
+        assertEquals("EMPTY BERTH", vacant.name());
+        assertEquals(ShuttleType.AEROSHUTTLE.displayName() + " can be built here",
+                vacant.pattern());
+        assertTrue(vacant.classes().contains("vacant"), vacant.classes());
+        // The Aeroshuttle's authored bill, on one line, in the order the recipe
+        // states it.
+        assertEquals("metals 60  ·  heavy machinery 15  ·  supplies 40",
+                vacant.plating());
+        assertEquals("", vacant.drive());
+    }
+
+    @Test
+    void selectingAVacantBerthOpensFabricationNotFitting() {
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                new Reactor(), deckOneBoatDown(), TestResources.stocked(2_000), "Valkyrie");
+
+        viewModel.boatRows().get().get(2).select().run();
+
+        assertTrue(viewModel.fabricationFocused());
+        assertFalse(viewModel.fittingFocused());
+        assertEquals(2, viewModel.selectedBerthIndex());
+        assertTrue(viewModel.overviewClasses().get().contains("hidden"));
+        assertTrue(viewModel.fittingClasses().get().contains("hidden"));
+        assertFalse(viewModel.fabricationClasses().get().contains("hidden"));
+        assertEquals("BERTH 03", viewModel.fabricationBerthLabel().get());
+        assertEquals(ShuttleType.AEROSHUTTLE.displayName(),
+                viewModel.fabricationPatternName().get());
+        assertEquals("PURPOSE-BUILT LANDER", viewModel.fabricationCopy().get());
+        assertEquals(3, viewModel.fabricationMaterials().get().size());
+        assertEquals("METALS 2000 / 60",
+                viewModel.fabricationMaterials().get().get(0).label());
+        assertEquals("", viewModel.fabricationReason().get());
+        assertFalse(viewModel.fabricationBlocked().get());
+
+        viewModel.backToDeckAction().run();
+
+        assertFalse(viewModel.fabricationFocused());
+        assertEquals(-1, viewModel.selectedBerthIndex());
+        assertFalse(viewModel.overviewClasses().get().contains("hidden"));
+    }
+
+    @Test
+    void fabricatingSpendsTheBillStandsTheBoatAndOpensItsFitting() {
+        BoatDeck deck = deckOneBoatDown();
+        TestResources resources = TestResources.stocked(100);
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                new Reactor(), deck, resources, "Valkyrie");
+        viewModel.boatRows().get().get(2).select().run();
+
+        viewModel.fabricateAction().run();
+
+        assertEquals(40, resources.available(Commodities.METALS));
+        assertEquals(85, resources.available(Commodities.HEAVY_MACHINERY));
+        assertEquals(60, resources.available(Commodities.SUPPLIES));
+        assertEquals(ShuttleType.AEROSHUTTLE, deck.boats().get(2).pattern());
+        assertEquals(BoatFitting.STANDARD_PLATING.id(), deck.boats().get(2).plating().id());
+        assertEquals(BoatFitting.STANDARD_DRIVE.id(), deck.boats().get(2).drive().id());
+        assertTrue(deck.vacantBerths().isEmpty());
+
+        // The player is still looking at berth three; what is standing in it
+        // has changed, so the room is now that boat's fitting pane.
+        assertEquals(2, viewModel.selectedBerthIndex());
+        assertTrue(viewModel.fittingFocused());
+        assertFalse(viewModel.fabricationFocused());
+        assertFalse(viewModel.fittingClasses().get().contains("hidden"));
+        assertTrue(viewModel.fabricationClasses().get().contains("hidden"));
+        assertEquals(deck.boats().get(2).displayName(), viewModel.selectedBoatName().get());
+        assertEquals(deck.boats().get(2).displayName(),
+                viewModel.boatRows().get().get(2).name());
+        assertTrue(viewModel.deckSummary().get().startsWith("6 boats aboard"),
+                viewModel.deckSummary().get());
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-good"));
+        assertTrue(viewModel.feedbackText().get().contains("BERTH 03"),
+                viewModel.feedbackText().get());
+    }
+
+    @Test
+    void aShortHoldDisablesFabricationAndNamesTheLine() {
+        BoatDeck deck = deckOneBoatDown();
+        TestResources resources = TestResources.stocked(2_000);
+        resources.set(Commodities.METALS, 41);
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                new Reactor(), deck, resources, "Valkyrie");
+        viewModel.boatRows().get().get(2).select().run();
+
+        assertTrue(viewModel.fabricationBlocked().get());
+        assertEquals("SHORT METALS", viewModel.fabricationReason().get());
+        assertTrue(viewModel.fabricationActionClasses().get().contains("blocked"),
+                viewModel.fabricationActionClasses().get());
+
+        viewModel.fabricateAction().run();
+
+        assertNull(deck.boats().get(2));
+        assertEquals(41, resources.available(Commodities.METALS));
+        assertEquals(2_000, resources.available(Commodities.SUPPLIES));
+        assertTrue(viewModel.fabricationFocused());
+        assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
+        assertTrue(viewModel.feedbackText().get().contains("short"),
+                viewModel.feedbackText().get());
+    }
+
+    @Test
     void theSummarySaysWhatChangingShipCostTheCompany() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("transport", ShuttleType.AEROSHUTTLE, BERTHS);
@@ -227,6 +352,13 @@ class BoatDeckViewModelTest {
         return deck;
     }
 
+    /** The same deck with the third berth's boat shot down. */
+    private static BoatDeck deckOneBoatDown() {
+        BoatDeck deck = deck();
+        deck.lose(List.of(deck.boats().get(2).id()));
+        return deck;
+    }
+
     private static BoatDeckViewModel.CatalogRow row(
             List<BoatDeckViewModel.CatalogRow> rows, String fittingId) {
         return rows.stream()
@@ -261,6 +393,15 @@ class BoatDeckViewModelTest {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("overviewClasses", viewModel.overviewClasses());
         props.put("fittingClasses", viewModel.fittingClasses());
+        props.put("fabricationClasses", viewModel.fabricationClasses());
+        props.put("fabricationBerthLabel", viewModel.fabricationBerthLabel());
+        props.put("fabricationPatternName", viewModel.fabricationPatternName());
+        props.put("fabricationCopy", viewModel.fabricationCopy());
+        props.put("fabricationMaterials", viewModel.fabricationMaterials());
+        props.put("fabricationActionClasses", viewModel.fabricationActionClasses());
+        props.put("fabricationBlocked", viewModel.fabricationBlocked());
+        props.put("fabricationReason", viewModel.fabricationReason());
+        props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
