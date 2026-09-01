@@ -21,7 +21,13 @@ import java.util.Random;
  */
 public record PrecinctBrief(String name, MapPlacement placement,
                             GrownTrunkPlan.Profile growth, FortressProgram program,
-                            Precinct.Boundary boundary) {
+                            Precinct.Boundary boundary, Fortification fortification) {
+
+    public PrecinctBrief(String name, MapPlacement placement, GrownTrunkPlan.Profile growth,
+                         FortressProgram program, Precinct.Boundary boundary) {
+        this(name, placement, growth, program, boundary,
+                boundary == Precinct.Boundary.WALLED ? Fortification.GARRISON : null);
+    }
 
     public PrecinctBrief {
         if (name == null || name.isBlank()) throw new IllegalArgumentException("a place is named");
@@ -40,18 +46,27 @@ public record PrecinctBrief(String name, MapPlacement placement,
     public static PrecinctBrief garrison(String name, MapPlacement placement,
                                          GrownTrunkPlan.Profile growth,
                                          FortressProgram program) {
+        return garrison(name, placement, growth, program, Fortification.GARRISON);
+    }
+
+    /** The same, fortified to whatever the mission thinks its attacker can handle. */
+    public static PrecinctBrief garrison(String name, MapPlacement placement,
+                                         GrownTrunkPlan.Profile growth,
+                                         FortressProgram program,
+                                         Fortification fortification) {
         return new PrecinctBrief(name, placement, growth, program,
-                Precinct.Boundary.WALLED);
+                Precinct.Boundary.WALLED, fortification);
     }
 
     /** The same place asked for somewhere else. */
     public PrecinctBrief at(MapPlacement where) {
-        return new PrecinctBrief(name, where, growth, program, boundary);
+        return new PrecinctBrief(name, where, growth, program, boundary, fortification);
     }
 
     /** Resolves to a precinct seeded inside this brief's placement. */
     public Precinct resolve(int width, int height, int margin, Random rng) {
         int[] seed = placement.resolve(width, height, margin, rng);
-        return new Precinct(name, seed[0], seed[1], growth, program, boundary);
+        return new Precinct(name, seed[0], seed[1], growth, program, boundary,
+                fortification);
     }
 }

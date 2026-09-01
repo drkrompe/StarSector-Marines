@@ -29,7 +29,15 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 public record Precinct(String name, int seedX, int seedY,
                        GrownTrunkPlan.Profile growth,
                        FortressProgram program,
-                       Boundary boundary) {
+                       Boundary boundary,
+                       Fortification fortification) {
+
+    /** A place whose wall, if it has one, is of ordinary strength. */
+    public Precinct(String name, int seedX, int seedY, GrownTrunkPlan.Profile growth,
+                    FortressProgram program, Boundary boundary) {
+        this(name, seedX, seedY, growth, program, boundary,
+                boundary == Boundary.WALLED ? Fortification.GARRISON : null);
+    }
 
     /** What happens at the edge of a precinct once its interior exists. */
     public enum Boundary {
@@ -51,6 +59,10 @@ public record Precinct(String name, int seedX, int seedY,
         if (name == null || name.isBlank()) throw new IllegalArgumentException("a precinct is named");
         if (growth == null) throw new IllegalArgumentException(name + " has no growth profile");
         if (boundary == null) throw new IllegalArgumentException(name + " has no boundary");
+        if (boundary == Boundary.WALLED && fortification == null) {
+            throw new IllegalArgumentException(name + " is walled but says nothing about "
+                    + "how hard the wall is, which is the dial a mission needs");
+        }
     }
 
     /** A place whose parcels are zoned and filled the ordinary way. */
@@ -61,7 +73,14 @@ public record Precinct(String name, int seedX, int seedY,
     /** A place that owes authored buildings and is walled — what a fortress is. */
     public static Precinct garrison(String name, int x, int y,
                                     GrownTrunkPlan.Profile growth, FortressProgram program) {
-        return new Precinct(name, x, y, growth, program, Boundary.WALLED);
+        return garrison(name, x, y, growth, program, Fortification.GARRISON);
+    }
+
+    /** The same, fortified to whatever the mission thinks its attacker can handle. */
+    public static Precinct garrison(String name, int x, int y,
+                                    GrownTrunkPlan.Profile growth, FortressProgram program,
+                                    Fortification fortification) {
+        return new Precinct(name, x, y, growth, program, Boundary.WALLED, fortification);
     }
 
     /** Whether this precinct packs authored footprints rather than zoning its parcels. */
