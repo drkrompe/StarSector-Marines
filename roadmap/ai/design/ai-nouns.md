@@ -4,7 +4,11 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a workplace is bounded by its own trade rather than by
+Updated: 2026-09-01 — an assignment kind's standing facts are one table, and
+only the player's order is a lookup; a commander's is still won in the MISSION
+bucket.
+
+Earlier 2026-09-01 — a workplace is bounded by its own trade rather than by
 the scarcest thing on the rotation, and berth-bound work is a round of the
 machines, so a crew comes round to every stand in its room instead of pinning
 one each.
@@ -556,6 +560,18 @@ reasserted after ordinary appearance authoring. This shared mechanism makes
 shipboard leisure and workshop activity useful proving grounds for civilians,
 technicians, guards, and other map-authored workers without creating
 presentation-only actor scripts.
+
+**An assignment kind's standing facts are one table.** What a kind is made of,
+who is presumed to own it when it was written without provenance, and the
+player's version of it — the goal that must win, the arms that may take it, and
+when it is over — belong to `OrderCatalog` rather than to each consumer's own
+switch, and a kind with no row fails a test rather than being discovered later
+by whichever consumer was missed. **The table says which orders are lookups; it
+does not replace the ladder.** A commander's assignment is still served by
+whichever MISSION goal in the arm's library scores it highest, because that is a
+competition — one kind is served by two goals, and a lance serves most kinds
+through one generic goal. Only the player's order is a lookup, because it must
+win outright or the click did nothing.
 
 ## Mission-command integration
 
