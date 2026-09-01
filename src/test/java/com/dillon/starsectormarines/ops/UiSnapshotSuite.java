@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadFoundingCost;
+import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -214,6 +216,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 false, false)),
+                new SnapshotArtifact("fleet-armory-founding-wide.png",
+                        renderEmptyFleetArmoryWorkspace(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -1125,6 +1130,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    private static BufferedImage renderEmptyFleetArmoryWorkspace(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                reactor, new MarineRoster(), () -> { }, () -> 0d,
+                snapshotEquipmentResources(), snapshotSquadFoundingResources());
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, "fleet-armory", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
     private static BufferedImage renderFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen,
@@ -1151,7 +1175,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             roster.recruitToSquad(roster.reserveSquad().id());
         }
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
-                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources());
+                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
+                snapshotSquadFoundingResources());
         if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().get(1).select().run();
         if (fireteam && armorPicker) viewModel.showArmorPickerAction().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
@@ -1318,7 +1343,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant) throws Exception {
         Reactor reactor = new Reactor();
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
@@ -1410,6 +1435,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         };
     }
 
+    private static SquadFoundingResources snapshotSquadFoundingResources() {
+        return new SquadFoundingResources() {
+            @Override public int available(String commodityId) { return 2_000; }
+            @Override public boolean spend(SquadFoundingCost cost) { return cost != null; }
+            @Override public String commodityName(String commodityId) {
+                return snapshotCommodities().commodityName(commodityId);
+            }
+            @Override public String commodityIcon(String commodityId) {
+                return snapshotCommodities().commodityIcon(commodityId);
+            }
+        };
+    }
+
     private static CommodityPresentation snapshotCommodities() {
         return new CommodityPresentation() {
             @Override public String commodityName(String commodityId) {
@@ -1479,6 +1517,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
+        props.put("foundingCargoRows", viewModel.foundingCargoRows());
+        props.put("foundingDisabled", viewModel.foundingDisabled());
+        props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
+        props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
+        props.put("foundSquad", viewModel.foundSquadAction());
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());

@@ -671,7 +671,7 @@ public class MarineRoster implements Serializable {
      * Hires up to {@code count} replacements as one roster mutation.
      *
      * <p>The single-recruit path remains the ordinary campaign operation. This
-     * bulk form exists for formation bootstrap and detached fixtures, where a
+     * bulk form exists for atomic squad founding and detached fixtures, where a
      * complete squad is authored together. Basic issue and derived leadership
      * are repaired once after the batch instead of once per billet. Recruits
      * arrive identical; what makes a squad good is the kit it is then issued.
@@ -710,7 +710,7 @@ public class MarineRoster implements Serializable {
         return recruit;
     }
 
-    /** One-time free campaign starting complement; later enlistment uses cargo marines. */
+    /** Detached-fixture bootstrap only; campaign founding spends cargo through its workshop. */
     public void bootstrapInitialComplement(int count) {
         if (initialComplementIssued) return;
         initialComplementIssued = true;
@@ -1291,7 +1291,7 @@ public class MarineRoster implements Serializable {
         if (squads == null) squads = new ArrayList<>();
         if (captainCandidates == null) captainCandidates = new ArrayList<>();
         if (armory == null) armory = new MarineArmory();
-        if (mechBay == null) mechBay = new MechBay();
+        if (mechBay == null) mechBay = MechBay.legacyStarterBay();
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;

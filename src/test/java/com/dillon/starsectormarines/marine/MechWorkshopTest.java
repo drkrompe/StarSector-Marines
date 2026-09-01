@@ -18,7 +18,7 @@ class MechWorkshopTest {
 
     @Test
     void fabricatesAndInstallsAWeaponAsOneMaterialTransaction() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         TestResources resources = TestResources.stocked(100);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
@@ -37,7 +37,7 @@ class MechWorkshopTest {
 
     @Test
     void insufficientMaterialsChangeNeitherCargoNorInstalledWeapon() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         TestResources resources = TestResources.stocked(5);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
@@ -67,6 +67,8 @@ class MechWorkshopTest {
                 MechVariant.SIROCCO).succeeded());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
                 MechVariant.HOUND).succeeded());
+        assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
+                MechVariant.SIROCCO).succeeded());
 
         int supplies = resources.available(Commodities.SUPPLIES);
         MechWorkshop.Result full = workshop.fabricateChassis(

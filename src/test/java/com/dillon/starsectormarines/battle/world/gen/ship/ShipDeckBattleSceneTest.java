@@ -107,15 +107,14 @@ final class ShipDeckBattleSceneTest {
      * The bay stands the company's own machines, not a chosen number of them.
      *
      * <p>A home deck's vehicle bay is the Mech Lab, so what it holds is whatever
-     * the campaign says the player owns. A new company owns one mech, and the
-     * berths past it stay empty on purpose — filling them to make the room look
-     * busy would be showing the player equipment they do not have.
+     * the campaign says the player owns. A new company owns no mech until the
+     * player fabricates one, so every berth stays empty on purpose.
      */
     @Test
-    void berthsHoldTheCompanysOwnLance() {
+    void newCompanyBayDoesNotInventAStarterLance() {
         CampaignMechSquad squad = new MechBay().activeSquad();
         List<MechVariant> lance = squad.mechs().stream().map(CampaignMech::variant).toList();
-        assertTrue(!lance.isEmpty(), "a new company should start with at least one machine");
+        assertTrue(lance.isEmpty(), "a new company should found its machines from cargo");
 
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck(), SEED)) {
             assertTrue(!scene.gantries().isEmpty(), "the deck authored no berths");
@@ -285,7 +284,7 @@ final class ShipDeckBattleSceneTest {
      */
     @Test
     void servicingWorkInTheBayScalesWithTheMachinesParkedInIt() {
-        MechVariant variant = new MechBay().activeSquad().mechs().get(0).variant();
+        MechVariant variant = MechVariant.BULWARK;
         ShipDeckGenerator generator = new ShipDeckGenerator();
         MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
         DeckGraph graph = generator.getLastDeckGraph();

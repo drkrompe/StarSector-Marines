@@ -27,6 +27,15 @@ and fabrication materials to print more — was deleted once it had no live
 callers left. Anything that needs to cost the player materiel must reach the
 counted things: fleet cargo, or the mech bay's spare components.
 
+New campaigns contain only structural organization: the non-deployable reserve
+pool and an empty four-gantry support lance. Fleet Armory squad founding is one
+atomic cargo transaction for twelve generic Marines plus their baseline stores;
+it creates the named line squad only after the complete bill can be consumed.
+Mech chassis are likewise player-fabricated in the Mech Lab. Do not restore a
+free campaign complement or constructor-seeded mech. `bootstrapInitialComplement`
+and `MechBay.legacyStarterFixture()` exist for detached fixtures and save
+compatibility, not ordinary campaign setup.
+
 ## Derived organizational state
 
 Two pieces of squad structure are **derived, not authored**, and nothing should

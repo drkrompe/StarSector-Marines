@@ -23,8 +23,35 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechBayTest {
 
     @Test
-    void starterSquadOwnsInstalledStandardAndOneUpgrade() {
+    void newBayHasEmptyGantryAndNoFreeSubsystemStock() throws Exception {
         MechBay bay = new MechBay();
+
+        assertEquals(0, bay.activeSquad().mechs().size());
+        assertEquals(0, bay.ownedReplenisher(
+                MissileReplenisherComponent.STANDARD.id()));
+        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
+        assertEquals(0, roundTrip(bay).activeSquad().mechs().size(),
+                "the modern empty start must not be mistaken for a legacy save");
+    }
+
+    @Test
+    void preFoundingModelSaveRetainsItsStarterEntitlement() throws Exception {
+        MechBay bay = new MechBay();
+        Field marker = MechBay.class.getDeclaredField("foundingModelInitialized");
+        marker.setAccessible(true);
+        marker.setBoolean(bay, false);
+
+        MechBay restored = roundTrip(bay);
+
+        assertEquals(1, restored.activeDeployment().size());
+        assertEquals(MechVariant.BULWARK, restored.activeDeployment().get(0).variant());
+        assertEquals(1, restored.availableReplenisher(
+                MissileReplenisherComponent.ACCELERATED_FEED.id()));
+    }
+
+    @Test
+    void legacyStarterFixtureOwnsInstalledStandardAndOneUpgrade() {
+        MechBay bay = MechBay.legacyStarterFixture();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
 
         assertEquals(1, bay.activeSquad().mechs().size());
@@ -42,7 +69,7 @@ class MechBayTest {
 
     @Test
     void refitReturnsCurrentItemAndCannotOverAssignFiniteUpgrade() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         CampaignMech second = new CampaignMech(
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id());
@@ -62,7 +89,7 @@ class MechBayTest {
 
     @Test
     void activeSquadFreezesValuesAndPersistsInstalledInventory() throws Exception {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         assertTrue(bay.installReplenisher(MechBay.STARTER_MECH_ID,
                 MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id, 1);
@@ -88,7 +115,7 @@ class MechBayTest {
 
     @Test
     void weaponRefitReturnsTheOutgoingAssemblyAndFreezesTheReplacement() {
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         bay.addWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id, 1);
 
         assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.ARMS,

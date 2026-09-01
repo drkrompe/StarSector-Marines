@@ -1,4 +1,4 @@
-<template props="companySummary,squadCards,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="companySummary,squadCards,foundingCargoRows,foundingDisabled,foundingFeedbackText,foundingFeedbackClasses,foundSquad,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / FLEET MARINE COMPANY" />
 
@@ -13,7 +13,21 @@
     <div id="squad-overview-intro" class="panel">
       <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
-      <div id="squad-overview-copy" class="label tone-muted">Select a squad to inspect its marines and assign its weapon loadout and tactic sheet.</div>
+      <div id="squad-overview-copy" class="label tone-muted">Found a formation from fleet cargo, then inspect its marines and issue doctrine.</div>
+    </div>
+
+    <div id="squad-founder" class="squad-founder panel">
+      <div id="squad-founder-copy" class="squad-founder-copy">
+        <div id="squad-founder-heading" class="label heading tone-edge">FOUND LINE SQUAD</div>
+        <div id="squad-founder-feedback" class="{foundingFeedbackClasses}">{foundingFeedbackText}</div>
+      </div>
+      <div id="squad-founder-costs" class="squad-founder-costs">
+        <div each="cost in foundingCargoRows" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
+          <img id="{cost.iconId}" class="cargo-cost-icon" src="{cost.icon}" />
+          <div id="{cost.labelId}" class="cargo-cost-label label">{cost.label}</div>
+        </div>
+      </div>
+      <button id="found-squad" class="found-squad" disabled="{foundingDisabled}" onclick="{foundSquad}">Found Squad</button>
     </div>
 
     <armory-squad-list squadCards="{squadCards}" />
@@ -48,5 +62,33 @@
   #squad-overview-heading { height: 18px; }
   #squad-overview-summary { height: 19px; padding: 2px 6px; }
   #squad-overview-copy { height: 17px; }
+
+  .squad-founder {
+    flex-direction: row;
+    height: 74px;
+    padding: 7px 8px;
+    gap: 8px;
+  }
+  .squad-founder-copy { flex-direction: column; width: 340px; gap: 3px; }
+  #squad-founder-heading { height: 20px; }
+  .squad-founder-costs {
+    display: grid;
+    flex-grow: 1;
+    gap: 4px;
+    overflow: hidden;
+  }
+  .cargo-cost {
+    flex-direction: row;
+    width: 214px;
+    height: 25px;
+    padding: 3px 5px;
+    gap: 5px;
+    border-width: 1px;
+  }
+  .cargo-cost.short { background-color: #321818; border-color: #9f4545; }
+  .cargo-cost-icon { width: 18px; height: 18px; }
+  .cargo-cost-label { width: 0px; height: 18px; flex-grow: 1; padding: 2px 0px; }
+  .found-squad { width: 118px; height: 34px; padding: 5px 8px; border-width: 1px; font-family: heading; }
+  .squad-founder-feedback { height: 34px; padding: 3px 0px; }
 
 </style>
