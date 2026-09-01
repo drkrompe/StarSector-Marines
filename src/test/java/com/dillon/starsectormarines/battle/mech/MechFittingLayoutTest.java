@@ -60,13 +60,21 @@ class MechFittingLayoutTest {
 
         assertEquals(2, houndArms.gridColumns());
         assertEquals(2, houndArms.gridRows());
-        assertEquals(3, MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintColumns);
-        assertEquals(2, MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintRows);
+        assertEquals(2, MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintColumns);
+        assertEquals(3, MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintRows);
         assertFalse(houndArms.accommodates(
                 MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintColumns,
                 MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintRows));
         assertTrue(houndArms.accommodates(
                 MechWeaponComponent.DEMOLITION_CANNON.footprintColumns,
                 MechWeaponComponent.DEMOLITION_CANNON.footprintRows));
+        assertEquals(2, MechWeaponComponent.SRM_5.footprintColumns);
+        assertEquals(2, MechWeaponComponent.SRM_5.footprintRows);
+        assertEquals(2, MechWeaponComponent.SRM_15.footprintColumns);
+        assertEquals(3, MechWeaponComponent.SRM_15.footprintRows);
+        for (MechWeaponComponent component : MechWeaponComponent.values()) {
+            assertTrue(component.footprintColumns >= 2,
+                    component + " should span the minimum two-column weapon footprint");
+        }
     }
 }

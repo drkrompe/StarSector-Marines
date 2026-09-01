@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — Mech Lab sockets and equipment use rectangular fitting-grid
-footprints, and the catalog projects the shipped equipment art over those footprints.
+Updated: 2026-09-01 — Mech Lab fitting uses a tall two-by-three grid; catalog art
+is oriented over only the cells occupied by each component footprint.
 
 ## Purpose
 
@@ -85,8 +85,8 @@ increasing an encounter's total armored threat.
   over campaign authorities, not a second inventory or a battle debug picker.
 - A **socket** is one spatial equipment location on a heavy asset. Refittable
   sockets declare a compatibility type—ballistic, energy, missile, or
-  omni—and an active rectangular region within the common three-column by
-  two-row fitting grid. A component declares a compatible type and its own
+  omni—and an active rectangular region within the common two-column by
+  three-row fitting grid. A component declares a compatible type and its own
   column-by-row footprint. It fits only when that complete rectangle lies inside
   the socket's active region; equal scalar area is not interchangeable geometry.
   Each asset-class layout owns the socket's physical mount anchor,
@@ -441,8 +441,8 @@ support sortie, subject only to practical runtime resources.
   selected asset or distort its physical size relative to technicians, tiles,
   props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
-  strongly translucent type color, large hull-relative drop footprint, and common
-  three-by-two cell frame occupy the gantry around the physical doll, with a light leader returning
+  strongly translucent type color, tall hull-relative drop footprint, and common
+  two-by-three cell frame occupy the gantry around the physical doll, with a light leader returning
   to the authored mount anchor. The doll remains readable instead of becoming a
   pile of UI rectangles, and the rendered room becomes useful fitting space.
   The whole footprint is the pointer target; active, occupied, and blocked cells

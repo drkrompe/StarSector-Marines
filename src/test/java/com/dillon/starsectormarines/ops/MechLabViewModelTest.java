@@ -109,7 +109,7 @@ class MechLabViewModelTest {
         assertEquals("TOO LARGE", heavy.actionLabel());
         assertTrue(heavy.actionDisabled());
         assertEquals(MechWeaponComponent.SINGLE_HEAVY_CANNON, heavy.weaponPreview());
-        assertTrue(heavy.detail().contains("3×2 GRID"));
+        assertTrue(heavy.detail().contains("2×3 GRID"));
     }
 
     @Test
