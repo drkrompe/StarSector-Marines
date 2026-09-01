@@ -2,6 +2,9 @@
 
 Status: ACTIVE — paired production command is implemented; live and canonical-duration acceptance remain.
 
+Updated: 2026-09-01 — the force plan owes the defender commander enough
+mobile squads to hold a reserve.
+
 Written: 2026-08-27
 
 Read `mission-command-nouns.md` for the shared architecture. Assault currently
@@ -32,6 +35,15 @@ external. Routine squads spread before doubling. Readiness squads hold real
 threatened area before known hostile strength authorizes bounded
 counter-concentration. Reserve exchange may keep one dispatchable squad without
 breaking the minimum routine-coverage floor.
+
+**A reserve has to be handed the force for one.** The force plan garrisons
+greedily down to a mobile floor, so on a map with tactical nodes to spare the
+floor is exactly what the commander owns — and a lone squad is routine coverage
+by the reserve's own rule, never a reserve. Assault kept a one-squad floor
+from before Raid and Extraction were written; the maps it ran on starved the
+garrison pass of nodes and left it several squads by accident, and a fortress
+map that emits a node per packed room took the accident away. The mobile floor
+is now three squads' worth for all three missions that hold a reserve.
 
 A defender **area report** comes only from defender influence. Direct evidence
 is active; older or indirect evidence is suspected. Each identity remains
