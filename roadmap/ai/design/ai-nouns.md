@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the player's tactical orders are the first lease holder,
+Updated: 2026-09-01 — what sits between a unit having a squad and executing its
+step is a declared reflex chain, one per arm, whose order is a law.
+
+Earlier 2026-09-01 — the player's tactical orders are the first lease holder,
 so a directive lease is production rather than a reserved shape.
 
 Earlier 2026-09-01 — an assignment kind's standing facts are one table, and
@@ -139,6 +142,18 @@ A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
 whether an authored shot lands and what it damages.
+
+A unit's execution begins with a **reflex chain**: an ordered list of interrupts
+ahead of the plan step, each one pre-empting everything after it and the step
+itself. It is declared once per arm and pinned by a test, because the order is a
+law rather than a convenience — grenade evasion outranks a shot of opportunity, a
+broken fire team outranks the step, a player's per-chassis move outranks doctrine
+— and an if-chain states a law nobody can read, cite, or measure a change to. A
+reflex answers something the unit is already in the middle of or has just walked
+into; it never invents work, and one with nothing to answer declines so the next
+is asked. An individual-tier behaviour that must run before the step is therefore
+a reflex, added to the list at the rank its priority earns, never as another
+branch above the loop.
 
 A **fire team** is the standing organizational element between the squad and
 the individual: a small, stable billet group a marine belongs to for the whole
