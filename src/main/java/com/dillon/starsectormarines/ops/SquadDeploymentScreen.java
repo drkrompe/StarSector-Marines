@@ -96,7 +96,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         List<SquadRow> squads = List.of(
                 previewRow(0, "1st Squad", "12 / 12 RTD", "Selected", true, none),
                 previewRow(1, "2nd Squad", "11 / 12 RTD", "Available", false, none),
-                previewRow(2, "3rd Squad", "8 / 12 RTD", "3 WIA · 1 KIA", false, none),
+                previewRow(2, "3rd Squad", "8 / 12 RTD", "Available", false, none),
                 previewRow(3, "4th Squad", "12 / 12 RTD", "Command limit", false, none));
         props.put("squadRows", squads);
         props.put("emptyMessage", "");
@@ -127,12 +127,14 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
             int kia = countStatus(squad, MarineSoldierStatus.KIA);
             String casualties = casualtySummary(wia, mia, kia);
             String base = "deployment-squad-" + rows.size();
+            CommanderRow commander = commanderRow(squad, selected, canToggle);
             rows.add(new SquadRow(base, "deployment-squad-card"
                     + (selected ? " selected" : ""), squad.name(),
                     ready + " / " + MarineSquad.CAPACITY + " RTD",
                     "label heading squad-card-readiness " + (selected ? "tone-accent"
                             : canToggle ? "tone-good" : "tone-danger"),
-                    loadoutSummary(squad), commandSummary(squad, canToggle),
+                    loadoutSummary(squad), commander.portrait(), commander.name(),
+                    commander.status(), commander.statusClasses(),
                     casualties, "label squad-card-casualty "
                             + (casualties.isEmpty() ? "tone-muted" : "tone-danger"),
                     fireTeams(squad, selected), !canToggle, () -> toggle(squad.id())));
@@ -146,7 +148,11 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         return new SquadRow(base, "deployment-squad-card" + (selected ? " selected" : ""),
                 name, readiness, "label heading squad-card-readiness "
                         + (selected ? "tone-accent" : "tone-good"),
-                "Field Rifles / Standard Plate", "Lt. Mira Hale · " + status,
+                "Field Rifles / Standard Plate",
+                "graphics/portraits/portrait_mercenary01.png", "Lt. Mira Hale",
+                "HOME COMMAND · " + status.toUpperCase(Locale.ROOT),
+                "label heading squad-card-commander-status "
+                        + (index == 3 ? "tone-danger" : selected ? "tone-accent" : "tone-good"),
                 index == 2 ? "3 WIA · 1 KIA" : "", "label squad-card-casualty "
                         + (index == 2 ? "tone-danger" : "tone-muted"),
                 previewTeams(index, selected), index == 3, action);
@@ -333,12 +339,25 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         return weaponName + " / " + armorName;
     }
 
-    private String commandSummary(MarineSquad squad, boolean canToggle) {
+    private CommanderRow commanderRow(MarineSquad squad, boolean selected,
+                                       boolean canToggle) {
         MarineCaptain home = roster.captainForSquad(squad.id());
-        String command = home != null
-                ? home.rank().displayName() + " " + home.name()
-                : "Operation commander";
-        return command + (!canToggle ? " · COMMAND LIMIT" : "");
+        MarineCaptain leader = CaptainDeploymentPolicy.leaderFor(
+                roster, context.getSelectedCaptain(), squad.id());
+        boolean inherited = home == null || leader == null || !home.id().equals(leader.id());
+        String commandKind = inherited ? "OPERATION COMMAND" : "HOME COMMAND";
+        String status = !canToggle ? "COMMAND LIMIT"
+                : selected ? "SELECTED" : "AVAILABLE";
+        if (leader == null) {
+            return new CommanderRow("", "No active commander",
+                    commandKind + " · " + status,
+                    "label heading squad-card-commander-status tone-danger");
+        }
+        return new CommanderRow(leader.portraitSprite(),
+                leader.rank().displayName() + " " + leader.name(),
+                commandKind + " · " + status,
+                "label heading squad-card-commander-status "
+                        + (!canToggle ? "tone-danger" : selected ? "tone-accent" : "tone-good"));
     }
 
     private static String casualtySummary(int wia, int mia, int kia) {
@@ -378,8 +397,13 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 "squad-deployment-armory");
     }
 
+    record CommanderRow(String portrait, String name, String status,
+                        String statusClasses) { }
+
     record SquadRow(String id, String classes, String name, String readiness,
-                    String tone, String loadout, String command, String casualties,
+                    String tone, String loadout, String commanderPortrait,
+                    String commanderName, String commanderStatus,
+                    String commanderStatusClasses, String casualties,
                     String casualtyTone, List<FireTeamRow> fireTeams,
                     boolean disabled, Runnable action)
             implements MarkupPropertySource {
@@ -388,9 +412,19 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 case "id" -> id; case "classes" -> classes; case "name" -> name;
                 case "topId" -> id + "-top"; case "nameId" -> id + "-name";
                 case "readinessId" -> id + "-readiness";
-                case "loadoutId" -> id + "-loadout"; case "commandId" -> id + "-command";
+                case "loadoutId" -> id + "-loadout";
+                case "commanderId" -> id + "-commander";
+                case "commanderPortraitFrameId" -> id + "-commander-portrait-frame";
+                case "commanderPortraitId" -> id + "-commander-portrait";
+                case "commanderCopyId" -> id + "-commander-copy";
+                case "commanderNameId" -> id + "-commander-name";
+                case "commanderStatusId" -> id + "-commander-status";
                 case "casualtyId" -> id + "-casualties"; case "readiness" -> readiness;
-                case "tone" -> tone; case "loadout" -> loadout; case "command" -> command;
+                case "tone" -> tone; case "loadout" -> loadout;
+                case "commanderPortrait" -> commanderPortrait;
+                case "commanderName" -> commanderName;
+                case "commanderStatus" -> commanderStatus;
+                case "commanderStatusClasses" -> commanderStatusClasses;
                 case "casualties" -> casualties; case "casualtyTone" -> casualtyTone;
                 case "fireTeams" -> fireTeams; case "fireTeamsId" -> id + "-fireteams";
                 case "disabled" -> disabled; case "action" -> action; default -> null;
