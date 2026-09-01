@@ -3,11 +3,13 @@ package com.dillon.starsectormarines.battle.air;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleForceScore;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
@@ -123,6 +125,101 @@ class ShuttleTransportMechanicsTest {
         }
     }
 
+    /**
+     * The ledger is the only record of a shoot-down that survives the tick that
+     * caused it, so what it says has to be right at the moment it is written and
+     * still be there afterwards.
+     */
+    @Test
+    void aBoatShotDownBeforeItDeboardsNamesEverybodyStillAboard() {
+        try (BattleSimulation sim = openSimulation()) {
+            FittedBoat boat = new FittedBoat(ShuttleType.VALKYRIE,
+                    BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "boat_03");
+            long shuttle = sim.spawnShuttle(ShuttleType.VALKYRIE, boat, Faction.MARINE,
+                    10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 4);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.marineLoadout = passengers("soldier-a", "soldier-b", "soldier-c", "soldier-d");
+            mission.marinesRemaining = 4;
+
+            sim.getRoster().airTargets().destroy(shuttle);
+
+            assertEquals(1, sim.getAirLosses().size());
+            AirLoss loss = sim.getAirLosses().get(0);
+            assertSame(boat, loss.frame());
+            assertEquals(Faction.MARINE, loss.faction());
+            assertEquals(4, loss.passengersAboard());
+            assertEquals(List.of("soldier-a", "soldier-b", "soldier-c", "soldier-d"),
+                    loss.passengerSoldierIds());
+
+            sim.advance(BattleSimulation.TICK_DT);
+
+            assertEquals(1, sim.getAirLosses().size(),
+                    "the entity is reaped at end of tick and the loss has to outlive it");
+        }
+    }
+
+    /**
+     * A marine who walked off the ramp is on the ground, and whatever happens to
+     * the boat afterwards is not what killed them.
+     */
+    @Test
+    void aBoatShotDownPartwayThroughUnloadingNamesOnlyTheSeatsStillFull() {
+        try (BattleSimulation sim = openSimulation()) {
+            FittedBoat boat = new FittedBoat(ShuttleType.VALKYRIE,
+                    BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "boat_03");
+            long shuttle = sim.spawnShuttle(ShuttleType.VALKYRIE, boat, Faction.MARINE,
+                    10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 4);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.marineLoadout = passengers("soldier-a", "soldier-b", "soldier-c", "soldier-d");
+            mission.deboardedThisSortie = 3;
+            mission.marinesRemaining = 1;
+            // The seats of a later cycle never left the ship, so they are
+            // neither survivors nor casualties whatever happens to this sortie.
+            mission.totalCycles = 2;
+            mission.cycleLoadouts = new MarineLoadout[][]{
+                    mission.marineLoadout, passengers("soldier-e", "soldier-f")};
+
+            sim.getRoster().airTargets().destroy(shuttle);
+
+            AirLoss loss = sim.getAirLosses().get(0);
+            assertEquals(1, loss.passengersAboard());
+            assertEquals(List.of("soldier-d"), loss.passengerSoldierIds());
+        }
+    }
+
+    /**
+     * A craft the campaign does not track people aboard — an employer's lander,
+     * a padding sortie — still counts its dead without naming them.
+     */
+    @Test
+    void anUnnamedPassengerIsStillCountedAsHavingGoneDown() {
+        try (BattleSimulation sim = openSimulation()) {
+            long shuttle = sim.spawnShuttle(ShuttleType.VALKYRIE, Faction.MARINE,
+                    10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 4);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.marineLoadout = new MarineLoadout[]{
+                    MarineLoadout.COMBATANT, MarineLoadout.COMBATANT};
+            mission.marinesRemaining = 2;
+
+            sim.getRoster().airTargets().destroy(shuttle);
+
+            AirLoss loss = sim.getAirLosses().get(0);
+            assertSame(ShuttleType.VALKYRIE, loss.frame());
+            assertEquals(2, loss.passengersAboard());
+            assertEquals(List.of(), loss.passengerSoldierIds());
+        }
+    }
+
+    private static MarineLoadout[] passengers(String... campaignSoldierIds) {
+        MarineLoadout[] seats = new MarineLoadout[campaignSoldierIds.length];
+        for (int seat = 0; seat < seats.length; seat++) {
+            seats[seat] = new MarineLoadout(UnitRole.COMBATANT, null,
+                    MarineLoadout.DEFAULT_PRIMARY_ID, null, null, null, 0,
+                    campaignSoldierIds[seat], null);
+        }
+        return seats;
+    }
+
     @Test
     void accountingUsesEmbarkedSeatsRatherThanPhysicalCapacity() {
         List<ShuttleAssignment> manifest = List.of(
@@ -140,9 +237,8 @@ class ShuttleTransportMechanicsTest {
                     10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 6);
             ShuttleMission mission = sim.world().mission(shuttle);
             mission.totalCycles = 2;
-            mission.cycleLoadouts = new com.dillon.starsectormarines.battle.infantry.MarineLoadout[][]{
-                    new com.dillon.starsectormarines.battle.infantry.MarineLoadout[6],
-                    new com.dillon.starsectormarines.battle.infantry.MarineLoadout[1]};
+            mission.cycleLoadouts = new MarineLoadout[][]{
+                    new MarineLoadout[6], new MarineLoadout[1]};
             mission.marineLoadout = mission.cycleLoadouts[0];
             mission.currentCycle = 0;
             mission.marinesRemaining = 0;

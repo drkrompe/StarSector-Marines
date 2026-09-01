@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -38,6 +39,7 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -284,6 +286,16 @@ public class AirSystem {
      * {@code airCraft} query mirrors this exact set for {@link #airEntityIds}.
      */
     private final List<Long> air = new ArrayList<>();
+
+    /**
+     * Every craft this battle destroyed, in the order it lost them.
+     *
+     * <p>Deliberately outlives {@link #reapGoneCraft}, which is the point: by
+     * the time anything asks, the entity and every component it carried are
+     * gone. Append-only and never read back by the sim — the one consumer is
+     * resolution, once, after the battle.
+     */
+    private final List<AirLoss> losses = new ArrayList<>();
 
     /**
      * The raw entity world + its component registry, cached from {@link #roster}.
@@ -672,9 +684,43 @@ public class AirSystem {
         }
 
         handBackToField(mission, /*recovered*/ false, world.hp(id));
+        // Written before the state flips, because GONE is the end of anything
+        // this entity can still be asked. Both branches come through here, so
+        // a craft burnt on its hardstand is remembered the same way one that
+        // fell out of the sky is.
+        losses.add(new AirLoss(world.airframe(id), world.airFaction(id), killedBy,
+                stillAboard(mission), Math.max(0, mission.marinesRemaining)));
         mission.state = ShuttleState.GONE;
         LOG.info("air: shuttle " + world.airframe(id) + " shot down by " + killedBy + " with "
                 + mission.marinesRemaining + " marine(s) still aboard.");
+    }
+
+    /**
+     * Who went down with her: the seats of the <em>current</em> sortie that had
+     * not deboarded yet.
+     *
+     * <p>{@code marineLoadout} is refreshed per sortie, so it describes this run
+     * and nothing else — the marines of a later cycle never left the ship and
+     * are not casualties. Within it, {@code deboardedThisSortie} is the index of
+     * the next one to leave, so everything from there to the end was still
+     * strapped in.
+     */
+    private static List<String> stillAboard(ShuttleMission mission) {
+        if (mission.marinesRemaining <= 0 || mission.marineLoadout == null) return List.of();
+        List<String> aboard = new ArrayList<>();
+        for (int seat = Math.max(0, mission.deboardedThisSortie);
+             seat < mission.marineLoadout.length; seat++) {
+            MarineLoadout loadout = mission.marineLoadout[seat];
+            if (loadout != null && loadout.campaignSoldierId != null) {
+                aboard.add(loadout.campaignSoldierId);
+            }
+        }
+        return aboard;
+    }
+
+    /** Every craft this battle destroyed, in the order it lost them. */
+    public List<AirLoss> airLosses() {
+        return Collections.unmodifiableList(losses);
     }
 
     /**

@@ -43,6 +43,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -91,7 +92,7 @@ class BattleFixtureJsonTest {
     @Test
     void roundTripsTheFittingsOnTheCompanysOwnBoats() throws Exception {
         FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE,
-                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE);
+                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, "boat_04");
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 17L,
                 List.of(
@@ -116,8 +117,12 @@ class BattleFixtureJsonTest {
         assertSame(ShuttleType.AEROSHUTTLE, manifest.get(0).airframe,
                 "an employer's craft carries no fitting ids and reads back plain");
         assertEquals(armoured, manifest.get(1).airframe);
+        assertEquals("boat_04", ((FittedBoat) manifest.get(1).airframe).boatId(),
+                "a replay of a mission that lost a boat has to lose the same one");
         assertEquals(FittedBoat.standard(ShuttleType.AEROSHUTTLE),
                 manifest.get(2).airframe);
+        assertNull(((FittedBoat) manifest.get(2).airframe).boatId(),
+                "a fitted frame nobody owns names no boat and must not invent one");
     }
 
     @Test

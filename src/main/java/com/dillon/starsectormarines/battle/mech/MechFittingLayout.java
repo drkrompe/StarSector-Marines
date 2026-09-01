@@ -17,6 +17,9 @@ import java.util.Map;
  */
 public final class MechFittingLayout {
 
+    public static final int MAX_GRID_COLUMNS = 3;
+    public static final int MAX_GRID_ROWS = 2;
+
     public enum SocketId {
         CORE("ENGINE CORE"),
         ARMS("ARM ASSEMBLY"),
@@ -47,7 +50,8 @@ public final class MechFittingLayout {
         public String label() { return label; }
     }
 
-    public record SocketDef(SocketId id, SocketType type, int capacity,
+    public record SocketDef(SocketId id, SocketType type,
+                            int gridColumns, int gridRows,
                             float anchorRight, float anchorForward,
                             float dockRight, float dockForward,
                             float footprintWidthHull, float footprintHeightHull,
@@ -56,9 +60,18 @@ public final class MechFittingLayout {
             if (id == null || type == null) {
                 throw new IllegalArgumentException("socket id and type are required");
             }
-            if (capacity < 1 || footprintWidthHull <= 0f || footprintHeightHull <= 0f) {
+            if (gridColumns < 1 || gridColumns > MAX_GRID_COLUMNS
+                    || gridRows < 1 || gridRows > MAX_GRID_ROWS
+                    || footprintWidthHull <= 0f || footprintHeightHull <= 0f) {
                 throw new IllegalArgumentException("socket capacity and footprint must be positive");
             }
+        }
+
+        public int capacity() { return gridColumns * gridRows; }
+
+        public boolean accommodates(int columns, int rows) {
+            return columns > 0 && rows > 0
+                    && columns <= gridColumns && rows <= gridRows;
         }
     }
 
@@ -119,43 +132,43 @@ public final class MechFittingLayout {
     private static Map<MechVariant, MechFittingLayout> buildLayouts() {
         EnumMap<MechVariant, MechFittingLayout> layouts = new EnumMap<>(MechVariant.class);
         layouts.put(MechVariant.BULWARK, layout(MechVariant.BULWARK, 180f, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 4,
+                socket(SocketId.CORE, SocketType.CORE, 2, 2,
                         0f, 0.03f, 0f, -1.50f, 1.70f, 0.68f, true),
-                socket(SocketId.ARMS, SocketType.OMNI, 4,
+                socket(SocketId.ARMS, SocketType.OMNI, 3, 2,
                         0f, 0.72f, 0f, 1.50f, 2.20f, 0.68f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3,
+                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3, 2,
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 3,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 3, 2,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false),
-                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 3,
+                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 3, 1,
                         0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, true),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1,
+                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
                         0f, -0.92f, 1.38f, 0.72f, 1.40f, 0.68f, false))));
         layouts.put(MechVariant.HOUND, layout(MechVariant.HOUND, 180f, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 3,
+                socket(SocketId.CORE, SocketType.CORE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, true),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 2,
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 2,
                         0f, 0.66f, 0f, 1.45f, 2.00f, 0.68f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 1,
+                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 1, 1,
                         -0.62f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 1,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 1, 1,
                         0.62f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1,
+                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 1,
                         0f, -0.54f, -1.34f, 0.68f, 1.64f, 0.68f, true),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1,
+                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
                         0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
         layouts.put(MechVariant.SIROCCO, layout(MechVariant.SIROCCO, 180f, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 3,
+                socket(SocketId.CORE, SocketType.CORE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, true),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 3,
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 3, 2,
                         0f, 0.72f, 0f, 1.45f, 2.08f, 0.68f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2,
+                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 1, 2,
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 1, 2,
                         0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 2,
+                socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 2,
                         0f, -0.55f, -1.34f, 0.68f, 1.64f, 0.68f, true),
-                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1,
+                socket(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
                         0f, -0.86f, 1.34f, 0.68f, 1.36f, 0.68f, false))));
         return Map.copyOf(layouts);
     }
@@ -165,12 +178,13 @@ public final class MechFittingLayout {
         return new MechFittingLayout(variant, new DollDef(facingDegrees, sockets));
     }
 
-    private static SocketDef socket(SocketId id, SocketType type, int capacity,
+    private static SocketDef socket(SocketId id, SocketType type,
+                                    int gridColumns, int gridRows,
                                     float anchorRight, float anchorForward,
                                     float dockRight, float dockForward,
                                     float widthHull, float heightHull,
                                     boolean factoryLocked) {
-        return new SocketDef(id, type, capacity, anchorRight, anchorForward,
+        return new SocketDef(id, type, gridColumns, gridRows, anchorRight, anchorForward,
                 dockRight, dockForward,
                 widthHull, heightHull, factoryLocked);
     }

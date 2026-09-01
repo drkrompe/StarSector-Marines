@@ -367,7 +367,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
             c.strokeRect(target.left(), target.top(), target.width(), target.height(),
                     withAlpha(base, strokeAlpha),
                     selected ? 2f : 1f);
-            drawCapacityCells(c, target, base, selected, occupied);
+            MechWeaponComponent component = weaponAt(deployment, socket.id());
+            int occupiedColumns = component != null ? component.footprintColumns
+                    : occupied ? socket.gridColumns() : 0;
+            int occupiedRows = component != null ? component.footprintRows
+                    : occupied ? socket.gridRows() : 0;
+            drawCapacityCells(c, target, base, selected,
+                    occupiedColumns, occupiedRows);
         }
     }
 
@@ -377,6 +383,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case ARMS -> deployment.arms() != null;
             case LEFT_SHOULDER -> deployment.leftShoulder() != null;
             case RIGHT_SHOULDER -> deployment.rightShoulder() != null;
+        };
+    }
+
+    private static MechWeaponComponent weaponAt(MechDeploymentSpec deployment,
+                                                SocketId socket) {
+        return switch (socket) {
+            case ARMS -> deployment.arms();
+            case LEFT_SHOULDER -> deployment.leftShoulder();
+            case RIGHT_SHOULDER -> deployment.rightShoulder();
+            default -> null;
         };
     }
 
@@ -404,36 +420,56 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 socket.footprintWidthHull() * hullWidth);
         float height = Math.max(MIN_DROP_TARGET_HEIGHT,
                 socket.footprintHeightHull() * hullHeight);
-        return new SocketDropTarget(socket.id(), socket.capacity(),
+        return new SocketDropTarget(socket.id(), socket.gridColumns(), socket.gridRows(),
                 actorX + anchorWorldX, actorY - anchorWorldY,
                 actorX + dockWorldX, actorY - dockWorldY, width, height);
     }
 
     static List<CapacityCell> capacityCells(SocketDropTarget target) {
-        float bandHeight = Math.max(6f, Math.min(10f, target.height() * 0.22f));
         float availableWidth = target.width() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (target.capacity() - 1);
-        float cellWidth = availableWidth / target.capacity();
+                - CAPACITY_GAP * (MechFittingLayout.MAX_GRID_COLUMNS - 1);
+        float availableHeight = target.height() - CAPACITY_INSET * 2f
+                - CAPACITY_GAP * (MechFittingLayout.MAX_GRID_ROWS - 1);
+        float cellWidth = availableWidth / MechFittingLayout.MAX_GRID_COLUMNS;
+        float cellHeight = availableHeight / MechFittingLayout.MAX_GRID_ROWS;
         float x = target.left() + CAPACITY_INSET;
-        float y = target.bottom() - CAPACITY_INSET - bandHeight;
-        List<CapacityCell> cells = new ArrayList<>(target.capacity());
-        for (int index = 0; index < target.capacity(); index++) {
-            cells.add(new CapacityCell(index, x + index * (cellWidth + CAPACITY_GAP),
-                    y, cellWidth, bandHeight));
+        float y = target.top() + CAPACITY_INSET;
+        List<CapacityCell> cells = new ArrayList<>(
+                MechFittingLayout.MAX_GRID_COLUMNS * MechFittingLayout.MAX_GRID_ROWS);
+        int index = 0;
+        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
+            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
+                cells.add(new CapacityCell(index++, column, row,
+                        column < target.gridColumns() && row < target.gridRows(),
+                        x + column * (cellWidth + CAPACITY_GAP),
+                        y + row * (cellHeight + CAPACITY_GAP), cellWidth, cellHeight));
+            }
         }
         return List.copyOf(cells);
     }
 
     private static void drawCapacityCells(CanvasContext c, SocketDropTarget target,
-                                          Color base, boolean selected, boolean occupied) {
-        int alpha = selected ? 235 : occupied ? 125 : 210;
+                                          Color base, boolean selected,
+                                          int occupiedColumns, int occupiedRows) {
         for (CapacityCell cell : capacityCells(target)) {
+            boolean filled = cell.active() && cell.column() < occupiedColumns
+                    && cell.row() < occupiedRows;
             c.fillRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    withAlpha(base, alpha));
+                    cell.active() ? withAlpha(base, filled ? selected ? 220 : 135 : 32)
+                            : new Color(0x18, 0x1E, 0x24, 215));
+            c.strokeRect(cell.x(), cell.y(), cell.width(), cell.height(),
+                    cell.active() ? withAlpha(base, selected ? 240 : 180)
+                            : new Color(0x4B, 0x53, 0x5A, 190), 1f);
+            if (!cell.active()) {
+                c.line(cell.x() + 2f, cell.y() + 2f,
+                        cell.x() + cell.width() - 2f,
+                        cell.y() + cell.height() - 2f,
+                        new Color(0x5A, 0x61, 0x68, 180), 1f);
+            }
         }
     }
 
-    record SocketDropTarget(SocketId id, int capacity,
+    record SocketDropTarget(SocketId id, int gridColumns, int gridRows,
                             float anchorX, float anchorY,
                             float centerX, float centerY,
                             float width, float height) {
@@ -447,7 +483,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
-    record CapacityCell(int index, float x, float y, float width, float height) { }
+    record CapacityCell(int index, int column, int row, boolean active,
+                        float x, float y, float width, float height) { }
 
     record VacantGantryTarget(int index, float x, float y, float width, float height) {
         boolean contains(float pointX, float pointY) {

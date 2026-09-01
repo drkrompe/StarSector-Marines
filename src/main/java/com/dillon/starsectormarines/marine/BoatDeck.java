@@ -4,10 +4,10 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 
 /**
  * The company's boats and the berths they are standing in.
@@ -37,6 +37,15 @@ public final class BoatDeck implements Serializable {
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
 
+    /**
+     * What her bays hold, from the last reconcile. Persisted because
+     * fabrication has to know what to build into an empty berth and the hull
+     * that decides it is not in the room's hand — a berth is filled from the
+     * ship the company is on, not from whatever was standing there before.
+     * Null on a deck that has never been reconciled.
+     */
+    private ShuttleType pattern;
+
     /** One entry per berth, in berth order. A null is a berth with nothing in it. */
     private List<CampaignBoat> berths = new ArrayList<>();
 
@@ -57,11 +66,18 @@ public final class BoatDeck implements Serializable {
     /**
      * Brings the deck into step with one hull, and reports what that cost.
      *
-     * <p>The company's boats go into her berths in berth order up to her count;
-     * boats beyond it, and boats of a pattern her bays do not hold, stay with
-     * the hull they were aboard. Berths still vacant are filled with her own
-     * boats at standard fit, because the hull comes with her boats and a berth
-     * standing empty would be lift the player has to buy before they can leave.
+     * <p><b>A move fills berths; staying put never does.</b> On the ship the
+     * company is already aboard, every berth keeps what is standing in it and
+     * an empty one stays empty — a boat that was shot down is gone, and a read
+     * that quietly replaced it would make the loss unobservable. Only a boat of
+     * a pattern her bays do not hold, or one past her berth count, is left
+     * behind, and neither can arise while the hull has not changed.
+     *
+     * <p>On a different hull — and a deck that has never been reconciled counts
+     * as one — the surviving boats compact into her berths in order and the
+     * vacancies fill with her own at standard fit, because the hull comes with
+     * her boats and a berth standing empty would be lift the player has to buy
+     * before they can leave.
      *
      * @param shipId the hull the company is aboard, by fleet-member id
      * @param pattern what her bays hold ({@code ShipsBoats.carriedBy})
@@ -71,22 +87,98 @@ public final class BoatDeck implements Serializable {
     public LeftBehind reconcile(String shipId, ShuttleType pattern, int berthCount) {
         if (pattern == null) return LeftBehind.NONE;
         int wanted = Math.max(0, berthCount);
-        boolean moved = !Objects.equals(this.shipId, shipId);
+        boolean sameShip = shipId != null && shipId.equals(this.shipId);
 
         List<CampaignBoat> kept = new ArrayList<>(wanted);
         List<String> left = new ArrayList<>();
-        for (CampaignBoat boat : berths) {
-            if (boat == null) continue;
-            if (boat.pattern() == pattern && kept.size() < wanted) kept.add(boat);
-            else left.add(boat.displayName());
+        if (sameShip) {
+            for (int berth = 0; berth < berths.size(); berth++) {
+                CampaignBoat boat = berths.get(berth);
+                if (berth >= wanted) {
+                    if (boat != null) left.add(boat.displayName());
+                    continue;
+                }
+                if (boat != null && boat.pattern() != pattern) {
+                    left.add(boat.displayName());
+                    boat = null;
+                }
+                kept.add(boat);
+            }
+            while (kept.size() < wanted) kept.add(null);
+        } else {
+            for (CampaignBoat boat : berths) {
+                if (boat == null) continue;
+                if (boat.pattern() == pattern && kept.size() < wanted) kept.add(boat);
+                else left.add(boat.displayName());
+            }
+            while (kept.size() < wanted) kept.add(build(pattern));
         }
-        while (kept.size() < wanted) kept.add(build(pattern));
 
         this.berths = kept;
         this.shipId = shipId;
+        this.pattern = pattern;
         LeftBehind cost = left.isEmpty() ? LeftBehind.NONE : new LeftBehind(left);
-        if (moved) leftBehind = cost;
+        if (!sameShip) leftBehind = cost;
         return cost;
+    }
+
+    /**
+     * Strikes the named boats off their berths, which stand empty afterwards.
+     *
+     * <p>One way in for the only thing that can remove a boat the company still
+     * owns: a shoot-down. An id nobody is standing under is ignored rather than
+     * refused — a resolution naming a boat the player has already moved away
+     * from should record nothing, not throw.
+     *
+     * @return how many berths this actually emptied
+     */
+    public int lose(Collection<String> boatIds) {
+        if (boatIds == null || boatIds.isEmpty()) return 0;
+        int struck = 0;
+        for (int berth = 0; berth < berths.size(); berth++) {
+            CampaignBoat boat = berths.get(berth);
+            if (boat != null && boatIds.contains(boat.id())) {
+                berths.set(berth, null);
+                struck++;
+            }
+        }
+        return struck;
+    }
+
+    /** The berths with nothing standing in them, in berth order. */
+    public List<Integer> vacantBerths() {
+        List<Integer> vacant = new ArrayList<>();
+        for (int berth = 0; berth < berths.size(); berth++) {
+            if (berths.get(berth) == null) vacant.add(berth);
+        }
+        return Collections.unmodifiableList(vacant);
+    }
+
+    /**
+     * What this deck's berths hold, from the last reconcile, or null before
+     * there has been one. What a vacant berth would be built back up as.
+     */
+    public ShuttleType pattern() {
+        return pattern;
+    }
+
+    /**
+     * Stands a new boat of the deck's own pattern in one empty berth.
+     *
+     * <p>Package-private for the reason {@link CampaignBoat#install} is: the
+     * atomic authority is {@link BoatWorkshop}, and a caller that reached past
+     * it would be a boat nobody paid for. Refuses a berth that does not exist,
+     * one that is already held, and a deck that does not yet know what it
+     * carries.
+     *
+     * @return the boat now standing there, or null when nothing was built
+     */
+    CampaignBoat fabricate(int berthIndex) {
+        if (pattern == null || berthIndex < 0 || berthIndex >= berths.size()) return null;
+        if (berths.get(berthIndex) != null) return null;
+        CampaignBoat boat = build(pattern);
+        berths.set(berthIndex, boat);
+        return boat;
     }
 
     /** Every berth in order; an entry is null for a berth with nothing in it. */
@@ -167,6 +259,15 @@ public final class BoatDeck implements Serializable {
     private Object readResolve() {
         if (berths == null) berths = new ArrayList<>();
         if (leftBehind == null) leftBehind = LeftBehind.NONE;
+        // A deck saved before the pattern was persisted still says what it
+        // carries: every boat on it is of the one pattern reconcile put there.
+        // Recovered rather than left null so an old save's berths can be built
+        // into without waiting for the next change of ship.
+        if (pattern == null) {
+            for (CampaignBoat boat : berths) {
+                if (boat != null) { pattern = boat.pattern(); break; }
+            }
+        }
         nextTailNumber = Math.max(nextTailNumber, berths.size() + 1);
         return this;
     }

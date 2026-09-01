@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.BoatDeck;
+import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
@@ -60,6 +61,14 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<List<CatalogRow>> catalogRows;
     private final ComputedSignal<String> overviewClasses;
     private final ComputedSignal<String> fittingClasses;
+    private final ComputedSignal<String> fabricationClasses;
+    private final ComputedSignal<String> fabricationBerthLabel;
+    private final ComputedSignal<String> fabricationPatternName;
+    private final ComputedSignal<String> fabricationCopy;
+    private final ComputedSignal<List<MaterialRow>> fabricationMaterials;
+    private final ComputedSignal<String> fabricationActionClasses;
+    private final ComputedSignal<Boolean> fabricationBlocked;
+    private final ComputedSignal<String> fabricationReason;
 
     public BoatDeckViewModel(Reactor reactor, BoatDeck deck, FabricationResources resources) {
         this(reactor, deck, resources, null, () -> { });
@@ -112,10 +121,35 @@ public final class BoatDeckViewModel {
         selectedSlotTitle = reactor.computed(() -> slotLabel(selectedSlot.get()));
         selectedSlotCopy = reactor.computed(() -> slotCopy(selectedSlot.get()));
         catalogRows = reactor.computed(this::buildCatalogRows);
-        overviewClasses = reactor.computed(() -> fittingFocused()
+        overviewClasses = reactor.computed(() -> fittingFocused() || fabricationFocused()
                 ? "boat-overview panel hidden" : "boat-overview panel");
         fittingClasses = reactor.computed(() -> fittingFocused()
                 ? "boat-fitting" : "boat-fitting hidden");
+        fabricationClasses = reactor.computed(() -> fabricationFocused()
+                ? "boat-fabrication" : "boat-fabrication hidden");
+        fabricationBerthLabel = reactor.computed(() -> fabricationFocused()
+                ? berthLabel(selectedBerth.get()) : "");
+        fabricationPatternName = reactor.computed(() -> {
+            BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
+            return recipe == null ? "NO BERTH SELECTED" : recipe.pattern().displayName();
+        });
+        fabricationCopy = reactor.computed(() -> {
+            BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
+            return recipe == null ? "" : recipe.provenance();
+        });
+        fabricationMaterials = reactor.computed(() -> {
+            BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
+            return recipe == null ? List.of()
+                    : materialRows("boat-fabrication", recipe.bill());
+        });
+        fabricationActionClasses = reactor.computed(() -> affordableToBuild()
+                ? "fabricate-action" : "fabricate-action blocked");
+        fabricationBlocked = reactor.computed(() -> !affordableToBuild());
+        fabricationReason = reactor.computed(() -> {
+            BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
+            if (recipe == null || resources.canAfford(recipe.bill())) return "";
+            return "SHORT " + shortest(recipe.bill());
+        });
     }
 
     public Signal<String> deckSummary() { return deckSummary; }
@@ -129,6 +163,14 @@ public final class BoatDeckViewModel {
     public Signal<List<CatalogRow>> catalogRows() { return catalogRows; }
     public Signal<String> overviewClasses() { return overviewClasses; }
     public Signal<String> fittingClasses() { return fittingClasses; }
+    public Signal<String> fabricationClasses() { return fabricationClasses; }
+    public Signal<String> fabricationBerthLabel() { return fabricationBerthLabel; }
+    public Signal<String> fabricationPatternName() { return fabricationPatternName; }
+    public Signal<String> fabricationCopy() { return fabricationCopy; }
+    public Signal<List<MaterialRow>> fabricationMaterials() { return fabricationMaterials; }
+    public Signal<String> fabricationActionClasses() { return fabricationActionClasses; }
+    public Signal<Boolean> fabricationBlocked() { return fabricationBlocked; }
+    public Signal<String> fabricationReason() { return fabricationReason; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
@@ -136,6 +178,11 @@ public final class BoatDeckViewModel {
     public Runnable selectSlotAction(BoatFittingSlot slot) { return () -> selectSlot(slot); }
     public Runnable fitAction(String fittingId) { return () -> fit(fittingId); }
     public Runnable backToDeckAction() { return this::showDeckOverview; }
+
+    /** Builds the hull's own pattern into the berth the room is opened on. */
+    public Runnable fabricateAction() { return () -> fabricate(selectedBerth.get()); }
+
+    public Runnable fabricateAction(int berthIndex) { return () -> fabricate(berthIndex); }
 
     /** The berth the room is looking at, or -1 while it is showing the whole deck. */
     public int selectedBerthIndex() {
@@ -146,6 +193,18 @@ public final class BoatDeckViewModel {
     /** Whether the room is opened on one boat rather than on the deck. */
     public boolean fittingFocused() {
         return selectedBoat() != null;
+    }
+
+    /**
+     * Whether the room is opened on an empty berth, which is the one place a
+     * boat can be built. A berth is either standing a boat or standing empty,
+     * so this and {@link #fittingFocused} are never both true.
+     */
+    public boolean fabricationFocused() {
+        revision.get();
+        int berth = selectedBerth.get();
+        List<CampaignBoat> berths = deck.boats();
+        return berth >= 0 && berth < berths.size() && berths.get(berth) == null;
     }
 
     /**
@@ -171,6 +230,11 @@ public final class BoatDeckViewModel {
         if (carrierName != null && !carrierName.isBlank()) {
             summary.append("  ·  carried by ").append(carrierName);
         }
+        int empty = deck.vacantBerths().size();
+        if (empty > 0) {
+            summary.append("  ·  ").append(empty)
+                    .append(empty == 1 ? " berth empty" : " berths empty");
+        }
         BoatDeck.LeftBehind left = deck.leftBehind();
         if (left.any()) {
             summary.append("  ·  ").append(left.count())
@@ -190,16 +254,17 @@ public final class BoatDeckViewModel {
             String base = "boat:" + index;
             int berth = index;
             boolean vacant = boat == null;
+            String classes = (vacant ? "boat-card vacant" : "boat-card")
+                    + (index == selected ? " selected" : "");
             rows.add(new BoatRow(base, base + ":berth", base + ":name", base + ":pattern",
                     base + ":plating", base + ":drive",
-                    index == selected ? "boat-card selected"
-                            : vacant ? "boat-card vacant" : "boat-card",
+                    classes,
                     berthLabel(index),
                     vacant ? "EMPTY BERTH" : boat.displayName(),
-                    vacant ? "Nothing standing here" : boat.pattern().displayName(),
-                    vacant ? "—" : boat.plating().displayName(),
-                    vacant ? "—" : boat.drive().displayName(),
-                    vacant, () -> selectBoat(berth)));
+                    vacant ? buildablePattern() : boat.pattern().displayName(),
+                    vacant ? buildableBill() : boat.plating().displayName(),
+                    vacant ? "" : boat.drive().displayName(),
+                    () -> selectBoat(berth)));
         }
         return List.copyOf(rows);
     }
@@ -297,14 +362,20 @@ public final class BoatDeckViewModel {
         return List.copyOf(rows);
     }
 
+    /**
+     * Opens whichever face the chosen berth calls for: the boat standing in it,
+     * or — for a berth with nothing in it — what the yard could build there.
+     */
     private void selectBoat(int berthIndex) {
         List<CampaignBoat> berths = deck.boats();
         if (berthIndex < 0 || berthIndex >= berths.size()) return;
         CampaignBoat boat = berths.get(berthIndex);
-        if (boat == null) return;
         selectedBerth.set(berthIndex);
         selectedSlot.set(BoatFittingSlot.PLATING);
-        feedbackText.set("Inspecting " + boat.displayName() + ". Nothing has been refitted.");
+        feedbackText.set(boat != null
+                ? "Inspecting " + boat.displayName() + ". Nothing has been refitted."
+                : berthLabel(berthIndex) + " is empty. The yard can build the hull's"
+                        + " own pattern into it at standard fit.");
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
         revision.update(value -> value + 1);
         deckChanged.run();
@@ -344,6 +415,69 @@ public final class BoatDeckViewModel {
                 : "boat-deck-feedback tone-danger surface-dark");
         revision.update(value -> value + 1);
         if (result.succeeded()) deckChanged.run();
+    }
+
+    /**
+     * Builds the hull's own pattern into one empty berth.
+     *
+     * <p>The berth stays selected afterwards, which is what turns the card into
+     * a boat card and the fabrication pane into that boat's fitting pane: the
+     * player is looking at the berth, and what is standing in it has changed.
+     */
+    private void fabricate(int berthIndex) {
+        BoatWorkshop.Result result = workshop.fabricate(berthIndex);
+        CampaignBoat built = result.boat();
+        feedbackText.set(switch (result.status()) {
+            case FABRICATED -> built.displayName() + " built into "
+                    + berthLabel(berthIndex) + " at standard fit.";
+            case CANNOT_AFFORD ->
+                    "Fabrication blocked: required fleet materials are short.";
+            case BERTH_OCCUPIED -> berthLabel(berthIndex)
+                    + " already has a boat standing in it.";
+            default -> "Fabrication blocked: nothing aboard was changed.";
+        });
+        feedbackClasses.set(result.succeeded()
+                ? "boat-deck-feedback tone-good surface-dark"
+                : "boat-deck-feedback tone-danger surface-dark");
+        if (result.status() == BoatWorkshop.Status.FABRICATED) {
+            selectedBerth.set(berthIndex);
+            selectedSlot.set(BoatFittingSlot.PLATING);
+        }
+        revision.update(value -> value + 1);
+        if (result.succeeded()) deckChanged.run();
+    }
+
+    /** What the yard would build into the berth the room is opened on. */
+    private BoatFabricationCatalog.Recipe fabricationRecipe() {
+        if (!fabricationFocused()) return null;
+        return BoatFabricationCatalog.recipe(deck.pattern());
+    }
+
+    private boolean affordableToBuild() {
+        BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
+        return recipe != null && resources.canAfford(recipe.bill());
+    }
+
+    /** What a vacant berth would be built back up as, for its card. */
+    private String buildablePattern() {
+        BoatFabricationCatalog.Recipe recipe =
+                BoatFabricationCatalog.recipe(deck.pattern());
+        return recipe == null ? "Nothing standing here"
+                : recipe.pattern().displayName() + " can be built here";
+    }
+
+    /** The bill for that, short enough to sit on one line of a card. */
+    private String buildableBill() {
+        BoatFabricationCatalog.Recipe recipe =
+                BoatFabricationCatalog.recipe(deck.pattern());
+        if (recipe == null) return "";
+        StringBuilder bill = new StringBuilder();
+        for (FabricationCost.Line line : recipe.bill().lines()) {
+            if (bill.length() > 0) bill.append("  ·  ");
+            bill.append(resources.commodityName(line.commodityId()))
+                    .append(' ').append(line.quantity());
+        }
+        return bill.toString();
     }
 
     private CampaignBoat selectedBoat() {
@@ -424,14 +558,14 @@ public final class BoatDeckViewModel {
     public record BoatRow(String id, String berthId, String nameId, String patternId,
                           String platingId, String driveId,
                           String classes, String berth, String name, String pattern,
-                          String plating, String drive, boolean disabled, Runnable select)
+                          String plating, String drive, Runnable select)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "berthId" -> berthId; case "nameId" -> nameId;
             case "patternId" -> patternId; case "platingId" -> platingId;
             case "driveId" -> driveId; case "classes" -> classes; case "berth" -> berth;
             case "name" -> name; case "pattern" -> pattern; case "plating" -> plating;
-            case "drive" -> drive; case "disabled" -> disabled; case "select" -> select;
+            case "drive" -> drive; case "select" -> select;
             default -> throw unknown("boat", p); }; }
     }
 
