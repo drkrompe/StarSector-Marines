@@ -1517,6 +1517,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
+        props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
@@ -1606,6 +1607,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", ShipBreadcrumb.of(ship.ship(),
                 ship.room(RoomPurpose.VEHICLE_BAY)));
+        props.put("activeBayLabel", "BAY 01 / 01");
+        props.put("bayNavigatorClasses", "bay-navigator hidden");
+        props.put("previousBay", (Runnable) () -> { });
+        props.put("nextBay", (Runnable) () -> { });
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

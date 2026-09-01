@@ -45,6 +45,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color WHITE = Color.WHITE;
+    private static final Color VACANT_FILL = new Color(0x08, 0x18, 0x24, 214);
+    private static final Color VACANT_EDGE = new Color(0x6D, 0xD5, 0xF2, 226);
+    private static final Color VACANT_HOVER = new Color(0xFF, 0xD4, 0x64, 246);
+    private static final float VACANT_ACTION_SIZE = 52f;
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
@@ -71,6 +75,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<ShipDeckBattleScene.RoomView> roomView;
     private final Supplier<List<Gantry>> berths;
     private final DoubleSupplier elapsedSeconds;
+    private List<VacantGantryTarget> vacantGantryTargets = List.of();
+    private int hoveredVacantGantry = -1;
 
     public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
                              IntSupplier selectedGantry,
@@ -118,6 +124,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         ShipDeckBattleScene aboard = ship.get();
         ShipDeckBattleScene.RoomView bay = aboard != null ? roomView.get() : null;
         if (bay == null) {
+            vacantGantryTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
@@ -137,6 +144,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             }
         });
         if (!rendered || host[0] == null) {
+            vacantGantryTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
@@ -151,6 +159,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 : null;
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
+        drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), projection);
@@ -160,6 +169,45 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     workingPoses(aboard), time,
                     weldingTorch.get(), weldingSparks.get());
         }
+    }
+
+    /** Records hover over the physical vacant-pad actions drawn during the last frame. */
+    public void pointAt(float canvasX, float canvasY) {
+        hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
+    }
+
+    /** The vacant gantry action at this canvas-local point, or -1 outside every action. */
+    public int vacantGantryAt(float canvasX, float canvasY) {
+        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return -1;
+        for (VacantGantryTarget target : vacantGantryTargets) {
+            if (target.contains(canvasX, canvasY)) return target.index();
+        }
+        return -1;
+    }
+
+    private void drawVacantGantryActions(CanvasContext context, BattleCamera camera,
+                                          CanvasHostViewport viewport,
+                                          List<Gantry> standing, int occupied) {
+        int count = Math.min(CampaignMechSquad.CAPACITY, standing.size());
+        List<VacantGantryTarget> targets = new ArrayList<>();
+        for (int index = Math.max(0, occupied); index < count; index++) {
+            Gantry gantry = standing.get(index);
+            float centerX = camera.cellToScreenX(gantry.centerX + 0.5f) / viewport.scaleX();
+            float centerY = (viewport.height()
+                    - camera.cellToScreenY(gantry.centerY + 0.5f)) / viewport.scaleY();
+            VacantGantryTarget target = new VacantGantryTarget(index,
+                    centerX - VACANT_ACTION_SIZE * 0.5f,
+                    centerY - VACANT_ACTION_SIZE * 0.5f,
+                    VACANT_ACTION_SIZE, VACANT_ACTION_SIZE);
+            targets.add(target);
+            Color edge = index == hoveredVacantGantry ? VACANT_HOVER : VACANT_EDGE;
+            context.fillRect(target.x(), target.y(), target.width(), target.height(), VACANT_FILL);
+            context.strokeRect(target.x(), target.y(), target.width(), target.height(), edge, 2f);
+            float arm = VACANT_ACTION_SIZE * 0.22f;
+            context.line(centerX - arm, centerY, centerX + arm, centerY, edge, 4f);
+            context.line(centerX, centerY - arm, centerX, centerY + arm, edge, 4f);
+        }
+        vacantGantryTargets = List.copyOf(targets);
     }
 
     /**
@@ -299,6 +347,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     record CapacityCell(int index, float x, float y, float width, float height) { }
+
+    record VacantGantryTarget(int index, float x, float y, float width, float height) {
+        boolean contains(float pointX, float pointY) {
+            return pointX >= x && pointX <= x + width
+                    && pointY >= y && pointY <= y + height;
+        }
+    }
 
     private static Color socketColor(SocketType type) {
         return switch (type) {

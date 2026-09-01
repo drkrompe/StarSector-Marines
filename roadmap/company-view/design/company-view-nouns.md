@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — new campaigns found line squads and fabricate their first
-mechs from icon-backed fleet cargo instead of receiving deployable starter assets.
+Updated: 2026-09-01 — formation creation now occupies the empty place it will fill:
+a trailing squad card and a vacant physical mech gantry, with multi-bay room paging.
 
 ## Purpose
 
@@ -45,9 +45,10 @@ company view composes their stable outputs.
 - **Squad equipment issue** — the explicit atomic transaction that resolves one
   weapon doctrine and one armor doctrine into the selected squad's exact twelve
   materialized kits.
-- **Squad founding** — one Fleet Armory transaction that consumes twelve Marines
-  plus baseline arms, supplies, and provisions before creating a full named line
-  formation. A partial bill creates neither personnel nor squad identity.
+- **Squad founding** — one trailing `+` formation card in the Fleet Armory gallery
+  that consumes twelve Marines plus baseline arms, supplies, and provisions before
+  creating a full named line formation. Its live material bill stays inside that
+  future card slot; a partial bill creates neither personnel nor squad identity.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
 - **Conformance** — whether a squad's current personnel and materialized issue
@@ -271,8 +272,13 @@ separate asset-selection screen; choosing an assigned chassis opens its existing
 gantry without changing lance composition.
 The fitting header also provides explicit previous/next controls over the lance's four
 numbered gantry pads. Reaching a vacant station clears the chassis selection and opens
-the chassis fabrication catalog; the asset browser remains the direct way to jump
-across lances.
+the chassis fabrication catalog; from the facility overview, the same action begins at
+the `+` drawn and hit-tested over the vacant physical pad rather than at a remote text
+button. Vacant summary cells are informational, while occupied cells remain direct
+refit targets. The asset browser remains the direct way to jump across lances.
+When a generated ship carries more than one vehicle-bay compartment, a separate room
+navigator cycles those actual compartments in fore-to-aft order and derives the ship
+breadcrumb from the bay currently framed. A one-bay ship spends no chrome on the pager.
 Entering the room or selecting a lance presents the wider facility first. This
 overview has no selected chassis and therefore renders neither equipment selectors nor
 socket details; a compact four-gantry rail identifies the assigned assets without
@@ -348,8 +354,9 @@ placeholder dash glyph.
 The campaign roster holder establishes only the non-deployable reserve formation
 during game load. A new company has no line squad until the player commits the full
 founding bill in Fleet Armory. Company HQ and Barracks therefore present honest zero
-states, while Fleet Armory keeps the Found Squad transaction visible even when there
-is no squad card to select. Existing saves retain their named formations.
+states, while Fleet Armory renders the founding `+` as the gallery's only formation
+slot until the first squad exists and keeps it trailing every later squad. Existing
+saves retain their named formations.
 
 The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
 tiles, registered building doodads, camera scale, and the layered marine compositor
