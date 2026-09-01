@@ -221,10 +221,40 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
     public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
                                       Fortification.Demand demand,
                                       int width, int height, Random rng) {
+        return derive(profile, sprawl, demand, MapPlacement.ANYWHERE, null,
+                width, height, rng);
+    }
+
+    /**
+     * The default set for a target world, laid out where the mission says.
+     *
+     * <p>The same derivation as above with the two things a scenario is entitled
+     * to state: roughly where the place it is about goes, and roughly where the
+     * attacking force arrives. Everything else — how many places, what they are,
+     * what the garrison owes — still comes off the world.
+     *
+     * <p><b>A stated objective is seeded first.</b> The garrison is the place the
+     * battle is about, and a settlement that drew before it would push it out of
+     * the region the mission named — the same "need goes before frontage" rule
+     * the claim pass already applies one step later. The draw order changes only
+     * when a placement is actually stated: {@link MapPlacement#ANYWHERE} means
+     * nothing was, and takes the order it always had.
+     *
+     * @param objective    roughly where the garrison goes;
+     *                     {@link MapPlacement#ANYWHERE} for "the mission does not
+     *                     care", which is what a derived plan passes
+     * @param attackerFrom where the attacking force arrives, or {@code null} to
+     *                     let the map decide
+     */
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      Fortification.Demand demand,
+                                      MapPlacement objective, MapPlacement attackerFrom,
+                                      int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
         int margin = marginFor(width, height);
         int separation = separationFor(width, height);
+        boolean stated = objective != null && !MapPlacement.ANYWHERE.equals(objective);
 
         float density = switch (sprawl) {
             // Full density is not "a lot of streets" — it is the point at which
@@ -236,6 +266,16 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
             case BALANCED -> SettlementZoning.densityFor(profile.marketSize());
         };
         boolean garrison = profile.defenseLevel() > 0;
+
+        // The stated objective takes its ground before anything competes for it.
+        // Built here and added below, so the list order — settlement, garrison,
+        // outlying — is the one every consumer already reads.
+        Precinct objectivePlace = null;
+        if (garrison && stated) {
+            objectivePlace = garrison(profile, demand,
+                    placedSeed(objective, taken, margin, separation, width, height, rng),
+                    width, height);
+        }
 
         // A remote map is an installation in country: adding a town to it is
         // the one thing that would stop it being one. The garrison is then the
@@ -250,21 +290,15 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
         }
 
         if (garrison) {
-            // A defended world never loses its objective to a small map: where
-            // the draw finds no room, the garrison takes the emptiest cell
-            // there is rather than nothing at all.
-            int[] garrisonSeed = placeSeed(taken, margin, separation, width, height, rng);
-            if (garrisonSeed == null) garrisonSeed = emptiestSeed(taken, margin, width, height);
-            // A garrison grows sparsely: it is an installation rather than a
-            // town, and its ground comes from its program rather than from how
-            // far its streets reach.
-            // How hard it is to take comes from two facts with different jobs:
-            // the world's rating says what is there, the demand says what this
-            // operation may be asked to face.
-            out.add(Precinct.garrison("garrison", garrisonSeed[0], garrisonSeed[1],
-                    GrownTrunkPlan.Profile.hamlet(),
-                    garrisonFor(profile).fittedTo(Math.round(FIT * width * height)),
-                    demand.resolve(profile.defenseLevel())));
+            if (objectivePlace == null) {
+                // A defended world never loses its objective to a small map: where
+                // the draw finds no room, the garrison takes the emptiest cell
+                // there is rather than nothing at all.
+                int[] garrisonSeed = placeSeed(taken, margin, separation, width, height, rng);
+                if (garrisonSeed == null) garrisonSeed = emptiestSeed(taken, margin, width, height);
+                objectivePlace = garrison(profile, demand, garrisonSeed, width, height);
+            }
+            out.add(objectivePlace);
         }
 
         for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
@@ -286,7 +320,63 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
                     : outlyingCharacter(leaning, sprawl, rng);
             out.set(i, precinct.withCharacter(character));
         }
-        return new PrecinctPlan(out, null);
+        return new PrecinctPlan(out, attackerFrom);
+    }
+
+    /**
+     * The garrison a defended world owes, at the seed it was given.
+     *
+     * <p>A garrison grows sparsely: it is an installation rather than a town, and
+     * its ground comes from its program rather than from how far its streets
+     * reach. How hard it is to take comes from two facts with different jobs —
+     * the world's rating says what is there, the demand says what this operation
+     * may be asked to face.
+     */
+    private static Precinct garrison(TargetProfile profile, Fortification.Demand demand,
+                                     int[] seed, int width, int height) {
+        return Precinct.garrison("garrison", seed[0], seed[1],
+                GrownTrunkPlan.Profile.hamlet(),
+                garrisonFor(profile).fittedTo(Math.round(FIT * width * height)),
+                demand.resolve(profile.defenseLevel()));
+    }
+
+    /**
+     * A seed inside a stated placement, kept off the places already taken.
+     *
+     * <p>The same bounded retry {@link #spaced} uses — a mission that asks for a
+     * region means it, so the search stays inside the region and settles for the
+     * roomiest candidate it found rather than wandering out of it. When even that
+     * is closer than the separation the map can afford, the placement's own
+     * emptiest cell is taken instead, which is the objective's standing exemption
+     * from losing its ground to a small map.
+     */
+    private static int[] placedSeed(MapPlacement where, List<int[]> taken, int margin,
+                                    int separation, int width, int height, Random rng) {
+        int[] best = null;
+        long bestGap = -1;
+        for (int attempt = 0; attempt < 64; attempt++) {
+            int[] candidate = where.resolve(width, height, margin, rng);
+            long gap = Long.MAX_VALUE;
+            for (int[] other : taken) {
+                long dx = other[0] - candidate[0];
+                long dy = other[1] - candidate[1];
+                gap = Math.min(gap, dx * dx + dy * dy);
+            }
+            if (gap > bestGap) {
+                bestGap = gap;
+                best = candidate;
+            }
+            if (gap >= (long) separation * separation) break;
+        }
+        if (bestGap < (long) separation * separation) {
+            int[] rect = where.bounds(width, height);
+            return emptiestSeed(taken,
+                    Math.max(rect[0], margin), Math.max(rect[1], margin),
+                    Math.min(rect[2], width - 1 - margin),
+                    Math.min(rect[3], height - 1 - margin));
+        }
+        taken.add(best);
+        return best;
     }
 
     /**
@@ -403,14 +493,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) 
      * is a mission with nothing to attack.
      */
     private static int[] emptiestSeed(List<int[]> taken, int margin, int width, int height) {
-        int spanX = Math.max(1, width - 2 * margin);
-        int spanY = Math.max(1, height - 2 * margin);
+        return emptiestSeed(taken, margin, margin,
+                margin + Math.max(1, width - 2 * margin) - 1,
+                margin + Math.max(1, height - 2 * margin) - 1);
+    }
+
+    /** The same scan restricted to one inclusive rect, for a stated placement. */
+    private static int[] emptiestSeed(List<int[]> taken, int x0, int y0, int x1, int y1) {
         int[] best = null;
         long bestGap = -1;
-        for (int y = 0; y < spanY; y++) {
-            for (int x = 0; x < spanX; x++) {
-                int cellX = margin + x;
-                int cellY = margin + y;
+        for (int cellY = y0; cellY <= Math.max(y0, y1); cellY++) {
+            for (int cellX = x0; cellX <= Math.max(x0, x1); cellX++) {
                 long gap = Long.MAX_VALUE;
                 for (int[] other : taken) {
                     long dx = other[0] - cellX;

@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
@@ -379,6 +384,57 @@ final class ShipDeckBattleSceneTest {
                     "three minutes of a ship's time put no hull back on any of her"
                             + " damaged boats");
         }
+    }
+
+    /**
+     * A berth the company has no boat for stands empty.
+     *
+     * <p>The whole of what a lost boat does to the ship: the deck still has the
+     * berth cut in it, and the bay simply does not put an aircraft out there.
+     * Asked of three bare berths rather than of a generated hull, because the
+     * rule is about the k-th boat berth and nothing else about a deck bears on
+     * it. Its own control, because "two berths" means nothing without knowing
+     * that the same three berths register three when nothing is missing.
+     */
+    @Test
+    void aBerthTheCompanyHasNoBoatForGetsNoBoat() {
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                threeBoatBerths(), null, SEED, null, new boolean[]{true, false, true})) {
+            List<AirfieldService.Berth> berths =
+                    scene.simulation().getAirfieldService().berths();
+            assertEquals(2, berths.size(),
+                    "a berth the company has no boat for was still given one");
+            assertEquals(BOAT_BERTH_CELLS[0], berths.get(0).centerX);
+            assertEquals(BOAT_BERTH_CELLS[2], berths.get(1).centerX,
+                    "the wrong berth was left empty");
+        }
+
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                threeBoatBerths(), null, SEED, null)) {
+            assertEquals(3, scene.simulation().getAirfieldService().berths().size(),
+                    "a hull with every berth held did not stand three boats");
+        }
+    }
+
+    /** Where the three berths of {@link #threeBoatBerths()} stand. */
+    private static final int[] BOAT_BERTH_CELLS = {5, 11, 17};
+
+    /** A bare deck with three boat berths on it and nothing else. */
+    private static MapResult threeBoatBerths() {
+        NavigationGrid grid = new NavigationGrid(24, 12);
+        CellTopology topology = new CellTopology(24, 12);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        List<Gantry> berths = new ArrayList<>();
+        for (int cell : BOAT_BERTH_CELLS) {
+            berths.add(new Gantry(cell, 6, 1, 1, Gantry.Facing.NORTH, Gantry.Holds.BOAT));
+        }
+        return new MapResult(grid, topology, 1, 1, 22, 10,
+                Collections.emptyList(), Collections.emptyList(),
+                new TacticalMap(Collections.emptyList()), Buildings.EMPTY,
+                Collections.emptyList(), RoadGraph.EMPTY, Collections.emptyList(),
+                Collections.emptyList(), null, berths, Collections.emptyList());
     }
 
     /** Only the berths a lance can be stood in. */

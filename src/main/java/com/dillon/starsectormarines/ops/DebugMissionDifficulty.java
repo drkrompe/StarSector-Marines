@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 
-/** Applies the DEBUG briefing's operation-scale choice to one mission. */
+/** Applies the DEBUG briefing's operation-scale and map-sprawl choices to one mission. */
 final class DebugMissionDifficulty {
 
     private DebugMissionDifficulty() {
@@ -31,6 +32,19 @@ final class DebugMissionDifficulty {
             adjusted.name(mission.type.name() + " — " + tier.displayName);
         }
         return adjusted.build();
+    }
+
+    /**
+     * Returns the same mission for production work. DEBUG work states how
+     * settled its map is directly, so the three maps a market could produce
+     * can be played back to back on one board.
+     *
+     * @param requestedSprawl the sprawl to state, or {@code null} to hand the
+     *                        answer back to the target market's size.
+     */
+    static Mission atSprawl(Mission mission, PrecinctPlan.Sprawl requestedSprawl) {
+        if (mission == null || !mission.source.isDebug()) return mission;
+        return Mission.builder(mission).sprawl(requestedSprawl).build();
     }
 
     private static boolean isTierGridEntry(Mission mission) {
