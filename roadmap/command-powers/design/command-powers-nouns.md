@@ -4,7 +4,8 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — folded the compact retained battle tray and world-targeting presentation into the standing model.
+Updated: 2026-09-01 — the compact battle tray identifies its campaign-backed
+Supplies pool with the base-game commodity icon resolved from the live spec.
 
 ## Vocabulary
 
@@ -29,6 +30,9 @@ The in-battle roster is presented as one bounded bottom-center MLX tray, not a
 free-growing menu. A compact command-resource block and at most the five
 budgeted power cards expose ready, cooldown, affordability, supply, charge, and
 spent states. Arming a card adds only a narrow targeting instruction strip.
+The resource block's Supplies icon is presentation metadata from Starsector's
+commodity registry; the command-power resource adapter remains the authority for
+the displayed quantity and any activation spend.
 The retained tray owns card hierarchy and selection input; a separate
 world-layer targeting panel owns the cursor reticle, target validity, RMB
 cancellation, and the next map click. That separation keeps targeting a

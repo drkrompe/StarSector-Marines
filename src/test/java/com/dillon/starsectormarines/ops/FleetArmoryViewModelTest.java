@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -499,6 +500,24 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
+    void cargoBackedArmoryActionsExposeVanillaCommodityPresentation() {
+        MarineRoster roster = fullSquad();
+        EquipmentIssueResources resources = presentedHold();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                new Reactor(), roster, () -> { }, () -> 0d, resources);
+
+        viewModel.weaponDoctrineTiles().get().stream()
+                .filter(tile -> !tile.id().endsWith(viewModel.selectedWeaponDoctrineId()))
+                .findFirst().orElseThrow().select().run();
+
+        List<FleetArmoryViewModel.CargoCostRow> costs = viewModel.issueCargoRows().get();
+        assertFalse(costs.isEmpty());
+        assertTrue(costs.stream().allMatch(row -> row.icon().startsWith("vanilla/")));
+        assertEquals("vanilla/" + Commodities.MARINES,
+                viewModel.squadCards().get().get(0).reinforceIcon());
+    }
+
+    @Test
     void squadCardBodyInspectsWhileReinforceRemainsAnIndependentAction() throws Exception {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
@@ -590,6 +609,8 @@ class FleetArmoryViewModelTest {
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
+        props.put("issueCargoRows", viewModel.issueCargoRows());
+        props.put("issueCargoClasses", viewModel.issueCargoClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
@@ -708,6 +729,20 @@ class FleetArmoryViewModelTest {
 
             @Override public boolean spend(EquipmentTemplateCost cost) {
                 return cost != null && cost.isZero();
+            }
+        };
+    }
+
+    private static EquipmentIssueResources presentedHold() {
+        return new EquipmentIssueResources() {
+            private final EquipmentTemplateCost available =
+                    new EquipmentTemplateCost(2_000, 2_000, 2_000, 2_000);
+
+            @Override public EquipmentTemplateCost available() { return available; }
+            @Override public boolean spend(EquipmentTemplateCost cost) { return cost != null; }
+            @Override public String commodityName(String commodityId) { return commodityId; }
+            @Override public String commodityIcon(String commodityId) {
+                return "vanilla/" + commodityId;
             }
         };
     }

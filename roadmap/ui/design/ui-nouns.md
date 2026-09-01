@@ -4,11 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — the selected-infantry plate now protects squad identity,
-strength, and morale in a summary row while contextual controls occupy a
-separate tactical-order row; the selected-Mech plate gives lance-wide Defend
-Area its own full-width section rather than packing it into coordination or
-doctrine controls.
+Updated: 2026-09-01 — cargo-backed retained controls resolve commodity names
+and image paths from Starsector's live commodity specifications instead of a
+second UI-owned icon catalog.
 
 Earlier 2026-08-31 — primary world selection now distinguishes a click from a
 drag marquee and deterministically selects one player squad or combat Mech
@@ -81,6 +79,10 @@ them.
   computed visual still requires. Its source is an ordinary bindable attribute,
   so a subject that carries no asset simply supplies nothing and the element
   draws nothing rather than reserving a placeholder.
+- A **commodity presentation** is the read-only name and icon projection of a
+  Starsector commodity specification. A view model may compose it with cargo
+  quantities, but neither markup nor the view model hardcodes a parallel catalog;
+  tests provide deterministic paths through the same seam.
 - A **surface** is a document plus its view model, navigation behavior, and host
   lifecycle. Fleet Armory, Company HQ, Mech Lab, and the UI workbench are surfaces.
 - A **shipboard room** is the fiction and navigation identity of a player-facing
