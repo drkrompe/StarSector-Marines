@@ -4,8 +4,9 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a refusal from the firing-position search has three
-answers rather than two, and prosecution with nowhere to shoot from walks on.
+Updated: 2026-09-01 — a marine rejoining its squad outranks every reflex that
+would start a fight for it, and a refusal from the firing-position search has
+three answers rather than two.
 
 Earlier 2026-09-01 — a masked marine steps aside rather than retargeting, it
 ships on, and what the friendly-lane question ever cost was the tick.
@@ -157,6 +158,16 @@ into; it never invents work, and one with nothing to answer declines so the next
 is asked. An individual-tier behaviour that must run before the step is therefore
 a reflex, added to the list at the rank its priority earns, never as another
 branch above the loop.
+
+Rank is where a reflex says what it is worth. A marine **rejoining** its squad —
+one who landed after the squad stepped off — sits below the hazards already in
+the air, because a lone marine crossing open ground still has to get out from
+under a grenade, and above every reflex that initiates contact: the
+special-equipment shot, the hardened-target rocket, the onset screen. A late
+arrival with a rocket tube and a turret in view is exactly the marine that rank
+exists for. It also outranks the broken-fire-team peel, which would otherwise
+send him to cover on his own rather than back to the squad he is trying to
+reach. Return fire is not initiation and is not withheld by it.
 
 A **fire team** is the standing organizational element between the squad and
 the individual: a small, stable billet group a marine belongs to for the whole

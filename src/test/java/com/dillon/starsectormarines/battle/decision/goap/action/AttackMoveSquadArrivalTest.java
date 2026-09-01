@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * An attack move plan is one step shared by the whole squad, so
@@ -87,6 +88,24 @@ public class AttackMoveSquadArrivalTest {
         assertEquals(ActionStatus.RUNNING, status,
                 "one member arriving must not complete the squad's shared plan "
                         + "while a squadmate is still well short of the objective");
+    }
+
+    /**
+     * The straggler is not a straggler on this objective: he is a campaign
+     * marine who landed after the squad stepped off and is crossing to it, and
+     * a shared step that waited for him would pin the whole squad on the
+     * objective until he arrived from the landing zone. Same exclusion the
+     * dispatcher already makes when it hands out the step's slots.
+     */
+    @Test
+    public void aRejoiningMemberDoesNotPinTheStep() {
+        Fixture f = fixture(30f);
+        f.squad.markRejoining(f.straggler);
+
+        assertEquals(ActionStatus.SUCCESS, f.action.execute(f.lead, f.squad, f.sim),
+                "a member still closing on the squad does not hold its arrival open");
+        assertTrue(AttackMove.squadHasArrived(f.squad, DEST_X, DEST_Y, f.sim),
+                "and the release rule agrees with the action about it");
     }
 
     @Test

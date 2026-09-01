@@ -34,6 +34,7 @@ public class InfantryReflexOrderTest {
                         "COOLDOWNS",
                         "FRIENDLY_CHARGE",
                         "KNOWN_GRENADE",
+                        "REJOIN",
                         "OPPORTUNITY_SPECIAL",
                         "HARDENED_OPPORTUNITY",
                         "ONSET_SCREEN",
