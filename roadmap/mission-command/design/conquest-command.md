@@ -4,11 +4,18 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-30 — a track with no believed front now stages forward, bounded
-by its neighbours' lead, instead of standing still waiting for a sighting only
-advancing can produce. Earlier: a compact player-facing three-lane projection in
-the battle HUD; lane-stage standoff read from the squad's own corridor so a
-front believed off that line does not withhold orders.
+Updated: 2026-09-01 — marine capture allocation is bounded to the home track and
+its neighbours, own track first, measured on a tree carrying the prosecution
+fall-through fix; the far-track walk it used to authorize is refused and
+published as its own reason.
+Earlier 2026-09-01 — the defender's reserve is a share of its mobile pool and
+each threatened track's response scales with the threat, so a large garrison
+commits in proportion to itself. Earlier 2026-08-30 — a track with no believed
+front now stages forward, bounded by its neighbours' lead, instead of standing
+still waiting for a sighting only advancing can produce. Earlier: a compact
+player-facing three-lane projection in the battle HUD; lane-stage standoff read
+from the squad's own corridor so a front believed off that line does not
+withhold orders.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -26,6 +33,51 @@ occupancy permits a measured probe, not a declaration of clearance. Fresh
 distant capture allocations preserve squads already committed or adjacent, use
 squads without useful front work first, and retain at least one executable
 front squad while actionable resistance exists when force size permits.
+
+**Capture allocation obeys the same track law the front push does: the home
+track and its neighbours, own track first.** A track is a coordination
+preference rather than an ownership fence, and support means a neighbour — the
+far side of the map is not one on any reading of it. So a fresh detachment is
+paired only with a compound at most one track from the squad's home, and takes
+a *neighbour's* compound only while its own track has nothing worth doing:
+neither a defender zone the front push would send it to, nor an uncaptured
+compound of its own it could take. Its own track's compound it may always take.
+Nearest-pair ordering is unchanged among whatever survives that bound, so the
+allocation is narrowed rather than reordered. A squad already holding a capture
+keeps it and a squad standing at a compound commits to it whatever track it is
+on — those are about ground already reached, not about detaching somebody to
+walk.
+
+Without the bound the capture allocation was the one map-global thing in a
+command built out of tracks, ranking every uncaptured compound against every
+uncommitted squad on straight-line distance alone. The observed cost was a squad
+walking the width of the map to a compound two tracks from where it was born,
+its own track left to a fraction of its strength facing known contacts and the
+receiving track already crowded, with the preserve pass then keeping that order
+for the rest of the battle. The walk itself is a squad out of the fight, and the
+track it leaves does not advance while it is gone.
+
+The canonical matrix says the bound costs nothing either fixture is decided on:
+the reinforced fixture captures 7 and holds 2 either way, and the full-strength
+one captures 3 against 2 with none held either way, surviving to 12315 ticks
+where the control falls at 10812. **What it now mostly buys is that the
+pathology cannot return.** With the bound off this tree barely commits a
+far-track pairing anyway — one across both fixtures — because the prosecution
+fall-through fix removed the squad that produced them: a squad under
+hold-and-prosecute with no firing cell inside its leash used to freeze for as
+long as the contact stayed visible, and a frozen squad is exactly the
+uncommitted, work-free squad the distant fill reaches for. The first measurement
+of this switch was taken before that fix and read the opposite — 6 captures and
+2 held against 12 and 11 — which is an artifact of the freeze rather than a
+trade, and should not be re-derived.
+
+A squad refused by the bound and left with nothing else publishes its own
+assignment reason, because a far-track refusal and an empty map are otherwise
+the same sentence.
+
+The two convergence phases are map-global for a reason no measurement can move:
+once the keep or one contested compound is the whole remaining objective, there
+is no other front to hold.
 
 When belief shows open-ground resistance but no discrete room is assignable,
 an advance-track order stages behind the hostile frontier, bounded by friendly
@@ -72,8 +124,28 @@ The defender mobilizes only from defender influence. A legal contact produces
 a coarse threatened track and band, never an enemy identity or exact cell.
 Starting patrols form the mobile pool; born garrisons retain their posts.
 Threatened tracks receive one responder before concentration, home and adjacent
-tracks are preferred, and at least one free patrol remains in reserve when the
-pool permits it. Expired reports release only defender-command-owned responses.
+tracks are preferred, and part of the free pool remains in reserve when the pool
+permits it. Expired reports release only defender-command-owned responses.
+
+**The reserve is a share of the mobile pool, not a count, and the response a
+track receives scales with what is believed to be in it.** A fixed one-squad
+reserve and a fixed two responders per track read as caution at a starting
+force of a few patrols and as abdication at sixty: three threatened tracks
+drawing six squads while the rest hold their home tracks is a tenth of a
+defence committed while the base is taken compound by compound. So a quarter of
+the pool is held back above a floor of one squad, and each threatened track may
+draw its own fraction of the remaining budget — its share of the believed
+contacts summed across every active threat, floored at the old fixed cap so a
+small pool behaves exactly as it did. Counted contacts weight that share rather
+than the diffused pressure field, which is sampled at influence-block centres
+and measures the block grid as much as the front. Concentration remains
+strictly second: every threatened track still receives its first responder
+before any track receives a second.
+
+This is a bound on how much force answers a threat, never a relaxation of
+belief honesty. The share is computed from the same coarse threatened-track
+picture, so a larger response is a larger response to a report — not a finer
+one, and never an enemy identity or an exact cell.
 
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen
@@ -86,7 +158,8 @@ defines their handoff.
 
 The perspective front picture publishes phase, track extents, friendly body and
 lead, believed-hostile frontier and pressure, preferred/effective track,
-reserve, assignment reason, and exact commander target or labelled zone marker.
+reserve, the response budget and the per-track responder cap it was split into,
+assignment reason, and exact commander target or labelled zone marker.
 It includes frozen own-squad position, leader zone, local contact, execution
 suspension, active-path count, and the count of own members in the squad's
 assigned target zone. Exact whole-zone occupancy, capture progress, and

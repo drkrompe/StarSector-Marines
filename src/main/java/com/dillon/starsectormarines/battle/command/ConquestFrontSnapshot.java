@@ -49,6 +49,15 @@ public record ConquestFrontSnapshot(
         FINAL_COMPOUND_SUPPORT,
         NO_REACHABLE_COMPOUND_TARGET,
         NO_ACTIONABLE_TRACK_TARGET,
+        /**
+         * Squad has no track work of its own <em>and</em> every capture slot
+         * still open sits more than one track from home, so the capture
+         * allocation refused it. Without this the pulse would publish the
+         * generic no-actionable-target reason, which is the one thing a dump
+         * cannot tell apart from an empty map — and the refusal it is hiding
+         * is exactly the one that used to walk a squad the width of the map.
+         */
+        CAPTURE_OUT_OF_TRACK_REACH,
         DEFENDER_GARRISON_HOLD,
         DEFENDER_LOCAL_CONTACT,
         DEFENDER_TRACK_RESPONSE,
@@ -71,7 +80,28 @@ public record ConquestFrontSnapshot(
             int knownHostileContacts,
             float friendlyPressure,
             float knownHostilePressure,
-            int targetZoneId) { }
+            int targetZoneId,
+            int responderCap) {
+
+        /**
+         * A picture from a command that does not bound its per-track response,
+         * which is every marine-perspective one: {@code -1} reads as "no cap
+         * published" rather than as a cap of nothing.
+         */
+        public TrackState(int index, int lateralStart, int lateralEnd,
+                          int preferredSquads, int effectiveSquads,
+                          int effectiveLiveMembers, float friendlyBodyProgress,
+                          float friendlyLeadProgress,
+                          float knownHostileFrontProgress,
+                          int knownHostileContacts, float friendlyPressure,
+                          float knownHostilePressure, int targetZoneId) {
+            this(index, lateralStart, lateralEnd, preferredSquads,
+                    effectiveSquads, effectiveLiveMembers,
+                    friendlyBodyProgress, friendlyLeadProgress,
+                    knownHostileFrontProgress, knownHostileContacts,
+                    friendlyPressure, knownHostilePressure, targetZoneId, -1);
+        }
+    }
 
     /** Frozen own-force physical facts published with this command pulse. */
     public record SquadState(

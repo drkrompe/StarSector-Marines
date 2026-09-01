@@ -2,12 +2,16 @@ package com.dillon.starsectormarines.battle.ui.comms;
 
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 
 /**
  * Converts the conquest counterattack state machine into player-POV comms
  * dispatches. It deliberately observes public state rather than owning any
  * gameplay callbacks: presentation remains downstream of simulation state.
+ *
+ * <p>The district it names is the front band's own display name, taken from
+ * {@link CounterattackSystem#getBulgeBandName}. It used to be a {@code switch}
+ * here over the generator's biome kinds, which made the presentation tier the
+ * second place that had to know what a front was made of.
  */
 public final class CounterattackCommsPresenter {
 
@@ -30,19 +34,19 @@ public final class CounterattackCommsPresenter {
 
         CounterattackSystem.Phase phase = current.getPhase();
         CounterattackSystem.Resolution resolution = current.getResolution();
-        BiomeKind slice = current.getBulgeSlice();
+        String district = current.getBulgeBandName();
 
-        if (slice != null) {
+        if (district != null) {
             if (phase == CounterattackSystem.Phase.TELEGRAPH
                     && previousPhase != CounterattackSystem.Phase.TELEGRAPH) {
-                feed.post(warning(slice));
+                feed.post(warning(district));
             } else if (isWaveUnderway(phase) && !isWaveUnderway(previousPhase)) {
-                feed.post(launch(slice));
+                feed.post(launch(district));
             }
 
             if (resolution != CounterattackSystem.Resolution.NONE
                     && resolution != previousResolution) {
-                feed.post(outcome(slice, resolution));
+                feed.post(outcome(district, resolution));
             }
         }
 
@@ -55,8 +59,7 @@ public final class CounterattackCommsPresenter {
         return phase == CounterattackSystem.Phase.ASSAULT || phase == CounterattackSystem.Phase.RESOLVE;
     }
 
-    static BattleCommsFeed.Notice warning(BiomeKind slice) {
-        String district = districtName(slice);
+    static BattleCommsFeed.Notice warning(String district) {
         return new BattleCommsFeed.Notice(
                 "COMMS OFFICER // COUNTERATTACK WARNING",
                 "Enemy command traffic just spiked around the " + district
@@ -65,8 +68,7 @@ public final class CounterattackCommsPresenter {
                 WARNING_DURATION_SEC);
     }
 
-    static BattleCommsFeed.Notice launch(BiomeKind slice) {
-        String district = districtName(slice);
+    static BattleCommsFeed.Notice launch(String district) {
         return new BattleCommsFeed.Notice(
                 "COMMS OFFICER // COUNTERATTACK INBOUND",
                 "The enemy push is moving into the " + district
@@ -75,8 +77,7 @@ public final class CounterattackCommsPresenter {
                 LAUNCH_DURATION_SEC);
     }
 
-    static BattleCommsFeed.Notice outcome(BiomeKind slice, CounterattackSystem.Resolution resolution) {
-        String district = districtName(slice);
+    static BattleCommsFeed.Notice outcome(String district, CounterattackSystem.Resolution resolution) {
         return switch (resolution) {
             case SUCCESS -> new BattleCommsFeed.Notice(
                     "COMMS OFFICER // LINE BREACHED",
@@ -97,16 +98,6 @@ public final class CounterattackCommsPresenter {
                     BattleCommsFeed.Tone.STATUS,
                     OUTCOME_DURATION_SEC);
             case NONE -> throw new IllegalArgumentException("NONE is not an outcome");
-        };
-    }
-
-    public static String districtName(BiomeKind slice) {
-        return switch (slice) {
-            case BEACH -> "beachhead";
-            case PORT -> "port district";
-            case CITY -> "city district";
-            case FORTRESS_DISTRICT -> "fortress district";
-            case OUTSKIRTS -> "outskirts";
         };
     }
 }

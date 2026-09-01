@@ -13,9 +13,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -56,8 +56,9 @@ public class CounterattackSystemTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    private static BiomeMap biomeMap() {
-        return new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(42));
+    private static FrontDepth frontDepth() {
+        return FrontDepth.fromBiomes(
+                new BiomeMap(W, H, TraversalAxis.SOUTH_TO_NORTH, new Random(42)));
     }
 
     private static TacticalNode node(TacticalNode.Kind kind, int x, int y, Faction guard, int garrison) {
@@ -130,7 +131,7 @@ public class CounterattackSystemTest {
      */
     private static final class Harness {
         final BattleSimulation sim;
-        final BiomeMap biomes;
+        final FrontDepth front;
         final TacticalNode fort;
         final TacticalNode city;
         final RecaptureTargetService targets;
@@ -138,24 +139,24 @@ public class CounterattackSystemTest {
         final ReinforcementService reinforcement;
         final BattleResources resources;
         final CounterattackSystem sys;
-        final BiomeKind fortSlice;
-        final BiomeKind citySlice;
+        final int fortSlice;
+        final int citySlice;
 
         Harness() {
             sim = openSim();
-            biomes = biomeMap();
+            front = frontDepth();
             fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
             city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
-            fortSlice = biomes.biomeAt(fort.anchorX, fort.anchorY);
-            citySlice = biomes.biomeAt(city.anchorX, city.anchorY);
+            fortSlice = front.bandAt(fort.anchorX, fort.anchorY);
+            citySlice = front.bandAt(city.anchorX, city.anchorY);
             assertNotEquals(fortSlice, citySlice, "precondition: distinct slices");
 
-            targets = new RecaptureTargetService(new TacticalMap(List.of(fort, city)), biomes);
-            recaptureSys = new RecaptureTargetSystem(targets, biomes);
+            targets = new RecaptureTargetService(new TacticalMap(List.of(fort, city)), front);
+            recaptureSys = new RecaptureTargetSystem(targets, front);
             reinforcement = new ReinforcementService();
             reinforcement.addMeans(new AlwaysDeliverMeans());
             resources = new BattleResources();
-            sys = new CounterattackSystem(targets, reinforcement, resources, TraversalAxis.SOUTH_TO_NORTH);
+            sys = new CounterattackSystem(targets, reinforcement, resources, front);
 
             Squad citySquad = garrison(sim, city, 3, 4);
             presence(sim, "fort-def", fort.anchorX, fort.anchorY);
@@ -186,7 +187,7 @@ public class CounterattackSystemTest {
         h.sys.tick(TICK, h.sim);
 
         assertEquals(CounterattackSystem.Phase.TELEGRAPH, h.sys.getPhase());
-        assertEquals(h.citySlice, h.sys.getBulgeSlice(), "reclaims the conceded (not the contested) slice");
+        assertEquals(h.citySlice, h.sys.getBulgeBand(), "reclaims the conceded (not the contested) slice");
         assertEquals(CounterattackSystem.Resolution.NONE, h.sys.getResolution());
         assertEquals(h.city.anchorX + 0.5f, h.sys.getBulgeCenterX(), 0.0001f);
         assertEquals(h.city.anchorY + 0.5f, h.sys.getBulgeCenterY(), 0.0001f);
@@ -212,7 +213,7 @@ public class CounterattackSystemTest {
     @Test
     public void noMusterWhileEligibleTargetsExist() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
         // A second fortress-slice node, manned then wiped, with its own
@@ -221,11 +222,11 @@ public class CounterattackSystemTest {
         TacticalNode fortOpen = node(TacticalNode.Kind.MG_NEST, 12, 90, Faction.DEFENDER, 4);
 
         RecaptureTargetService targets = new RecaptureTargetService(
-                new TacticalMap(List.of(fort, city, fortOpen)), biomes);
-        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, biomes);
+                new TacticalMap(List.of(fort, city, fortOpen)), front);
+        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, front);
         ReinforcementService reinforcement = new ReinforcementService();
         BattleResources resources = new BattleResources();
-        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, TraversalAxis.SOUTH_TO_NORTH);
+        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, front);
 
         Squad citySquad = garrison(sim, city, 3, 4);
         Squad fortOpenSquad = garrison(sim, fortOpen, 3, 4);
@@ -248,16 +249,16 @@ public class CounterattackSystemTest {
     @Test
     public void noMusterWithNoMannedTargetsInConcededSlice() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4); // never garrisoned
-        BiomeKind cs = biomes.biomeAt(city.anchorX, city.anchorY);
+        int cs = front.bandAt(city.anchorX, city.anchorY);
 
-        RecaptureTargetService targets = new RecaptureTargetService(new TacticalMap(List.of(fort, city)), biomes);
-        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, biomes);
+        RecaptureTargetService targets = new RecaptureTargetService(new TacticalMap(List.of(fort, city)), front);
+        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, front);
         ReinforcementService reinforcement = new ReinforcementService();
         BattleResources resources = new BattleResources();
-        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, TraversalAxis.SOUTH_TO_NORTH);
+        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, front);
 
         presence(sim, "fort-def", fort.anchorX, fort.anchorY);
         for (int i = 0; i < 5; i++) recaptureSys.tick(TICK, sim);
@@ -278,15 +279,15 @@ public class CounterattackSystemTest {
     @Test
     public void musterBlockedWhenNoMeansCanDeliver() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
         TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
 
-        RecaptureTargetService targets = new RecaptureTargetService(new TacticalMap(List.of(fort, city)), biomes);
-        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, biomes);
+        RecaptureTargetService targets = new RecaptureTargetService(new TacticalMap(List.of(fort, city)), front);
+        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, front);
         ReinforcementService reinforcement = new ReinforcementService(); // deliberately no means registered
         BattleResources resources = new BattleResources();
-        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, TraversalAxis.SOUTH_TO_NORTH);
+        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, front);
 
         Squad citySquad = garrison(sim, city, 3, 4);
         presence(sim, "fort-def", fort.anchorX, fort.anchorY);
@@ -347,7 +348,7 @@ public class CounterattackSystemTest {
 
         int abortCooldownTicks = Math.round(CounterattackSystem.ABORT_COOLDOWN_SEC / TICK);
         runUntil(h.sys, h.sim, CounterattackSystem.Phase.IDLE, abortCooldownTicks);
-        assertNull(h.sys.getBulgeSlice());
+        assertEquals(CounterattackSystem.NO_BAND, h.sys.getBulgeBand());
         assertEquals(CounterattackSystem.Resolution.NONE, h.sys.getResolution());
         assertTrue(Float.isNaN(h.sys.getBulgeCenterX()));
         assertTrue(Float.isNaN(h.sys.getBulgeCenterY()));
@@ -387,21 +388,21 @@ public class CounterattackSystemTest {
     @Test
     public void assaultPostsPrepaidWaveRoundRobinOverTargets() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
         TacticalNode cityA = node(TacticalNode.Kind.HEAVY_TOWER, 8, 55, Faction.DEFENDER, 4);
         TacticalNode cityB = node(TacticalNode.Kind.HEAVY_TOWER, 12, 55, Faction.DEFENDER, 4);
-        BiomeKind csA = biomes.biomeAt(cityA.anchorX, cityA.anchorY);
-        BiomeKind csB = biomes.biomeAt(cityB.anchorX, cityB.anchorY);
+        int csA = front.bandAt(cityA.anchorX, cityA.anchorY);
+        int csB = front.bandAt(cityB.anchorX, cityB.anchorY);
         assertEquals(csA, csB, "precondition: both city nodes share a slice");
 
         RecaptureTargetService targets = new RecaptureTargetService(
-                new TacticalMap(List.of(fort, cityA, cityB)), biomes);
-        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, biomes);
+                new TacticalMap(List.of(fort, cityA, cityB)), front);
+        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, front);
         ReinforcementService reinforcement = new ReinforcementService();
         reinforcement.addMeans(new AlwaysDeliverMeans());
         BattleResources resources = new BattleResources();
-        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, TraversalAxis.SOUTH_TO_NORTH);
+        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, front);
 
         Squad squadA = garrison(sim, cityA, 3, 4);
         Squad squadB = garrison(sim, cityB, 3, 4);
@@ -435,20 +436,20 @@ public class CounterattackSystemTest {
     @Test
     public void assaultSkipsTargetAlreadyReMannedSinceMusterSnapshot() {
         BattleSimulation sim = openSim();
-        BiomeMap biomes = biomeMap();
+        FrontDepth front = frontDepth();
         TacticalNode fort = node(TacticalNode.Kind.COMMAND_POST, 10, 87, Faction.DEFENDER, 4);
         TacticalNode cityA = node(TacticalNode.Kind.HEAVY_TOWER, 8, 55, Faction.DEFENDER, 4);
         TacticalNode cityB = node(TacticalNode.Kind.HEAVY_TOWER, 12, 55, Faction.DEFENDER, 4);
-        BiomeKind citySlice = biomes.biomeAt(cityA.anchorX, cityA.anchorY);
-        assertEquals(citySlice, biomes.biomeAt(cityB.anchorX, cityB.anchorY), "precondition: shared slice");
+        int citySlice = front.bandAt(cityA.anchorX, cityA.anchorY);
+        assertEquals(citySlice, front.bandAt(cityB.anchorX, cityB.anchorY), "precondition: shared slice");
 
         RecaptureTargetService targets = new RecaptureTargetService(
-                new TacticalMap(List.of(fort, cityA, cityB)), biomes);
-        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, biomes);
+                new TacticalMap(List.of(fort, cityA, cityB)), front);
+        RecaptureTargetSystem recaptureSys = new RecaptureTargetSystem(targets, front);
         ReinforcementService reinforcement = new ReinforcementService();
         reinforcement.addMeans(new AlwaysDeliverMeans());
         BattleResources resources = new BattleResources();
-        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, TraversalAxis.SOUTH_TO_NORTH);
+        CounterattackSystem sys = new CounterattackSystem(targets, reinforcement, resources, front);
 
         Squad squadA = garrison(sim, cityA, 3, 4);
         Squad squadB = garrison(sim, cityB, 3, 4);

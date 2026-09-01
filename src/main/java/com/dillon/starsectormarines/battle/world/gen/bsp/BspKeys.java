@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,14 @@ public final class BspKeys {
 
     /** Conquest zoning overlay (beach → port → city → fortress bands). Null in legacy mode. */
     public static final GenKey<BiomeMap> BIOME_MAP = GenKey.of("biomeMap");
+
+    /**
+     * How far each cell is from the thing the battle is about — the front as a
+     * depth rather than as a biome. Bound by the closing front stage on the
+     * recipes that have an objective to be at depth zero from; absent on a map
+     * with no front at all.
+     */
+    public static final GenKey<FrontDepth> FRONT_DEPTH = GenKey.of("frontDepth");
 
     /** Legacy uniform-scatter zoning overlay. Null in conquest mode. */
     public static final GenKey<DistrictMap> DISTRICT_MAP = GenKey.of("districtMap");
@@ -157,6 +166,18 @@ public final class BspKeys {
      * on any map without a fortress band.
      */
     public static final GenKey<int[]> FORTRESS_WARD = GenKey.of("fortressWard");
+
+    /**
+     * How many paired arrival areas the landing stage seated, bound even when
+     * that is zero.
+     *
+     * <p>Same law as {@link #UNPLACED_PROGRAM}: a region that seated none and a
+     * map nobody asked to be landed on are different answers, and a beachhead
+     * that was never authored leaves nothing on the finished map to notice
+     * until the mission asks for its drop zones and throws.
+     */
+    public static final GenKey<Integer> LANDING_AREAS_AUTHORED =
+            GenKey.of("landingAreasAuthored");
 
     public static final GenKey<int[]> MARINE_SPAWN = GenKey.of("marineSpawn");
 

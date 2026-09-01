@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+
 /**
  * The selection-layer policy that turns what the campaign knows about a market
  * into how its settlement is built — the third of the bridge's policy classes,
@@ -38,6 +40,37 @@ public final class SettlementZoning {
         if (decivilized) return SettlementLink.NONE;
         if (marketSize > 0 && marketSize <= OUTPOST_MAX_SIZE) return SettlementLink.LANDING;
         return SettlementLink.ROAD;
+    }
+
+    /**
+     * Smallest market size that reads as a conurbation rather than a town.
+     *
+     * <p>Vanilla sizes run to ten, so eight is near the top of the range — and
+     * that is the point. Below it a market is a town with country around it,
+     * which is the shape {@code BALANCED} draws; at eight and above the
+     * settlement is the map and the country is whatever it has not reached
+     * yet, which is what {@code DENSE} draws.
+     */
+    public static final int CONURBATION_MIN_SIZE = 8;
+
+    /**
+     * How much of the map this market settles.
+     *
+     * <p>The derived default for a battle that does not state one. Which of
+     * these a map is remains the battle's statement rather than the planet's —
+     * a mission may name its own — but a market that nobody overrode has a
+     * size, and size is the campaign's own account of how much place there is.
+     *
+     * @param marketSize vanilla market size; {@code 0} means no market backs
+     *                   this battle, which is not a wilderness — it is an
+     *                   absence of information, and the middle answer is the
+     *                   safe read, exactly as it is for {@link #linkFor}.
+     */
+    public static PrecinctPlan.Sprawl sprawlFor(int marketSize) {
+        if (marketSize <= 0) return PrecinctPlan.Sprawl.BALANCED;
+        if (marketSize <= OUTPOST_MAX_SIZE) return PrecinctPlan.Sprawl.REMOTE;
+        if (marketSize >= CONURBATION_MIN_SIZE) return PrecinctPlan.Sprawl.DENSE;
+        return PrecinctPlan.Sprawl.BALANCED;
     }
 
     /**
