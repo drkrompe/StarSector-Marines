@@ -297,6 +297,50 @@ A field with nowhere to go at any size is counted under
 `BspKeys.UNPLACED_AIRFIELDS` rather than dropped, for the same reason unbuilt
 buildings are.
 
+## How much of the map is settled is a knob
+
+The same world can be an installation in wilderness or a city with an
+installation in it, and which one it is belongs to the battle rather than to the
+planet. `PrecinctPlan.Sprawl` says how many places there are and how far they
+reach; per-place density already existed and is not the same question.
+
+Measured through the generator at 560x336 on one seed:
+
+| preset | places | POIs | built | wild |
+|---|---|---|---|---|
+| `REMOTE` | 1 | 0 | 1.2% | 93.6% |
+| `BALANCED` | 4 | 339 | 8.6% | 58.2% |
+| `DENSE` | 11 | 746 | 18.8% | 15.4% |
+
+`BALANCED` is the shipped default and reproduces what the model produced before
+the knob existed.
+
+Two things that make the extremes work are worth stating because neither is a
+tuning value. `REMOTE` **drops the settlement entirely** when there is a
+garrison — the installation is then the somewhere the battle happens, and adding
+a town is the one thing that stops the map being what it is called. `DENSE`
+takes the main settlement to full density, which is not "more streets": it is
+the point at which `Profile.of` stops giving frontage a depth at all, so the
+place claims out to whatever its neighbours and the map edge allow. It also
+seeds many places rather than one, because a single settlement claiming evenly
+comes out a disc, and a city is districts meeting each other.
+
+## Palettes are cosmetic and read that way
+
+All four surface palettes render distinctly at the same seed and produce the
+same layout, which is the boundary working: what a world's ground is made of
+changes what is drawn and nothing about where anything is.
+
+`ROCK` and `ARID` read flatter than `VERDANT` because their pools are dominated
+by one ground and the patch field has nothing to arrange — the measurement in
+the wild-ground section says so directly. `FROZEN`'s dirt shows through around
+settlement, which reads as trampled ground and is a happy accident of its
+50/50 pool rather than anything authored.
+
+Parks and verges stay green on every world, including the rock one. That is the
+cultivated-ground law in `mapgen-nouns.md` made visible: lawn on an airless rock
+is a statement about the colony, not about the planet.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
@@ -309,19 +353,25 @@ buildings are.
    given yet. This is the most visible thing wrong with the model as it
    stands.
 
-1. **A precinct takes what it asks for whether or not the map can spare it.** On
+1. **A programmed precinct emits no tactical nodes.** `FortressWardStage` turns
+   its placed rooms into `TacticalNode`s — command posts, armouries, barracks —
+   and `PrecinctWardStage` does not, so a garrison is geometry with no
+   objectives, no garrison spawns and nothing for the commander tier to reason
+   about. A `REMOTE` map measures zero points of interest for exactly this
+   reason: the only place on it contributes none.
+2. **A precinct takes what it asks for whether or not the map can spare it.** On
    a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was
    simply squeezed. Nothing checks that the places asked for fit the map they
    are being put on.
-2. **Settlement claims read as collars, not districts.** A zoned precinct's
+3. **Settlement claims read as collars, not districts.** A zoned precinct's
    allowance spreads two or three cells either side of its arms, so it draws as
    a road network with a shoulder rather than as a place with streets in it.
    Either the frontage depth is too shallow for the map scale or the allowance
    wants a different derivation.
-3. **Whether `Compound` collapses into this.** A compound is already a claimed
+4. **Whether `Compound` collapses into this.** A compound is already a claimed
    group of leaves with a purpose; it may be a small precinct, or a distinct
    thing that lives *inside* one.
-4. **What `BiomeKind` becomes.** It is read as front-line progression ordering
+5. **What `BiomeKind` becomes.** It is read as front-line progression ordering
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.
