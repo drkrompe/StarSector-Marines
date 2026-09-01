@@ -271,6 +271,76 @@ So the packer's unplaced list is bound under `BspKeys.UNPLACED_PROGRAM` rather
 than dropped, empty when nothing was short so that "built everything" and
 "nobody asked" stay different answers.
 
+## An ordered airfield is built, not merely paid for
+
+The count reached the sizing before it reached anything else: ordering four
+widened a garrison by five thousand cells of apron and put nothing on it,
+because this path placed no lot at all. Ground bought and unused is worse than
+ground not bought — the place comes out the right size for an air arm it does
+not have.
+
+Lots are now reserved **before** the buildings are packed and from the
+precinct's far end, which is the shipped ward's reasoning: claimed after
+packing, a lot gets whatever shape the leftovers had, and taken from the middle
+it severs the spine everything else crosses. Each is authored through the same
+`AirbaseLot` the fortress uses, and its ground is closed to the four stampers
+that run afterwards — told nothing, they put guns on the runway.
+
+**The size ladder absorbs pressure rather than refusing.** Measured on a
+200x140 map, berths by airfields ordered run 3, 6, 8, 11, 13, 16: growth all the
+way and sub-linear, because a place that cannot seat another station seats a
+field or a pad. What is not true, and was asserted here before it was measured,
+is that a cramped map gets a smaller *first* field — a station is 62x28 with its
+clearance and fits comfortably in either, so only later fields ladder down.
+
+A field with nowhere to go at any size is counted under
+`BspKeys.UNPLACED_AIRFIELDS` rather than dropped, for the same reason unbuilt
+buildings are.
+
+## How much of the map is settled is a knob
+
+The same world can be an installation in wilderness or a city with an
+installation in it, and which one it is belongs to the battle rather than to the
+planet. `PrecinctPlan.Sprawl` says how many places there are and how far they
+reach; per-place density already existed and is not the same question.
+
+Measured through the generator at 560x336 on one seed:
+
+| preset | places | POIs | built | wild |
+|---|---|---|---|---|
+| `REMOTE` | 1 | 0 | 1.2% | 93.6% |
+| `BALANCED` | 4 | 339 | 8.6% | 58.2% |
+| `DENSE` | 11 | 746 | 18.8% | 15.4% |
+
+`BALANCED` is the shipped default and reproduces what the model produced before
+the knob existed.
+
+Two things that make the extremes work are worth stating because neither is a
+tuning value. `REMOTE` **drops the settlement entirely** when there is a
+garrison — the installation is then the somewhere the battle happens, and adding
+a town is the one thing that stops the map being what it is called. `DENSE`
+takes the main settlement to full density, which is not "more streets": it is
+the point at which `Profile.of` stops giving frontage a depth at all, so the
+place claims out to whatever its neighbours and the map edge allow. It also
+seeds many places rather than one, because a single settlement claiming evenly
+comes out a disc, and a city is districts meeting each other.
+
+## Palettes are cosmetic and read that way
+
+All four surface palettes render distinctly at the same seed and produce the
+same layout, which is the boundary working: what a world's ground is made of
+changes what is drawn and nothing about where anything is.
+
+`ROCK` and `ARID` read flatter than `VERDANT` because their pools are dominated
+by one ground and the patch field has nothing to arrange — the measurement in
+the wild-ground section says so directly. `FROZEN`'s dirt shows through around
+settlement, which reads as trampled ground and is a happy accident of its
+50/50 pool rather than anything authored.
+
+Parks and verges stay green on every world, including the rock one. That is the
+cultivated-ground law in `mapgen-nouns.md` made visible: lawn on an airless rock
+is a statement about the colony, not about the planet.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
@@ -283,11 +353,12 @@ than dropped, empty when nothing was short so that "built everything" and
    given yet. This is the most visible thing wrong with the model as it
    stands.
 
-1. **An airfield buys ground and nothing is built on it.** `withAirfields(4)`
-   widens a garrison by five thousand cells of apron, and `PrecinctWardStage`
-   never places an `AirbaseLot` — the shipped `FortressWardStage` does, and this
-   path has not been given it. Counts are honoured in the sizing and ignored in
-   the building.
+1. **A programmed precinct emits no tactical nodes.** `FortressWardStage` turns
+   its placed rooms into `TacticalNode`s — command posts, armouries, barracks —
+   and `PrecinctWardStage` does not, so a garrison is geometry with no
+   objectives, no garrison spawns and nothing for the commander tier to reason
+   about. A `REMOTE` map measures zero points of interest for exactly this
+   reason: the only place on it contributes none.
 2. **A precinct takes what it asks for whether or not the map can spare it.** On
    a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was
    simply squeezed. Nothing checks that the places asked for fit the map they
