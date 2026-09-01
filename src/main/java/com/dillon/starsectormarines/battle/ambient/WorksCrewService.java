@@ -73,6 +73,18 @@ public final class WorksCrewService {
 
         /** Who is filling each billet, by member index; 0 where it is empty. */
         private final long[] hands;
+        /**
+         * The flight bringing somebody to each billet, by member index; 0 where
+         * none is on the way.
+         *
+         * <p>Separate from {@link #hands} rather than folded into it, because a
+         * lift is not a technician: nobody is at the bench yet, the shed is
+         * still not working, and the aircraft is answerable to a different
+         * liveness question — an air craft is world-resident and never appears
+         * in the roster walk that empties a billet whose person died. Kept only
+         * so the same empty seat does not launch a second lift every tick.
+         */
+        private final long[] inbound;
         /** One squad per side, minted when that side first sends somebody. */
         private final Map<Faction, Integer> watches = new EnumMap<>(Faction.class);
         /** Seconds this posting has stood short-handed. */
@@ -88,6 +100,7 @@ public final class WorksCrewService {
             this.towardX = towardX;
             this.towardY = towardY;
             this.hands = new long[billets];
+            this.inbound = new long[billets];
         }
 
         public int billets() {
@@ -100,12 +113,30 @@ public final class WorksCrewService {
 
         public void fill(int billet, long actor) {
             hands[billet] = actor;
+            inbound[billet] = 0L;
         }
 
-        /** The lowest billet with nobody in it, or -1 when the watch is full. */
+        /** The flight on its way to this billet, or 0 when none is. */
+        public long inbound(int billet) {
+            return inbound[billet];
+        }
+
+        public void setInbound(int billet, long carrier) {
+            inbound[billet] = carrier;
+        }
+
+        /**
+         * The lowest billet with nobody in it and nobody on the way, or -1 when
+         * every seat is answered for.
+         *
+         * <p>A billet somebody is already flying to is not empty for this
+         * purpose. It is still unworked — the shed does not produce until they
+         * are at the bench — but sending a second lift to the same seat every
+         * tick of the crossing would answer one casualty with an air bridge.
+         */
         public int firstEmpty() {
             for (int billet = 0; billet < hands.length; billet++) {
-                if (hands[billet] == 0L) return billet;
+                if (hands[billet] == 0L && inbound[billet] == 0L) return billet;
             }
             return -1;
         }
