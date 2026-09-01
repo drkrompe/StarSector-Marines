@@ -14,6 +14,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,12 +40,19 @@ class RaidCommandEvidenceTest {
                 "raid.command.evidence.outputDir",
                 "build/reports/commander/raid")).toAbsolutePath().normalize();
         BattleFixture fixture = loadFixture();
-        RunResult first = run(fixture, maxTicks, output,
-                "raid-command-duel");
-        RunResult second = run(fixture, maxTicks, null,
-                "raid-command-duel");
-        assertEquals(first.trace(), second.trace(),
-                "same Raid fixture must produce byte-stable command events");
+        int repeat = EvidenceFanOut.repeat();
+        List<Callable<RunResult>> replays = new ArrayList<>(repeat);
+        for (int replica = 0; replica < repeat; replica++) {
+            // Only the replay whose trace is published records frames.
+            Path visualRoot = replica == 0 ? output : null;
+            replays.add(() -> run(fixture, maxTicks, visualRoot,
+                    "raid-command-duel"));
+        }
+        List<RunResult> results = EvidenceFanOut.run(replays);
+        RunResult first = results.get(0);
+        EvidenceFanOut.assertReplaysByteStable("raid-command-duel",
+                "command events",
+                results.stream().map(RunResult::trace).toList());
         assertTrue(first.trace().contains("\"strategy\":\"raid-attacker\""));
         assertTrue(first.trace().contains("\"strategy\":\"raid-defender\""));
         assertTrue(first.trace().contains("\"raid\":{"));
@@ -58,7 +68,7 @@ class RaidCommandEvidenceTest {
                 .put("schedulerMode", "SERIAL_DETERMINISTIC")
                 .put("fixture", DEFAULT_FIXTURE)
                 .put("maxTicks", maxTicks)
-                .put("repeatCount", 2)
+                .put("repeatCount", repeat)
                 .put("termination", first.complete() ? "COMPLETE" : "TIMEOUT")
                 .put("winner", first.winner() != null
                         ? first.winner() : JSONObject.NULL)
@@ -68,8 +78,8 @@ class RaidCommandEvidenceTest {
                 summary.toString(2) + '\n', StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.md"),
                 "# Raid commander evidence\n\n"
-                        + "Forced-serial, zero-input production Raid replayed "
-                        + "twice with byte-identical command traces.\n\n"
+                        + "Forced-serial, zero-input production Raid "
+                        + EvidenceFanOut.replayWording(repeat) + ".\n\n"
                         + "- Maximum ticks: " + maxTicks + "\n"
                         + "- Result: " + (first.complete() ? "COMPLETE" : "TIMEOUT") + "\n"
                         + "- Winner: " + (first.winner() != null ? first.winner() : "—") + "\n"

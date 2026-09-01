@@ -18,7 +18,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,24 +58,39 @@ class ExtractionObjectiveEvidenceTest {
         List<FixtureSpec> fixtures = fixtures();
         boolean canonical = configuredMaxTicks.isBlank()
                 && fixtures.equals(DEFAULT_FIXTURES);
+        int repeat = EvidenceFanOut.repeat();
         StringBuilder markdown = new StringBuilder()
                 .append("# Extraction command evidence\n\n")
                 .append(canonical ? "Canonical" : "Ad hoc")
                 .append(" forced-serial, zero-input production Extraction ")
-                .append("fixtures replayed twice with byte-identical ")
-                .append("perspective and neutral traces.\n\n")
+                .append("fixtures ")
+                .append(EvidenceFanOut.replayWording(repeat))
+                .append(", perspective and neutral.\n\n")
                 .append("| Fixture | Result | Ticks | Payload | Alarm | ")
                 .append("Interdiction actions |\n")
                 .append("|---|---|---:|---|---|---:|\n");
         int canonicalSourceResponseActions = 0;
         int canonicalInterdictionActions = 0;
 
+        List<Callable<RunResult>> replays = new ArrayList<>();
         for (FixtureSpec spec : fixtures) {
             BattleFixture fixture = loadFixture(spec);
-            RunResult first = run(fixture, maxTicks, output, spec.id());
-            RunResult second = run(fixture, maxTicks, null, spec.id());
-            assertEquals(first.trace(), second.trace(),
-                    spec.id() + " must produce byte-stable command evidence");
+            for (int replica = 0; replica < repeat; replica++) {
+                // Only the replay whose trace is published records frames.
+                Path visualRoot = replica == 0 ? output : null;
+                replays.add(() -> run(fixture, maxTicks, visualRoot, spec.id()));
+            }
+        }
+        List<RunResult> results = EvidenceFanOut.run(replays);
+
+        for (int index = 0; index < fixtures.size(); index++) {
+            FixtureSpec spec = fixtures.get(index);
+            List<RunResult> replicas = results.subList(
+                    index * repeat, (index + 1) * repeat);
+            RunResult first = replicas.get(0);
+            EvidenceFanOut.assertReplaysByteStable(spec.id(),
+                    "command evidence",
+                    replicas.stream().map(RunResult::trace).toList());
             assertCommonEvidence(spec, first);
             if (canonical && spec.requiresAlarmResponse()) {
                 assertAlarmResponse(spec, first);
@@ -111,7 +128,7 @@ class ExtractionObjectiveEvidenceTest {
                 .put("schedulerMode", "SERIAL_DETERMINISTIC")
                 .put("canonical", canonical)
                 .put("maxTicks", maxTicks)
-                .put("repeatCount", 2)
+                .put("repeatCount", repeat)
                 .put("fixtures", summaries);
         Files.writeString(output.resolve("summary.json"),
                 summary.toString(2) + '\n', StandardCharsets.UTF_8);

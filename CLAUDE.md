@@ -117,18 +117,45 @@ Do not run builds or leave generated task files there.
   Never declare a build output (`mod/jars`, `mod/sounds`) that way — a suite that
   re-runs on every build is a suite people start skipping.
 - `gradlew.bat commanderEvidence -Pmission=conquest` → runs the selected
-  mission's documented construction-fixture matrix twice in a forced-serial,
+  mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
   arguments are currently `conquest`, `sabotage`, `assault`, `raid`, and `extraction`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
-  opt-in and excluded from ordinary `test` / `build`. Use `-PmaxTicks=9000` or
+  opt-in and excluded from ordinary `test` / `build`.
+  **Each fixture is replayed once.** It used to be replayed twice, with the two
+  traces asserted byte-identical, which on Conquest meant four ~105s replays
+  and 422s of wall clock — and the assert is a determinism check on the
+  simulation rather than evidence about the battle, so it does not need to ride
+  along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
+  restores the double replay here when a particular balance run wants it;
+  `-Pparallelism=N` runs that many replays side by side, and is off by default
+  for the reason `simDeterminism` records. Use `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
   cyan marine, red defender, and yellow civilian markers for whole-map review. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
+- `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded
+  tick budget (`-PmaxTicks`, default 3000) and fails on the first byte that
+  differs, writing under `build/reports/sim-determinism/`. It exists because a
+  balance run was paying for a determinism check on every fixture at full
+  length: the question "does the same fixture play the same way twice" needs one
+  fixture and a few thousand ticks, not eighteen thousand of two. Opt-in and
+  excluded from `test` / `check`.
+  `-Pparallelism=2` runs the two replicas side by side, which asks a second
+  question the serial form cannot: whether two simulations in one JVM can see
+  each other. **They currently can, and this found it on its first run.** The
+  sim's per-thread scratch is all `ThreadLocal`, but `LosCache` is not per
+  simulation — its enable flag is one static volatile that every sim raises at
+  its own tick top and lowers at its own tick end, and `clearAll` sweeps every
+  cache in the process rather than the caller's own. So one battle empties
+  another's line-of-sight cache mid-tick and switches its caching off, and two
+  replicas of `reinforced-south` that agreed for three hundred ticks recorded
+  the same compound-presence change one tick apart. Until a cache belongs to the
+  sim that owns it, concurrency is a probe rather than a check, and evidence
+  runs stay serial.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the
