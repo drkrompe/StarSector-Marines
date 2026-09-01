@@ -207,7 +207,10 @@ public final class FleetArmoryOverviewViewModel {
             }
             if (squad.stationed()) stationedSquads++;
         }
-        return new CompanyCounts(lineSquads, roster.mechBay().squads().size(),
+        int fieldedMechSquads = (int) roster.mechBay().squads().stream()
+                .filter(squad -> !squad.mechs().isEmpty())
+                .count();
+        return new CompanyCounts(lineSquads, fieldedMechSquads,
                 readyMarines, lineSquads * MarineSquad.CAPACITY, stationedSquads,
                 woundedMarines, earliestRecovery);
     }

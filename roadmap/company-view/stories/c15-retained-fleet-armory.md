@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-31 — faction-authored loadout and issued-equipment cards now pair
-provenance with vanilla faction flags; long equipment field notes scroll in place.
+Updated: 2026-09-01 — the squad overview now founds complete line formations through
+an atomic, vanilla-icon cargo bill and supports an honest zero-squad campaign start.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -39,6 +39,10 @@ breadcrumb keeps every completed level directly reachable.
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
+- **Formation founding:** the squad overview keeps one Found Squad transaction visible
+  beside the gallery, including live available/required counts and vanilla commodity
+  icons. Success creates a full twelve-marine line formation; an incomplete bill is
+  non-mutating. New campaigns use this path instead of a seeded line squad.
 - **Fire-team context:** Alpha, Bravo, and Charlie are compact tabs on the FIRE TEAM
   context line. Selection chooses which four of twelve projected billets to inspect;
   it never narrows or resets the squad transaction. Marine status and exact recovery

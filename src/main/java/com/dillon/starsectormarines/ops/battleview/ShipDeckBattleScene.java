@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -414,6 +415,31 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     task.fixtureX(), task.fixtureY(), onTheField, task.inService()));
         }
         bays.installApronWork(servicing);
+    }
+
+    /**
+     * The door this bay launches through, or null for a deck that has none.
+     *
+     * <p>The one piece of a ship's geometry that is not about anywhere aboard.
+     * Everything else a screen asks for is a room, a berth or a fixture; this is
+     * where a boat stops being on the ship, and it is what a sortie is steered
+     * at rather than a map edge — a deck has no edges in that sense, it has a
+     * hull with one hole in it per bay.
+     *
+     * <p>Answered off the deck graph rather than rediscovered, because which
+     * side of the room faces space is the placer's decision and a scene has only
+     * the finished floor to look at: a bulkhead against vacuum and a bulkhead
+     * against the next compartment are the same cells from in here.
+     */
+    public BayAperture bayDoor(DeckGraph.Compartment bay) {
+        if (bay == null) throw new IllegalArgumentException("a compartment is required");
+        if (rooms == null) return null;
+        return rooms.apertureOf(bay.id());
+    }
+
+    /** Every door off this deck, in the order the placer cut them. */
+    public List<BayAperture> bayDoors() {
+        return rooms == null ? List.of() : rooms.apertures();
     }
 
     /** The indices of every berth on the deck that holds a machine. */
