@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,6 +14,38 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechLabDollCanvasTest {
+
+    @Test
+    void vacantActionCoversTheWholeFiveBySevenFabricationPad() {
+        Gantry north = Gantry.covering(12, 8, 3, 6,
+                Gantry.Facing.NORTH, Gantry.Holds.MACHINE);
+
+        MechLabDollCanvas.PadBounds pad = MechLabDollCanvas.padBounds(north);
+
+        assertEquals(11f, pad.left());
+        assertEquals(7f, pad.bottom());
+        assertEquals(16f, pad.right());
+        assertEquals(14f, pad.top());
+        assertEquals(5f, pad.width());
+        assertEquals(7f, pad.height());
+        assertEquals(13.5f, north.worldCenterX());
+        assertEquals(11f, north.worldCenterY());
+    }
+
+    @Test
+    void fabricationPadTurnsWithAnEastFacingBerth() {
+        Gantry east = Gantry.covering(20, 30, 6, 3,
+                Gantry.Facing.EAST, Gantry.Holds.MACHINE);
+
+        MechLabDollCanvas.PadBounds pad = MechLabDollCanvas.padBounds(east);
+
+        assertEquals(19f, pad.left());
+        assertEquals(29f, pad.bottom());
+        assertEquals(26f, pad.right());
+        assertEquals(34f, pad.top());
+        assertEquals(7f, pad.width());
+        assertEquals(5f, pad.height());
+    }
 
     @Test
     void dropTargetUsesTheGantryAroundTheDollWhileLeaderRetainsPhysicalAnchor() {

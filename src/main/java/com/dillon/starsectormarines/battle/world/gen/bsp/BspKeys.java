@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -120,6 +121,19 @@ public final class BspKeys {
      */
     public static final GenKey<Map<String, Integer>> UNPLACED_AIRFIELDS =
             GenKey.of("unplacedAirfields");
+
+    /**
+     * How many emplacements of each kind a precinct's fortification asked for
+     * and had no ground for, by name.
+     *
+     * <p>The same law as {@link #UNPLACED_PROGRAM}, applied to the dial that
+     * actually decides how hard a place is to take. A citadel that found room
+     * for two of its four heavy posts is a stronghold wearing a citadel's name,
+     * and an emplacement that was never stamped leaves nothing on the map to
+     * notice.
+     */
+    public static final GenKey<Map<String, Map<DefensePostKind, Integer>>> UNPLACED_DEFENCES =
+            GenKey.of("unplacedDefences");
 
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");

@@ -49,7 +49,7 @@ public final class Gantry {
         }
     }
 
-    /** Cell the machine stands on; the footprint extends from here. */
+    /** Representative cell the machine stands on; exact centring uses {@link #worldCenterX()}. */
     public final int centerX;
     public final int centerY;
     /**
@@ -76,6 +76,10 @@ public final class Gantry {
     public final int halfHeight;
     public final Facing facing;
     public final Holds holds;
+    private final int left;
+    private final int bottom;
+    private final int width;
+    private final int height;
 
     public Gantry(int centerX, int centerY, int halfWidth, int halfHeight, Facing facing) {
         this(centerX, centerY, halfWidth, halfHeight, facing, Holds.MACHINE);
@@ -86,6 +90,10 @@ public final class Gantry {
         if (halfWidth < 0 || halfHeight < 0) {
             throw new IllegalArgumentException("gantry half extents must be >= 0");
         }
+        this.left = centerX - halfWidth;
+        this.bottom = centerY - halfHeight;
+        this.width = halfWidth * 2 + 1;
+        this.height = halfHeight * 2 + 1;
         this.centerX = centerX;
         this.centerY = centerY;
         this.halfWidth = halfWidth;
@@ -94,8 +102,43 @@ public final class Gantry {
         this.holds = holds == null ? Holds.MACHINE : holds;
     }
 
-    public int left()   { return centerX - halfWidth; }
-    public int right()  { return centerX + halfWidth; }
-    public int bottom() { return centerY - halfHeight; }
-    public int top()    { return centerY + halfHeight; }
+    private Gantry(int left, int bottom, int width, int height, Facing facing, Holds holds,
+                   boolean exactFootprint) {
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("gantry footprint must be positive");
+        }
+        this.left = left;
+        this.bottom = bottom;
+        this.width = width;
+        this.height = height;
+        this.centerX = left + (width - 1) / 2;
+        this.centerY = bottom + (height - 1) / 2;
+        this.halfWidth = (width - 1) / 2;
+        this.halfHeight = (height - 1) / 2;
+        this.facing = facing == null ? Facing.NORTH : facing;
+        this.holds = holds == null ? Holds.MACHINE : holds;
+    }
+
+    /**
+     * A berth covering this exact cell rectangle.
+     *
+     * <p>Unlike half-extents, this preserves even-sized footprints. That matters
+     * for the six-cell clear run inside a seven-cell fabrication pad: rounding
+     * it to five cells shifts the parked machine half a cell off the pad centre.
+     */
+    public static Gantry covering(int left, int bottom, int width, int height,
+                                  Facing facing, Holds holds) {
+        return new Gantry(left, bottom, width, height, facing, holds, true);
+    }
+
+    public int left()   { return left; }
+    public int right()  { return left + width - 1; }
+    public int bottom() { return bottom; }
+    public int top()    { return bottom + height - 1; }
+    public int width()  { return width; }
+    public int height() { return height; }
+
+    /** Centre of the reserved footprint in continuous world coordinates. */
+    public float worldCenterX() { return left + width * 0.5f; }
+    public float worldCenterY() { return bottom + height * 0.5f; }
 }

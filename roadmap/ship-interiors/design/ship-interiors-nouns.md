@@ -4,9 +4,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a hull's establishment is six boats and the lift a
-briefing plans around is those boats, read out rather than committed; a ship's
-boats are a fitting of the hull rather than property brought aboard.
+Updated: 2026-09-01 — machine berths retain exact even or odd footprints, so parked
+assets centre continuously within their pads, present toward the bay's inboard service
+space, and receive technician effects at authored machine or fixture focus points.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -89,6 +89,10 @@ authored content.
   starboard. The profile is the family's visual and tactical identity.
 - A **gantry** is one authored machine berth inside a vehicle bay: the clear
   footprint a mech or a vehicle stands in, and the direction it faces to leave.
+  The footprint remains an exact rectangle even when one extent is even, while a
+  parked asset uses its continuous centre and faces the room's shared inboard service
+  space. The recorded direction remains the deployment route rather than dictating a
+  storage pose.
   Generation authors the berth; a host decides what occupies it. This is the
   same division a landing pad has with a shuttle, and it is what lets one
   generated bay be the player's own lab on the home deck, a half-empty bay on a
@@ -490,6 +494,13 @@ Work bound to a berth is bound to the **berth**, not to the cell, because it onl
 exists while something is parked there. Generation authors the link and cannot
 know what the host parks; occupancy is a runtime fact about a deck, so an empty
 bay is somewhere to walk through rather than somewhere to weld.
+
+A vehicle-bay berth publishes five distinct access points around an occupied machine:
+two at its shoulders, two at its waist, and one at its head. Their focus coordinates
+are the actual hull or fixture positions. Any room-view effect projects those world
+coordinates through the same camera as the deck; it must not relocate every torch
+relative to the currently selected machine, because selection is UI state and the work
+continues throughout the room.
 
 This is the difference between a generated room and a dead one, and it is the
 standing reason fixtures must declare affordance rather than only appearance. The

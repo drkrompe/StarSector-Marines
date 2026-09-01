@@ -53,6 +53,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctSkeletonStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctDefenceStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PrecinctWardStage;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
@@ -241,6 +242,12 @@ public final class BspCityGenerator implements MapGenerator {
 
     private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
                                         GenStage landingLinkStage, GenStage wardStage) {
+        return buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage, wardStage, null);
+    }
+
+    private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
+                                        GenStage landingLinkStage, GenStage wardStage,
+                                        GenStage defenceStage) {
         return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -255,6 +262,7 @@ public final class BspCityGenerator implements MapGenerator {
                 hinterlandStage,                            // Step 3a   grown-roads-only; null omits it
                 new PedestrianFrameStage(),                 // Step 3a'
                 wardStage,                                  // Step 3b'' precinct-only; null omits it
+                defenceStage,                               // Step 3c'  precinct-only; null omits it
                 new KeepEntryChamberStamper(),              // Step 3c'''
                 new TacticalLinkStage(),                    // Step 3d
                 new FinalizeStage(),                        // Step 4 + 4b
@@ -416,7 +424,8 @@ public final class BspCityGenerator implements MapGenerator {
      */
     private GenRecipe precinctRecipe(PrecinctPlan plan) {
         return buildLegacyRecipe(new PrecinctSkeletonStage(plan),
-                new HinterlandFillStage(), null, new PrecinctWardStage());
+                new HinterlandFillStage(), null, new PrecinctWardStage(),
+                new PrecinctDefenceStage());
     }
 
     private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {

@@ -432,17 +432,12 @@ public final class RoomFloor {
     public int berth(int x, int y, int spanX, int spanY, Gantry.Facing facing,
                      Gantry.Holds holds) {
         reserveLane(x, y, spanX, spanY);
-        // Half-extents cover an odd number of cells, so an even span has to round
-        // down: a berth that claimed one cell more than was reserved would put
-        // the machine through the frame beside it.
-        int halfX = (spanX - 1) / 2;
-        int halfY = (spanY - 1) / 2;
         int[] canonical = toCanonicalRect(x, y, spanX, spanY);
         report(new LayoutOp.Berth(canonical[0], canonical[1], canonical[2], canonical[3],
                 unturned(facing)));
         if (firstBerth < 0) firstBerth = ctx.gantries.size();
-        ctx.gantries.add(new Gantry(left + x + halfX, top + y + halfY,
-                halfX, halfY, facing, holds));
+        ctx.gantries.add(Gantry.covering(left + x, top + y, spanX, spanY,
+                facing, holds));
         return ctx.gantries.size() - 1;
     }
 
