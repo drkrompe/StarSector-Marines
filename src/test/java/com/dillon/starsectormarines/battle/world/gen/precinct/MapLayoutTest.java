@@ -99,9 +99,8 @@ class MapLayoutTest {
      */
     @Test
     void theAttackerArrivesWhereTheMissionSaid() {
-        MapResult map = new BspCityGenerator()
-                .usePrecincts(plan(MapPlacement.NORTH_EAST, MapPlacement.SOUTH_WEST, 42L))
-                .generate(W, H, 42L, null, world());
+        MapResult map = new BspCityGenerator().generate(W, H, 42L, null, world(),
+                plan(MapPlacement.NORTH_EAST, MapPlacement.SOUTH_WEST, 42L));
         assertTrue(map.marineSpawnX < W / 2 && map.marineSpawnY < H / 2,
                 "marines told to arrive from the south-west spawned at "
                         + map.marineSpawnX + "," + map.marineSpawnY);
@@ -111,8 +110,7 @@ class MapLayoutTest {
     @Test
     void theDefenderHoldsTheObjective() {
         PrecinctPlan laid = plan(MapPlacement.NORTH_EAST, MapPlacement.SOUTH_WEST, 42L);
-        MapResult map = new BspCityGenerator().usePrecincts(laid)
-                .generate(W, H, 42L, null, world());
+        MapResult map = new BspCityGenerator().generate(W, H, 42L, null, world(), laid);
         Precinct objective = laid.objective();
         int gap = (int) Math.hypot(map.defenderSpawnX - objective.seedX(),
                 map.defenderSpawnY - objective.seedY());
@@ -129,8 +127,7 @@ class MapLayoutTest {
     @Test
     void withNoInstructionTheAttackerStartsAwayFromTheObjective() {
         PrecinctPlan laid = plan(MapPlacement.NORTH_EAST, null, 42L);
-        MapResult map = new BspCityGenerator().usePrecincts(laid)
-                .generate(W, H, 42L, null, world());
+        MapResult map = new BspCityGenerator().generate(W, H, 42L, null, world(), laid);
         Precinct objective = laid.objective();
         int gap = (int) Math.hypot(map.marineSpawnX - objective.seedX(),
                 map.marineSpawnY - objective.seedY());

@@ -53,7 +53,7 @@ class PrecinctInteriorTest {
         PrecinctPlan plan = PrecinctPlan.authored(List.of(
                 Precinct.settlement("west", WEST_X, Y, GrownTrunkPlan.Profile.town(), west),
                 Precinct.settlement("east", EAST_X, Y, GrownTrunkPlan.Profile.town(), east)));
-        MapResult map = new BspCityGenerator().usePrecincts(plan).generate(W, H, 42L, null, world());
+        MapResult map = new BspCityGenerator().generate(W, H, 42L, null, world(), plan);
         @SuppressWarnings("unchecked")
         Map<PointOfInterest.Kind, Integer>[] mixes = new Map[]{
                 new EnumMap<>(PointOfInterest.Kind.class),
