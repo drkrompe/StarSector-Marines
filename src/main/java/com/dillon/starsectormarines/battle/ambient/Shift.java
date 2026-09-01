@@ -116,6 +116,36 @@ public final class Shift {
         return legs;
     }
 
+    /**
+     * A round of the machines: one stop per berth, not per servicing cell.
+     *
+     * <p>Two flanks of one aircraft are two places to stand and one turnaround,
+     * so emitting both would spend half a rotation walking round the same hull.
+     * Which flank is the member's own, for the reason {@link #oneLegPerSite}
+     * gives: two technicians sent to the same machine should not make for the
+     * same side of it.
+     */
+    private static List<Placed> oneLegPerBerth(List<Placed> places, int index) {
+        Map<Integer, List<Placed>> byBerth = new LinkedHashMap<>();
+        for (Placed placed : places) {
+            byBerth.computeIfAbsent(placed.task().berth(), key -> new ArrayList<>())
+                    .add(placed);
+        }
+        List<Placed> legs = new ArrayList<>(byBerth.size());
+        for (List<Placed> atBerth : byBerth.values()) {
+            legs.add(atBerth.get(Math.floorMod(index, atBerth.size())));
+        }
+        return legs;
+    }
+
+    /** Whether this job is work on machines rather than at benches. */
+    private static boolean onMachines(List<Placed> places) {
+        for (Placed placed : places) {
+            if (placed.task().berth() != FixtureTask.NO_BERTH) return true;
+        }
+        return false;
+    }
+
     /** One authored job as a stop on somebody's route. */
     private static AmbientTaskRoute.Stop stopAt(Placed placed, Affordance job) {
         FixtureTask task = placed.task();
@@ -123,7 +153,7 @@ public final class Shift {
                 task.cellX() + 0.5f, task.cellY() + 0.5f,
                 CrewRole.dwellFor(job), CrewRole.activityFor(job),
                 task.fixtureX() + 0.5f, task.fixtureY() + 0.5f,
-                JobBoard.group(placed.site().id(), job));
+                JobBoard.group(placed.site().id(), job, task.berth()));
     }
 
     private Shift(CrewRole role, List<JobSite> sites, AmbientThreatPolicy threatPolicy,
@@ -399,10 +429,22 @@ public final class Shift {
         for (int step = 0; step < order.size(); step++) {
             Affordance job = order.get((start + step) % order.size());
             List<Placed> places = byJob.get(job);
-            if (CrewRole.isCircuit(job)) {
+            if (CrewRole.isCircuit(job) || onMachines(places)) {
                 // Every place it reaches, in one turn of the rotation, offset
                 // per member so two walkers on the same round are not in step.
-                List<Placed> legs = oneLegPerSite(places, index);
+                //
+                // Work on machines takes the same treatment for a related but
+                // distinct reason. It is not a circuit — it happens in one room
+                // — but that room holds several machines, and each of them is
+                // its own piece of work waiting its turn. Given one stop like
+                // an ordinary bench job, a technician takes the nearest stand
+                // and services it for the whole battle: the claim service
+                // answers every later request with the claim already held, so
+                // the walk back is to the machine they never left, and nothing
+                // else in the room is ever touched.
+                List<Placed> legs = CrewRole.isCircuit(job)
+                        ? oneLegPerSite(places, index)
+                        : oneLegPerBerth(places, index);
                 for (int leg = 0; leg < legs.size(); leg++) {
                     stops.add(stopAt(legs.get(Math.floorMod(index + leg, legs.size())), job));
                 }

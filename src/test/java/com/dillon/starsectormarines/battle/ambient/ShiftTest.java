@@ -57,6 +57,23 @@ class ShiftTest {
         return occupied;
     }
 
+    /**
+     * The claim group of one machine in the bay.
+     *
+     * <p>Read off a published job rather than named, because servicing is filed
+     * per berth: the machines in a room are not interchangeable with each other
+     * the way its benches are, so there is no single room-wide welding group to
+     * ask for.
+     */
+    private static String aMachineIn(Bay bay) {
+        for (FixtureTask task : JobBoard.live(bay.map().fixtureTasks, bay.compartment(),
+                allBerthed(bay.map()))) {
+            if (task.affordance() != Affordance.SERVICE) continue;
+            return JobBoard.group(bay.compartment().id(), Affordance.SERVICE, task.berth());
+        }
+        throw new AssertionError("the generated bay published no servicing at all");
+    }
+
     @Test
     void aTechnicianCyclesTheJobsTheBayAffords() {
         Bay bay = generateBay(1L);
@@ -67,9 +84,10 @@ class ShiftTest {
 
         // A loop that came back to the same group twice would be a stop that
         // resolves to a claim the walker is already holding: they arrive where
-        // they stand and do the same job again. One bay is one site, so even the
+        // they stand and do the same job again. One bay is one site, so the
         // defect list - which is a circuit and does call at several places -
-        // contributes exactly one group here.
+        // contributes exactly one group here. Servicing contributes one per
+        // machine, because the machines in a room are its separate work.
         Set<String> groups = new HashSet<>();
         for (AmbientTaskRoute.Stop stop : shift.stops()) {
             assertNotNull(stop.pointGroup(),
@@ -81,8 +99,7 @@ class ShiftTest {
                 "a single stop is a post, not a shift: nothing cycles");
 
         // Welding on a berthed machine is the work; the rest is what the work needs.
-        assertTrue(groups.contains(JobBoard.group(bay.compartment().id(),
-                        Affordance.SERVICE)),
+        assertTrue(groups.contains(aMachineIn(bay)),
                 "the technician never goes near the machines");
     }
 
@@ -184,7 +201,10 @@ class ShiftTest {
         assertTrue(offered.contains(Affordance.SERVICE), "no servicing was published");
         assertTrue(service.registeredCount() > 0, "nothing was published at all");
 
-        String group = JobBoard.group(bay.compartment().id(), Affordance.SERVICE);
+        // Both flanks of one machine, which is the tightest case there is: the
+        // two claimants want the same piece of work and must still be given
+        // different ground to stand on.
+        String group = aMachineIn(bay);
         TaskPoint first = service.claimNearest(1L, group, 0f, 0f);
         TaskPoint second = service.claimNearest(2L, group, 0f, 0f);
         assertNotNull(first, "the first technician could not claim anywhere to weld");
