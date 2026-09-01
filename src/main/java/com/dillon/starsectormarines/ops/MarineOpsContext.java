@@ -261,6 +261,13 @@ public class MarineOpsContext {
         return debugCompanyStage;
     }
 
+    public void setDebugCompanyStage(DebugCompanyStage stage) {
+        if (stage == null || stage == debugCompanyStage) return;
+        debugCompanyStage = stage;
+        debugSquadCount = -1;
+        debugCompanyRoster = null;
+    }
+
     public void cycleDebugCompanyStage() {
         debugCompanyStage = debugCompanyStage.next();
         debugSquadCount = -1;
