@@ -515,8 +515,11 @@ completely.
 The general law: **a placement guard must answer about the stamp, not about the
 map.** A guard that reports a pre-existing condition refuses everything, and a
 caller that places nothing looks exactly like a caller that was never invoked.
-`BattleSetup`'s vehicle parking and `OverwatchTowerStage` still use the whole-map
-form and carry the same latent failure.
+Every stamper now asks locally: `BattleSetup`'s vehicle parking and
+`OverwatchTowerStage` were switched after the emplacements were, and the same
+before/after probe held their anchors identical across three seeds — except for
+one 200x140 port map that had been parking **no vehicles at all** and now parks
+its five. Latent is not the same as harmless; it only means nobody had looked.
 
 **Gate count is a cap, not a count.** Growth decides where roads cross the
 outline; the dial decides how many of those crossings stay open. A place whose
