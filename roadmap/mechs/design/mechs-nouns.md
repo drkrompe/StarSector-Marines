@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — new campaigns begin with vacant support gantries; their first
-standard-fit chassis is fabricated from player-fleet commodities in the Mech Lab.
+Updated: 2026-09-01 — Mech Lab sockets and equipment use rectangular fitting-grid
+footprints, and the catalog projects the shipped equipment art over those footprints.
 
 ## Purpose
 
@@ -85,13 +85,18 @@ increasing an encounter's total armored threat.
   over campaign authorities, not a second inventory or a battle debug picker.
 - A **socket** is one spatial equipment location on a heavy asset. Refittable
   sockets declare a compatibility type—ballistic, energy, missile, or
-  omni—and a sized capacity. A component declares a compatible type and a
-  slot cost. Each asset-class layout owns the socket's physical mount anchor,
+  omni—and an active rectangular region within the common three-column by
+  two-row fitting grid. A component declares a compatible type and its own
+  column-by-row footprint. It fits only when that complete rectangle lies inside
+  the socket's active region; equal scalar area is not interchangeable geometry.
+  Each asset-class layout owns the socket's physical mount anchor,
   its equipment-dock center around the doll, and its doll-relative interaction
   footprint as well as compatibility and capacity. A leader preserves the
   relationship between a remote dock and the mount it configures.
   Presentation may enforce a minimum pointer hit area for usability without
-  changing that capacity or making the asset physically larger. An empty translucent
+  changing that grid or making the asset physically larger. Inactive cells remain
+  visible and blocked so a smaller mount reads against the same scale as a larger
+  one. An empty translucent
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
@@ -99,7 +104,7 @@ increasing an encounter's total armored threat.
   or vehicle class. It references the same ordered appearance and physical scale
   used in battle, while owning the maintenance facing and every socket's physical
   mount anchor, remote equipment dock, interaction footprint, compatibility, and
-  capacity. The renderer consumes that definition; it does not guess mount
+  rectangular grid. The renderer consumes that definition; it does not guess mount
   locations from a generic chassis shape. Future external authoring may move the
   definition out of code without changing that ownership boundary.
 - A **workshop task route** is a battle-owned ambient assignment for one Mech Lab
@@ -416,9 +421,9 @@ support sortie, subject only to practical runtime resources.
   than encoding reload speed in a chassis, role, or weapon definition.
 - Owned subsystem quantity includes installed copies. A failed refit changes
   neither inventory accounting nor the target mech's installed loadout.
-- A custom refit validates socket type, sized capacity, component inventory,
+- A custom refit validates socket type, complete rectangular footprint, component inventory,
   and the fabrication bill in one atomic command. An omni socket
-  accepts several equipment types; it does not waive slot cost or budgets.
+  accepts several equipment types; it does not waive footprint or budgets.
 - Spatial selection and drag previews have no mutation authority. Dropping a
   component may propose a placement, but only a successful campaign command
   changes the installed loadout.
@@ -436,12 +441,14 @@ support sortie, subject only to practical runtime resources.
   selected asset or distort its physical size relative to technicians, tiles,
   props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
-  strongly translucent type color, large hull-relative drop footprint, and segmented capacity
-  cells occupy the gantry around the physical doll, with a light leader returning
+  strongly translucent type color, large hull-relative drop footprint, and common
+  three-by-two cell frame occupy the gantry around the physical doll, with a light leader returning
   to the authored mount anchor. The doll remains readable instead of becoming a
   pile of UI rectangles, and the rendered room becomes useful fitting space.
-  The whole footprint is the pointer target; capacity cells are the ordered placement units
-  a future multi-slot drag preview occupies. An authored empty socket stays visible
+  The whole footprint is the pointer target; active, occupied, and blocked cells
+  project the same rectangular component and socket dimensions used by the atomic
+  campaign refit. A future drag preview may occupy those cells but cannot redefine
+  them. An authored empty socket stays visible
   while an absent socket produces no footprint.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real
