@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -63,52 +64,79 @@ public interface PrecinctClaim {
     }
 
     /**
-     * Each precinct claimed the way its own kind wants, in one pass.
+     * Each precinct claimed the way its own kind wants — need first, frontage
+     * second.
      *
      * <p>The two shapes are not a map-wide choice — a fortress and a town on the
      * same map want different ones, which is the one place this model does not
-     * collapse to a single rule. What makes them a single pass rather than two
-     * is that the difference is entirely in <em>where the expansion starts</em>:
-     * a programmed precinct grows from its seed cell and pools, a zoned one
-     * grows from all of its road at once and hugs its streets. Everything after
-     * that — advancing together, the nearer source winning contested ground,
-     * stopping at an allowance — is the same for both.
+     * collapse to a single rule. The difference is entirely in <em>where the
+     * expansion starts</em>: a programmed precinct grows from its seed cell and
+     * pools, a zoned one grows from all of its road at once and hugs its
+     * streets. Everything after that — advancing together, the nearer source
+     * winning contested ground, stopping at an allowance — is the same for both.
      *
-     * <p>Running them as two passes instead would let whichever went first take
-     * ground the other was entitled to, and the answer would depend on the order
-     * the precincts happened to be listed in.
+     * <p><b>Programmed places claim first, and that is a statement about what
+     * the two allowances mean rather than an accident of ordering.</b> A
+     * programmed precinct's allowance is a <em>need</em>: the ground its
+     * buildings and lots have to stand on, and short of it the place is not a
+     * smaller version of itself but an installation missing its keep. A zoned
+     * precinct's allowance is a <em>frontage measure</em>: how much ground lies
+     * along the streets it happened to grow, which is a description of a place
+     * rather than a requirement of one, and which yields gracefully. Need goes
+     * before frontage.
+     *
+     * <p>Order <em>within</em> a pass still does not matter, which is what the
+     * single frontier is for: every programmed precinct is seeded before the
+     * first of them advances, so two garrisons contest ground by nearness and
+     * not by list position, and the zoned pass then floods together into
+     * whatever is left.
+     *
+     * <p>Seeding both kinds into one frontier is only fair while the sources are
+     * comparable in number, and on a production map they are not. A settlement's
+     * arms span the whole map, so it enters with thousands of cost-zero sources
+     * against a garrison's one, and takes the ground before the garrison's
+     * single source can reach it. Measured for a size-6, rating-5 world at seed
+     * 42: at 144x80 the garrison was allowed 4592 cells and claimed 2832 with
+     * seven buildings unplaced including the keep, and at 112x64 it was allowed
+     * 3031 and claimed 647, again seven unplaced — while at 560x336, where the
+     * places are far enough apart for the race not to happen, it claimed its
+     * whole allowance and built everything.
      */
     static PrecinctClaim byKind(List<Precinct> precincts) {
         return (owner, width, height, budget) -> {
             int[][] claim = new int[width][height];
-            for (int[] column : claim) java.util.Arrays.fill(column, GrownTrunkPlan.UNOWNED);
+            for (int[] column : claim) Arrays.fill(column, GrownTrunkPlan.UNOWNED);
             int[] taken = new int[precincts.size()];
-            PriorityQueue<long[]> queue = frontier();
+            PatchField[] shape = shapeFields(precincts.size());
 
+            PriorityQueue<long[]> pooling = frontier();
             for (int i = 0; i < precincts.size(); i++) {
+                if (!precincts.get(i).isProgrammed()) continue;
                 Precinct precinct = precincts.get(i);
-                if (precinct.isProgrammed()) {
-                    int x = Math.max(0, Math.min(width - 1, precinct.seedX()));
-                    int y = Math.max(0, Math.min(height - 1, precinct.seedY()));
-                    if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
-                    claim[x][y] = i;
-                    taken[i]++;
-                    queue.add(new long[]{0L, x, y});
-                } else {
-                    for (int x = 0; x < width; x++) {
-                        for (int y = 0; y < height; y++) {
-                            if (owner[x][y] != i || claim[x][y] != GrownTrunkPlan.UNOWNED) {
-                                continue;
-                            }
-                            claim[x][y] = i;
-                            taken[i]++;
-                            queue.add(new long[]{0L, x, y});
+                int x = Math.max(0, Math.min(width - 1, precinct.seedX()));
+                int y = Math.max(0, Math.min(height - 1, precinct.seedY()));
+                if (claim[x][y] != GrownTrunkPlan.UNOWNED) continue;
+                claim[x][y] = i;
+                taken[i]++;
+                pooling.add(new long[]{0L, x, y});
+            }
+            expand(pooling, claim, taken, budget, width, height, shape);
+
+            PriorityQueue<long[]> fronting = frontier();
+            for (int i = 0; i < precincts.size(); i++) {
+                if (precincts.get(i).isProgrammed()) continue;
+                for (int x = 0; x < width; x++) {
+                    for (int y = 0; y < height; y++) {
+                        if (owner[x][y] != i || claim[x][y] != GrownTrunkPlan.UNOWNED) {
+                            continue;
                         }
+                        claim[x][y] = i;
+                        taken[i]++;
+                        fronting.add(new long[]{0L, x, y});
                     }
                 }
             }
-            expand(queue, claim, taken, budget, width, height,
-                    shapeFields(precincts.size()));
+            expand(fronting, claim, taken, budget, width, height, shape);
             return claim;
         };
     }

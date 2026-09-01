@@ -1,14 +1,16 @@
 # Precincts
 
-Status: ACTIVE — adopted and wired. `BspCityGenerator.usePrecincts` builds a
-whole map this way: places seeded from a world or authored, grown, welded onto
-one road network, claimed, allowed ground, filled — zoned from a character or
-packed from a program — walled and gated. What remains is the shape work below.
+Status: ACTIVE — adopted and wired. A `PrecinctPlan` handed to
+`MapGenerator.generate` builds a whole map this way: places seeded from a world
+or authored, grown, welded onto one road network, claimed, allowed ground,
+filled — zoned from a character or packed from a program — walled and gated.
+Assault and Raid against a real market generate their maps this way. What
+remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-09-01 — a zoned precinct has a character, and a garrison's
-fortification is derived from the world's rating under the mission's demand.
+Updated: 2026-09-01 — the plan is a per-call argument, fits the map it is
+given, and reaches Assault and Raid; a programmed place claims first.
 
 ## The shift
 
@@ -63,7 +65,7 @@ Two things fall out of that rather than being built:
 A cell belongs to the precinct whose arms are nearest to it. That gives every
 precinct an outline without anybody choosing one.
 
-## A programmed place claims differently from a settled one
+## A programmed place claims differently from a settled one, and first
 
 This was found by asserting rather than assuming, and it is the one place the
 model does not collapse to a single rule.
@@ -87,6 +89,24 @@ So `PrecinctClaim` has three policies and the choice is a property of the kind
 of place: `nearest()` and `budgeted()` spread along streets, `compact()` pools
 around a seed. A programmed precinct needs `compact()` and cannot use the
 others.
+
+**Need goes before frontage.** The two kinds used to claim in one frontier —
+a settlement from every one of its road cells at cost zero, a garrison from its
+single seed — which is fair while the places are far apart and is not on a
+production map, where the settlement's arms span the whole map and it enters
+with thousands of sources against the garrison's one. Measured for a size-6,
+rating-5 world: at 144x80 the garrison was allowed 4592 cells and claimed
+2832 with seven buildings unplaced, the keep among them; at 112x64 it was
+allowed 3031 and claimed 647. A programmed precinct's allowance is the ground
+its program has to stand on, and short of it the place is not a smaller
+version of itself but an installation missing its keep; a zoned precinct's
+allowance is a measure of how far its streets reach, which yields gracefully.
+So the programmed places pool first, all of them together in one frontier so
+two garrisons still contest ground by nearness rather than by list position,
+and the zoned places then flood together into what is left. The same world at
+144x80 now claims its whole allowance and builds everything but the vehicle
+bay; at 112x64 the keep is built and three items are short. At 560x336 nothing
+moved, so the measurements below still hold.
 
 ## Fill is a policy, not a stage
 
@@ -367,9 +387,13 @@ map are meant to have one each.
 clears tactical nodes standing on its reservation and a building's node has no
 business being removed by an airfield.
 
-Points of interest stay at zero on a remote map, and that is right rather than
-outstanding: those come from settlement fills, and a remote map has no
-civilians.
+**Its stores and its seat of command are points of interest as well**, in the
+other vocabulary a battle uses: the armoury, vehicle bay, stockroom and parts
+cage as depots, the keep as administrative, the control room as comms. Found
+by Raid rather than by design: once the garrison claimed its whole allowance
+on a 144x80 map, every point of interest stood on the settlement's side, which
+is the marines' side, and the raid had nothing on the defender's side to
+strike. Barracks, mess and gate emit none; they are not prizes.
 
 ## Road in open country is a supply route or it is nothing
 
@@ -441,6 +465,58 @@ objective's claim.
 corner furthest from the objective. A force landing beside the thing it is meant
 to take has no approach to fight through, which is most of what a conquest map
 is for.
+
+## Which battles are made of places
+
+`BattleSetup` derives a plan for **Assault and Raid** against a real market and
+for nothing else. Both are search-and-strike missions whose balance is not
+pinned, so a map that is a set of places changes something nobody has committed
+a number to. Conquest stays on the stock crossroad until the grown maps are
+judged; Sabotage, Extraction, Civilian Rescue, Silent Colony and the opening
+operations keep the recipe they have. The gate is the market: a battle with no
+market behind it — a headless fixture, an operation against no planet — has no
+size, rating or economy to derive from and takes the stock map, which is the
+rule `BspCityGenerator.recipeFor` already applies to the grown recipe.
+
+**The plan is an argument of the generate call, never state on the generator.**
+`BattleSetup.MAP_GEN` is one instance shared by every factory, and a plan stored
+on it would be read by the next battle. A recipe handed both a plan and a
+traversal axis refuses, so Conquest cannot reach the precinct recipe by
+accident. The plan's own draws come from the battle seed under a fixed salt:
+deterministic in the seed, and not the generator's stream read twice.
+
+Raid takes `Sprawl.BALANCED`, not `REMOTE`, on purpose. A raid wants a target,
+and targets are points of interest, which only settlement fills emit; a remote
+map is an installation in open country and has none. Making tactical nodes
+eligible targets is what would unlock a remote raid. **The Raid target is on
+the defender's side** — nearer the defender's spawn than the marine's, by
+distance — rather than in the high-X half, because on a precinct map the sides
+are wherever the objective grew. `ExtractionPayloadLayout` and
+`SabotageSiteLayout` still carry the half-map rule; they are not on this recipe
+and the rule is right for the map they get.
+
+## A derived plan fits the map it is given
+
+`MapScale` is 112x64, 144x80 and 280x168, and the model above was measured at
+560x336. A derivation with a fixed 30-cell margin and 60-cell separation cannot
+seat a second seed on 112x64 — the seedable span is 52x4 — so both scale with
+the map: the margin is a quarter of the short side and the separation a quarter
+of the long side, each capped at its large-map value so nothing changes at
+560x336. A map seats what it can seat: an outlying place that finds no room is
+not placed. **The garrison is the exception.** A defended world never loses its
+objective to a small map; where the draw finds no room, the garrison is seeded
+at the in-margin cell furthest from every seed already placed — deterministic,
+no draw.
+
+**The program is trimmed to the map before ground is asked for.**
+`FortressProgram.fittedTo` takes a ground budget — a fixed share of the map,
+`FIT`, a first guess to be measured rather than a tuned value — and walks a
+ladder one step at a time until the envelope fits or the ladder runs out:
+airfields first, because a lot is the single largest item; then barracks,
+control rooms, stores, the armoury, barracks again. The keep, gatehouse,
+vehicle shed and mess hall are never removed, because a garrison with none of
+them is not a garrison; a program still over budget at the end of the ladder is
+packed anyway and records what it could not place.
 
 ## How hard a place is to take is stated, not discovered
 
@@ -645,10 +721,15 @@ no draw it did not take before.
 ## Still open
 
 
-1. **A precinct takes what it asks for whether or not the map can spare it.** On
-   a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was
-   simply squeezed. Nothing checks that the places asked for fit the map they
-   are being put on.
+1. **A precinct takes what it asks for whether or not the map can spare it.**
+   The program is now trimmed to a share of the map and the garrison claims
+   first, which is what puts the keep on a 144x80 map — and also what makes
+   this more visible, not less. A garrison owing forty barrack blocks on
+   200x140 is allowed 23808 of 28000 cells and its town claims two thousand;
+   a little larger and the town claims nothing at all, and the garrison only
+   reports a shortfall once its allowance exceeds the whole map. Nothing yet
+   weighs one place's need against another's existence, and a claim pooling
+   freely runs to the map edge, where the packer lays its first row.
 2. **Settlement claims read as collars, not districts.** A zoned precinct's
    allowance spreads two or three cells either side of its arms, so it draws as
    a road network with a shoulder rather than as a place with streets in it.
