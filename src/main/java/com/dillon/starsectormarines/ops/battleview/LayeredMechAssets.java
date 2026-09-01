@@ -18,6 +18,9 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache bastionAutocannon;
     public final LayeredSpriteCache demolitionCannon;
     public final LayeredSpriteCache thermalLance;
+    public final LayeredSpriteCache musterAutogun;
+    public final LayeredSpriteCache quarryBreakerCannon;
+    public final LayeredSpriteCache pioneerRocketCradle;
     public final LayeredSpriteCache muzzleFlash;
 
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
@@ -33,6 +36,9 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache bastionAutocannon,
                              LayeredSpriteCache demolitionCannon,
                              LayeredSpriteCache thermalLance,
+                             LayeredSpriteCache musterAutogun,
+                             LayeredSpriteCache quarryBreakerCannon,
+                             LayeredSpriteCache pioneerRocketCradle,
                              LayeredSpriteCache muzzleFlash) {
         this.chassis = chassis;
         this.socketedChassis = socketedChassis;
@@ -50,6 +56,9 @@ public final class LayeredMechAssets {
         this.bastionAutocannon = bastionAutocannon;
         this.demolitionCannon = demolitionCannon;
         this.thermalLance = thermalLance;
+        this.musterAutogun = musterAutogun;
+        this.quarryBreakerCannon = quarryBreakerCannon;
+        this.pioneerRocketCradle = pioneerRocketCradle;
         this.muzzleFlash = muzzleFlash;
     }
 }

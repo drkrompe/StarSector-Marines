@@ -45,6 +45,13 @@ public final class TrunkPlan {
     public static final int PRIMARY_WIDTH = 7;
     /** Width of a secondary trunk (cross-street, {@link GroundKind#STREET}). */
     public static final int SECONDARY_WIDTH = 5;
+    /**
+     * Width of a tertiary trunk (back street, {@link GroundKind#STREET}). Set
+     * to {@link Bsp#ROAD_WIDTH_MIN} — the same floor the BSP frames use, and
+     * for the same reason: narrower than this reads as an alley against
+     * city-scale buildings.
+     */
+    public static final int TERTIARY_WIDTH = Bsp.ROAD_WIDTH_MIN;
 
     /** Inclusive lower bound on the perpendicular-axis offset, as a fraction of map dim. */
     private static final float OFFSET_LO = 0.35f;
@@ -70,7 +77,19 @@ public final class TrunkPlan {
         /** Width-7 wide boulevard — 2-cell {@link GroundKind#SIDEWALK} flank on each side around a 3-cell {@link GroundKind#STREET} core. */
         PRIMARY(PRIMARY_WIDTH, GroundKind.STREET, 2),
         /** Width-5 cross-street. All {@link GroundKind#STREET}; render-time wall adjacency handles the 1-thick sidewalk where it meets a building. */
-        SECONDARY(SECONDARY_WIDTH, GroundKind.STREET, 0);
+        SECONDARY(SECONDARY_WIDTH, GroundKind.STREET, 0),
+        /**
+         * Width-3 back street. Same surface treatment as {@link #SECONDARY} —
+         * what separates them is width alone, which is the whole point: a
+         * settlement of any size has far more of these than of anything above
+         * them, and drawing them at a cross-street's width is what turns a city
+         * into buildings marooned in pavement.
+         *
+         * <p>Unused by {@link TrunkPlan} itself, which lays exactly two trunks
+         * and needs exactly two classes. It exists for the grown junction
+         * graph, whose arms run several rungs deep.
+         */
+        TERTIARY(TERTIARY_WIDTH, GroundKind.STREET, 0);
 
         /** Cells wide along the band's short axis. */
         public final int width;

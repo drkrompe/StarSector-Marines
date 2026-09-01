@@ -53,6 +53,9 @@ public final class WeaponRegistry {
     public static final String MECH_BASTION_AUTOCANNON_ID = "weapon.mech-bastion-autocannon";
     public static final String MECH_DEMOLITION_CANNON_ID = "weapon.mech-demolition-cannon";
     public static final String MECH_THERMAL_LANCE_ID = "weapon.mech-thermal-lance";
+    public static final String MECH_MUSTER_AUTOGUN_ID = "weapon.mech-muster-autogun";
+    public static final String MECH_QUARRY_BREAKER_ID = "weapon.mech-quarry-breaker";
+    public static final String MECH_PIONEER_ROCKET_ID = "weapon.mech-pioneer-rocket";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.

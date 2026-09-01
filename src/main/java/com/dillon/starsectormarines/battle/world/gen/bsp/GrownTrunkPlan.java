@@ -167,8 +167,19 @@ public final class GrownTrunkPlan {
         }
     }
 
-    /** Class ladder. A junction's children grow one step down; the bottom rung repeats. */
-    private static final TrunkKind[] LADDER = { TrunkKind.PRIMARY, TrunkKind.SECONDARY };
+    /**
+     * Class ladder. A junction's children grow one step down; the bottom rung
+     * repeats.
+     *
+     * <p>The bottom rung is where nearly all the road is, because a graph
+     * branching a few ways per junction has most of its junctions at its
+     * deepest levels. Whatever sits there is therefore what the settlement is
+     * mostly made of, and it was a width-5 cross-street until 2026-09-01: a
+     * city profile laid half the map as carriageway before a single building
+     * was placed, and read as blocks marooned in pavement.
+     */
+    private static final TrunkKind[] LADDER =
+            { TrunkKind.PRIMARY, TrunkKind.SECONDARY, TrunkKind.TERTIARY };
 
     /**
      * Minimum gap between a new junction and any unrelated existing band, so

@@ -505,6 +505,151 @@
       }
     },
     {
+      "id": "weapon.mech-muster-autogun",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "Muster Commercial Autogun",
+        "modelName": "Muster",
+        "designation": "CAG-6",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 26.0,
+        "damage": 9.0,
+        "accuracy": 0.48,
+        "cooldown": 2.4,
+        "penetration": 4.0,
+        "burstCount": 6,
+        "burstSpacing": 0.12,
+        "hitSpread": 1.35,
+        "roundVelocity": 240.0,
+        "flightSec": 0.108333,
+        "aoeRadius": 0.35,
+        "wallDamage": 2,
+        "noiseMagnitude": 0.9
+      },
+      "render": {
+        "tracerColor": "FFD69A",
+        "tracerTailCells": 0.78,
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileVisualCells": 0.16
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.07, "color": "FFE080" },
+          { "kind": "smoke", "radius": 0.20, "lifetime": 0.34 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.30, "lifetime": 0.10, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.25, "lifetime": 0.24 },
+          { "kind": "smoke", "radius": 0.28, "lifetime": 0.58 }
+        ]
+      },
+      "audio": { "fireSound": "light_autocannon_fire" }
+    },
+    {
+      "id": "weapon.mech-quarry-breaker",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "Quarry Breaker Cannon",
+        "modelName": "Quarry",
+        "designation": "QBC-2",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 17.0,
+        "damage": 34.0,
+        "accuracy": 0.42,
+        "cooldown": 5.5,
+        "penetration": 8.0,
+        "contact": { "damage": 50.0, "penetration": 12.0 },
+        "hitSpread": 1.35,
+        "roundVelocity": 53.125,
+        "flightSec": 0.32,
+        "aoeRadius": 1.1,
+        "wallDamage": 55,
+        "wallDamageRadius": 1.0,
+        "noiseMagnitude": 1.5
+      },
+      "render": {
+        "tracerColor": "FFBE70",
+        "tracerTailCells": 0.46,
+        "projectileSprite": "graphics/missiles/shell_hellbore.png",
+        "projectileVisualCells": 0.34
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.72, "lifetime": 0.12, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.40, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": [0.32, 0.48], "lifetime": [0.72, 1.0],
+            "count": 2, "jitter": 0.20 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.88, "lifetime": 0.16, "color": "FFD060" },
+          { "kind": "explosion", "radius": 0.68, "lifetime": 0.38 },
+          { "kind": "ring", "radius": 0.78, "lifetime": 0.30 },
+          { "kind": "dust", "radius": 0.82, "lifetime": 0.42 }
+        ],
+        "aftermath": [
+          { "kind": "smoke", "radius": [0.62, 1.00], "lifetime": [1.10, 1.70],
+            "count": [3, 5], "jitter": 0.62, "delay": [0.08, 0.24] }
+        ]
+      },
+      "audio": {
+        "fireSound": "hellbore_fire",
+        "impactSound": "marines_explosion"
+      }
+    },
+    {
+      "id": "weapon.mech-pioneer-rocket",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "Pioneer Utility Rocket Cradle",
+        "modelName": "Pioneer",
+        "designation": "PRC-4",
+        "designationTiered": false
+      },
+      "sim": {
+        "pointDefenseTarget": true,
+        "range": 20.0,
+        "damage": 18.0,
+        "accuracy": 0.42,
+        "cooldown": 7.0,
+        "penetration": 7.0,
+        "burstCount": 4,
+        "burstSpacing": 0.18,
+        "hitSpread": 0.9,
+        "roundVelocity": 30.76923,
+        "flightSec": 0.65,
+        "aoeRadius": 0.9,
+        "wallDamage": 12,
+        "wallDamageRadius": 0.9,
+        "interceptableProjectile": true,
+        "noiseMagnitude": 1.2
+      },
+      "render": {
+        "tracerColor": "FFB86A",
+        "projectileSprite": "graphics/missiles/missile_SRM.png",
+        "projectileVisualCells": 0.34
+      },
+      "fx": {
+        "trail": [
+          { "kind": "glow", "radius": 0.14, "lifetime": 0.20, "color": "FF9040" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.48, "lifetime": 0.13, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.36, "lifetime": 0.34 },
+          { "kind": "smoke", "radius": [0.38, 0.58], "lifetime": [0.85, 1.20],
+            "count": [2, 3], "jitter": 0.34 },
+          { "kind": "dust", "radius": 0.42, "lifetime": 0.28 }
+        ]
+      },
+      "audio": {
+        "fireSound": "pilum_lrm_fire",
+        "impactSound": "marines_explosion"
+      }
+    },
+    {
       "id": "weapon.mech-srm-pod",
       "mount": "mech-mount",
       "catalog": {

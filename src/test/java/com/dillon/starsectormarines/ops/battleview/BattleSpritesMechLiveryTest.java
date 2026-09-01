@@ -24,12 +24,18 @@ class BattleSpritesMechLiveryTest {
                 marine.pulseLaserArm.sourcePath);
         assertEquals(factionPath("tri-tachyon", "pather-demolition-cannon.png"),
                 marine.demolitionCannon.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "muster-autogun.png"),
+                marine.musterAutogun.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "quarry-breaker-cannon.png"),
+                marine.quarryBreakerCannon.sourcePath);
         assertEquals(factionPath("lions-guard", "chassis-sirocco.png"),
                 defender.siroccoChassis.sourcePath);
         assertEquals(factionPath("lions-guard", "lrm-pod.png"),
                 defender.lrmPod.sourcePath);
         assertEquals(factionPath("lions-guard", "lions-guard-thermal-lance.png"),
                 defender.thermalLance.sourcePath);
+        assertEquals(factionPath("lions-guard", "pioneer-rocket-cradle.png"),
+                defender.pioneerRocketCradle.sourcePath);
         assertSame(sprites.layeredMechSprites().foot, marine.foot);
         assertSame(sprites.layeredMechSprites().muzzleFlash, defender.muzzleFlash);
     }

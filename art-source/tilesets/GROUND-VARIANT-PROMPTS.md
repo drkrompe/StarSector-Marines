@@ -22,6 +22,11 @@ with copies. `floors.grass` and `floors.dirt` do carry real variants. So the two
 families a barren or arid world is made of have no variation at all, and these
 are the first variants they will have rather than extra ones.
 
+(Since then `floors.dirt` has been widened to eight materials as well, and
+`floors.snow` created with eight. `floors.grass` is the last three-cell plate
+pool. Note that "carries real variants" was always a claim about the plate, not
+about what reaches the screen — see the closing section.)
+
 That also means the static in the rendered maps was never the stone texture
 repeating -- a uniform tile cannot produce speckle. It was entirely the
 cross-material mix below.
@@ -71,10 +76,15 @@ only in the arrangement and density of fine debris:
 | 7 | fine grit with two or three faint pale streaks, as if wind-scoured |
 | 8 | fine grit with a sparse dusting of darker specks |
 
-## Family: arid dust — extends `floors.sand`
+## Family: arid dust — asked for `floors.sand`, shipped as `floors.dirt`
 
-Match the three cells already at `(0,1)`, `(1,1)`, `(2,1)` of the same sheet
-(pixels x=0..167, y=56..111).
+**Read the closing section before reusing this prompt.** It was written to
+extend `floors.sand` and matched dirt instead, because the atlas moved under it
+while it ran; it now fills `floors.dirt`, whose palette it happens to hit
+exactly. `floors.sand` was regenerated separately as `sandvar-*`.
+
+It was matched against the three cells then at `(0,1)`, `(1,1)`, `(2,1)` of the
+same sheet (pixels x=0..167, y=56..111).
 
 Pale warm tan wind-blown dust over hardpan. Eight variants:
 
@@ -199,13 +209,33 @@ Point at the tileable material under `atlas-material-source/` instead — it is
 the actual source, it has a stable path, and it is what the pool draws from
 anyway.
 
-Those eight tiles are kept as `dust-*.png` and are **not ingested**, because
-they would do nothing if they were. `GroundRenderSystem` draws GRASS and DIRT
-from the sliced nature strip and falls back to the `floors.*` block only when
-that sheet fails to slice, so extending `floors.dirt` changes nothing on screen.
-That asymmetry is also why the regolith batch worked: STONE and SAND have no
-nature-strip entry and go through the `floors.*` block directly.
+Those eight tiles were kept as `dust-*.png` and parked. They are now ingested,
+as `floors.dirt`'s eight materials — but the paragraph that used to sit here was
+right about what that does and does not achieve, and the reason is worth keeping.
 
-Giving DIRT more variation means adding frames to the nature strip, which is a
-different shape — an auto-strip addressed by frame index rather than a variant
-pool cut on a grid.
+`GroundRenderSystem` draws GRASS and DIRT from the sliced nature strip and falls
+back to the `floors.*` block only when that sheet fails to slice, which in a
+loaded game it does not. So `floors.dirt` is the **degraded** path, and
+widening it makes that path consistent with `floors.stone`, `floors.sand` and
+`floors.snow` without changing a shipped map. That asymmetry is also why the
+regolith batch worked on sight: STONE and SAND have no nature-strip entry and go
+through the `floors.*` block directly.
+
+**What DIRT actually draws is worse than any of the pools this document was
+written about.** `TileManifest.pickNatureDirtTileId` hashes between
+`nature.dirt-1` and `nature.dirt-2`, and those two frames of `nature-tiles.png`
+are **byte-identical** — so every dirt cell in the game is one picture, and the
+pair is a no-op exactly the way `floors.stone`'s three cells were. `nature.grass-1`
+and `nature.grass-2` are byte-identical too, which makes GRASS the same defect
+on far more of the map.
+
+Fixing that is a different shape of job: the strip is an auto-strip addressed by
+frame index rather than a variant pool cut on a grid, and `pickNatureDirtTileId`
+hashes over a hard-coded pair rather than over a pool. It also has a palette
+decision in it that this batch does not settle. The nature strip's dirt is a dull
+olive-brown, mean (91.9, 79.3, 46.0); the dust family is a warm orange-brown at
+(131.6, 89.4, 52.6), because it was matched to the Floors plate. Dropping these
+eight onto the strip unchanged would recolour every dirt cell on every temperate
+map. Re-normalize them onto the strip's own mean first —
+`normalize_ground_variants.py` shifts a family's colour and leaves its texture
+alone, which is the step that keeps a variety fix from becoming an art change.
