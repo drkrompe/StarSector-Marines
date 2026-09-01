@@ -101,6 +101,7 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
     private final ComputedSignal<List<SquadCard>> squadCards;
+    private final ComputedSignal<List<SquadGalleryCard>> squadGalleryCards;
     private final ComputedSignal<List<CargoCostRow>> foundingCargoRows;
     private final ComputedSignal<Boolean> foundingDisabled;
     private final MutableSignal<Feedback> foundingFeedback;
@@ -216,6 +217,7 @@ public final class FleetArmoryViewModel {
         foundingFeedbackClasses = reactor.computed(() -> foundingFeedback.get().succeeded()
                 ? "squad-founder-feedback label tone-good"
                 : "squad-founder-feedback label tone-muted");
+        squadGalleryCards = reactor.computed(this::buildSquadGalleryCards);
         fireTeamOverviews = reactor.computed(this::buildFireTeamOverviews);
         squadRows = reactor.computed(this::buildSquadRows);
         teamRows = reactor.computed(this::buildTeamRows);
@@ -264,6 +266,7 @@ public final class FleetArmoryViewModel {
     public MarineRoster roster() { return roster; }
     public Signal<String> companySummary() { return companySummary; }
     public Signal<List<SquadCard>> squadCards() { return squadCards; }
+    public Signal<List<SquadGalleryCard>> squadGalleryCards() { return squadGalleryCards; }
     public Signal<List<CargoCostRow>> foundingCargoRows() { return foundingCargoRows; }
     public Signal<Boolean> foundingDisabled() { return foundingDisabled; }
     public Signal<String> foundingFeedbackText() { return foundingFeedbackText; }
@@ -456,15 +459,49 @@ public final class FleetArmoryViewModel {
         for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
             int available = squadFoundingResources.available(line.commodityId());
             String id = "found-squad-cost:" + line.commodityId();
+            String commodityName = squadFoundingResources.commodityName(line.commodityId());
+            if (Commodities.HAND_WEAPONS.equals(line.commodityId())) {
+                commodityName = "Armaments";
+            }
             rows.add(new CargoCostRow(
                     id, id + ":icon", id + ":label",
                     available >= line.quantity() ? "cargo-cost" : "cargo-cost short",
                     squadFoundingResources.commodityIcon(line.commodityId()),
-                    squadFoundingResources.commodityName(line.commodityId())
-                            .toUpperCase(Locale.ROOT) + "  " + available
-                            + " / " + line.quantity()));
+                    commodityName.toUpperCase(Locale.ROOT) + "  " + available
+                            + "/" + line.quantity()));
         }
         return List.copyOf(rows);
+    }
+
+    private List<SquadGalleryCard> buildSquadGalleryCards() {
+        List<SquadGalleryCard> cards = new ArrayList<>();
+        for (SquadCard squad : squadCards.get()) {
+            String founder = squad.id() + ":founder";
+            cards.add(new SquadGalleryCard(squad.id(), squad.classes(), squad,
+                    "squad-open", "squad-reinforce", "squad-founder-card hidden",
+                    founder, founder + ":plus",
+                    founder + ":heading", founder + ":copy",
+                    founder + ":costs", founder + ":feedback", List.of(), "", "",
+                    true, () -> { }));
+        }
+        String id = "found-squad-card";
+        cards.add(new SquadGalleryCard(id, "squad-founder-slot", emptySquadCard(id),
+                "squad-open hidden", "squad-reinforce hidden", "squad-founder-card",
+                "found-squad", "found-squad-plus",
+                "found-squad-heading", "found-squad-copy",
+                "squad-founder-costs", "squad-founder-feedback", foundingCargoRows.get(),
+                foundingFeedbackText.get(), foundingFeedbackClasses.get(),
+                foundingDisabled.get(), this::foundSquad));
+        return List.copyOf(cards);
+    }
+
+    private static SquadCard emptySquadCard(String id) {
+        return new SquadCard(id + ":empty", id + ":empty-name", id + ":empty-status",
+                id + ":empty-strength", id + ":empty-teams", id + ":empty-command",
+                id + ":empty-location", id + ":empty-recovery", id + ":empty-open",
+                id + ":empty-reinforce", id + ":empty-reinforce-icon",
+                id + ":empty-reinforce-label", "", "", "", "", "", "", "",
+                "", "", "", "", true, () -> { }, () -> { });
     }
 
     private List<FireTeamOverview> buildFireTeamOverviews() {
@@ -1715,6 +1752,41 @@ public final class FleetArmoryViewModel {
                 case "open" -> open;
                 case "reinforce" -> reinforce;
                 default -> throw new IllegalArgumentException("Unknown squad-card property");
+            };
+        }
+    }
+
+    public record SquadGalleryCard(
+            String id, String classes, SquadCard squad,
+            String openClasses, String reinforceClasses, String founderClasses,
+            String founderId, String plusId,
+            String founderHeadingId, String founderCopyId,
+            String founderCostsId, String founderFeedbackId,
+            List<CargoCostRow> foundingCargoRows, String foundingFeedbackText,
+            String foundingFeedbackClasses, boolean foundingDisabled, Runnable foundSquad)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "classes" -> classes;
+                case "squad" -> squad;
+                case "openClasses" -> openClasses;
+                case "reinforceClasses" -> reinforceClasses;
+                case "founderClasses" -> founderClasses;
+                case "founderId" -> founderId;
+                case "plusId" -> plusId;
+                case "founderHeadingId" -> founderHeadingId;
+                case "founderCopyId" -> founderCopyId;
+                case "founderCostsId" -> founderCostsId;
+                case "founderFeedbackId" -> founderFeedbackId;
+                case "foundingCargoRows" -> foundingCargoRows;
+                case "foundingFeedbackText" -> foundingFeedbackText;
+                case "foundingFeedbackClasses" -> foundingFeedbackClasses;
+                case "foundingDisabled" -> foundingDisabled;
+                case "foundSquad" -> foundSquad;
+                default -> throw new IllegalArgumentException(
+                        "Unknown squad-gallery-card property: " + property);
             };
         }
     }
