@@ -42,8 +42,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             "graphics/battle/mech-lab/welding-torch.png";
     static final String WELDING_SPARKS_PATH =
             "graphics/battle/mech-lab/welding-sparks-sheet.png";
-    private static final float MIN_DROP_TARGET_WIDTH = 128f;
-    private static final float MIN_DROP_TARGET_HEIGHT = 76f;
+    private static final float MIN_DROP_TARGET_WIDTH = 92f;
+    private static final float MIN_DROP_TARGET_HEIGHT = 128f;
     private static final float CAPACITY_INSET = 4f;
     private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);

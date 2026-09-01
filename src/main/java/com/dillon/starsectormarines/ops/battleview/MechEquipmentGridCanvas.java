@@ -12,7 +12,7 @@ import java.awt.Color;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
-/** Canonical 3x2 fitting-grid projection shared by catalog cards and socket rows. */
+/** Canonical 2x3 fitting-grid projection shared by catalog cards and socket rows. */
 public final class MechEquipmentGridCanvas implements CanvasProducer {
 
     private static final Color BACKGROUND = new Color(0x07, 0x11, 0x19);
@@ -57,6 +57,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         context.fillRect(0f, 0f, width, height, BACKGROUND);
 
         SocketDef definition = socket.get();
+        boolean catalogPreview = definition == null;
         MechWeaponComponent component = weapon.get();
         MissileReplenisherComponent subsystem = replenisher.get();
         int activeColumns = definition != null
@@ -67,64 +68,90 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                 : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
         int itemRows = component != null ? component.footprintRows
                 : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        int itemStartColumn = Math.max(0, (activeColumns - itemColumns) / 2);
-        int itemStartRow = Math.max(0, (activeRows - itemRows) / 2);
+        float itemStartColumn = catalogPreview
+                ? Math.max(0f, (activeColumns - itemColumns) * 0.5f)
+                : Math.max(0, (activeColumns - itemColumns) / 2);
+        float itemStartRow = catalogPreview
+                ? Math.max(0f, (activeRows - itemRows) * 0.5f)
+                : Math.max(0, (activeRows - itemRows) / 2);
         Color accent = color(definition != null ? definition.type()
                 : component != null ? socketType(component) : SocketType.UTILITY);
 
-        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
-            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
-                float x = inset + column * (cellWidth + gap);
-                float y = inset + row * (cellHeight + gap);
-                boolean active = column < activeColumns && row < activeRows;
-                boolean filled = active && column >= itemStartColumn
-                        && column < itemStartColumn + itemColumns
-                        && row >= itemStartRow && row < itemStartRow + itemRows;
-                context.fillRect(x, y, cellWidth, cellHeight,
-                        !active ? BLOCKED : withAlpha(accent, filled ? 116 : 28));
-                if (!active) {
-                    context.line(x + 3f, y + 3f, x + cellWidth - 3f,
-                            y + cellHeight - 3f, BLOCKED_LINE, 1f);
-                    context.line(x + cellWidth - 3f, y + 3f, x + 3f,
-                            y + cellHeight - 3f, BLOCKED_LINE, 1f);
+        if (catalogPreview) {
+            float gridLeft = inset + itemStartColumn * (cellWidth + gap);
+            float gridTop = inset + itemStartRow * (cellHeight + gap);
+            for (int row = 0; row < itemRows; row++) {
+                for (int column = 0; column < itemColumns; column++) {
+                    float x = gridLeft + column * (cellWidth + gap);
+                    float y = gridTop + row * (cellHeight + gap);
+                    context.fillRect(x, y, cellWidth, cellHeight,
+                            withAlpha(accent, 152));
+                }
+            }
+        } else {
+            for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
+                for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
+                    float x = inset + column * (cellWidth + gap);
+                    float y = inset + row * (cellHeight + gap);
+                    boolean active = column < activeColumns && row < activeRows;
+                    boolean filled = active && column >= itemStartColumn
+                            && column < itemStartColumn + itemColumns
+                            && row >= itemStartRow && row < itemStartRow + itemRows;
+                    context.fillRect(x, y, cellWidth, cellHeight,
+                            !active ? BLOCKED : withAlpha(accent, filled ? 126 : 28));
+                    if (!active) {
+                        context.line(x + 3f, y + 3f, x + cellWidth - 3f,
+                                y + cellHeight - 3f, BLOCKED_LINE, 1f);
+                        context.line(x + cellWidth - 3f, y + 3f, x + 3f,
+                                y + cellHeight - 3f, BLOCKED_LINE, 1f);
+                    }
                 }
             }
         }
 
+        float itemLeft = inset + itemStartColumn * (cellWidth + gap);
+        float itemTop = inset + itemStartRow * (cellHeight + gap);
+        float itemWidth = itemColumns * cellWidth + Math.max(0, itemColumns - 1) * gap;
+        float itemHeight = itemRows * cellHeight + Math.max(0, itemRows - 1) * gap;
         drawEquipment(context, component, subsystem,
-                itemColumns, itemRows, itemStartColumn, itemStartRow,
-                inset, gap, cellWidth, cellHeight);
+                itemLeft, itemTop, itemWidth, itemHeight);
 
-        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
-            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
-                float x = inset + column * (cellWidth + gap);
-                float y = inset + row * (cellHeight + gap);
-                boolean active = column < activeColumns && row < activeRows;
+        int strokeColumns = catalogPreview
+                ? itemColumns : MechFittingLayout.MAX_GRID_COLUMNS;
+        int strokeRows = catalogPreview ? itemRows : MechFittingLayout.MAX_GRID_ROWS;
+        float strokeLeft = catalogPreview ? itemLeft : inset;
+        float strokeTop = catalogPreview ? itemTop : inset;
+        for (int row = 0; row < strokeRows; row++) {
+            for (int column = 0; column < strokeColumns; column++) {
+                float x = strokeLeft + column * (cellWidth + gap);
+                float y = strokeTop + row * (cellHeight + gap);
+                boolean active = catalogPreview
+                        || column < activeColumns && row < activeRows;
                 context.strokeRect(x, y, cellWidth, cellHeight,
-                        active ? withAlpha(accent, 205) : BLOCKED_LINE, active ? 1.5f : 1f);
+                        active ? withAlpha(accent, 220) : BLOCKED_LINE,
+                        active ? 1.5f : 1f);
             }
         }
     }
 
     private void drawEquipment(CanvasContext context, MechWeaponComponent component,
                                MissileReplenisherComponent subsystem,
-                               int itemColumns, int itemRows,
-                               int startColumn, int startRow,
-                               float inset, float gap, float cellWidth, float cellHeight) {
-        if (itemColumns <= 0 || itemRows <= 0) return;
-        float left = inset + startColumn * (cellWidth + gap);
-        float top = inset + startRow * (cellHeight + gap);
-        float areaWidth = itemColumns * cellWidth + (itemColumns - 1) * gap;
-        float areaHeight = itemRows * cellHeight + (itemRows - 1) * gap;
-        if (component != null && assets.get() != null) {
-            LayeredSpriteCache sprite = spriteFor(assets.get(), component);
+                               float left, float top,
+                               float areaWidth, float areaHeight) {
+        if (areaWidth <= 0f || areaHeight <= 0f) return;
+        LayeredMechAssets sprites = assets.get();
+        if (component != null && sprites != null) {
+            LayeredSpriteCache sprite = spriteFor(sprites, component);
             if (sprite != null) {
-                float scale = Math.min(areaWidth * 0.88f / sprite.pxWidth,
-                        areaHeight * 0.88f / sprite.pxHeight);
+                float angle = previewAngleDegrees(sprite);
+                float visualWidth = angle == 0f ? sprite.pxWidth : sprite.pxHeight;
+                float visualHeight = angle == 0f ? sprite.pxHeight : sprite.pxWidth;
+                float scale = Math.min(areaWidth * 0.88f / visualWidth,
+                        areaHeight * 0.88f / visualHeight);
                 context.sprite(sprite.sourcePath, sprite.sprite,
                         left + areaWidth * 0.5f, top + areaHeight * 0.5f,
                         sprite.pxWidth * scale, sprite.pxHeight * scale,
-                        0f, new Color(1f, 1f, 1f, 0.95f));
+                        angle, new Color(1f, 1f, 1f, 0.95f));
                 return;
             }
         }
@@ -137,6 +164,10 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                     left + areaWidth * 0.5f, top + areaHeight - pad,
                     new Color(0xD6, 0xF0, 0xC5), 2f);
         }
+    }
+
+    static float previewAngleDegrees(LayeredSpriteCache sprite) {
+        return sprite != null && sprite.pxHeight > sprite.pxWidth ? 90f : 0f;
     }
 
     private static SocketType socketType(MechWeaponComponent component) {

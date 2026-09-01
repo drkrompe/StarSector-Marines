@@ -89,12 +89,12 @@ class MechLabDollCanvasTest {
                 MechLabDollCanvas.socketDropTarget(layout.doll(), core,
                         500f, 300f, 160f, 160f);
 
-        assertEquals(272f, target.width(), 1e-4f);
-        assertEquals(108.8f, target.height(), 1e-4f);
+        assertEquals(152f, target.width(), 1e-4f);
+        assertEquals(208f, target.height(), 1e-4f);
         assertEquals(500f, target.anchorX(), 1e-4f);
         assertEquals(304.8f, target.anchorY(), 1e-4f);
         assertEquals(500f, target.centerX(), 1e-4f);
-        assertEquals(60f, target.centerY(), 1e-4f);
+        assertEquals(8.8f, target.centerY(), 1e-4f);
         assertTrue(target.contains(target.centerX(), target.centerY()));
         assertTrue(target.bottom() < target.anchorY());
     }
@@ -108,8 +108,8 @@ class MechLabDollCanvasTest {
                 MechLabDollCanvas.socketDropTarget(layout.doll(), miniFab,
                         200f, 160f, 80f, 80f);
 
-        assertEquals(128f, target.width(), 1e-4f);
-        assertEquals(76f, target.height(), 1e-4f);
+        assertEquals(92f, target.width(), 1e-4f);
+        assertEquals(128f, target.height(), 1e-4f);
         assertEquals(1, target.gridColumns());
         assertEquals(1, target.gridRows());
     }
@@ -155,7 +155,7 @@ class MechLabDollCanvasTest {
         assertEquals(6, cells.size());
         assertEquals(4, cells.stream().filter(
                 MechLabDollCanvas.CapacityCell::active).count());
-        assertFalse(cells.get(2).active());
+        assertFalse(cells.get(4).active());
         assertFalse(cells.get(5).active());
     }
 
@@ -171,7 +171,7 @@ class MechLabDollCanvasTest {
 
         assertEquals(495.2f, target.anchorX(), 1e-3f);
         assertEquals(300f, target.anchorY(), 1e-3f);
-        assertEquals(740f, target.centerX(), 1e-3f);
+        assertEquals(791.2f, target.centerX(), 1e-3f);
         assertEquals(300f, target.centerY(), 1e-3f);
     }
 }
