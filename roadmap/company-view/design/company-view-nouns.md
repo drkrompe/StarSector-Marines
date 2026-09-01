@@ -4,11 +4,12 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a boat can be lost: a berth stands vacant on the deck and
-on the hangar picture, whoever was aboard is fallen, and the yard builds the
-hull's own pattern back into the hole for a material bill. Deployment squad
-cards' compact command block uses the roster officer's persisted Starsector
-portrait beside rank, name, command relationship, and selection availability.
+Updated: 2026-09-01 — a marine who lands outside cohesion of a squad that has
+stopped forming up is rejoining: it closes on its squad, returns fire, initiates
+nothing, and is left out of the squad's slots and arrival rules until it is
+back. A boat can be lost: a berth stands vacant on the deck and on the hangar
+picture, whoever was aboard is fallen, and the yard builds the hull's own
+pattern back into the hole for a material bill.
 
 ## Purpose
 
@@ -669,8 +670,20 @@ A tagged or mission-grouped squad may assemble over several craft or passes. Unt
 present, the form-up gate suspends execution of its advancing assignment while
 retaining the authoritative command directive and still allowing self-defense.
 A timeout prevents a lost lift or split landing from deadlocking the mission.
-Explicit rejoin behavior for a genuinely late arrival after that point remains
-open in `c8-lift-capacity-and-multi-pass-drops.md`.
+
+A campaign marine who lands outside squad cohesion of a squad that is no longer
+forming up is **rejoining**. That is the case the timeout leaves behind, and it
+is equally a second lift arriving after the squad stepped off or a replacement
+wave joining a squad already in contact. A rejoining marine closes on its squad,
+returns fire at whatever is already within its own reach, and initiates nothing:
+it does not acquire a contact of its own, take a firing position, or spend squad
+equipment on the way. The squad meanwhile plans around it — a rejoining member is
+left out of role and slot assignment and out of the rules that ask whether the
+whole squad has arrived somewhere, so a squad is never pinned on somebody still
+crossing. The state retires by itself the moment the marine is back inside
+cohesion, and it becomes an ordinary member again on that tick. Cohesion is one
+radius and one rule; rejoining is a priority over the squad's plan rather than a
+second way of measuring distance. `SquadRejoin` is where it lives.
 
 ## Task-force command
 

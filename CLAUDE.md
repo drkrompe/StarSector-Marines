@@ -207,7 +207,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,firing-line,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,player-order,point-defence,prosecution-hold,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,firing-line,frontage-scene,integral-system-fx,killing-ground,late-arrival,layers,mech-doctrine,perception-sweep,player-order,point-defence,prosecution-hold,runway-sortie,ship-decks,ships-boats,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat sceneEvidence` → plays the behaviour scenes for their verdicts and
   prints a PASS/FAIL table, one row per loop, with a line beneath each failing
@@ -559,6 +559,7 @@ The discovered suite ids and default output directories are:
 | `swarm-overkill` | One squad meeting a rush of runners a single rifle kills, both sides ordered to hold the ground so they actually fight. The no-regression control for damage-aware target crowding | `build/snapshots/swarm-overkill/` |
 | `player-order` | One squad under a long standing mission and one ground click off its axis, recorded three ways: the click answered and carried out, the same world with nobody clicking, and the same click into a picket's fire. The acceptance for the order-path rebuild | `build/snapshots/player-order/` |
 | `prosecution-hold` | One squad ordered to take a room with an enemy standing off the way there that nobody can shoot at, recorded three ways: the squad getting on with the order, the same world frozen with the fall-through off, and the same contact placed near enough to take firing positions against | `build/snapshots/prosecution-hold/` |
+| `late-arrival` | One campaign squad that stepped off short-handed and the rest of it landing thirty cells behind, recorded four ways: the crossing, the same crossing past an armed picket, and both of those again with the rejoin state switched off | `build/snapshots/late-arrival/` |
 | `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
@@ -902,6 +903,38 @@ suite reach the same catalog. `sceneEvidence` plays it with no renderer and
 writes the verdicts under `build/reports/scenes/`; a `BehaviorSceneSnapshotSuite`
 subclass plays it once *with* a renderer, so the picture and the verdict come
 from the same run and cannot disagree.
+
+`LateArrivalScene` is the tenth: a campaign squad whose form-up has already
+timed out, four marines landing at its abandoned landing zone thirty-one cells
+behind it, and one question — does a late arrival cross to its squad without
+picking a fight of its own? It is the acceptance for `SquadRejoin`.
+
+**The uncontested control very nearly ties, and that is the finding rather than
+a disappointment.** Four marines dropped that far back are inside cohesion again
+at tick 836 without the state and 799 with it. The cohesion pull has been there
+all along and does most of this work on an empty map; if that were the whole
+measurement the state would not be worth shipping.
+
+**What it ships for is the contested pair.** Two armed defenders eight cells off
+the crossing, and the control *stops*: 420 of its 1,528 crossing ticks —
+fourteen seconds — standing still trading fire with a picket it was never sent
+to fight, reaching its squad at tick 906. The subject stands still on **none** of
+its 849, fires 114 rounds while walking, and is back inside cohesion at 755.
+Neither loop strays more than a couple of cells off the axis, so the fault was
+never that a late arrival walks *toward* the enemy: it halts, where it stands,
+for as long as the enemy lives. `kept-crossing` is what measures that, and no
+lateral distance could have seen it — the first version of this scene measured
+only how far off the axis they went, and both loops answered 1.9 cells.
+
+**Two traps in the instrument, both of which reported a firefight as silence.**
+Fire intent is authored and consumed inside the advance, so `fireTargetId` reads
+zero from every observer and the first contested loop recorded 411 ticks under
+the picket's guns with not one round fired; the shot events of the previous
+advance are the seam that says what actually left a barrel. And the picket has
+to be **placed at the lift rather than at the start**: the main body walks the
+same axis on its way east and kills it before the second lift is in the air,
+which is `AirfieldSortieScene`'s scenery mistake arriving from the other
+direction.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
