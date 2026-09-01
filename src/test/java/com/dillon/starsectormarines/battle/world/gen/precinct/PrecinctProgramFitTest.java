@@ -79,8 +79,8 @@ class PrecinctProgramFitTest {
      */
     @Test
     void whatCouldNotBeBuiltIsRecorded() {
-        int w = 200;
-        int h = 140;
+        int w = 160;
+        int h = 110;
         FortressProgram huge = FortressProgram.garrison()
                 .with(RoomPurpose.BARRACKS, 40)
                 .with(RoomPurpose.VEHICLE_BAY, 8);
