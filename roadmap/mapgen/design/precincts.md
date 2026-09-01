@@ -1,7 +1,7 @@
 # Precincts
 
-Status: ACTIVE — adopted. The noun, multi-seed growth and both claim policies
-are built; fill, boundary and seeding are not.
+Status: ACTIVE — adopted. The noun, multi-seed growth, both claim policies and
+the derived allowance are built; fill, boundary and seeding are not.
 
 Written: 2026-09-01
 
@@ -153,4 +153,35 @@ program, rather than picked as a free number.
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.
-3. **How a precinct's ground allowance is derived**, per the measurement above.
+(The ground allowance is now derived — see below.)
+
+## The allowance is derived, and there are two derivations
+
+A flat allowance does not work, so there is none. `PrecinctAllowance` asks what
+kind of place it is:
+
+- **A programmed precinct is as big as what it holds** — its road plus the
+  `envelopeArea` its buildings and lots need. This is `compound-programs.md`'s
+  law unchanged, one level up.
+- **A zoned precinct is as big as the ground along its own streets** — its road
+  plus the cells within its growth profile's `frontageDepth` of its own arms.
+  There is no program to size it, and frontage is the same rule the shipped
+  hinterland already uses to decide what is settled, applied per precinct rather
+  than once for the whole map.
+
+What that buys, measured over three seeds at 560x336 with a garrison, a town and
+a hamlet:
+
+| | nearest | derived |
+|---|---|---|
+| garrison claim | 37885 – 86044 | 8566 – 9908 |
+| its program envelope | — | 5293 |
+
+The garrison did not change between those columns. Under nearest its size swung
+by 130% on nothing but how its neighbours grew; derived, it is its program plus
+whatever road ran through it, and the residual variation is that road. Between
+them the three places take under half the map and the rest stays open country.
+
+Frontage is counted rather than used as a mask, deliberately: a town competing
+with a neighbour for the same ground should yield it by nearness like anything
+else, not carve a fixed collar out of whoever is beside it.
