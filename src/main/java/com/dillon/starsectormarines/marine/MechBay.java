@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 
 import java.io.Serializable;
@@ -11,6 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 /**
  * Persisted mech-squad and finite subsystem inventory authority. Installed
@@ -24,7 +28,9 @@ public final class MechBay implements Serializable {
 
     private List<CampaignMechSquad> squads = new ArrayList<>();
     private Map<String, Integer> ownedReplenishers = new HashMap<>();
+    private Map<String, Integer> ownedWeapons = new HashMap<>();
     private String activeSquadId;
+    private int nextFabricatedSerial = 2;
 
     public MechBay() {
         seedStarterSquad();
@@ -68,7 +74,26 @@ public final class MechBay implements Serializable {
         if (squad == null || mech == null || mechById(mech.id()) != null
                 || !squad.add(mech)) return false;
         addReplenisher(mech.missileReplenisherId(), 1);
+        addInstalledWeapons(mech);
         return true;
+    }
+
+    public boolean canAddMech(String squadId) {
+        CampaignMechSquad squad = squadById(squadId);
+        return squad != null && squad.mechs().size() < CampaignMechSquad.CAPACITY;
+    }
+
+    /** Builds one standard-fit chassis into a vacant gantry in the selected lance. */
+    public CampaignMech fabricateChassis(String squadId, MechVariant variant) {
+        if (variant == null || !canAddMech(squadId)) return null;
+        int serial = nextAvailableSerial();
+        CampaignMech mech = new CampaignMech("support_mech_"
+                + String.format(Locale.ROOT, "%02d", serial),
+                variant.displayName + " " + String.format(Locale.ROOT, "%02d", serial), variant,
+                variant.defaultRole, MissileReplenisherComponent.STANDARD.id());
+        if (!addMech(squadId, mech)) return null;
+        nextFabricatedSerial = serial + 1;
+        return mech;
     }
 
     public int ownedReplenisher(String componentId) {
@@ -88,6 +113,33 @@ public final class MechBay implements Serializable {
     public int availableReplenisher(String componentId) {
         return Math.max(0, ownedReplenisher(componentId)
                 - installedReplenisher(componentId));
+    }
+
+    public int ownedWeapon(String componentId) {
+        return Math.max(0, ownedWeapons.getOrDefault(componentId, 0));
+    }
+
+    public int installedWeapon(String componentId) {
+        int installed = 0;
+        for (CampaignMechSquad squad : squads) {
+            for (CampaignMech mech : squad.mechs()) {
+                for (MechMountSlot slot : MechMountSlot.values()) {
+                    MechWeaponComponent component = mech.weaponAt(slot);
+                    if (component != null && component.id.equals(componentId)) installed++;
+                }
+            }
+        }
+        return installed;
+    }
+
+    public int availableWeapon(String componentId) {
+        return Math.max(0, ownedWeapon(componentId) - installedWeapon(componentId));
+    }
+
+    /** Acquisition seam for recovered or fabricated weapon assemblies. */
+    public void addWeapon(String componentId, int quantity) {
+        if (MechWeaponComponent.findById(componentId) == null || quantity <= 0) return;
+        ownedWeapons.merge(componentId, quantity, Integer::sum);
     }
 
     /** Acquisition seam for salvage, fabrication, rewards, and tests. */
@@ -114,6 +166,12 @@ public final class MechBay implements Serializable {
             if (installed <= 0) ownedReplenishers.remove(componentId);
             else ownedReplenishers.put(componentId, installed);
         }
+        for (String componentId : new ArrayList<>(ownedWeapons.keySet())) {
+            int installed = installedWeapon(componentId);
+            destroyed += Math.max(0, ownedWeapon(componentId) - installed);
+            if (installed <= 0) ownedWeapons.remove(componentId);
+            else ownedWeapons.put(componentId, installed);
+        }
         return destroyed;
     }
 
@@ -126,6 +184,33 @@ public final class MechBay implements Serializable {
         if (candidate.id().equals(mech.missileReplenisherId())) return true;
         if (availableReplenisher(candidate.id()) <= 0) return false;
         mech.installMissileReplenisher(candidate.id());
+        return true;
+    }
+
+    public boolean canInstallWeapon(String mechId, MechMountSlot slot, String componentId) {
+        CampaignMech mech = mechById(mechId);
+        MechWeaponComponent component = MechWeaponComponent.findById(componentId);
+        if (mech == null || slot == null || component == null || !component.accepts(slot)) {
+            return false;
+        }
+        MechFittingLayout.SocketId socketId = socketFor(slot);
+        MechFittingLayout.SocketDef socket = MechFittingLayout.forVariant(
+                mech.variant()).socket(socketId);
+        if (socket == null || socket.factoryLocked() || component.slotCost > socket.capacity()) {
+            return false;
+        }
+        return socket.type() == MechFittingLayout.SocketType.OMNI
+                || socket.type().name().equals(component.hardpointType.name());
+    }
+
+    /** Atomic one-hardpoint refit; the outgoing assembly returns to finite stores. */
+    public boolean installWeapon(String mechId, MechMountSlot slot, String componentId) {
+        CampaignMech mech = mechById(mechId);
+        MechWeaponComponent component = MechWeaponComponent.findById(componentId);
+        if (!canInstallWeapon(mechId, slot, componentId)) return false;
+        if (component == mech.weaponAt(slot)) return true;
+        if (availableWeapon(componentId) <= 0) return false;
+        mech.installWeapon(slot, component);
         return true;
     }
 
@@ -151,15 +236,41 @@ public final class MechBay implements Serializable {
         activeSquadId = squad.id();
         putAtLeast(MissileReplenisherComponent.STANDARD.id(), 1);
         putAtLeast(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        for (CampaignMech mech : squad.mechs()) addInstalledWeapons(mech);
     }
 
     private void putAtLeast(String componentId, int quantity) {
         ownedReplenishers.merge(componentId, quantity, Math::max);
     }
 
+    private void addInstalledWeapons(CampaignMech mech) {
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechWeaponComponent component = mech.weaponAt(slot);
+            if (component != null) addWeapon(component.id, 1);
+        }
+    }
+
+    private int nextAvailableSerial() {
+        int candidate = Math.max(2, nextFabricatedSerial);
+        while (mechById("support_mech_"
+                + String.format(Locale.ROOT, "%02d", candidate)) != null) {
+            candidate++;
+        }
+        return candidate;
+    }
+
+    private static MechFittingLayout.SocketId socketFor(MechMountSlot slot) {
+        return switch (slot) {
+            case ARMS -> MechFittingLayout.SocketId.ARMS;
+            case LEFT_SHOULDER -> MechFittingLayout.SocketId.LEFT_SHOULDER;
+            case RIGHT_SHOULDER -> MechFittingLayout.SocketId.RIGHT_SHOULDER;
+        };
+    }
+
     private Object readResolve() {
         if (squads == null) squads = new ArrayList<>();
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
+        if (ownedWeapons == null) ownedWeapons = new HashMap<>();
         squads.removeIf(squad -> squad == null);
         seedStarterSquad();
         CampaignMechSquad active = activeSquad();
@@ -167,6 +278,10 @@ public final class MechBay implements Serializable {
         for (MissileReplenisherComponent component : MissileReplenisherComponent.catalog()) {
             putAtLeast(component.id(), installedReplenisher(component.id()));
         }
+        for (MechWeaponComponent component : MechWeaponComponent.values()) {
+            ownedWeapons.merge(component.id, installedWeapon(component.id), Math::max);
+        }
+        nextFabricatedSerial = Math.max(2, nextFabricatedSerial);
         return this;
     }
 }

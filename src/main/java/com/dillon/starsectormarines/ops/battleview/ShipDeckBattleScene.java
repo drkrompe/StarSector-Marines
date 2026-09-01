@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.ambient.Shift;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -115,6 +117,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final List<Gantry> gantries;
     private final List<FixtureTask> fixtureTasks;
     private final boolean[] occupiedBerths;
+    private final long[] berthedMechs;
     /**
      * Watch bills already drawn up, by compartment and role.
      *
@@ -178,6 +181,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         gantries = deck.gantries;
         fixtureTasks = deck.fixtureTasks;
         occupiedBerths = new boolean[gantries.size()];
+        berthedMechs = new long[gantries.size()];
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
         // A deck is not a mission. Left alone, the simulation installs its
@@ -291,11 +295,42 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, gantry.facing.degrees());
             machines[index] = mech;
+            berthedMechs[index] = mech;
             occupiedBerths[index] = true;
         }
         watchBills.clear();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         return machines;
+    }
+
+    /**
+     * Reprojects campaign-authoritative fitting into the live home-deck scene.
+     * Existing machines keep their entity identity; a newly fabricated chassis
+     * is stood in the next previously vacant berth.
+     */
+    public void syncGantries(List<MechDeploymentSpec> deployments) {
+        if (deployments == null) return;
+        int count = Math.min(deployments.size(), gantries.size());
+        for (int index = 0; index < count; index++) {
+            MechDeploymentSpec deployment = deployments.get(index);
+            if (deployment == null) continue;
+            long mech = berthedMechs[index];
+            if (mech == 0L) {
+                Gantry gantry = gantries.get(index);
+                mech = simulation.spawn(new EntitySpec(
+                        "berthed mech " + (index + 1), Faction.MARINE, UnitType.HEAVY_MECH,
+                        gantry.centerX, gantry.centerY).mechVariant(deployment.variant()));
+                FacingSystem.faceStanding(simulation.getEntityWorld(),
+                        simulation.getBattleComponents(), mech, gantry.facing.degrees());
+                berthedMechs[index] = mech;
+                occupiedBerths[index] = true;
+            }
+            MechLoadoutComponent loadout = new MechLoadoutComponent(deployment.variant(),
+                    deployment.arms(), deployment.leftShoulder(), deployment.rightShoulder(),
+                    deployment.role());
+            loadout.installMissileReplenisher(deployment.missileReplenisher());
+            simulation.world().attachMechLoadout(mech, loadout);
+        }
     }
 
     /**

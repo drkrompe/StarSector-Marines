@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -489,6 +490,11 @@ public final class BattleFixtureJson {
                 mech.put("role", deployment.role().name());
                 mech.put("missileReplenisherId",
                         deployment.missileReplenisher().id());
+                mech.put("armsComponentId", deployment.arms().id);
+                putNullable(mech, "leftShoulderComponentId",
+                        componentId(deployment.leftShoulder()));
+                putNullable(mech, "rightShoulderComponentId",
+                        componentId(deployment.rightShoulder()));
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
@@ -517,10 +523,14 @@ public final class BattleFixtureJson {
                 String replenisherId = mech.getString("missileReplenisherId");
                 MissileReplenisherComponent replenisher =
                         MissileReplenisherComponent.requireById(replenisherId);
+                MechVariant variant = MechVariant.fromId(mech.getString("variantId"));
                 deployments.add(new MechDeploymentSpec(
-                        MechVariant.fromId(mech.getString("variantId")),
+                        variant,
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
-                        replenisher));
+                        replenisher,
+                        component(mech, "armsComponentId", variant.arms),
+                        component(mech, "leftShoulderComponentId", variant.leftShoulder),
+                        component(mech, "rightShoulderComponentId", variant.rightShoulder)));
             }
             powers.add(new CommandPowerCommitment(
                     encoded.getString("id"), deployments));
@@ -531,6 +541,17 @@ public final class BattleFixtureJson {
     private static void putNullable(JSONObject object, String key, String value)
             throws Exception {
         object.put(key, value != null ? value : JSONObject.NULL);
+    }
+
+    private static String componentId(MechWeaponComponent component) {
+        return component != null ? component.id : null;
+    }
+
+    private static MechWeaponComponent component(JSONObject object, String key,
+                                                  MechWeaponComponent fallback) {
+        if (!object.has(key) || object.isNull(key)) return fallback;
+        MechWeaponComponent component = MechWeaponComponent.findById(object.optString(key, null));
+        return component != null ? component : fallback;
     }
 
     private static String nullableString(JSONObject object, String key)

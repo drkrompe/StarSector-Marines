@@ -13,54 +13,75 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  */
 public enum MechWeaponComponent {
 
-    DUAL_CHAINGUNS("Dual chainguns", MountFamily.ARMS, "weapon.mech-chaingun",
+    DUAL_CHAINGUNS("component.mech-dual-chainguns", "Dual chainguns", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 4, "weapon.mech-chaingun",
             12, -1, LayeredMechAppearance.ARMS_CHAINGUN),
-    NOSE_CHAINGUN("Nose chaingun", MountFamily.ARMS, "weapon.mech-chaingun",
+    NOSE_CHAINGUN("component.mech-nose-chaingun", "Nose chaingun", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, "weapon.mech-chaingun",
             6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
-    DUAL_LINEAR_CANNONS("Dual linear cannons", MountFamily.ARMS, "weapon.mech-linear-cannon",
+    DUAL_LINEAR_CANNONS("component.mech-dual-linear-cannons", "Dual linear cannons",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 4, "weapon.mech-linear-cannon",
             2, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
-    SINGLE_HEAVY_CANNON("Heavy cannon", MountFamily.ARMS, "weapon.mech-heavy-cannon",
+    SINGLE_HEAVY_CANNON("component.mech-heavy-cannon", "Heavy cannon", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 3, "weapon.mech-heavy-cannon",
             1, -1, LayeredMechAppearance.ARMS_HEAVY_CANNON),
-    DUAL_PULSE_LASERS("Dual pulse lasers", MountFamily.ARMS, "weapon.mech-pulse-laser",
+    DUAL_PULSE_LASERS("component.mech-dual-pulse-lasers", "Dual pulse lasers",
+            MountFamily.ARMS, HardpointType.ENERGY, 4, "weapon.mech-pulse-laser",
             8, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
-    DUAL_BASTION_AUTOCANNONS("Dual Bastion autocannons", MountFamily.ARMS,
-            "weapon.mech-bastion-autocannon", 6, -1,
+    DUAL_BASTION_AUTOCANNONS("component.mech-bastion-autocannons",
+            "Dual Bastion autocannons", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 4, "weapon.mech-bastion-autocannon", 6, -1,
             LayeredMechAppearance.ARMS_BASTION_AUTOCANNON),
-    DEMOLITION_CANNON("Demolition cannon", MountFamily.ARMS,
+    DEMOLITION_CANNON("component.mech-demolition-cannon", "Demolition cannon",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2,
             "weapon.mech-demolition-cannon", 1, 5,
             LayeredMechAppearance.ARMS_DEMOLITION_CANNON),
-    DUAL_MUSTER_AUTOGUNS("Dual Muster autoguns", MountFamily.ARMS,
+    DUAL_MUSTER_AUTOGUNS("component.mech-dual-muster-autoguns", "Dual Muster autoguns",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 3,
             "weapon.mech-muster-autogun", 6, -1,
             LayeredMechAppearance.ARMS_MUSTER_AUTOGUN),
-    NOSE_MUSTER_AUTOGUN("Nose Muster autogun", MountFamily.ARMS,
+    NOSE_MUSTER_AUTOGUN("component.mech-nose-muster-autogun", "Nose Muster autogun",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2,
             "weapon.mech-muster-autogun", 3, -1,
             LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN),
-    QUARRY_BREAKER_CANNON("Quarry breaker cannon", MountFamily.ARMS,
+    QUARRY_BREAKER_CANNON("component.mech-quarry-breaker", "Quarry breaker cannon",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2,
             "weapon.mech-quarry-breaker", 1, 4,
             LayeredMechAppearance.ARMS_QUARRY_BREAKER),
 
-    SRM_5("SRM-5", MountFamily.SHOULDER, "weapon.mech-srm-pod",
+    SRM_5("component.mech-srm-5", "SRM-5", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 1, "weapon.mech-srm-pod",
             2, 6, LayeredMechAppearance.POD_SMALL_SRM),
-    SRM_15("SRM-15", MountFamily.SHOULDER, "weapon.mech-srm-pod",
+    SRM_15("component.mech-srm-15", "SRM-15", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 3, "weapon.mech-srm-pod",
             4, 6, LayeredMechAppearance.POD_LARGE_SRM),
-    LRM_5("LRM-5", MountFamily.SHOULDER, "weapon.mech-lrm-artillery",
+    LRM_5("component.mech-lrm-5", "LRM-5", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 1, "weapon.mech-lrm-artillery",
             2, 4, LayeredMechAppearance.POD_SMALL_LRM),
-    LRM_15("LRM-15", MountFamily.SHOULDER, "weapon.mech-lrm-artillery",
+    LRM_15("component.mech-lrm-15", "LRM-15", MountFamily.SHOULDER,
+            HardpointType.MISSILE, 3, "weapon.mech-lrm-artillery",
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
-    SHOULDER_LASER_CANNON("Shoulder laser cannon", MountFamily.SHOULDER,
+    SHOULDER_LASER_CANNON("component.mech-shoulder-laser", "Shoulder laser cannon",
+            MountFamily.SHOULDER, HardpointType.ENERGY, 3,
             "weapon.mech-shoulder-laser", 1, -1,
             LayeredMechAppearance.POD_SHOULDER_LASER),
-    THERMAL_LANCE("Thermal lance", MountFamily.SHOULDER,
+    THERMAL_LANCE("component.mech-thermal-lance", "Thermal lance",
+            MountFamily.SHOULDER, HardpointType.ENERGY, 2,
             "weapon.mech-thermal-lance", 1, -1,
             LayeredMechAppearance.POD_THERMAL_LANCE),
-    PIONEER_ROCKET_CRADLE("Pioneer rocket cradle", MountFamily.SHOULDER,
+    PIONEER_ROCKET_CRADLE("component.mech-pioneer-rocket", "Pioneer rocket cradle",
+            MountFamily.SHOULDER, HardpointType.MISSILE, 1,
             "weapon.mech-pioneer-rocket", 4, 3,
             LayeredMechAppearance.POD_PIONEER_ROCKET);
 
     public enum MountFamily { ARMS, SHOULDER }
+    public enum HardpointType { BALLISTIC, ENERGY, MISSILE }
 
+    public final String id;
     public final String displayName;
     public final MountFamily mountFamily;
+    public final HardpointType hardpointType;
+    public final int slotCost;
     /** Stable catalog id for the installed gun or launcher. */
     public final String weaponId;
     /** Representative projectiles emitted per trigger, not literal launcher tubes. */
@@ -70,11 +91,15 @@ public enum MechWeaponComponent {
     /** Arms or shoulder selector consumed by the layered compositor. */
     public final int appearanceSelector;
 
-    MechWeaponComponent(String displayName, MountFamily mountFamily,
+    MechWeaponComponent(String id, String displayName, MountFamily mountFamily,
+                        HardpointType hardpointType, int slotCost,
                         String weaponId, int projectilesPerTrigger,
                         int ammoCapacity, int appearanceSelector) {
+        this.id = id;
         this.displayName = displayName;
         this.mountFamily = mountFamily;
+        this.hardpointType = hardpointType;
+        this.slotCost = slotCost;
         this.weaponId = weaponId;
         this.projectilesPerTrigger = projectilesPerTrigger;
         this.ammoCapacity = ammoCapacity;
@@ -82,6 +107,19 @@ public enum MechWeaponComponent {
     }
 
     public WeaponDef weaponDef() { return WeaponRegistry.require(weaponId); }
+
+    public static MechWeaponComponent findById(String id) {
+        if (id == null) return null;
+        for (MechWeaponComponent component : values()) {
+            if (component.id.equals(id)) return component;
+        }
+        return null;
+    }
+
+    public static MechWeaponComponent resolve(String id, MechWeaponComponent fallback) {
+        MechWeaponComponent component = findById(id);
+        return component != null ? component : fallback;
+    }
 
     public boolean accepts(MechMountSlot slot) {
         return mountFamily == MountFamily.ARMS

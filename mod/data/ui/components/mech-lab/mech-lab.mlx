@@ -78,12 +78,18 @@
                   <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
                   <div id="{item.stockId}" class="label tone-edge catalog-stock">{item.stock}</div>
                   <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
+                  <div id="{item.materialsId}" class="material-costs">
+                    <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
+                      <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+                      <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+                    </div>
+                  </div>
                 </div>
                 <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
               </div>
             </div>
             <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
-              <div id="mech-drag-drop-title" class="label heading tone-edge">PLANNED: DRAG + SIZED SLOTS</div>
+              <div id="mech-drag-drop-title" class="label heading tone-edge">DIRECT FIT ACTIVE · SIZED SLOTS</div>
               <div id="mech-drag-drop-types" class="label heading tone-muted">BALLISTIC  ·  ENERGY  ·  MISSILE  ·  OMNI</div>
             </div>
           </div>
@@ -177,10 +183,15 @@
   .catalog-copy { height: 34px; }
   .catalog-rule { height: 36px; padding: 5px; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .catalog-row { flex-direction: column; width: 100%; height: 108px; padding: 7px; gap: 3px; border-width: 1px; }
-  .catalog-item-copy { flex-direction: column; width: 100%; height: 61px; gap: 2px; }
+  .catalog-row { flex-direction: column; width: 100%; height: 198px; padding: 7px; gap: 3px; border-width: 1px; }
+  .catalog-item-copy { flex-direction: column; width: 100%; height: 151px; gap: 2px; }
   .catalog-name { height: 19px; }
   .catalog-stock, .catalog-detail { height: 17px; }
+  .material-costs { flex-direction: column; width: 100%; height: 88px; gap: 2px; overflow: hidden; }
+  .material-cost { flex-direction: row; width: 100%; height: 18px; padding: 1px 3px; gap: 4px; background-color: #0c1620; border-width: 1px; }
+  .material-cost.short { border-color: #8f3f44; background-color: #251419; }
+  .material-icon { width: 14px; height: 14px; }
+  .material-label { width: 0px; height: 15px; flex-grow: 1; }
   .catalog-action { width: 100%; height: 26px; text-align: center; }
   .drag-drop-note { flex-direction: column; height: 45px; padding: 5px; gap: 1px; }
   #mech-drag-drop-title, #mech-drag-drop-types { height: 17px; }
