@@ -1590,13 +1590,20 @@ public final class BattleSetup {
     /**
      * How many technicians stand a watch on one airfield.
      *
-     * <p>A ground crew, not the apron's capacity. Six berths worked from both
-     * flanks is a dozen places to stand, and filling them would put a platoon of
-     * unarmed engineers on a field a garrison holds with a handful of riflemen.
-     * What a field has is a few people and more aircraft than they can be at
-     * once.
+     * <p>A ground crew, and a real one. Three was a rounding error — one person
+     * per two aircraft, on a rotation that also has them walking between the
+     * stands — set to avoid filling all twelve of the apron's servicing
+     * positions on the grounds that a platoon of unarmed engineers would swamp a
+     * field held by a handful of riflemen. The garrison is not a handful: these
+     * maps field ninety to a hundred and fifty defenders, so the thing that
+     * argument was protecting against was never the risk.
+     *
+     * <p>Still short of the apron's capacity, because a field is meant to be
+     * short-handed — what an aircraft waits for is its turn, and a field that
+     * could work every stand at once would turn its whole establishment round
+     * as fast as one aircraft.
      */
-    private static final int APRON_WATCH = 3;
+    private static final int APRON_WATCH = 8;
 
     /**
      * Stand a ground crew on the airfield's apron.
