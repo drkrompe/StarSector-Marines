@@ -2987,8 +2987,12 @@ public final class BattleSetup {
      * excluded so the vehicle doesn't seal a building's only egress (the
      * doorway's perpendicular through-cell is walkable and unflagged, but
      * blocking it traps the interior), and
-     * {@link PlacementGuards#wouldPartitionWalkable connectivity} is checked
-     * so the truck can't sever a thin walkable strip from the main graph.
+     * {@link PlacementGuards#wouldStrandGround connectivity} is checked
+     * so the truck can't sever a thin walkable strip from the main graph. That
+     * guard asks whether <em>this footprint</em> strands ground rather than
+     * whether any ground anywhere is stranded; the map-wide form refuses every
+     * anchor on a map that carries an orphan pocket, which parks no vehicles at
+     * all and says nothing about it.
      */
     static List<Doodad> stampVehicles(MapResult map, Random rng) {
         NavigationGrid grid = map.grid;
@@ -3025,7 +3029,7 @@ public final class BattleSetup {
             int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
             int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
             if (!canPlaceVehicle(map, x, y, kind, false)) continue;
-            if (PlacementGuards.wouldPartitionWalkable(
+            if (PlacementGuards.wouldStrandGround(
                     grid, x, y, kind.footprintCellsX, kind.footprintCellsY)) continue;
             placed.add(stampOneVehicle(grid, topology, x, y, kind));
         }
@@ -3054,7 +3058,7 @@ public final class BattleSetup {
             int candidateX = pad.approach.dx != 0 ? x : x + offset;
             int candidateY = pad.approach.dx != 0 ? y + offset : y;
             if (!canPlaceVehicle(map, candidateX, candidateY, kind, true)) continue;
-            if (PlacementGuards.wouldPartitionWalkable(map.grid, candidateX, candidateY,
+            if (PlacementGuards.wouldStrandGround(map.grid, candidateX, candidateY,
                     kind.footprintCellsX, kind.footprintCellsY)) continue;
             return new int[]{candidateX, candidateY};
         }
