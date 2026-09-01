@@ -159,6 +159,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("companySummary", viewModel.companySummary());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
+        props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
@@ -263,7 +264,7 @@ public final class FleetArmoryScreen implements Screen {
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab",
-                "squad-breadcrumb", "squad-overview-intro", "squad-founder",
+                "squad-breadcrumb", "squad-overview-intro",
                 "squad-founder-costs", "found-squad", "squad-founder-feedback",
                 "squad-card-list");
         for (String id : required) {

@@ -120,10 +120,10 @@ class MechLabViewModelTest {
         assertTrue(viewModel.fittingHeaderClasses().get().contains("hidden"));
         assertFalse(viewModel.overviewRailClasses().get().contains("hidden"));
         assertEquals(4, viewModel.gantryRows().get().size());
-        assertFalse(viewModel.gantryRows().get().get(0).disabled());
-        assertFalse(viewModel.gantryRows().get().get(1).disabled());
+        assertTrue(viewModel.gantryRows().get().get(0).disabled());
+        assertTrue(viewModel.gantryRows().get().get(1).disabled());
 
-        viewModel.gantryRows().get().get(0).select().run();
+        viewModel.selectGantryAction(0).run();
         assertTrue(viewModel.fittingFocused());
         assertNull(viewModel.selectedVariant());
         assertFalse(viewModel.catalogClasses().get().contains("hidden"));
@@ -269,6 +269,10 @@ class MechLabViewModelTest {
         // Layout evidence, so the heading only has to be a string of about the
         // right length; where the room actually is belongs to the ship.
         props.put("contextLabel", "CRUISER TROOP TRANSPORT / MIDSHIPS PORT / VEHICLE BAY");
+        props.put("activeBayLabel", "BAY 01 / 01");
+        props.put("bayNavigatorClasses", "bay-navigator hidden");
+        props.put("previousBay", (Runnable) () -> { });
+        props.put("nextBay", (Runnable) () -> { });
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

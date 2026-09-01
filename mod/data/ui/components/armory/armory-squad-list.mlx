@@ -1,18 +1,30 @@
-<template props="squadCards">
+<template props="squadGalleryCards">
   <div id="squad-card-list" class="squad-card-list panel">
-    <div each="squad in squadCards" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
-      <button id="{squad.openId}" class="squad-open" onclick="{squad.open}">
-        <div id="{squad.nameId}" class="squad-name label tone-edge">{squad.name}</div>
-        <div id="{squad.statusId}" class="{squad.statusClasses}">{squad.status}</div>
-        <div id="{squad.strengthId}" class="squad-stat label">{squad.strength}</div>
-        <div id="{squad.teamsId}" class="squad-stat label">{squad.teams}</div>
-        <div id="{squad.commandId}" class="squad-command label surface-dark">{squad.command}</div>
-        <div id="{squad.locationId}" class="squad-location label tone-muted">{squad.location}</div>
-        <div id="{squad.recoveryId}" class="squad-recovery label tone-accent">{squad.recovery}</div>
+    <div each="card in squadGalleryCards" key="{card.id}" id="{card.id}" class="{card.classes}">
+      <button id="{card.squad.openId}" class="{card.openClasses}" onclick="{card.squad.open}">
+        <div id="{card.squad.nameId}" class="squad-name label tone-edge">{card.squad.name}</div>
+        <div id="{card.squad.statusId}" class="{card.squad.statusClasses}">{card.squad.status}</div>
+        <div id="{card.squad.strengthId}" class="squad-stat label">{card.squad.strength}</div>
+        <div id="{card.squad.teamsId}" class="squad-stat label">{card.squad.teams}</div>
+        <div id="{card.squad.commandId}" class="squad-command label surface-dark">{card.squad.command}</div>
+        <div id="{card.squad.locationId}" class="squad-location label tone-muted">{card.squad.location}</div>
+        <div id="{card.squad.recoveryId}" class="squad-recovery label tone-accent">{card.squad.recovery}</div>
       </button>
-      <button id="{squad.reinforceId}" class="squad-reinforce" disabled="{squad.reinforceDisabled}" onclick="{squad.reinforce}">
-        <img id="{squad.reinforceIconId}" class="squad-reinforce-icon" src="{squad.reinforceIcon}" />
-        <div id="{squad.reinforceLabelId}" class="squad-reinforce-label label">{squad.reinforceLabel}</div>
+      <button id="{card.squad.reinforceId}" class="{card.reinforceClasses}" disabled="{card.squad.reinforceDisabled}" onclick="{card.squad.reinforce}">
+        <img id="{card.squad.reinforceIconId}" class="squad-reinforce-icon" src="{card.squad.reinforceIcon}" />
+        <div id="{card.squad.reinforceLabelId}" class="squad-reinforce-label label">{card.squad.reinforceLabel}</div>
+      </button>
+      <button id="{card.founderId}" class="{card.founderClasses}" disabled="{card.foundingDisabled}" onclick="{card.foundSquad}">
+        <div id="{card.plusId}" class="found-squad-plus label heading tone-accent">+</div>
+        <div id="{card.founderHeadingId}" class="found-squad-heading label heading tone-accent">FOUND LINE SQUAD</div>
+        <div id="{card.founderCopyId}" class="found-squad-copy label tone-muted">Create the next full formation from fleet cargo.</div>
+        <div id="{card.founderCostsId}" class="squad-founder-costs">
+          <div each="cost in card.foundingCargoRows" key="{cost.id}" id="{cost.id}" class="{cost.classes}">
+            <img id="{cost.iconId}" class="cargo-cost-icon" src="{cost.icon}" />
+            <div id="{cost.labelId}" class="cargo-cost-label label">{cost.label}</div>
+          </div>
+        </div>
+        <div id="{card.founderFeedbackId}" class="{card.foundingFeedbackClasses}">{card.foundingFeedbackText}</div>
       </button>
     </div>
   </div>
@@ -31,7 +43,7 @@
 
   .squad-card {
     flex-direction: column;
-    width: 134px;
+    width: 168px;
     height: 446px;
     padding: 8px;
     gap: 5px;
@@ -70,4 +82,60 @@
   }
   .squad-reinforce-icon { width: 18px; height: 18px; }
   .squad-reinforce-label { width: 0px; height: 18px; flex-grow: 1; padding: 2px 0px; text-align: center; }
+
+  .squad-founder-slot {
+    width: 186px;
+    height: 464px;
+    overflow: hidden;
+  }
+  .squad-founder-card {
+    flex-direction: column;
+    width: 168px;
+    height: 438px;
+    padding: 12px 8px;
+    gap: 6px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: center;
+    background-color: #0c1620;
+  }
+  .squad-founder-card:hover { background-color: #132c3d; border-color: #ffd464; }
+  .found-squad-plus {
+    width: 26px;
+    height: 22px;
+    padding: 18px 16px;
+    border-width: 2px;
+    text-align: center;
+    background-color: #0c1620;
+  }
+  .found-squad-heading { height: 30px; white-space: normal; text-align: center; }
+  .found-squad-copy { height: 42px; white-space: normal; text-align: center; }
+  .squad-founder-costs {
+    flex-direction: column;
+    width: 100%;
+    height: 96px;
+    gap: 2px;
+    overflow: hidden;
+  }
+  .cargo-cost {
+    flex-direction: row;
+    width: 100%;
+    height: 18px;
+    padding: 1px 3px;
+    gap: 4px;
+    border-width: 1px;
+    text-align: left;
+  }
+  .cargo-cost.short { background-color: #321818; border-color: #9f4545; }
+  .cargo-cost-icon { width: 16px; height: 16px; }
+  .cargo-cost-label { width: 0px; height: 16px; flex-grow: 1; padding: 1px 0px; }
+  .squad-founder-feedback {
+    width: 100%;
+    height: 54px;
+    padding: 4px;
+    white-space: normal;
+    text-align: center;
+  }
+  .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>
