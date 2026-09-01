@@ -247,6 +247,30 @@ footprints rather than subdivided, and handing it to BSP fills it with ordinary
 city before the packer ever sees it. The same map then renders as four places
 with country between them, at 339 points of interest.
 
+## A district is sized from its program, and says what it could not build
+
+Ordering more of something widens the place. Measured at 560x336 with a
+garrison beside a town, the whole chain tracks — floor area to envelope to
+allowance to ground actually granted:
+
+| program | floor | envelope | allowance | granted | built | unbuilt |
+|---|---|---|---|---|---|---|
+| garrison | 1482 | 5293 | 9165 | 9165 | 18 | 0 |
+| barracks x12 | 2346 | 7366 | 11238 | 11238 | 27 | 0 |
+| airfields x4 | 1482 | 10501 | 14373 | 14373 | 18 | 0 |
+| all raised | 3239 | 12982 | 16854 | 16854 | 29 | 0 |
+
+**Granted ground is not usable ground.** The same programs on a 200x140 map
+were still granted every cell they asked for and did not all fit: a garrison
+owing six barrack blocks built three. A claim is one shape and a program is a
+set of footprints, so area tracking is necessary and not sufficient — and the
+shortfall is not even monotonic, because twelve blocks fitted where six did
+not, the larger allowance having produced a better-shaped claim.
+
+So the packer's unplaced list is bound under `BspKeys.UNPLACED_PROGRAM` rather
+than dropped, empty when nothing was short so that "built everything" and
+"nobody asked" stay different answers.
+
 ## Still open
 
 0. **A walled precinct has too many gates.** Every arm crossing the outline is a
@@ -259,15 +283,24 @@ with country between them, at 339 points of interest.
    given yet. This is the most visible thing wrong with the model as it
    stands.
 
-1. **Settlement claims read as collars, not districts.** A zoned precinct's
+1. **An airfield buys ground and nothing is built on it.** `withAirfields(4)`
+   widens a garrison by five thousand cells of apron, and `PrecinctWardStage`
+   never places an `AirbaseLot` — the shipped `FortressWardStage` does, and this
+   path has not been given it. Counts are honoured in the sizing and ignored in
+   the building.
+2. **A precinct takes what it asks for whether or not the map can spare it.** On
+   a 200x140 map one garrison claimed 14640 of 28000 cells and its neighbour was
+   simply squeezed. Nothing checks that the places asked for fit the map they
+   are being put on.
+3. **Settlement claims read as collars, not districts.** A zoned precinct's
    allowance spreads two or three cells either side of its arms, so it draws as
    a road network with a shoulder rather than as a place with streets in it.
    Either the frontage depth is too shallow for the map scale or the allowance
    wants a different derivation.
-2. **Whether `Compound` collapses into this.** A compound is already a claimed
+4. **Whether `Compound` collapses into this.** A compound is already a claimed
    group of leaves with a purpose; it may be a small precinct, or a distinct
    thing that lives *inside* one.
-3. **What `BiomeKind` becomes.** It is read as front-line progression ordering
+5. **What `BiomeKind` becomes.** It is read as front-line progression ordering
    by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
    `RecaptureTargetService`. Distance from the objective precinct is the natural
    answer once places exist.

@@ -5,12 +5,18 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctFill;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Fills and walls every programmed precinct on the map.
@@ -41,17 +47,29 @@ public final class PrecinctWardStage implements GenStage {
         int[][] road = ctx.get(BspKeys.PRECINCT_ROAD);
         if (plan == null || claim == null || road == null) return;
 
+        Map<String, List<FortressBuilding>> unbuilt = new LinkedHashMap<>();
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (precinct.isProgrammed()) {
                 PrecinctFill.Masks masks =
                         PrecinctFill.masks(claim, road, i, ctx.width, ctx.height);
-                PrecinctFill.pack(ctx, precinct, masks, facing(precinct, ctx));
+                FortressInterior.Result result =
+                        PrecinctFill.pack(ctx, precinct, masks, facing(precinct, ctx));
+                // Recorded rather than dropped. Ground is granted from the
+                // program, but granted ground is not the same as ground the
+                // packer can use: measured on a cramped map, a garrison owed
+                // six barrack blocks, was given every cell it asked for, and
+                // built three. Discarding this makes that indistinguishable
+                // from a smaller garrison.
+                if (!result.unplaced().isEmpty()) {
+                    unbuilt.put(precinct.name(), List.copyOf(result.unplaced()));
+                }
             }
             if (precinct.boundary() == Precinct.Boundary.WALLED) {
                 stampWall(ctx, claim, road, i);
             }
         }
+        ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));
     }
 
     /**
