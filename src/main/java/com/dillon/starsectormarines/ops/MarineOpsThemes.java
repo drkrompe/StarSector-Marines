@@ -25,7 +25,8 @@ final class MarineOpsThemes {
                 .heading { font-family: heading; }
                 .title { font-family: title; }
                 .panel { background-color: #15202e; border-color: #6282a8; }
-                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root { border-color: #6ed7ff; }
+                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root,
+                .mission-select-root, .mission-briefing-root { border-color: #6ed7ff; }
                 .surface-dark { background-color: #0e1621; }
                 .tone-edge { color: #6ed7ff; }
                 .tone-muted { color: #8b9aaf; }
@@ -64,7 +65,8 @@ final class MarineOpsThemes {
                 .heading { font-family: heading; }
                 .title { font-family: title; }
                 .panel { background-color: #071019; border-color: #d2f3ff; }
-                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root { border-color: #63e8ff; }
+                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root, .company-hq-root,
+                .mission-select-root, .mission-briefing-root { border-color: #63e8ff; }
                 .surface-dark { background-color: #000000; }
                 .tone-edge { color: #63e8ff; }
                 .tone-muted { color: #c4d1df; }
