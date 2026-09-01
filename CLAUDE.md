@@ -180,7 +180,7 @@ Do not run builds or leave generated task files there.
   order — so vanilla-sourced sprites such as aircraft hulls appear in headless
   frames. The install is already required to build at all (`starsectorDir`), and
   a suite degrades to not drawing those sprites if it is missing. Select
-  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,sun-shadows,turrets,ui,yield-freeze`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,killing-ground,layers,mech-doctrine,perception-sweep,point-defence,runway-sortie,ship-decks,sun-shadows,swarm-overkill,turrets,ui,yield-freeze`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -514,6 +514,7 @@ The discovered suite ids and default output directories are:
 | `runway-sortie` | Two animated loops of one station flying a fighter off its strip: the whole cycle unopposed — taxi, roll, gun runs, approach, rollout, taxi in — and the same cycle with a fire team astride the taxiway | `build/snapshots/runway-sortie/` |
 | `killing-ground` | Two mirror-image lanes to one objective: a squad destroyed in one of them, its killers removed, and the next squad sent up to choose again | `build/snapshots/killing-ground/` |
 | `mech-doctrine` | Four animated loops of one Bulwark under Brawler, Tank, Long Range Support, and Balanced doctrine, plus a paired Form-on-Lead / Free-Reign Brawler comparison | `build/snapshots/mech-doctrine/` |
+| `swarm-overkill` | One squad meeting a rush of runners a single rifle kills, both sides ordered to hold the ground so they actually fight. The no-regression control for damage-aware target crowding | `build/snapshots/swarm-overkill/` |
 | `yield-freeze` | One squad under one order, recorded four ways: the order worth having and the same order over a zone that turns out to be empty, as infantry and again as a mech lance. Counts plan-less ticks rather than distance | `build/snapshots/yield-freeze/` |
 | `sun-shadows` | One generated city under the directional sun: an elevation ladder, a bearing sweep, one building's roof caved in beside itself intact, marines casting beside the same marines with the shadow layer left out, and one craft at three altitudes walking its shadow away from itself — each against a control. Terrain shading is the **CPU model of the composite shader, not the shader**; the bodies panel is the real `UnitShadowRenderSystem` collected and drained | `build/snapshots/sun-shadows/` |
 
@@ -695,6 +696,31 @@ corridor without ever crossing, the zone went clear, and the control yielded and
 froze exactly like the case it was meant to contrast with. Moved off that line it
 crosses properly — and then falls into the same hole once it finishes, which is
 the more useful recording of the two.
+
+`SwarmOverkillScene` is the sixth: one squad, open ground, and twenty
+`SWARM_RUNNER`s closing on it. It exists because the Conquest matrix cannot ask
+its question at all — every defender there is a marine or an emplacement, and
+this needs an enemy whose durability is smaller than one shooter's output. A
+runner carries 20 structure against a rifle's 18, so a second rifle on the same
+runner is very nearly a wasted shot while the rest of the rush closes
+unanswered.
+
+**Both sides carry a mission goal, and without it there is no fight to record.**
+Eight marines meeting twenty runners is an unfavourable local balance and the
+doctrine reading it is correct to disengage; the rush breaks too once it has
+taken casualties. The first recording was both sides withdrawing in opposite
+directions for twenty seconds — a difference between two targeting arms that
+could not possibly show up, because neither side was firing. A mission goal
+outranks survival by bucket, which is what pins them in the fight the scene is
+named for.
+
+**What it records is a negative, and that is the point.** Damage-aware crowding
+changes nothing here — cleared at tick 450 with the squad intact, either way —
+because per-body crowding was already about right for a target one rifle kills:
+the committed share is 0.9, so the two agree. The case that was actually broken
+is the opposite one, a chassis many rifles deep, and Conquest is where that
+shows. The scene is kept as the control proving the swarm case does not regress,
+and as the instrument for the next attempt at it.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep

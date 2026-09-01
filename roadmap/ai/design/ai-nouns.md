@@ -9,6 +9,16 @@ the scarcest thing on the rotation, and berth-bound work is a round of the
 machines, so a crew comes round to every stand in its room instead of pinning
 one each.
 
+Earlier 2026-09-01 — joining fire is priced by how much of the target is
+already spoken for rather than by how many allies are shooting at it.
+
+Earlier 2026-09-01 — a friendly in the firing lane is now a thing the decision
+side can see; preferring a clear one measured worse than shooting past him, so
+it is built and off.
+
+Earlier 2026-09-01 — target acquisition is perception-gated: a unit may target
+what it can see or what its squad believes, and nothing else.
+
 Earlier 2026-09-01 — an order that names a room may now close its own firing
 gap, contained to that room rather than excluded from the improvement outright.
 
@@ -1042,6 +1052,34 @@ keeps the squad's fire concentrated and stops shooting its own man, where
 retargeting trades the second for the first. It stays behind
 `battle.targeting.friendlyLanePenalty`, and the geometry it would be built on is
 shared with the mech overwatch position search rather than restated.
+
+**Whether to add your fire to a target is a question about damage, not about
+headcount.** Joining fire used to cost a flat toll per ally already aiming at
+the candidate, which is blind in both directions at once. A heavy chassis that
+takes most of a squad's rifles charges the same per-shooter toll as a runner one
+rifle kills, so the squad is pushed off the target that most needs concentrating
+on; and a rush of weak attackers is answered at the same rate as a single tough
+one, so a marine still joins fire that has already killed what it was aimed at
+while the rest of the rush closes unanswered. What decides it is how much of the
+target is already spoken for: fire committed by allies, projected through the
+armour and mitigation the round will actually meet, weighed against what is left
+standing. Below one target's worth the toll is nearly nothing and the squad
+concentrates; above it the toll climbs and the squad spreads. This is the same
+judgement a rocket has always made before committing, priced rather than
+forbidden because direct fire is cheap.
+
+**The curve matters as much as the idea, and the first one was wrong.** Scaling
+the toll linearly with the committed share charges *less* than the per-body
+count at every ordinary engagement — one rifle into a defender is a share of
+0.72 — so it relaxed spreading everywhere rather than only where the target is
+tough, and cost nine of one fixture's fourteen captures. Squaring the share
+holds the old figure at that ordinary anchor while still collapsing against a
+chassis many rifles deep. Measured on the same tree against
+`battle.targeting.committedFire=false`, that trades two captures on one fixture
+for turning the other from a defeat into a survival with more than twice the
+compounds taken. Two fixtures pointing opposite ways cannot settle a curve, so
+the exponent was not tuned further; a third attempt would be fitting the matrix
+rather than measuring the model.
 
 Two laws survived the attempt and are worth keeping whatever the trigger
 becomes. **A forced commit must not outlive its cause**: setting the commit flag
