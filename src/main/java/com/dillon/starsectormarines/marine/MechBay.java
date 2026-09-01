@@ -30,10 +30,27 @@ public final class MechBay implements Serializable {
     private Map<String, Integer> ownedReplenishers = new HashMap<>();
     private Map<String, Integer> ownedWeapons = new HashMap<>();
     private String activeSquadId;
-    private int nextFabricatedSerial = 2;
+    private int nextFabricatedSerial = 1;
+    /**
+     * Save-model marker. Old serialized bays do not contain this field and
+     * therefore deserialize false; those saves retain their original starter
+     * Bulwark. New campaigns begin with only the empty support-lance gantries.
+     */
+    private boolean foundingModelInitialized = true;
 
     public MechBay() {
-        seedStarterSquad();
+        ensureSupportSquad();
+    }
+
+    /** Explicit legacy/test fixture; ordinary campaign construction stays empty. */
+    public static MechBay legacyStarterFixture() {
+        return legacyStarterBay();
+    }
+
+    static MechBay legacyStarterBay() {
+        MechBay bay = new MechBay();
+        bay.seedLegacyStarterAssets();
+        return bay;
     }
 
     public List<CampaignMechSquad> squads() {
@@ -225,14 +242,22 @@ public final class MechBay implements Serializable {
         return Collections.unmodifiableList(deployment);
     }
 
-    private void seedStarterSquad() {
-        if (!squads.isEmpty()) return;
+    private void ensureSupportSquad() {
+        if (squadById(STARTER_SQUAD_ID) != null) return;
         CampaignMechSquad squad = new CampaignMechSquad(
                 STARTER_SQUAD_ID, "Support Squad 01");
-        squad.add(new CampaignMech(STARTER_MECH_ID, "Bulwark 01",
-                MechVariant.BULWARK, MechRole.ARMORED_SUPPORT,
-                MissileReplenisherComponent.STANDARD.id()));
         squads.add(squad);
+        if (activeSquadId == null) activeSquadId = squad.id();
+    }
+
+    private void seedLegacyStarterAssets() {
+        ensureSupportSquad();
+        CampaignMechSquad squad = squadById(STARTER_SQUAD_ID);
+        if (mechById(STARTER_MECH_ID) == null) {
+            squad.add(new CampaignMech(STARTER_MECH_ID, "Bulwark 01",
+                    MechVariant.BULWARK, MechRole.ARMORED_SUPPORT,
+                    MissileReplenisherComponent.STANDARD.id()));
+        }
         activeSquadId = squad.id();
         putAtLeast(MissileReplenisherComponent.STANDARD.id(), 1);
         putAtLeast(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
@@ -251,7 +276,7 @@ public final class MechBay implements Serializable {
     }
 
     private int nextAvailableSerial() {
-        int candidate = Math.max(2, nextFabricatedSerial);
+        int candidate = Math.max(1, nextFabricatedSerial);
         while (mechById("support_mech_"
                 + String.format(Locale.ROOT, "%02d", candidate)) != null) {
             candidate++;
@@ -272,7 +297,9 @@ public final class MechBay implements Serializable {
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
         if (ownedWeapons == null) ownedWeapons = new HashMap<>();
         squads.removeIf(squad -> squad == null);
-        seedStarterSquad();
+        if (!foundingModelInitialized) seedLegacyStarterAssets();
+        else ensureSupportSquad();
+        foundingModelInitialized = true;
         CampaignMechSquad active = activeSquad();
         activeSquadId = active != null ? active.id() : null;
         for (MissileReplenisherComponent component : MissileReplenisherComponent.catalog()) {
@@ -281,7 +308,7 @@ public final class MechBay implements Serializable {
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
             ownedWeapons.merge(component.id, installedWeapon(component.id), Math::max);
         }
-        nextFabricatedSerial = Math.max(2, nextFabricatedSerial);
+        nextFabricatedSerial = Math.max(1, nextFabricatedSerial);
         return this;
     }
 }

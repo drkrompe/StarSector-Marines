@@ -4,8 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — cargo-backed reinforcement controls identify generic
-Marine personnel with Starsector's live commodity icon.
+Updated: 2026-09-01 — a new campaign begins without named line personnel;
+Fleet Armory founding atomically converts a complete cargo bill into one full squad.
 
 ## Purpose
 
@@ -27,6 +27,14 @@ The company hierarchy is company, officer command, squad, fire team, marine.
 The reserve pool is a holding area, never a deployable squad or officer command.
 Enlisted leadership follows current squad membership, fitness, and experience;
 it is re-derived rather than accumulated as a competing promotion track.
+
+A new campaign establishes that empty reserve structure but grants no line squad.
+**Squad founding** consumes one indivisible bill of twelve generic Marines, baseline
+arms, supplies, and provisions, then creates twelve named members in one new line
+formation. Insufficient cargo changes neither inventory nor personnel. Subsequent
+vacancy filling remains reserves-first and consumes generic Marines one billet at a
+time. Existing saves keep their roster; free complement bootstrap is fixture and
+legacy tooling, not a campaign transition.
 
 A squad may name one home officer. Home command is an organizational default,
 not ownership of people or a record of temporary borrowing. Officer capacity is

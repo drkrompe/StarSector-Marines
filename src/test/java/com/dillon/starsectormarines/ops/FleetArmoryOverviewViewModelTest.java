@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FleetArmoryOverviewViewModelTest {
@@ -43,10 +45,16 @@ class FleetArmoryOverviewViewModelTest {
         FleetArmoryOverviewViewModel.CompanyCard card =
                 viewModel.companyCards().get().get(0);
         assertEquals("2 marine squads", card.marineSquads());
-        assertEquals("1 mech squad", card.mechSquads());
+        assertEquals("0 mech squads", card.mechSquads(),
+                "vacant gantries are infrastructure, not a fielded formation");
         assertEquals("24 / 24 marines RTD", card.readiness());
         assertEquals("READY", card.status());
         assertTrue(viewModel.fleetSummary().get().contains("1 owned company"));
+
+        assertNotNull(roster.mechBay().fabricateChassis(
+                roster.mechBay().activeSquad().id(), MechVariant.HOUND));
+        viewModel.refresh();
+        assertEquals("1 mech squad", viewModel.companyCards().get().get(0).mechSquads());
 
         card.open().run();
         assertEquals(1, opens.get());
