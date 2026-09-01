@@ -4,7 +4,10 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a bay knows its aperture: the door in its outboard
+Updated: 2026-09-01 — a ship's boats are a fitting of the hull rather than
+property brought aboard, so her bays are stocked from what she is for.
+
+Earlier 2026-09-01 — a bay knows its aperture: the door in its outboard
 bulkhead, derived at placement from the run of its ring that faces space.
 
 Earlier 2026-09-01 — a boat bay is a field: its berths are registered with the
@@ -194,6 +197,24 @@ authored content.
   the standard boat must keep a smaller boat rather than none, because the hull
   whose only way off the ship is her gig is exactly the hull that cannot afford
   an empty bay.
+- **A ship's boats are a fitting of the hull, not property brought aboard.**
+  They are hers the way her bays are: you do not bring them with you, you cannot
+  take them when you leave, and a company that changes ships changes boats. So
+  what is in her bays follows from what she is, exactly as her room program does
+  — the plan a hull implies states it, and the host that puts the boats out asks
+  rather than deciding.
+- This replaces an older framing in which a lift was assembled from **transports
+  out of the player's fleet**. Under that reading the boats were things you
+  owned and a Valkyrie was one of them; under this one the Valkyrie is the ship
+  you are standing in, and her boats are inside her. The shuttle catalogue still
+  spans both ends of that range, which is why what a bay holds is the small end
+  of it: a bay stocked with a Valkyrie would be a ship carrying herself.
+- Which boat is decided by **what the hull is for**. A hull that exists to put a
+  ground force somewhere carries landing craft; every other hull carries a gig,
+  which is ship's business — an errand, a party ashore, a run to another hull.
+  One type per hull rather than a mixed bill, because a ship's boats are a class
+  she carries several of and a bay holding one of each would be a fleet in
+  miniature.
 - **Servicing a boat is the same job as servicing an aircraft on an apron**, and
   is deliberately the same one: `SERVICE` published against the berth, worked in
   hand-seconds by whoever is standing at it. A ship's boats and a garrison
