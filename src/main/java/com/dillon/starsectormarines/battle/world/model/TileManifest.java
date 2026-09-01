@@ -272,27 +272,46 @@ public final class TileManifest {
         return new TileFrame(WALL_COL_ORIGIN + col, WALL_ROW_ORIGIN + row);
     }
 
+    /** The grass pool on {@code nature-tiles.png}, in frame order. */
+    private static final String[] NATURE_GRASS = {
+            "nature.grass-1", "nature.grass-2", "nature.grass-3", "nature.grass-4",
+            "nature.grass-5", "nature.grass-6", "nature.grass-7", "nature.grass-8" };
+
+    /** The dirt pool on {@code nature-tiles.png}, in frame order. */
+    private static final String[] NATURE_DIRT = {
+            "nature.dirt-1", "nature.dirt-2", "nature.dirt-3", "nature.dirt-4",
+            "nature.dirt-5", "nature.dirt-6", "nature.dirt-7", "nature.dirt-8" };
+
     /**
-     * Two-variant grass pool from {@code nature-tiles.png}, hash-picked by
-     * cell coordinate. Returns the tile id — resolve via
+     * Grass pool from {@code nature-tiles.png}, hash-picked by cell coordinate.
+     * Returns the tile id — resolve via
      * {@code TileRegistry.installed().tile(id)} before rendering.
      *
      * <p>Center-variant only: the nature-tile sheet has no edge frames so
      * per-kind edges between e.g. grass and dirt show a hard cell boundary
      * (matches the flat-edges-between-kinds convention).
+     *
+     * <p>This was a pair until 2026-09-01, and the pair was a fiction:
+     * {@code nature.grass-1} and {@code nature.grass-2} named one material file
+     * between them and packed byte-identical, so every grass cell in the game
+     * drew the same picture and the hash chose nothing. Grass is the primary
+     * outdoor surface, so that was the single most repeated image in the
+     * project. Widening the array is all it takes to use more; the ids resolve
+     * by name and the frame indices behind them are assigned at export.
      */
     public static String pickNatureGrassTileId(int x, int y) {
-        return (stableHash(x, y) & 1) == 0 ? "nature.grass-1" : "nature.grass-2";
+        return NATURE_GRASS[stableHash(x, y) % NATURE_GRASS.length];
     }
 
     /**
-     * Two-variant dirt pool from {@code nature-tiles.png}, hash-picked by
-     * cell coordinate. Returns the tile id — resolve via
+     * Dirt pool from {@code nature-tiles.png}, hash-picked by cell coordinate.
+     * Returns the tile id — resolve via
      * {@code TileRegistry.installed().tile(id)} before rendering.
-     * See {@link #pickNatureGrassTileId} for rationale.
+     * See {@link #pickNatureGrassTileId} for rationale and for the defect both
+     * pools carried.
      */
     public static String pickNatureDirtTileId(int x, int y) {
-        return (stableHash(x, y) & 1) == 0 ? "nature.dirt-1" : "nature.dirt-2";
+        return NATURE_DIRT[stableHash(x, y) % NATURE_DIRT.length];
     }
 
     /**
