@@ -1,10 +1,10 @@
 # Tier force-ratio acceptance
 
-Status: IN PROGRESS — the Full Strength Conquest population failure is corrected; live force-ratio acceptance remains.
+Status: IN PROGRESS — Full Strength Conquest must honestly demand the thousand-marine force its three-lane siege currently needs.
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — raised fixed Conquest pressure and removed attacker-derived support trimming after a Full Strength city fight proved underpopulated.
+Updated: 2026-09-01 — set the Full Strength Conquest acceptance force to eighty-four squads / 1,008 marines deployed into one battle through its existing six-shuttle, three-drop-zone ferry.
 
 Read `mission-tier-nouns.md` before accepting this story.
 
@@ -23,9 +23,16 @@ measure whether each authored scale asks for the intended commitment.
   any measured value.
 - Confirm a tier floor prevents invalid mission-type/scale combinations.
 - Confirm nominal Full Strength Conquest fields 630 initial defenders against
-  the intended forty-drop player force, rises to 725 at high risk, and retains
-  all authored mechs, fighter support, and static weapons when the attacking
-  manifest is understrength.
+  an intended eighty-four-squad / 1,008-marine player force, rises to 725 at
+  high risk, and retains all authored mechs, fighter support, and static weapons
+  when the attacking manifest is understrength.
+- Preserve the existing three drop zones and six reusable Aeroshuttles. The
+  complete force enters this one battle as 168 half-squad sorties, balanced to
+  28 cycles per shuttle, rather than becoming an abstract reserve or a larger
+  number of landing lanes.
+- Keep the First Contract, Established, and Veteran ordinary recommendations
+  small. Conquest owns the late-game jump; its thousand-marine envelope must
+  not make the early campaign begin at battalion scale.
 
 ## Out of scope
 
