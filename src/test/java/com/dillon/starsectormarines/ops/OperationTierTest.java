@@ -106,6 +106,10 @@ class OperationTierTest {
                 MissionType.CONQUEST, OperationTier.REINFORCED));
         assertEquals(84, MissionForceEnvelope.recommendedSquads(
                 MissionType.CONQUEST, OperationTier.FULL_STRENGTH));
+        assertEquals(4, MissionForceEnvelope.recommendedSquads(
+                MissionType.SABOTAGE, OperationTier.FULL_STRENGTH));
+        assertEquals(8, MissionForceEnvelope.recommendedSquads(
+                MissionType.RAID, OperationTier.FULL_STRENGTH));
     }
 
     @Test

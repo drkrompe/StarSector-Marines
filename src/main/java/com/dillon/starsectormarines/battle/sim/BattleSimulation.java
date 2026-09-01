@@ -46,6 +46,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.AirStrikeSystem;
+import com.dillon.starsectormarines.battle.air.BoatSortieSystem;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirframeCookOffSystem;
 import com.dillon.starsectormarines.battle.air.AirProvider;
@@ -66,6 +67,7 @@ import com.dillon.starsectormarines.battle.air.AirfieldSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.battle.vehicle.GroundSystem;
@@ -359,6 +361,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Stateless tick consumer that stands airframes on their pads, writes off one destroyed where it sat, and counts down a turnaround. */
     private final AirfieldSystem airfieldSystem = new AirfieldSystem();
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
+    private final BoatSortieSystem boatSorties = new BoatSortieSystem();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER, Faction.MARINE);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
@@ -936,6 +939,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** Inject the detachment-resolved command-power roster. Called once at battle setup ({@code ops.MissionLaunch}), mirroring {@link #setFlybyRoster}; an empty/{@code null} list leaves the power UI hidden. */
     public void setCommandPowers(List<com.dillon.starsectormarines.battle.power.CommandPower> powers) { commandPowers.setPowers(powers); }
+
+    /** Installs the mission-owned concurrent player-squad limit before ticking. */
+    public void setFieldPresencePolicy(FieldPresencePolicy policy) {
+        airSystem.setFieldPresencePolicy(policy);
+    }
     /** Hands the sim the map's building registry. Called by BattleSetup after generation. Subsequent visibility passes will reveal/hide these buildings as contributor units move. */
     public void setBuildings(com.dillon.starsectormarines.battle.world.model.Buildings buildings) {
         fogOfWar.setBuildings(buildings);
@@ -1913,6 +1921,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After the berths, so a shed that just took an aircraft back is
         // airworthy in the same tick a strike might want it.
         airStrikeSystem.tick(TICK_DT, this);
+        // The ship-side sibling: a bay puts a boat off the hull the way a field
+        // puts an aircraft over the battle. Ticked unconditionally like the
+        // strike system and, like it, does nothing where the place it is on has
+        // nothing of its kind — a garrison hardstand has nowhere off this map to
+        // send anything to.
+        boatSorties.tick(TICK_DT, this, airfieldService);
         if (garrisonSystem != null) garrisonSystem.tick(TICK_DT, this, compoundService);
         // Resource production — alive compounds generate tickets (reinforcement,
         // airstrike) into per-faction pools. Ticked after capture so a

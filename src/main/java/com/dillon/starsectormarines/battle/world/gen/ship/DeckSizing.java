@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,10 +49,26 @@ public final class DeckSizing {
     private DeckSizing() {}
 
     /** One ship's deck: its dimensions and the rooms it owes. */
-    public record DeckPlan(int frames, int height, List<RoomRecipe> rooms) {
+    /**
+     * @param boats what this hull keeps in her bays, which is a fact about the
+     *     hull in exactly the way her room program is: a ship's boats are a
+     *     fitting rather than property, so they are derived here beside the
+     *     rooms that hold them rather than looked up against a roster
+     */
+    public record DeckPlan(int frames, int height, List<RoomRecipe> rooms,
+                           ShuttleType boats) {
 
         public DeckPlan {
             rooms = List.copyOf(rooms);
+        }
+
+        /**
+         * A deck with no hull behind it — an explicit size and program, which is
+         * what the infrastructure fixtures and the authoring fallback generate.
+         * It carries no boats because there is no ship whose boats they would be.
+         */
+        public DeckPlan(int frames, int height, List<RoomRecipe> rooms) {
+            this(frames, height, rooms, null);
         }
 
         public int deckArea() {
@@ -78,7 +95,9 @@ public final class DeckSizing {
      */
     public static DeckPlan planFor(HullClass hullClass, HullRole role,
                                    int minCrew, int maxCrew, int cargo, float aspect) {
-        if (!hullClass.boardable()) return new DeckPlan(0, 0, List.of());
+        if (!hullClass.boardable()) {
+            return new DeckPlan(0, 0, List.of(), ShipsBoats.carriedBy(role));
+        }
 
         List<RoomRecipe> rooms = programFor(hullClass, role, minCrew, maxCrew, cargo);
 
@@ -93,7 +112,8 @@ public final class DeckSizing {
         int height = Math.round(frames * shape);
 
         return new DeckPlan(Math.max(frames, minimumFrames(rooms)),
-                Math.max(height, minimumHeight(rooms)), rooms);
+                Math.max(height, minimumHeight(rooms)), rooms,
+                ShipsBoats.carriedBy(role));
     }
 
     /**

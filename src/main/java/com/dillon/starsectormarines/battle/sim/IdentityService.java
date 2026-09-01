@@ -72,6 +72,12 @@ public final class IdentityService {
                 BattleComponents.IDENTITY_MECH_VARIANT);
     }
 
+    /** Persistent campaign squad id for a deployed marine; null for other bodies. */
+    public String campaignSquadId(long id) {
+        return (String) entityWorld.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_CAMPAIGN_SQUAD_ID);
+    }
+
     /**
      * The airframe a parked aircraft is a hull of, or null for anything else.
      *

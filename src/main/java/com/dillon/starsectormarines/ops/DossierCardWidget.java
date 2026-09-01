@@ -162,6 +162,11 @@ public class DossierCardWidget extends BaseWidget {
         sb.append(mission.tier.displayName).append("  ·  ")
                 .append(recommendedSquads)
                 .append(recommendedSquads == 1 ? " squad" : " squads");
+        if (mission.fieldPresencePolicy.limited()) {
+            int active = mission.fieldPresencePolicy.activeSquadLimit();
+            sb.append("  ·  ").append(active)
+                    .append(" max active");
+        }
         sb.append("  ·  ");
         sb.append("$").append(NumberFormat.getIntegerInstance().format(mission.payout));
         int salvage = mission.salvageNegotiated & 0xFF;
