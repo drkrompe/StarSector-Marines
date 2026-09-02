@@ -271,6 +271,9 @@ public final class BattleSetup {
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
         sim.setDefensePosts(defensePosts);
+        // The map's own statement of where the front is, so the trace can say
+        // which band a compound stands in without re-deriving it.
+        sim.setFrontDepth(map.frontDepth);
         for (ParkedAircraft aircraft : parkedAircraft) sim.addParkedAircraft(aircraft);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         for (Doodad d : parkedVehicles) sim.addDoodad(d);
@@ -728,7 +731,17 @@ public final class BattleSetup {
                                         TargetProfile profile,
                                         PrecinctPlan.Sprawl sprawl,
                                         TraversalAxis axis, long seed) {
-        return conquestPlanFor(tier, risk, profile, sprawl, null, axis, seed);
+        return conquestPlanFor(tier, risk, profile, sprawl, null,
+                PrecinctPlan.Lanes.derived(), axis, seed);
+    }
+
+    /** As above, with the battle's own statement of how far out it lands. */
+    static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile,
+                                        PrecinctPlan.Sprawl sprawl, Standoff standoff,
+                                        TraversalAxis axis, long seed) {
+        return conquestPlanFor(tier, risk, profile, sprawl, standoff,
+                PrecinctPlan.Lanes.derived(), axis, seed);
     }
 
     /**
@@ -751,14 +764,33 @@ public final class BattleSetup {
     static final Standoff CONQUEST_STANDOFF = Standoff.CLOSE;
 
     /**
-     * As above, with the battle's own statement of how far out it lands.
+     * As above, with the battle's own statements of how far out it lands and
+     * how many lanes of resistance lie in front of it.
+     *
+     * <p><b>Conquest is the only mission that lays lanes</b>, for the same
+     * reason it is the only one that states a standoff: its commanders already
+     * divide the map into lateral tracks and advance up all of them, and until
+     * this the map had nothing standing on any of them — three tracks arriving
+     * at one wall with open city behind them. Assault and Raid state none and
+     * generate exactly as they did.
+     *
+     * <p><b>{@code null} lanes means none, and the overloads above state the
+     * default instead.</b> The two readings of null cannot both live here: a
+     * mission that says nothing wants the default ladder, and a mission that
+     * says zero wants the map this feature replaced, which is the control a
+     * balance run is read against. Resolving the mission's statement is the
+     * caller's job — {@code conquestMap} does it — and this takes the answer
+     * literally. It read null as "the default" for a while, which made the
+     * stated control unreachable and a control run a re-run.
      *
      * @param standoff the mission's stated standoff, or {@code null} for
      *                 Conquest's own default
+     * @param lanes    the lanes this map lays, or {@code null} for none
      */
     static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
                                         TargetProfile profile,
                                         PrecinctPlan.Sprawl sprawl, Standoff standoff,
+                                        PrecinctPlan.Lanes lanes,
                                         TraversalAxis axis, long seed) {
         if (profile == null || profile.marketSize() <= 0) return null;
         if (profile.defenseLevel() <= 0) return null;
@@ -771,6 +803,7 @@ public final class BattleSetup {
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 objective, attackerFrom,
+                lanes,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
                 new Random(seed ^ PRECINCT_SEED_SALT))
                 .withStandoff(standoff != null ? standoff : CONQUEST_STANDOFF);
@@ -1410,6 +1443,29 @@ public final class BattleSetup {
                                                ShuttleArrivalPlan arrivalPlan,
                                                PrecinctPlan.Sprawl sprawl,
                                                Standoff standoff) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan,
+                sprawl, standoff, null);
+    }
+
+    /**
+     * Conquest build carrying the battle's stated lane count as well.
+     *
+     * @param laneCount how many lanes of resistance run between the beachhead
+     *                  and the objective, or {@code null} for one per command
+     *                  track. A mission states the count; what stands on each
+     *                  lane is derived from the objective's own fortification.
+     */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan,
+                                               PrecinctPlan.Sprawl sprawl,
+                                               Standoff standoff,
+                                               Integer laneCount) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
@@ -1423,7 +1479,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
-                tier, risk, sprawl, standoff);
+                tier, risk, sprawl, standoff, laneCount);
         MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1783,9 +1839,29 @@ public final class BattleSetup {
                                                   ShuttleArrivalPlan arrivalPlan,
                                                   PrecinctPlan.Sprawl sprawl,
                                                   Standoff standoff) {
+        return createConquest(seed, manifest, enemyHasHeavyArmor, tier, risk, profile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
+                standoff, null);
+    }
+
+    /**
+     * Tier-aware Conquest carrying all three of the battle's own map
+     * statements; {@code null} takes the derived sprawl, Conquest's default
+     * standoff and one lane per command track.
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  ShuttleArrivalPlan arrivalPlan,
+                                                  PrecinctPlan.Sprawl sprawl,
+                                                  Standoff standoff,
+                                                  Integer laneCount) {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, profile, marineFighterSupport,
-                enemyFighterSupport, arrivalPlan, sprawl, standoff).sim();
+                enemyFighterSupport, arrivalPlan, sprawl, standoff, laneCount).sim();
     }
 
     /**
@@ -1897,15 +1973,20 @@ public final class BattleSetup {
                                            TraversalAxis axis, TargetProfile profile,
                                            OperationTier tier, RiskLevel risk,
                                            PrecinctPlan.Sprawl sprawl,
-                                           Standoff standoff) {
+                                           Standoff standoff, Integer laneCount) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
+        // Zero is a statement rather than the absence of one: it asks for the
+        // map this feature replaced — three tracks arriving at one wall with
+        // open city behind them — which is the control a balance run needs.
+        PrecinctPlan.Lanes lanes = laneCount == null ? PrecinctPlan.Lanes.derived()
+                : laneCount <= 0 ? null : PrecinctPlan.Lanes.of(laneCount);
         for (int attempt = 0; attempt < CONQUEST_MAP_ATTEMPTS; attempt++) {
             long mapSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             // Derived per attempt rather than once, because the plan is half of
             // what the seed decides: a re-roll that kept the same places would
             // be the same map filled differently, which is not another map.
             PrecinctPlan plan = conquestPlanFor(tier, risk, profile, sprawl, standoff,
-                    axis, mapSeed);
+                    lanes, axis, mapSeed);
             // A plan and an axis are two different maps and the generator
             // refuses both, so the axis rides in only when there is no plan —
             // a marketless or undefended Conquest keeps the stock crossroad.

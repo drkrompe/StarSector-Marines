@@ -26,6 +26,11 @@ import java.util.Objects;
  * force lands, or {@code null} for Conquest's own default. It is on this
  * fixture and not the others because Conquest is the only mission that consults
  * one — everything else takes the map-edge beachhead it was measured on.
+ *
+ * <p>{@code lanes} is the third of them: how many lanes of resistance lie
+ * between the beachhead and the objective, or {@code null} for one per command
+ * track. A fixture states the count only; what stands on each lane steps down
+ * from the objective's own fortification.
  */
 public record ConquestBattleFixture(
         long seed,
@@ -38,7 +43,8 @@ public record ConquestBattleFixture(
         List<FighterWingCommitment> enemyFighterSupport,
         ShuttleArrivalPlan arrivalPlan,
         PrecinctPlan.Sprawl sprawl,
-        Standoff standoff) implements BattleFixture {
+        Standoff standoff,
+        Integer lanes) implements BattleFixture {
 
     public static final String KIND = "CONQUEST";
 
@@ -64,7 +70,21 @@ public record ConquestBattleFixture(
             ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
                 marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
-                null);
+                null, null);
+    }
+
+    /** A fixture that states a sprawl and an approach but nothing about lanes. */
+    public ConquestBattleFixture(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
+            Standoff standoff) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
+                standoff, null);
     }
 
     /** A fixture that says nothing about sprawl; the market derives it. */
@@ -77,7 +97,7 @@ public record ConquestBattleFixture(
             ShuttleArrivalPlan arrivalPlan) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
                 marineFighterSupport, enemyFighterSupport, arrivalPlan, null,
-                null);
+                null, null);
     }
 
     /** V1 fixture compatibility: historical Conquest arrivals were independent. */
@@ -121,12 +141,24 @@ public record ConquestBattleFixture(
             FlybyRoster enemyFighterSupport,
             ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
             Standoff standoff) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport,
+                arrivalPlan, sprawl, standoff, null);
+    }
+
+    public static ConquestBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
+            Standoff standoff, Integer lanes) {
         return new ConquestBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
                 FighterWingCommitment.captureRoster(enemyFighterSupport),
-                arrivalPlan, sprawl, standoff);
+                arrivalPlan, sprawl, standoff, lanes);
     }
 
     public static ConquestBattleFixture fromFactoryInputs(
@@ -150,6 +182,6 @@ public record ConquestBattleFixture(
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
                 FighterWingCommitment.toRoster(enemyFighterSupport), arrivalPlan,
-                sprawl, standoff);
+                sprawl, standoff, lanes);
     }
 }
