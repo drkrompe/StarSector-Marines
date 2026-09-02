@@ -4,9 +4,8 @@ Status: ACTIVE — Conquest objective and territorial work remains here; its pai
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — added `conquest-560-contact.md`, the tick-by-tick
-attribution of first contact and of full-strength-west's zero captures at
-560x336.
+Updated: 2026-09-01 — added `conquest-lanes.md`: resistance in depth along the
+tracks, the layers a Conquest grind is missing on the 560x336 map.
 
 The territorial model, compound loop, and Conquest victory law are implemented.
 `conquest-command.md` owns the attacker/defender strategy and its active live
@@ -15,6 +14,7 @@ feature:
 
 | Story | State | Intent |
 |---|---|---|
+| `conquest-lanes.md` | PLANNED | A lane per track with a ladder of garrison places, one per front band, derived from the objective's rung or stated per lane; every one a compound, so the grind is the compound ladder. |
 | `conquest-560-contact.md` | PROPOSED | Three decisions the 560x336 matrix surfaced: the standoff is measured from the wrong side of the beachhead and correcting it alone measures worse, arrival lift does not scale with committed seats, and an open compound's capture zone is the outdoors. |
 | `progressive-reinforcement.md` | PARKED | Manually verify defender frontline response, safe delivery, and supply degradation across a Conquest push. |
 | `biome-counterattack.md` | PARKED | Manually tune and verify the telegraphed defender counterattack as a territorial swing. |
