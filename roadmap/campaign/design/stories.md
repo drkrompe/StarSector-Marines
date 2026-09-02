@@ -1,9 +1,17 @@
 # Campaign story board
 
-Status: ACTIVE
+Status: ACTIVE — 2 open stories
 
 Written: 2026-08-23
 
-No umbrella campaign story is currently contracted. Live implementation work is
-owned by its feature board; broad economy, relationship, and background
-direction remains in design until it can be made a bounded vertical slice.
+Updated: 2026-09-02 — contracted the stationed-defence pair.
+
+Read `campaign-nouns.md` and `meta-progression.md` before changing an
+umbrella story. Live feature work is owned by its feature board; broad
+economy, relationship, and background direction remains in design until it
+can be made a bounded vertical slice.
+
+| Story | Status | Dependencies / freshness |
+| --- | --- | --- |
+| `stationed-ground-defence.md` | In progress — slices 1–5 shipped, live pass remains | A Garrison detachment counts toward the protected market's vanilla ground defences, a won vanilla-triggered defence sends the raid home, and an unanswered one settles from vanilla's own result. Adds the raid-intel reader beside the existing fleet-group trigger. First of the pair. |
+| `polity-defence-raid-hook.md` | Planned | Meet a vanilla raid on a player-owned colony on the ground, and post a detachment there for the days the player is elsewhere. Depends on the stationed-defence story for its readers, ending handle, and absent settlement. |

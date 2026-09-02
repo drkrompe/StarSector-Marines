@@ -23,6 +23,9 @@ public final class StationingLapseResolution {
         INCIDENT_LAPSED
     }
 
+    private static final String UNANSWERED_NOTE =
+            "Recalled after a stationing assignment went unanswered.";
+
     private StationingLapseResolution() {}
 
     public static Result apply(CampaignState state, GarrisonDefensePayload payload,
@@ -33,7 +36,7 @@ public final class StationingLapseResolution {
                 state, payload.contractId, payload.eventKey, 0, false, false,
                 roster, deployed(payload.fireteamIds, roster));
         if (result != GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) return null;
-        restoreStrandedCaptain(captain, day);
+        restoreStrandedCaptain(captain, day, UNANSWERED_NOTE);
         ContractReputation.lapsedForContract(state, payload.contractId, day);
         return Result.DEFENSE_LAPSED;
     }
@@ -46,7 +49,7 @@ public final class StationingLapseResolution {
                 state, payload.contractId, payload.dueDay, payload.type,
                 0, false, false, day, roster, deployed(payload.fireteamIds, roster));
         if (result != StationingIncidentResolution.Result.ASSIGNMENT_FAILED) return null;
-        restoreStrandedCaptain(captain, day);
+        restoreStrandedCaptain(captain, day, UNANSWERED_NOTE);
         ContractReputation.lapsedForContract(state, payload.contractId, day);
         return Result.INCIDENT_LAPSED;
     }
@@ -56,8 +59,8 @@ public final class StationingLapseResolution {
      * fireteams, and reject a non-empty set with no roster. An unnamed (legacy,
      * marine-count) assignment has no fireteams and passes {@code null} through.
      */
-    private static LinkedHashSet<String> deployed(Iterable<String> fireteamIds,
-                                                  MarineRoster roster) {
+    static LinkedHashSet<String> deployed(Iterable<String> fireteamIds,
+                                          MarineRoster roster) {
         if (roster == null || fireteamIds == null) return null;
         LinkedHashSet<String> deployed = new LinkedHashSet<>();
         for (String id : fireteamIds) {
@@ -66,8 +69,8 @@ public final class StationingLapseResolution {
         return deployed.isEmpty() ? null : deployed;
     }
 
-    private static MarineCaptain assignedCaptain(CampaignState state, long contractId,
-                                                 MarineRoster roster) {
+    static MarineCaptain assignedCaptain(CampaignState state, long contractId,
+                                         MarineRoster roster) {
         if (roster == null) return null;
         int row = state.contractIndex(contractId);
         if (row < 0 || state.contractCaptainId[row] < 0) return null;
@@ -75,13 +78,15 @@ public final class StationingLapseResolution {
     }
 
     /**
-     * No battle ran, so nothing else will move the captain off {@code GARRISONED}.
-     * They come home with the assignment's failure on their record.
+     * No battle the player commanded ran, so nothing else will move the captain off
+     * {@code GARRISONED}. They come home with the assignment's failure on their record,
+     * annotated with {@code note} — what stranded them is not always a lapse
+     * ({@link AbsentDefenceResolution} strands one whose garrison was overrun without
+     * them).
      */
-    private static void restoreStrandedCaptain(MarineCaptain captain, int day) {
+    static void restoreStrandedCaptain(MarineCaptain captain, int day, String note) {
         if (captain == null || captain.status() != Status.GARRISONED) return;
         captain.setStatus(Status.ACTIVE);
-        captain.commendations().add("Day " + day
-                + ": Recalled after a stationing assignment went unanswered.");
+        captain.commendations().add("Day " + day + ": " + note);
     }
 }

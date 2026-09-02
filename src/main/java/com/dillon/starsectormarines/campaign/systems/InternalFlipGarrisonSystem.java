@@ -68,7 +68,7 @@ public final class InternalFlipGarrisonSystem implements CampaignSystem {
             if (market == null) continue;
             GarrisonDefenseTrigger.arm(state, market.eventKey, market.marketId,
                     GarrisonDefenseTriggerType.INTERNAL_FLIP, -1L,
-                    market.factionId, day);
+                    market.factionId, 0f, day);
         }
     }
 
