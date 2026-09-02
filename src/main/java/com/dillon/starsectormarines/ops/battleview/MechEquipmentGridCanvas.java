@@ -59,9 +59,11 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         float cellWidth = metrics.cellWidth();
         float cellHeight = metrics.cellHeight();
 
-        int itemColumns = component != null ? component.footprintColumns
+        int itemColumns = definition != null && component != null ? gridColumns
+                : component != null ? component.footprintColumns
                 : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        int itemRows = component != null ? component.footprintRows
+        int itemRows = definition != null && component != null ? gridRows
+                : component != null ? component.footprintRows
                 : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
         itemColumns = Math.min(gridColumns, itemColumns);
         itemRows = Math.min(gridRows, itemRows);
@@ -154,8 +156,8 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         };
     }
 
-    private static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
-                                                 MechWeaponComponent component) {
+    static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
+                                         MechWeaponComponent component) {
         return switch (component) {
             case DUAL_CHAINGUNS, NOSE_CHAINGUN -> assets.chaingunArm;
             case DUAL_LINEAR_CANNONS -> assets.linearCannon;
