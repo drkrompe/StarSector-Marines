@@ -63,6 +63,11 @@ its epilogue, not a second political simulation.
    prose.
 8. Reading or reconstructing a testament may reveal correspondence, but cannot
    produce another political consequence, reward, or moral choice.
+9. A player-owned market is never a claim target and never a result. The
+   player remains a company; the polity is outside the political field
+   (`meta-progression.md`). The writeback's incumbent check happens to exclude
+   such a market today, but the exclusion is policy, not an accident of that
+   check.
 
 ## Flow
 
