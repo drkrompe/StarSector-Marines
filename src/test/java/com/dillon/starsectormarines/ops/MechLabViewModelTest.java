@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.FabricationCost;
@@ -276,6 +277,97 @@ class MechLabViewModelTest {
         }
     }
 
+    @Test
+    void categoryFiltersControlCatalogDisplay() {
+        Reactor reactor = new Reactor();
+        MechBay bay = new MechBay();
+        MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        viewModel.selectSlot(SocketId.ARMS);
+
+        assertEquals(MechLabViewModel.CategoryFilter.ALL, viewModel.filter());
+        int totalRows = viewModel.catalogRows().get().size();
+        assertTrue(totalRows > 0);
+
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.BALLISTIC);
+        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+            if (row.weaponPreview() != null) {
+                assertEquals(MechWeaponComponent.HardpointType.BALLISTIC, row.weaponPreview().hardpointType);
+            }
+        }
+
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.MISSILE);
+        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+            if (row.weaponPreview() != null) {
+                assertEquals(MechWeaponComponent.HardpointType.MISSILE, row.weaponPreview().hardpointType);
+            }
+        }
+
+        viewModel.setFilter(MechLabViewModel.CategoryFilter.ALL);
+        assertEquals(totalRows, viewModel.catalogRows().get().size());
+    }
+
+    @Test
+    void strippingWeaponReturnsComponentToCargoAndClearsSocket() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(0).select().run();
+
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        viewModel.selectSlot(SocketId.ARMS);
+        MechWeaponComponent initialWeapon = mech.arms();
+        assertEquals(MechWeaponComponent.DUAL_CHAINGUNS, initialWeapon);
+
+        int initialFree = bay.availableWeapon(initialWeapon.id);
+        viewModel.stripWeapon(SocketId.ARMS);
+
+        assertNull(mech.arms());
+        assertEquals(initialFree + 1, bay.availableWeapon(initialWeapon.id));
+        assertTrue(viewModel.feedbackText().get().contains("stripped and returned to cargo stores"));
+
+        boolean foundArms = false;
+        for (MechLabViewModel.SlotRow slot : viewModel.slotRows().get()) {
+            if (slot.socketId() == SocketId.ARMS) {
+                foundArms = true;
+                assertEquals("EMPTY", slot.badge());
+                assertFalse(slot.canStrip());
+            }
+        }
+        assertTrue(foundArms);
+    }
+
+    @Test
+    void hoveringCandidateWeaponProjectsGhostPerformanceMeters() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(0).select().run();
+        viewModel.selectSlot(SocketId.LEFT_SHOULDER);
+
+        for (MechLabViewModel.PerformanceMeter meter : viewModel.performanceMeters().get()) {
+            assertTrue(meter.ghostClasses().contains("hidden"));
+        }
+
+        MechWeaponComponent candidate = MechWeaponComponent.LRM_5;
+        viewModel.hoverWeapon(candidate);
+
+        boolean foundGhostGain = false;
+        boolean foundGhostLoss = false;
+        for (MechLabViewModel.PerformanceMeter meter : viewModel.performanceMeters().get()) {
+            if (meter.label().equals("MAX RANGE") && meter.ghostClasses().contains("gain")) {
+                foundGhostGain = true;
+            }
+            if (meter.label().equals("MISSILES") && meter.ghostClasses().contains("loss")) {
+                foundGhostLoss = true;
+            }
+        }
+        assertTrue(foundGhostGain);
+        assertTrue(foundGhostLoss);
+
+        viewModel.clearHoverWeapon();
+        for (MechLabViewModel.PerformanceMeter meter : viewModel.performanceMeters().get()) {
+            assertTrue(meter.ghostClasses().contains("hidden"));
+        }
+    }
+
     private static void assertWithinRoot(UiDocument document, MarkupInstance instance,
                                          float width, float height) {
         document.layout(width, height);
@@ -329,6 +421,7 @@ class MechLabViewModelTest {
         props.put("nextGantry", viewModel.nextGantryAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
+        props.put("categoryFilterPills", viewModel.categoryFilterPills());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
