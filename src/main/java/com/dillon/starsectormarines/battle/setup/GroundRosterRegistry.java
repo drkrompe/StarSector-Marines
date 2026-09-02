@@ -6,9 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
-import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.catalog.CatalogSource;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
@@ -19,14 +17,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /** Fail-loud catalog of campaign-faction ground doctrine profiles. */
 public final class GroundRosterRegistry {
@@ -162,23 +156,22 @@ public final class GroundRosterRegistry {
 
     private static GroundRosterProfile parseProfile(JSONObject json) throws JSONException {
         String id = json.getString("id");
-        Set<String> factionIds = new LinkedHashSet<>();
+        GroundRosterProfile.Builder builder = GroundRosterProfile.builder(id);
         JSONArray factionArray = json.getJSONArray("factionIds");
         for (int i = 0; i < factionArray.length(); i++) {
-            factionIds.add(factionArray.getString(i));
+            builder.factionId(factionArray.getString(i));
         }
-        if (factionIds.isEmpty()) {
-            throw new JSONException("Ground-roster profile '" + id + "' has no faction ids");
-        }
-
-        GroundRosterProfile.Issue bulk = parseIssue(id, "bulk", json.getJSONObject("bulk"));
-        GroundRosterProfile.Issue elite = parseIssue(id, "elite", json.getJSONObject("elite"));
-        List<MechVariant> heavySupport = new ArrayList<>();
+        builder.bulk(parseIssue(id, "bulk", json.getJSONObject("bulk")));
+        builder.elite(parseIssue(id, "elite", json.getJSONObject("elite")));
         JSONArray support = json.getJSONArray("heavySupport");
         for (int i = 0; i < support.length(); i++) {
-            heavySupport.add(MechVariant.fromId(support.getString(i)));
+            builder.addHeavySupport(MechVariant.fromId(support.getString(i)));
         }
-        return new GroundRosterProfile(id, factionIds, bulk, elite, heavySupport);
+        try {
+            return builder.build();
+        } catch (IllegalArgumentException failure) {
+            throw new JSONException(failure.getMessage());
+        }
     }
 
     private static GroundRosterProfile.Issue parseIssue(
@@ -194,17 +187,23 @@ public final class GroundRosterRegistry {
             throw new JSONException("Profile '" + profileId + "' " + tier
                     + " unitType must be trained infantry, got " + unitType);
         }
-        return new GroundRosterProfile.Issue(
-                unitType,
-                parsePrimaries(profileId, tier, json.getJSONArray("primaries")),
-                parseGrades(profileId, tier, json.getJSONObject("gradesByRisk")),
-                parseArmor(profileId, tier, json.getJSONObject("armorByRisk")),
-                parseSpecials(profileId, tier, json.getJSONObject("specialsByRisk")));
+        GroundRosterProfile.Issue.Builder builder =
+                GroundRosterProfile.Issue.builder(unitType);
+        parsePrimaries(profileId, tier, json.getJSONArray("primaries"), builder);
+        parseGrades(profileId, tier, json.getJSONObject("gradesByRisk"), builder);
+        parseArmor(json.getJSONObject("armorByRisk"), builder);
+        parseSpecials(json.getJSONObject("specialsByRisk"), builder);
+        try {
+            return builder.build();
+        } catch (IllegalArgumentException failure) {
+            throw new JSONException("Profile '" + profileId + "' " + tier + " "
+                    + failure.getMessage());
+        }
     }
 
-    private static GroundRosterProfile.WeightedTable<WeaponDef> parsePrimaries(
-            String profileId, String tier, JSONArray array) throws JSONException {
-        List<GroundRosterProfile.Entry<WeaponDef>> entries = new ArrayList<>();
+    private static void parsePrimaries(String profileId, String tier, JSONArray array,
+                                       GroundRosterProfile.Issue.Builder builder)
+            throws JSONException {
         for (int i = 0; i < array.length(); i++) {
             JSONObject entry = array.getJSONObject(i);
             String weaponId = entry.getString("id");
@@ -213,71 +212,53 @@ public final class GroundRosterRegistry {
                 throw new JSONException("Profile '" + profileId + "' " + tier
                         + " references non-primary weapon '" + weaponId + "'");
             }
-            entries.add(new GroundRosterProfile.Entry<>(weapon, entry.getInt("weight")));
+            builder.primary(weapon, entry.getInt("weight"));
         }
-        return new GroundRosterProfile.WeightedTable<>(entries);
     }
 
-    private static Map<RiskLevel, GroundRosterProfile.WeightedTable<EquipmentGrade>> parseGrades(
-            String profileId, String tier, JSONObject json) throws JSONException {
-        EnumMap<RiskLevel, GroundRosterProfile.WeightedTable<EquipmentGrade>> result =
-                new EnumMap<>(RiskLevel.class);
+    private static void parseGrades(String profileId, String tier, JSONObject json,
+                                    GroundRosterProfile.Issue.Builder builder)
+            throws JSONException {
         for (RiskLevel risk : RiskLevel.values()) {
             JSONArray array = json.getJSONArray(riskKey(risk));
-            List<GroundRosterProfile.Entry<EquipmentGrade>> entries = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject entry = array.getJSONObject(i);
                 try {
-                    EquipmentGrade grade = EquipmentGrade.valueOf(
-                            entry.getString("id").toUpperCase(Locale.ROOT));
-                    entries.add(new GroundRosterProfile.Entry<>(grade, entry.getInt("weight")));
+                    builder.grade(risk, EquipmentGrade.valueOf(
+                            entry.getString("id").toUpperCase(Locale.ROOT)),
+                            entry.getInt("weight"));
                 } catch (IllegalArgumentException e) {
                     throw new JSONException("Profile '" + profileId + "' " + tier
                             + " has unknown equipment grade: " + e.getMessage());
                 }
             }
-            result.put(risk, new GroundRosterProfile.WeightedTable<>(entries));
         }
-        return result;
     }
 
-    private static Map<RiskLevel, GroundRosterProfile.WeightedTable<MarineArmorCatalogDef>> parseArmor(
-            String profileId, String tier, JSONObject json) throws JSONException {
-        EnumMap<RiskLevel, GroundRosterProfile.WeightedTable<MarineArmorCatalogDef>> result =
-                new EnumMap<>(RiskLevel.class);
+    private static void parseArmor(JSONObject json, GroundRosterProfile.Issue.Builder builder)
+            throws JSONException {
         for (RiskLevel risk : RiskLevel.values()) {
             JSONArray array = json.getJSONArray(riskKey(risk));
-            List<GroundRosterProfile.Entry<MarineArmorCatalogDef>> entries = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject entry = array.getJSONObject(i);
-                entries.add(new GroundRosterProfile.Entry<>(
-                        MarineArmorCatalogRegistry.require(entry.getString("id")),
-                        entry.getInt("weight")));
+                builder.armor(risk, MarineArmorCatalogRegistry.require(entry.getString("id")),
+                        entry.getInt("weight"));
             }
-            result.put(risk, new GroundRosterProfile.WeightedTable<>(entries));
         }
-        return result;
     }
 
-    private static Map<RiskLevel, GroundRosterProfile.WeightedTable<SpecialEquipmentDef>> parseSpecials(
-            String profileId, String tier, JSONObject json) throws JSONException {
-        EnumMap<RiskLevel, GroundRosterProfile.WeightedTable<SpecialEquipmentDef>> result =
-                new EnumMap<>(RiskLevel.class);
+    private static void parseSpecials(JSONObject json, GroundRosterProfile.Issue.Builder builder)
+            throws JSONException {
         for (RiskLevel risk : RiskLevel.values()) {
             JSONArray array = json.getJSONArray(riskKey(risk));
-            List<GroundRosterProfile.Entry<SpecialEquipmentDef>> entries = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject entry = array.getJSONObject(i);
                 String specialId = entry.getString("id");
-                SpecialEquipmentDef special = null;
-                if (!"none".equals(specialId)) {
-                    special = SpecialEquipmentRegistry.require(specialId);
-                }
-                entries.add(new GroundRosterProfile.Entry<>(special, entry.getInt("weight")));
+                builder.special(risk, "none".equals(specialId)
+                        ? null : SpecialEquipmentRegistry.require(specialId),
+                        entry.getInt("weight"));
             }
-            result.put(risk, new GroundRosterProfile.WeightedTable<>(entries));
         }
-        return result;
     }
 
     private static String riskKey(RiskLevel risk) {
