@@ -572,32 +572,36 @@ public final class UnitSpatialIndex {
     }
 
     /**
-     * Appends every snapshot combatant outside {@code selfFaction} within the
-     * inclusive Euclidean radius. The combatant-only slice preserves the
+     * Appends every snapshot combatant {@code selfFaction} is hostile to within
+     * the inclusive Euclidean radius. The combatant-only slice preserves the
      * original roster-filtered order while skipping noncombatants before the
      * caller's exact live-position and LoS checks.
+     *
+     * <p>Hostility rather than difference: an allied militia is a different
+     * faction and is not a target, and this is the query most target
+     * acquisition in the game bottoms out in. See {@link Faction}.
      */
-    public void gatherOtherFactionCombatants(float cx, float cy, float radius,
-                                               Faction selfFaction,
-                                               LongBucket out) {
-        queryOtherFactionCombatants(cx, cy, radius, selfFaction, 0L, out);
+    public void gatherHostileCombatants(float cx, float cy, float radius,
+                                        Faction selfFaction,
+                                        LongBucket out) {
+        queryHostileCombatants(cx, cy, radius, selfFaction, 0L, out);
     }
 
     /**
-     * Counts snapshot combatants outside {@code selfFaction} within the
+     * Counts snapshot combatants {@code selfFaction} is hostile to within the
      * inclusive Euclidean radius, excluding {@code excludedId}. No output
      * buffer is materialized or grown.
      */
-    public int countOtherFactionCombatants(float cx, float cy, float radius,
-                                            Faction selfFaction,
-                                            long excludedId) {
-        return queryOtherFactionCombatants(cx, cy, radius, selfFaction,
+    public int countHostileCombatants(float cx, float cy, float radius,
+                                      Faction selfFaction,
+                                      long excludedId) {
+        return queryHostileCombatants(cx, cy, radius, selfFaction,
                 excludedId, null);
     }
 
-    private int queryOtherFactionCombatants(float cx, float cy, float radius,
-                                             Faction selfFaction,
-                                             long excludedId, LongBucket out) {
+    private int queryHostileCombatants(float cx, float cy, float radius,
+                                        Faction selfFaction,
+                                        long excludedId, LongBucket out) {
         if (out != null) out.clear();
         if (radius <= 0f) return 0;
         int loX = (int) Math.floor(cx - radius);
@@ -608,7 +612,7 @@ public final class UnitSpatialIndex {
         int x1 = Math.min(bucketsX - 1, Math.floorDiv(hiX, BUCKET));
         int y0 = Math.max(0, Math.floorDiv(loY, BUCKET));
         int y1 = Math.min(bucketsY - 1, Math.floorDiv(hiY, BUCKET));
-        int selfFactionOrdinal = selfFaction.ordinal();
+        byte selfFactionOrdinal = (byte) selfFaction.ordinal();
         float radiusSquared = radius * radius;
         int matches = 0;
         for (int by = y0; by <= y1; by++) {
@@ -619,8 +623,8 @@ public final class UnitSpatialIndex {
                 for (int i = 0, n = combatants.size; i < n; i++) {
                     long id = combatants.ids[i];
                     if (id == excludedId
-                            || (combatants.factionOrdinals[i] & 0xFF)
-                            == selfFactionOrdinal) continue;
+                            || !Faction.hostile(selfFactionOrdinal,
+                                    combatants.factionOrdinals[i])) continue;
                     float dx = combatants.posX[i] - cx;
                     float dy = combatants.posY[i] - cy;
                     if (dx * dx + dy * dy > radiusSquared) continue;
@@ -726,7 +730,7 @@ public final class UnitSpatialIndex {
     }
 
     /**
-     * Receives combatants from {@link #forEachOtherFactionCombatantByRing}
+     * Receives combatants from {@link #forEachHostileCombatantByRing}
      * nearest bucket ring first, and decides how far the scan keeps going.
      */
     public interface RingVisitor {
@@ -749,22 +753,22 @@ public final class UnitSpatialIndex {
     }
 
     /**
-     * Visits every snapshot combatant outside {@code selfFaction} in expanding
-     * bucket rings around the query point, letting the visitor stop as soon as
-     * distance rules out everything further away. This is the nearest-first
-     * counterpart to {@link #gatherOtherFactionCombatants}, for callers whose
-     * search radius is not known up front.
+     * Visits every snapshot combatant {@code selfFaction} is hostile to in
+     * expanding bucket rings around the query point, letting the visitor stop
+     * as soon as distance rules out everything further away. This is the
+     * nearest-first counterpart to {@link #gatherHostileCombatants}, for
+     * callers whose search radius is not known up front.
      */
-    public void forEachOtherFactionCombatantByRing(float cx, float cy,
-                                                   Faction selfFaction,
-                                                   RingVisitor visitor) {
+    public void forEachHostileCombatantByRing(float cx, float cy,
+                                              Faction selfFaction,
+                                              RingVisitor visitor) {
         int centerBx = Math.max(0, Math.min(bucketsX - 1,
                 Math.floorDiv((int) Math.floor(cx), BUCKET)));
         int centerBy = Math.max(0, Math.min(bucketsY - 1,
                 Math.floorDiv((int) Math.floor(cy), BUCKET)));
         int maxRing = Math.max(Math.max(centerBx, bucketsX - 1 - centerBx),
                 Math.max(centerBy, bucketsY - 1 - centerBy));
-        int selfFactionOrdinal = selfFaction.ordinal();
+        byte selfFactionOrdinal = (byte) selfFaction.ordinal();
 
         for (int ring = 0; ring <= maxRing; ring++) {
             int x0 = Math.max(0, centerBx - ring);
@@ -779,8 +783,8 @@ public final class UnitSpatialIndex {
                     if (bucket == null) continue;
                     CombatantSlice combatants = bucket.combatants;
                     for (int i = 0, n = combatants.size; i < n; i++) {
-                        if ((combatants.factionOrdinals[i] & 0xFF)
-                                == selfFactionOrdinal) continue;
+                        if (!Faction.hostile(selfFactionOrdinal,
+                                combatants.factionOrdinals[i])) continue;
                         visitor.accept(combatants.ids[i],
                                 combatants.posX[i], combatants.posY[i]);
                     }

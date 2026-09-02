@@ -1533,7 +1533,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .filter(row -> row.name().startsWith("Hound"))
                     .findFirst().orElseThrow().select().run();
             viewModel.slotRows().get().stream()
-                    .filter(row -> row.name().equals("R. SHOULDER"))
+                    .filter(row -> row.name().contains("SHOULDER"))
                     .findFirst().orElseThrow().select().run();
         }
         if (selectVacant) viewModel.previousGantryAction().run();

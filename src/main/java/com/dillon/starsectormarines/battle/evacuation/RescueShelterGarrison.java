@@ -20,7 +20,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-/** Mission-local militia fireteam sealed inside the civilian shelter. */
+/**
+ * Mission-local militia fireteam sealed inside the civilian shelter.
+ *
+ * <p>An allied squad, not one of the player's: it is the shelter's own people,
+ * commanded by garrison authority and outside the player's command pool
+ * because of the side it is on rather than because of a flag that says so.
+ */
 public final class RescueShelterGarrison {
 
     public static final int MEMBER_COUNT = 4;
@@ -52,9 +58,9 @@ public final class RescueShelterGarrison {
         Random rng = new Random(seed ^ LOADOUT_SEED_SALT);
         MarineLoadout[] loadouts = InfantryLoadoutRolls.defenderSquad(
                 MEMBER_COUNT, UnitType.MILITIA, risk, rng);
-        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
         Squad squad = sim.getSquad(squadId);
-        squad.rescueShelterGuard = true;
+        sim.registerShelterGuardSquad(squadId);
         sim.assignSquadCommand(ObjectiveAssignment.escort(
                         squad.id, placement.shelterX, placement.shelterY),
                 CommandAuthority.GARRISON, "rescue-shelter-garrison",
@@ -64,7 +70,7 @@ public final class RescueShelterGarrison {
         for (int i = 0; i < ids.length; i++) {
             int[] cell = cells.get(i);
             EntitySpec spec = new EntitySpec("Shelter Militia " + (i + 1),
-                    Faction.MARINE, UnitType.MILITIA, cell[0], cell[1])
+                    Faction.ALLY, UnitType.MILITIA, cell[0], cell[1])
                     .squad(squadId);
             loadouts[i].seedInto(spec);
             ids[i] = sim.spawn(spec);

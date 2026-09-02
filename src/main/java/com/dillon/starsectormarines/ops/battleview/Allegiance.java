@@ -20,12 +20,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * <p><b>Current mapping.</b> The player's side is {@code MARINE} by standing
  * convention across the codebase (mission victory, deployment, fog contributor
  * set). {@code CIVILIAN} is the non-combatant bucket and reads {@link #NEUTRAL};
- * everything else reads {@link #ENEMY}. {@link #ALLY} has no producer yet — the
- * simulation has no friendly non-player faction — but it is a fully styled
- * classification so that the allied-faction work anticipated by
- * {@code fog-of-war-nouns.md} (law 2, allied contributors to player sight) has
- * nothing left to design on the presentation side. See
- * {@code battle-render-nouns.md}.
+ * {@code ALLY} is the friendly non-player side and reads {@link #ALLY}; and
+ * everything else reads {@link #ENEMY}. The unrecognized-faction default is
+ * deliberately the hostile bucket — this is the one mapping site that would
+ * otherwise mis-style silently rather than fail loud. See
+ * {@code battle-render-nouns.md} and {@code fog-of-war-nouns.md} law 2.
  */
 public enum Allegiance {
 
@@ -55,6 +54,7 @@ public enum Allegiance {
         if (faction == null) return ENEMY;
         return switch (faction) {
             case MARINE -> PLAYER;
+            case ALLY -> ALLY;
             case CIVILIAN -> NEUTRAL;
             default -> ENEMY;
         };

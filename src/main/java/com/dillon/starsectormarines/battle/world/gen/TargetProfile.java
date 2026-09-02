@@ -44,12 +44,28 @@ import java.util.Set;
  *                      {@link SettlementLink#ROAD}, because a battle with no
  *                      stated lifeline is more likely an ordinary place than an
  *                      off-grid one.
+ * @param groundDefence vanilla's own defender strength for this market
+ *                      ({@code MarketCMD.getDefenderStr}), read at resolve time.
+ *                      Stability, industries and the company's own stationed
+ *                      modifier are <em>already inside it</em> — vanilla scales
+ *                      by stability itself, so nothing downstream may scale
+ *                      again. {@code 0} when no market backs the battle, and
+ *                      never negative.
+ * @param stationedStrength the company's own contribution to
+ *                      {@link #groundDefence} at this market — the sum of the
+ *                      flat ground-defence modifiers this mod applied there.
+ *                      Subtracted before the number becomes a headcount, so a
+ *                      stationed detachment is never counted twice: once as the
+ *                      company's own marines and again as the colony's.
+ *                      {@code 0} when nothing is stationed, and never negative.
  */
 public record TargetProfile(int marketSize, int stability, int defenseLevel,
                             int spaceportTier, String factionId,
                             Set<EconomicFunction> functions,
                             SurfacePalette surface,
-                            SettlementLink link) {
+                            SettlementLink link,
+                            float groundDefence,
+                            float stationedStrength) {
 
     /**
      * The baseline read used when no campaign market backs the battle (headless
@@ -65,7 +81,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
      */
     public static final TargetProfile NEUTRAL =
             new TargetProfile(0, 0, 0, 0, "", EnumSet.noneOf(EconomicFunction.class),
-                    SurfacePalette.ROCK, SettlementLink.ROAD);
+                    SurfacePalette.ROCK, SettlementLink.ROAD, 0f, 0f);
 
     public TargetProfile {
         if (factionId == null) factionId = "";
@@ -74,6 +90,32 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
         functions = (functions == null || functions.isEmpty())
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
+        groundDefence = nonNegative(groundDefence);
+        stationedStrength = nonNegative(stationedStrength);
+    }
+
+    /**
+     * The profile as it was before the market's own ground strength was part of
+     * it: every campaign signal the generator reads, and no defence numbers.
+     *
+     * <p>Kept because the generator's own callers — every headless fixture, every
+     * taxonomy test, every scene — describe a world rather than a garrison, and
+     * making them all state a defence strength they have no opinion about would
+     * be noise. A profile built this way fields the garrison floor, which is what
+     * a battle with no stated defence strength should field.
+     */
+    public TargetProfile(int marketSize, int stability, int defenseLevel,
+                         int spaceportTier, String factionId,
+                         Set<EconomicFunction> functions,
+                         SurfacePalette surface,
+                         SettlementLink link) {
+        this(marketSize, stability, defenseLevel, spaceportTier, factionId,
+                functions, surface, link, 0f, 0f);
+    }
+
+    /** Defence strengths are magnitudes; a negative or absent one reads as none. */
+    private static float nonNegative(float value) {
+        return Float.isNaN(value) || value < 0f ? 0f : value;
     }
 
     /**
@@ -91,6 +133,7 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
     public TargetProfile withFactionId(String overrideFactionId) {
         if (overrideFactionId == null || overrideFactionId.equals(factionId)) return this;
         return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
-                overrideFactionId, functions, surface, link);
+                overrideFactionId, functions, surface, link,
+                groundDefence, stationedStrength);
     }
 }

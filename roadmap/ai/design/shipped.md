@@ -9,6 +9,7 @@ Mission Command shipped ledger.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `allied-faction.md` | 2026-09-02 | `9fa08a408`, `b8935445d`, `b7f6d6ae2` | `ai-nouns.md` (Sides), `fog-of-war-nouns.md` law 2, `battle-render-nouns.md`, `polity-ground-doctrine.md` |
 | `01-world-state.md` | 2026-05-18 | `afa1a84b` | `ai-nouns.md` |
 | `garrison-firing-reachability.md` | 2026-08-31 | Conquest matrix: both fixtures ~10% shorter, squad losses 10 -> 7 on `full-strength-west`, no idle introduced | `ai-nouns.md` (firing position reachability) |
 | `02-interfaces.md` | 2026-05-18 | `afa1a84b` | `ai-nouns.md` |

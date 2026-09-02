@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -38,7 +37,7 @@ public final class SatchelRenderSystem implements RenderSystem {
                 : ctx.sim.satchelCharges().activeCharges()) {
             int cellX = (int) Math.floor(charge.x());
             int cellY = (int) Math.floor(charge.y());
-            if (charge.sourceFaction() != Faction.MARINE
+            if (!Allegiance.of(charge.sourceFaction()).friendly()
                     && !ctx.sim.getFogOfWar().isCellRevealed(cellX, cellY)) continue;
 
             float sx = camera.cellToScreenX(charge.x());

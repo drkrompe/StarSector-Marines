@@ -98,19 +98,23 @@ public final class ZoneQueries {
     }
 
     /**
-     * True iff no alive unit of {@code enemyFaction} stands on any cell of
-     * {@code zoneId}. Iterates the unit list (typically tens of entries) and
+     * True iff no alive unit hostile to {@code selfFaction} stands on any cell
+     * of {@code zoneId}. Iterates the unit list (typically tens of entries) and
      * cross-checks each enemy's cell against {@link ZoneGraph#zoneIdAt}; far
      * cheaper than walking the zone's full cell list since zones often hold
      * hundreds of cells.
+     *
+     * <p>Takes the asker's own faction rather than a single enemy one: a side
+     * may have more than one enemy, and a room holding an allied militia is a
+     * room a marine squad has cleared.
      */
-    public static boolean zoneClear(int zoneId, Faction enemyFaction, BattleView sim) {
-        if (sim == null || enemyFaction == null) return true;
+    public static boolean zoneClearOfHostiles(int zoneId, Faction selfFaction, BattleView sim) {
+        if (sim == null || selfFaction == null) return true;
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(zoneId) == null) return true;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
-            if (sim.identity().faction(u) != enemyFaction) continue;
+            if (!selfFaction.hostileTo(sim.identity().faction(u))) continue;
             if (graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u)) == zoneId) return false;
         }
         return true;

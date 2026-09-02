@@ -612,7 +612,7 @@ public final class TacticalScoring {
         scan.begin(this, selfX, selfY, selfCellX, selfCellY, selfFaction,
                 selfSquadId, excludeFromCrowding, shooterAirRadius, allowNoLos,
                 minRange, maxRange);
-        unitIndex.forEachOtherFactionCombatantByRing(selfX, selfY, selfFaction, scan);
+        unitIndex.forEachHostileCombatantByRing(selfX, selfY, selfFaction, scan);
         long best = scan.best;
         float bestScore = scan.bestScore;
         long bestAny = scan.bestAny;
@@ -1159,7 +1159,7 @@ public final class TacticalScoring {
         float targetCy = world.y(target);
         Faction shooterFaction = roster.identity().faction(shooter);
         for (Projectile p : shots.snapshotActiveProjectiles()) {
-            if (p.shooterFaction != shooterFaction) continue;
+            if (!shooterFaction.friendlyTo(p.shooterFaction)) continue;
             PendingDetonation det = p.onArrival;
             if (det == null) continue;
             float dx = targetCx - det.endpointX;
@@ -1172,7 +1172,8 @@ public final class TacticalScoring {
         for (ShotService.PendingImpact impact : shots.snapshotActiveImpacts()) {
             if (impact.specialEquipmentDef == null || impact.victimId != target) continue;
             if (!roster.isAliveById(impact.shooterId)) continue;
-            if (roster.identity().faction(impact.shooterId) != shooterFaction) continue;
+            if (!shooterFaction.friendlyTo(
+                    roster.identity().faction(impact.shooterId))) continue;
             total += projectedResolvedDamage(target, impact.damage, impact.penetration,
                     world.x(impact.shooterId), world.y(impact.shooterId));
         }
@@ -1247,7 +1248,7 @@ public final class TacticalScoring {
     }
 
     private int threatDensityAt(long candidate, float candX, float candY, Faction selfFaction) {
-        return unitIndex.countOtherFactionCombatants(candX, candY,
+        return unitIndex.countHostileCombatants(candX, candY,
                 THREAT_DENSITY_RADIUS, selfFaction, candidate);
     }
 
@@ -1329,7 +1330,7 @@ public final class TacticalScoring {
         float selfX = world.x(unit);
         float selfY = world.y(unit);
         LongBucket candidates = CLOSE_CONTACT_CANDIDATES.get();
-        unitIndex.gatherOtherFactionCombatants(selfX, selfY, rangeCells,
+        unitIndex.gatherHostileCombatants(selfX, selfY, rangeCells,
                 faction, candidates);
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
@@ -1512,7 +1513,7 @@ public final class TacticalScoring {
             long candidate = candidates.ids[i];
             if (candidate == excludedTarget || candidate == self) continue;
             if (!roster.isAliveById(candidate)) continue;
-            if (roster.identity().faction(candidate) == selfFaction
+            if (!selfFaction.hostileTo(roster.identity().faction(candidate))
                     || !roster.identity().type(candidate).combatant) continue;
             int cx = world.cellX(candidate);
             int cy = world.cellY(candidate);
@@ -1558,18 +1559,11 @@ public final class TacticalScoring {
 
         float closerThan = currentDistance - RETARGET_DISTANCE_MARGIN;
         if (!(closerThan > 0f)) return false;
-        Faction enemyFaction = selfFaction == Faction.MARINE
-                ? Faction.DEFENDER
-                : selfFaction == Faction.DEFENDER ? Faction.MARINE : null;
-        if (enemyFaction == null) {
-            return hasVisibleOtherEnemyDense(self, exclude, selfFaction,
-                    selfX, selfY, selfCellX, selfCellY, selfAir,
-                    currentDistance);
-        }
-
         LongBucket candidates = RETARGET_CANDIDATES.get();
-        unitIndex.gatherFaction(selfX, selfY,
-                closerThan + RETARGET_QUERY_PADDING, enemyFaction, candidates);
+        // The relation, not a flip: a side may have more than one enemy and a
+        // different faction need not be one of them.
+        unitIndex.gatherHostileCombatants(selfX, selfY,
+                closerThan + RETARGET_QUERY_PADDING, selfFaction, candidates);
         World world = roster.world();
         VisionService vision = roster.vision();
         for (int i = 0, n = candidates.size; i < n; i++) {
@@ -1605,7 +1599,7 @@ public final class TacticalScoring {
             long u = candidates.ids[i];
             if (u == exclude || u == self) continue;
             if (!roster.isAliveById(u)) continue;
-            if (roster.identity().faction(u) == selfFaction
+            if (!selfFaction.hostileTo(roster.identity().faction(u))
                     || !roster.identity().type(u).combatant) continue;
             if (Float.isFinite(currentDistance)
                     && !(cellDistance(selfX, selfY, world.x(u), world.y(u))
@@ -1655,7 +1649,7 @@ public final class TacticalScoring {
         float selfAir = vision.airLosRadius(self);
 
         LongBucket candidates = OPPORTUNITY_CANDIDATES.get();
-        unitIndex.gatherOtherFactionCombatants(selfX, selfY,
+        unitIndex.gatherHostileCombatants(selfX, selfY,
                 range + RETARGET_QUERY_PADDING, selfFaction, candidates);
 
         long best = 0L;
@@ -1739,7 +1733,7 @@ public final class TacticalScoring {
         for (int i = 0, n = attackers.size(); i < n; i++) {
             long u = attackers.getLong(i);
             if (u == exclude || !roster.isAliveById(u)) continue;
-            if (roster.identity().faction(u) != selfFaction) continue;
+            if (!selfFaction.friendlyTo(roster.identity().faction(u))) continue;
             boolean sameSquad = selfSquadId != Squad.NO_SQUAD
                     && roster.squad().hasSquad(u)
                     && roster.squad().squadId(u) == selfSquadId;
@@ -1907,7 +1901,7 @@ public final class TacticalScoring {
         for (int i = 0, n = scratch.size; i < n; i++) {
             long enemy = scratch.ids[i];
             if (!roster.isAliveById(enemy) || !roster.identity().type(enemy).combatant) continue;
-            if (roster.identity().faction(enemy) == selfFaction) continue;
+            if (!selfFaction.hostileTo(roster.identity().faction(enemy))) continue;
             int[] pos = findFiringPositionWithin(self, enemy, anchorX, anchorY, maxDistFromAnchor);
             if (pos == null) continue;
             float d = cellDistance(world.x(self), world.y(self), world.x(enemy), world.y(enemy));
@@ -1949,7 +1943,7 @@ public final class TacticalScoring {
         for (BelievedContact contact : squad.believedContacts()) {
             long id = contact.unitId();
             if (!roster.isAliveById(id) || !roster.identity().has(id)) continue;
-            if (roster.identity().faction(id) == squad.faction) continue;
+            if (!squad.faction.hostileTo(roster.identity().faction(id))) continue;
             if (!roster.identity().type(id).combatant) continue;
             if (cellDistance(cx, cy, contact.lastSeenCellX(),
                     contact.lastSeenCellY()) <= radius) {
@@ -2004,7 +1998,7 @@ public final class TacticalScoring {
             long id = contact.unitId();
             if (!roster.isAliveById(id)
                     || !roster.identity().has(id)
-                    || roster.identity().faction(id) == squad.faction
+                    || !squad.faction.hostileTo(roster.identity().faction(id))
                     || !roster.identity().type(id).combatant) continue;
             float dx = contact.lastSeenCellX() + 0.5f - squad.centroidX;
             float dy = contact.lastSeenCellY() + 0.5f - squad.centroidY;
@@ -2382,7 +2376,7 @@ public final class TacticalScoring {
             long contact = belief.unitId();
             if (!roster.isAliveById(contact)
                     || !roster.identity().has(contact)) continue;
-            if (roster.identity().faction(contact) == squad.faction) continue;
+            if (!squad.faction.hostileTo(roster.identity().faction(contact))) continue;
             if (!roster.identity().type(contact).combatant) continue;
 
             float contactX = belief.lastSeenCellX() + 0.5f;
@@ -3297,7 +3291,7 @@ public final class TacticalScoring {
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             long u = dense[i];
-            if (roster.identity().faction(u) == selfFaction) continue;
+            if (!selfFaction.hostileTo(roster.identity().faction(u))) continue;
             if (!roster.identity().type(u).combatant) continue;
             sumX += world.cellX(u);
             sumY += world.cellY(u);
@@ -3326,7 +3320,8 @@ public final class TacticalScoring {
             long u = dense[i];
             int zid = zones.zoneIdAt(world.cellX(u), world.cellY(u));
             if (zid < 0 || zid >= control.length) continue;
-            control[zid] += (roster.identity().faction(u) == selfFaction) ? 1 : -1;
+            control[zid] += selfFaction.friendlyTo(
+                    roster.identity().faction(u)) ? 1 : -1;
         }
         return control;
     }
@@ -3351,7 +3346,7 @@ public final class TacticalScoring {
         unitIndex.gather(cx + 0.5f, cy + 0.5f, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
-            if (roster.identity().faction(other) == selfFaction) continue;
+            if (!selfFaction.hostileTo(roster.identity().faction(other))) continue;
             if (!roster.identity().type(other).combatant) continue;
             // threatRange, not world.attackRange: this asks "who can shoot this
             // cell", and a gathered body need not carry COMBAT. A convoy
@@ -3468,7 +3463,7 @@ public final class TacticalScoring {
         int write = 0;
         for (int i = 0, n = units.size; i < n; i++) {
             long u = units.ids[i];
-            if (roster.identity().faction(u) == selfFaction) continue;
+            if (!selfFaction.hostileTo(roster.identity().faction(u))) continue;
             if (!roster.identity().type(u).combatant) continue;
             units.ids[write++] = u;
         }
@@ -3508,7 +3503,8 @@ public final class TacticalScoring {
         unitIndex.gather(cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long u = scratch.ids[i];
-            if (u == self || roster.identity().faction(u) != selfFaction) continue;
+            if (u == self
+                    || !selfFaction.friendlyTo(roster.identity().faction(u))) continue;
             count++;
         }
         // Pass 2 — units whose path DESTINATION is in the spread radius.
@@ -3521,7 +3517,8 @@ public final class TacticalScoring {
         destIndex.gather(roster, cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, destScratch);
         for (int i = 0, n = destScratch.size; i < n; i++) {
             long id = destScratch.ids[i];
-            if (id == self || roster.identity().faction(id) != selfFaction) continue;
+            if (id == self
+                    || !selfFaction.friendlyTo(roster.identity().faction(id))) continue;
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
             // set (path-dest within the spread radius), so the per-candidate
             // index resolve is decision-cadence, not a hot bulk loop.

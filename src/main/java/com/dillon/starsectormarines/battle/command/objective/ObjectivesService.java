@@ -5,13 +5,14 @@ import com.dillon.starsectormarines.battle.command.CommanderService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
  * Owns the mission-objective list and the per-tick dispatch. The
  * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation} delegates
  * {@code addObjective}/{@code getObjectives} here, calls
- * {@link #installEliminationBackstopIfEmpty(Faction, Faction)} at the top of
+ * {@link #installEliminationBackstopIfEmpty} at the top of
  * its tick so legacy missions without registered objectives still terminate,
  * and dispatches the OBJECTIVES phase through {@link #tick(Consumer)}.
  *
@@ -37,16 +38,22 @@ public final class ObjectivesService {
     public boolean isEmpty() { return objectives.isEmpty(); }
 
     /**
-     * If no objectives have been registered yet, installs a symmetric pair of
-     * {@link EliminateFactionObjective}s — {@code a} aims to eliminate
-     * {@code b}, and {@code b} aims to eliminate {@code a}. Idempotent on a
-     * non-empty list, so callers that may or may not have registered
-     * mission-specific objectives can call this unconditionally.
+     * If no objectives have been registered yet, installs a pair of
+     * {@link EliminateFactionObjective}s — {@code a} counts {@code aCounts},
+     * and {@code b} counts {@code bCounts}. Idempotent on a non-empty list, so
+     * callers that may or may not have registered mission-specific objectives
+     * can call this unconditionally.
+     *
+     * <p>The counted sets are the caller's to state and are deliberately not
+     * derived from {@code a} and {@code b}: with a third side on the field
+     * "everybody who is not me" is the wrong answer for both of them. See
+     * {@link EliminateFactionObjective}.
      */
-    public void installEliminationBackstopIfEmpty(Faction a, Faction b) {
+    public void installEliminationBackstopIfEmpty(Faction a, Set<Faction> aCounts,
+                                                  Faction b, Set<Faction> bCounts) {
         if (!objectives.isEmpty()) return;
-        objectives.add(new EliminateFactionObjective(a, b));
-        objectives.add(new EliminateFactionObjective(b, a));
+        objectives.add(new EliminateFactionObjective(a, aCounts));
+        objectives.add(new EliminateFactionObjective(b, bCounts));
     }
 
     /** OBJECTIVES tick phase — dispatches every objective through {@code tickHandler}. The sim supplies {@code o -> o.tick(sim)} as the handler. */

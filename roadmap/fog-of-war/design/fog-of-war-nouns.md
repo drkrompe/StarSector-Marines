@@ -77,9 +77,12 @@ simulation continues to own reveal and visibility transitions.
 1. Player-visible sight is the union of all legal contributors and temporary
    sources. Removing one footprint must not conceal a cell still revealed by
    another.
-2. Player faction is an explicit contributor-set decision, not an inference
-   from renderer ownership. Mission setup must add allied factions before their
-   units spawn; enemy AI perception remains separate.
+2. Player-side sight is an explicit contributor-set decision, not an inference
+   from renderer ownership. The standing set is `MARINE` and `ALLY`, decided
+   once at the default rather than in every mission-setup path, because a
+   setup path that forgot would be silent; a mission that wants otherwise
+   removes a contributor before its units spawn. Enemy AI perception remains
+   separate.
 3. Fog controls presentation only. It must not secretly change firing,
    pathfinding, collision, damage, or tactical perception. Shot visibility is
    deliberately outside the fog presentation gate.

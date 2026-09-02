@@ -157,7 +157,7 @@ public final class SwarmAvoidanceSystem {
 
     private boolean isHostileAlien(long id, Faction marineFaction) {
         if (!roster.isAliveById(id)
-                || roster.identity().faction(id) == marineFaction) return false;
+                || !marineFaction.hostileTo(roster.identity().faction(id))) return false;
         UnitType type = roster.identity().type(id);
         return type == UnitType.ALIEN || type == UnitType.SWARM_RUNNER;
     }

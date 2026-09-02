@@ -443,7 +443,7 @@ public final class OverwatchKillZone implements Action {
         }
         for (long ally : vehicles) {
             if (sim.resolveUnit(ally) == 0L
-                    || sim.identity().faction(ally) != squad.faction) continue;
+                    || !squad.faction.friendlyTo(sim.identity().faction(ally))) continue;
             ids[write] = ally;
             xs[write] = sim.world().x(ally);
             ys[write] = sim.world().y(ally);
@@ -495,7 +495,7 @@ public final class OverwatchKillZone implements Action {
                                          int threatX, int threatY,
                                          Squad squad, BattleView sim) {
         return sim.resolveUnit(ally) != 0L
-                && sim.identity().faction(ally) == squad.faction
+                && squad.faction.friendlyTo(sim.identity().faction(ally))
                 && sim.identity().type(ally).combatant
                 && sim.identity().mechVariant(ally) != MechVariant.SIROCCO
                 && screenLateralDistanceSq(sim.world().x(ally), sim.world().y(ally),

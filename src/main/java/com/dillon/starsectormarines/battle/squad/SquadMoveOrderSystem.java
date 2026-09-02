@@ -408,8 +408,10 @@ public final class SquadMoveOrderSystem {
     private static Squad validPlayerSquad(int squadId, AssignmentKind kind,
                                           BattleSimulation sim) {
         Squad squad = sim.getSquad(squadId);
+        // No shelter-guard term: the guard is allied, and the faction test
+        // above is what keeps it out of the player's hands now.
         if (squad == null || squad.faction != Faction.MARINE
-                || squad.isDroneSquad() || squad.rescueShelterGuard) {
+                || squad.isDroneSquad()) {
             return null;
         }
         long member = firstLiveMember(squad, sim);

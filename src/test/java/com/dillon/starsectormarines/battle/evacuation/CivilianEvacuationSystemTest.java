@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -72,10 +71,9 @@ class CivilianEvacuationSystemTest {
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
                 sim, List.of(residential(12, 10)), 306L);
         assertNotNull(payload);
-        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
-        Squad squad = sim.getSquad(squadId);
-        squad.rescueShelterGuard = true;
-        sim.spawn(new EntitySpec("shelter guard", Faction.MARINE,
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        sim.registerShelterGuardSquad(squadId);
+        sim.spawn(new EntitySpec("shelter guard", Faction.ALLY,
                 UnitType.MILITIA, payload.placement.shelterApproachX,
                 payload.placement.shelterApproachY).squad(squadId));
 
@@ -105,10 +103,9 @@ class CivilianEvacuationSystemTest {
         CivilianEvacuationPayload payload = CivilianEvacuationPayload.install(
                 sim, List.of(residential(12, 10)), 307L);
         assertNotNull(payload);
-        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
-        Squad squad = sim.getSquad(squadId);
-        squad.rescueShelterGuard = true;
-        sim.spawn(new EntitySpec("shelter guard", Faction.MARINE,
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        sim.registerShelterGuardSquad(squadId);
+        sim.spawn(new EntitySpec("shelter guard", Faction.ALLY,
                 UnitType.MILITIA, payload.placement.shelterX,
                 payload.placement.shelterY).squad(squadId));
         long responder = sim.spawn(new EntitySpec("responder", Faction.MARINE,

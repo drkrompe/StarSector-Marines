@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.air;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 /**
@@ -39,23 +38,31 @@ public final class EnemyConcentration {
      */
     public static final float SEPARATE_TARGET_DIST = 2f * CLUSTER_RADIUS;
 
+    /** Cached once; {@code values()} clones its array on every call. */
+    private static final Faction[] FACTIONS = Faction.values();
+
     private EnemyConcentration() {}
 
     /**
-     * The densest live concentration of {@code enemy}, or {@code 0} when
-     * nothing on the map is worth a sortie.
+     * The densest live concentration of whatever {@code side} fights, or
+     * {@code 0} when nothing on the map is worth a sortie.
+     *
+     * <p>Takes the searcher's own faction rather than a named enemy one: a side
+     * may fight more than one faction, and a sortie sent at "the other side"
+     * would fly past an allied militia standing in front of the garrison it was
+     * meant to attack. Hostility is {@link Faction}'s to answer.
      *
      * <p>Walked only when a dispatcher is otherwise ready to fly, so the cost
      * is paid a handful of times in a battle rather than every tick.
      */
-    public static long densest(BattleSimulation sim, Faction enemy) {
-        return densestAwayFrom(sim, enemy, null, 0, 0f);
+    public static long densest(BattleSimulation sim, Faction side) {
+        return densestAwayFrom(sim, side, null, 0, 0f);
     }
 
     /**
-     * The densest live concentration of {@code enemy} that is at least
-     * {@code minSeparation} cells from every position in {@code avoidXy}, or
-     * {@code 0} when there is no such thing.
+     * The densest live concentration of whatever {@code side} fights that is at
+     * least {@code minSeparation} cells from every position in {@code avoidXy},
+     * or {@code 0} when there is no such thing.
      *
      * <p>What lets a field with several aircraft up spread them over the
      * battle instead of stacking them on one platoon. Two aircraft sent at the
@@ -67,24 +74,29 @@ public final class EnemyConcentration {
      *                   may be null when nothing is
      * @param avoidCount how many pairs of {@code avoidXy} are populated
      */
-    public static long densestAwayFrom(BattleSimulation sim, Faction enemy,
+    public static long densestAwayFrom(BattleSimulation sim, Faction side,
                                        float[] avoidXy, int avoidCount,
                                        float minSeparation) {
         UnitRosterService roster = sim.getRoster();
-        long[] candidates = roster.factionDenseArray(enemy);
-        int count = roster.factionLiveCount(enemy);
-        LongBucket near = new LongBucket();
         World world = sim.world();
         long best = 0L;
         int bestCount = MIN_CLUSTER - 1;
-        for (int i = 0; i < count; i++) {
-            long u = candidates[i];
-            if (tooClose(world.x(u), world.y(u), avoidXy, avoidCount, minSeparation)) continue;
-            sim.getUnitIndex().gatherFaction(world.x(u), world.y(u),
-                    CLUSTER_RADIUS, enemy, near);
-            if (near.size > bestCount) {
-                bestCount = near.size;
-                best = u;
+        for (Faction enemy : FACTIONS) {
+            if (!side.hostileTo(enemy)) continue;
+            long[] candidates = roster.factionDenseArray(enemy);
+            int count = roster.factionLiveCount(enemy);
+            for (int i = 0; i < count; i++) {
+                long u = candidates[i];
+                if (tooClose(world.x(u), world.y(u), avoidXy, avoidCount, minSeparation)) continue;
+                // Everything this side fights, not just the candidate's own
+                // faction: a militia standing among a garrison is one
+                // concentration and worth one sortie.
+                int near = sim.getUnitIndex().countHostileCombatants(
+                        world.x(u), world.y(u), CLUSTER_RADIUS, side, 0L);
+                if (near > bestCount) {
+                    bestCount = near;
+                    best = u;
+                }
             }
         }
         return best;

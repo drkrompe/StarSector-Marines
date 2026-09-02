@@ -187,6 +187,9 @@ public final class BattleSetup {
     private static final int OPENING_FIRETEAM_SIZE = 4;
     private static final int OPENING_LINE_OFFSET = 9;
 
+    /** Keeps the allied garrison's kit rolls off the setup stream the defenders share. */
+    private static final long ALLIED_GARRISON_SEED_SALT = 0x414C4C59474152L;
+
     /** Total ambient civilians (mix of CIVILIAN/ENGINEER/SCIENTIST) scattered around residential POIs as map flavor. */
     private static final int AMBIENT_CIVILIAN_COUNT = 8;
     /** BFS radius around each residential POI when looking for civilian spawn cells. */
@@ -861,6 +864,52 @@ public final class BattleSetup {
                                                      FlybyRoster marineFighterSupport,
                                                      FlybyRoster enemyFighterSupport,
                                                      PrecinctPlan.Sprawl sprawl) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type,
+                profile, marineFighterSupport, enemyFighterSupport, sprawl, null);
+    }
+
+    /**
+     * Tier-aware catch-all that also names whose garrison fights beside the
+     * company.
+     *
+     * @param alliedGarrisonFactionId faction whose own troops hold the line with
+     *     the company — the defended market's owner on a defence, and {@code null}
+     *     on every other mission, which installs nothing and costs nothing. The id
+     *     selects the ground doctrine those troops wear; how many of them there
+     *     are is read off {@code profile} by {@link AlliedGarrisonSize}, so a
+     *     defender-faction override cannot move it.
+     */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile,
+                                                     FlybyRoster marineFighterSupport,
+                                                     FlybyRoster enemyFighterSupport,
+                                                     PrecinctPlan.Sprawl sprawl,
+                                                     String alliedGarrisonFactionId) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type,
+                profile, marineFighterSupport, enemyFighterSupport, sprawl,
+                alliedGarrisonFactionId, 1f);
+    }
+
+    /**
+     * Tier-aware catch-all that also carries the allied faction's own numbers
+     * doctrine.
+     *
+     * @param alliedGarrisonStrengthMult how much of the market's own strength turns
+     *     out, from {@code Mission.alliedGarrisonStrengthMult}; {@code 1} is
+     *     doctrine-neutral and is what every mission but the polity's own defence
+     *     carries.
+     */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile,
+                                                     FlybyRoster marineFighterSupport,
+                                                     FlybyRoster enemyFighterSupport,
+                                                     PrecinctPlan.Sprawl sprawl,
+                                                     String alliedGarrisonFactionId,
+                                                     float alliedGarrisonStrengthMult) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -994,6 +1043,11 @@ public final class BattleSetup {
                     "extraction-defender",
                     "initial Extraction mobile security");
         }
+        // After the defenders and their claims, so the mobile-squad capture and
+        // the setup-garrison claim above see the battle they were written for and
+        // an ALLY squad can never fall into either.
+        installAlliedGarrison(sim, map, profile, alliedGarrisonFactionId,
+                alliedGarrisonStrengthMult, risk, seed);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, type, null, groundRoster, risk,
@@ -1065,20 +1119,32 @@ public final class BattleSetup {
             float lzCenterY = lz.centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
                     scale.width, scale.height, lz.approach);
+            boolean localMilitia = i < localTransports;
             long shuttleId = sim.spawnShuttle(
-                    assignment.type, assignment.airframe, Faction.MARINE,
+                    assignment.type, assignment.airframe,
+                    localMilitia ? Faction.ALLY : Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1], entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC,
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
-            shuttleMission.commandClaim = SquadCommandClaim.mission(
-                    OpeningOperationCommand.issuer(Faction.MARINE),
-                    "opening-operation landing force");
+            if (localMilitia) {
+                // The employer's lift carries the employer's troops, and the
+                // marine commander cannot claim them: the arbiter refuses a
+                // directive whose perspective is not the squad's own. So they
+                // land owned by garrison authority instead, holding the pad
+                // they came ashore on — which is what a client's militia
+                // arriving at a relief job is actually for.
+                shuttleMission.garrisonNode = openingDefenseNode(
+                        lz.centerX, lz.centerY, Faction.ALLY, sim.getGrid());
+            } else {
+                shuttleMission.commandClaim = SquadCommandClaim.mission(
+                        OpeningOperationCommand.issuer(Faction.MARINE),
+                        "opening-operation landing force");
+            }
             MarineLoadout[][] cycleLoadouts =
                     new MarineLoadout[assignment.cycles][];
-            boolean localMilitia = i < localTransports;
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                 cycleLoadouts[cycle] = localMilitia
                         ? InfantryLoadoutRolls.defenderSquad(
@@ -1786,6 +1852,28 @@ public final class BattleSetup {
             sim.claimSquadCommand(squad.id, CommandAuthority.GARRISON,
                     "conquest-setup-garrison", "authored Conquest garrison");
         }
+    }
+
+    /**
+     * The defended market's own troops, on the company's side. The one seam both
+     * defence missions reach it through, and inert for every mission that named
+     * no allied faction — which is every other mission.
+     *
+     * <p>Its rng is salted off the battle seed rather than sharing the setup
+     * stream, so a battle that gains or loses an allied garrison still rolls the
+     * same defenders.
+     */
+    private static void installAlliedGarrison(BattleSimulation sim, MapResult map,
+                                              TargetProfile profile,
+                                              String alliedGarrisonFactionId,
+                                              float alliedGarrisonStrengthMult,
+                                              RiskLevel risk, long seed) {
+        if (alliedGarrisonFactionId == null) return;
+        int squads = AlliedGarrisonSize.squads(profile, alliedGarrisonStrengthMult);
+        if (squads <= 0) return;
+        AlliedGarrison.install(sim, map,
+                GroundRosterRegistry.resolve(alliedGarrisonFactionId), squads, risk,
+                new Random(seed ^ ALLIED_GARRISON_SEED_SALT));
     }
 
     private static Set<Integer> captureDefenderMobileSquads(BattleSimulation sim) {
@@ -2715,7 +2803,11 @@ public final class BattleSetup {
                 0, map.grid.getHeight() - 1);
         List<int[]> cells = pickDefensiveCluster(
                 map.grid, anchorX, anchorY, OPENING_LOCAL_MILITIA);
-        spawnOpeningMilitiaSquads(sim, cells, Faction.MARINE,
+        // The relief job's local line belongs to the employer, not the company.
+        // Under ALLY it keeps everything it had — the same kit, the same posts,
+        // the same garrison authority — and stops being a marine squad the
+        // player's commander can see or a click can move.
+        spawnOpeningMilitiaSquads(sim, cells, Faction.ALLY,
                 "local", true, rng);
         return cells.isEmpty()
                 ? new int[]{anchorX, anchorY} : cells.get(0).clone();
@@ -2787,7 +2879,7 @@ public final class BattleSetup {
                                 UnitType.MILITIA, RiskLevel.LOW, rng));
     }
 
-    private static TacticalNode openingDefenseNode(
+    static TacticalNode openingDefenseNode(
             int x, int y, Faction faction, NavigationGrid grid) {
         return new TacticalNode(TacticalNode.Kind.OBJECTIVE, x, y,
                 clamp(x - 2, 0, grid.getWidth() - 1),
@@ -3046,7 +3138,21 @@ public final class BattleSetup {
                                            RiskLevel risk, GroundRosterProfile groundRoster,
                                            GroundRosterProfile.ForceTier forceTier,
                                            Random rng, MechVariant mechVariant) {
-        EntitySpec unit = new EntitySpec(id, Faction.DEFENDER, type, x, y);
+        return makeDefender(id, Faction.DEFENDER, type, x, y, risk, groundRoster,
+                forceTier, rng, mechVariant);
+    }
+
+    /**
+     * The same kit under a stated side. A faction's ground doctrine says what its
+     * troops carry and nothing about who they are shooting at, so the allied
+     * garrison of a defended market is issued through this rather than through a
+     * second kitting path that would drift from the defender's.
+     */
+    static EntitySpec makeDefender(String id, Faction faction, UnitType type, int x, int y,
+                                   RiskLevel risk, GroundRosterProfile groundRoster,
+                                   GroundRosterProfile.ForceTier forceTier,
+                                   Random rng, MechVariant mechVariant) {
+        EntitySpec unit = new EntitySpec(id, faction, type, x, y);
         if (mechVariant != null) return mechVariant.applyTo(unit);
         if (!type.drawnAsLayers()) return unit;
         InfantryLoadoutRolls.defenderLoadout(
@@ -3429,7 +3535,7 @@ public final class BattleSetup {
      * wall edges and building corners — "they prepared the position" emerges
      * from picking which cells they camp, not from stat asymmetry.
      */
-    private static List<int[]> pickDefensiveCluster(NavigationGrid grid, int cx, int cy, int count) {
+    static List<int[]> pickDefensiveCluster(NavigationGrid grid, int cx, int cy, int count) {
         List<int[]> pool = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
         Queue<int[]> q = new ArrayDeque<>();

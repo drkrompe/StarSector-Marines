@@ -9,6 +9,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** Direct pressure behavior for swarm runners; no squad or infantry GOAP. */
 public final class SwarmPressureBehavior implements UnitBehavior {
 
@@ -18,6 +21,24 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     private static final int ROAM_SAMPLE_ATTEMPTS = 16;
     /** Conservative bridge from continuous-position buckets to cell-distance sensing. */
     private static final float SENSE_GATHER_PADDING = 1.414214f;
+
+    /**
+     * Combatant sides the swarm hunts, derived from the hostility relation
+     * rather than listed. The rush is defender-side, so it presses everyone
+     * the defender fights: a MARINE-only scan left a whole allied militia
+     * invisible to it and unkillable by it. Civilians are deliberately absent
+     * — the cohort is reached through the evacuation tracker, which knows
+     * which of them the swarm has actually discovered.
+     */
+    private static final Faction[] PREY;
+
+    static {
+        List<Faction> prey = new ArrayList<>();
+        for (Faction faction : Faction.values()) {
+            if (Faction.DEFENDER.hostileTo(faction)) prey.add(faction);
+        }
+        PREY = prey.toArray(new Faction[0]);
+    }
     /** UPDATE_UNITS is parallel, so every worker owns its candidate buffer. */
     private static final ThreadLocal<LongBucket> TARGET_CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
@@ -190,21 +211,25 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
 
         LongBucket nearby = TARGET_CANDIDATES.get();
-        sim.getUnitIndex().gatherFaction(runnerPosX, runnerPosY,
-                senseRange + SENSE_GATHER_PADDING, Faction.MARINE, nearby);
-        for (int i = 0, n = nearby.size; i < n; i++) {
-            long candidate = nearby.ids[i];
-            if (!eligibleMarineKnownFaction(
-                    candidate, shelterProtected, sim)) continue;
-            float candidateX = sim.world().x(candidate);
-            float candidateY = sim.world().y(candidate);
-            if (!canSense(runnerCellX, runnerCellY,
-                    candidateX, candidateY, senseRange, sim)) continue;
-            float distance = distanceSquared(runnerPosX, runnerPosY,
-                    candidateX, candidateY);
-            if (isBetter(candidate, distance, best, bestDistance)) {
-                best = candidate;
-                bestDistance = distance;
+        // gatherFaction clears its bucket, so each prey side is scanned in
+        // turn rather than accumulated.
+        for (Faction prey : PREY) {
+            sim.getUnitIndex().gatherFaction(runnerPosX, runnerPosY,
+                    senseRange + SENSE_GATHER_PADDING, prey, nearby);
+            for (int i = 0, n = nearby.size; i < n; i++) {
+                long candidate = nearby.ids[i];
+                if (!eligiblePreyKnownFaction(
+                        candidate, shelterProtected, sim)) continue;
+                float candidateX = sim.world().x(candidate);
+                float candidateY = sim.world().y(candidate);
+                if (!canSense(runnerCellX, runnerCellY,
+                        candidateX, candidateY, senseRange, sim)) continue;
+                float distance = distanceSquared(runnerPosX, runnerPosY,
+                        candidateX, candidateY);
+                if (isBetter(candidate, distance, best, bestDistance)) {
+                    best = candidate;
+                    bestDistance = distance;
+                }
             }
         }
 
@@ -227,34 +252,44 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         // Strategic pressure fallback: the swarm still advances when all
         // marines are beyond local sensing range, but civilians remain unknown
         // until first contact reveals them.
-        if (shelterProtected) {
-            return sim.getUnitIndex().nearestFaction(
-                    runnerPosX, runnerPosY, Faction.MARINE,
-                    candidate -> eligibleMarineKnownFaction(
-                            candidate, true, sim));
+        long fallback = 0L;
+        float fallbackDistance = Float.MAX_VALUE;
+        for (Faction prey : PREY) {
+            long candidate = shelterProtected
+                    ? sim.getUnitIndex().nearestFaction(
+                            runnerPosX, runnerPosY, prey,
+                            id -> eligiblePreyKnownFaction(id, true, sim))
+                    : sim.getUnitIndex().nearestFaction(
+                            runnerPosX, runnerPosY, prey);
+            if (candidate == 0L) continue;
+            float distance = distanceSquared(runnerPosX, runnerPosY,
+                    sim.world().x(candidate), sim.world().y(candidate));
+            if (isBetter(candidate, distance, fallback, fallbackDistance)) {
+                fallback = candidate;
+                fallbackDistance = distance;
+            }
         }
-        return sim.getUnitIndex().nearestFaction(
-                runnerPosX, runnerPosY, Faction.MARINE);
+        return fallback;
     }
 
     private static boolean isEligibleRememberedTarget(
             long candidate, CivilianEvacuationTracker tracker,
             boolean shelterProtected, BattleSimulation sim) {
         if (candidate == 0L || sim.resolveUnit(candidate) == 0L) return false;
-        if (sim.identity().faction(candidate) == Faction.MARINE) {
-            return eligibleMarineKnownFaction(
+        if (Faction.DEFENDER.hostileTo(sim.identity().faction(candidate))) {
+            return eligiblePreyKnownFaction(
                     candidate, shelterProtected, sim);
         }
         return !shelterProtected
                 && tracker.state(candidate) == CivilianEvacuationTracker.State.ACTIVE;
     }
 
-    /** Caller has already established the immutable MARINE faction. */
-    private static boolean eligibleMarineKnownFaction(
+    /** Caller has already established that the candidate is a prey faction. */
+    private static boolean eligiblePreyKnownFaction(
             long candidate, boolean shelterProtected, BattleSimulation sim) {
         if (!shelterProtected) return true;
         Squad squad = sim.squadOf(candidate);
-        return squad == null || !squad.rescueShelterGuard;
+        return squad == null || !sim.isShelterGuard(squad.id);
     }
 
     private static boolean isBetter(long candidate, float distance,

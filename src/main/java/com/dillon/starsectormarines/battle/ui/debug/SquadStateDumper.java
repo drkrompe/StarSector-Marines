@@ -1381,8 +1381,6 @@ public final class SquadStateDumper {
         if (!(step.action instanceof ClearZone)) return null;
         int targetZoneId = ((ClearZone) step.action).targetZoneId();
 
-        Faction enemyFaction = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
-
         List<Long> squadmates = new ArrayList<>();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
@@ -1393,7 +1391,7 @@ public final class SquadStateDumper {
         boolean anyUnreachable = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long e = sim.liveUnitAt(i);
-            if (sim.identity().faction(e) != enemyFaction) continue;
+            if (!squad.faction.hostileTo(sim.identity().faction(e))) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e), sim.world().cellY(e)) != targetZoneId) continue;
             boolean reachable = false;
             for (long m : squadmates) {

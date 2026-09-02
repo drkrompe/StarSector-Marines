@@ -45,8 +45,13 @@ public final class ObjectiveLostTrigger implements ReinforcementTrigger {
             int zoneId = graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u));
             if (zoneId < 0) continue;
             int[] counts = tally.computeIfAbsent(zoneId, k -> new int[2]);
-            if (sim.identity().faction(u) == Faction.DEFENDER) counts[0]++;
-            else if (sim.identity().faction(u) == Faction.MARINE) counts[1]++;
+            // Two buckets, and the second is the attacking side rather than the
+            // player's faction: ground taken off the defender by an allied
+            // militia is ground the defender has lost, and is worth a
+            // reinforcement request for exactly the same reason.
+            Faction faction = sim.identity().faction(u);
+            if (faction == Faction.DEFENDER) counts[0]++;
+            else if (Faction.MARINE.friendlyTo(faction)) counts[1]++;
         }
 
         for (Map.Entry<Integer, int[]> e : tally.entrySet()) {
@@ -57,9 +62,9 @@ public final class ObjectiveLostTrigger implements ReinforcementTrigger {
         for (Map.Entry<Integer, int[]> e : tally.entrySet()) {
             int zoneId = e.getKey();
             int defenders = e.getValue()[0];
-            int marines = e.getValue()[1];
+            int attackers = e.getValue()[1];
             if (defenders > 0) continue;
-            if (marines <= 0) continue;
+            if (attackers <= 0) continue;
             if (!wasDefenderHeld.contains(zoneId)) continue;
             if (!postedZones.add(zoneId)) continue;
 

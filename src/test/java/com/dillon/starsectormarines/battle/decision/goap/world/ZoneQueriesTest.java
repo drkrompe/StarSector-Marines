@@ -179,29 +179,45 @@ public class ZoneQueriesTest {
     public void zoneClearFlipsWithEnemyPresence() {
         BattleSimulation sim = singleDoorwaySim();
         int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
-        assertTrue(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
+        assertTrue(ZoneQueries.zoneClearOfHostiles(rightZone, Faction.MARINE, sim),
                 "empty zone is clear by definition");
 
         long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 8, 3));
-        assertFalse(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
+        assertFalse(ZoneQueries.zoneClearOfHostiles(rightZone, Faction.MARINE, sim),
                 "live defender in the zone should make it not-clear");
 
         // A defender in the *other* zone shouldn't taint the right zone.
         int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
-        assertTrue(ZoneQueries.zoneClear(leftZone, Faction.DEFENDER, sim),
+        assertTrue(ZoneQueries.zoneClearOfHostiles(leftZone, Faction.MARINE, sim),
                 "left zone has no defender so it should still read clear");
 
-        // A marine in the right zone is irrelevant when we're asking about DEFENDERs.
+        // A marine in the right zone makes it not-clear for the defender and
+        // changes nothing for the marine asking about his own room.
         sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 7, 3));
-        assertTrue(ZoneQueries.zoneClear(rightZone, Faction.MARINE, sim) == false,
-                "marine in right zone should make it not-clear for the MARINE faction");
-        assertFalse(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
-                "marine doesn't influence DEFENDER clarity check");
+        assertFalse(ZoneQueries.zoneClearOfHostiles(rightZone, Faction.DEFENDER, sim),
+                "marine in right zone should make it not-clear for the defender");
 
-        // Kill the defender → zone reads clear again.
+        // Kill the defender → zone reads clear again for the marine.
         TestUnits.kill(sim, defender);
-        assertTrue(ZoneQueries.zoneClear(rightZone, Faction.DEFENDER, sim),
+        assertTrue(ZoneQueries.zoneClearOfHostiles(rightZone, Faction.MARINE, sim),
                 "dead defender should not count");
+    }
+
+    /**
+     * The question is hostility, not difference. A room holding nothing but
+     * friendly militia is a room the squad has cleared, and the flip this used
+     * to be written as — marine asks about defenders — could not say so.
+     */
+    @Test
+    public void aRoomHoldingOnlyAnAllyReadsClearToAMarineAndNotToADefender() {
+        BattleSimulation sim = singleDoorwaySim();
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        sim.spawn(new EntitySpec("a1", Faction.ALLY, UnitType.MILITIA, 8, 3));
+
+        assertTrue(ZoneQueries.zoneClearOfHostiles(rightZone, Faction.MARINE, sim),
+                "an allied militiaman is not something a marine squad has to clear");
+        assertFalse(ZoneQueries.zoneClearOfHostiles(rightZone, Faction.DEFENDER, sim),
+                "while the defender holding the building most certainly does");
     }
 
     @Test

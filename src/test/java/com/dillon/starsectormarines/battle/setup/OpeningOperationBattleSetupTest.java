@@ -33,7 +33,12 @@ class OpeningOperationBattleSetupTest {
                 8_101L, MANIFEST, 1, OpeningOperationKind.RELIEF,
                 TargetProfile.NEUTRAL);
 
-        assertEquals(8, count(sim, Faction.MARINE, UnitType.MILITIA));
+        // The local line is the client's own, so it is on the field as ALLY.
+        // Everything else about it is unchanged: eight bodies, two posts,
+        // garrison authority.
+        assertEquals(8, count(sim, Faction.ALLY, UnitType.MILITIA));
+        assertEquals(0, count(sim, Faction.MARINE, UnitType.MILITIA),
+                "the player's company does not field the employer's militia");
         assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
         assertEquals(12, combatants(sim, Faction.DEFENDER));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.MARINE_RED));
@@ -48,7 +53,7 @@ class OpeningOperationBattleSetupTest {
         int raiderPool = 0;
         for (Squad squad : sim.getSquads()) {
             CommandDirective directive = sim.getSquadCommandDirective(squad.id);
-            if (squad.faction == Faction.MARINE) {
+            if (squad.faction == Faction.ALLY) {
                 assertNotNull(directive);
                 assertEquals(CommandAuthority.GARRISON, directive.authority());
                 localPosts++;
@@ -70,12 +75,20 @@ class OpeningOperationBattleSetupTest {
         ShuttleMission player = sim.world().mission(shuttles[1]);
         assertEquals(UnitType.MILITIA, employer.deboardUnitType);
         assertNull(player.deboardUnitType);
-        assertEquals(OpeningOperationCommand.issuer(Faction.MARINE),
-                employer.commandClaim.issuer());
+        assertEquals(Faction.ALLY, sim.world().airFaction(shuttles[0]));
+        assertEquals(Faction.MARINE, sim.world().airFaction(shuttles[1]));
+        // The employer lift carries no marine command claim: a directive from
+        // the player's commander over an allied squad is refused by the
+        // arbiter, so the seats land under garrison authority holding the pad
+        // they came ashore on instead.
+        assertNull(employer.commandClaim);
+        assertNotNull(employer.garrisonNode);
+        assertEquals(Faction.ALLY, employer.garrisonNode.defaultGuard);
         assertEquals(OpeningOperationCommand.issuer(Faction.MARINE),
                 player.commandClaim.issuer());
         assertEquals(CommandAuthority.MISSION_COMMAND,
-                employer.commandClaim.authority());
+                player.commandClaim.authority());
+        assertNull(player.garrisonNode);
     }
 
     @Test
@@ -84,6 +97,7 @@ class OpeningOperationBattleSetupTest {
                 8_102L, MANIFEST, 1, OpeningOperationKind.COUNTERATTACK,
                 TargetProfile.NEUTRAL);
 
+        assertEquals(0, count(sim, Faction.ALLY, UnitType.MILITIA));
         assertEquals(0, count(sim, Faction.MARINE, UnitType.MILITIA));
         assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
     }

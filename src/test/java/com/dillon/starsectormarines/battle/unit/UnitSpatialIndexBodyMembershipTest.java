@@ -48,7 +48,7 @@ public class UnitSpatialIndexBodyMembershipTest {
         // And through the hostile-combatant projection the scans actually use,
         // which reads the faction and combatant flags the index stored.
         LongBucket hostiles = new LongBucket();
-        index.gatherOtherFactionCombatants(10.5f, 10.5f, 8f, Faction.MARINE, hostiles);
+        index.gatherHostileCombatants(10.5f, 10.5f, 8f, Faction.MARINE, hostiles);
         assertTrue(contains(hostiles, apc), "a hostile chassis is a hostile combatant");
     }
 

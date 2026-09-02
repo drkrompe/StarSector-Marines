@@ -374,8 +374,7 @@ class SquadMoveOrderSystemTest {
         Squad enemy = infantrySquad(sim, Faction.DEFENDER, 10, 5, 1);
         Squad mech = squad(sim, Faction.MARINE, UnitType.HEAVY_MECH, 4, 5, 1);
         Squad civilian = squad(sim, Faction.MARINE, UnitType.CIVILIAN, 5, 5, 1);
-        Squad sealedShelter = infantrySquad(sim, Faction.MARINE, 6, 5, 1);
-        sealedShelter.rescueShelterGuard = true;
+        Squad sealedShelter = infantrySquad(sim, Faction.ALLY, 6, 5, 1);
 
         for (int id : new int[]{enemy.id, mech.id, civilian.id,
                 sealedShelter.id, Integer.MAX_VALUE}) {
@@ -416,8 +415,7 @@ class SquadMoveOrderSystemTest {
         Squad civilian = squad(sim, Faction.MARINE, UnitType.CIVILIAN, 4, 5, 1);
         Squad pickupGuard = infantrySquad(sim, Faction.MARINE, 5, 5, 1);
         pickupGuard.rescuePickupGuard = true;
-        Squad shelterGuard = infantrySquad(sim, Faction.MARINE, 7, 5, 1);
-        shelterGuard.rescueShelterGuard = true;
+        Squad shelterGuard = infantrySquad(sim, Faction.ALLY, 7, 5, 1);
         Squad rescueMech = squad(sim, Faction.MARINE,
                 UnitType.HEAVY_MECH, 6, 5, 1);
         rescueMech.rescuePickupMech = true;

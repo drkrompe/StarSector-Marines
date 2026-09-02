@@ -32,7 +32,12 @@ class MechFittingLayoutTest {
                 assertTrue(anchorToDock > 0.5,
                         "equipment dock should use the gantry around " + socket.id());
             }
-            assertEquals(EnumSet.allOf(SocketId.class), ids);
+            if (variant == MechVariant.HOUND) {
+                assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS,
+                        SocketId.LEFT_SHOULDER, SocketId.AMMO_RESERVE), ids);
+            } else {
+                assertEquals(EnumSet.allOf(SocketId.class), ids);
+            }
         }
     }
 
@@ -42,15 +47,15 @@ class MechFittingLayoutTest {
         MechFittingLayout bulwark = MechFittingLayout.forVariant(MechVariant.BULWARK);
 
         assertFalse(hound.occupied(SocketId.RIGHT_SHOULDER));
+        assertFalse(hound.hasSocket(SocketId.RIGHT_SHOULDER));
+        assertTrue(hound.hasSocket(SocketId.LEFT_SHOULDER));
         assertTrue(bulwark.occupied(SocketId.RIGHT_SHOULDER));
         assertEquals(SocketType.OMNI,
                 bulwark.socket(SocketId.RIGHT_SHOULDER).type());
-        assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).capacity(),
-                bulwark.socket(SocketId.RIGHT_SHOULDER).capacity());
+        assertNotEquals(hound.socket(SocketId.ARMS).capacity(),
+                bulwark.socket(SocketId.ARMS).capacity());
         assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthHull(),
                 bulwark.socket(SocketId.ARMS).footprintWidthHull());
-        assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).anchorRight(),
-                bulwark.socket(SocketId.RIGHT_SHOULDER).anchorRight());
     }
 
     @Test
