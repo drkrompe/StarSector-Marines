@@ -25,7 +25,7 @@ Design: `conquest-command.md`
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
-| `lane-chain-tug-of-war.md` | PLANNED | A lane's front is ownership along its chain of places, staging follows the recorded route, defenders hold the next link and retake the last; tracks stay as the lateral fence. Follows `lane-paths.md`. |
+| `lane-chain-tug-of-war.md` | PLANNED | A lane's front is ownership along its chain of places, staging follows the recorded route, defenders hold the next link and retake the last; tracks stay as the lateral fence. Reads the lane routes `precincts.md` records. |
 
 ## Sabotage
 
