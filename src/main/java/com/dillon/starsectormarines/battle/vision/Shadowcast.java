@@ -94,15 +94,19 @@ public final class Shadowcast {
                 int cx = sx + dx;
                 int cy = sy + dy;
 
-                if (cx < 0 || cx >= w || cy < 0 || cy >= h) {
-                    blocked = false;
-                    continue;
-                }
+                // A cell off the map or outside the disc says nothing about what
+                // is in shadow, so the blocked run carries across it. Clearing
+                // the flag here instead was the defect: a row whose tail falls
+                // outside the disc - which is most rows, since the column bound
+                // comes from the slope and not from the range - ended unblocked
+                // however solid its visible part was, so the octant never broke
+                // and re-scanned, from its original start slope, the wedge the
+                // recursion had already covered. That is vision through a wall
+                // and, compounding row on row, thousands of duplicate writes
+                // into a buffer sized for a disc.
+                if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
 
-                if (dx * dx + dy * dy > range * range) {
-                    blocked = false;
-                    continue;
-                }
+                if (dx * dx + dy * dy > range * range) continue;
 
                 float leftSlope  = (col - 0.5f) / r;
                 float rightSlope = (col + 0.5f) / r;
