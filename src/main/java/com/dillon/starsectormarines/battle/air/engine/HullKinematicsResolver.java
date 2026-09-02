@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import org.apache.log4j.Logger;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
@@ -29,7 +29,9 @@ public final class HullKinematicsResolver {
     /** Mid-tier profile for hulls with a missing / zero maneuver spec — keeps the craft flyable. Values are a generic fighter (su): 200 speed, 300/250 accel/decel, 120 deg/sec turn. */
     static final AirHandling FALLBACK = HullKinematics.fromSpec(200f, 300f, 250f, 120f);
 
-    private static final Map<String, AirHandling> CACHE_BY_HULL = new HashMap<>();
+    /** Keyed on hull id, filled lazily during a battle, and concurrent because two battles can run in one JVM. The value is a pure function of the id, so a race would only re-scrape the spec. */
+    private static final Map<String, AirHandling> CACHE_BY_HULL =
+            new ConcurrentHashMap<>();
 
     private HullKinematicsResolver() {}
 
@@ -40,11 +42,8 @@ public final class HullKinematicsResolver {
      */
     public static AirHandling resolve(String hullId) {
         if (hullId == null || hullId.isEmpty()) return FALLBACK;
-        AirHandling cached = CACHE_BY_HULL.get(hullId);
-        if (cached != null) return cached;
-        AirHandling resolved = doResolve(hullId);
-        CACHE_BY_HULL.put(hullId, resolved);
-        return resolved;
+        return CACHE_BY_HULL.computeIfAbsent(
+                hullId, HullKinematicsResolver::doResolve);
     }
 
     private static AirHandling doResolve(String hullId) {

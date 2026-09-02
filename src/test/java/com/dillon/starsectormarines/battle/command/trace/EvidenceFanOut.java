@@ -19,8 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * about the battle; {@code simDeterminism} is where two replicas meet, on one
  * fixture and a bounded tick budget.
  *
- * <p>The default parallelism is also one, for a reason the determinism check
- * itself turned up — see {@link #parallelism()}.
+ * <p>Replays run side by side by default — see {@link #parallelism()} for what
+ * had to be true first.
  */
 final class EvidenceFanOut {
 
@@ -63,25 +63,32 @@ final class EvidenceFanOut {
     }
 
     /**
-     * How many threads replays may occupy; never fewer than one.
+     * How many threads replays may occupy; never fewer than one. Defaults to
+     * half the machine's processors, since a replay is most of a core for
+     * minutes and the machine has other sessions on it.
      *
-     * <p>The default is one, and not because a replay is unsafe to hand its
-     * own thread — the per-thread scratch the sim keeps is all
-     * {@link ThreadLocal}. It is because {@code LosCache} is not per
-     * simulation: its enable flag is one static volatile that every sim
-     * raises at its own tick top and lowers at its own tick end, and
-     * {@code clearAll} sweeps every thread's cache in the process rather than
-     * the caller's own. Two simulations therefore turn each other's
-     * line-of-sight cache off and empty it mid-tick, and the first run of
-     * {@code simDeterminism} caught it: two replicas of the same Conquest
-     * fixture agreed for three hundred ticks and then recorded the same
-     * compound-presence change one tick apart. Raise it deliberately with
-     * {@code -Pparallelism=N} once a cache belongs to the sim that owns it.
+     * <p>It defaulted to one until {@code simDeterminism -Pparallelism=2}
+     * found what two simulations in one JVM could see of each other: the
+     * per-thread scratch a sim keeps is all {@link ThreadLocal}, but
+     * {@code LosCache} was not per simulation, so each battle emptied the
+     * other's line-of-sight cache mid-tick and lowered its enable flag. Two
+     * replicas of one Conquest fixture agreed for three hundred ticks and then
+     * recorded the same compound-presence change one tick apart. The caches now
+     * belong to the {@code NavigationGrid} whose topology invalidates them.
+     * The same probe then found the shared {@code BspCityGenerator} handing one
+     * battle the map another had just generated, which is fixed too. Override
+     * with {@code -Pparallelism=N}; {@code 1} is the serial control.
      */
     static int parallelism() {
         String configured = System.getProperty(PARALLELISM_PROPERTY, "").trim();
-        int value = configured.isBlank() ? 1 : Integer.parseInt(configured);
+        int value = configured.isBlank() ? defaultParallelism()
+                : Integer.parseInt(configured);
         return Math.max(1, value);
+    }
+
+    /** Half the machine's processors, so a fan-out leaves room for whatever else is running. */
+    static int defaultParallelism() {
+        return Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
     }
 
     /** How many times each fixture is replayed; one unless asked otherwise. */

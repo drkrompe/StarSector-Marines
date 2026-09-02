@@ -155,6 +155,14 @@ public class NavigationGrid {
     private int transientOpacityCells;
     private long opacityRevision;
 
+    /**
+     * This grid's per-thread line-of-sight caches and their tick window. Owned
+     * here because this class is what invalidates them: every change to what
+     * blocks sight below sweeps them, and a grid sweeps only its own — see
+     * {@link LosCaches}.
+     */
+    private final LosCaches losCaches = new LosCaches();
+
     public NavigationGrid(int width, int height) {
         this.width = width;
         this.height = height;
@@ -249,14 +257,14 @@ public class NavigationGrid {
         if (transientOpacity[idx] == Short.MAX_VALUE) return;
         if (transientOpacity[idx]++ == 0) transientOpacityCells++;
         opacityRevision++;
-        LosCache.clearAll();
+        losCaches.clearAll();
     }
 
     public void removeTransientOpacityAt(int idx) {
         if (transientOpacity[idx] <= 0) return;
         if (--transientOpacity[idx] == 0) transientOpacityCells--;
         opacityRevision++;
-        LosCache.clearAll();
+        losCaches.clearAll();
     }
 
     /**
@@ -495,7 +503,7 @@ public class NavigationGrid {
             blockSharedEdge(canonicalX, canonicalY, canonicalDirection);
         }
         publishBarrierCover(barrier, true);
-        if (kind.blocksSight()) LosCache.clearAll();
+        if (kind.blocksSight()) losCaches.clearAll();
         return barrier;
     }
 
@@ -534,7 +542,7 @@ public class NavigationGrid {
         edgeBarriers.remove(barrier);
         invalidateBarrierIndex();
         publishBarrierCover(barrier, false);
-        if (barrier.kind().blocksSight()) LosCache.clearAll();
+        if (barrier.kind().blocksSight()) losCaches.clearAll();
         return true;
     }
 
@@ -559,7 +567,7 @@ public class NavigationGrid {
         invalidateBarrierIndex();
         publishBarrierCover(barrier, false);
         openSharedEdge(barrier.cellX(), barrier.cellY(), barrier.direction());
-        if (barrier.kind().blocksSight()) LosCache.clearAll();
+        if (barrier.kind().blocksSight()) losCaches.clearAll();
         return true;
     }
 
@@ -825,10 +833,18 @@ public class NavigationGrid {
         Arrays.fill(transientOpacity, (short) 0);
         transientOpacityCells = 0;
         opacityRevision++;
-        LosCache.clearAll();
+        losCaches.clearAll();
     }
 
     // ----- Line of sight -----
+
+    /**
+     * This grid's line-of-sight caches. The simulation that owns the grid
+     * opens and closes their tick window through
+     * {@link NavigationService#beginTick()} / {@link NavigationService#endTick()},
+     * and releases a departing worker thread's cache through them.
+     */
+    public LosCaches losCaches() { return losCaches; }
 
     /**
      * Bresenham trace from {@code (x0,y0)} to {@code (x1,y1)} — returns false
@@ -845,7 +861,7 @@ public class NavigationGrid {
     public boolean hasLineOfSight(int x0, int y0, int x1, int y1) {
         // Tick-scoped result cache. Off-tick (tests, mid-frame UI hooks) the
         // slot is null and we fall through to the Bresenham trace directly.
-        LosCache cache = LosCache.current();
+        LosCache cache = losCaches.current();
         if (cache != null) {
             int cached = cache.tryGet(x0, y0, x1, y1);
             if (cached >= 0) return cached == 1;

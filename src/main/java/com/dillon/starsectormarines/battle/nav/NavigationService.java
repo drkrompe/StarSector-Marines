@@ -451,23 +451,35 @@ public final class NavigationService {
     }
 
     /**
-     * Begin-of-tick {@link LosCache} setup — sweeps every worker's slot so
-     * cached pairs can't outlive a wall breach from the prior tick's cleanup
-     * pass, then switches on auto-init for the duration of the tick. Pairs
-     * with {@link #endTick()}.
+     * Begin-of-tick {@link LosCache} setup — sweeps every worker's slot on
+     * <em>this grid</em> so cached pairs can't outlive a wall breach from the
+     * prior tick's cleanup pass, then switches on auto-init for the duration
+     * of the tick. Pairs with {@link #endTick()}. Another simulation's grid is
+     * untouched, which is the whole reason the caches hang off the grid.
      */
     public void beginTick() {
-        LosCache.clearAll();
-        LosCache.enable();
+        LosCaches caches = grid.losCaches();
+        caches.clearAll();
+        caches.enable();
     }
 
     /**
-     * End-of-tick {@link LosCache} teardown — switches the per-thread cache
-     * off so off-tick callers (tests, mid-frame UI hooks) see {@code null}
-     * and fall through to live Bresenham. Pairs with {@link #beginTick()}.
+     * End-of-tick {@link LosCache} teardown — switches this grid's per-thread
+     * caches off so off-tick callers (tests, mid-frame UI hooks) see
+     * {@code null} and fall through to live Bresenham. Pairs with
+     * {@link #beginTick()}.
      */
     public void endTick() {
-        LosCache.disable();
+        grid.losCaches().disable();
+    }
+
+    /**
+     * Drops the calling thread's cache for this grid. Called at the ownership
+     * edges — a battle-owned update worker terminating, and the simulation
+     * closing on its host thread.
+     */
+    public void releaseCurrentThreadLosCache() {
+        grid.losCaches().releaseCurrentThread();
     }
 
     /** X coordinate of {@code u}'s final path cell, or {@code Integer.MIN_VALUE} if empty. Reads the path off the MOVEMENT component by id. */

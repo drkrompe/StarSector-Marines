@@ -5,7 +5,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +37,9 @@ public final class TurretSlotResolver {
     private static final Set<String> MOUNTABLE = Set.of(
             "BALLISTIC", "ENERGY", "MISSILE", "COMPOSITE", "HYBRID", "UNIVERSAL", "SYNERGY");
 
-    private static final Map<String, float[][]> CACHE_BY_HULL = new HashMap<>();
+    /** Keyed on hull id, filled lazily during a battle, and concurrent because two battles can run in one JVM. The value is a pure function of the id, so a race would only re-parse the spec. */
+    private static final Map<String, float[][]> CACHE_BY_HULL =
+            new ConcurrentHashMap<>();
 
     private TurretSlotResolver() {}
 
@@ -49,11 +51,8 @@ public final class TurretSlotResolver {
      */
     public static float[][] resolve(String hullId) {
         if (hullId == null || hullId.isEmpty()) return EMPTY;
-        float[][] cached = CACHE_BY_HULL.get(hullId);
-        if (cached != null) return cached;
-        float[][] resolved = doResolve(hullId);
-        CACHE_BY_HULL.put(hullId, resolved);
-        return resolved;
+        return CACHE_BY_HULL.computeIfAbsent(
+                hullId, TurretSlotResolver::doResolve);
     }
 
     private static float[][] doResolve(String hullId) {
