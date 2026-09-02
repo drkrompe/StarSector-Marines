@@ -1144,17 +1144,25 @@ public class MarineRoster implements Serializable {
     }
 
     /**
-     * Seniority order for picking a leader: rank, then time served, then a
-     * stable id tiebreak. Time served is deployments on the marine's career
-     * record — the marine who has actually been on more operations. It replaced
-     * a persisted XP number, which stopped meaning anything once experience
-     * became issued with the armour rather than accumulated.
+     * Seniority order for picking a leader: rank, then time served. Time served
+     * is deployments on the marine's career record — the marine who has actually
+     * been on more operations. It replaced a persisted XP number, which stopped
+     * meaning anything once experience became issued with the armour rather than
+     * accumulated.
+     *
+     * <p><b>Equals are separated by billet, which is why this stops here.</b>
+     * Every caller walks its candidates in billet order and keeps the first of
+     * a tie, so the senior billet leads — the twelve identical recruits of a
+     * newly founded squad included. It used to end in a tiebreak on the
+     * marine's id, and an id is a random UUID: the same seeded roster then
+     * produced a different NCO in every process that built it, which is exactly
+     * the reproducibility a seed exists to buy, and became visible once the
+     * frozen manifest started seating that NCO first.
      */
     private static final Comparator<MarineSoldier> SENIORITY =
             Comparator.comparingInt((MarineSoldier s) -> s.enlistedRank().ordinal()).reversed()
                     .thenComparing(Comparator.comparingInt(
-                            (MarineSoldier s) -> s.career().missionsDeployed()).reversed())
-                    .thenComparing(MarineSoldier::id);
+                            (MarineSoldier s) -> s.career().missionsDeployed()).reversed());
 
     /** The NCO leading this squad, or null when nobody in it is fit for duty. */
     public MarineSoldier squadLeader(MarineSquad squad) {
@@ -1167,7 +1175,7 @@ public class MarineRoster implements Serializable {
      * corporal's stripes (a sergeant's once they are a veteran), the leader of
      * each other manned fire team wears a lance corporal's, and everyone else is
      * a marine. Casualties therefore promote a successor deterministically —
-     * highest rank, then most experienced, then by id.
+     * highest rank, then most experienced, then by billet.
      *
      * <p>Only marines fit for duty are ranked. Personnel on the wounded list keep
      * their stripes, so a corporal who returns outranks the marine who stood in
@@ -1190,7 +1198,13 @@ public class MarineRoster implements Serializable {
                 squad.setLeaderSoldierId(null);
                 continue;
             }
-            MarineSoldier leader = Collections.min(onDuty, SENIORITY);
+            // The first of a tie wins, so equals are separated by billet;
+            // written out rather than left to Collections.min, because that is
+            // the whole of what keeps a founding squad's NCO reproducible.
+            MarineSoldier leader = onDuty.get(0);
+            for (MarineSoldier soldier : onDuty) {
+                if (SENIORITY.compare(soldier, leader) < 0) leader = soldier;
+            }
             squad.setLeaderSoldierId(leader.id());
             for (MarineSoldier soldier : onDuty) soldier.setEnlistedRank(EnlistedRank.MARINE);
             int leaderTeam = teamIndexOf(squad, leader.id());
