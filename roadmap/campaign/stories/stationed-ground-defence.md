@@ -1,8 +1,11 @@
 # Stationed ground defence: a Garrison that counts while you are away
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-09-02
+
+Updated: 2026-09-02 — slices 1–5 shipped (c4ed61b9c, 8db3fc966, c781a10a4,
+da552abcc); the live pass remains. See "Decided while shipping".
 
 Read `contracts-nouns.md` (stationing, response, settlement),
 `meta-progression.md` (the vanilla seam), `personnel-nouns.md` (what a
@@ -112,33 +115,74 @@ agree. Casualties are applied through the ordinary personnel outcome path.
 
 ## Slices
 
-1. **Strength contribution.** The daily system, the per-seat worth read from
+1. **Strength contribution.** *Shipped.* The daily system, the per-seat worth read from
    the roster, the persisted applied set, and the sweep. Unit tests pin the
    value against a fake stat, the removal on every non-active state, and the
    sweep after a simulated load. A probe reports the assessed raid outcome of
    a minor and a major raid against a size-3 and a size-5 market with nothing,
    one Green squad, and two Elite squads stationed.
-2. **Raid-intel reader.** The second threat reader over `RaidIntel`, deriving
+2. **Raid-intel reader.** *Shipped.* The second threat reader over `RaidIntel`, deriving
    targets the way the pirate stage does (system plus hostility) since its
    target list is protected, and reading the punitive expedition's target
    directly. Same event key, same arming.
-3. **Ending the raid.** The handle and its two implementations, an abortable
+3. **Ending the raid.** *Shipped, live verification pending.* The handle and its two implementations, an abortable
    seam the tests can fake, and the resolution calling it on a win. Verify
    live that `forceFail` alone sends stragglers home; if not, the handle calls
    the stage's return path.
-4. **Absent settlement.** The lapse system's vanilla branch, the grading, and
+4. **Absent settlement.** *Shipped.* The lapse system's vanilla branch, the grading, and
    the casualty application. Tests pin each band and that a rival-strike lapse
    is untouched.
-5. **Attacker identity on the payload.** `GarrisonDefenseMissionFactory`
+5. **Attacker identity on the payload.** *Shipped.* `GarrisonDefenseMissionFactory`
    builds its mission with no defender-faction override, so today's raiders
    wear the defended market's own roster: pirates landing on a Hegemony world
    arrive in Hegemony kit. The payload already carries the attacker faction;
    the factory passes it as the override. One line, one test.
-6. **Live pass.** One pirate-base raid on a patron market with a stationed
+6. **Live pass.** *Remaining.* One pirate-base raid on a patron market with a stationed
    squad and the player elsewhere; one fought and won; one fleet-group raid
    on a patron market sharing the player's colony system. Read the raid
    intel's assessment before and after stationing, and check the raiders
    wear their own faction's kit.
+
+## Decided while shipping
+
+Choices the implementation made that the design did not settle. Each is a
+first proposal for the live pass to judge, not a number the docs own.
+
+- **The modifier does not name the company.** Nothing on `CampaignState` or
+  the roster carries a company name (the roster knows only the flagship), so
+  the description is "Stationed mercenary detachment". Naming it is new
+  plumbing, and waits for a company identity to exist.
+- **A fleet group's ground strength is its strongest fleet, not its sum.**
+  `FGRaidAction.performRaid` lands one fleet at a time and grades each landing
+  on that fleet alone, so the sum was a unit vanilla never uses.
+- **A group that has failed without ending is left alone.** `abort()` fires
+  the group's listener unconditionally, so the ender treats `isFailed()` as
+  over, matching the reader that armed the defence.
+- **Casualties for an absent defence.** A held defence loses half of what the
+  raid effectiveness would have taken; an overrun one loses the effectiveness
+  outright, capped at nine in ten so it is beaten rather than annihilated.
+  Wounded recover on the fought Garrison's own clock. The people struck are
+  seeded from the event key, so a replayed settlement names the same marines.
+- **A raid with no strength estimate settles held-with-losses** at the middle
+  of vanilla's uncertain band. Something landed and nothing says how hard.
+- **Overrun is failed, not lapsed.** The garrison stood and was beaten, so the
+  employer takes the fought-and-lost delta; a lapse would charge standing the
+  player never spent. The captain comes home with that on their record.
+- **A raid still in the air has no window to miss.** The response deadline
+  carries the term's own expiry and stays unset for an open-ended term, which
+  leaves the inbox's computed countdown showing a date that cannot fire. A term
+  that runs out with the raid still coming settles held at no cost.
+- **Landing is read off vanilla's recently-raided flag** keyed by the attacker,
+  which every NPC raid path stamps. A flag left by an earlier raid by the same
+  faction reads as a landing; vanilla itself skips a flagged market, so in the
+  common case the second error cancels the first.
+- **Unknown identity reads as repelled**, so a malformed vanilla defence
+  settles held rather than failing the player.
+- **The strength ladder probe** (one Green squad, two Elite squads, against a
+  minor and a major raid on size-3 and size-5 markets) moved the assessed
+  outcome only at the margins on Green 1 / Regular 1.5 / Veteran 2 / Elite 3.
+  A lift of roughly one and a half to two times is the candidate for the live
+  pass, judged against the intel's forecast on a size-3 colony.
 
 ## Acceptance
 
@@ -147,7 +191,8 @@ agree. Casualties are applied through the ordinary personnel outcome path.
   and loses it on the day the contract leaves its active states.
 - A pirate-base raid on a Garrison market arms the defence.
 - A won vanilla-triggered defence sends the raid home through vanilla's own
-  path, exactly once.
+  path, exactly once. Whether `forceFail` alone gives a raid intel's
+  stragglers return orders is still the live pass's question.
 - An unanswered vanilla-triggered defence settles held, held-with-losses, or
   overrun from the raid effectiveness vanilla computed, with casualties on the
   roster; a rival-strike lapse still settles as it does today.
