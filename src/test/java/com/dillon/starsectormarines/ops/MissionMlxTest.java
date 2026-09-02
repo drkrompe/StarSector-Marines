@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -144,6 +146,54 @@ class MissionMlxTest {
                     instance.requireElement("squad-deployment-inspector-title").text());
             assertTrue(instance.requireElement("squad-deployment-inspector")
                     .hasClass("empty"));
+        }
+    }
+
+    /**
+     * The inspector stays a dossier, but its four equipment lines name catalog
+     * items, so each is askable. They are fixed elements whose subject changes
+     * underneath them, which is why the binding is one supplier per line reading
+     * whichever marine is hovered rather than one binding per marine.
+     */
+    @Test
+    @SuppressWarnings("unchecked")
+    void theInspectorsEquipmentLinesAreAskable() throws Exception {
+        MarkupLoader loader = loader(SquadDeploymentScreen.COMPONENT_PATHS);
+        loader.reload();
+        Map<String, Object> props = SquadDeploymentScreen.previewProps();
+        try (MarkupInstance instance = loader.build(new Reactor(),
+                SquadDeploymentScreen.ROOT_COMPONENT, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer);
+            SquadDeploymentScreen.MemberInspector inspector =
+                    SquadDeploymentScreen.MemberInspector.bind(instance,
+                            (List<SquadDeploymentScreen.SquadRow>) props.get("squadRows"));
+            inspector.bindSpecSheets(binder);
+            document.layout(1920f, 1080f);
+
+            for (String line : List.of("primary", "armor", "special", "system")) {
+                assertTrue(binder.isBound(
+                        instance.requireElement("squad-deployment-inspector-" + line)),
+                        line + " is not askable");
+            }
+            assertFalse(binder.isBound(
+                    instance.requireElement("squad-deployment-inspector-profile")),
+                    "a marine's own profile is dossier copy, not a catalog item");
+            assertEquals(4, binder.size());
+
+            // Nothing hovered is nothing to describe, and a line with no subject
+            // opens no sheet rather than throwing on the way past.
+            Rect primary = instance.requireElement("squad-deployment-inspector-primary")
+                    .box().borderBox();
+            document.pointerMoved(primary.x() + primary.width() * 0.5f,
+                    primary.y() + primary.height() * 0.5f);
+            inspector.update();
+            binder.update();
+            document.advance(0f);
+            assertFalse(layer.visible());
         }
     }
 

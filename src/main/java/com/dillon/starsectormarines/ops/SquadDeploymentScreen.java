@@ -15,16 +15,20 @@ import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.battle.ui.panel.WeaponSymbols;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 /** MLX-authored pre-battle whole-squad assignment workspace. */
 public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
@@ -207,7 +211,12 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                         ? "SUIT SYSTEM · " + IntegralSystemCopy.summary(armor)
                         : "SUIT SYSTEM · NONE",
                 "PROFILE · " + soldier.profile().experienceTier().displayName + " / "
-                        + soldier.aptitude().displayName);
+                        + soldier.aptitude().displayName,
+                SpecSheets.weapon(primary, soldier.primaryGrade()),
+                SpecSheets.armor(armor),
+                special != null ? SpecSheets.special(special) : null,
+                IntegralSystemCopy.carried(armor)
+                        ? SpecSheets.integralSystem(armor) : null);
     }
 
     private static MemberRow vacantMember(String id, int team, int slot) {
@@ -216,7 +225,8 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 "FIRETEAM " + (char) ('A' + team) + " · BILLET " + (slot + 1),
                 "FIREPOWER 0", "PROTECTION 0",
                 "PRIMARY · NONE", "ARMOR · NONE", "SPECIAL · NONE",
-                "SUIT SYSTEM · NONE", "PROFILE · NO MARINE WILL DEPLOY");
+                "SUIT SYSTEM · NONE", "PROFILE · NO MARINE WILL DEPLOY",
+                null, null, null, null);
     }
 
     private static List<FireTeamRow> previewTeams(int squadIndex, boolean selected) {
@@ -252,7 +262,8 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                                 : "SPECIAL · NONE",
                         billet == 0 ? "SUIT SYSTEM · BREACHER ASSIST · READY"
                                 : "SUIT SYSTEM · NONE",
-                        "PROFILE · REGULAR / STEADY"));
+                        "PROFILE · REGULAR / STEADY",
+                        null, null, null, null));
             }
             String id = "deployment-preview-team-" + squadIndex + "-" + team;
             teams.add(new FireTeamRow(id, id + "-label", "TEAM " + (char) ('A' + team),
@@ -298,20 +309,21 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
 
     private static void putInspector(Map<String, Object> props, MemberRow member) {
         props.put("inspectorClasses", "marine-inspector");
-        props.put("inspectorTitle", member.tooltipTitle());
-        props.put("inspectorContext", member.tooltipContext());
-        props.put("inspectorFirepower", member.tooltipFirepower());
-        props.put("inspectorProtection", member.tooltipProtection());
-        props.put("inspectorPrimary", member.tooltipPrimary());
-        props.put("inspectorArmor", member.tooltipArmor());
-        props.put("inspectorSpecial", member.tooltipSpecial());
-        props.put("inspectorSystem", member.tooltipSystem());
-        props.put("inspectorProfile", member.tooltipProfile());
+        props.put("inspectorTitle", member.inspectorTitle());
+        props.put("inspectorContext", member.inspectorContext());
+        props.put("inspectorFirepower", member.inspectorFirepower());
+        props.put("inspectorProtection", member.inspectorProtection());
+        props.put("inspectorPrimary", member.inspectorPrimary());
+        props.put("inspectorArmor", member.inspectorArmor());
+        props.put("inspectorSpecial", member.inspectorSpecial());
+        props.put("inspectorSystem", member.inspectorSystem());
+        props.put("inspectorProfile", member.inspectorProfile());
     }
 
     @Override
     protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
         memberInspector = MemberInspector.bind(instance, projectedRows);
+        memberInspector.bindSpecSheets(specSheets());
     }
 
     @Override
@@ -444,13 +456,22 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         }
     }
 
+    /**
+     * One marine in a squad card, and the sheets behind the four equipment lines
+     * the inspector shows for them. The lines are catalog items even though the
+     * inspector as a whole is a dossier, so hovering one opens the item's own
+     * spec sheet ({@code spec-sheet.md}). A sheet is null where the billet
+     * carries nothing of that kind.
+     */
     record MemberRow(String id, String classes, String name, String equipment,
                      String firepowerStyle, String protectionStyle,
-                     String tooltipTitle, String tooltipContext,
-                     String tooltipFirepower, String tooltipProtection,
-                     String tooltipPrimary,
-                     String tooltipArmor, String tooltipSpecial,
-                     String tooltipSystem, String tooltipProfile)
+                     String inspectorTitle, String inspectorContext,
+                     String inspectorFirepower, String inspectorProtection,
+                     String inspectorPrimary,
+                     String inspectorArmor, String inspectorSpecial,
+                     String inspectorSystem, String inspectorProfile,
+                     SpecSheet primarySheet, SpecSheet armorSheet,
+                     SpecSheet specialSheet, SpecSheet systemSheet)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
@@ -484,6 +505,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
         private final List<MemberBinding> bindings;
         private final InspectorElements elements;
         private String hoveredMemberId;
+        private MemberRow hoveredMember;
 
         private MemberInspector(List<MemberBinding> bindings,
                                 InspectorElements elements) {
@@ -531,22 +553,43 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
             if ((nextId == null && hoveredMemberId == null)
                     || (nextId != null && nextId.equals(hoveredMemberId))) return;
             hoveredMemberId = nextId;
+            hoveredMember = hovered;
             if (hovered == null) clear();
             else show(hovered);
+        }
+
+        /**
+         * Makes the inspector's four equipment lines askable.
+         *
+         * <p>The lines are fixed elements whose subject changes underneath them,
+         * so each is bound once to a sheet read off whichever marine is hovered
+         * now. The inspector's own update runs first, so the line and the sheet
+         * always describe the same marine.
+         */
+        void bindSpecSheets(SpecSheetBinder binder) {
+            if (binder == null || elements == null) return;
+            binder.bind(elements.primary(), () -> sheet(MemberRow::primarySheet));
+            binder.bind(elements.armor(), () -> sheet(MemberRow::armorSheet));
+            binder.bind(elements.special(), () -> sheet(MemberRow::specialSheet));
+            binder.bind(elements.system(), () -> sheet(MemberRow::systemSheet));
+        }
+
+        private SpecSheet sheet(Function<MemberRow, SpecSheet> of) {
+            return hoveredMember == null ? null : of.apply(hoveredMember);
         }
 
         private void show(MemberRow member) {
             if (elements == null) return;
             elements.panel().removeClass("empty");
-            elements.title().text(member.tooltipTitle());
-            elements.context().text(member.tooltipContext());
-            elements.firepower().text(member.tooltipFirepower());
-            elements.protection().text(member.tooltipProtection());
-            elements.primary().text(member.tooltipPrimary());
-            elements.armor().text(member.tooltipArmor());
-            elements.special().text(member.tooltipSpecial());
-            elements.system().text(member.tooltipSystem());
-            elements.profile().text(member.tooltipProfile());
+            elements.title().text(member.inspectorTitle());
+            elements.context().text(member.inspectorContext());
+            elements.firepower().text(member.inspectorFirepower());
+            elements.protection().text(member.inspectorProtection());
+            elements.primary().text(member.inspectorPrimary());
+            elements.armor().text(member.inspectorArmor());
+            elements.special().text(member.inspectorSpecial());
+            elements.system().text(member.inspectorSystem());
+            elements.profile().text(member.inspectorProfile());
         }
 
         private void clear() {
