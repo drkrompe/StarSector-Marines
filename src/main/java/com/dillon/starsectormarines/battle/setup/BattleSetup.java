@@ -110,6 +110,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
@@ -1466,6 +1467,31 @@ public final class BattleSetup {
                                                PrecinctPlan.Sprawl sprawl,
                                                Standoff standoff,
                                                Integer laneCount) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan,
+                sprawl, standoff, laneCount, null);
+    }
+
+    /**
+     * Conquest build carrying the routes its lanes take as well.
+     *
+     * @param lanePaths one {@link LanePath} per lane, in lane order, or
+     *                  {@code null} for lanes that derive their own. A mission
+     *                  writes a zig-zag here; the count still says how many
+     *                  lanes there are, and stating fewer than there are paths
+     *                  is refused rather than quietly widened.
+     */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan,
+                                               PrecinctPlan.Sprawl sprawl,
+                                               Standoff standoff,
+                                               Integer laneCount,
+                                               List<LanePath> lanePaths) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
@@ -1479,7 +1505,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
-                tier, risk, sprawl, standoff, laneCount);
+                tier, risk, sprawl, standoff, laneCount, lanePaths);
         MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1864,9 +1890,32 @@ public final class BattleSetup {
                                                   PrecinctPlan.Sprawl sprawl,
                                                   Standoff standoff,
                                                   Integer laneCount) {
+        return createConquest(seed, manifest, enemyHasHeavyArmor, tier, risk, profile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
+                standoff, laneCount, null);
+    }
+
+    /**
+     * Tier-aware Conquest carrying the routes its lanes take as well.
+     *
+     * @param lanePaths one route per lane, in lane order, or {@code null} for
+     *                  lanes that derive their own
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  ShuttleArrivalPlan arrivalPlan,
+                                                  PrecinctPlan.Sprawl sprawl,
+                                                  Standoff standoff,
+                                                  Integer laneCount,
+                                                  List<LanePath> lanePaths) {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, profile, marineFighterSupport,
-                enemyFighterSupport, arrivalPlan, sprawl, standoff, laneCount).sim();
+                enemyFighterSupport, arrivalPlan, sprawl, standoff, laneCount,
+                lanePaths).sim();
     }
 
     /**
@@ -1955,6 +2004,33 @@ public final class BattleSetup {
     /** A generated conquest map and the seed that actually produced it. */
     private record ConquestMap(MapResult map, long seed) { }
 
+    /**
+     * What the mission's two lane statements come to.
+     *
+     * <p><b>Zero is a statement rather than the absence of one</b>: it asks for
+     * the map lanes replaced — three tracks arriving at one wall with open city
+     * behind them — which is the control a balance run is read against, and it
+     * outranks any route somebody wrote, because a lane that does not exist has
+     * nowhere to go.
+     *
+     * <p>An unstated count with stated routes lays one lane per route where
+     * that is more than the default, so a mission may write three zig-zags and
+     * say nothing else. A count smaller than the number of routes is refused by
+     * {@link PrecinctPlan.Lanes} rather than widened here: quietly laying a
+     * fourth lane a mission did not ask for is worse than saying so.
+     */
+    private static PrecinctPlan.Lanes lanesFor(Integer laneCount, List<LanePath> paths) {
+        if (laneCount != null && laneCount <= 0) return null;
+        List<LanePath> stated = paths == null ? List.of() : paths;
+        if (stated.isEmpty()) {
+            return laneCount == null
+                    ? PrecinctPlan.Lanes.derived() : PrecinctPlan.Lanes.of(laneCount);
+        }
+        int count = laneCount != null ? laneCount
+                : Math.max(PrecinctPlan.Lanes.DEFAULT_COUNT, stated.size());
+        return new PrecinctPlan.Lanes(count, List.of(), stated);
+    }
+
     /** Seeds tried before a map that does not meet the mission's requirements is an error. */
     private static final int CONQUEST_MAP_ATTEMPTS = 8;
 
@@ -1978,13 +2054,10 @@ public final class BattleSetup {
                                            TraversalAxis axis, TargetProfile profile,
                                            OperationTier tier, RiskLevel risk,
                                            PrecinctPlan.Sprawl sprawl,
-                                           Standoff standoff, Integer laneCount) {
+                                           Standoff standoff, Integer laneCount,
+                                           List<LanePath> lanePaths) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
-        // Zero is a statement rather than the absence of one: it asks for the
-        // map this feature replaced — three tracks arriving at one wall with
-        // open city behind them — which is the control a balance run needs.
-        PrecinctPlan.Lanes lanes = laneCount == null ? PrecinctPlan.Lanes.derived()
-                : laneCount <= 0 ? null : PrecinctPlan.Lanes.of(laneCount);
+        PrecinctPlan.Lanes lanes = lanesFor(laneCount, lanePaths);
         for (int attempt = 0; attempt < CONQUEST_MAP_ATTEMPTS; attempt++) {
             long mapSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             // Derived per attempt rather than once, because the plan is half of
