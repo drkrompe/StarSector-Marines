@@ -117,6 +117,7 @@ public final class StationingAssignmentService {
         state.contractDefenseTriggerType[row] = GarrisonDefenseTriggerType.NONE.toByte();
         state.contractDefenseAttackerHouseId[row] = -1L;
         state.contractDefenseAttackerFactionId[row] = -1;
+        state.contractDefenseAttackerStrength[row] = 0f;
         state.contractSalvageBaseline[row] = terms.salvageBaseline;
         state.contractSalvageNegotiated[row] = terms.salvageBaseline;
         state.contractCashMultiplier[row] = 100;

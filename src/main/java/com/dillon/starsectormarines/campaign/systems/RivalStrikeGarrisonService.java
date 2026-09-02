@@ -35,7 +35,7 @@ public final class RivalStrikeGarrisonService {
         int attackerFactionId = state.houseFactionId[attackerRow];
         return GarrisonDefenseTrigger.arm(state, eventKey(contractId), targetMarketId,
                 GarrisonDefenseTriggerType.RIVAL_STRIKE, attackerHouseId,
-                attackerFactionId, day);
+                attackerFactionId, 0f, day);
     }
 
     static long eventKey(long contractId) {
