@@ -296,6 +296,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, false, false, true)),
+                new SnapshotArtifact("fleet-armory-loadout-spec-sheet-wide.png",
+                        renderFleetArmoryWorkspace(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, false, false, true)),
                 new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -1413,6 +1417,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen,
             boolean armorPicker, boolean equipmentTooltip) throws Exception {
+        return renderFleetArmoryWorkspace(context, renderer, width, height,
+                fireteam, pickerOpen, armorPicker, equipmentTooltip, false);
+    }
+
+    /**
+     * @param loadoutSpecSheet hover the first entry of the first loadout card's
+     *                         issue line, so the picture shows a catalog item
+     *                         asked about from the browser's own column — the
+     *                         one nearest the right edge, where the layer has to
+     *                         flip to the left of its subject to stay inside the
+     *                         frame
+     */
+    private static BufferedImage renderFleetArmoryWorkspace(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean fireteam, boolean pickerOpen,
+            boolean armorPicker, boolean equipmentTooltip,
+            boolean loadoutSpecSheet) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -1462,6 +1483,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 openSpecSheet(document, binder, width, height,
                         instance.requireElement(
                                 viewModel.marineCards().get().get(0).systemId()));
+            }
+            if (loadoutSpecSheet) {
+                SpecSheetBinder binder = new SpecSheetBinder(
+                        document, SpecSheetLayer.install(document));
+                ArmorySpecSheets.bindDoctrineTiles(
+                        binder, instance, viewModel.weaponDoctrineTiles());
+                openSpecSheet(document, binder, width, height,
+                        instance.requireElement(ArmorySpecSheets.firstSpecSheetAnchorId(
+                                viewModel.weaponDoctrineTiles().get())));
             }
             return renderRelative(renderer, document, width, height, 1f);
         }
