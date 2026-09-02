@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -27,6 +29,7 @@ abstract class MissionFlowMlxScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private SpecSheetBinder specSheets;
 
     MissionFlowMlxScreen(String rootComponent, List<String> componentPaths) {
         this.rootComponent = rootComponent;
@@ -51,8 +54,20 @@ abstract class MissionFlowMlxScreen implements Screen {
 
     protected abstract List<String> requiredElementIds();
 
-    /** Lets a screen bind retained elements that are repeated from its projected rows. */
+    /**
+     * Lets a screen bind retained elements that are repeated from its projected
+     * rows. {@link #specSheets()} is already installed on {@code built} when
+     * this runs, so a screen binds its hover overlays here.
+     */
     protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
+    }
+
+    /**
+     * This screen's spec-sheet bindings, valid from {@link #onDocumentBuilt}
+     * until the next rebuild. A screen that binds nothing costs nothing.
+     */
+    protected final SpecSheetBinder specSheets() {
+        return specSheets;
     }
 
     /** Lets a screen project hover-only presentation after retained input is resolved. */
@@ -64,6 +79,7 @@ abstract class MissionFlowMlxScreen implements Screen {
 
     protected final void rebuildDocument() {
         MarkupInstance candidate = markup.reloadAndBuild(reactor, rootComponent, props());
+        SpecSheetBinder previousSheets = specSheets;
         UiDocument built;
         try {
             for (String id : requiredElementIds()) candidate.requireElement(id);
@@ -71,11 +87,14 @@ abstract class MissionFlowMlxScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onCancel);
             if (viewport != null) built.layout(viewport.documentWidth(), viewport.documentHeight());
+            specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             onDocumentBuilt(candidate, built);
         } catch (RuntimeException failure) {
+            specSheets = previousSheets;
             candidate.close();
             throw failure;
         }
+        if (previousSheets != null) previousSheets.clear();
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
@@ -102,12 +121,14 @@ abstract class MissionFlowMlxScreen implements Screen {
         if (input == null) return;
         input.process(events);
         onInputProcessed();
+        if (specSheets != null) specSheets.update();
         if (document != null) document.advance(0f);
     }
 
     @Override
     public final void detach() {
         if (document != null) document.deactivateInput();
+        if (specSheets != null) specSheets.clear();
         input = null;
     }
 }

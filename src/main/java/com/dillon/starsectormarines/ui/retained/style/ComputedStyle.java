@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.ui.retained.style;
 
 import com.dillon.starsectormarines.ui.retained.Insets;
 import com.dillon.starsectormarines.ui.retained.Overflow;
+import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 
@@ -20,6 +22,10 @@ public final class ComputedStyle {
     public ComputedStyle() {
         values.put(StyleProperty.DISPLAY, UiDisplay.FLEX);
         values.put(StyleProperty.FLEX_DIRECTION, UiLayout.COLUMN);
+        values.put(StyleProperty.POSITION, UiPosition.STATIC);
+        values.put(StyleProperty.LEFT, Length.AUTO);
+        values.put(StyleProperty.TOP, Length.AUTO);
+        values.put(StyleProperty.POINTER_EVENTS, PointerEvents.AUTO);
         values.put(StyleProperty.WIDTH, Length.AUTO);
         values.put(StyleProperty.HEIGHT, Length.AUTO);
         values.put(StyleProperty.FLEX_GROW, 0f);
@@ -63,6 +69,23 @@ public final class ComputedStyle {
     public UiLayout direction() {
         if (value(StyleProperty.DISPLAY) == UiDisplay.GRID) return UiLayout.GRID;
         return (UiLayout) value(StyleProperty.FLEX_DIRECTION);
+    }
+
+    public UiPosition position() {
+        return (UiPosition) value(StyleProperty.POSITION);
+    }
+
+    public PointerEvents pointerEvents() {
+        return (PointerEvents) value(StyleProperty.POINTER_EVENTS);
+    }
+
+    /** Offset of an absolutely positioned box from its parent content box, or NaN. */
+    public float left(float basis) {
+        return ((Length) value(StyleProperty.LEFT)).resolve(basis);
+    }
+
+    public float top(float basis) {
+        return ((Length) value(StyleProperty.TOP)).resolve(basis);
     }
 
     public float width(float basis) {

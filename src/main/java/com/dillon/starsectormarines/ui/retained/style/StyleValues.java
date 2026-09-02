@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ui.retained.style;
 
 import com.dillon.starsectormarines.ui.retained.Overflow;
+import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 
@@ -30,6 +32,9 @@ final class StyleValues {
         return switch (property) {
             case DISPLAY -> parseDisplay(value);
             case FLEX_DIRECTION -> parseDirection(value);
+            case POSITION -> parsePosition(value);
+            case LEFT, TOP -> parseLength(value, true);
+            case POINTER_EVENTS -> parsePointerEvents(value);
             case WIDTH, HEIGHT -> parseLength(value, true);
             case FLEX_GROW -> nonNegativeNumber(property, value);
             case ROW_GAP, COLUMN_GAP,
@@ -60,6 +65,24 @@ final class StyleValues {
             case "row" -> UiLayout.ROW;
             case "column" -> UiLayout.COLUMN;
             default -> throw new UiStyleException("flex-direction supports row or column, not \""
+                    + value + "\".");
+        };
+    }
+
+    private static UiPosition parsePosition(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "static" -> UiPosition.STATIC;
+            case "absolute" -> UiPosition.ABSOLUTE;
+            default -> throw new UiStyleException("position supports static or absolute, not \""
+                    + value + "\".");
+        };
+    }
+
+    private static PointerEvents parsePointerEvents(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "auto" -> PointerEvents.AUTO;
+            case "none" -> PointerEvents.NONE;
+            default -> throw new UiStyleException("pointer-events supports auto or none, not \""
                     + value + "\".");
         };
     }

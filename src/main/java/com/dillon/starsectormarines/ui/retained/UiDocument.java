@@ -210,6 +210,21 @@ public final class UiDocument {
         return focused;
     }
 
+    /**
+     * The current hover chain, deepest element first and the root last. Empty
+     * while nothing is hovered. Hover is an ancestor chain, so a caller that
+     * wants the innermost element carrying some property walks this rather than
+     * asking every candidate whether it is hovered.
+     */
+    public List<UiElement> hoverChain() {
+        return hovered;
+    }
+
+    /** The rectangle the document was last laid out against. */
+    public Rect viewport() {
+        return viewport;
+    }
+
     public void requestFocus(UiElement element, boolean focusVisible) {
         if (element != null && (!attached(element) || !element.focusable())) {
             throw new IllegalArgumentException("Focus target must be attached and focusable");
@@ -342,12 +357,18 @@ public final class UiDocument {
         return null;
     }
 
-    UiElement elementAt(float x, float y) {
+    /**
+     * The deepest painted, pointer-accepting element under one document-space
+     * point, or null. This is CSS's {@code elementFromPoint}: paint order and
+     * hit order agree (law 6), so children are tested last-first.
+     */
+    public UiElement elementAt(float x, float y) {
         return elementAt(root, x, y, viewport);
     }
 
     private static UiElement elementAt(UiElement element, float x, float y,
                                        Rect inheritedClip) {
+        if (element.pointerEvents() == PointerEvents.NONE) return null;
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
         List<UiElement> children = element.children();

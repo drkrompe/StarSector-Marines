@@ -447,6 +447,28 @@ public final class UiElement {
         return overflow;
     }
 
+    /**
+     * Whether this element takes part in its parent's flow. Authored through
+     * CSS only: a positioned element is placed by {@code left} / {@code top},
+     * which are style values rather than retained fields.
+     */
+    public UiPosition position() {
+        return computedStyle == null ? UiPosition.STATIC : computedStyle.position();
+    }
+
+    float resolvedLeft(float basis) {
+        return computedStyle == null ? Float.NaN : computedStyle.left(basis);
+    }
+
+    float resolvedTop(float basis) {
+        return computedStyle == null ? Float.NaN : computedStyle.top(basis);
+    }
+
+    /** Whether the pointer can target this element or anything beneath it. */
+    public PointerEvents pointerEvents() {
+        return computedStyle == null ? PointerEvents.AUTO : computedStyle.pointerEvents();
+    }
+
     /** How far this element's content is scrolled up, in document pixels. */
     public float scrollTop() {
         return scrollTop;
