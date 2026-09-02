@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
@@ -353,6 +354,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Per-compound capture state — defender supply structures (COMMAND_POST / BARRACKS / ARMORY) and their DEFENDER_HELD / CONTESTED / MARINE_HELD state. Populated from the {@link TacticalMap} in {@link #setTacticalMap}; ticked by {@link #compoundCapture}. Slice 1 of the conquest design ({@code conquest-nouns.md}). */
     private final CompoundService compoundService = new CompoundService();
+    /** Set once by {@code BattleSetup}; see {@link #getMarineLandingPads()}. Empty on a battle nobody told. */
+    private List<LandingPad> marineLandingPads = List.of();
     /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
     /** Per-hardstand berth state for a garrison airfield — what is parked, away, refitting, or burned. Empty on a battle with no authored field. */
@@ -1554,6 +1557,30 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public CompoundService getCompoundService() {
         return compoundService;
+    }
+
+    /**
+     * The marine landing pads this battle was set up on, in arrival order.
+     *
+     * <p>Map geometry is consumed at setup and not otherwise retained: the
+     * berths a lift comes down on are read out of the {@code MapResult},
+     * turned into shuttle missions and pad doodads, and then thrown away. That
+     * leaves an offline review with no way to say where the marines came
+     * ashore except by re-deriving it from the generator, which would be a
+     * second answer that can disagree with the one the battle actually used.
+     * So {@code BattleSetup} hands the pads it chose over here, and this list
+     * is exactly those — never every berth the map authored.
+     *
+     * <p>Read-only, and read only by review and diagnostic code. Nothing in
+     * the tick loop consults it.
+     */
+    public List<LandingPad> getMarineLandingPads() {
+        return marineLandingPads;
+    }
+
+    /** Records the pads setup landed the marines on. {@code BattleSetup} owns the call. */
+    public void setMarineLandingPads(List<LandingPad> pads) {
+        this.marineLandingPads = pads == null ? List.of() : List.copyOf(pads);
     }
 
     public void setGarrisonSystem(CompoundGarrisonSystem system) {
