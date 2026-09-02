@@ -202,6 +202,42 @@ class ConquestCommandBalanceTest {
     }
 
     /**
+     * One lane per entry: what the marines ended up holding of its ladder,
+     * which rung the battle was still on, and how many times the front moved
+     * either way. The regressions are the reading that says a lane was taken
+     * and lost rather than merely taken slowly.
+     */
+    private static String laneChains(
+            CommandTraceAnalyzer.LaneChainMetrics chains) {
+        if (chains.lanes().isEmpty()) return "none (no lanes on this map)";
+        StringBuilder out = new StringBuilder();
+        for (CommandTraceAnalyzer.LaneProgress lane : chains.lanes()) {
+            if (out.length() > 0) out.append("; ");
+            out.append("lane ").append(lane.lane() + 1).append(' ')
+                    .append(lane.linksHeld()).append('/').append(lane.links())
+                    .append(" at rung ").append(lane.frontLink())
+                    .append(" (+").append(lane.frontAdvances())
+                    .append("/-").append(lane.frontRegressions()).append(')');
+        }
+        return out.toString();
+    }
+
+    /** What each place cost, in squad-pulses under an order about it. */
+    private static String placeWork(
+            CommandTraceAnalyzer.LaneChainMetrics chains) {
+        if (chains.places().isEmpty()) return "none";
+        StringBuilder out = new StringBuilder();
+        for (CommandTraceAnalyzer.PlaceWork place : chains.places()) {
+            if (out.length() > 0) out.append("; ");
+            out.append(place.lane() + 1).append('.').append(place.link())
+                    .append(": ").append(place.secureCompoundSquadPulses())
+                    .append(" / ").append(place.stagingSquadPulses())
+                    .append(" / ").append(place.deferredSquadPulses());
+        }
+        return out.toString();
+    }
+
+    /**
      * Renders an order mix as shares of published directives, largest first.
      * Percentages are integers deliberately: this is a "what was this battle
      * made of" reading, and a tenth of a percent of one squad-pulse is noise
@@ -392,6 +428,10 @@ class ConquestCommandBalanceTest {
                     .append("; peak published track share: ")
                     .append(marine.peakPublishedTrackShareBasisPoints())
                     .append(" bp.\n")
+                    .append("- Lane chains (places held / places, front rung, advances/regressions): ")
+                    .append(laneChains(marine.laneChains())).append("\n")
+                    .append("- Work by place (lane.rung: secure / staging / deferred squad-pulses): ")
+                    .append(placeWork(marine.laneChains())).append("\n")
                     .append("- Marine physical progress: ")
                     .append(movement.maximumConcurrentAliveMembers())
                     .append(" peak live members in ")
