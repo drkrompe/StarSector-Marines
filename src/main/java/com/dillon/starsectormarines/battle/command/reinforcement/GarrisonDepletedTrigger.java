@@ -81,6 +81,10 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
         return kind == TacticalNode.Kind.COMMAND_POST
                 || kind == TacticalNode.Kind.BARRACKS
                 || kind == TacticalNode.Kind.ARMORY
-                || kind == TacticalNode.Kind.AIRBASE;
+                || kind == TacticalNode.Kind.AIRBASE
+                // A beachhead is a compound the marines start holding. Nothing
+                // defends one at setup, so this only ever fires once defenders
+                // have taken it and their garrison has been worn down again.
+                || kind == TacticalNode.Kind.BEACHHEAD;
     }
 }

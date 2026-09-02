@@ -262,4 +262,46 @@ public class CompoundCaptureSystemTest {
         assertEquals(CompoundService.CompoundState.MARINE_HELD,
                 service.getRecord(field).state);
     }
+
+    /**
+     * The beachhead starts taken, and can be lost.
+     *
+     * <p>A compound's opening state is its node's own default guard, which is
+     * what makes the ground the marines came ashore on theirs from tick zero
+     * without a special case anywhere in the state machine. The rest of the
+     * machine then runs unchanged in the direction it was already able to run:
+     * a defender standing on the beachhead alone contests it and, given the
+     * defender hold time, takes it.
+     */
+    @Test
+    public void theBeachheadStartsHeldByTheMarinesAndCanBeTaken() {
+        BattleSimulation sim = openSim();
+        CompoundService service = new CompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        TacticalNode beachhead = new TacticalNode(TacticalNode.Kind.BEACHHEAD, 5, 5,
+                4, 4, 6, 6, Faction.MARINE, 75, 0);
+        service.register(beachhead);
+        assertEquals(CompoundService.CompoundState.MARINE_HELD,
+                service.getRecord(beachhead).state,
+                "the marines do not start holding the ground they landed on");
+
+        // Nobody on it leaves it held: an empty beachhead is still the
+        // attacker's, the way an empty barracks is still the defender's.
+        sim.spawn(new EntitySpec("m1", Faction.MARINE, UnitType.MARINE, 0, 0));
+        tickN(system, sim, service, 3);
+        assertEquals(CompoundService.CompoundState.MARINE_HELD,
+                service.getRecord(beachhead).state);
+
+        // A defender walks onto it, and the same recapture path runs.
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 5));
+        tickN(system, sim, service, 1);
+        assertEquals(CompoundService.CompoundState.CONTESTED,
+                service.getRecord(beachhead).state);
+        tickN(system, sim, service,
+                (int) Math.ceil(CompoundService.DEFENDER_HOLD_TIME
+                        / CompoundCaptureSystem.CAPTURE_TICK_PERIOD));
+        assertEquals(CompoundService.CompoundState.DEFENDER_HELD,
+                service.getRecord(beachhead).state,
+                "a defender standing alone on the beachhead does not take it");
+    }
 }

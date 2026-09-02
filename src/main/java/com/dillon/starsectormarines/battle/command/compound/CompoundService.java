@@ -28,6 +28,16 @@ import java.util.Map;
  * the marine garrison system and the trigger/means gates read this service
  * without ever writing back.
  *
+ * <p><b>A compound is not necessarily the defender's.</b> The ground the
+ * marines came ashore on is a {@code BEACHHEAD} node guarded by
+ * {@link Faction#MARINE}, so it registers here like any other place and starts
+ * at {@link CompoundState#MARINE_HELD} — the same capture rule then lets a
+ * defender counterattack take it back, which is the whole reason it is a
+ * compound rather than a scatter of berths. It carries no supply: a beachhead
+ * is not a barracks, an armoury or a command post, so
+ * {@code BattleResources} produces nothing from it and no reinforcement means
+ * gates on it.
+ *
  * <p>The same state machine handles capture and recapture:
  * DEFENDER_HELD → CONTESTED → MARINE_HELD, with defender re-entry from
  * MARINE_HELD returning through CONTESTED toward DEFENDER_HELD. A captured
@@ -77,7 +87,7 @@ public final class CompoundService {
      */
     public static final class Record {
         public final TacticalNode node;
-        public CompoundState state = CompoundState.DEFENDER_HELD;
+        public CompoundState state;
         /**
          * Accumulator toward the active state's threshold. Reset on
          * transition; reset to 0 when accumulation conditions break
@@ -110,6 +120,12 @@ public final class CompoundService {
 
         Record(TacticalNode node) {
             this.node = node;
+            // Who would naturally hold this place at battle start, which is
+            // what {@link TacticalNode#defaultGuard} has always meant: the
+            // beachhead is the attacker's own ground and starts taken, every
+            // other compound is the defender's and starts held.
+            this.state = node.defaultGuard == Faction.MARINE
+                    ? CompoundState.MARINE_HELD : CompoundState.DEFENDER_HELD;
         }
     }
 
@@ -125,7 +141,7 @@ public final class CompoundService {
      * BARRACKS / ARMORY nodes. Called once from
      * {@link com.dillon.starsectormarines.battle.sim.BattleSimulation#setTacticalMap}
      * so the service is ready before the first capture-system tick. Idempotent
-     * — repeat calls re-seed every record at DEFENDER_HELD.
+     * — repeat calls re-seed every record at its node's own default guard.
      */
     public void initFrom(TacticalMap map) {
         records.clear();
@@ -277,6 +293,7 @@ public final class CompoundService {
         return kind == TacticalNode.Kind.COMMAND_POST
                 || kind == TacticalNode.Kind.BARRACKS
                 || kind == TacticalNode.Kind.ARMORY
-                || kind == TacticalNode.Kind.AIRBASE;
+                || kind == TacticalNode.Kind.AIRBASE
+                || kind == TacticalNode.Kind.BEACHHEAD;
     }
 }

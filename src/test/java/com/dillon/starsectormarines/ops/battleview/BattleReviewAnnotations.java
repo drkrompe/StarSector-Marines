@@ -28,35 +28,61 @@ public final class BattleReviewAnnotations {
     public static ReviewAnnotations forBattle(BattleSimulation simulation) {
         if (simulation == null) return ReviewAnnotations.NONE;
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
-        TacticalNode keep = addCompounds(marks, simulation);
-        float[] beachhead = addLandingZones(marks, simulation);
-        if (keep != null && beachhead != null) {
+        Ends ends = addCompounds(marks, simulation);
+        // The landing place when the map has one, and the berths themselves
+        // when it does not. A beachhead that is a compound is boxed by the
+        // compound pass above, so drawing it again from its pads would put two
+        // labels on the same ground.
+        float[] beachhead = ends.beachhead() != null
+                ? centre(ends.beachhead())
+                : addLandingZones(marks, simulation);
+        if (ends.keep() != null && beachhead != null) {
             marks.arrow(beachhead[0], beachhead[1],
-                    keep.anchorX + 0.5f, keep.anchorY + 0.5f,
+                    ends.keep().anchorX + 0.5f, ends.keep().anchorY + 0.5f,
                     "approach", ReviewStyle.APPROACH);
         }
         return marks.build();
     }
 
+    /** The two ends of the approach, whichever of them the battle has. */
+    private record Ends(TacticalNode keep, TacticalNode beachhead) { }
+
     /**
      * One box per compound, labelled with what it is and who holds it.
      *
-     * @return the keep's node, or null on a battle with no command post
+     * <p>The beachhead is one of them. It is the marines' own compound — held
+     * from tick zero and losable like any other — so it is drawn by kind and
+     * state exactly as the keep and the supply hubs are, in the landing style
+     * rather than the objective one so a reader can tell at a glance which end
+     * of the arrow is which.
+     *
+     * @return the keep and the beachhead, either of which may be null
      */
-    private static TacticalNode addCompounds(ReviewAnnotations.Builder marks,
-                                             BattleSimulation simulation) {
+    private static Ends addCompounds(ReviewAnnotations.Builder marks,
+                                     BattleSimulation simulation) {
         CompoundService compounds = simulation.getCompoundService();
-        if (compounds == null) return null;
+        if (compounds == null) return new Ends(null, null);
         TacticalNode keep = null;
+        TacticalNode beachhead = null;
         for (CompoundService.Record record : compounds.getRecords()) {
             TacticalNode node = record.node;
             boolean isKeep = node.kind == TacticalNode.Kind.COMMAND_POST;
+            boolean isBeachhead = node.kind == TacticalNode.Kind.BEACHHEAD;
             if (isKeep && keep == null) keep = node;
+            if (isBeachhead && beachhead == null) beachhead = node;
             marks.box(node.left, node.top, node.right, node.bottom,
                     placeName(node.kind) + " · " + holder(record.state),
-                    isKeep ? ReviewStyle.KEEP : ReviewStyle.OBJECTIVE);
+                    isKeep ? ReviewStyle.KEEP
+                            : isBeachhead ? ReviewStyle.LANDING : ReviewStyle.OBJECTIVE);
         }
-        return keep;
+        return new Ends(keep, beachhead);
+    }
+
+    /** The middle of a node's footprint, in cell coordinates. */
+    private static float[] centre(TacticalNode node) {
+        return new float[]{
+                (node.left + node.right + 1) / 2f,
+                (node.top + node.bottom + 1) / 2f};
     }
 
     /**
@@ -138,6 +164,7 @@ public final class BattleReviewAnnotations {
             case COMMAND_POST -> "KEEP";
             case BARRACKS -> "BARRACKS";
             case ARMORY -> "ARMORY";
+            case BEACHHEAD -> "LZ";
             default -> kind.name();
         };
     }

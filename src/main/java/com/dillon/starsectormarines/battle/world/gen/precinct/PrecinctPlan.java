@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.precinct;
 
 import com.dillon.starsectormarines.battle.world.gen.EconomicZoning;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapDistrictTheme;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -65,6 +66,12 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * has nothing to do with the world the places were derived from — the same
      * derived map is a long approach or a short one depending only on who is
      * being sent.
+     *
+     * <p><b>It does not move a landing place.</b> A plan whose beachhead is a
+     * precinct seeded that precinct against a standoff already; restating one
+     * afterwards changes what {@link ApproachRegion} measures and leaves the
+     * place where it was grown. A derived Conquest therefore states its
+     * standoff at derivation instead.
      */
     public PrecinctPlan withStandoff(Standoff standoff) {
         return new PrecinctPlan(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces);
@@ -83,6 +90,25 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             if (precinct.isProgrammed()) return precinct;
         }
         return null;
+    }
+
+    /**
+     * The place the attacking force comes ashore on, or {@code null} on a map
+     * that has none — which is every map but a Conquest's.
+     */
+    public Precinct landingPlace() {
+        for (Precinct precinct : precincts) {
+            if (precinct.isLanding()) return precinct;
+        }
+        return null;
+    }
+
+    /** Where the landing place sits in {@link #precincts}, or {@code -1}. */
+    public int landingIndex() {
+        for (int i = 0; i < precincts.size(); i++) {
+            if (precincts.get(i).isLanding()) return i;
+        }
+        return -1;
     }
 
     /**
@@ -374,6 +400,37 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                                       MapPlacement objective, MapPlacement attackerFrom,
                                       Lanes lanes,
                                       int width, int height, Random rng) {
+        return derive(profile, sprawl, demand, objective, attackerFrom, lanes,
+                Standoff.FAR, null, width, height, rng);
+    }
+
+    /**
+     * The same derivation with the ground the attacking force comes ashore on
+     * laid out as a place of its own.
+     *
+     * <p><b>The landing place is seeded after the objective and the lanes and
+     * before the settlement</b>, for the reason the lanes are: it has to take
+     * its ground while there is ground to take. Seeded after the town, the
+     * beachhead is streets — which is what it was before this, when it was not
+     * a place at all but the first open ground a terminal scan found inside the
+     * attacker's region, base district included.
+     *
+     * <p><b>The standoff enters the derivation here rather than being layered
+     * on.</b> A landing place is seeded against it: where the force lands is
+     * what the standoff states, so a plan whose beachhead is a precinct cannot
+     * decide where that precinct goes without knowing it.
+     * {@link #withStandoff} remains for a plan with no landing place, where the
+     * statement is read once at the end by {@link ApproachRegion}.
+     *
+     * @param standoff how far short of the objective's claim the force lands
+     * @param landing  what it comes down on, or {@code null} for a map with no
+     *                 landing place — which is every mission but Conquest
+     */
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      Fortification.Demand demand,
+                                      MapPlacement objective, MapPlacement attackerFrom,
+                                      Lanes lanes, Standoff standoff, LandingKind landing,
+                                      int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
         int margin = marginFor(width, height);
@@ -413,6 +470,15 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     margin, width, height, rng, lanePlaces, unplacedLanes);
         }
 
+        // And the beachhead, before the town floods. Its ground is claimed with
+        // the other programmed places, so a settlement grows around the place
+        // the marines land on rather than over it.
+        Precinct landingPlace = null;
+        if (landing != null && attackerFrom != null) {
+            landingPlace = seedLanding(landing, standoff, objectivePlace, attackerFrom,
+                    taken, margin, width, height);
+        }
+
         // A remote map is an installation in country: adding a town to it is
         // the one thing that would stop it being one. The garrison is then the
         // somewhere the battle happens, so the settlement is only kept when
@@ -437,6 +503,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             out.add(objectivePlace);
         }
         out.addAll(lanePlaces);
+        if (landingPlace != null) out.add(landingPlace);
 
         for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
             int[] hamletSeed = placeSeed(taken, margin, separation, width, height, rng);
@@ -457,7 +524,118 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     : outlyingCharacter(leaning, sprawl, rng);
             out.set(i, precinct.withCharacter(character));
         }
-        return new PrecinctPlan(out, attackerFrom, Standoff.FAR, lanes, unplacedLanes);
+        return new PrecinctPlan(out, attackerFrom, standoff, lanes, unplacedLanes);
+    }
+
+    /**
+     * How much of the map one landing place's ground may be.
+     *
+     * <p>Between {@link #FIT} and {@link #LANE_FIT}: a beachhead is a real
+     * place with an apron on it and not merely a post, but it is not the
+     * installation the battle is about either. Like both of those it is a first
+     * guess to be measured; on a Conquest map the program comes nowhere near
+     * it, and what it is for is the small map, where the apron comes down
+     * rather than swallowing the approach.
+     */
+    private static final float LANDING_FIT = 0.05f;
+
+    /**
+     * How much larger a programmed precinct's claim comes out than the envelope
+     * its program asked for.
+     *
+     * <p>An allowance is the program's envelope <em>plus the road that grew
+     * through it</em> ({@code PrecinctAllowance}), and the road is only known
+     * after growth — which is after every seed is placed. So the landing seed
+     * needs an estimate of how far a claim reaches, and this is it: measured on
+     * the garrison, whose 5293-cell envelope claims 8566 to 9908 cells, a ratio
+     * of 1.6 to 1.9.
+     *
+     * <p>Deliberately coarse, and it only has to be. What it decides is where
+     * inside the approach band the beachhead sits, and the band is a third of
+     * the map deep; being ten cells out moves the walk by ten cells.
+     */
+    private static final float CLAIM_ROAD_SLACK = 1.75f;
+
+    /**
+     * Lays the beachhead inside the attacker's own region, at the standoff.
+     *
+     * <p>The region is resolved by {@link ApproachRegion} — the same function
+     * the spawn anchor and the berth scan read at the end of generation — with
+     * the objective's grown claim, which does not exist yet, estimated from its
+     * program. That estimate is the one piece of arithmetic here that is not
+     * exact, and it cannot be: the claim is a consequence of growth and every
+     * seed is placed before growth runs.
+     *
+     * <p>The seed sits its own claim-radius in from the side of the region that
+     * faces the approach, so the beachhead's near edge lands on that side —
+     * which is the side the berths are scanned inward from, and therefore the
+     * side the walk is measured from.
+     *
+     * <p><b>Placement wins over separation</b>, as it does for a stated
+     * objective: the marines land where the mission says they land, and a
+     * beachhead nudged away from something else is a beachhead at a different
+     * standoff.
+     */
+    private static Precinct seedLanding(LandingKind kind, Standoff standoff,
+                                        Precinct objectivePlace, MapPlacement attackerFrom,
+                                        List<int[]> taken, int margin,
+                                        int width, int height) {
+        int budget = Math.round(LANDING_FIT * width * height);
+        FortressProgram program = kind.program();
+        if (program.apron() > budget) program = program.withApron(budget);
+        program = program.fittedTo(budget);
+
+        ApproachRegion region = ApproachRegion.resolve(attackerFrom, standoff,
+                estimatedClaim(objectivePlace, width, height), width, height);
+        int radius = claimRadius(program);
+        boolean forwardIsY = region.approach() == LandingPad.Approach.SOUTH
+                || region.approach() == LandingPad.Approach.NORTH;
+        boolean towardHigher = region.approach() == LandingPad.Approach.SOUTH
+                || region.approach() == LandingPad.Approach.WEST;
+        int near = switch (region.approach()) {
+            case SOUTH -> region.y0();
+            case NORTH -> region.y1();
+            case WEST -> region.x0();
+            case EAST -> region.x1();
+        };
+        int forward = near + (towardHigher ? radius : -radius);
+        int lateral = forwardIsY
+                ? (region.x0() + region.x1()) / 2
+                : (region.y0() + region.y1()) / 2;
+        int seedX = clamp(forwardIsY ? lateral : forward, margin, width - 1 - margin);
+        int seedY = clamp(forwardIsY ? forward : lateral, margin, height - 1 - margin);
+
+        int[] seed = {seedX, seedY};
+        taken.add(seed);
+        return Precinct.landing("landing", seedX, seedY,
+                GrownTrunkPlan.Profile.hamlet(), kind, program);
+    }
+
+    /**
+     * How far a precinct's claim is likely to reach from its seed, for a
+     * decision that has to be made before any claim exists.
+     */
+    private static int claimRadius(FortressProgram program) {
+        return Math.max(1, Math.round((float) Math.sqrt(
+                program.envelopeArea() * CLAIM_ROAD_SLACK / Math.PI)));
+    }
+
+    /**
+     * The ground the objective is likely to claim, as an inclusive rect around
+     * its seed, or {@code null} when there is nothing to stand off from.
+     */
+    private static int[] estimatedClaim(Precinct objectivePlace, int width, int height) {
+        if (objectivePlace == null) return null;
+        int radius = claimRadius(objectivePlace.program());
+        return new int[]{
+                clamp(objectivePlace.seedX() - radius, 0, width - 1),
+                clamp(objectivePlace.seedY() - radius, 0, height - 1),
+                clamp(objectivePlace.seedX() + radius, 0, width - 1),
+                clamp(objectivePlace.seedY() + radius, 0, height - 1)};
+    }
+
+    private static int clamp(int value, int lo, int hi) {
+        return Math.max(lo, Math.min(hi, value));
     }
 
     /**
