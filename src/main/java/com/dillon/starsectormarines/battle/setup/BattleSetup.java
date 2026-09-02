@@ -728,16 +728,23 @@ public final class BattleSetup {
     }
 
     /**
-     * Conquest's default approach: the walk the map this model was balanced on
-     * actually had.
+     * Conquest's default approach: the short one, on the evidence.
      *
      * <p>The near third of a 560x336 map is a long way from a claim in the far
      * third — measured, nothing changed hands for the first four battle-minutes
      * of a matrix fixture, because the marines were walking two thirds of a map
      * twice as long on each axis as the one the balance was judged on. The map
      * stays large and the landing moves in.
+     *
+     * <p>{@link Standoff#STANDARD} was the first choice, being the walk the
+     * 280x168 map had, and the matrix rejected it: reinforced-south took eleven
+     * compounds and then lost four back, timing out with seven held and twice
+     * the losses, while {@link Standoff#CLOSE} won four thousand ticks earlier
+     * than the edge landing with the fewest losses on either side and costs the
+     * other fixture the least too. The table is in {@code precincts.md}; change
+     * this against fresh matrix evidence, not a feeling about distance.
      */
-    static final Standoff CONQUEST_STANDOFF = Standoff.STANDARD;
+    static final Standoff CONQUEST_STANDOFF = Standoff.CLOSE;
 
     /**
      * As above, with the battle's own statement of how far out it lands.

@@ -179,13 +179,13 @@ class ConquestOnPrecinctsTest {
      */
     @Test
     void eachMissionTypeHasItsOwnDefaultApproach() {
-        assertEquals(Standoff.STANDARD, BattleSetup.conquestPlanFor(
-                        OperationTier.REINFORCED, RiskLevel.LOW, DEFENDED_TOWN,
-                        null, TraversalAxis.SOUTH_TO_NORTH, 4096L).standoff(),
-                "Conquest lands at the walk the balance was judged on");
         assertEquals(Standoff.CLOSE, BattleSetup.conquestPlanFor(
                         OperationTier.REINFORCED, RiskLevel.LOW, DEFENDED_TOWN,
-                        null, Standoff.CLOSE, TraversalAxis.SOUTH_TO_NORTH, 4096L)
+                        null, TraversalAxis.SOUTH_TO_NORTH, 4096L).standoff(),
+                "Conquest lands at the short approach the matrix chose");
+        assertEquals(Standoff.STANDARD, BattleSetup.conquestPlanFor(
+                        OperationTier.REINFORCED, RiskLevel.LOW, DEFENDED_TOWN,
+                        null, Standoff.STANDARD, TraversalAxis.SOUTH_TO_NORTH, 4096L)
                         .standoff(),
                 "a stated standoff wins over the mission type's default");
         assertEquals(Standoff.FAR, BattleSetup.precinctPlanFor(

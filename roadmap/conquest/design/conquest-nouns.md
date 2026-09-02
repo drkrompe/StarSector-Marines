@@ -109,9 +109,9 @@ group or reusable pair across the ownership boundary.
 **How far out the force lands is stated, not the map edge.** A Conquest states
 a standoff alongside its sprawl and its arrival config — how many cells of
 approach lie between the beachhead and the objective's claim — and Conquest is
-the only mission that states one. Its default is the walk the balance was judged
-on rather than the map edge, because the map grew to 560x336 and the approach
-grew with it. See `precincts.md` for the standoff itself.
+the only mission that states one. Its default is the short approach, `CLOSE`,
+because the map grew to 560x336 and the matrix chose it over the walk the old
+map had. See `precincts.md` for the standoff and the table that decided it.
 
 Arrival areas are generated after terrain, structures, and the spawn anchor are
 final. Each publishes two clear 5×5 berths, a shared SOUTH or WEST approach, and
