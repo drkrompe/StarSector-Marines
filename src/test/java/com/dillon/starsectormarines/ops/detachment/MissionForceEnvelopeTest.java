@@ -26,6 +26,16 @@ class MissionForceEnvelopeTest {
         assertEquals(36, MissionForceEnvelope.recommendedPersonnel(mission));
     }
 
+    /** A raid already on the ground will not wait for a full task force. */
+    @Test
+    void aColonyDefenceMayLaunchWithWhateverIsReady() {
+        Mission defence = mission(MissionSource.POLITY_DEFENCE, MissionType.ASSAULT,
+                OperationTier.VETERAN);
+
+        assertTrue(MissionForceEnvelope.allowsUnderstrength(defence));
+        assertEquals(4, MissionForceEnvelope.minimumPersonnel(defence, 96));
+    }
+
     @Test
     void authoredAndConquestWorkKeepTheirExistingGate() {
         Mission story = mission(MissionSource.STORY, MissionType.RAID,

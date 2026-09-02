@@ -1,11 +1,11 @@
 # Polity defence: meeting a vanilla raid on the ground
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-09-02
 
-Updated: 2026-09-02 — rebased on `stationed-ground-defence.md`, which owns the
-raid readers, the ending handle, and the absent settlement; added the posting.
+Updated: 2026-09-02 — slices 1–6 shipped (0b01b1e2f, 623376f, b05bb88e1,
+3fa08ba2e); the live acceptance remains. See "Decided while shipping".
 
 Read `meta-progression.md` (the company-and-polity boundary and the vanilla
 seam), `stationed-ground-defence.md` (the mechanisms this reuses),
@@ -93,31 +93,77 @@ settles with.
 
 ## Slices
 
-1. **Posting.** The row kind with no employer, the post and release actions
+1. **Posting.** *Shipped.* The row kind with no employer, the post and release actions
    in the polity market's Marine Ops dialog, the binding, and the stat
    contribution through the Garrison mechanism. Tests pin that a posting
    never produces a credibility, relationship, or payout fact.
-2. **Threat query and offer.** The dialog-time query over the shared readers
+2. **Threat query and offer.** *Shipped.* The dialog-time query over the shared readers
    for the no-posting case, and a pure predicate deciding whether a threat is
    fightable at a market. The predicate is unit-tested; the adapter is not.
-3. **Mission factory.** `PolityDefenceMissionFactory` from a threat: the
+3. **Mission factory.** *Shipped.* `PolityDefenceMissionFactory` from a threat: the
    Assault shape, the override, the tier mapping. Tests pin that tier is
    monotonic in raid strength and that the override is applied.
-4. **Launch route.** One entry in the Marine Ops dialog on a player-owned
+4. **Launch route.** *Shipped.* One entry in the Marine Ops dialog on a player-owned
    market while a threat is live, routing through `MarineOpsContext` to the
    briefing the way `StationingResponseLaunch` does.
-5. **Resolution.** `PolityDefenceResolution` consumes the outcome: a win ends
+5. **Resolution.** *Shipped.* `PolityDefenceResolution` consumes the outcome: a win ends
    the raid through the handle and writes the record; a loss writes the
    record only; exactly-once under repeated resolution.
-6. **Acceptance instrument.** A debug command that spawns a fleet-group raid
+6. **Acceptance instrument.** *Shipped.* A debug command that spawns a fleet-group raid
    and a pirate-style raid intel against the player's colony with a short prep
    and travel, in the shape `debug-political-contract-completion.md` uses for
    chains.
-7. **Live acceptance.** Fight one raid to a win and confirm the fleets turn
+7. **Live acceptance.** *Remaining.* Fight one raid to a win and confirm the fleets turn
    for home and the pirate respite lands; lose one and confirm the raid
    resolves exactly as vanilla would have; leave a posting to face one alone
    and read the settlement. Measure the window between a fleet's arrival in
    orbit and its raid, since the fought offer's usefulness depends on it.
+
+## Decided while shipping
+
+Choices the implementation made that the design did not settle. Each is a
+first proposal for the live pass to judge.
+
+- **A posting is a Garrison row whose patron slot reads `-1`**, created
+  straight into ACTIVE with no expiry, no offer expiry, no retainer, no payout
+  and no salvage entitlement. `Posting` recognises it; `PostingService` creates
+  and releases it. Release settles the row COMPLETED, not ABANDONED — nobody
+  was let down — and is refused while a defence is armed, which is law 5.
+- **One shipped system was not patron-blind.** The stationing default roll
+  charged a patron-less row the house-power-zero rate, about eight percent a
+  month; it now skips postings. Everything else the posting reuses — strength
+  contribution, arming, absent settlement, the inbox, the retainer's zero
+  skip, reputation's no-patron guard — worked on the row shape alone, and is
+  pinned with controls showing the same row *with* an employer does pay,
+  react, and default.
+- **The polity is a synthetic client**, never rep-locked, whose mission list
+  is the threat query and nothing else, so the industry catalogue cannot
+  manufacture work on the player's own colony. Its one stationing row is the
+  posting, draft or active.
+- **A standing posting suppresses the fought offer.** The trigger arms the
+  posting row and the stationing response fights it with the posted
+  detachment; offering the same raid a second way would be two defences of one
+  landing.
+- **Tier is the smallest whose base defender count holds the landing**, since
+  vanilla's raid strength is roughly marines landed. A Garrison defence armed
+  by a vanilla raid now takes its tier the same way; every other trigger keeps
+  the builder default. The fought colony defence may launch understrength,
+  like other one-shot work.
+- **The record is a small ledger keyed by raid and market**, outside the
+  contract table. A replayed outcome settles nothing further and pays nothing
+  further. The attacker a win sends home is re-read from the live threats by
+  event key, because a polity defence has no row to hold it; a raid already
+  gone has nothing to end.
+- **The pirate raid intel cannot be spawned against a player colony.**
+  `PirateBaseIntel.startRaid` refuses any target system holding a player
+  market, by design. The debug instrument spawns the fleet-group raid from the
+  nearest hostile market with one prep day, and a punitive expedition against
+  one of the colony's industries for the raid-intel shape.
+- **A zero-fee briefing no longer advertises its fee in green.**
+
+Live-only questions the pass owes: whether `TargetProfileResolver` yields a
+sensible profile for a player-faction market, and the window between a
+fleet's arrival in orbit and its raid.
 
 ## Acceptance
 
