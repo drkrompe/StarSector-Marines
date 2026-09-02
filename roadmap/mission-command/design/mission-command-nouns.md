@@ -291,7 +291,7 @@ and the second replay must still match the captured first replay byte-for-byte.
 
 | Mission | Command shape | Current state | Design |
 |---|---|---|---|
-| Conquest | Directional lanes of places taken in order, converging on the keep | Paired production duel; live/evidence acceptance remains | `conquest-command.md` |
+| Conquest | Directional tracks converging on territorial compounds and the keep | Paired production duel; live/evidence acceptance remains | `conquest-command.md` |
 | Sabotage | Three named-site task groups with planter logistics and site security | Paired production duel shipped | `sabotage-command.md` |
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |

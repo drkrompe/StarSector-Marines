@@ -4,8 +4,9 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — a lane is a chain of places taken in order, and that
-ownership is what progress means; the tracks stay as the lateral fence.
+Updated: 2026-09-02 — a lane can be read as a chain of places taken in order;
+built, measured both ways, and left off by default because it costs a held
+compound.
 
 Earlier 2026-09-02 — the tracks now have places on them.
 
@@ -35,6 +36,12 @@ each track between the beachhead and the fortress, so an advancing track finds
 compounds to take on the way (see `precincts.md`).
 
 ## The chain is the front; the track is the fence
+
+**Off by default: `battle.conquest.laneChain=true` turns it on.** Everything in
+this section describes what that switch buys and what it costs. It is built,
+tested and measured; it is not the shipped default, because measured both ways
+on one tree it costs `reinforced-south` a held compound. The numbers are at the
+end of the section.
 
 **A lane's state is ownership along its chain.** A lane is its ordered places
 from the beachhead to the keep — the recorded links of `MapResult.lanes`, each
@@ -77,12 +84,38 @@ neighbour support, cohesion and the capture allocation's home-track bound are
 all still track questions and are unchanged. What a track stopped being is the
 measure of progress.
 
-**`battle.conquest.laneChain=false` is the control**, and it governs both sides
-at once: the attacker returns to the forward fraction and the axis derivation,
-and the defender's reinforcement layer returns to bucketing by front band. One
-switch, or a control run measures a half-changed battle. The chain is map
-geometry and compound ownership — neutral referee facts either side may read —
-so a shared switch is not shared belief.
+**One switch governs both sides**, or a run measures a half-changed battle:
+with the chain off the attacker uses the forward fraction and the axis
+derivation, and the defender's reinforcement layer buckets by front band. The
+chain is map geometry and compound ownership — neutral referee facts either
+side may read — so a shared switch is not shared belief.
+
+**What it measures, and why it is off.** The canonical matrix, both ways from
+one tree at 18,000 ticks:
+
+| fixture | reading | captures | held | marine losses | defender losses | retargets |
+|---|---|---:|---:|---:|---:|---:|
+| reinforced-south | chain | 20 | 16 | 212 | 388 | 253 |
+| reinforced-south | fraction | 25 | 17 | 234 | 442 | 144 |
+| full-strength-west | chain | 13 | 7 | 382 | 446 | 288 |
+| full-strength-west | fraction | 12 | 7 | 334 | 448 | 418 |
+
+Held compounds is the outcome a Conquest is decided on, and the chain gives one
+back on `reinforced-south` while tying on `full-strength-west`. That is the
+whole reason it is off; everything else in the table is a trade somebody could
+argue either way — twenty-two fewer marines lost on the south, a capture and
+forty-eight more losses on the west, and churn that halves on one fixture while
+nearly doubling on the other.
+
+The reading itself works: the trace records fronts advancing and coming back —
+`+2/-2` on the south's third lane — and the report names the places the work
+went to. What it does not yet do is convert that into ground held. On
+`reinforced-south` the advance-track order is 5 pulses of 3,779, so the route
+staging the chain exists to feed almost never fires there and the change is
+carried entirely by the capture gate refusing everything but the front place.
+Refusing a takeable compound because it is behind a standing outpost is a real
+cost, and on that fixture it is not yet bought back. `lane-chain-tug-of-war.md`
+holds what remains.
 
 ## Marine command
 
@@ -254,7 +287,7 @@ spent taking it, staging toward it, or withheld from it for front work. A track
 index alone cannot separate a squad standing off the outpost it is taking from
 one walking past it to the strongpoint behind, and a report about a battle
 measured in places held has to be able to name them. The chain-keyed rows are
-empty for a mission with no lanes and under the lane-chain control, where there
+empty for a mission with no lanes and with the chain reading off, where there
 are no places to key to.
 
 The review frame marks each lane's front alongside its numbered links, so the
