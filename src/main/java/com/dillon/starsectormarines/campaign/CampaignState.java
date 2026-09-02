@@ -352,6 +352,12 @@ public final class CampaignState implements Serializable {
     /** Attacking faction registry slot, or -1 when unknown. */
     public int[]   contractDefenseAttackerFactionId = filledInts(INITIAL_CAPACITY, -1);
     /**
+     * Ground strength the attacker brings to the pending defense, in vanilla's own
+     * raid-strength units; 0 when the producer cannot estimate it. Mod-simulated
+     * producers (rival strike, internal flip) leave it 0.
+     */
+    public float[] contractDefenseAttackerStrength = new float[INITIAL_CAPACITY];
+    /**
      * Day by which the player must answer the currently pending Garrison defense or
      * Cadre incident; -1 when no response is outstanding. Armed by
      * {@code StationingLapseSystem} on first observation of a pending payload and
@@ -1015,6 +1021,7 @@ public final class CampaignState implements Serializable {
         contractDefenseTriggerType[i] = GarrisonDefenseTriggerType.NONE.toByte();
         contractDefenseAttackerHouseId[i] = -1L;
         contractDefenseAttackerFactionId[i] = -1;
+        contractDefenseAttackerStrength[i] = 0f;
         contractResponseDeadlineTick[i] = -1;
         contractNoticeAckKey[i]     = 0L;
         contractNoticeAckStage[i]   = 0;
@@ -1824,6 +1831,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractDefenseAttackerFactionId = filledInts(n, -1);
         }
+        if (contractDefenseAttackerStrength == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseAttackerStrength = new float[n];
+        }
         if (contractResponseDeadlineTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractResponseDeadlineTick = filledInts(n, -1);
@@ -1902,6 +1913,7 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractDefenseAttackerHouseId, oldLength, n, -1L);
         contractDefenseAttackerFactionId = Arrays.copyOf(contractDefenseAttackerFactionId, n);
         Arrays.fill(contractDefenseAttackerFactionId, oldLength, n, -1);
+        contractDefenseAttackerStrength = Arrays.copyOf(contractDefenseAttackerStrength, n);
         contractResponseDeadlineTick = Arrays.copyOf(contractResponseDeadlineTick, n);
         Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
         contractNoticeAckKey = Arrays.copyOf(contractNoticeAckKey, n);

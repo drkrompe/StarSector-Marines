@@ -21,7 +21,7 @@ class GarrisonDefenseTriggerTest {
         add(state, 4L, ContractType.GARRISON, ContractState.ACTIVE, 8);
 
         int armed = GarrisonDefenseTrigger.arm(state, 99L, 7,
-                GarrisonDefenseTriggerType.VANILLA_RAID, -1L, 5, 42);
+                GarrisonDefenseTriggerType.VANILLA_RAID, -1L, 5, 260f, 42);
 
         assertEquals(2, armed);
         assertEquals(ContractState.IN_PROGRESS,
@@ -35,6 +35,7 @@ class GarrisonDefenseTriggerTest {
         assertEquals(GarrisonDefenseTriggerType.VANILLA_RAID, payload.triggerType);
         assertEquals(42, payload.triggeredDay);
         assertEquals(5, payload.attackerFactionId);
+        assertEquals(260f, payload.attackerStrength, 0.001f);
     }
 
     @Test
@@ -43,12 +44,12 @@ class GarrisonDefenseTriggerTest {
         add(state, 1L, ContractType.GARRISON, ContractState.ACTIVE, 7);
 
         assertEquals(0, GarrisonDefenseTrigger.arm(state, 10L, 7,
-                GarrisonDefenseTriggerType.RIVAL_STRIKE, 1L, -1, 20));
+                GarrisonDefenseTriggerType.RIVAL_STRIKE, 1L, -1, 0f, 20));
         assertEquals(1, GarrisonDefenseTrigger.arm(state, 10L, 7,
-                GarrisonDefenseTriggerType.RIVAL_STRIKE, 2L, -1, 20));
+                GarrisonDefenseTriggerType.RIVAL_STRIKE, 2L, -1, 0f, 20));
         state.contractState[0] = ContractState.ACTIVE.toByte();
         assertEquals(0, GarrisonDefenseTrigger.arm(state, 10L, 7,
-                GarrisonDefenseTriggerType.RIVAL_STRIKE, 2L, -1, 21));
+                GarrisonDefenseTriggerType.RIVAL_STRIKE, 2L, -1, 0f, 21));
         assertEquals(ContractState.ACTIVE, ContractState.fromByte(state.contractState[0]));
     }
 

@@ -34,7 +34,10 @@ import com.dillon.starsectormarines.campaign.SilentColonyMissionResolution;
 import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
+import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.campaign.systems.RaidEnder;
+import com.dillon.starsectormarines.campaign.systems.VanillaRaidEnder;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -136,6 +139,13 @@ public final class MissionResolver {
      * so ~7 wins for a backed Baron to make Count — fast next to autonomous creep.
      */
     private static final int CONTRACT_PROMOTION_PROGRESS = 15;
+
+    private static RaidEnder raidEnder = new VanillaRaidEnder();
+
+    /** Test seam: replaces the live vanilla raid ender. Null restores it. */
+    static void setRaidEnder(RaidEnder ender) {
+        raidEnder = ender != null ? ender : new VanillaRaidEnder();
+    }
 
     private MissionResolver() {}
 
@@ -675,6 +685,15 @@ public final class MissionResolver {
             }
             GarrisonDefenseMissionKey defenseKey = GarrisonDefenseMissionKey.parse(
                     outcome.missionId);
+            // Captured before apply() consumes the pending defense: a win has to end the
+            // raid it was armed from, and by then the row no longer says which that was.
+            GarrisonDefensePayload pending = defenseKey != null
+                    ? GarrisonDefensePayload.from(state, outcome.contractId, roster) : null;
+            GarrisonDefenseTriggerType pendingTrigger =
+                    pending != null ? pending.triggerType : null;
+            String pendingMarketId = pending != null
+                    ? state.marketRegistry.get(pending.marketId) : null;
+            String pendingAttacker = pending != null ? pending.attackerFactionKey : null;
             GarrisonDefenseResolution.Result result = defenseKey != null
                     ? GarrisonDefenseResolution.apply(state, outcome.contractId,
                             defenseKey.eventKey, outcome.marinesLost,
@@ -684,6 +703,11 @@ public final class MissionResolver {
             if (result == GarrisonDefenseResolution.Result.ASSIGNMENT_FAILED) {
                 ContractReputation.failedForContract(
                         state, outcome.contractId, -1, day);
+            } else if (result == GarrisonDefenseResolution.Result.DEFENSE_WON
+                    && pendingTrigger == GarrisonDefenseTriggerType.VANILLA_RAID) {
+                int sentHome = raidEnder.endRaidsTargeting(pendingMarketId, pendingAttacker);
+                LOG.info("MarineOps: won vanilla-triggered defense at " + pendingMarketId
+                        + " ended " + sentHome + " raid(s) by " + pendingAttacker);
             }
             LOG.info("MarineOps: Garrison defense " + outcome.missionId + " → " + result);
             return;

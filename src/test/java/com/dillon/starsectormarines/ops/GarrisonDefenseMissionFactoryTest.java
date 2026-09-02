@@ -80,6 +80,31 @@ class GarrisonDefenseMissionFactoryTest {
         assertEquals(2, mission.requiredDrops);
     }
 
+    /**
+     * Without the override the raiders wear the defended market's own roster: pirates
+     * landing on a Hegemony world arrive in Hegemony kit.
+     */
+    @Test
+    void raidersWearTheAttackersOwnKit() {
+        CampaignState state = new CampaignState();
+        int captain = state.captainRegistry.intern("captain-1");
+        long id = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
+                ContractState.IN_PROGRESS, 10, 100, -1, (byte) 0,
+                captain, 7, -1, 0, 1_000,
+                (byte) 25, (byte) 15, (byte) 105);
+        state.contractMarinesCommitted[0] = 20;
+        state.contractDefenseEventKey[0] = 77L;
+        state.contractDefenseTriggerType[0] = GarrisonDefenseTriggerType.VANILLA_RAID.toByte();
+        state.contractDefenseAttackerFactionId[0] = state.factionRegistry.intern("pirates");
+
+        Mission raid = GarrisonDefenseMissionFactory.create(
+                GarrisonDefensePayload.from(state, id), "Jangala", "hegemony");
+
+        assertEquals("pirates", raid.defenderFactionOverride);
+        assertNull(GarrisonDefenseMissionFactory.create(payload(20), "Jangala", "hegemony")
+                .defenderFactionOverride);
+    }
+
     private static int totalCycles(Detachment detachment) {
         int total = 0;
         for (ShuttleAssignment assignment : detachment.shuttleManifest) {
