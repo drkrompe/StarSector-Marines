@@ -138,9 +138,21 @@ public final class MechLabViewModel {
                 SocketId.CORE, SocketId.ARMS, SocketId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
                 SocketId.RIGHT_SHOULDER, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)));
-        slotRows = reactor.computed(() -> buildSlots(List.of(SocketId.values())));
-        selectedSlotTitle = reactor.computed(() -> fabricatingChassis()
-                ? "CHASSIS PATTERNS" : selectedSlot.get().label());
+        slotRows = reactor.computed(() -> {
+            CampaignMech mech = selectedMech();
+            if (mech == null) return List.of();
+            MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
+            return buildSlots(layout.sockets().stream().map(SocketDef::id).toList());
+        });
+        selectedSlotTitle = reactor.computed(() -> {
+            if (fabricatingChassis()) return "CHASSIS PATTERNS";
+            CampaignMech mech = selectedMech();
+            if (mech != null) {
+                SocketDef def = MechFittingLayout.forVariant(mech.variant()).socket(selectedSlot.get());
+                if (def != null) return def.label();
+            }
+            return selectedSlot.get().label();
+        });
         selectedSlotCopy = reactor.computed(this::buildSelectedSlotCopy);
         selectedSlotRule = reactor.computed(this::buildSelectedSlotRule);
         catalogRows = reactor.computed(this::buildCatalogRows);
@@ -416,7 +428,7 @@ public final class MechLabViewModel {
                     base + ":badge", base + ":component", base + ":telemetry", base + ":type", base + ":grid",
                     slot,
                     slot == selectedSlot.get() ? "doll-slot selected" : "doll-slot",
-                    slot.label(), badge, badgeClasses,
+                    definition.label(), badge, badgeClasses,
                     slotComponent(mech, slot), telemetry, slotType(definition),
                     canStrip, stripClasses,
                     () -> selectSlot(slot),
@@ -659,7 +671,7 @@ public final class MechLabViewModel {
             }
         }
         selectedMechId.set(mechId);
-        selectedSlot.set(SocketId.MINI_FAB);
+        selectedSlot.set(defaultFittingSlot(squad.mechById(mechId)));
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set("Inspecting " + squad.mechById(mechId).displayName()
@@ -681,7 +693,7 @@ public final class MechLabViewModel {
         CampaignMech mech = mechAt(selectedSquad(), index);
         selectedGantry.set(index);
         selectedMechId.set(mech != null ? mech.id() : null);
-        selectedSlot.set(SocketId.MINI_FAB);
+        selectedSlot.set(defaultFittingSlot(mech));
         fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set(mech != null
@@ -709,15 +721,30 @@ public final class MechLabViewModel {
     }
 
     public void selectSlot(SocketId slot) {
-        if (selectedMech() == null) return;
+        CampaignMech mech = selectedMech();
+        if (mech == null) return;
+        MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
+        if (!layout.hasSocket(slot)) return;
         selectedSlot.set(slot);
         fittingFocused.set(true);
-        feedbackText.set(slot.label() + " selected. " + (slot == SocketId.MINI_FAB
+        SocketDef def = layout.socket(slot);
+        String label = def != null ? def.label() : slot.label();
+        feedbackText.set(label + " selected. " + (slot == SocketId.MINI_FAB
                 ? "Compatible fleet stock is ready for refit."
                 : mountFor(slot) != null
                 ? "Compatible owned and fabricable weapon assemblies are shown."
                 : "This chassis-integrated hardware is inspection only."));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private static SocketId defaultFittingSlot(CampaignMech mech) {
+        if (mech == null) return SocketId.MINI_FAB;
+        MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
+        if (layout.hasSocket(SocketId.MINI_FAB)) return SocketId.MINI_FAB;
+        for (SocketDef def : layout.sockets()) {
+            if (!def.factoryLocked()) return def.id();
+        }
+        return layout.sockets().get(0).id();
     }
 
     private void showLanceOverview() {

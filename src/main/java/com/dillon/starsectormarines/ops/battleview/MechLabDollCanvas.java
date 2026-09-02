@@ -403,11 +403,19 @@ public final class MechLabDollCanvas implements CanvasProducer {
             if (incompatible) {
                 base = withAlpha(base, 80);
             }
-
-            // CAD-style dog-leg leader geometry terminating at the dock bracket
+            // CAD dog-leg leader path to perimeter dock
             List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
-            Color leaderColor = selected ? withAlpha(base, 235) : occupied ? withAlpha(base, 110) : withAlpha(base, 175);
-            float leaderStroke = selected ? 2f : 1f;
+            float leaderStroke = selected ? 3.0f : 2.0f;
+            Color leaderColor = selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : compatible ? new Color(0x69, 0xE7, 0x81, 245)
+                    : withAlpha(base, 240);
+
+            // High-contrast dark outer silhouette for crisp readability on any deck pattern
+            for (int i = 0; i < path.size() - 1; i++) {
+                c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
+                        new Color(0x02, 0x07, 0x0F, 220), leaderStroke + 2.0f);
+            }
+            // Main illuminated CAD line
             for (int i = 0; i < path.size() - 1; i++) {
                 c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
                         leaderColor, leaderStroke);
@@ -451,13 +459,30 @@ public final class MechLabDollCanvas implements CanvasProducer {
                         new Color(0xE5, 0x45, 0x45, 140), 1.5f);
             }
 
-            // Technical mount callout
-            String callout = mountCallout(socket.id(), socket.gridColumns(), socket.gridRows());
-            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 230)
-                    : selected ? new Color(0xFF, 0xD4, 0x64, 230)
+            // Technical mount callout title pill (rendered cleanly above the dock box)
+            String callout = mountCallout(socket);
+            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 255)
+                    : selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : new Color(0xED, 0xF5, 0xFA, 245);
+
+            float textWidth = Fonts.ORBITRON_10.measureWidth(callout);
+            if (textWidth <= 0f) textWidth = callout.length() * 7.5f;
+            float pillW = textWidth + 14f;
+            float pillH = 16f;
+            float pillX = target.left();
+            float pillY = target.top() - pillH - 4f;
+            if (pillY < 20f) {
+                pillY = target.bottom() + 4f;
+            }
+            // High-contrast dark tactical badge
+            c.fillRect(pillX, pillY, pillW, pillH, new Color(0x06, 0x10, 0x1A, 250));
+            // 1px border matching state
+            Color pillBorder = selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : compatible ? new Color(0x69, 0xE7, 0x81, 230)
                     : withAlpha(base, 200);
-            float calloutY = target.top() > 18f ? target.top() - 2f : target.bottom() + 11f;
-            c.text(Fonts.ORBITRON_10, callout, target.left() + 3f, calloutY, calloutColor);
+            c.strokeRect(pillX, pillY, pillW, pillH, pillBorder, 1f);
+            // Crisp Orbitron title text (top-aligned)
+            c.text(Fonts.ORBITRON_10, callout, pillX + 6f, pillY + 3f, calloutColor);
 
             // Capacity footprint cells
             MechWeaponComponent component = weaponAt(deployment, socket.id());
@@ -547,13 +572,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     static void drawAnchorMechanicalTick(CanvasContext c, float x, float y, Color base, boolean selected) {
-        float size = selected ? 6f : 4f;
+        float size = selected ? 7f : 5f;
+        c.fillRect(x - size * 0.5f - 1f, y - size * 0.5f - 1f, size + 2f, size + 2f,
+                new Color(0x02, 0x07, 0x0F, 220));
         c.fillRect(x - size * 0.5f, y - size * 0.5f, size, size,
-                withAlpha(base, selected ? 245 : 180));
-        float tick = selected ? 6f : 4.5f;
-        Color tickColor = withAlpha(base, selected ? 220 : 150);
-        c.line(x - tick, y, x + tick, y, tickColor, 1f);
-        c.line(x, y - tick, x, y + tick, tickColor, 1f);
+                withAlpha(base, selected ? 255 : 200));
+        float tick = selected ? 7f : 5.5f;
+        Color tickColor = withAlpha(base, selected ? 240 : 180);
+        c.line(x - tick, y, x + tick, y, new Color(0x02, 0x07, 0x0F, 200), 2.5f);
+        c.line(x, y - tick, x, y + tick, new Color(0x02, 0x07, 0x0F, 200), 2.5f);
+        c.line(x - tick, y, x + tick, y, tickColor, 1.5f);
+        c.line(x, y - tick, x, y + tick, tickColor, 1.5f);
     }
 
     static boolean isSocketCompatible(SocketDef socket, MechWeaponComponent candidate) {
@@ -563,6 +592,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         boolean typeMatches = socket.type() == SocketType.OMNI
                 || socket.type().name().equals(candidate.hardpointType.name());
         return typeMatches && socket.accommodates(candidate.footprintColumns, candidate.footprintRows);
+    }
+
+    static String mountCallout(SocketDef socket) {
+        if (socket == null) return "";
+        String label = socket.label();
+        String name = switch (label) {
+            case "ARM ASSEMBLY" -> "ARMS";
+            case "ENGINE CORE" -> "CORE";
+            case "L. SHOULDER" -> "L. SHLDR";
+            case "R. SHOULDER" -> "R. SHLDR";
+            case "AMMO RESERVE" -> "AMMO";
+            default -> label;
+        };
+        return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
     }
 
     static String mountCallout(SocketId id, int cols, int rows) {

@@ -55,7 +55,8 @@ public final class MechFittingLayout {
                             float anchorRight, float anchorForward,
                             float dockRight, float dockForward,
                             float footprintWidthHull, float footprintHeightHull,
-                            boolean factoryLocked) {
+                            boolean factoryLocked,
+                            String customLabel) {
         public SocketDef {
             if (id == null || type == null) {
                 throw new IllegalArgumentException("socket id and type are required");
@@ -67,11 +68,27 @@ public final class MechFittingLayout {
             }
         }
 
+        public SocketDef(SocketId id, SocketType type,
+                         int gridColumns, int gridRows,
+                         float anchorRight, float anchorForward,
+                         float dockRight, float dockForward,
+                         float footprintWidthHull, float footprintHeightHull,
+                         boolean factoryLocked) {
+            this(id, type, gridColumns, gridRows, anchorRight, anchorForward,
+                    dockRight, dockForward, footprintWidthHull, footprintHeightHull,
+                    factoryLocked, id.label());
+        }
+
+        public String label() {
+            return customLabel != null && !customLabel.isBlank() ? customLabel : id.label();
+        }
+
         public int capacity() { return gridColumns * gridRows; }
 
         public boolean accommodates(int columns, int rows) {
             return columns > 0 && rows > 0
-                    && columns <= gridColumns && rows <= gridRows;
+                    && ((columns <= gridColumns && rows <= gridRows)
+                        || (columns <= gridRows && rows <= gridColumns));
         }
     }
 
@@ -93,7 +110,7 @@ public final class MechFittingLayout {
     private final DollDef doll;
     private final Map<SocketId, SocketDef> byId;
 
-    private MechFittingLayout(MechVariant variant, DollDef doll) {
+    public MechFittingLayout(MechVariant variant, DollDef doll) {
         this.variant = variant;
         this.doll = doll;
         EnumMap<SocketId, SocketDef> index = new EnumMap<>(SocketId.class);
@@ -107,9 +124,14 @@ public final class MechFittingLayout {
     }
 
     public static MechFittingLayout forVariant(MechVariant variant) {
+        if (variant == null) throw new IllegalArgumentException("variant is required");
+        MechFittingDollCatalog catalog = MechFittingDollCatalog.installed();
+        if (catalog != null && catalog.hasDoll(variant)) {
+            return new MechFittingLayout(variant, catalog.doll(variant));
+        }
         MechFittingLayout layout = LAYOUTS.get(variant);
-        if (layout == null) throw new IllegalArgumentException("variant is required");
-        return layout;
+        if (layout != null) return layout;
+        throw new IllegalArgumentException("No layout found for " + variant);
     }
 
     public MechVariant variant() { return variant; }
@@ -120,10 +142,14 @@ public final class MechFittingLayout {
 
     public SocketDef socket(SocketId id) { return byId.get(id); }
 
+    public boolean hasSocket(SocketId id) { return byId.containsKey(id); }
+
     /** An authored empty socket is distinct from a socket omitted by the chassis. */
     public boolean occupied(SocketId id) {
+        if (!byId.containsKey(id)) return false;
         return switch (id) {
-            case CORE, ARMS, AMMO_RESERVE, MINI_FAB -> true;
+            case CORE, AMMO_RESERVE, MINI_FAB -> true;
+            case ARMS -> variant.arms != null;
             case LEFT_SHOULDER -> variant.leftShoulder != null;
             case RIGHT_SHOULDER -> variant.rightShoulder != null;
         };

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -102,10 +103,11 @@ class MechLabDollCanvasTest {
     @Test
     void oneSlotSocketRetainsAPracticalMinimumDropAreaOnSmallDolls() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        SocketDef miniFab = layout.socket(SocketId.MINI_FAB);
+        SocketDef oneSlot = new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY,
+                1, 1, 0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false);
 
         MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), miniFab,
+                MechLabDollCanvas.socketDropTarget(layout.doll(), oneSlot,
                         200f, 160f, 80f, 80f);
 
         assertEquals(128f, target.width(), 1e-4f);
@@ -178,7 +180,7 @@ class MechLabDollCanvasTest {
     @Test
     void leaderDogLegPathOrthogonalGeometryKeepsCenterClear() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef left = layout.socket(SocketId.MINI_FAB);
+        SocketDef left = layout.socket(SocketId.LEFT_SHOULDER);
         MechLabDollCanvas.SocketDropTarget target =
                 MechLabDollCanvas.socketDropTarget(layout.doll(), left,
                         500f, 300f, 160f, 160f);
