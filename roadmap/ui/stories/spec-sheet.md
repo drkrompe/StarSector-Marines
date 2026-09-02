@@ -4,6 +4,14 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
+Updated: 2026-09-02 — slice 2 shipped: the layer, the binder, the
+`MissionFlowMlxScreen` drive point, and adoption on `PolityDoctrineScreen` with
+`polity-ground-doctrine-spec-sheet-wide.png`. Placement is the standard
+vocabulary rather than the margin fallback — the retained layout had neither
+absolute placement nor margins, and `arrange` had a clean seam for the real
+thing, so `position: absolute` with `left`/`top` (plus `pointer-events`, which
+is what stops the overlay stealing its own hover) are ordinary parsed CSS now.
+
 Read `ui-nouns.md` in full (hover is an ancestor chain on retained elements;
 design laws 1, 2, 8 and 11), the dossier-overlay paragraph of
 `company-view-nouns.md`, and `equipment-lore-catalog.md` for the prose every

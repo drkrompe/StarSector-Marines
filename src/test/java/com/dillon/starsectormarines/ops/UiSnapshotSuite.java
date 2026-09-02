@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -66,6 +67,8 @@ import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -222,6 +225,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 PolityDoctrineScreen.ROOT_COMPONENT,
                                 PolityDoctrineScreen.previewProps(
                                         ModStrings.fromDisk(context.modRoot())))),
+                new SnapshotArtifact("polity-ground-doctrine-spec-sheet-wide.png",
+                        renderPolityDoctrineSpecSheet(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("mission-results-wide.png",
                         renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
                                 ResultsScreen.ROOT_COMPONENT,
@@ -1018,6 +1024,49 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             return renderRelative(renderer, document,
                     FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f);
+        }
+    }
+
+    /**
+     * The polity panel with one armour pattern hovered and its spec sheet open.
+     *
+     * <p>It hovers the real element: lay the production document out, move the
+     * pointer to the subject's own centre, and let the binder answer. That is
+     * the route {@code fleet-armory-equipment-tooltip-wide.png} already uses,
+     * and it is the only one in which the hit test, the placement, and the copy
+     * are all exercised by the picture (law 11).
+     */
+    private static BufferedImage renderPolityDoctrineSpecSheet(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), POLITY_DOCTRINE_COMPONENTS);
+        loader.reload();
+        Map<String, Object> props = PolityDoctrineScreen.previewProps(
+                ModStrings.fromDisk(context.modRoot()));
+        try (MarkupInstance instance = loader.build(
+                reactor, PolityDoctrineScreen.ROOT_COMPONENT, props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+
+            UiViewport viewport = UiViewport.relative(
+                    0f, 0f, width, height, 1f,
+                    MarineOpsUiViewport.REFERENCE_WIDTH,
+                    MarineOpsUiViewport.REFERENCE_HEIGHT);
+            document.layout(viewport.documentWidth(), viewport.documentHeight());
+            SpecSheetBinder binder = new SpecSheetBinder(
+                    document, SpecSheetLayer.install(document));
+            PolityDoctrineScreen.bindSpecSheets(binder, instance, props);
+
+            UiElement subject = instance.requireElement(
+                    PolityDoctrineScreen.firstSpecSheetAnchorId(props));
+            Rect box = subject.box().borderBox();
+            document.pointerMoved(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
+            binder.update();
+            document.advance(0f);
+            return renderRelative(renderer, document, width, height, 1f);
         }
     }
 
