@@ -558,6 +558,51 @@ class BattleFixtureJsonTest {
         }
     }
 
+    /**
+     * The market's own ground strength is part of the bridge read, so a replay
+     * has to field the same allied garrison the recorded battle did.
+     */
+    @Test
+    void roundTripsTheMarketsOwnGroundStrength() throws Exception {
+        CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
+                9_119L,
+                List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false,
+                RiskLevel.LOW,
+                4,
+                new TargetProfile(5, 6, 2, 1, "hegemony",
+                        EnumSet.of(EconomicFunction.HABITATION),
+                        SurfacePalette.ROCK, SettlementLink.ROAD, 420f, 37.5f),
+                false);
+
+        BattleFixture decoded = BattleFixtureJson.fromJson(
+                BattleFixtureJson.toJson(fixture));
+
+        assertEquals(fixture, decoded);
+        TargetProfile profile = ((CivilianRescueBattleFixture) decoded).targetProfile();
+        assertEquals(420f, profile.groundDefence());
+        assertEquals(37.5f, profile.stationedStrength());
+    }
+
+    /**
+     * A fixture written before the market's ground strength was part of the
+     * bridge states a world and no garrison, and must keep loading as one.
+     */
+    @Test
+    void readsAProfileThatStatesNoGroundStrength() throws Exception {
+        JSONObject encoded = BattleFixtureJson.toJson(canonicalFixture());
+        JSONObject profile = encoded.getJSONObject("targetProfile");
+        profile.remove("groundDefence");
+        profile.remove("stationedStrength");
+
+        TargetProfile decoded =
+                ((CivilianRescueBattleFixture) BattleFixtureJson.fromJson(encoded))
+                        .targetProfile();
+
+        assertEquals(0f, decoded.groundDefence());
+        assertEquals(0f, decoded.stationedStrength());
+    }
+
     private static CivilianRescueBattleFixture canonicalFixture() {
         return new CivilianRescueBattleFixture(
                 5_005L,

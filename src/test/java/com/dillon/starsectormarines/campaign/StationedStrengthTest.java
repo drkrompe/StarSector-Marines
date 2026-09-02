@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.campaign;
 
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
+import com.dillon.starsectormarines.campaign.systems.StationedStrengthSystem;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.SquadExperienceStandard;
+import com.fs.starfarer.api.combat.StatBonus;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,6 +23,54 @@ class StationedStrengthTest {
 
     private static final float EPSILON = 0.0001f;
     private static final int SEATS = 4;
+
+    /**
+     * The read-back is the plain inverse of the write: everything
+     * {@link StationedStrengthSystem} put on the market's ground-defence stat,
+     * and nothing else that happens to be sitting on it.
+     */
+    @Test
+    void theTotalAtAMarketIsOurOwnFlatModifiersAndOnlyThose() {
+        StatBonus groundDefence = new StatBonus();
+        groundDefence.modifyFlat(StationedStrengthSystem.MODIFIER_ID_PREFIX + "41",
+                18f, "Stationed mercenary detachment");
+        groundDefence.modifyFlat(StationedStrengthSystem.MODIFIER_ID_PREFIX + "77",
+                12f, "Stationed mercenary detachment");
+        // Vanilla's own base value for the colony, which is not ours to subtract.
+        groundDefence.modifyFlat("population_and_infrastructure", 200f, "Base value");
+        // And an industry's multiplier, which is not a flat modifier at all.
+        groundDefence.modifyMult("ground_defenses", 2f, "Ground Defenses");
+
+        assertEquals(30f, StationedStrength.totalIn(groundDefence), EPSILON);
+    }
+
+    /** A market with nothing stationed contributes nothing, and neither does none. */
+    @Test
+    void aMarketWithNothingStationedTotalsZero() {
+        StatBonus groundDefence = new StatBonus();
+        groundDefence.modifyFlat("population_and_infrastructure", 200f, "Base value");
+
+        assertEquals(0f, StationedStrength.totalIn(groundDefence), EPSILON);
+        assertEquals(0f, StationedStrength.totalIn(null), EPSILON);
+        assertEquals(0f, StationedStrength.totalAt(null), EPSILON);
+    }
+
+    /**
+     * The number really is inside {@code MarketCMD.getDefenderStr}, which is
+     * {@code stat.computeEffective(0f)} — the reason it has to come back out
+     * before the market's strength becomes a militia headcount.
+     */
+    @Test
+    void whatWeWroteIsInsideVanillasOwnDefenderStrength() {
+        StatBonus groundDefence = new StatBonus();
+        groundDefence.modifyFlat("population_and_infrastructure", 200f, "Base value");
+        float withoutUs = groundDefence.computeEffective(0f);
+        groundDefence.modifyFlat(StationedStrengthSystem.MODIFIER_ID_PREFIX + "41",
+                18f, "Stationed mercenary detachment");
+
+        assertEquals(withoutUs + 18f, groundDefence.computeEffective(0f), EPSILON);
+        assertEquals(18f, StationedStrength.totalIn(groundDefence), EPSILON);
+    }
 
     @Test
     void theSeatLadderStartsAtOneCargoMarineAndRisesWithTheBand() {
