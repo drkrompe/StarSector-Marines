@@ -100,7 +100,6 @@ public final class AirStrikeSystem {
     /** Sim-seconds an aircraft works its target before turning for home. */
 
     private final Faction side;
-    private final Faction enemy;
     private float nextStrikeIn = FIRST_STRIKE_SEC;
     private boolean warnedUnarmed;
     /**
@@ -111,9 +110,8 @@ public final class AirStrikeSystem {
      */
     private final float[] engagedXy = new float[MAX_CONCURRENT * 2];
 
-    public AirStrikeSystem(Faction side, Faction enemy) {
+    public AirStrikeSystem(Faction side) {
         this.side = side;
-        this.enemy = enemy;
     }
 
     /** Advance the cadence and launch when everything a sortie needs is true. */
@@ -233,11 +231,11 @@ public final class AirStrikeSystem {
     private long pickTarget(BattleSimulation sim) {
         int engaged = collectEngagedTargets(sim);
         if (engaged > 0) {
-            long fresh = EnemyConcentration.densestAwayFrom(sim, enemy, engagedXy, engaged,
+            long fresh = EnemyConcentration.densestAwayFrom(sim, side, engagedXy, engaged,
                     EnemyConcentration.SEPARATE_TARGET_DIST);
             if (fresh != 0L) return fresh;
         }
-        return EnemyConcentration.densest(sim, enemy);
+        return EnemyConcentration.densest(sim, side);
     }
 
     /**

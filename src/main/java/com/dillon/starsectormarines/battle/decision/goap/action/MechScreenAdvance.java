@@ -152,7 +152,8 @@ final class MechScreenAdvance {
         long axisTarget = mechTarget != 0L ? mechTarget : sim.resolveUnit(squad.advanceThreatId);
         float threatX;
         float threatY;
-        if (axisTarget != 0L && sim.identity().faction(axisTarget) != squad.faction) {
+        if (axisTarget != 0L
+                && squad.faction.hostileTo(sim.identity().faction(axisTarget))) {
             threatX = sim.world().x(axisTarget);
             threatY = sim.world().y(axisTarget);
         } else if (squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
@@ -269,7 +270,8 @@ final class MechScreenAdvance {
     private static void fireFromFan(long member, Squad squad, BattleControl sim) {
         if (squad.mechScreenMode != MechScreenMode.FAN) return;
         long target = sim.resolveUnit(squad.mechScreenThreatId);
-        if (target == 0L || sim.identity().faction(target) == squad.faction) return;
+        if (target == 0L
+                || !squad.faction.hostileTo(sim.identity().faction(target))) return;
         float dx = sim.world().x(target) - sim.world().x(member);
         float dy = sim.world().y(target) - sim.world().y(member);
         if (dx * dx + dy * dy > sim.world().attackRange(member)
@@ -282,7 +284,7 @@ final class MechScreenAdvance {
     private static long liveHostileTarget(long mech, Squad squad, BattleView sim) {
         long target = sim.resolveUnit(sim.targetOf(mech));
         return target != 0L && sim.canEngage(mech, target)
-                && sim.identity().faction(target) != squad.faction
+                && squad.faction.hostileTo(sim.identity().faction(target))
                 ? target : 0L;
     }
 

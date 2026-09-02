@@ -286,7 +286,7 @@ public final class ChokePointHold implements Action {
     private long enemyOnPortalCell(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
             if (!sim.identity().type(u).combatant) continue;
-            if (sim.identity().faction(u) == squad.faction) continue;
+            if (!squad.faction.hostileTo(sim.identity().faction(u))) continue;
             if (sim.movement().atCell(u, portalX, portalY)) return u;
         }
         return 0L;

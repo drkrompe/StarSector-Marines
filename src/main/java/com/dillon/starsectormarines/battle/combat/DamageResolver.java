@@ -198,7 +198,7 @@ public final class DamageResolver {
         // TELEMETRY row has nowhere to be credited.
         if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
             boolean friendly = roster.identity().faction(attackerId)
-                    == roster.identity().faction(targetId);
+                    .friendlyTo(roster.identity().faction(targetId));
             telemetry.recordDamageDealt(attackerId, applied, friendly);
             if (died && !friendly) telemetry.recordKill(attackerId);
         }

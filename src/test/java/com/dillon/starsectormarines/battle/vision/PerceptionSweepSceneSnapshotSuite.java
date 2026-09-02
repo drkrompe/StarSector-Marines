@@ -44,6 +44,12 @@ import java.util.Locale;
  *       exactly the picture it was before.</li>
  * </ul>
  *
+ * <p>An allied militiaman stands well clear of all that, in the open to the
+ * south-west. He is here for the other half of the fog contract: an ally is a
+ * contributor to the player's own picture, so he is drawn in every frame in the
+ * ally colour whatever the sweep is doing, and the hostile count in the caption
+ * never moves for him.
+ *
  * <p>The activation is fired on a fixed tick rather than through the suit's own
  * dead-ground policy, so the recording is the same recording every run — the
  * policy has its own unit coverage. Everything downstream of that tick is
@@ -66,6 +72,13 @@ public final class PerceptionSweepSceneSnapshotSuite implements SnapshotSuite {
 
     private static final int SCOUT_X = 22;
     private static final int SCOUT_Y = 17;
+
+    /**
+     * Far enough south-west that his own sight reaches no wall of the block and
+     * crosses neither sight line the artifact is about.
+     */
+    private static final int ALLY_X = 12;
+    private static final int ALLY_Y = 28;
 
     private static final int FRAME_WIDTH = 640;
     private static final int FRAME_HEIGHT = 440;
@@ -145,7 +158,8 @@ public final class PerceptionSweepSceneSnapshotSuite implements SnapshotSuite {
      * Tick, the state of the window, and how many hostiles the player can
      * presently see. The count is read off the fog service rather than off the
      * roster, so it is the number of red markers in the frame rather than the
-     * number of defenders alive.
+     * number of defenders alive — and it counts {@code DEFENDER} alone, so the
+     * ally standing in plain view never enters it.
      */
     private static String caption(BattleSimulation sim, long scout,
                                   IntegralSystemDef sweep, int tick) {
@@ -238,6 +252,14 @@ public final class PerceptionSweepSceneSnapshotSuite implements SnapshotSuite {
                     .role(UnitRole.STRUCTURE)
                     .moveSpeed(0f));
         }
+
+        // The ally. Planted like everything else here, and far enough from the
+        // block that nothing he sees and nothing that sees him bears on the
+        // reading above.
+        sim.spawn(new EntitySpec("allied-militia", Faction.ALLY, UnitType.MILITIA,
+                ALLY_X, ALLY_Y)
+                .role(UnitRole.STRUCTURE)
+                .moveSpeed(0f));
         return sim;
     }
 

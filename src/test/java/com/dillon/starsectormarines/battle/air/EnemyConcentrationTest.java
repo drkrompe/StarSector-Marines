@@ -53,7 +53,7 @@ class EnemyConcentrationTest {
             cluster(sim, "big", 60, 30, 12);
             settle(sim);
 
-            long chosen = EnemyConcentration.densest(sim, Faction.MARINE);
+            long chosen = EnemyConcentration.densest(sim, Faction.DEFENDER);
 
             assertTrue(sim.world().x(chosen) > 40f,
                     "picked the smaller huddle at " + sim.world().x(chosen));
@@ -73,9 +73,9 @@ class EnemyConcentrationTest {
             cluster(sim, "second", 5, 5, 8);
             settle(sim);
 
-            long busy = EnemyConcentration.densest(sim, Faction.MARINE);
+            long busy = EnemyConcentration.densest(sim, Faction.DEFENDER);
             float[] engaged = { sim.world().x(busy), sim.world().y(busy) };
-            long next = EnemyConcentration.densestAwayFrom(sim, Faction.MARINE, engaged, 1,
+            long next = EnemyConcentration.densestAwayFrom(sim, Faction.DEFENDER, engaged, 1,
                     EnemyConcentration.SEPARATE_TARGET_DIST);
 
             assertTrue(next != 0L, "found nothing else on a map with two concentrations");
@@ -99,10 +99,10 @@ class EnemyConcentrationTest {
             cluster(sim, "only", 60, 30, 12);
             settle(sim);
 
-            long busy = EnemyConcentration.densest(sim, Faction.MARINE);
+            long busy = EnemyConcentration.densest(sim, Faction.DEFENDER);
             float[] engaged = { sim.world().x(busy), sim.world().y(busy) };
 
-            assertEquals(0L, EnemyConcentration.densestAwayFrom(sim, Faction.MARINE, engaged, 1,
+            assertEquals(0L, EnemyConcentration.densestAwayFrom(sim, Faction.DEFENDER, engaged, 1,
                             EnemyConcentration.SEPARATE_TARGET_DIST),
                     "offered a second target inside the one concentration there is");
         }
@@ -116,8 +116,8 @@ class EnemyConcentrationTest {
             cluster(sim, "small", 5, 5, 5);
             settle(sim);
 
-            assertEquals(EnemyConcentration.densest(sim, Faction.MARINE),
-                    EnemyConcentration.densestAwayFrom(sim, Faction.MARINE, null, 0, 0f));
+            assertEquals(EnemyConcentration.densest(sim, Faction.DEFENDER),
+                    EnemyConcentration.densestAwayFrom(sim, Faction.DEFENDER, null, 0, 0f));
         }
     }
 }

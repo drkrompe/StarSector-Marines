@@ -83,31 +83,39 @@ public class UnitSpatialIndexTest {
         assertEquals(secondMarine, out.ids[1]);
     }
 
+    /**
+     * The querier here is a defender, which is what makes the mixed bucket
+     * worth building: it fights both the company and the militia beside it, so
+     * the expected set spans two factions rather than "everybody else". Its own
+     * side and a hostile faction's non-combatants are the two things filtered
+     * out, and dense-roster order survives both a growth and a release.
+     */
     @Test
-    public void otherFactionCombatantQueriesPreserveBoundaryOrderGrowthAndRemoval() {
+    public void hostileCombatantQueriesPreserveBoundaryOrderGrowthAndRemoval() {
         UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
         UnitRosterService roster = new UnitRosterService(index, null);
-        roster.spawn(unit("friendly", 10, 10));
+        roster.spawn(new EntitySpec("own side", Faction.DEFENDER,
+                UnitType.MILITIA, 10, 10));
         for (int i = 0; i < 80; i++) {
-            roster.spawn(new EntitySpec("civilian-" + i, Faction.DEFENDER,
+            roster.spawn(new EntitySpec("civilian-" + i, Faction.MARINE,
                     UnitType.CIVILIAN, 10, 10));
         }
         long[] expected = new long[21];
         for (int i = 0; i < 20; i++) {
             Faction faction = (i & 1) == 0
-                    ? Faction.DEFENDER : Faction.CIVILIAN;
+                    ? Faction.MARINE : Faction.ALLY;
             expected[i] = roster.spawn(new EntitySpec("combatant-" + i,
                     faction, UnitType.MILITIA, 10, 10));
         }
         expected[20] = roster.spawn(new EntitySpec("boundary",
-                Faction.DEFENDER, UnitType.MILITIA, 14, 10));
-        roster.spawn(new EntitySpec("outside", Faction.DEFENDER,
+                Faction.MARINE, UnitType.MILITIA, 14, 10));
+        roster.spawn(new EntitySpec("outside", Faction.MARINE,
                 UnitType.MILITIA, 15, 10));
         index.rebuild(roster);
 
         LongBucket out = new LongBucket();
-        index.gatherOtherFactionCombatants(10.5f, 10.5f, 4f,
-                Faction.MARINE, out);
+        index.gatherHostileCombatants(10.5f, 10.5f, 4f,
+                Faction.DEFENDER, out);
 
         assertEquals(expected.length, out.size);
         for (int i = 0; i < expected.length; i++) {
@@ -115,8 +123,8 @@ public class UnitSpatialIndexTest {
         }
 
         roster.releaseFromRegistry(expected[7]);
-        index.gatherOtherFactionCombatants(10.5f, 10.5f, 4f,
-                Faction.MARINE, out);
+        index.gatherHostileCombatants(10.5f, 10.5f, 4f,
+                Faction.DEFENDER, out);
         assertEquals(expected.length - 1, out.size);
         int actual = 0;
         for (int i = 0; i < expected.length; i++) {
@@ -125,8 +133,8 @@ public class UnitSpatialIndexTest {
                     "post-release order at " + i);
         }
         assertEquals(expected.length - 2,
-                index.countOtherFactionCombatants(10.5f, 10.5f, 4f,
-                        Faction.MARINE, expected[0]));
+                index.countHostileCombatants(10.5f, 10.5f, 4f,
+                        Faction.DEFENDER, expected[0]));
     }
 
     @Test

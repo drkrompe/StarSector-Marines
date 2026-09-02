@@ -62,7 +62,7 @@ public final class MechTargeting {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long candidate = sim.liveUnitAt(i);
             if (candidate == mech
-                    || sim.identity().faction(candidate) == ownFaction
+                    || !ownFaction.hostileTo(sim.identity().faction(candidate))
                     || !sim.identity().type(candidate).combatant) {
                 continue;
             }
@@ -86,7 +86,7 @@ public final class MechTargeting {
         for (int i = 0, n = bodies.bodyCount(); i < n; i++) {
             long candidate = bodies.bodyAt(i);
             if (!sim.canEngage(mech, candidate)
-                    || sim.identity().faction(candidate) == ownFaction) continue;
+                    || !ownFaction.hostileTo(sim.identity().faction(candidate))) continue;
             float distance = TacticalScoring.cellDistance(
                     sim.world().x(mech), sim.world().y(mech),
                     sim.world().x(candidate), sim.world().y(candidate));

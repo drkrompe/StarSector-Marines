@@ -428,7 +428,7 @@ public final class IntegralSystemSystem {
         if (index == null) return true;
         Faction faction = rosterService.identity().faction(id);
         if (faction == null) return false;
-        return index.countOtherFactionCombatants(world.x(id), world.y(id),
+        return index.countHostileCombatants(world.x(id), world.y(id),
                 spec.breakOffRangeCells(), faction, id) == 0;
     }
 

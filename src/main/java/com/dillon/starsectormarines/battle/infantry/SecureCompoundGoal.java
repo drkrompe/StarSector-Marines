@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -93,9 +92,8 @@ public final class SecureCompoundGoal implements Goal {
 
         int from = ZoneQueries.squadCurrentZone(squad, sim);
         if (from == to) {
-            Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
             List<SquadPlan.Step> steps = new ArrayList<>(2);
-            if (!ZoneQueries.zoneClear(to, enemy, sim)) {
+            if (!ZoneQueries.zoneClearOfHostiles(to, squad.faction, sim)) {
                 steps.add(new SquadPlan.Step(new ClearZone(to)));
             }
             int[][] cells = HoldZone.pickHoldCells(node, to, squad.aliveMembers, sim);

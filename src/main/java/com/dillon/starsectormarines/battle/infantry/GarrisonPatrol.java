@@ -70,8 +70,6 @@ public final class GarrisonPatrol implements Action {
         if (squad.contactPicture.doctrine() == Doctrine.DISENGAGE) {
             return BreakContact.INSTANCE.execute(member, squad, sim);
         }
-        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
-
         // CONTEST — re-clear the first room (largest first) that holds an enemy
         // we can actually engage. ClearZone owns the engage-in-zone /
         // no-chase-across-portals logic; we coerce its SUCCESS to RUNNING since
@@ -87,8 +85,8 @@ public final class GarrisonPatrol implements Action {
         // patrolling. When nothing engageable remains, fall through to QUIET —
         // which still fires opportunistically if the enemy ever comes into view.
         for (int zoneId : garrisonZones) {
-            if (ZoneQueries.zoneClear(zoneId, enemy, sim)) continue;
-            if (!zoneHasEngageableEnemy(zoneId, member, enemy, sim)) continue;
+            if (ZoneQueries.zoneClearOfHostiles(zoneId, squad.faction, sim)) continue;
+            if (!zoneHasEngageableEnemy(zoneId, member, squad.faction, sim)) continue;
             new ClearZone(zoneId).execute(member, squad, sim);
             return ActionStatus.RUNNING;
         }
@@ -113,10 +111,11 @@ public final class GarrisonPatrol implements Action {
      * O(units) pass {@code zoneClear} already runs, and the reachability probe
      * fires only for the (few) enemies actually inside the room.
      */
-    private boolean zoneHasEngageableEnemy(int zoneId, long member, Faction enemy, BattleControl sim) {
+    private boolean zoneHasEngageableEnemy(int zoneId, long member, Faction selfFaction, BattleControl sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long e = sim.liveUnitAt(i);
-            if (sim.identity().faction(e) != enemy || !sim.identity().type(e).combatant) continue;
+            if (!selfFaction.hostileTo(sim.identity().faction(e))
+                    || !sim.identity().type(e).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(e), sim.world().cellY(e)) != zoneId) continue;
             if (sim.getTacticalScoring().hasReachableFiringSpot(member, e)) return true;
         }

@@ -638,7 +638,7 @@ public class AirSystem {
             int posts = 0;
             for (int i = 0, n = scratch.size; i < n; i++) {
                 long e = scratch.ids[i];
-                if (roster.identity().faction(e) == faction) continue;
+                if (!faction.hostileTo(roster.identity().faction(e))) continue;
                 if (!world.isAlive(e)) continue;
                 // "Only a defence post can reach up" was written out here, in
                 // the one place that had ever needed it. It is a weapon

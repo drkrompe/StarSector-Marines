@@ -367,7 +367,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
     private final BoatSortieSystem boatSorties = new BoatSortieSystem();
     private final AirStrikeSystem airStrikeSystem =
-            new AirStrikeSystem(Faction.DEFENDER, Faction.MARINE);
+            new AirStrikeSystem(Faction.DEFENDER);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
     private final AirCoverSystem airCoverSystem = new AirCoverSystem();
     /** Marine-side garrison shuttle spawner — drops friendly troops at captured compounds. Conquest-only; null on other mission types. Set via {@link #setGarrisonSystem}. */
