@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader.PreparedReload;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -55,7 +57,12 @@ public final class FleetArmoryScreen implements Screen {
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
-    private ArmoryEquipmentTooltips equipmentTooltips = ArmoryEquipmentTooltips.empty();
+    /**
+     * This screen's spec-sheet bindings. It is not a {@code MissionFlowMlxScreen},
+     * so it owns the binder itself and drives it from {@link #advance}, after the
+     * markup has flushed and the hover chain is the one the player is pointing at.
+     */
+    private SpecSheetBinder specSheets;
     private StarsectorUiInputAdapter input;
     private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
@@ -101,14 +108,12 @@ public final class FleetArmoryScreen implements Screen {
         MarkupInstance candidate = prepared == null
                 ? markup.build(reactor, componentName, props()) : prepared.instance();
         UiDocument built;
-        ArmoryEquipmentTooltips candidateTooltips = ArmoryEquipmentTooltips.empty();
+        SpecSheetBinder candidateSheets = null;
         try {
             requireWiredElements(candidate);
             if (view == View.FIRETEAMS) {
                 candidate.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
-                candidateTooltips = ArmoryEquipmentTooltips.bind(
-                        candidate, viewModel.marineCards().get());
             }
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
@@ -135,6 +140,14 @@ public final class FleetArmoryScreen implements Screen {
                                     () -> previewAnimationSeconds + slot * 0.31d));
                 }
             }
+            candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
+            if (view == View.FIRETEAMS) {
+                ArmorySpecSheets.bindMarineCards(
+                        candidateSheets, candidate, viewModel.marineCards());
+            } else if (view == View.DESIGNER) {
+                ArmorySpecSheets.bindBilletCards(
+                        candidateSheets, candidate, designerViewModel.billets());
+            }
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -148,7 +161,7 @@ public final class FleetArmoryScreen implements Screen {
         if (prepared != null) prepared.commit();
         document = built;
         markupInstance = candidate;
-        equipmentTooltips = candidateTooltips;
+        specSheets = candidateSheets;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
         if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
@@ -312,7 +325,7 @@ public final class FleetArmoryScreen implements Screen {
             viewModel.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
-        equipmentTooltips.update();
+        if (specSheets != null) specSheets.update();
         if ((view == View.FIRETEAMS || view == View.DESIGNER)
                 && Float.isFinite(dt) && dt > 0f) {
             previewAnimationSeconds = (previewAnimationSeconds + dt) % 60f;
@@ -337,15 +350,17 @@ public final class FleetArmoryScreen implements Screen {
     @Override
     public void detach() {
         if (document != null) document.deactivateInput();
+        if (specSheets != null) specSheets.clear();
         input = null;
     }
 
     private void closeDocument() {
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
+        if (specSheets != null) specSheets.clear();
         document = null;
         markupInstance = null;
-        equipmentTooltips = ArmoryEquipmentTooltips.empty();
+        specSheets = null;
         input = null;
     }
 

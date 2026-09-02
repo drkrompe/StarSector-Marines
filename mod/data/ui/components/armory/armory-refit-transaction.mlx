@@ -78,23 +78,6 @@
             </div>
           </div>
         </div>
-
-        <div id="{marine.primaryDescriptionId}" class="marine-equipment-tooltip tooltip-hidden">
-          <img id="{marine.primaryTooltipFactionLogoId}" class="{marine.primaryFactionLogoClasses}" src="{marine.primaryFactionLogo}" />
-          <div id="{marine.primaryTooltipTextId}" class="equipment-tooltip-copy label">{marine.primary}  //  {marine.primaryDescription}</div>
-        </div>
-        <div id="{marine.armorDescriptionId}" class="marine-equipment-tooltip armor-equipment-tooltip tooltip-hidden">
-          <img id="{marine.armorTooltipFactionLogoId}" class="{marine.armorFactionLogoClasses}" src="{marine.armorFactionLogo}" />
-          <div id="{marine.armorTooltipTextId}" class="equipment-tooltip-copy label">{marine.armor}  //  {marine.armorDescription}</div>
-        </div>
-        <div id="{marine.specialDescriptionId}" class="marine-equipment-tooltip special-equipment-tooltip tooltip-hidden">
-          <img id="{marine.specialTooltipFactionLogoId}" class="{marine.specialFactionLogoClasses}" src="{marine.specialFactionLogo}" />
-          <div id="{marine.specialTooltipTextId}" class="equipment-tooltip-copy label">{marine.special}  //  {marine.specialDescription}</div>
-        </div>
-        <div id="{marine.systemDescriptionId}" class="marine-equipment-tooltip system-equipment-tooltip tooltip-hidden">
-          <img id="{marine.systemTooltipFactionLogoId}" class="{marine.systemFactionLogoClasses}" src="{marine.systemFactionLogo}" />
-          <div id="{marine.systemTooltipTextId}" class="equipment-tooltip-copy label">{marine.system}  //  {marine.systemDescription}</div>
-        </div>
       </div>
     </div>
 
@@ -183,32 +166,7 @@
   .picker-closed-line { height: 0px; opacity: 0; }
   .marine-career { height: 22px; padding: 3px 5px; border-width: 1px; }
 
-  .marine-equipment-tooltip {
-    flex-direction: column;
-    width: 380px;
-    height: 142px;
-    padding: 10px;
-    gap: 6px;
-    border-width: 2px;
-    overflow: scroll;
-    white-space: normal;
-    background-color: #09131d;
-    border-color: #53c6e8;
-    color: #d5deea;
-  }
-  .armor-equipment-tooltip { border-color: #dfb84d; }
-  .special-equipment-tooltip { border-color: #71d6c1; }
-  .system-equipment-tooltip { border-color: #c79ce8; }
-  .marine-equipment-tooltip .equipment-faction-logo { width: 48px; height: 24px; }
-  .equipment-tooltip-copy { width: 100%; white-space: normal; font-family: body; }
   .equipment-faction-logo.faction-logo-hidden { width: 0px; height: 0px; opacity: 0; }
-  .marine-equipment-tooltip.tooltip-hidden {
-    width: 0px;
-    height: 0px;
-    padding: 0px;
-    border-width: 0px;
-    opacity: 0;
-  }
 
   .feedback { height: 22px; padding: 3px 6px; overflow: hidden; }
 </style>

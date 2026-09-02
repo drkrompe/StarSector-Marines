@@ -4,13 +4,22 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
-Updated: 2026-09-02 — slice 2 shipped: the layer, the binder, the
-`MissionFlowMlxScreen` drive point, and adoption on `PolityDoctrineScreen` with
-`polity-ground-doctrine-spec-sheet-wide.png`. Placement is the standard
-vocabulary rather than the margin fallback — the retained layout had neither
-absolute placement nor margins, and `arrange` had a clean seam for the real
-thing, so `position: absolute` with `left`/`top` (plus `pointer-events`, which
-is what stops the overlay stealing its own hover) are ordinary parsed CSS now.
+Updated: 2026-09-02 — slices 1-3 shipped; only the fold remains. The copy
+factory, the layer and the binder are in, and every catalog name on the polity
+doctrine panel, the Fleet Armory's dossiers, the Mech Lab catalog, the doctrine
+designer's billets and the squad-deployment inspector opens the same sheet.
+`ArmoryEquipmentTooltips`, its four popup divs per card and their CSS are gone,
+as are the view-model props that existed only to fill them. Placement is the
+standard vocabulary rather than the margin fallback — `position: absolute` with
+`left`/`top`, plus `pointer-events`, are ordinary parsed CSS now.
+
+Two things the migration decided that the plan did not. A **doctrine designer
+`DefinitionTile` is a squad weapon doctrine, not a catalog item**, so the tiles
+carry no sheet; the catalog items on that screen are each billet's primary and
+specialty, and those are what is bound. And a **binding reads the live
+projection by slot rather than a captured sheet**, because cards are keyed and
+reconciled in place: cycling a billet's primary leaves the element alone, so a
+captured sheet would go on describing equipment that is no longer there.
 
 Read `ui-nouns.md` in full (hover is an ancestor chain on retained elements;
 design laws 1, 2, 8 and 11), the dossier-overlay paragraph of

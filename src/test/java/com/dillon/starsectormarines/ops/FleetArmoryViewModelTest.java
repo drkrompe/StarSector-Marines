@@ -19,11 +19,11 @@ import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
-import com.dillon.starsectormarines.ui.retained.UiLayout;
-import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
@@ -87,8 +87,10 @@ class FleetArmoryViewModelTest {
                 "unexpected role on the card: " + firstMarine.unitClass());
         assertEquals("W II", firstMarine.weaponBadge());
         assertEquals("A II", firstMarine.armorBadge());
-        assertTrue(firstMarine.primaryDescription().length() > 80);
-        assertTrue(firstMarine.armorDescription().length() > 80);
+        // The lore the card used to carry for its own popup is now the sheet's,
+        // written from the item's owning catalog rather than from a view-model prop.
+        assertTrue(String.join(" ", firstMarine.primarySheet().notes()).length() > 80);
+        assertTrue(String.join(" ", firstMarine.armorSheet().notes()).length() > 80);
         assertNotNull(firstMarine.primaryFactionLogo());
         assertFalse(firstMarine.primaryFactionLogoClasses().contains("faction-logo-hidden"));
         assertEquals(firstMarine.armorFactionLogo(),
@@ -203,8 +205,6 @@ class FleetArmoryViewModelTest {
                     instance.requireElement(marine.primaryFactionLogoId()).imageSource());
             assertEquals(marine.armorFactionLogo(),
                     instance.requireElement(marine.armorFactionLogoId()).imageSource());
-            assertEquals(marine.primaryFactionLogo(),
-                    instance.requireElement(marine.primaryTooltipFactionLogoId()).imageSource());
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
             FleetArmoryViewModel.DoctrineTile alternative =
@@ -246,8 +246,13 @@ class FleetArmoryViewModelTest {
         }
     }
 
+    /**
+     * The four equipment labels on a dossier open the shared spec sheet, and the
+     * card keeps its identity and its comparison meters continuously visible
+     * while one is open ({@code company-view-nouns.md}).
+     */
     @Test
-    void equipmentLoreUsesBoundedHoverTooltipsWithoutDisplacingComparisonStats()
+    void equipmentLabelsOpenTheSharedSpecSheetWithoutDisplacingComparisonStats()
             throws Exception {
         MarineRoster roster = fullSquad();
         Reactor reactor = new Reactor();
@@ -260,55 +265,55 @@ class FleetArmoryViewModelTest {
                 props(viewModel))) {
             FleetArmoryViewModel.MarineViewerCard marine =
                     viewModel.marineCards().get().get(0);
-            ArmoryEquipmentTooltips tooltips = ArmoryEquipmentTooltips.bind(
-                    instance, viewModel.marineCards().get());
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer);
+            ArmorySpecSheets.bindMarineCards(binder, instance, viewModel.marineCards());
             document.layout(1744f, 938f);
 
+            // Every equipment label a card shows is a subject, and nothing else is.
+            for (String elementId : List.of(marine.primaryId(), marine.armorId(),
+                    marine.specialId(), marine.systemId())) {
+                assertTrue(binder.isBound(instance.requireElement(elementId)),
+                        elementId + " is not askable");
+            }
+            assertFalse(binder.isBound(instance.requireElement(marine.nameId())),
+                    "a marine is a dossier, not a catalog item");
+            assertEquals(4 * MarineSquad.TEAM_SIZE, binder.size());
+
             UiElement card = instance.requireElement(marine.id());
-            UiElement target = instance.requireElement(marine.systemId());
-            UiElement popup = instance.requireElement(marine.systemDescriptionId());
             UiElement stats = instance.requireElement(marine.weaponStatsId());
-            assertEquals(UiLayout.STACK, card.layout());
-            assertSame(card, popup.parent());
-            assertTrue(popup.childAt(1).text().startsWith(marine.system()));
-            assertTrue(popup.childAt(1).text().contains(marine.systemDescription()));
-            assertEquals(marine.systemFactionLogo(),
-                    instance.requireElement(marine.systemTooltipFactionLogoId()).imageSource());
-            assertEquals(Overflow.SCROLL, popup.overflow());
-            assertTrue(popup.hasClass("tooltip-hidden"));
+            UiElement target = instance.requireElement(marine.systemId());
+            assertFalse(layer.visible());
             assertTrue(stats.box().borderBox().width() > 250f);
 
             document.pointerMoved(centerX(target), centerY(target));
-            tooltips.update();
+            binder.update();
             document.advance(0f);
 
-            assertFalse(popup.hasClass("tooltip-hidden"));
-            assertTrue(popup.box().borderBox().width() >= 370f);
-            assertTrue(popup.box().borderBox().height() >= 130f);
-            assertTrue(popup.box().borderBox().right()
-                    <= card.box().contentBox().right() + 0.01f);
-            assertTrue(popup.box().borderBox().bottom()
-                    <= card.box().contentBox().bottom() + 0.01f);
+            assertTrue(layer.visible());
+            assertSame(target, binder.openTarget());
+            assertEquals(marine.systemSheet().title(),
+                    instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-title").text());
             assertTrue(stats.box().borderBox().width() > 250f,
-                    "opening lore must not resize the comparison meters");
-            assertTrue(popup.box().maxScrollTop() > 0f,
-                    "long integral-system lore should be reachable by scrolling: scrollHeight="
-                            + popup.box().scrollHeight() + ", contentHeight="
-                            + popup.box().contentBox().height() + ", copyHeight="
-                            + popup.childAt(1).box().borderBox().height());
-            assertTrue(document.pointerScrolled(centerX(popup), centerY(popup), 40f));
-            document.advance(0f);
-            assertTrue(popup.scrollTop() > 0f);
+                    "opening a sheet must not resize the comparison meters");
+            assertEquals(marine.name(), instance.requireElement(marine.nameId()).text(),
+                    "the card keeps its identity while a sheet is open");
+            // The overlay is the document's, so it is not clipped by the card,
+            // and it stays inside the document either way.
+            assertTrue(layer.element().box().borderBox().right()
+                    <= document.root().box().contentBox().right() + 0.01f);
+            assertTrue(layer.element().box().borderBox().bottom()
+                    <= document.root().box().contentBox().bottom() + 0.01f);
 
             document.pointerMoved(
                     card.box().contentBox().x() + 8f,
                     card.box().contentBox().bottom() - 8f);
-            tooltips.update();
+            binder.update();
             document.advance(0f);
-            assertTrue(popup.hasClass("tooltip-hidden"));
+            assertFalse(layer.visible());
         }
     }
 

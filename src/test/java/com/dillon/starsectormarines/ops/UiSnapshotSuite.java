@@ -309,6 +309,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-low-resolution.png",
                         renderEquipmentDesigner(context, renderer, 1163, 625)),
+                new SnapshotArtifact("fleet-armory-equipment-designer-spec-sheet-wide.png",
+                        renderEquipmentDesigner(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("fleet-armory-armor-comparison-wide.png",
                         renderArmorComparison(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -332,6 +335,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 false, false, true)),
+                // With a shoulder mount chosen, because the catalog lists what
+                // could go in the chosen socket and an unselected lab lists
+                // nothing to describe.
+                new SnapshotArtifact("mech-lab-spec-sheet-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                false, true, false, true)),
                 new SnapshotArtifact("boat-deck-wide.png",
                         renderBoatDeck(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
@@ -1051,23 +1061,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
 
-            UiViewport viewport = UiViewport.relative(
-                    0f, 0f, width, height, 1f,
-                    MarineOpsUiViewport.REFERENCE_WIDTH,
-                    MarineOpsUiViewport.REFERENCE_HEIGHT);
-            document.layout(viewport.documentWidth(), viewport.documentHeight());
             SpecSheetBinder binder = new SpecSheetBinder(
                     document, SpecSheetLayer.install(document));
             PolityDoctrineScreen.bindSpecSheets(binder, instance, props);
-
-            UiElement subject = instance.requireElement(
-                    PolityDoctrineScreen.firstSpecSheetAnchorId(props));
-            Rect box = subject.box().borderBox();
-            document.pointerMoved(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
-            binder.update();
-            document.advance(0f);
+            openSpecSheet(document, binder, width, height, instance.requireElement(
+                    PolityDoctrineScreen.firstSpecSheetAnchorId(props)));
             return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    /**
+     * Opens one screen's spec sheet the way the game does: lay the production
+     * document out at the photographed size, move the pointer to the subject's
+     * own centre, and let the binder answer (law 11). Every spec-sheet artifact
+     * goes through here, so the hit test, the placement and the copy are all
+     * exercised by the picture rather than staged for it.
+     */
+    private static void openSpecSheet(UiDocument document, SpecSheetBinder binder,
+                                      int width, int height, UiElement subject) {
+        UiViewport viewport = UiViewport.relative(
+                0f, 0f, width, height, 1f,
+                MarineOpsUiViewport.REFERENCE_WIDTH,
+                MarineOpsUiViewport.REFERENCE_HEIGHT);
+        document.layout(viewport.documentWidth(), viewport.documentHeight());
+        Rect box = subject.box().borderBox();
+        document.pointerMoved(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
+        binder.update();
+        document.advance(0f);
     }
 
     private static BufferedImage renderCompanyHq(
@@ -1419,12 +1439,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (MarkupInstance instance = loader.build(
                 reactor, fireteam ? "fleet-armory-fireteam" : "fleet-armory",
                 props(viewModel))) {
-            ArmoryEquipmentTooltips tooltips = ArmoryEquipmentTooltips.empty();
             if (fireteam) {
                 instance.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
-                tooltips = ArmoryEquipmentTooltips.bind(
-                        instance, viewModel.marineCards().get());
             }
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
@@ -1439,18 +1456,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
             }
             if (equipmentTooltip) {
-                UiViewport viewport = UiViewport.relative(
-                        0f, 0f, width, height, 1f,
-                        MarineOpsUiViewport.REFERENCE_WIDTH,
-                        MarineOpsUiViewport.REFERENCE_HEIGHT);
-                document.layout(viewport.documentWidth(), viewport.documentHeight());
-                UiElement target = instance.requireElement(
-                        viewModel.marineCards().get().get(0).systemId());
-                document.pointerMoved(
-                        target.box().borderBox().x() + target.box().borderBox().width() / 2f,
-                        target.box().borderBox().y() + target.box().borderBox().height() / 2f);
-                tooltips.update();
-                document.advance(0f);
+                SpecSheetBinder binder = new SpecSheetBinder(
+                        document, SpecSheetLayer.install(document));
+                ArmorySpecSheets.bindMarineCards(binder, instance, viewModel.marineCards());
+                openSpecSheet(document, binder, width, height,
+                        instance.requireElement(
+                                viewModel.marineCards().get().get(0).systemId()));
             }
             return renderRelative(renderer, document, width, height, 1f);
         }
@@ -1485,6 +1496,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderEquipmentDesigner(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderEquipmentDesigner(context, renderer, width, height, false);
+    }
+
+    /**
+     * @param specSheet hover the first billet's primary, so the picture shows
+     *                  the weapon being authored described in full
+     */
+    private static BufferedImage renderEquipmentDesigner(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean specSheet) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -1508,6 +1529,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 "designer-marine-preview:" + index),
                         new ArmoryMarinePreviewCanvas(
                                 () -> designer.viewerBilletAt(billet), armoryPreview.assets()));
+            }
+            if (specSheet) {
+                SpecSheetBinder binder = new SpecSheetBinder(
+                        document, SpecSheetLayer.install(document));
+                ArmorySpecSheets.bindBilletCards(binder, instance, designer.billets());
+                openSpecSheet(document, binder, width, height, instance.requireElement(
+                        designer.billets().get().get(0).primaryId()));
             }
             return renderRelative(renderer, document, width, height, 1f);
         }
@@ -1573,6 +1601,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale,
+                pickerOpen, selectHound, selectVacant, false);
+    }
+
+    /**
+     * @param specSheet hover the first catalog row's name, so the picture shows
+     *                  what that chassis or piece of hardware actually is
+     */
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant, boolean specSheet)
+            throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -1647,6 +1688,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 () -> viewModel.installedReplenisher(row.socketId()),
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
+            }
+            if (specSheet) {
+                SpecSheetBinder binder = new SpecSheetBinder(
+                        document, SpecSheetLayer.install(document));
+                List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
+                MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
+                openSpecSheet(document, binder, width, height, instance.requireElement(
+                        MechLabSpecSheets.firstSpecSheetAnchorId(rows)));
             }
             return renderRelative(renderer, document, width, height, uiScale);
         }

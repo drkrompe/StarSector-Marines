@@ -39,8 +39,10 @@ import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -896,21 +898,16 @@ public final class FleetArmoryViewModel {
                     id + ":armor-badge", id + ":name", id + ":role",
                     id + ":status", id + ":service", id + ":personnel",
                     id + ":primary", id + ":primary-faction-logo",
-                    id + ":primary-tooltip-faction-logo", id + ":primary-text",
-                    id + ":primary-tooltip-text", id + ":primary-description",
+                    id + ":primary-text",
                     id + ":weapon-detail", id + ":weapon-stats",
                     id + ":armor", id + ":armor-faction-logo",
-                    id + ":armor-tooltip-faction-logo", id + ":armor-text",
-                    id + ":armor-tooltip-text", id + ":armor-description",
+                    id + ":armor-text",
                     id + ":armor-detail",
                     id + ":armor-stats",
                     id + ":special", id + ":special-faction-logo",
-                    id + ":special-tooltip-faction-logo", id + ":special-text",
-                    id + ":special-tooltip-text",
-                    id + ":special-description",
+                    id + ":special-text",
                     id + ":system", id + ":system-faction-logo",
-                    id + ":system-tooltip-faction-logo", id + ":system-text",
-                    id + ":system-tooltip-text", id + ":system-description",
+                    id + ":system-text",
                     id + ":weapon-delta", id + ":armor-delta",
                     id + ":career", id + ":equipment", id + ":weapon-column",
                     id + ":armor-column",
@@ -924,26 +921,27 @@ public final class FleetArmoryViewModel {
                     billet != null ? "A " + tierMark(armorCatalog.tier()) : "A —",
                     billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
                             + billet.grade().displayName : "No primary",
-                    billet != null ? primary.catalogDescription : "",
                     primaryFactionLogo, equipmentFactionLogoClasses(primaryFactionLogo),
                     weaponStats(id, billet, soldier),
                     billet != null ? armorCatalog.displayName() + "  ·  Tier "
                             + tierMark(armorCatalog.tier()) : "No armor",
-                    armorStats(id, billet), armorDescription(armorCatalog),
+                    armorStats(id, billet),
                     armorFactionLogo, equipmentFactionLogoClasses(armorFactionLogo),
                     special != null ? special.displayName() : "No specialty equipment",
-                    special != null ? special.catalogDescription()
-                            : "This billet carries no specialty equipment beyond its primary weapon.",
                     specialFactionLogo, equipmentFactionLogoClasses(specialFactionLogo),
                     IntegralSystemCopy.summary(armorCatalog),
-                    IntegralSystemCopy.detail(armorCatalog),
                     systemFactionLogo, equipmentFactionLogoClasses(systemFactionLogo),
                     systemClasses(armorCatalog),
                     weaponDelta(billet, soldier, previewing),
                     armorDelta(billet, soldier, previewing),
                     previewing ? "marine-delta label tone-accent"
                             : "marine-delta label picker-closed-line",
-                    careerSummary(soldier)));
+                    careerSummary(soldier),
+                    billet != null ? SpecSheets.weapon(primary, billet.grade()) : null,
+                    armorCatalog != null ? SpecSheets.armor(armorCatalog) : null,
+                    special != null ? SpecSheets.special(special) : null,
+                    IntegralSystemCopy.carried(armorCatalog)
+                            ? SpecSheets.integralSystem(armorCatalog) : null));
         }
         return List.copyOf(marines);
     }
@@ -1424,10 +1422,6 @@ public final class FleetArmoryViewModel {
                 damage, range, accuracy, dps);
     }
 
-    private static String armorDescription(MarineArmorCatalogDef armor) {
-        return armor == null ? "" : armor.description();
-    }
-
     private static String equipmentFactionLogoClasses(String factionLogo) {
         return factionLogo == null || factionLogo.isBlank()
                 ? "equipment-faction-logo faction-logo-hidden"
@@ -1758,32 +1752,33 @@ public final class FleetArmoryViewModel {
             String badgesId, String classBadgeId, String weaponBadgeId,
             String armorBadgeId, String nameId, String roleId,
             String statusId, String serviceId, String personnelId, String primaryId,
-            String primaryFactionLogoId, String primaryTooltipFactionLogoId,
-            String primaryTextId, String primaryTooltipTextId, String primaryDescriptionId,
+            String primaryFactionLogoId,
+            String primaryTextId,
             String weaponDetailId, String weaponStatsId,
-            String armorId, String armorFactionLogoId, String armorTooltipFactionLogoId,
-            String armorTextId, String armorTooltipTextId, String armorDescriptionId,
+            String armorId, String armorFactionLogoId,
+            String armorTextId,
             String armorDetailId,
             String armorStatsId, String specialId, String specialFactionLogoId,
-            String specialTooltipFactionLogoId, String specialTextId,
-            String specialTooltipTextId, String specialDescriptionId,
-            String systemId, String systemFactionLogoId, String systemTooltipFactionLogoId,
-            String systemTextId, String systemTooltipTextId, String systemDescriptionId,
+            String specialTextId,
+            String systemId, String systemFactionLogoId,
+            String systemTextId,
             String weaponDeltaId, String armorDeltaId,
             String careerId, String equipmentId, String weaponColumnId,
             String armorColumnId, String classes, String statusClasses,
             String name, String role, String status, String service, String personnel,
             String unitClass, String weaponBadge, String armorBadge,
-            String primary, String primaryDescription, String primaryFactionLogo,
+            String primary, String primaryFactionLogo,
             String primaryFactionLogoClasses, List<StatMeter> weaponStats,
-            String armor, List<StatMeter> armorStats, String armorDescription,
+            String armor, List<StatMeter> armorStats,
             String armorFactionLogo, String armorFactionLogoClasses,
-            String special, String specialDescription, String specialFactionLogo,
+            String special, String specialFactionLogo,
             String specialFactionLogoClasses,
-            String system, String systemDescription, String systemFactionLogo,
+            String system, String systemFactionLogo,
             String systemFactionLogoClasses, String systemClasses,
             String weaponDelta, String armorDelta,
-            String deltaClasses, String career) implements MarkupPropertySource {
+            String deltaClasses, String career,
+            SpecSheet primarySheet, SpecSheet armorSheet, SpecSheet specialSheet,
+            SpecSheet systemSheet) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -1804,32 +1799,20 @@ public final class FleetArmoryViewModel {
                 case "personnelId" -> personnelId;
                 case "primaryId" -> primaryId;
                 case "primaryFactionLogoId" -> primaryFactionLogoId;
-                case "primaryTooltipFactionLogoId" -> primaryTooltipFactionLogoId;
                 case "primaryTextId" -> primaryTextId;
-                case "primaryTooltipTextId" -> primaryTooltipTextId;
-                case "primaryDescriptionId" -> primaryDescriptionId;
                 case "weaponDetailId" -> weaponDetailId;
                 case "weaponStatsId" -> weaponStatsId;
                 case "armorId" -> armorId;
                 case "armorFactionLogoId" -> armorFactionLogoId;
-                case "armorTooltipFactionLogoId" -> armorTooltipFactionLogoId;
                 case "armorTextId" -> armorTextId;
-                case "armorTooltipTextId" -> armorTooltipTextId;
-                case "armorDescriptionId" -> armorDescriptionId;
                 case "armorDetailId" -> armorDetailId;
                 case "armorStatsId" -> armorStatsId;
                 case "specialId" -> specialId;
                 case "specialFactionLogoId" -> specialFactionLogoId;
-                case "specialTooltipFactionLogoId" -> specialTooltipFactionLogoId;
                 case "specialTextId" -> specialTextId;
-                case "specialTooltipTextId" -> specialTooltipTextId;
-                case "specialDescriptionId" -> specialDescriptionId;
                 case "systemId" -> systemId;
                 case "systemFactionLogoId" -> systemFactionLogoId;
-                case "systemTooltipFactionLogoId" -> systemTooltipFactionLogoId;
                 case "systemTextId" -> systemTextId;
-                case "systemTooltipTextId" -> systemTooltipTextId;
-                case "systemDescriptionId" -> systemDescriptionId;
                 case "weaponDeltaId" -> weaponDeltaId;
                 case "armorDeltaId" -> armorDeltaId;
                 case "careerId" -> careerId;
@@ -1847,21 +1830,17 @@ public final class FleetArmoryViewModel {
                 case "weaponBadge" -> weaponBadge;
                 case "armorBadge" -> armorBadge;
                 case "primary" -> primary;
-                case "primaryDescription" -> primaryDescription;
                 case "primaryFactionLogo" -> primaryFactionLogo;
                 case "primaryFactionLogoClasses" -> primaryFactionLogoClasses;
                 case "weaponStats" -> weaponStats;
                 case "armor" -> armor;
                 case "armorStats" -> armorStats;
-                case "armorDescription" -> armorDescription;
                 case "armorFactionLogo" -> armorFactionLogo;
                 case "armorFactionLogoClasses" -> armorFactionLogoClasses;
                 case "special" -> special;
-                case "specialDescription" -> specialDescription;
                 case "specialFactionLogo" -> specialFactionLogo;
                 case "specialFactionLogoClasses" -> specialFactionLogoClasses;
                 case "system" -> system;
-                case "systemDescription" -> systemDescription;
                 case "systemFactionLogo" -> systemFactionLogo;
                 case "systemFactionLogoClasses" -> systemFactionLogoClasses;
                 case "systemClasses" -> systemClasses;

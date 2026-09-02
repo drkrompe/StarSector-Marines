@@ -9,11 +9,21 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +32,97 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class EquipmentDoctrineDesignerViewModelTest {
+
+    private static final List<String> COMPONENTS = List.of(
+            "mod/data/ui/components/marine-ops-page-nav.mlx",
+            "mod/data/ui/components/armory/fleet-armory-doctrine-designer.mlx");
+
+    /**
+     * The catalog items a billet is authored with — its primary and its
+     * specialty — are askable; the role and grade buttons beside them are not,
+     * because a role is not a thing in a catalog. Armour is not authored here at
+     * all, so it has no tile to bind.
+     *
+     * <p>The sheet is read through the live projection rather than captured, so
+     * cycling a billet's primary changes what the same element says.
+     */
+    @Test
+    void billetPrimaryAndSpecialtyAreAskableAndFollowThePicker() throws Exception {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        Reactor reactor = new Reactor();
+        EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
+                reactor, roster, roster.squads().get(0).id(),
+                SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "fleet-armory-doctrine-designer", designerProps(designer))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer);
+            ArmorySpecSheets.bindBilletCards(binder, instance, designer.billets());
+            document.layout(1744f, 938f);
+
+            EquipmentDoctrineDesignerViewModel.BilletCard first = designer.billets().get().get(0);
+            assertTrue(binder.isBound(instance.requireElement(first.primaryId())));
+            assertTrue(binder.isBound(instance.requireElement(first.specialId())));
+            assertFalse(binder.isBound(instance.requireElement(first.roleId())),
+                    "a billet role is not a catalog item");
+            assertFalse(binder.isBound(instance.requireElement(first.gradeId())),
+                    "an issue grade is not a catalog item");
+            assertEquals(2 * MarineSquad.TEAM_SIZE, binder.size());
+
+            UiElement primary = instance.requireElement(first.primaryId());
+            document.pointerMoved(
+                    primary.box().borderBox().x() + primary.box().borderBox().width() * 0.5f,
+                    primary.box().borderBox().y() + primary.box().borderBox().height() * 0.5f);
+            binder.update();
+            document.advance(0f);
+            String before = instance.requireElement(
+                    SpecSheetLayer.ELEMENT_ID + "-title").text();
+            assertEquals(first.primarySheet().title(), before);
+
+            first.cyclePrimary().run();
+            instance.flush();
+            binder.update();
+            document.advance(0f);
+            // The element never moved, so a captured sheet would still read the
+            // weapon that used to be issued here.
+            assertNotEquals(before, designer.billets().get().get(0).primarySheet().title());
+        }
+    }
+
+    private static Map<String, Object> designerProps(
+            EquipmentDoctrineDesignerViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("squadName", viewModel.squadName());
+        props.put("designerHeading", viewModel.heading());
+        props.put("designerSubheading", viewModel.subheading());
+        props.put("draftName", viewModel.draftName());
+        props.put("editName", viewModel.editName());
+        props.put("definitions", viewModel.definitions());
+        props.put("teamTabs", viewModel.teamTabs());
+        props.put("billets", viewModel.billets());
+        props.put("feedback", viewModel.feedback());
+        props.put("newDraft", viewModel.newDraft());
+        props.put("cloneSelected", viewModel.cloneSelected());
+        props.put("saveAsNew", viewModel.saveAsNew());
+        props.put("rename", viewModel.rename());
+        props.put("renameDisabled", viewModel.renameDisabled());
+        props.put("delete", viewModel.delete());
+        props.put("deleteDisabled", viewModel.deleteDisabled());
+        props.put("backToFireTeams", (Runnable) () -> { });
+        props.put("back", (Runnable) () -> { });
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                MarineOpsPageNav.ANY_SHIP,
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+        return props;
+    }
 
     @Test
     void specialPickerCyclesOnlyCollectedTemplateCards() {
