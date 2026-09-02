@@ -38,6 +38,16 @@ class PolityDefenceMissionFactoryTest {
         assertEquals("pirates", mission.defenderFactionOverride);
     }
 
+    /** The colony's own troops meet the landing beside the company. */
+    @Test
+    void theColonysOwnGarrisonStandsWithTheCompany() {
+        Mission mission = PolityDefenceMissionFactory.create(
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player");
+
+        assertEquals("player", mission.alliedGarrisonFactionId);
+        assertEquals("pirates", mission.defenderFactionOverride);
+    }
+
     @Test
     void tierRisesWithTheRaidsGroundStrength() {
         Mission small = PolityDefenceMissionFactory.create(

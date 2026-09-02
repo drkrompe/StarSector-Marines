@@ -41,7 +41,10 @@ public final class GarrisonDefenseMissionFactory {
                 .contractSalvageNegotiated(payload.salvageNegotiated)
                 // Without this the raiders wear the defended market's own roster:
                 // pirates landing on a Hegemony world arrive in Hegemony kit.
-                .defenderFactionOverride(payload.attackerFactionKey);
+                .defenderFactionOverride(payload.attackerFactionKey)
+                // The market being defended has troops of its own, and they are on
+                // the company's side. They wear the patron's authored doctrine.
+                .alliedGarrisonFactionId(factionId);
         // A vanilla raid states how many it is landing, so size the operation off that
         // rather than off the risk label. Every other trigger keeps the builder default.
         if (payload.triggerType == GarrisonDefenseTriggerType.VANILLA_RAID
