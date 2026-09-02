@@ -147,7 +147,24 @@ counter-pressure is vanilla's own colony economics, and later the MRB scrutiny
 - Whether the polity's doctrine choices should be its own surface or ride on
   vanilla's faction doctrine screen, which the mod cannot extend. Leaning: a
   small panel in the colony's Marine Ops dialog.
-- Whether ground production quality should read vanilla's
-  `PRODUCTION_QUALITY_MOD` directly, inheriting every ship-side modifier, or
-  reassemble the ground-relevant subset. Direct is simpler and drifts with
-  vanilla; the subset is truer and needs upkeep.
+
+## Settled
+
+- **Ground production quality reassembles the ground-relevant subset** rather
+  than inheriting vanilla's `PRODUCTION_QUALITY_MOD` whole: two industries and
+  two commodity deficits, read per player-owned market and taken at the best.
+  The ship-side modifier carries terms that have nothing to do with what a shed
+  can turn out for infantry, and the four facts are a value type the whole
+  ladder can be measured on without a sector.
+- **A release is written on `CampaignState`, and the Common band is never
+  written at all.** Every market sells the Common floor, so it is released by
+  construction; listing it in the save would put one fact in two places and let
+  a save disagree with the catalog after an authoring change. A released id the
+  catalog no longer knows is skipped on load — one template fewer, not a game
+  that will not load.
+- **The derived profile is installed by replacement.** The roster registry is
+  rebuilt from disk at application load, so it holds no derived profile until
+  the daily system or a game-load rebuild puts one there; the replace drops the
+  previous profile *and every faction claim it held*, so a faction a later
+  rebuild stops claiming falls back rather than pointing at a profile that is
+  gone. A faction an authored profile owns is still refused.

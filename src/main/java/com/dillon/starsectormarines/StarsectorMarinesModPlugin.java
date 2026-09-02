@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
@@ -18,6 +19,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
@@ -123,6 +125,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Before the roster: CampaignClock anchors its day counter on CampaignState, and
         // starter-captain creation stamps a day.
         ensureCampaignState();
+        rebuildPolityGroundRoster();
         ensureMarineRoster();
         repairEquipmentCollectionProgression();
         deliverPendingPatronEquipmentRewards();
@@ -211,6 +214,22 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         sector.getListenerManager().addListener(
                 new CaptainDiscoverySalvageListener(), true);
         LOG.info("Starsector Marines: captain discovery salvage listener registered");
+    }
+
+    /**
+     * The ground-roster registry is rebuilt from disk at application load, so it holds
+     * no derived polity profile until something puts one there. Without this a battle
+     * launched before the first daily tick would field the fallback roster on the
+     * player's own colony. See {@code polity-ground-doctrine.md}.
+     */
+    private static void rebuildPolityGroundRoster() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return;
+        GroundRosterProfile profile = PolityRosterSystem.rebuildNow(script.state());
+        if (profile != null) {
+            LOG.info("Starsector Marines: polity ground roster derived as '"
+                    + profile.id() + "'");
+        }
     }
 
     private static void deliverPendingPatronEquipmentRewards() {

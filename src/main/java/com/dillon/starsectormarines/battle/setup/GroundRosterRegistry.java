@@ -30,6 +30,10 @@ public final class GroundRosterRegistry {
     public static final List<String> BUILTIN_CATALOGS = List.of(
             "data/marines/faction-ground-rosters.roster.json");
 
+    /** Named in the collision message when a rebuilt profile clashes with an authored one. */
+    private static final CatalogSource DERIVED_SOURCE =
+            CatalogSource.unspecified("<derived at runtime>");
+
     private static volatile GroundRosterRegistry installed;
 
     private final Map<String, GroundRosterProfile> byId = new LinkedHashMap<>();
@@ -88,27 +92,66 @@ public final class GroundRosterRegistry {
 
         JSONArray profiles = root.getJSONArray("profiles");
         for (int i = 0; i < profiles.length(); i++) {
-            GroundRosterProfile profile = parseProfile(profiles.getJSONObject(i));
-            GroundRosterProfile previous = byId.get(profile.id());
-            if (previous != null) {
-                throw new JSONException("Duplicate ground-roster profile id '" + profile.id()
-                        + "': first declared by " + profileSourceById.get(profile.id()).describe()
-                        + ", then by " + source.describe());
-            }
-            byId.put(profile.id(), profile);
-            profileSourceById.put(profile.id(), source);
-            for (String factionId : profile.factionIds()) {
+            register(parseProfile(profiles.getJSONObject(i)), source);
+        }
+    }
+
+    /**
+     * Installs a profile that was computed rather than authored, replacing whatever
+     * stood under its id before.
+     *
+     * <p>A derived profile ({@code polity-ground-doctrine.md}) is rebuilt as the
+     * economy moves, so the same id and the same faction claim arrive again every
+     * rebuild — which the duplicate checks would refuse, correctly, for an authored
+     * catalog. This drops the previous profile <em>and every faction claim it held</em>
+     * first, so a rebuild replaces rather than collides, and a rebuild that has since
+     * dropped a faction does not leave that faction pointing at a profile no longer
+     * catalogued. Claims held by <em>other</em> profiles are still refused: the derived
+     * roster may not quietly take a faction an authored one owns.
+     *
+     * <p>It writes to this registry rather than installing a new one, because a rebuild
+     * changes one profile and must not disturb the authored catalog around it.
+     */
+    public void replaceDerived(GroundRosterProfile profile) {
+        if (profile == null) throw new IllegalArgumentException("A derived profile is required");
+        GroundRosterProfile previous = byId.remove(profile.id());
+        profileSourceById.remove(profile.id());
+        if (previous != null) {
+            for (String factionId : previous.factionIds()) {
                 String key = normalizeFactionId(factionId);
-                GroundRosterProfile priorFaction = byFactionId.get(key);
-                if (priorFaction != null) {
-                    throw new JSONException("Faction id '" + factionId
-                            + "' is assigned to both '" + priorFaction.id()
-                            + "' (" + factionSourceById.get(key).describe() + ") and '"
-                            + profile.id() + "' (" + source.describe() + ")");
-                }
-                byFactionId.put(key, profile);
-                factionSourceById.put(key, source);
+                if (byFactionId.get(key) != previous) continue;
+                byFactionId.remove(key);
+                factionSourceById.remove(key);
             }
+        }
+        try {
+            register(profile, DERIVED_SOURCE);
+        } catch (JSONException conflict) {
+            throw new IllegalStateException("Failed to install derived ground-roster profile '"
+                    + profile.id() + "'", conflict);
+        }
+    }
+
+    private void register(GroundRosterProfile profile, CatalogSource source) throws JSONException {
+        GroundRosterProfile previous = byId.get(profile.id());
+        if (previous != null) {
+            throw new JSONException("Duplicate ground-roster profile id '" + profile.id()
+                    + "': first declared by " + profileSourceById.get(profile.id()).describe()
+                    + ", then by " + source.describe());
+        }
+        byId.put(profile.id(), profile);
+        profileSourceById.put(profile.id(), source);
+        for (String factionId : profile.factionIds()) {
+            String key = normalizeFactionId(factionId);
+            GroundRosterProfile priorFaction = byFactionId.get(key);
+            if (priorFaction != null) {
+                throw new JSONException("Faction id '" + factionId
+                        + "' is assigned to both '" + priorFaction.id()
+                        + "' (" + factionSourceById.get(key).describe() + ") and '"
+                        + profile.id() + "' (" + source.describe() + ")");
+            }
+            byFactionId.put(key, profile);
+            factionSourceById.put(key, source);
         }
     }
 
@@ -119,10 +162,19 @@ public final class GroundRosterRegistry {
         }
     }
 
+    /** The bridge's one resolve path: a plain faction id in, one profile out. */
     public static GroundRosterProfile resolve(String factionId) {
-        GroundRosterRegistry registry = requireInstalled();
-        GroundRosterProfile exact = registry.byFactionId.get(normalizeFactionId(factionId));
-        return exact != null ? exact : registry.byId.get(registry.fallbackProfileId);
+        return requireInstalled().profileFor(factionId);
+    }
+
+    /**
+     * The same lookup against this registry rather than the installed one — what a
+     * caller holding a registry it built itself asks, and the seam that lets a test
+     * exercise a derived profile without installing one process-wide.
+     */
+    public GroundRosterProfile profileFor(String factionId) {
+        GroundRosterProfile exact = byFactionId.get(normalizeFactionId(factionId));
+        return exact != null ? exact : byId.get(fallbackProfileId);
     }
 
     /**
