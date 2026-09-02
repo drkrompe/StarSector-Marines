@@ -13,7 +13,7 @@ class GroundProductionQualityTest {
     void theLadderIsReadOffTheIndustryTheColonyHas() {
         assertEquals(GroundProductionQuality.NONE,
                 GroundProductionQuality.of(false, false, false, false));
-        assertEquals(GroundProductionQuality.BASIC,
+        assertEquals(GroundProductionQuality.ADVANCED,
                 GroundProductionQuality.of(true, false, false, false));
         assertEquals(GroundProductionQuality.ADVANCED_FULL,
                 GroundProductionQuality.of(false, true, false, false));
@@ -29,7 +29,7 @@ class GroundProductionQualityTest {
                 GroundProductionQuality.of(false, true, false, true));
         assertEquals(GroundProductionQuality.ADVANCED,
                 GroundProductionQuality.of(false, true, true, true));
-        assertEquals(GroundProductionQuality.NONE,
+        assertEquals(GroundProductionQuality.BASIC,
                 GroundProductionQuality.of(true, false, true, false));
     }
 
