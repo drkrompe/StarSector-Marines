@@ -144,7 +144,7 @@ class MechLabDollCanvasTest {
     }
 
     @Test
-    void houndArmGridShowsFourUsableCellsInsideTheCommonSixCellFrame() {
+    void houndArmGridShowsExactFourCellsWithoutGhostCells() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
         SocketDef arms = layout.socket(SocketId.ARMS);
         MechLabDollCanvas.SocketDropTarget target =
@@ -154,11 +154,23 @@ class MechLabDollCanvasTest {
         List<MechLabDollCanvas.CapacityCell> cells =
                 MechLabDollCanvas.capacityCells(target);
 
-        assertEquals(6, cells.size());
-        assertEquals(4, cells.stream().filter(
-                MechLabDollCanvas.CapacityCell::active).count());
-        assertFalse(cells.get(2).active());
-        assertFalse(cells.get(5).active());
+        assertEquals(4, cells.size());
+        assertTrue(cells.stream().allMatch(MechLabDollCanvas.CapacityCell::active));
+    }
+
+    @Test
+    void ammoReserveShowsExactTwoCells() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
+        SocketDef ammo = layout.socket(SocketId.AMMO_RESERVE);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), ammo,
+                        400f, 300f, 160f, 160f);
+
+        List<MechLabDollCanvas.CapacityCell> cells =
+                MechLabDollCanvas.capacityCells(target);
+
+        assertEquals(2, cells.size());
+        assertTrue(cells.stream().allMatch(MechLabDollCanvas.CapacityCell::active));
     }
 
     @Test

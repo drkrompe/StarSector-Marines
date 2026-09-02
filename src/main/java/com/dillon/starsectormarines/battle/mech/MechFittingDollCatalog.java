@@ -147,29 +147,29 @@ public final class MechFittingDollCatalog {
         // Hound (Light mech: 4 sockets)
         dolls.put(MechVariant.HOUND, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.CORE, 2, 2,
-                        0.0f, 0.02f, 0.0f, -1.45f, 1.70f, 0.68f, true, "ENGINE CORE"),
+                        0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, true, "ENGINE CORE"),
                 new SocketDef(SocketId.ARMS, SocketType.BALLISTIC, 2, 2,
-                        0.0f, 0.66f, 0.0f, 1.45f, 2.00f, 0.68f, false, "NOSE MOUNT"),
+                        0.0f, 0.24f, 0.0f, 1.45f, 1.36f, 0.68f, false, "NOSE MOUNT"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 2,
-                        -0.62f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false, "SHOULDER"),
+                        0.0f, -0.16f, -1.34f, -0.46f, 1.36f, 0.68f, false, "SHOULDER"),
                 new SocketDef(SocketId.AMMO_RESERVE, SocketType.AMMO, 2, 1,
-                        0.0f, -0.54f, -1.34f, 0.68f, 1.64f, 0.68f, true, "AMMO RESERVE")
+                        0.0f, -0.26f, -1.34f, 0.68f, 1.36f, 0.38f, true, "AMMO RESERVE")
         )));
 
         // Sirocco (6 sockets)
         dolls.put(MechVariant.SIROCCO, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.CORE, 2, 2,
-                        0.0f, 0.02f, 0.0f, -1.45f, 1.70f, 0.68f, true, "ENGINE CORE"),
+                        0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, true, "ENGINE CORE"),
                 new SocketDef(SocketId.ARMS, SocketType.BALLISTIC, 3, 2,
-                        0.0f, 0.72f, 0.0f, 1.45f, 2.08f, 0.68f, false, "NOSE CANNON"),
+                        0.0f, 0.26f, 0.0f, 1.45f, 1.70f, 0.68f, false, "NOSE CANNON"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3, 2,
-                        -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false, "L. SHOULDER"),
+                        -0.36f, -0.15f, -1.34f, -0.46f, 1.36f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 3, 2,
-                        0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false, "R. SHOULDER"),
+                        0.36f, -0.15f, 1.34f, -0.46f, 1.36f, 0.68f, false, "R. SHOULDER"),
                 new SocketDef(SocketId.AMMO_RESERVE, SocketType.AMMO, 2, 2,
-                        0.0f, -0.55f, -1.34f, 0.68f, 1.64f, 0.68f, true, "AMMO RESERVE"),
+                        0.0f, -0.26f, -1.34f, 0.68f, 1.36f, 0.68f, true, "AMMO RESERVE"),
                 new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
-                        0.0f, -0.86f, 1.34f, 0.68f, 1.36f, 0.68f, false, "MINI-FAB")
+                        0.0f, -0.36f, 1.34f, 0.68f, 0.80f, 0.44f, false, "MINI-FAB")
         )));
 
         // Bulwark (6 sockets)
@@ -177,15 +177,15 @@ public final class MechFittingDollCatalog {
                 new SocketDef(SocketId.CORE, SocketType.CORE, 2, 2,
                         0.0f, 0.03f, 0.0f, -1.50f, 1.70f, 0.68f, true, "ENGINE CORE"),
                 new SocketDef(SocketId.ARMS, SocketType.OMNI, 3, 2,
-                        0.0f, 0.72f, 0.0f, 1.50f, 2.20f, 0.68f, false, "ARM ASSEMBLY"),
+                        0.0f, 0.22f, 0.0f, 1.50f, 1.70f, 0.68f, false, "ARM ASSEMBLY"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3, 2,
-                        -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false, "L. SHOULDER"),
+                        -0.36f, -0.12f, -1.38f, -0.48f, 1.40f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 3, 2,
-                        0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false, "R. SHOULDER"),
+                        0.36f, -0.12f, 1.38f, -0.48f, 1.40f, 0.68f, false, "R. SHOULDER"),
                 new SocketDef(SocketId.AMMO_RESERVE, SocketType.AMMO, 3, 1,
-                        0.0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, true, "AMMO RESERVE"),
+                        0.0f, -0.26f, -1.38f, 0.72f, 1.40f, 0.38f, true, "AMMO RESERVE"),
                 new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY, 1, 1,
-                        0.0f, -0.92f, 1.38f, 0.72f, 1.40f, 0.68f, false, "MINI-FAB")
+                        0.0f, -0.36f, 1.38f, 0.72f, 0.80f, 0.44f, false, "MINI-FAB")
         )));
 
         return new MechFittingDollCatalog(dolls);

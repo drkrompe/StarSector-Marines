@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -389,7 +390,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float sin = (float) Math.sin(radians);
         List<SocketDropTarget> targets = resolveExplodedDropTargets(layout.sockets(),
                 projection.actorX(), projection.actorY(), projection.hullX(), projection.hullY(),
-                canvasWidth, canvasHeight, cos, sin);
+                canvasWidth, canvasHeight, cos, sin,
+                deployment, deployment != null ? deployment.variant() : null);
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
             boolean occupied = occupied(deployment, socket.id());
@@ -686,13 +688,23 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float canvasWidth, float canvasHeight) {
         float radians = (float) Math.toRadians(doll.facingDegrees());
         return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
-                canvasWidth, canvasHeight, (float) Math.cos(radians), (float) Math.sin(radians));
+                canvasWidth, canvasHeight, (float) Math.cos(radians), (float) Math.sin(radians),
+                null, null);
     }
 
     static List<SocketDropTarget> resolveExplodedDropTargets(
             List<SocketDef> sockets,
             float actorX, float actorY, float hullWidth, float hullHeight,
             float canvasWidth, float canvasHeight, float cos, float sin) {
+        return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
+                canvasWidth, canvasHeight, cos, sin, null, null);
+    }
+
+    static List<SocketDropTarget> resolveExplodedDropTargets(
+            List<SocketDef> sockets,
+            float actorX, float actorY, float hullWidth, float hullHeight,
+            float canvasWidth, float canvasHeight, float cos, float sin,
+            MechDeploymentSpec deployment, MechVariant variant) {
         if (sockets.isEmpty()) return List.of();
 
         final class ResolvedDock {
@@ -706,8 +718,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
             ResolvedDock(SocketDef socket) {
                 this.socket = socket;
-                float anchorLocalX = socket.anchorRight() * hullWidth;
-                float anchorLocalY = socket.anchorForward() * hullHeight;
+                float[] anchor = socketAnchor(socket, deployment, variant);
+                float anchorLocalX = anchor[0] * hullWidth;
+                float anchorLocalY = anchor[1] * hullHeight;
                 float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
                 float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
                 this.anchorX = actorX + anchorWorldX;
@@ -818,22 +831,47 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return targets;
     }
 
+    static float[] socketAnchor(SocketDef socket, MechDeploymentSpec deployment, MechVariant variant) {
+        if (deployment != null && variant != null) {
+            MechWeaponComponent weapon = weaponAt(deployment, socket.id());
+            if (weapon != null) {
+                if (socket.id() == SocketId.ARMS) {
+                    if (variant.chassisAppearance == LayeredMechAppearance.CHASSIS_HOUND) {
+                        return new float[]{0f, 0.24f};
+                    } else if (variant.chassisAppearance == LayeredMechAppearance.CHASSIS_SIROCCO) {
+                        return new float[]{0f, 0.26f};
+                    } else {
+                        return new float[]{0f, 0.22f};
+                    }
+                } else if (socket.id() == SocketId.LEFT_SHOULDER || socket.id() == SocketId.RIGHT_SHOULDER) {
+                    int leftApp = appearance(deployment.leftShoulder());
+                    int rightApp = appearance(deployment.rightShoulder());
+                    boolean isLeft = socket.id() == SocketId.LEFT_SHOULDER;
+                    var pt = MechHardpointGeometry.podMuzzle(variant.chassisAppearance,
+                            leftApp, rightApp, isLeft, weapon.appearanceSelector);
+                    return new float[]{pt.xHullWidths(), pt.yHullWidths() - 0.10f};
+                }
+            }
+        }
+        return new float[]{socket.anchorRight(), socket.anchorForward()};
+    }
+
     static List<CapacityCell> capacityCells(SocketDropTarget target) {
+        int cols = Math.max(1, target.gridColumns());
+        int rows = Math.max(1, target.gridRows());
         float availableWidth = target.width() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (MechFittingLayout.MAX_GRID_COLUMNS - 1);
+                - CAPACITY_GAP * (cols - 1);
         float availableHeight = target.height() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (MechFittingLayout.MAX_GRID_ROWS - 1);
-        float cellWidth = availableWidth / MechFittingLayout.MAX_GRID_COLUMNS;
-        float cellHeight = availableHeight / MechFittingLayout.MAX_GRID_ROWS;
+                - CAPACITY_GAP * (rows - 1);
+        float cellWidth = availableWidth / cols;
+        float cellHeight = availableHeight / rows;
         float x = target.left() + CAPACITY_INSET;
         float y = target.top() + CAPACITY_INSET;
-        List<CapacityCell> cells = new ArrayList<>(
-                MechFittingLayout.MAX_GRID_COLUMNS * MechFittingLayout.MAX_GRID_ROWS);
+        List<CapacityCell> cells = new ArrayList<>(cols * rows);
         int index = 0;
-        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
-            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
-                cells.add(new CapacityCell(index++, column, row,
-                        column < target.gridColumns() && row < target.gridRows(),
+        for (int row = 0; row < rows; row++) {
+            for (int column = 0; column < cols; column++) {
+                cells.add(new CapacityCell(index++, column, row, true,
                         x + column * (cellWidth + CAPACITY_GAP),
                         y + row * (cellHeight + CAPACITY_GAP), cellWidth, cellHeight));
             }
@@ -845,20 +883,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                           Color base, boolean selected,
                                           int occupiedColumns, int occupiedRows) {
         for (CapacityCell cell : capacityCells(target)) {
-            boolean filled = cell.active() && cell.column() < occupiedColumns
-                    && cell.row() < occupiedRows;
+            boolean filled = cell.column() < occupiedColumns && cell.row() < occupiedRows;
             c.fillRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    cell.active() ? withAlpha(base, filled ? selected ? 220 : 135 : 32)
-                            : new Color(0x18, 0x1E, 0x24, 215));
+                    withAlpha(base, filled ? (selected ? 220 : 135) : 32));
             c.strokeRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    cell.active() ? withAlpha(base, selected ? 240 : 180)
-                            : new Color(0x4B, 0x53, 0x5A, 190), 1f);
-            if (!cell.active()) {
-                c.line(cell.x() + 2f, cell.y() + 2f,
-                        cell.x() + cell.width() - 2f,
-                        cell.y() + cell.height() - 2f,
-                        new Color(0x5A, 0x61, 0x68, 180), 1f);
-            }
+                    withAlpha(base, selected ? 240 : 180), 1f);
         }
     }
 
