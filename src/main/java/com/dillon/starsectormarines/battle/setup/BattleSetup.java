@@ -483,18 +483,22 @@ public final class BattleSetup {
         return manifest;
     }
 
-    /** Drops a yellow-striped landing-pad doodad under each LZ cell so the touchdown reads as a deliberate landing on a marked pad. Lives on the road sheet, drawn between floor and units. */
+    /**
+     * Drops a yellow-striped landing-pad doodad under each LZ cell so the
+     * touchdown reads as a deliberate landing on a marked pad. Lives on the
+     * road sheet, drawn between floor and units.
+     *
+     * <p>Also tells the simulation which berths these were. The doodad is a
+     * single cell of scenery and says nothing about the footprint or the
+     * arrival order, and every other trace of the map's geometry is dropped
+     * once setup finishes, so an offline review would otherwise have to
+     * re-derive the landing ground from the generator.
+     */
     private static void stampLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
         for (LandingPad lz : lzCells) {
             sim.addDoodad(new Doodad(lz.centerX, lz.centerY, TileManifest.lzPad(), true, Doodad.COVER_NONE));
         }
-    }
-
-    /** Conquest keeps its beachhead-cell picker rather than consuming civilian berths. */
-    private static void stampLzCellMarkers(BattleSimulation sim, List<int[]> lzCells) {
-        for (int[] lz : lzCells) {
-            sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.lzPad(), true, Doodad.COVER_NONE));
-        }
+        sim.setMarineLandingPads(lzCells);
     }
 
     /** Dedicated Raid factory; target seizure and egress replace elimination. */
@@ -1463,10 +1467,9 @@ public final class BattleSetup {
 
         List<ConquestArrivalSlot> arrivalSlots = conquestArrivalSlots(
                 map, assignments, axis, rng, resolvedArrivalPlan);
-        List<int[]> lzCells = arrivalSlots.stream()
-                .map(slot -> new int[]{slot.pad().centerX, slot.pad().centerY})
-                .toList();
-        stampLzCellMarkers(sim, lzCells);
+        stampLzPads(sim, arrivalSlots.stream()
+                .map(ConquestArrivalSlot::pad)
+                .toList());
         for (int i = 0; i < arrivalSlots.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
             ConquestArrivalSlot slot = arrivalSlots.get(i);

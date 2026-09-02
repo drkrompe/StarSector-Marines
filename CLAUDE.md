@@ -147,7 +147,13 @@ Do not run builds or leave generated task files there.
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
-  cyan marine, red defender, and yellow civilian markers for whole-map review. Optional
+  cyan marine, red defender, and yellow civilian markers for whole-map review.
+  They are also **annotated**: every compound is boxed and labelled with what
+  it is and who holds it (the command post reads `KEEP`, in its own colour),
+  the ground the marines came ashore on is boxed and reads `LZ`, and an arrow
+  runs from the beachhead to the keep. Without them a whole-map Conquest frame
+  is a picture of a city in which nothing says which grey rectangle is the
+  headquarters. `-PsnapshotAnnotations=false` renders the bare scene. Optional
   `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat simDeterminism` → replays the Conquest matrix twice for a bounded

@@ -77,12 +77,26 @@ public final class BattleReviewFrameRenderer {
 
     /** One captioned frame of {@code simulation} as it stands right now. */
     public BufferedImage render(BattleSimulation simulation, String caption) throws IOException {
+        return render(simulation, caption, ReviewAnnotations.NONE);
+    }
+
+    /**
+     * The same frame with {@code annotations} drawn over it — the marks that
+     * say where a place is and what it is for, which no amount of looking at
+     * the ground itself will tell a reader.
+     *
+     * <p>Drawn after the unit markers, so a box never hides a body, and before
+     * the caption band, so the band stays the one thing nothing overlaps.
+     */
+    public BufferedImage render(BattleSimulation simulation, String caption,
+                                ReviewAnnotations annotations) throws IOException {
         BufferedImage image = renderer.renderHostPass(pass(simulation), width, height);
-        annotate(image, simulation, caption);
+        annotate(image, simulation, caption, annotations);
         return image;
     }
 
-    private void annotate(BufferedImage image, BattleSimulation simulation, String caption) {
+    private void annotate(BufferedImage image, BattleSimulation simulation,
+                          String caption, ReviewAnnotations annotations) {
         Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
@@ -91,6 +105,9 @@ public final class BattleReviewFrameRenderer {
         drawWreckMarkers(graphics, simulation);
         drawUnitMarkers(graphics, simulation);
         drawOrdnanceMarkers(graphics, simulation);
+        ReviewAnnotationPainter.paint(graphics,
+                cameraFor(image.getWidth(), image.getHeight(), simulation),
+                image.getWidth(), image.getHeight(), annotations);
         graphics.setColor(new Color(0, 0, 0, 205));
         graphics.fillRect(0, 0, image.getWidth(), HEADER_HEIGHT);
         graphics.setColor(Color.WHITE);
@@ -226,8 +243,17 @@ public final class BattleReviewFrameRenderer {
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
     private static BattleCamera cameraFor(float viewportWidth, float viewportHeight,
                                           BattleSimulation simulation) {
-        int gridWidth = simulation.getGrid().getWidth();
-        int gridHeight = simulation.getGrid().getHeight();
+        return cameraFor(viewportWidth, viewportHeight,
+                simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
+    }
+
+    /**
+     * The same fit for a grid of a stated size. Separated so a test can build
+     * the camera an annotation will be projected through without standing up a
+     * battle to hold the grid.
+     */
+    static BattleCamera cameraFor(float viewportWidth, float viewportHeight,
+                                  int gridWidth, int gridHeight) {
         float mapHeight = viewportHeight - HEADER_HEIGHT;
         float cellPx = Math.min(viewportWidth / gridWidth, mapHeight / gridHeight);
         BattleCamera camera = new BattleCamera(gridWidth, gridHeight);

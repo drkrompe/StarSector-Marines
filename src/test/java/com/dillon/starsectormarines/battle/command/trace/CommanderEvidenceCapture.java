@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.ops.battleview.BattleReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.tools.snapshot.AnimatedGifWriter;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -28,6 +30,14 @@ final class CommanderEvidenceCapture implements AutoCloseable {
             "commander.evidence.snapshot.width";
     static final String HEIGHT_PROPERTY =
             "commander.evidence.snapshot.height";
+    /**
+     * Whether a frame carries the compound boxes, landing zones and approach
+     * arrow. On by default: a whole-map frame of a Conquest is a picture of a
+     * city, and without the marks nothing in it says which grey rectangle is
+     * the keep. {@code false} for the bare scene.
+     */
+    static final String ANNOTATIONS_PROPERTY =
+            "commander.evidence.snapshot.annotations";
 
     private static final int DEFAULT_FRAME_DELAY_MILLIS = 125;
     private static final int DEFAULT_WIDTH = 960;
@@ -39,6 +49,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private final int frameDelayMillis;
     private final int width;
     private final int height;
+    private final boolean annotated;
     private final Path output;
     private final Path frames;
     private final AnimatedGifWriter gif;
@@ -68,7 +79,8 @@ final class CommanderEvidenceCapture implements AutoCloseable {
                 boundedProperty(FRAME_DELAY_PROPERTY,
                         DEFAULT_FRAME_DELAY_MILLIS, 10, 60_000),
                 boundedProperty(WIDTH_PROPERTY, DEFAULT_WIDTH, 160, 4_096),
-                boundedProperty(HEIGHT_PROPERTY, DEFAULT_HEIGHT, 120, 4_096));
+                boundedProperty(HEIGHT_PROPERTY, DEFAULT_HEIGHT, 120, 4_096),
+                booleanProperty(ANNOTATIONS_PROPERTY, true));
     }
 
     private CommanderEvidenceCapture() {
@@ -78,6 +90,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         frameDelayMillis = 0;
         width = 0;
         height = 0;
+        annotated = false;
         output = null;
         frames = null;
         gif = null;
@@ -86,7 +99,8 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private CommanderEvidenceCapture(Path reportRoot, String fixtureId,
                                      BattleSimulation simulation,
                                      int cadenceTicks, int frameDelayMillis,
-                                     int width, int height) throws IOException {
+                                     int width, int height,
+                                     boolean annotated) throws IOException {
         if (simulation == null) {
             throw new IllegalArgumentException("simulation is required");
         }
@@ -96,6 +110,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         this.frameDelayMillis = frameDelayMillis;
         this.width = width;
         this.height = height;
+        this.annotated = annotated;
         output = outputPath(reportRoot, this.fixtureId);
         deleteTree(output);
         frames = output.resolve("frames");
@@ -117,7 +132,9 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private void capture() throws IOException {
         int tick = simulation.getSimTickIndex();
         if (tick == lastTick) return;
-        BufferedImage image = frames().render(simulation, caption(tick));
+        BufferedImage image = frames().render(simulation, caption(tick),
+                annotated ? BattleReviewAnnotations.forBattle(simulation)
+                        : ReviewAnnotations.NONE);
         String filename = String.format(Locale.ROOT,
                 "frame-%04d-tick-%06d.png", captured.size(), tick);
         Path frame = frames.resolve(filename);
@@ -197,6 +214,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
                     .put("frameCount", captured.size())
                     .put("terminalTick", simulation.getSimTickIndex())
                     .put("neutralUnitMarkers", true)
+                    .put("annotations", annotated)
                     .put("omittedCommandKinds", new JSONArray()
                             .put("CUSTOM")
                             .put("RIBBON"))
@@ -217,6 +235,11 @@ final class CommanderEvidenceCapture implements AutoCloseable {
                     + minimum + " and " + maximum);
         }
         return value;
+    }
+
+    private static boolean booleanProperty(String name, boolean fallback) {
+        String configured = System.getProperty(name, "").trim();
+        return configured.isBlank() ? fallback : Boolean.parseBoolean(configured);
     }
 
     private static int integerProperty(String name, int fallback) {
