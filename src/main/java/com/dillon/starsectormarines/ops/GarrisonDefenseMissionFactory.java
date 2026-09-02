@@ -21,7 +21,7 @@ public final class GarrisonDefenseMissionFactory {
         String flavor = "The stationed Garrison is already under attack. Defend the market "
                 + "with the assigned captain and " + payload.committedMarines
                 + " committed marines.";
-        return Mission.builder()
+        Mission.Builder builder = Mission.builder()
                 .id(GarrisonDefenseMissionKey.encode(payload))
                 .name(title)
                 .type(MissionType.ASSAULT)
@@ -41,8 +41,14 @@ public final class GarrisonDefenseMissionFactory {
                 .contractSalvageNegotiated(payload.salvageNegotiated)
                 // Without this the raiders wear the defended market's own roster:
                 // pirates landing on a Hegemony world arrive in Hegemony kit.
-                .defenderFactionOverride(payload.attackerFactionKey)
-                .build();
+                .defenderFactionOverride(payload.attackerFactionKey);
+        // A vanilla raid states how many it is landing, so size the operation off that
+        // rather than off the risk label. Every other trigger keeps the builder default.
+        if (payload.triggerType == GarrisonDefenseTriggerType.VANILLA_RAID
+                && payload.attackerStrength > 0f) {
+            builder.tier(OperationTierForStrength.forGroundStrength(payload.attackerStrength));
+        }
+        return builder.build();
     }
 
     private static String title(GarrisonDefenseTriggerType type) {

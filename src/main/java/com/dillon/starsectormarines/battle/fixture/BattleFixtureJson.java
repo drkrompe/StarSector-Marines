@@ -79,6 +79,7 @@ public final class BattleFixtureJson {
             root.put("arrivalPlan", arrivalPlanToJson(conquest.arrivalPlan()));
             putSprawl(root, conquest.sprawl());
             putStandoff(root, conquest.standoff());
+            putLanes(root, conquest.lanes());
             return root;
         }
         if (fixture instanceof SabotageBattleFixture sabotage) {
@@ -250,7 +251,8 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
                 arrivalPlanFromJson(root.getJSONObject("arrivalPlan")),
                 sprawlFromJson(root),
-                standoffFromJson(root));
+                standoffFromJson(root),
+                lanesFromJson(root));
     }
 
     private static SabotageBattleFixture decodeSabotage(
@@ -634,6 +636,27 @@ public final class BattleFixtureJson {
     private static void putStandoff(JSONObject root, Standoff standoff)
             throws Exception {
         if (standoff != null) root.put("standoff", standoff.name());
+    }
+
+    /**
+     * Writes how many lanes of resistance the battle lays, and nothing at all
+     * when it has no opinion. Same rule as {@link #putSprawl}: absent is the
+     * derived case, so a fixture written before lanes existed still gets one
+     * per command track rather than none.
+     */
+    private static void putLanes(JSONObject root, Integer lanes) throws Exception {
+        if (lanes != null) root.put("lanes", lanes.intValue());
+    }
+
+    /** The document's stated lane count, or null for one per command track. */
+    private static Integer lanesFromJson(JSONObject root) throws Exception {
+        if (!root.has("lanes") || root.isNull("lanes")) return null;
+        int lanes = root.getInt("lanes");
+        if (lanes < 0) {
+            throw new IllegalArgumentException("a battle cannot lay " + lanes + " lanes");
+        }
+        // Zero is the stated control: a Conquest with nothing on its tracks.
+        return lanes;
     }
 
     /** The document's stated standoff, or null for the mission type's default. */

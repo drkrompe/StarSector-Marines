@@ -9,7 +9,11 @@ Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-09-01 — Conquest generates as places at 560x336; the front is a
+Updated: 2026-09-02 — each Conquest command track now carries a lane
+with a ladder of garrison places on it, so the ground between the beachhead and
+the fortress holds compounds a track has to take.
+
+Earlier 2026-09-01 — Conquest generates as places at 560x336; the front is a
 depth from the objective rather than a biome; a mission states its sprawl and
 how far from the objective its force lands.
 
@@ -605,6 +609,146 @@ separates the three only on cost: marine losses fall monotonically as the
 landing moves in (368 / 279 / 265), and the retarget churn that made it stand
 out — 1272 against reinforced-south's 554 — falls to 418 and 298. Eight
 battle-minutes of walking was most of what that fixture was measuring.
+
+## And what stands between the two
+
+A placement says where the two sides start and a standoff says how far apart
+they are; neither says anything about the ground in between, and on the 560x336
+Conquest map that ground was empty city. One walled garrison at the far end of
+the axis, with the keep, the barracks, the armouries and the airbase inside one
+wall; one settlement installation out in the town; and three marine tracks
+advancing up open streets to arrive at the same gate together. Every compound
+the capture rule counts stood inside the objective's own claim.
+
+**A lane is the map's side of a track.** One per track, a ribbon along the
+traversal axis from the attacker's region to the objective's claim. It is the
+third thing a Conquest states about its map, after where the objective goes and
+how far out its force lands: `Lanes`, whose count defaults to the commanders'
+own `ConquestTrackLayout.DEFAULT_TRACK_COUNT`, so the map and the command layer
+agree by construction rather than by two numbers somebody keeps in step. Lanes
+are Conquest vocabulary; Assault and Raid state none and generate exactly as
+they did.
+
+**Resistance is a ladder of places along each lane.** Every rung is a garrison
+precinct in the full sense this doc gives the objective — it claims
+programmed-first with the objective, its boundary and its guns come from its own
+`Fortification`, its rooms become tactical nodes, its stores become points of
+interest, and it registers as a compound. Nothing in the battle layer had to
+learn a new noun: the same capture rule takes a lane place and the same victory
+law counts it. The grind is the compound ladder, and there are now compounds
+between the beachhead and the wall.
+
+**Two programs beside the garrison.** An *outpost* is a pair of guard posts, a
+barrack block and a store: one compound, something a squad holds and a company
+clears. A *strongpoint* is a gatehouse, three guard posts, two barrack blocks
+and an armoury: three compounds, something a track has to stop for. Neither
+packs a keep, so the one-keep law is untouched, and neither owes an airfield.
+`FortressProgram.fittedTo` trims them to the ground they are given the way it
+trims the garrison. **It is the keep that is unique on a map, not the programmed
+precinct** — a Conquest plan now carries ten of those and exactly one
+`KEEP_THRONE`, which is the invariant worth asserting.
+
+**The ladder is derived from the fact the objective's own fortification is
+derived from, and stated the same way when a mission wants to say it.**
+`LaneResistance.derive` steps down from the objective's resolved rung going
+outward: the rung abutting the claim is a strongpoint one below the objective,
+the next an outpost two below, the outermost an outpost at `PICKET`. Nothing on
+a lane is harder than the thing the lane leads to, and nothing is softer than a
+picket — `Strength.nudged` floors there, and a rung below a picket is an empty
+field rather than a cheap one. A mission may state a ladder per lane instead: a
+lane left at pickets is a feint, a lane of strongpoints is the grind. That is
+the same authored-wins shape `Fortification` and `PrecinctCharacter` already
+have, for the same reason — the derivation is a default for a mission nobody has
+thought about.
+
+**A rung's band is which rung it is, not where it lands.** The ladder counts in
+from the attacker, and it is tempting to read those numbers as `FrontDepth`
+bands, since both count outward from the objective's claim. They are not the
+same thing and cannot be made so. A front band is a *ring* around the claim and
+a lane is a *ribbon* along the axis; the rings are cut out to the map's furthest
+cell, so at 560x336 they are ninety-odd cells deep, and at Conquest's default
+`CLOSE` standoff **the beachhead is itself in band 2**. Front band 3 is the
+ground behind the marines. A rung placed there would stand at their backs, and
+on `full-strength-west` it is not even geometrically available in front of the
+landing. So the ladder is placed by fraction along its lane and the front band it
+turns out to occupy is a fact about the finished map: measured on the canonical
+fixtures, the nine rungs come out as five compounds in band 1 and ten in band 2
+on `reinforced-south`, and twelve to three on `full-strength-west`. That is
+resistance in depth. Front band 3 holds nothing, and should not.
+
+**Placement follows the tracks, before growth.** Lane places are seeded after
+the objective and before the settlement, so the town grows around them — a
+strongpoint stands in the streets, an outpost in the fields. Lane *k*'s
+centreline is the lateral centre of track *k*, and its rungs sit at fractions
+0.30, 0.55 and 0.80 of the way from the attacker placement's centre to the
+objective precinct's own seed, jittered laterally inside the track's span. The
+plan's margin and its separation from the fortress and the town are respected;
+**a lane's own rungs keep a smaller separation among themselves** — 32 cells
+against the plan's 60 at this scale — because consecutive rungs are fifty to
+ninety cells apart and a rung's claim is a dozen cells across. The plan's figure
+is about keeping whole districts off each other, and applied within a lane it
+would refuse the ladder it was asked for. A rung that finds no room after its
+bounded attempts is dropped and named under `BspKeys.UNPLACED_LANE_PLACES`, on
+the same law as the unbuilt program and the unplaced defences: what could not be
+placed is evidence, never a crash. At 560x336 nothing is dropped; at
+`MapScale.SMALL` most of the ladder is, and the plan says which rungs.
+
+**The thirds arithmetic is duplicated, deliberately.** `LaneGeometry` computes a
+lane's lateral span the way `ConquestTrackLayout` computes a track's, and
+`LaneTrackAgreementTest` pins the two together cell for cell on both axes.
+Sharing the class would make the map generator depend on `battle.command`, which
+is the wrong direction — the command layer reads the map, never the reverse —
+and the arithmetic is four lines. A test is the cheaper coupling.
+
+**Roads make the ribbon, and nothing new was owed.** Interconnect already joins
+every precinct to the network and an artery already aims at the objective's
+side, so a lane reads as a route through its places rather than as three
+islands.
+
+**Measured at full length on the two canonical fixtures, against the same
+fixture with no lanes on it.** The control is the map this feature replaced, and
+it reproduces the `CLOSE` row of the standoff table above to the tick — same
+result, same first contact, same captures, same losses — so the two tables can
+be read together and nothing else that landed in between is in the difference.
+
+| fixture | lanes | result | ticks | first contested | first held | compounds | captures | held | marine losses | defender losses |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| reinforced-south | none | MARINE | 13680 | 5610 | 5730 | 11 | 11 | 11 | 95 | 393 |
+| reinforced-south | 3 | timeout | 18000 | 4410 | 4530 | 23 | 19 | 18 | 203 | 417 |
+| full-strength-west | none | timeout | 18000 | 15570 | never | 12 | 0 | 0 | 265 | 159 |
+| full-strength-west | 3 | timeout | 18000 | 2820 | 2940 | 24 | 7 | 6 | 278 | 498 |
+
+**The fixture that could not be fought is now a battle.** `full-strength-west`
+went fifteen thousand ticks — eight battle-minutes — before anything was
+contested, and ended having taken nothing at all. It is contested at 2,820 and
+holds its first compound at 2,940, and ends holding six. Every one of the six is
+a lane place: three in front band 2 by tick 7,650, three in band 1 between
+13,230 and 17,070, and the fortress untouched. Thirty-four squads get as far as
+the ladder, which is a great deal further than the gate they never reached.
+
+**The fixture that could be won is no longer won inside the clock, and that is
+arithmetic rather than a regression.** Conquest requires every compound to flip.
+`reinforced-south` had eleven and took all eleven by 13,680; it now has
+twenty-three and takes eighteen by 18,000 — more compounds taken, more defenders
+killed, and the clock reached with five left. First contact moves in twelve
+hundred ticks and the first compound falls twelve hundred earlier. Casualties
+roughly double, 95 to 203, which is the price of an approach somebody is holding:
+the control's marines walk most of the map unopposed.
+
+**Captures spread across the battle instead of clustering at the wall**, which is
+what the ladder was for. On `reinforced-south` the band-1 places fall between
+4,530 and 7,680, the fortress between 9,510 and 11,790, and the outermost places
+last of all, 13,260 to 16,350 — squads clearing behind themselves once the keep
+is theirs. The old shape was nothing whatever for four battle-minutes and then
+eleven compounds in one push at one gate.
+
+**Whether eighteen thousand ticks is still the right clock is the question this
+leaves open.** Doubling the compound count without moving the tick budget or the
+lift makes a Conquest that could be won on a longer clock read as a timeout, and
+the two fixtures disagree about which problem that is: one runs out of time with
+five compounds left, the other never leaves band 1. That is a decision about the
+budget and the arrival cadence rather than about the map, and it belongs with
+`conquest-560-contact.md`.
 
 ## Which battles are made of places
 
