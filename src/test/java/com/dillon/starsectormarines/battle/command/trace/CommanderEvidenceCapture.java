@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -54,13 +53,33 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private final Path frames;
     private final AnimatedGifWriter gif;
     private final List<Frame> captured = new ArrayList<>();
+    private final FrameSource frameSource;
     private BattleReviewFrameRenderer frameRenderer;
     private int nextTick;
     private int lastTick = -1;
     private boolean closed;
 
+    /**
+     * How one frame is drawn. The battle review renderer in production; the
+     * seam exists so a test can ask what {@link #close()} does when making a
+     * frame fails, which is the case that used to leave {@code review.gif}
+     * open.
+     */
+    @FunctionalInterface
+    interface FrameSource {
+        BufferedImage render(BattleSimulation simulation, String caption,
+                             ReviewAnnotations marks) throws IOException;
+    }
+
     static CommanderEvidenceCapture open(Path reportRoot, String fixtureId,
                                          BattleSimulation simulation)
+            throws IOException {
+        return open(reportRoot, fixtureId, simulation, null);
+    }
+
+    static CommanderEvidenceCapture open(Path reportRoot, String fixtureId,
+                                         BattleSimulation simulation,
+                                         FrameSource frameSource)
             throws IOException {
         int cadence = integerProperty(CADENCE_PROPERTY, 0);
         if (reportRoot == null) {
@@ -68,7 +87,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         }
         if (cadence < 1) {
             if (cadence == 0) {
-                deleteTree(outputPath(reportRoot, fixtureId));
+                EvidenceCleanup.deleteTree(outputPath(reportRoot, fixtureId));
                 return new CommanderEvidenceCapture();
             }
             throw new IllegalArgumentException(
@@ -80,7 +99,7 @@ final class CommanderEvidenceCapture implements AutoCloseable {
                         DEFAULT_FRAME_DELAY_MILLIS, 10, 60_000),
                 boundedProperty(WIDTH_PROPERTY, DEFAULT_WIDTH, 160, 4_096),
                 boundedProperty(HEIGHT_PROPERTY, DEFAULT_HEIGHT, 120, 4_096),
-                booleanProperty(ANNOTATIONS_PROPERTY, true));
+                booleanProperty(ANNOTATIONS_PROPERTY, true), frameSource);
     }
 
     private CommanderEvidenceCapture() {
@@ -94,13 +113,16 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         output = null;
         frames = null;
         gif = null;
+        frameSource = null;
     }
 
     private CommanderEvidenceCapture(Path reportRoot, String fixtureId,
                                      BattleSimulation simulation,
                                      int cadenceTicks, int frameDelayMillis,
                                      int width, int height,
-                                     boolean annotated) throws IOException {
+                                     boolean annotated,
+                                     FrameSource frameSource)
+            throws IOException {
         if (simulation == null) {
             throw new IllegalArgumentException("simulation is required");
         }
@@ -111,13 +133,23 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         this.width = width;
         this.height = height;
         this.annotated = annotated;
+        this.frameSource = frameSource;
         output = outputPath(reportRoot, this.fixtureId);
-        deleteTree(output);
+        EvidenceCleanup.deleteTree(output);
         frames = output.resolve("frames");
         Files.createDirectories(frames);
         gif = new AnimatedGifWriter(output.resolve("review.gif"),
                 frameDelayMillis);
-        capture();
+        // A constructor that throws hands the caller nothing to close, so the
+        // opening frame is taken under a guard of its own: without it a first
+        // frame that fails leaves the encoder holding review.gif for the rest
+        // of the run, and nothing can ever delete the staging tree again.
+        try {
+            capture();
+        } catch (Throwable failure) {
+            closeWriter(failure);
+            throw failure;
+        }
         nextTick = cadenceTicks;
     }
 
@@ -132,9 +164,12 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private void capture() throws IOException {
         int tick = simulation.getSimTickIndex();
         if (tick == lastTick) return;
-        BufferedImage image = frames().render(simulation, caption(tick),
+        ReviewAnnotations marks =
                 annotated ? BattleReviewAnnotations.forBattle(simulation)
-                        : ReviewAnnotations.NONE);
+                        : ReviewAnnotations.NONE;
+        BufferedImage image = frameSource != null
+                ? frameSource.render(simulation, caption(tick), marks)
+                : frames().render(simulation, caption(tick), marks);
         String filename = String.format(Locale.ROOT,
                 "frame-%04d-tick-%06d.png", captured.size(), tick);
         Path frame = frames.resolve(filename);
@@ -172,27 +207,60 @@ final class CommanderEvidenceCapture implements AutoCloseable {
         return gif != null;
     }
 
+    /**
+     * Releases the encoder whatever else happened, then reports the first
+     * failure with the rest suppressed.
+     *
+     * <p>The closing frame is taken from a simulation that may be in whatever
+     * state ended the run, so this step fails in more ways than an
+     * {@link IOException}: an {@link AssertionError} or a runtime failure out
+     * of the renderer used to skip straight past {@code gif.close()} and leave
+     * {@code review.gif} open. On Windows the harness's own
+     * {@code finally}-block cleanup then could not delete the staging tree, and
+     * that "the process cannot access the file" is what the run reported —
+     * instead of the failure that caused it.
+     */
     @Override
     public void close() throws IOException {
         if (!enabled() || closed) return;
         closed = true;
-        IOException failure = null;
+        Throwable failure = null;
         try {
             capture();
-        } catch (IOException captureFailure) {
+        } catch (Throwable captureFailure) {
             failure = captureFailure;
+        } finally {
+            failure = closeWriter(failure);
         }
-        try {
-            gif.close();
-        } catch (IOException closeFailure) {
-            if (failure == null) failure = closeFailure;
-            else failure.addSuppressed(closeFailure);
-        }
-        if (failure != null) throw failure;
+        if (failure != null) throw asCheckedFailure(failure);
         writeManifest();
         System.out.println("[commander-evidence-visual] "
                 + output.resolve("review.gif") + " (" + captured.size()
                 + " frames)");
+    }
+
+    /**
+     * Closes the GIF encoder, folding a failure of its own into
+     * {@code failure} rather than over it. Returns whichever throwable the
+     * caller should now report.
+     */
+    private Throwable closeWriter(Throwable failure) {
+        try {
+            gif.close();
+            return failure;
+        } catch (Throwable closeFailure) {
+            if (failure == null) return closeFailure;
+            if (failure != closeFailure) failure.addSuppressed(closeFailure);
+            return failure;
+        }
+    }
+
+    /** Reports {@code failure} as itself where the signature allows it, wrapped where it does not. */
+    private static IOException asCheckedFailure(Throwable failure) {
+        if (failure instanceof IOException checked) return checked;
+        if (failure instanceof RuntimeException unchecked) throw unchecked;
+        if (failure instanceof Error error) throw error;
+        return new IOException("Visual evidence capture failed", failure);
     }
 
     private void writeManifest() throws IOException {
@@ -256,15 +324,6 @@ final class CommanderEvidenceCapture implements AutoCloseable {
     private static Path outputPath(Path reportRoot, String fixtureId) {
         return reportRoot.toAbsolutePath().normalize()
                 .resolve("visuals").resolve(sanitize(fixtureId));
-    }
-
-    private static void deleteTree(Path root) throws IOException {
-        if (!Files.exists(root)) return;
-        try (var paths = Files.walk(root)) {
-            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
-                Files.deleteIfExists(path);
-            }
-        }
     }
 
     private record Frame(int tick, String file) { }

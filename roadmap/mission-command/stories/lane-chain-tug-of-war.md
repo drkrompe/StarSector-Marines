@@ -1,7 +1,7 @@
 # Lane chains: a Conquest front measured in places held, not ground covered
 
-Status: PROPOSED — design direction agreed with the owner on 2026-09-01; to be
-specified against the lanes measurement below before implementation.
+Status: PLANNED — an improvement the owner has asked for, not a question; it
+follows `lane-paths.md`, which records the route the chain reads.
 
 Written: 2026-09-01
 
@@ -68,24 +68,24 @@ force converges on the keep exactly as it does today.
   map that seated none) is a bare track and behaves as today.
 - It does not change the capture rule, the victory law, or the arrival lift.
 
-## Open before specification
+## What the path adds
 
-1. **How much of the win is already there.** The table above is the track
-   commander playing a chained map. Before rewriting it, measure how the
-   current front push behaves on the chain: how often an advance-track order
-   stages off the route, how often a lane's forward fraction disagrees with
-   its chain index, and whether captures on a lane arrive in chain order. If
-   they mostly do, this story is about the grown map's bends and about
-   legibility, and it is smaller than it looks.
-2. **The evidence diagnostics** (track share, assault progress, deferred
-   captures, secure-travel episodes) are all track-keyed. They become
-   chain-keyed in the same change, or the report stops meaning what it says.
-3. **The clock.** reinforced-south lost its win to arithmetic — 23 compounds
-   instead of 11 in the same 18,000 ticks. Whether the budget grows with the
-   chain is `conquest-560-contact.md`'s question and should be answered there
-   first, or every measurement here reads as a timeout.
+A lane is a stated or derived path once `lane-paths.md` lands, and the map
+records the route between consecutive links. The commander therefore never
+infers a route: it reads one. A lane that zig-zags or goes round a ridge is
+the same chain with a longer road between two of its links, and staging along
+that road is what makes the bend matter instead of leaving it to navigation.
 
-## Acceptance, to be sharpened
+## Alongside the model
+
+1. **The evidence diagnostics** (track share, assault progress, deferred
+   captures, secure-travel episodes) are track-keyed. They become chain-keyed
+   in the same change, or the report stops meaning what it says.
+2. **The clock.** reinforced-south lost its win to arithmetic — 23 compounds
+   instead of 11 in the same 18,000 ticks. `conquest-560-contact.md` owns that
+   question; measure this story against it whatever the answer.
+
+## Acceptance
 
 - On both canonical fixtures, every capture on a lane arrives in chain order
   or the trace says why not (a neighbour-support capture is allowed and
