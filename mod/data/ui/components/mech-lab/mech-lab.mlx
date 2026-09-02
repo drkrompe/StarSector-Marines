@@ -1,4 +1,4 @@
-<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,categoryFilterPills,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -47,99 +47,117 @@
       </div>
 
       <div id="mech-fitting-workspace" class="{workspaceClasses}">
-        <div id="mech-asset-strip" class="{fittingHeaderClasses}">
-          <div id="mech-asset-strip-copy" class="asset-strip-copy">
-            <div id="selected-mech-name" class="label asset-name tone-accent">{selectedMechName}</div>
-            <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
+          <div id="mech-asset-strip" class="{fittingHeaderClasses}">
+            <div id="mech-asset-strip-copy" class="asset-strip-copy">
+              <div id="selected-mech-name" class="label asset-name tone-accent">{selectedMechName}</div>
+              <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
+            </div>
+            <div id="mech-gantry-navigator" class="gantry-navigator">
+              <button id="mech-previous-gantry" class="gantry-step" onclick="{previousGantry}">‹ PREV</button>
+              <div id="mech-active-gantry" class="label heading tone-accent gantry-position">{activeGantryLabel}</div>
+              <button id="mech-next-gantry" class="gantry-step" onclick="{nextGantry}">NEXT ›</button>
+            </div>
+            <div id="selected-mech-doctrine" class="label heading tone-edge doctrine">{selectedMechDoctrine}</div>
+            <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
           </div>
-          <div id="mech-gantry-navigator" class="gantry-navigator">
-            <button id="mech-previous-gantry" class="gantry-step" onclick="{previousGantry}">‹ PREV</button>
-            <div id="mech-active-gantry" class="label heading tone-accent gantry-position">{activeGantryLabel}</div>
-            <button id="mech-next-gantry" class="gantry-step" onclick="{nextGantry}">NEXT ›</button>
-          </div>
-          <div id="selected-mech-doctrine" class="label heading tone-edge doctrine">{selectedMechDoctrine}</div>
-          <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
-        </div>
 
-        <div id="mech-performance-grid" class="{performanceClasses}">
-          <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter surface-dark">
-            <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
-            <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
-            <div id="{meter.trackId}" class="meter-track">
-              <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
+          <div id="mech-performance-grid" class="{performanceClasses}">
+            <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter surface-dark">
+              <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
+              <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
+              <div id="{meter.trackId}" class="meter-track">
+                <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
+                <div id="{meter.ghostId}" class="{meter.ghostClasses}" style="{meter.ghostStyle}" />
+              </div>
             </div>
           </div>
-        </div>
 
-        <div id="mech-fitting-body" class="fitting-body">
-          <div id="mech-component-catalog" class="{catalogClasses}">
-            <div id="mech-catalog-kicker" class="section-title label heading tone-edge">EQUIPMENT / SELECTED SOCKET</div>
-            <div id="mech-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
-            <div id="mech-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
-            <div id="mech-catalog-rule" class="label heading surface-dark catalog-rule">{selectedSlotRule}</div>
-            <div id="mech-catalog-list" class="catalog-list">
-              <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}">
-                <div id="{item.bodyId}" class="catalog-card-body">
-                  <canvas id="{item.previewId}" class="{item.previewClasses}" width="220" height="280" />
-                  <div id="{item.copyId}" class="catalog-item-copy">
-                    <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
-                    <div id="{item.stockId}" class="label tone-edge catalog-stock">{item.stock}</div>
-                    <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
-                    <div id="{item.materialsId}" class="material-costs">
-                      <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
-                        <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
-                        <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+          <div id="mech-fitting-body" class="fitting-body">
+            <div id="mech-component-catalog" class="{catalogClasses}">
+              <div id="mech-catalog-kicker" class="section-title label heading tone-edge">EQUIPMENT / SELECTED SOCKET</div>
+              <div id="mech-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
+              <div id="mech-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
+              <div id="mech-catalog-rule" class="label heading surface-dark catalog-rule">{selectedSlotRule}</div>
+              <div id="mech-category-filters" class="category-filters">
+                <button each="pill in categoryFilterPills" key="{pill.id}" id="{pill.id}" class="{pill.classes}" onclick="{pill.select}">{pill.label}</button>
+              </div>
+              <div id="mech-catalog-list" class="catalog-list">
+                <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}">
+                  <div id="{item.bodyId}" class="catalog-card-body">
+                    <canvas id="{item.previewId}" class="{item.previewClasses}" width="220" height="280" />
+                    <div id="{item.copyId}" class="catalog-item-copy">
+                      <div id="{item.headerId}" class="catalog-card-header">
+                        <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
+                        <div id="{item.badgeId}" class="{item.badgeClasses}">{item.badge}</div>
+                      </div>
+                      <div id="{item.stockId}" class="label tone-edge catalog-stock">{item.stock}</div>
+                      <div id="{item.telemetryId}" class="label heading tone-muted catalog-telemetry">{item.telemetry}</div>
+                      <div id="{item.deltaId}" class="{item.deltaClasses}">{item.delta}</div>
+                      <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
+                      <div id="{item.materialsId}" class="{item.materialsClasses}">
+                        <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
+                          <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+                          <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
                 </div>
-                <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
+              </div>
+              <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
+                <div id="mech-drag-drop-title" class="label heading tone-edge">DIRECT FIT ACTIVE · RECTANGULAR FOOTPRINTS</div>
+                <div id="mech-drag-drop-types" class="label heading tone-muted">3×2 GRID  ·  BLOCKED CELLS CANNOT ACCEPT HARDWARE</div>
               </div>
             </div>
-            <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
-              <div id="mech-drag-drop-title" class="label heading tone-edge">DIRECT FIT ACTIVE · RECTANGULAR FOOTPRINTS</div>
-              <div id="mech-drag-drop-types" class="label heading tone-muted">3×2 GRID  ·  BLOCKED CELLS CANNOT ACCEPT HARDWARE</div>
-            </div>
-          </div>
 
-          <div id="mech-garage-stage" class="garage-stage">
-            <div id="mech-garage-heading" class="garage-heading">
-              <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
-              <div id="mech-garage-status" class="label heading tone-muted garage-status">FABRICATION CREW ACTIVE  ·  LOGISTICS ROTATION</div>
-            </div>
-            <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="520" />
-            <div id="mech-overview-rail" class="{overviewRailClasses}">
-              <div id="mech-overview-gantries" class="overview-gantry-list">
-                <button each="gantry in gantryRows" key="{gantry.id}" id="{gantry.id}" class="{gantry.classes}" disabled="{gantry.disabled}" onclick="{gantry.select}">
-                  <div id="{gantry.stationId}" class="label heading tone-edge overview-station">{gantry.station}</div>
-                  <div id="{gantry.nameId}" class="label heading overview-name">{gantry.name}</div>
-                  <div id="{gantry.detailId}" class="label tone-muted overview-detail">{gantry.detail}</div>
-                </button>
+            <div id="mech-garage-stage" class="garage-stage">
+              <div id="mech-garage-heading" class="garage-heading">
+                <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
+                <div id="mech-garage-status" class="label heading tone-muted garage-status">FABRICATION CREW ACTIVE  ·  LOGISTICS ROTATION</div>
               </div>
-              <button id="mech-overview-browse" class="overview-browse" onclick="{openAssetPicker}">BROWSE LANCES</button>
-            </div>
-          </div>
-
-          <div id="mech-slot-rack" class="{slotRackClasses}">
-            <div id="mech-slot-heading" class="section-title label heading tone-edge">FITTING LOCATIONS</div>
-            <div id="mech-slot-copy" class="label tone-muted slot-copy">Select a socket to filter hardware.</div>
-            <div id="mech-slot-list" class="slot-list">
-              <button each="slot in slotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
-                <div id="{slot.copyId}" class="slot-row-copy">
-                  <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
-                  <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
-                  <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+              <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="520" />
+              <div id="mech-overview-rail" class="{overviewRailClasses}">
+                <div id="mech-overview-gantries" class="overview-gantry-list">
+                  <button each="gantry in gantryRows" key="{gantry.id}" id="{gantry.id}" class="{gantry.classes}" disabled="{gantry.disabled}" onclick="{gantry.select}">
+                    <div id="{gantry.stationId}" class="label heading tone-edge overview-station">{gantry.station}</div>
+                    <div id="{gantry.nameId}" class="label heading overview-name">{gantry.name}</div>
+                    <div id="{gantry.detailId}" class="label tone-muted overview-detail">{gantry.detail}</div>
+                  </button>
                 </div>
-                <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
-              </button>
+                <button id="mech-overview-browse" class="overview-browse" onclick="{openAssetPicker}">BROWSE LANCES</button>
+              </div>
+            </div>
+
+            <div id="mech-slot-rack" class="{slotRackClasses}">
+              <div id="mech-slot-heading" class="section-title label heading tone-edge">FITTING LOCATIONS</div>
+              <div id="mech-slot-copy" class="label tone-muted slot-copy">Select a socket to filter hardware.</div>
+              <div id="mech-slot-list" class="slot-list">
+                <div each="slot in slotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}">
+                  <div id="{slot.contentId}" class="slot-row-content">
+                    <button id="{slot.buttonId}" class="slot-select-button" onclick="{slot.select}">
+                      <div id="{slot.copyId}" class="slot-row-copy">
+                        <div id="{slot.headerId}" class="slot-row-header">
+                          <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
+                          <div id="{slot.badgeId}" class="{slot.badgeClasses}">{slot.badge}</div>
+                        </div>
+                        <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
+                        <div id="{slot.telemetryId}" class="label heading tone-muted slot-telemetry">{slot.telemetry}</div>
+                        <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+                      </div>
+                      <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
+                    </button>
+                    <button id="{slot.stripId}" class="{slot.stripClasses}" disabled="{slot.stripDisabled}" onclick="{slot.stripAction}">STRIP</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="mech-lab-feedback" class="{feedbackClasses}">{feedbackText}</div>
-  </div>
+      <div id="mech-lab-feedback" class="{feedbackClasses}">{feedbackText}</div>
+    </div>
 </template>
 
 <style>
@@ -180,37 +198,54 @@
   .asset-strip-copy { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; }
   .asset-name { width: 210px; height: 27px; font-family: title; }
   .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
-  .gantry-navigator { flex-direction: row; width: 380px; height: 38px; gap: 4px; }
-  .gantry-step { width: 74px; height: 38px; padding: 6px; }
+  .gantry-navigator { flex-direction: row; width: 300px; height: 38px; gap: 4px; }
+  .gantry-step { width: 62px; height: 38px; padding: 6px; }
   .gantry-position { width: 0px; flex-grow: 1; height: 38px; padding: 8px 5px; text-align: center; background-color: #0c1620; border-width: 1px; }
-  .doctrine { width: 145px; padding-top: 5px; text-align: right; }
+  .doctrine { width: 0px; flex-grow: 1; padding-top: 5px; text-align: right; }
   .performance-grid { flex-direction: row; height: 50px; gap: 5px; }
   .performance-meter { flex-direction: row; width: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 1px; }
   .meter-label { width: 90px; padding-top: 3px; }
   .meter-value { width: 96px; padding-top: 3px; text-align: right; }
   .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #76b9d4; }
+  .meter-ghost { height: 100%; }
+  .meter-ghost.gain { background-color: #52ba7c; opacity: 0.85; }
+  .meter-ghost.loss { background-color: #d65858; opacity: 0.85; }
 
   .fitting-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .catalog-panel { flex-direction: column; width: 490px; padding: 7px; gap: 5px; overflow: hidden; }
+  .catalog-panel { flex-direction: column; width: 490px; padding: 7px; gap: 4px; overflow: hidden; }
   .catalog-heading { height: 25px; font-family: title; }
-  .catalog-copy { height: 34px; }
-  .catalog-rule { height: 36px; padding: 5px; }
-  .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .catalog-row { flex-direction: column; width: 100%; height: 198px; padding: 7px; gap: 3px; border-width: 1px; }
-  .catalog-card-body { flex-direction: row; width: 100%; height: 151px; gap: 6px; }
-  .catalog-item-copy { flex-direction: column; width: 0px; height: 151px; flex-grow: 1; gap: 2px; }
-  .catalog-preview { width: 112px; height: 151px; border-width: 1px; }
-  .catalog-name { height: 19px; }
-  .catalog-stock, .catalog-detail { height: 17px; }
-  .material-costs { flex-direction: column; width: 100%; height: 88px; gap: 2px; overflow: hidden; }
-  .material-cost { flex-direction: row; width: 100%; height: 18px; padding: 1px 3px; gap: 4px; background-color: #0c1620; border-width: 1px; }
+  .catalog-copy { height: 32px; }
+  .catalog-rule { height: 34px; padding: 4px; }
+  .category-filters { flex-direction: row; width: 100%; height: 26px; gap: 3px; }
+  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 4px 2px; text-align: center; background-color: #0c1620; border-width: 1px; border-color: #2a3c4f; }
+  .catalog-filter-pill.selected { background-color: #1a3b50; border-color: #6ed7ff; color: #6ed7ff; }
+  .catalog-filter-pill:hover { background-color: #152c3c; border-color: #ffd464; }
+  .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
+  .catalog-row { flex-direction: column; width: 100%; height: 148px; padding: 5px; gap: 3px; border-width: 1px; }
+  .catalog-card-body { flex-direction: row; width: 100%; height: 108px; gap: 6px; }
+  .catalog-item-copy { flex-direction: column; width: 0px; height: 108px; flex-grow: 1; gap: 2px; }
+  .catalog-card-header { flex-direction: row; width: 100%; height: 18px; gap: 4px; }
+  .catalog-name { width: 0px; flex-grow: 1; height: 18px; }
+  .catalog-badge { width: 84px; height: 16px; padding: 1px 3px; text-align: center; border-width: 1px; }
+  .catalog-badge.in-cargo { background-color: #102d20; border-color: #52ba7c; color: #78d494; }
+  .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #ffd464; }
+  .catalog-badge.chassis { background-color: #162a3a; border-color: #4b8ba8; color: #6ed7ff; }
+  .catalog-preview { width: 92px; height: 108px; border-width: 1px; }
+  .catalog-stock, .catalog-detail { height: 16px; }
+  .catalog-telemetry { height: 16px; }
+  .catalog-delta { height: 16px; }
+  .catalog-delta.positive { color: #78d494; }
+  .catalog-delta.negative { color: #e98b83; }
+  .catalog-delta.neutral { color: #8b9aaf; }
+  .material-costs { flex-direction: column; width: 100%; height: 38px; gap: 2px; overflow: hidden; }
+  .material-cost { flex-direction: row; width: 100%; height: 17px; padding: 1px 3px; gap: 3px; background-color: #0c1620; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
-  .material-icon { width: 14px; height: 14px; }
-  .material-label { width: 0px; height: 15px; flex-grow: 1; }
+  .material-icon { width: 13px; height: 13px; }
+  .material-label { width: 0px; height: 14px; flex-grow: 1; }
   .catalog-action { width: 100%; height: 26px; text-align: center; }
-  .drag-drop-note { flex-direction: column; height: 45px; padding: 5px; gap: 1px; }
-  #mech-drag-drop-title, #mech-drag-drop-types { height: 17px; }
+  .drag-drop-note { flex-direction: column; height: 42px; padding: 4px; gap: 1px; }
+  #mech-drag-drop-title, #mech-drag-drop-types { height: 16px; }
 
   .garage-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
   .garage-heading { flex-direction: row; width: 100%; height: 19px; padding: 0px 3px; }
@@ -226,14 +261,25 @@
   .overview-station, .overview-name, .overview-detail { height: 18px; }
   .overview-browse { width: 142px; height: 76px; padding: 7px; text-align: center; }
 
-  .slot-panel { flex-direction: column; width: 300px; padding: 7px; gap: 5px; overflow: hidden; }
-  .slot-copy { height: 34px; }
+  .slot-panel { flex-direction: column; width: 310px; padding: 7px; gap: 5px; overflow: hidden; }
+  .slot-copy { height: 32px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-  .doll-slot { flex-direction: row; width: 100%; height: 84px; padding: 5px; gap: 5px; border-width: 1px; text-align: left; }
+  .doll-slot { flex-direction: row; width: 100%; height: 86px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
+  .slot-row-content { flex-direction: row; width: 100%; height: 100%; gap: 3px; }
+  .slot-select-button { flex-direction: row; width: 0px; flex-grow: 1; height: 100%; padding: 2px; gap: 4px; border-width: 0px; background-color: transparent; text-align: left; }
   .slot-row-copy { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; gap: 1px; }
-  .slot-grid { width: 98px; height: 64px; border-width: 1px; }
-  .slot-name, .slot-type { height: 16px; }
-  .slot-component { height: 17px; }
+  .slot-row-header { flex-direction: row; width: 100%; height: 16px; gap: 3px; }
+  .slot-name { width: 0px; flex-grow: 1; height: 16px; }
+  .slot-badge { width: 46px; height: 14px; padding: 1px 2px; text-align: center; border-width: 1px; }
+  .slot-badge.armed { background-color: #122838; border-color: #4c8ca8; color: #6ed7ff; }
+  .slot-badge.empty { background-color: #2c2014; border-color: #946830; color: #ffd464; }
+  .slot-badge.locked { background-color: #161d24; border-color: #384856; color: #708090; }
+  .slot-telemetry { height: 15px; }
+  .slot-component { height: 16px; }
+  .slot-type { height: 15px; }
+  .slot-grid { width: 78px; height: 52px; border-width: 1px; }
+  .slot-strip-action { width: 46px; height: 100%; padding: 4px; text-align: center; background-color: #2a1515; border-color: #8c3838; color: #e98b83; }
+  .slot-strip-action:hover { background-color: #451a1a; border-color: #ff6e6e; }
   .mech-lab-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 </style>
