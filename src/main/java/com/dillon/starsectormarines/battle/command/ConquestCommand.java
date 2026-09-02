@@ -247,6 +247,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
     static boolean LANE_CHAIN_ENABLED = Boolean.parseBoolean(
             System.getProperty(LANE_CHAIN_PROPERTY, "true"));
 
+    /**
+     * Whether the chain reading is in force, for the defender's own layer.
+     *
+     * <p>Both sides of the duel read the same map the same way — the attacker
+     * to decide what to take next, the defender to decide what to hold and
+     * retake — so one switch governs both, or a control run measures a
+     * half-changed battle. This is not shared belief: the chain is map
+     * geometry and compound ownership, both of which are neutral referee
+     * facts either side may read.
+     */
+    public static boolean laneChainEnabled() {
+        return LANE_CHAIN_ENABLED;
+    }
+
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
     /** A staging marker may lead the current friendly line by at most this much. */
