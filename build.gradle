@@ -109,6 +109,11 @@ dependencies {
 // renders review frames through the very renderer that was running out.
 tasks.withType(Test).configureEach {
     maxHeapSize = '2g'
+    // A repeated implicit exception loses its stack to the JIT's fast-throw
+    // optimisation, and an evidence run that dies after thirteen minutes with a
+    // bare `java.lang.ArrayIndexOutOfBoundsException` and no frames is a run that
+    // has to be paid for again to say anything. Keep the frames.
+    jvmArgs '-XX:-OmitStackTraceInFastThrow'
     // Every JVM-side measurement — the suite, commander evidence, snapshots —
     // measures shipping behaviour, never the debug scaffold. Without this,
     // IntegralSystemSystem's screen-trigger override would raise a screen in

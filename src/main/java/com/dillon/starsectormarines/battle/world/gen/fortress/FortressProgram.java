@@ -233,6 +233,54 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
         return garrison().with(RoomPurpose.KEEP_THRONE, 0);
     }
 
+    /**
+     * A post on the way to somewhere else: something a squad holds and a
+     * company clears.
+     *
+     * <p>Two guard posts, a barrack block and a store. For a battle that is one
+     * compound — the barrack block — with a couple of manned positions around
+     * it and a depot worth walking into, standing on about four hundred cells.
+     * It is the smallest thing that is still a <em>place</em> rather than a
+     * scatter of emplacements: somebody sleeps here, so somebody is here.
+     *
+     * <p><b>No keep and no airfield</b>, and neither is an omission. The keep is
+     * the map's one canonical command post and belongs to the objective; an air
+     * arm is an installation's, not a picket's, and a lot is by some way the
+     * largest thing a program can order.
+     */
+    public static FortressProgram outpost() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
+                        RoomPacker.EdgeContact.ANY, 2),
+                new FortressBuilding(RoomPurpose.BARRACKS, BARRACK_BLOCK, Ward.YARD, 1),
+                new FortressBuilding(RoomPurpose.STOCKROOM, STORES, Ward.YARD, 1)),
+                0);
+    }
+
+    /**
+     * Something a track has to stop for.
+     *
+     * <p>A gatehouse, three guard posts — two watching the way in and the one
+     * the position is run from — two barrack blocks and an armoury, on about
+     * eight hundred cells. For a battle that is three compounds rather than
+     * one, so taking it is a sequence and not a rush, and the armoury is a
+     * prize on top of being a supply hub.
+     *
+     * <p>Same two exclusions as {@link #outpost()} and for the same reasons.
+     * What separates the two is depth: an outpost is a position, a strongpoint
+     * is a position that has to be reduced.
+     */
+    public static FortressProgram strongpoint() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.ARMORY, MAGAZINE, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.KEEP_ENTRY, GATEHOUSE, Ward.FRONTAGE,
+                        RoomPacker.EdgeContact.ANY, 1),
+                new FortressBuilding(RoomPurpose.CONTROL_ROOM, GUARD_POST, Ward.FRONTAGE,
+                        RoomPacker.EdgeContact.ANY, 3),
+                new FortressBuilding(RoomPurpose.BARRACKS, BARRACK_BLOCK, Ward.YARD, 2)),
+                0);
+    }
+
     /** Cells of building floor the program needs, walls and roadways excluded. */
     public int floorArea() {
         int area = 0;

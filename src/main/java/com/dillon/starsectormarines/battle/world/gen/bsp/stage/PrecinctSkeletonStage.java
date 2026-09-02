@@ -94,6 +94,9 @@ public final class PrecinctSkeletonStage implements GenStage {
                 trunks, grown.plan().intersection, ctx.width, ctx.height));
         ctx.put(BspKeys.HINTERLAND, hinterland);
         ctx.put(BspKeys.PRECINCTS, plan);
+        // Bound even when empty, so "every rung stood up" and "no lanes were
+        // asked for" stay different answers on a finished map.
+        ctx.put(BspKeys.UNPLACED_LANE_PLACES, plan.unplacedLanePlaces());
         ctx.put(BspKeys.PRECINCT_CLAIM, claim);
         ctx.put(BspKeys.PRECINCT_ROAD, grown.owner());
     }

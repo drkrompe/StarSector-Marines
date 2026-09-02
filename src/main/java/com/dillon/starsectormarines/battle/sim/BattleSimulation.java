@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
@@ -1172,6 +1173,24 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) { tactical.setDefensePosts(posts); }
+
+    /**
+     * How far each cell is from the thing the battle is about, or {@code null}
+     * on a map with nothing to hold.
+     *
+     * <p>Set once by {@code BattleSetup.buildMap} from the generator's own
+     * answer. The reinforcement layer is handed its own reference at install
+     * time and does not read this; what needs it here is the trace, which
+     * labels every compound with the band it stands in so a balance run can say
+     * <em>where</em> captures happened rather than only how many there were.
+     * Read-only map data, like the tactical map and the buildings beside it.
+     */
+    public void setFrontDepth(FrontDepth frontDepth) { this.frontDepth = frontDepth; }
+
+    /** Where the front is, or {@code null} on a map that states none. */
+    public FrontDepth getFrontDepth() { return frontDepth; }
+
+    private FrontDepth frontDepth;
 
     /**
      * Spawn a ground-roster unit from an {@link EntitySpec} (identity-collapse Phase C):

@@ -60,7 +60,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 9);
+        numberField(header, "schemaVersion", 10);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -204,6 +204,12 @@ public final class CommandTraceRecorder {
                 field(out, "compoundKind", node.kind.name());
                 numberField(out, "anchorX", node.anchorX);
                 numberField(out, "anchorY", node.anchorY);
+                // Which front band this compound stands in, so a balance run
+                // can say where the battle moved rather than only how far it
+                // got. -1 on a map that states no front, which is every mission
+                // without an objective to be deep inside of.
+                numberField(out, "band", sim.getFrontDepth() != null
+                        ? sim.getFrontDepth().bandAt(node.anchorX, node.anchorY) : -1);
                 field(out, "state", state);
                 appendLine(end(out));
             }

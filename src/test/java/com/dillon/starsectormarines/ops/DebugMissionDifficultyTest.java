@@ -124,6 +124,32 @@ class DebugMissionDifficultyTest {
                 "clearing the statement hands the answer back to the mission type");
     }
 
+    /**
+     * How many lanes of resistance the map lays is the battle's statement too,
+     * and zero is one of the positions — a Conquest with nothing on its tracks
+     * is the control a lane balance run is read against.
+     */
+    @Test
+    void theDebugBoardStatesHowManyLanesItLays() {
+        Mission mission = Mission.builder()
+                .id("debug:CONQUEST:REINFORCED:0")
+                .name("CONQUEST — Reinforced")
+                .type(MissionType.CONQUEST)
+                .source(MissionSource.DEBUG)
+                .tier(OperationTier.REINFORCED)
+                .risk(RiskLevel.MEDIUM)
+                .build();
+
+        Mission oneLane = DebugMissionDifficulty.atLanes(mission, 1);
+        assertEquals(1, oneLane.lanes);
+        assertEquals(OperationTier.REINFORCED, oneLane.tier,
+                "stating a lane count is not a statement about scale");
+        assertEquals(0, DebugMissionDifficulty.atLanes(mission, 0).lanes,
+                "zero lanes is a statement, not the absence of one");
+        assertNull(DebugMissionDifficulty.atLanes(oneLane, null).lanes,
+                "clearing the statement hands the answer back to the mission type");
+    }
+
     @Test
     void aProductionMissionsMapIsNotADeveloperOverrideTarget() {
         Mission production = Mission.builder()
