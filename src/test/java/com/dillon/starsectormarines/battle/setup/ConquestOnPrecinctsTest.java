@@ -110,10 +110,67 @@ class ConquestOnPrecinctsTest {
                             + " drop zones");
 
             assertTheForceLandsAtItsStandoff(fixture.seed(), map);
+            assertTheBeachheadIsAPlaceTheMarinesHold(map, sim);
             assertThereIsResistanceInDepth(fixture, map);
             assertEveryCompoundCanBeWalkedTo(map);
             assertEveryLaneRouteIsWalkable(map);
         }
+    }
+
+    /**
+     * The marines come ashore on a place of their own, and hold it.
+     *
+     * <p>Four facts, and each one is a way the beachhead used to fail. It is a
+     * <b>compound</b>, so the capture rule and the defender's counterattack
+     * reason about it rather than about a scatter of berths. It reads
+     * {@code MARINE_HELD} at tick zero, because it is the attacker's ground and
+     * a compound that started held by the defender would make a Conquest
+     * unwinnable until the marines captured the pad they landed on. Every berth
+     * and the marine spawn lie inside it, which is what confining the landing
+     * stage to the landing precinct's claim buys — before it, the berths were
+     * the first open ground a scan found in a third of the map, base district
+     * included. And no other compound overlaps a berth, which is that same
+     * confinement read from the other end.
+     */
+    private static void assertTheBeachheadIsAPlaceTheMarinesHold(MapResult map,
+                                                                 BattleSimulation sim) {
+        List<TacticalNode> beachheads = map.tacticalMap.all().stream()
+                .filter(node -> node.kind == TacticalNode.Kind.BEACHHEAD)
+                .toList();
+        assertEquals(1, beachheads.size(),
+                "a Conquest comes ashore on exactly one landing place");
+        TacticalNode beachhead = beachheads.get(0);
+        CompoundService.Record record = sim.getCompoundService().getRecord(beachhead);
+        assertNotNull(record, "the landing place is not registered as a compound");
+        assertEquals(CompoundService.CompoundState.MARINE_HELD, record.state,
+                "the marines do not hold the ground they landed on at tick zero");
+
+        assertTrue(covers(beachhead, map.marineSpawnX, map.marineSpawnY),
+                "the marine spawn at " + map.marineSpawnX + "," + map.marineSpawnY
+                        + " is outside the landing place " + extent(beachhead));
+        for (LandingArea area : map.landingAreas) {
+            assertTrue(covers(beachhead, area.left, area.bottom)
+                            && covers(beachhead, area.right, area.top),
+                    "arrival area " + area.id + " at " + area.left + "," + area.bottom
+                            + ".." + area.right + "," + area.top
+                            + " lies outside the landing place " + extent(beachhead));
+            for (TacticalNode other : map.tacticalMap.all()) {
+                if (other == beachhead || !CompoundService.isCompound(other.kind)) continue;
+                assertTrue(other.right < area.left || other.left > area.right
+                                || other.bottom < area.bottom || other.top > area.top,
+                        "arrival area " + area.id + " overlaps the " + other.kind
+                                + " at " + extent(other) + ", so the marines land on "
+                                + "somebody else's ground");
+            }
+        }
+    }
+
+    private static boolean covers(TacticalNode node, int x, int y) {
+        return x >= node.left && x <= node.right && y >= node.top && y <= node.bottom;
+    }
+
+    private static String extent(TacticalNode node) {
+        return node.left + "," + node.top + ".." + node.right + "," + node.bottom;
     }
 
     /**

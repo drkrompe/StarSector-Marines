@@ -222,7 +222,7 @@ public final class MissionLaunch {
                                 m.tier, m.risk, profile, det.marineWings,
                                 m.enemyFighterSupport,
                                 conquestArrivalPlan, sprawl, m.standoff, m.lanes,
-                                m.lanePaths);
+                                m.landing, m.lanePaths);
                 sim = conquestFixture.build();
                 fixture = conquestFixture;
                 break;
