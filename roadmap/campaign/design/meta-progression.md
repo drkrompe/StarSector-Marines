@@ -147,7 +147,8 @@ venue.
   company's own, so its casualties, kit, and recovery are settled by the
   ordinary personnel and loot authorities. This is the one place other than
   T3 where the campaign tier writes vanilla state, and it does so only through
-  vanilla's own raid outcome path; the seam is described below.
+  vanilla's own raid outcome path; the seam is described below and
+  `polity-defence-raid-hook.md` is its first slice.
 - **Scrutiny, optional.** The Mercenary Review Board exists in fiction
   because governments fear the concentration of mercenary power. A company
   that owns worlds is a power, not a contractor. A later story may cap, tax,
