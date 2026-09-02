@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -216,6 +217,21 @@ public final class RoomPacker {
     private final boolean[][] claimed;
     private final boolean[][] floor;
     private final boolean[][] passage;
+    /**
+     * Deck no passage can be cut from to circulation, discovered by trying.
+     *
+     * <p>The packer's own knowledge and nothing else. Nothing about the map
+     * changes: these stay ordinary cells to the grid, to rendering, and to
+     * navigation, and what the mask buys is only that the search does not come
+     * back to them.
+     *
+     * <p>It grows and never shrinks, which is the conservative direction.
+     * Ground struck while it was sealed and opened up by a later hall would
+     * stay struck, costing a compartment rather than misplacing one — and
+     * across the vanilla hulls at three seeds each, no hall has ever been cut
+     * into or past a struck pocket.
+     */
+    private final boolean[][] dead;
     /** Ring cells of rooms already placed — the seams a later room could glue itself to. */
     private final boolean[][] structure;
     private final GenContext ctx;
@@ -229,6 +245,10 @@ public final class RoomPacker {
      * ring can be judged without walking it. @see #ringContact
      */
     private int[] floorSum;
+    /** Struck deck, summed the same way, so a footprint is judged in four lookups. */
+    private int[] deadSum;
+    /** How much deck has been struck off; the reading a rescan is decided on. */
+    private int deadCells;
     /** Row stride of the summed tables, which are one larger than the padded masks. */
     private final int sumStride;
     private final int sumColumns;
@@ -265,6 +285,7 @@ public final class RoomPacker {
         this.claimed = new boolean[width + 2][height + 2];
         this.floor = new boolean[width + 2][height + 2];
         this.passage = new boolean[width + 2][height + 2];
+        this.dead = new boolean[width + 2][height + 2];
         for (boolean[] column : claimed) {
             Arrays.fill(column, true);
         }
@@ -299,6 +320,14 @@ public final class RoomPacker {
      * onto the deck's circulation. Returns null when nothing fits, or when
      * nothing that fits can be reached.
      *
+     * <p><b>A refusal is progress.</b> A position no passage can be cut from
+     * strikes its whole pocket off the deck, and the scan is worth repeating
+     * once it has: a sealed pocket is the most enclosed ground there is, so it
+     * outscores open deck outright, and a shortlist can be drawn entirely from
+     * one — which is what a deck that placed half its berthing and left the rest
+     * unplaced turned out to be. The loop ends when a pass strikes nothing off,
+     * and it cannot run away because the struck deck only ever grows.
+     *
      * @param mayTunnel whether the room is worth cutting a fresh passage to
      */
     public Placed place(Request request, boolean mayTunnel) {
@@ -312,28 +341,108 @@ public final class RoomPacker {
         // so every bay on every hull opened up or to starboard and none ever
         // opened to port or aft.
         boolean handed = fitting != null && (fitting.handed() || outboard != null);
-        List<Candidate> candidates =
-                candidates(request, posesFor(request.shape(), handed), outboard);
+        List<RoomPose> poses = posesFor(request.shape(), handed);
 
-        if (!hookups.isEmpty()) {
-            Placed hooked = placeHooked(request, hookups, candidates, mayTunnel);
-            if (hooked != null) return hooked;
+        while (true) {
+            List<Candidate> candidates = candidates(request, poses, outboard);
+            if (!hookups.isEmpty()) {
+                Placed hooked = placeHooked(request, hookups, candidates, mayTunnel);
+                if (hooked != null) return hooked;
+            }
+            int struckBefore = deadCells;
+            Placed placed = placeDirect(request, candidates, mayTunnel);
+            if (placed != null) return placed;
+            if (deadCells == struckBefore) return null;
         }
+    }
 
-        // A room that states its hookups still has to go somewhere. Falling back
-        // to an ordinary door is a worse bay; refusing to place it is no bay at
-        // all, and the deck would be short a facility over the position of a
-        // hatch.
-        int attempts = Math.min(PLACEMENT_ATTEMPTS, candidates.size());
-        for (int i = 0; i < attempts; i++) {
-            Candidate candidate = candidates.get(i);
+    /**
+     * Try the best few positions with an ordinary door, cutting a passage to
+     * whichever one the deck can serve.
+     *
+     * <p>A room that states its hookups still has to go somewhere. Falling back
+     * to an ordinary door is a worse bay; refusing to place it is no bay at all,
+     * and the deck would be short a facility over the position of a hatch.
+     *
+     * <p>The budget counts searches, not shortlist entries: a position already
+     * known unreachable is skipped without being charged for, because paying to
+     * look again at ground the packer has already been told about is the whole
+     * defect this replaces.
+     */
+    private Placed placeDirect(Request request, List<Candidate> candidates,
+                               boolean mayTunnel) {
+        int tried = 0;
+        for (Candidate candidate : candidates) {
+            if (tried >= PLACEMENT_ATTEMPTS) break;
+            if (struck(candidate.shape(), candidate.x(), candidate.y())) continue;
+            tried++;
             Access access = findAccess(candidate, mayTunnel, null);
-            if (access == null) continue;
+            if (access == null) {
+                // Only where a fresh passage was allowed. A pocket the
+                // pocket-filling pass could not reach is merely one no locker is
+                // worth tunnelling to, which says nothing about the deck.
+                if (mayTunnel) strikeOff(candidate);
+                continue;
+            }
             List<Doorway> doors = commit(candidate, request.purpose(),
                     withFurtherWaysIn(candidate, access, mayTunnel));
             return describe(candidate, request.purpose(), doors);
         }
         return null;
+    }
+
+    /**
+     * Strike the pocket this position sits in off the deck: every unclaimed
+     * buildable cell connected to its floor, bounded by claimed cells, by
+     * circulation, and by the envelope.
+     *
+     * <p>Its own component and no more. A footprint is legal only where every
+     * cell of it is unclaimed, so a later one that overlaps a struck cell lies
+     * wholly inside the same pocket and would fail the same way — which is what
+     * makes one refusal answer for all of them.
+     */
+    private void strikeOff(Candidate candidate) {
+        ArrayDeque<int[]> frontier = new ArrayDeque<>();
+        for (int[] cell : candidate.shape().filled()) {
+            int x = candidate.x() + cell[0];
+            int y = candidate.y() + cell[1];
+            if (!inBounds(x, y) || dead[x + 1][y + 1]) continue;
+            dead[x + 1][y + 1] = true;
+            deadCells++;
+            frontier.add(new int[]{ x, y });
+        }
+        while (!frontier.isEmpty()) {
+            int[] cell = frontier.poll();
+            for (int[] step : STEPS) {
+                int nx = cell[0] + step[0];
+                int ny = cell[1] + step[1];
+                if (!inBounds(nx, ny) || dead[nx + 1][ny + 1]) continue;
+                if (claimed[nx + 1][ny + 1] || !outside[nx + 1][ny + 1]) continue;
+                dead[nx + 1][ny + 1] = true;
+                deadCells++;
+                frontier.add(new int[]{ nx, ny });
+            }
+        }
+        rebuildSums();
+    }
+
+    /**
+     * Whether this footprint stands on deck already known to be unreachable.
+     *
+     * <p>Four lookups where the shape fills its own box, which is nearly always,
+     * and a walk of the cells only where a hollow footprint's box could hold a
+     * struck cell its floor does not.
+     */
+    private boolean struck(RoomShape shape, int ox, int oy) {
+        if (deadCells == 0) return false;
+        if (sum(deadSum, ox, oy, shape.width(), shape.height()) == 0) return false;
+        if (shape.area() == shape.width() * shape.height()) return true;
+        for (int[] cell : shape.filled()) {
+            int x = ox + cell[0];
+            int y = oy + cell[1];
+            if (inBounds(x, y) && dead[x + 1][y + 1]) return true;
+        }
+        return false;
     }
 
     /**
@@ -771,9 +880,14 @@ public final class RoomPacker {
                     int excess = massing.sharedSeamAllowance() == Integer.MAX_VALUE ? 0
                             : Math.max(0, glue(shape, x, y)
                                     - massing.sharedSeamAllowance());
-                    found.offer(new Candidate(shape, pose, x, y,
-                            belongs + contact + ctx.rng.nextInt(3)
-                                    - excess * massing.seamPenalty()));
+                    int score = belongs + contact + ctx.rng.nextInt(3)
+                            - excess * massing.seamPenalty();
+                    // After the draw rather than before it. A struck position is
+                    // one the scan would otherwise have offered, so skipping its
+                    // dither too would repack every deck that ever refused a
+                    // position, whether or not the refusal cost it anything.
+                    if (struck(shape, x, y)) continue;
+                    found.offer(new Candidate(shape, pose, x, y, score));
                 }
             }
         }
@@ -1399,6 +1513,7 @@ public final class RoomPacker {
     private void rebuildSums() {
         claimedSum = prefix(claimed, claimedSum);
         floorSum = prefix(floor, floorSum);
+        deadSum = prefix(dead, deadSum);
     }
 
     /**

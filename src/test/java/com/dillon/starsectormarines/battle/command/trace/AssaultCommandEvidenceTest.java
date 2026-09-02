@@ -16,9 +16,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HexFormat;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,16 +50,24 @@ class AssaultCommandEvidenceTest {
                         "build/reports/commander/assault"))
                 .toAbsolutePath().normalize();
         LoadedFixture loaded = loadFixture();
-        RunResult first = run(loaded.fixture(), maxTicks, output,
-                "assault-command-duel");
-        RunResult second = run(loaded.fixture(), maxTicks, null,
-                "assault-command-duel");
+        int repeat = EvidenceFanOut.repeat();
+        List<Callable<RunResult>> replays = new ArrayList<>(repeat);
+        for (int replica = 0; replica < repeat; replica++) {
+            // Only the replay whose trace is published records frames.
+            Path visualRoot = replica == 0 ? output : null;
+            replays.add(() -> run(loaded.fixture(), maxTicks, visualRoot,
+                    "assault-command-duel"));
+        }
+        List<RunResult> results = EvidenceFanOut.run(replays);
+        RunResult first = results.get(0);
         TraceMetrics firstMetrics = analyze(first.trace());
-        TraceMetrics secondMetrics = analyze(second.trace());
-        assertEquals(first.trace(), second.trace(),
-                "same Assault fixture must produce byte-stable command events");
-        assertEquals(firstMetrics, secondMetrics,
-                "same Assault fixture must produce byte-stable command metrics");
+        EvidenceFanOut.assertReplaysByteStable("assault-command-duel",
+                "command events",
+                results.stream().map(RunResult::trace).toList());
+        for (int replica = 1; replica < results.size(); replica++) {
+            assertEquals(firstMetrics, analyze(results.get(replica).trace()),
+                    "same Assault fixture must produce byte-stable command metrics");
+        }
         assertTrue(first.trace().contains("\"perspective\":\"MARINE\""));
         assertTrue(first.trace().contains("\"perspective\":\"DEFENDER\""));
         assertTrue(first.trace().contains("\"assault\":{"));
@@ -81,10 +92,10 @@ class AssaultCommandEvidenceTest {
         Files.writeString(traces.resolve("assault-command-duel.jsonl"),
                 first.trace(), StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.json"),
-                summaryJson(loaded, first, firstMetrics, maxTicks),
+                summaryJson(loaded, first, firstMetrics, maxTicks, repeat),
                 StandardCharsets.UTF_8);
         Files.writeString(output.resolve("summary.md"),
-                summaryMarkdown(loaded, first, firstMetrics, maxTicks),
+                summaryMarkdown(loaded, first, firstMetrics, maxTicks, repeat),
                 StandardCharsets.UTF_8);
         System.out.println("[assault-command-evidence] report "
                 + output.resolve("summary.md"));
@@ -143,7 +154,8 @@ class AssaultCommandEvidenceTest {
 
     private static String summaryJson(LoadedFixture fixture, RunResult run,
                                       TraceMetrics metrics,
-                                      int maxTicks) throws Exception {
+                                      int maxTicks, int repeat)
+            throws Exception {
         boolean canonical = maxTicks == DEFAULT_MAX_TICKS
                 && !fixture.customFixture();
         return new JSONObject()
@@ -153,7 +165,7 @@ class AssaultCommandEvidenceTest {
                 .put("fixtureSha256", fixture.sha256())
                 .put("runMode", canonical ? "CANONICAL" : "AD_HOC")
                 .put("maxTicks", maxTicks)
-                .put("repeatCount", 2)
+                .put("repeatCount", repeat)
                 .put("termination", run.complete() ? "COMPLETE" : "TIMEOUT")
                 .put("winner", run.winner() != null
                         ? run.winner() : JSONObject.NULL)
@@ -165,12 +177,12 @@ class AssaultCommandEvidenceTest {
 
     private static String summaryMarkdown(LoadedFixture fixture, RunResult run,
                                           TraceMetrics metrics,
-                                          int maxTicks) {
+                                          int maxTicks, int repeat) {
         boolean canonical = maxTicks == DEFAULT_MAX_TICKS
                 && !fixture.customFixture();
         return "# Assault commander evidence\n\n"
-                + "Forced-serial, zero-input production construction replayed "
-                + "twice with byte-identical command traces.\n\n"
+                + "Forced-serial, zero-input production construction "
+                + EvidenceFanOut.replayWording(repeat) + ".\n\n"
                 + "- Fixture: `" + fixture.source() + "`\n"
                 + "- Fixture SHA-256: `" + fixture.sha256() + "`\n"
                 + "- Run mode: " + (canonical ? "CANONICAL" : "AD_HOC") + "\n"

@@ -77,9 +77,9 @@ class ConquestCommandBalanceReportTest {
                         "fixture", sha, fixture, 204, 17, analysis);
 
         String json = ConquestCommandBalanceTest.summaryJson(
-                List.of(row), 600, false);
+                List.of(row), 600, false, 2);
         String markdown = ConquestCommandBalanceTest.summaryMarkdown(
-                List.of(row), 600, false);
+                List.of(row), 600, false, 2);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
         assertTrue(json.contains("\"schemaVersion\":8"));
@@ -176,9 +176,9 @@ class ConquestCommandBalanceReportTest {
                 "fixture", sha, fixture, 204, 17, analysis);
 
         String markdown = ConquestCommandBalanceTest.summaryMarkdown(
-                List.of(row), 100, false);
+                List.of(row), 100, false, 2);
         String json = ConquestCommandBalanceTest.summaryJson(
-                List.of(row), 100, false);
+                List.of(row), 100, false, 2);
 
         assertTrue(markdown.contains("Capture-zone cohorts: 2 observed "
                 + "(2 entries, 0 left-censored), 2 finalized / 0 open"));

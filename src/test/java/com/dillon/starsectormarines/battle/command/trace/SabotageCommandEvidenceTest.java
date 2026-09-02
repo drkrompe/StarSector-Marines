@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,18 +60,37 @@ class SabotageCommandEvidenceTest {
             boolean canonical = maxTicks == DEFAULT_MAX_TICKS
                     && System.getProperty(
                     "sabotage.command.evidence.fixture.path", "").isBlank();
-            List<ReportRow> rows = new ArrayList<>(matrix.size());
+            int repeat = EvidenceFanOut.repeat();
+            List<LoadedFixture> loadedMatrix = new ArrayList<>(matrix.size());
+            List<String> runIds = new ArrayList<>(matrix.size());
+            List<Callable<RunResult>> replays = new ArrayList<>();
             for (FixtureSpec spec : matrix) {
                 LoadedFixture loaded = load(spec);
                 String runId = reportId(spec.id, spec.external, loaded.sha256);
-                RunResult first = run(loaded.fixture, maxTicks, staging, runId);
-                RunResult second = run(loaded.fixture, maxTicks, null, runId);
-                assertEquals(first.trace, second.trace,
-                        "same fixture must produce byte-stable command events: "
-                                + runId);
-                assertEquals(first.analysis.canonicalJson(),
-                        second.analysis.canonicalJson(),
-                        "same fixture must produce byte-stable metrics: " + runId);
+                loadedMatrix.add(loaded);
+                runIds.add(runId);
+                for (int replica = 0; replica < repeat; replica++) {
+                    // Only the replay whose trace is published records frames.
+                    Path visualRoot = replica == 0 ? staging : null;
+                    replays.add(() -> run(loaded.fixture, maxTicks,
+                            visualRoot, runId));
+                }
+            }
+            List<RunResult> results = EvidenceFanOut.run(replays);
+
+            List<ReportRow> rows = new ArrayList<>(matrix.size());
+            for (int index = 0; index < matrix.size(); index++) {
+                LoadedFixture loaded = loadedMatrix.get(index);
+                String runId = runIds.get(index);
+                List<RunResult> replicas = results.subList(
+                        index * repeat, (index + 1) * repeat);
+                RunResult first = replicas.get(0);
+                EvidenceFanOut.assertReplaysByteStable(runId, "command events",
+                        replicas.stream().map(RunResult::trace).toList());
+                EvidenceFanOut.assertReplaysByteStable(runId, "metrics",
+                        replicas.stream()
+                                .map(replica -> replica.analysis()
+                                        .canonicalJson()).toList());
                 assertTrue(first.trace.contains("\"perspective\":\"MARINE\""));
                 assertTrue(first.trace.contains("\"perspective\":\"DEFENDER\""));
                 assertTrue(first.trace.contains("\"sabotageDefense\":{"));
@@ -85,10 +105,10 @@ class SabotageCommandEvidenceTest {
                         + first.analysis.run().durationTicks());
             }
             Files.writeString(staging.resolve("summary.json"),
-                    summaryJson(rows, maxTicks, canonical),
+                    summaryJson(rows, maxTicks, canonical, repeat),
                     StandardCharsets.UTF_8);
             Files.writeString(staging.resolve("summary.md"),
-                    summaryMarkdown(rows, maxTicks, canonical),
+                    summaryMarkdown(rows, maxTicks, canonical, repeat),
                     StandardCharsets.UTF_8);
             publishReports(staging, output);
         } finally {
@@ -161,12 +181,13 @@ class SabotageCommandEvidenceTest {
     }
 
     static String summaryJson(List<ReportRow> rows, int maxTicks,
-                              boolean canonical) {
+                              boolean canonical, int repeat) {
         StringBuilder out = new StringBuilder(2_048)
                 .append("{\"schemaVersion\":1,\"schedulerMode\":")
                 .append("\"SERIAL_DETERMINISTIC\",\"maxTicks\":")
                 .append(maxTicks)
-                .append(",\"repeatCount\":2,\"canonicalMatrix\":")
+                .append(",\"repeatCount\":").append(repeat)
+                .append(",\"canonicalMatrix\":")
                 .append(canonical).append(",\"runs\":[");
         for (int i = 0; i < rows.size(); i++) {
             if (i > 0) out.append(',');
@@ -186,16 +207,18 @@ class SabotageCommandEvidenceTest {
     }
 
     static String summaryMarkdown(List<ReportRow> rows, int maxTicks,
-                                  boolean canonical) {
+                                  boolean canonical, int repeat) {
         StringBuilder out = new StringBuilder(2_048)
                 .append("# Sabotage commander evidence\n\n")
-                .append("Forced-serial, zero-input production construction fixtures. ")
-                .append("A timeout is evidence, not a defender victory. The JSON ")
+                .append("Forced-serial, zero-input production construction ")
+                .append("fixtures, ")
+                .append(EvidenceFanOut.replayWording(repeat))
+                .append(". A timeout is evidence, not a defender victory. The JSON ")
                 .append("summary is the complete machine-readable record.\n\n")
                 .append("- Evidence mode: ").append(canonical
                         ? "canonical default matrix" : "ad hoc override")
                 .append("\n- Maximum ticks: ").append(maxTicks)
-                .append("\n- Replays per fixture: 2\n")
+                .append("\n- Replays per fixture: ").append(repeat).append('\n')
                 .append("- Scheduler: SERIAL_DETERMINISTIC\n\n")
                 .append("| fixture | seed | shuttle cycles | marine seats | result | winner | ticks | ")
                 .append("marine losses | defender losses | sites complete | retargets | reissues |\n")

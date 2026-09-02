@@ -98,6 +98,12 @@ class CampaignSquadIdentityTest {
         assertTrue(seatFor(frozen, leader.id()).campaignSquad.leader);
     }
 
+    /**
+     * The fire team a seat carries is the marine's billet back home, not the
+     * seat's own position in the manifest. Those coincided until the NCO was
+     * seated first in their squad's run — a leader billeted in the third fire
+     * team now rides seat zero and must still land in the third fire team.
+     */
     @Test
     void frozenSeatsCarryTheirRosterDerivedFireTeamIndex() {
         MarineRoster roster = rosterOfSquads(1);
@@ -106,8 +112,18 @@ class CampaignSquadIdentityTest {
                 roster, Set.of(squad.id()), MarineSquad.CAPACITY);
 
         for (int seat = 0; seat < MarineSquad.CAPACITY; seat++) {
-            assertEquals(seat / Squad.FIRE_TEAM_SIZE,
-                    frozen.seat(seat).campaignSquad.fireTeamIndex);
+            MarineLoadout loadout = frozen.seat(seat);
+            assertEquals(roster.teamIndexOf(squad, loadout.campaignSoldierId),
+                    loadout.campaignSquad.fireTeamIndex, "seat " + seat);
+        }
+        // And still one whole squad: three manned teams of four, so the
+        // reorder moved a marine rather than duplicating or dropping one.
+        int[] perTeam = new int[MarineSquad.TEAMS_PER_SQUAD];
+        for (int seat = 0; seat < MarineSquad.CAPACITY; seat++) {
+            perTeam[frozen.seat(seat).campaignSquad.fireTeamIndex]++;
+        }
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            assertEquals(Squad.FIRE_TEAM_SIZE, perTeam[team], "fire team " + team);
         }
     }
 

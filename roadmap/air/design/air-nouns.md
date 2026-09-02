@@ -4,9 +4,10 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — an air loss is a ledger entry that outlives the aircraft
-it names, so a boat shot down reaches the campaign along with whoever was
-still aboard it.
+Updated: 2026-09-01 — at a ramp the squad leader boards last, so a lift that
+cannot take the whole squad leaves the NCO on the field with whoever it could
+not carry. An air loss is a ledger entry that outlives the aircraft it names, so
+a boat shot down reaches the campaign along with whoever was still aboard it.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1233,6 +1234,15 @@ squad is every bit as stranded as an over-claimed one. Without the handoff the
 ground crew that did not fly stands on the pad for the rest of the battle while
 each new sortie marches another four out to join them. It is an air entity
 throughout that lifecycle, not a temporary handle or a parallel id space.
+
+**At a ramp the squad's leader boards last**, so a lift that cannot take
+everybody leaves the NCO on the field with whoever it could not carry rather
+than flying the leader out from under them. Decided among the marines actually
+standing at the ramp on that tick, which is what last can mean here; a leader
+standing there alone still flies. The manifest end of the same law — the NCO is
+seated first in the squad's run, and so rides its first lift — is
+`company-view-nouns.md`.
+
 Transport survival, payload delivery, and mounted guns are role capabilities;
 they do not make the craft a normal grid combat unit.
 

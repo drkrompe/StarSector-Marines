@@ -2144,9 +2144,24 @@ public class AirSystem {
     /**
      * Take aboard any of the embarking squad that has reached the ramp.
      *
+     * <p><b>The NCO is the first off the boat and the last onto it.</b> The
+     * squad's leader boards only once every other marine standing at the ramp
+     * has a seat, so a lift that cannot take the whole squad leaves the NCO on
+     * the field with the people it could not carry rather than flying the
+     * leader out from under them. Decided among whoever is at the ramp on this
+     * tick, which is what "last" can mean at a ramp; a leader standing there
+     * alone still flies. The manifest end of the same law is
+     * {@link com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment}'s
+     * freeze, which seats the NCO first in the squad's run so they ride its
+     * first lift — a cohesion pull is a pull toward the leader, and a leader
+     * who arrives late drags the squad back toward the landing zone.
+     *
      * <p>Gathered before anything is released. The roster is a dense array that
      * swap-and-pops on release, so removing a unit part-way through a walk of
-     * it moves an untouched unit into a slot the walk has already passed.
+     * it moves an untouched unit into a slot the walk has already passed. One
+     * more is gathered than there are free seats: either that is everybody at
+     * the ramp, or the leader is at most one of them and the rest are already
+     * enough non-leaders to fill every seat.
      *
      * <p>A boarded marine is removed from the battle rather than transferred:
      * the loadouts this sortie will deboard were rolled from the same profile
@@ -2155,8 +2170,11 @@ public class AirSystem {
      */
     private void embark(ShuttleMission mission) {
         if (mission.embarkSquadId == Squad.NO_SQUAD) return;
-        if (mission.marinesRemaining >= mission.seatsPerSortie) return;
-        long[] gathered = new long[mission.seatsPerSortie];
+        int free = mission.seatsPerSortie - mission.marinesRemaining;
+        if (free <= 0) return;
+        Squad squad = roster.getSquad(mission.embarkSquadId);
+        long leader = squad != null ? squad.leaderId : 0L;
+        long[] gathered = new long[free + 1];
         int found = 0;
         for (int i = 0, live = roster.liveCount(); i < live && found < gathered.length; i++) {
             long u = roster.get(i);
@@ -2168,10 +2186,19 @@ public class AirSystem {
             if (dx * dx + dy * dy > BOARDING_REACH * BOARDING_REACH) continue;
             gathered[found++] = u;
         }
-        for (int i = 0; i < found && mission.marinesRemaining < mission.seatsPerSortie; i++) {
+        int boarded = 0;
+        for (int i = 0; i < found && boarded < free; i++) {
+            if (gathered[i] == leader) continue;
             roster.takeOffTheField(gathered[i]);
-            mission.marinesRemaining++;
+            boarded++;
         }
+        for (int i = 0; i < found && boarded < free && leader != 0L; i++) {
+            if (gathered[i] != leader) continue;
+            roster.takeOffTheField(leader);
+            boarded++;
+            break;
+        }
+        mission.marinesRemaining += boarded;
     }
 
     /**

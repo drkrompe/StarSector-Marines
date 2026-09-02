@@ -88,6 +88,33 @@ public final class InfantryReflexes {
     };
 
     /**
+     * A marine who landed after his squad stepped off closes on it, and does
+     * not start a fight of his own on the way.
+     *
+     * <p><b>Ranked here on purpose.</b> Everything above it is a hazard already
+     * in the air — a friendly satchel, a grenade — and a marine crossing open
+     * ground alone still has to get out of the way of those. Everything below
+     * it initiates contact: the special-equipment shots, the hardened-target
+     * rocket, the onset screen. A lone late arrival with a rocket tube and a
+     * turret in view is precisely the marine this outranks. It also outranks
+     * the broken-fire-team peel, which would otherwise send him to cover
+     * somewhere out on his own rather than back to the squad whose morale he
+     * is being counted against.
+     *
+     * <p>Return fire is not initiation and is not withheld: the rejoin itself
+     * authors a shot at whatever is already in range with a clear shot.
+     *
+     * @see SquadRejoin for what the state is and when it retires
+     */
+    public static final Reflex REJOIN = new Reflex() {
+        @Override public String name() { return "REJOIN"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return SquadRejoin.rejoin(unit, squad, sim);
+        }
+    };
+
+    /**
      * The general special-equipment shot of opportunity — satchel, frag,
      * deployable, close contact — available only while the assigned step
      * tolerates it. Each of these spends a squad resource or freezes the carrier
@@ -196,6 +223,7 @@ public final class InfantryReflexes {
             COOLDOWNS,
             FRIENDLY_CHARGE,
             KNOWN_GRENADE,
+            REJOIN,
             OPPORTUNITY_SPECIAL,
             HARDENED_OPPORTUNITY,
             ONSET_SCREEN,
@@ -204,7 +232,8 @@ public final class InfantryReflexes {
 
     /**
      * The chain up to but excluding {@link #BROKEN_FIRE_TEAM} — the prefix that
-     * needs no squad state and is therefore askable of a lone marine.
+     * is askable of a lone marine, every entry in it declining rather than
+     * failing when there is no squad to read.
      * {@code GoapInfantryBehavior.prepareForAction} is its one caller.
      *
      * <p>{@link #LANE_SIDESTEP} is outside it too, and not because it wants a

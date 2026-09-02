@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.air.engine;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
@@ -82,8 +82,8 @@ public final class EngineVoice {
         }
     }
 
-    /** Interned flyweights, keyed by {@code "<tier>_<size>"}. */
-    private static final Map<String, EngineVoice> POOL = new HashMap<>();
+    /** Interned flyweights, keyed by {@code "<tier>_<size>"}. Concurrent because interning happens lazily during a battle and two battles can run in one JVM — flyweight identity is the whole contract here, and a plain map could hand two callers two instances for one key. */
+    private static final Map<String, EngineVoice> POOL = new ConcurrentHashMap<>();
 
     /** Fallback voice for hulls that can't be resolved — a neutral midline frigate engine. */
     public static final EngineVoice DEFAULT = forSpec("MIDLINE", "FRIGATE");
@@ -108,13 +108,10 @@ public final class EngineVoice {
     public static EngineVoice forSpec(String engineStyle, String hullSize) {
         Tier tier = Tier.fromStyle(engineStyle);
         Size size = Size.fromHullSize(hullSize);
-        if (tier == Tier.DWELLER && size == Size.FIGHTER) size = Size.FRIGATE;
-        String key = tier.tag + "_" + size.tag;
-        EngineVoice cached = POOL.get(key);
-        if (cached != null) return cached;
-        EngineVoice v = new EngineVoice(tier, size);
-        POOL.put(key, v);
-        return v;
+        Size interned = tier == Tier.DWELLER && size == Size.FIGHTER
+                ? Size.FRIGATE : size;
+        String key = tier.tag + "_" + interned.tag;
+        return POOL.computeIfAbsent(key, ignored -> new EngineVoice(tier, interned));
     }
 
     @Override public String toString() { return "EngineVoice[" + loopSoundId + "]"; }

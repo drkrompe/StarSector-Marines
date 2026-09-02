@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
@@ -39,8 +39,9 @@ public final class HullPivotResolver {
     private static final Logger LOG = Global.getLogger(HullPivotResolver.class);
     private static final float[] ZERO = {0f, 0f};
 
-    /** Key: hull id. Value: {@code {offsetX, offsetY}} pixel-centre-minus-center, in cells. */
-    private static final Map<String, float[]> CACHE_BY_HULL = new HashMap<>();
+    /** Key: hull id. Value: {@code {offsetX, offsetY}} pixel-centre-minus-center, in cells. Filled lazily during a battle, and concurrent because two battles can run in one JVM; the value is a pure function of the id, so a race would only re-read the spec. */
+    private static final Map<String, float[]> CACHE_BY_HULL =
+            new ConcurrentHashMap<>();
 
     private HullPivotResolver() {}
 
@@ -52,11 +53,8 @@ public final class HullPivotResolver {
      */
     public static float[] pivotOffset(String hullId) {
         if (hullId == null || hullId.isEmpty()) return ZERO;
-        float[] cached = CACHE_BY_HULL.get(hullId);
-        if (cached != null) return cached;
-        float[] resolved = doResolve(hullId);
-        CACHE_BY_HULL.put(hullId, resolved);
-        return resolved;
+        return CACHE_BY_HULL.computeIfAbsent(
+                hullId, HullPivotResolver::doResolve);
     }
 
     private static float[] doResolve(String hullId) {

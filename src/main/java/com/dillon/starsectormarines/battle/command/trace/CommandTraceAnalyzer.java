@@ -982,7 +982,12 @@ public final class CommandTraceAnalyzer {
                     inactivity.add(inactivityCause(schemaVersion,
                                     squadStates.get(action.getInt("squadId"))),
                             !baseline, intervalTicks);
-                } else if ("NO_ACTIONABLE_TRACK_TARGET".equals(reason)) {
+                    // A capture refused for sitting two tracks from home is the
+                    // same unassigned pulse with a more specific cause; count
+                    // it here or the home-track control run measures a drop in
+                    // idle pulses that is only a renamed string.
+                } else if ("NO_ACTIONABLE_TRACK_TARGET".equals(reason)
+                        || "CAPTURE_OUT_OF_TRACK_REACH".equals(reason)) {
                     if (!baseline) {
                         noActionablePulses++;
                         unassignedPulses++;

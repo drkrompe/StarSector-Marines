@@ -200,6 +200,15 @@ public final class ReinforceContact implements Goal {
      * When the building cannot support a flank, returning the squad's own
      * cell makes {@link FlankApproach} complete and hand control back to the
      * ordinary engagement planner instead of orbiting the structure.
+     *
+     * <p>Two callers read that refusal differently. {@link #computeFlankWaypoint}
+     * asks once per squad at plan time and lets the action complete on it.
+     * {@code AttackMove.maneuverAim} asks per member per tick, treats the
+     * squad's own ground as "no flank here" and aims at the objective instead,
+     * and pays for the fan-out once per squad per tick through the squad's
+     * {@code FlankAimMemo} — this method costs an A* per candidate over a
+     * radius-{@value #WALKABLE_SNAP_RADIUS} square, so a caller that can ask
+     * it per member must not.
      */
     public static int[] snapToReachable(int x, int y, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();

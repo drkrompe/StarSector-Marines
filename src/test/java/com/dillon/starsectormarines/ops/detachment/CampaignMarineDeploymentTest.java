@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -109,6 +110,103 @@ class CampaignMarineDeploymentTest {
 
         assertEquals(second.memberIds().get(0), deployment.seat(0).campaignSoldierId);
         assertEquals(second.memberIds().get(1), deployment.seat(1).campaignSoldierId);
+    }
+
+    /**
+     * The NCO is the first off the boat: seated at the head of their squad's
+     * run so they ride its first lift and are the leader the rest close on.
+     */
+    @Test
+    void theSquadsNcoTakesTheFirstSeatOfItsOwnRun() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        MarineSquad squad = roster.squads().get(0);
+        String nco = ncoBehindTheFirstBillet(roster, squad);
+        List<String> tail = new ArrayList<>(fitMembers(roster, squad));
+        tail.remove(nco);
+
+        CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(
+                roster, Collections.singleton(squad.id()), MarineSquad.CAPACITY);
+
+        assertEquals(tail.size() + 1, deployment.size());
+        assertEquals(nco, deployment.seat(0).campaignSoldierId);
+        for (int seat = 1; seat < deployment.size(); seat++) {
+            assertEquals(tail.get(seat - 1), deployment.seat(seat).campaignSoldierId,
+                    "seat " + seat + " keeps its roster order behind the NCO");
+        }
+    }
+
+    /** The whole-line branch seats its NCOs first too, not only an explicit selection. */
+    @Test
+    void theLineReadyBranchAlsoSeatsEachNcoFirst() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(2 * MarineSquad.CAPACITY);
+        List<MarineSquad> line = new ArrayList<>();
+        for (MarineSquad squad : roster.squads()) {
+            if (!squad.reserve()) line.add(squad);
+        }
+        assertEquals(2, line.size());
+        List<String> ncos = new ArrayList<>();
+        for (MarineSquad squad : line) ncos.add(ncoBehindTheFirstBillet(roster, squad));
+        int firstRun = fitMembers(roster, line.get(0)).size();
+
+        CampaignMarineDeployment deployment =
+                CampaignMarineDeployment.freeze(roster, 2 * MarineSquad.CAPACITY);
+
+        assertEquals(ncos.get(0), deployment.seat(0).campaignSoldierId);
+        assertEquals(ncos.get(1), deployment.seat(firstRun).campaignSoldierId);
+    }
+
+    /**
+     * A manifest short of the squad carries the NCO: the cut takes the tail of
+     * the run, and the NCO is no longer in it.
+     */
+    @Test
+    void aManifestTooSmallForTheSquadStillCarriesItsNco() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        MarineSquad squad = roster.squads().get(0);
+        String nco = ncoBehindTheFirstBillet(roster, squad);
+
+        CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(
+                roster, Collections.singleton(squad.id()), 4);
+
+        assertEquals(4, deployment.size());
+        assertEquals(nco, deployment.seat(0).campaignSoldierId);
+        assertTrue(deployment.seat(0).campaignSquad.leader);
+    }
+
+    /**
+     * Wounds the squad leader so the billet falls to somebody standing further
+     * down the roll, which is the only way an NCO is not already the first
+     * marine on it: seniority separates equals by billet, so a founding squad's
+     * NCO holds billet one. The stand-in is the senior fire-team leader, who
+     * stands at the head of the second team.
+     *
+     * <p>Both halves are asserted, so a change in that derivation fails here
+     * rather than quietly leaving these tests measuring a reorder that never
+     * had anything to move.
+     */
+    private static String ncoBehindTheFirstBillet(MarineRoster roster, MarineSquad squad) {
+        String wounded = roster.squadLeader(squad).id();
+        roster.applySoldierOutcome(
+                Collections.singletonMap(wounded, MarineSoldierStatus.WIA), 0f, 7f);
+        String nco = roster.squadLeader(squad).id();
+        assertNotEquals(wounded, nco, "the wounded leader still holds the billet");
+        List<String> fit = fitMembers(roster, squad);
+        assertNotEquals(fit.get(0), nco,
+                "the NCO is already first, so the reorder proves nothing");
+        assertTrue(fit.contains(nco));
+        return nco;
+    }
+
+    /** Exactly what the freeze walks: the squad's fit marines, in roster order. */
+    private static List<String> fitMembers(MarineRoster roster, MarineSquad squad) {
+        List<String> fit = new ArrayList<>();
+        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+            if (soldier.status() == MarineSoldierStatus.ACTIVE) fit.add(soldier.id());
+        }
+        return fit;
     }
 
     @Test
