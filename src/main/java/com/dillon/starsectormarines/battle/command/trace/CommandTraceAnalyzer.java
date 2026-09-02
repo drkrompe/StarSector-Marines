@@ -2063,7 +2063,8 @@ public final class CommandTraceAnalyzer {
                     if (schemaVersion != 2 && schemaVersion != 3
                             && schemaVersion != 4 && schemaVersion != 5
                             && schemaVersion != 6 && schemaVersion != 7
-                            && schemaVersion != 8 && schemaVersion != 9) {
+                            && schemaVersion != 8 && schemaVersion != 9
+                            && schemaVersion != 10) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);
