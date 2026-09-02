@@ -30,7 +30,7 @@ class StationedStrengthTest {
      * and nothing else that happens to be sitting on it.
      */
     @Test
-    void theTotalAtAMarketIsOurOwnFlatModifiersAndOnlyThose() {
+    void theTotalAtAMarketIsOurOwnFlatModifiersScaledAsVanillaScalesThem() {
         StatBonus groundDefence = new StatBonus();
         groundDefence.modifyFlat(StationedStrengthSystem.MODIFIER_ID_PREFIX + "41",
                 18f, "Stationed mercenary detachment");
@@ -41,7 +41,8 @@ class StationedStrengthTest {
         // And an industry's multiplier, which is not a flat modifier at all.
         groundDefence.modifyMult("ground_defenses", 2f, "Ground Defenses");
 
-        assertEquals(30f, StationedStrength.totalIn(groundDefence), EPSILON);
+        // 30 flat, doubled by the industry, because that is what vanilla adds.
+        assertEquals(60f, StationedStrength.totalIn(groundDefence), EPSILON);
     }
 
     /** A market with nothing stationed contributes nothing, and neither does none. */

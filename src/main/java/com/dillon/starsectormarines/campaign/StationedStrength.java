@@ -89,15 +89,13 @@ public final class StationedStrength {
      * colony's own militia as well would field the company's stationed marines
      * twice: once as themselves and once as somebody else's garrison.
      *
-     * <p><b>The one inexactness, stated.</b> Because {@code computeEffective}
-     * multiplies the flat total by the industry and stability chain, the
-     * detachment's real effect on defender strength is this sum times
-     * {@code stat.getMult()} — at a stable colony with Heavy Batteries, roughly
-     * twice it. Summing the flats therefore subtracts a little less than the
-     * detachment added, which errs toward a larger allied garrison rather than a
-     * smaller one, and keeps this the plain inverse of what was written.
+     * <p>Because {@code computeEffective} multiplies the flat total by the
+     * industry and stability chain, the detachment's real effect on defender
+     * strength is its flat sum times {@code stat.getMult()} — at a stable colony
+     * with Heavy Batteries, roughly twice the flats. This returns that scaled
+     * figure, so what comes back out is exactly what went in.
      *
-     * @return the flat total, never negative; {@code 0} for a null market
+     * @return the detachment's effect on the stat, never negative; {@code 0} for a null market
      */
     public static float totalAt(MarketAPI market) {
         if (market == null || market.getStats() == null
@@ -118,7 +116,7 @@ public final class StationedStrength {
             }
             total += mod.getValue();
         }
-        return Math.max(0f, total);
+        return Math.max(0f, total * groundDefence.getMult());
     }
 
     /** The defence value of one living seat deploying at this band. */
