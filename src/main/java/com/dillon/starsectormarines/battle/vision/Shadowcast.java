@@ -150,8 +150,22 @@ public final class Shadowcast {
     /**
      * Returns the maximum number of cells a single shadowcast can produce for
      * a given range. Use to pre-size the output array.
+     *
+     * <p>This is the bounding square of the disc rather than the disc's own
+     * area, because a cast writes more cells than the disc holds. The eight
+     * octants each scan their boundary rays inclusively, so the four axes and
+     * the four diagonals are written twice — the diagonals out to
+     * {@code range / sqrt(2)}, where they leave the disc. The area formula
+     * accounted for the axes and not the diagonals, which left it about a
+     * hundred and seventy short at the fog service's own 60-cell ceiling.
+     * Nothing hit it while every long-sighted observer stood behind a wall; an
+     * emplacement in open country sees the whole disc, and the overflow is an
+     * {@code ArrayIndexOutOfBoundsException} thousands of ticks into a battle.
+     * The square is 30% more memory at the ceiling — 58KB against 46KB, once
+     * per fog service — and cannot be exceeded however the rays are counted.
      */
     public static int maxCells(int range) {
-        return (int) (Math.PI * range * range) + 4 * range + 4;
+        int span = 2 * range + 1;
+        return span * span + 1;
     }
 }
