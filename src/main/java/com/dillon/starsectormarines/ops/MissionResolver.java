@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.campaign.systems.RaidEnder;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidEnder;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
+import com.dillon.starsectormarines.marine.CasualtyFate;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -528,20 +529,9 @@ public final class MissionResolver {
             result.put(id, MarineSoldierStatus.ACTIVE);
         }
         for (String id : outcome.fallenSoldierIds) {
-            long seed = ((long) (outcome.missionId != null ? outcome.missionId.hashCode() : 0) << 32)
-                    ^ id.hashCode();
-            float roll = new Random(seed).nextFloat();
-            MarineSoldierStatus status;
-            if (outcome.victory) {
-                status = roll < 0.35f ? MarineSoldierStatus.KIA
-                        : roll < 0.95f ? MarineSoldierStatus.WIA
-                        : MarineSoldierStatus.MIA;
-            } else {
-                status = roll < 0.50f ? MarineSoldierStatus.KIA
-                        : roll < 0.80f ? MarineSoldierStatus.WIA
-                        : MarineSoldierStatus.MIA;
-            }
-            result.put(id, status);
+            long seed = CasualtyFate.seed(
+                    outcome.missionId != null ? outcome.missionId.hashCode() : 0, id);
+            result.put(id, CasualtyFate.roll(seed, outcome.victory));
         }
         return result;
     }

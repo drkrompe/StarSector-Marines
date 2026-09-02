@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.campaign.systems;
 
+import com.dillon.starsectormarines.campaign.AbsentDefenceResolution;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignSystem;
 import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
+import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingLapseResolution;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -21,6 +23,10 @@ import java.util.EnumSet;
  * regardless of a live payload while {@link ContractRetainerSystem} keeps paying through
  * {@code IN_PROGRESS}.
  *
+ * <p>A defense armed by a vanilla raid is the exception, and does not lapse at all: that
+ * raid was fought through vanilla's own strength ratio whether or not the player came, so
+ * it settles from vanilla's result through {@link AbsentDefenceResolution}.
+ *
  * <p>Runs after the defense producers and {@link StationingIncidentSystem} so an event
  * armed today is never lapsed on the tick that arms it, and before
  * {@link ContractLifecycleSystem} so a deadline falling on the term's final day resolves
@@ -33,18 +39,40 @@ public final class StationingLapseSystem implements CampaignSystem {
     /** Days to answer an armed Cadre incident. Longer — an incident is not an assault. */
     public static final int CADRE_RESPONSE_DAYS = 14;
 
+    /** Stateless reader of live vanilla raid state; shared by every live instance. */
+    private static final VanillaRaidStatus LIVE_VANILLA = new VanillaRaidStatus();
+
     interface RosterSource {
         MarineRoster roster();
     }
 
+    /** What vanilla has done with the raid a pending defence was armed from. */
+    interface RaidStatusSource {
+        RaidStatus status(String marketId, String attackerFactionId);
+    }
+
+    /** Ground strength vanilla counted for the defended market, our modifier included. */
+    interface DefenderStrengthSource {
+        float defenderStrength(String marketId);
+    }
+
     private final RosterSource rosterSource;
+    private final RaidStatusSource raidStatusSource;
+    private final DefenderStrengthSource defenderStrengthSource;
 
     public StationingLapseSystem() {
         this(StationingLapseSystem::liveRoster);
     }
 
     StationingLapseSystem(RosterSource rosterSource) {
+        this(rosterSource, LIVE_VANILLA, LIVE_VANILLA);
+    }
+
+    StationingLapseSystem(RosterSource rosterSource, RaidStatusSource raidStatusSource,
+                          DefenderStrengthSource defenderStrengthSource) {
         this.rosterSource = rosterSource;
+        this.raidStatusSource = raidStatusSource;
+        this.defenderStrengthSource = defenderStrengthSource;
     }
 
     @Override
@@ -72,9 +100,13 @@ public final class StationingLapseSystem implements CampaignSystem {
             GarrisonDefensePayload defense =
                     GarrisonDefensePayload.from(state, contractId, roster);
             if (defense != null) {
-                resolveIfExpired(state, row, day, defense.triggeredDay,
-                        GARRISON_RESPONSE_DAYS,
-                        () -> StationingLapseResolution.apply(state, defense, roster, day));
+                if (defense.triggerType == GarrisonDefenseTriggerType.VANILLA_RAID) {
+                    settleFromVanilla(state, row, day, defense, roster);
+                } else {
+                    resolveIfExpired(state, row, day, defense.triggeredDay,
+                            GARRISON_RESPONSE_DAYS,
+                            () -> StationingLapseResolution.apply(state, defense, roster, day));
+                }
                 continue;
             }
 
@@ -101,13 +133,48 @@ public final class StationingLapseSystem implements CampaignSystem {
         }
         if (day < deadline) return;
         resolve.run();
-        // A resolution that refused (stale identity, failed personnel delivery) leaves
-        // the payload in place; the deadline stays armed so the next tick retries.
+        disarmIfSettled(state, row);
+    }
+
+    /**
+     * A resolution that refused (stale identity, failed personnel delivery) leaves the
+     * payload in place; the deadline stays armed so the next tick retries.
+     */
+    private static void disarmIfSettled(CampaignState state, int row) {
         if (state.contractResponseDeadlineTick[row] >= 0
                 && GarrisonDefensePayload.from(state, state.contractId[row]) == null
                 && StationingIncidentPayload.from(state, state.contractId[row]) == null) {
             state.contractResponseDeadlineTick[row] = -1;
         }
+    }
+
+    /**
+     * A vanilla-triggered defence is not the player's alone to answer: the stationed
+     * detachment fought that raid through vanilla's own strength ratio whether or not the
+     * player came, so it settles from vanilla's result rather than lapsing
+     * ({@code contracts-nouns.md} law 5).
+     *
+     * <p>While the raid is still in the air there is nothing to settle and no window to
+     * miss, so the response deadline carries the term's own expiry — the only honest date
+     * on offer — and stays unset for a term with no expiry. A term that runs out with the
+     * raid still coming settles as held: the detachment served the term it was paid for.
+     */
+    private void settleFromVanilla(CampaignState state, int row, int day,
+                                   GarrisonDefensePayload defense, MarineRoster roster) {
+        String marketId = state.marketRegistry.get(defense.marketId);
+        RaidStatus status = raidStatusSource.status(marketId, defense.attackerFactionKey);
+        int expires = state.contractExpiresTick[row];
+        if (status == RaidStatus.LIVE && (expires < 0 || day < expires)) {
+            state.contractResponseDeadlineTick[row] = expires;
+            return;
+        }
+        if (status == RaidStatus.LANDED) {
+            AbsentDefenceResolution.applyLanded(state, defense, roster, day,
+                    defenderStrengthSource.defenderStrength(marketId));
+        } else {
+            AbsentDefenceResolution.applyHeld(state, defense, roster, day);
+        }
+        disarmIfSettled(state, row);
     }
 
     /**

@@ -9,32 +9,32 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class VanillaRaidEnderTest {
+class VanillaRaidScanTest {
 
     private static final Set<String> NAMED = Set.of("jangala", "asharu");
 
     @Test
     void endsARaidThatNamesTheDefendedMarket() {
-        assertTrue(VanillaRaidEnder.shouldEnd(
+        assertTrue(VanillaRaidScan.targets(
                 "jangala", "pirates", "pirates", false, NAMED, false, false));
     }
 
     @Test
     void leavesAnotherFactionsRaidAlone() {
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "jangala", "pirates", "hegemony", false, NAMED, false, false));
     }
 
     @Test
     void leavesARaidThatNamesAnotherMarketAlone() {
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "kazeron", "pirates", "pirates", false, NAMED, false, false));
     }
 
     /** Ending is idempotent: a group already ending or a raid already failed is left alone. */
     @Test
     void leavesARaidThatIsAlreadyOverAlone() {
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "jangala", "pirates", "pirates", true, NAMED, false, false));
     }
 
@@ -45,21 +45,21 @@ class VanillaRaidEnderTest {
     @Test
     void anyHostileMarketMatchesOnlyWhenTheMarketIsHostile() {
         List<String> noNames = Collections.emptyList();
-        assertTrue(VanillaRaidEnder.shouldEnd(
+        assertTrue(VanillaRaidScan.targets(
                 "jangala", "pirates", "pirates", false, noNames, true, true));
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "jangala", "pirates", "pirates", false, noNames, true, false));
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "jangala", "pirates", "pirates", false, noNames, false, true));
     }
 
     @Test
     void missingIdentityNeverEndsAnything() {
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 null, "pirates", "pirates", false, NAMED, false, false));
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "jangala", null, null, false, NAMED, false, false));
-        assertFalse(VanillaRaidEnder.shouldEnd(
+        assertFalse(VanillaRaidScan.targets(
                 "jangala", "pirates", null, false, NAMED, false, false));
     }
 }
