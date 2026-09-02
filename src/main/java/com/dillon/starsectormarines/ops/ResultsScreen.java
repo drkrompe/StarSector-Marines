@@ -135,6 +135,16 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 MessageFormat.format(Strings.get("resultsCasualtiesFmt"),
                         outcome.marinesLost, outcome.marinesEngaged),
                 outcome.marinesLost > 0 ? "tone-danger" : "tone-good"));
+        // Allied losses are reported and never counted as the company's. The
+        // row appears only when allies actually took the field, so an ordinary
+        // contract's debrief is unchanged.
+        if (outcome.alliesEngaged > 0) {
+            rows.add(row("result-allied-losses",
+                    trimLabel(Strings.get("resultsAlliedLossesLabel")),
+                    MessageFormat.format(Strings.get("resultsAlliedLossesFmt"),
+                            outcome.alliesLost, outcome.alliesEngaged),
+                    outcome.alliesLost > 0 ? "tone-edge" : "tone-good"));
+        }
         if (!outcome.boatsLost.isEmpty()) {
             rows.add(row("result-boats-lost", trimLabel(Strings.get("resultsBoatsLostLabel")),
                     formatBoatsLost(outcome), "tone-danger"));

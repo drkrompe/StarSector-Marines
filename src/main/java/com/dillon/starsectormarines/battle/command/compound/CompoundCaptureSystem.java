@@ -74,21 +74,24 @@ public final class CompoundCaptureSystem {
 
             boolean defendersPresent = CompoundService.occupiedBy(
                     r, zoneId, Faction.DEFENDER, sim);
-            boolean marinesPresent = CompoundService.occupiedBy(
+            // The attacking side, not the player's faction: an allied militia
+            // in the zone contests and takes ground exactly as a marine does.
+            // Who ends up *holding* it is still only MARINE or DEFENDER.
+            boolean attackersPresent = CompoundService.occupiedBy(
                     r, zoneId, Faction.MARINE, sim);
 
             switch (r.state) {
                 case DEFENDER_HELD -> {
                     // First marine inside the zone flips to CONTESTED. Empty or
                     // defender-only zones stay DEFENDER_HELD with no progress.
-                    if (marinesPresent) {
+                    if (attackersPresent) {
                         r.state = CompoundService.CompoundState.CONTESTED;
                         r.holdTimer = 0f;
                         r.captureProgress = 0f;
                     }
                 }
                 case CONTESTED -> {
-                    if (marinesPresent && !defendersPresent) {
+                    if (attackersPresent && !defendersPresent) {
                         r.holdTimer += CAPTURE_TICK_PERIOD;
                         r.captureProgress = Math.min(1f,
                                 r.holdTimer / CompoundService.MARINE_HOLD_TIME);
@@ -102,7 +105,7 @@ public final class CompoundCaptureSystem {
                             // the arc forever inside the marine-blue ring.
                             r.captureProgress = 0f;
                         }
-                    } else if (defendersPresent && !marinesPresent) {
+                    } else if (defendersPresent && !attackersPresent) {
                         // Symmetric recovery: defenders alone in a contested
                         // zone push it back to DEFENDER_HELD during capture or recapture.
                         r.holdTimer += CAPTURE_TICK_PERIOD;

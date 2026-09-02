@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
@@ -25,7 +24,7 @@ public final class FragGrenadeRenderSystem implements RenderSystem {
         for (Projectile projectile : ctx.sim.getActiveProjectiles()) {
             if (!"weapon.frag-grenade".equals(projectile.sourceWeaponId)
                     || projectile.onArrival == null) continue;
-            boolean friendly = projectile.shooterFaction == Faction.MARINE;
+            boolean friendly = Allegiance.of(projectile.shooterFaction).friendly();
             if (!friendly) {
                 int px = (int) Math.floor(projectile.currentX());
                 float groundProgress = projectile.progress();

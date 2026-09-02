@@ -157,6 +157,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 
@@ -871,6 +872,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Whether the rescue cohort is still sealed inside its opening shelter. */
     public boolean isCivilianShelterProtected() {
         return civilianEvacuationSystem.isShelterProtected();
+    }
+    /** Records the squad sealed in the rescue shelter. One only. */
+    public boolean registerShelterGuardSquad(int squadId) {
+        return civilianEvacuationSystem.registerShelterGuard(squadId);
+    }
+    @Override
+    public boolean isShelterGuard(int squadId) {
+        return civilianEvacuationSystem.isShelterGuard(squadId);
     }
     /** Whether a cell belongs to the rescue shelter or opening pickup exclusion footprint. */
     public boolean isInsideRescueOpeningProtectedZone(int x, int y) {
@@ -1703,7 +1712,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Backstop: if a caller (currently BattleSetup) hasn't registered
         // objectives, install the default eliminate-each-other pair so the
         // old behavior keeps working untouched. Run-once on first tick.
-        objectivesService.installEliminationBackstopIfEmpty(Faction.MARINE, Faction.DEFENDER);
+        // Each side counts the other and nothing else. An allied wipe is not a
+        // marine defeat and does not end the battle; a marine wipe is, even
+        // with allies still standing.
+        objectivesService.installEliminationBackstopIfEmpty(
+                Faction.MARINE, EnumSet.of(Faction.DEFENDER),
+                Faction.DEFENDER, EnumSet.of(Faction.MARINE));
         // Start the per-tick phase profiler. Each lap() call below records
         // wall-time spent in the preceding block; endTick() at the bottom
         // snapshots into the rolling display buffer the debug panel reads.

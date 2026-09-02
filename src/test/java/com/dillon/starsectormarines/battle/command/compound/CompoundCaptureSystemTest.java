@@ -156,6 +156,66 @@ public class CompoundCaptureSystemTest {
                 service.getRecord(node).state);
     }
 
+    /**
+     * Contest reads hostility; holding reads identity. An allied militia in the
+     * zone takes a defender compound exactly as a marine would — and what it
+     * leaves behind is MARINE_HELD, because the state machine has no allied
+     * bucket and is not getting one. Allies fight for the ground; they do not
+     * become its owner.
+     */
+    @Test
+    public void anAlliedBodyContestsAndTakesACompoundWithoutBecomingItsHolder() {
+        BattleSimulation sim = openSim();
+        CompoundService service = new CompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        TacticalNode node = barracksAt(5, 5);
+        service.register(node);
+
+        tickN(system, sim, service, 1);
+        assertEquals(CompoundService.CompoundState.DEFENDER_HELD,
+                service.getRecord(node).state);
+
+        // No marine anywhere on the map — only the ally.
+        sim.spawn(new EntitySpec("a1", Faction.ALLY, UnitType.MILITIA, 5, 5));
+        tickN(system, sim, service, 1);
+        assertEquals(CompoundService.CompoundState.CONTESTED,
+                service.getRecord(node).state,
+                "an ally in a defender zone contests it");
+
+        int holdTicks = (int) Math.ceil(
+                CompoundService.MARINE_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
+        tickN(system, sim, service, holdTicks);
+        assertEquals(CompoundService.CompoundState.MARINE_HELD,
+                service.getRecord(node).state,
+                "the ground goes to the attacking side, and the attacking"
+                        + " side's held state is the only one there is");
+    }
+
+    /** A defender alone still recovers a zone an ally had been contesting. */
+    @Test
+    public void aDefenderAloneRecoversFromAnAlliedContest() {
+        BattleSimulation sim = openSim();
+        CompoundService service = new CompoundService();
+        CompoundCaptureSystem system = new CompoundCaptureSystem();
+        TacticalNode node = barracksAt(5, 5);
+        service.register(node);
+
+        long ally = sim.spawn(new EntitySpec("a1", Faction.ALLY,
+                UnitType.MILITIA, 5, 5));
+        tickN(system, sim, service, 1);
+        assertEquals(CompoundService.CompoundState.CONTESTED,
+                service.getRecord(node).state);
+
+        sim.releaseFromRegistry(ally);
+        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
+        int holdTicks = 1 + (int) Math.ceil(
+                CompoundService.DEFENDER_HOLD_TIME / CompoundCaptureSystem.CAPTURE_TICK_PERIOD);
+        tickN(system, sim, service, holdTicks);
+
+        assertEquals(CompoundService.CompoundState.DEFENDER_HELD,
+                service.getRecord(node).state);
+    }
+
     @Test
     public void hasAliveCompoundReadsDefenderSupplyState() {
         // Slice 3 trigger/means gates read this. Defender-side read is true

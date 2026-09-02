@@ -111,7 +111,6 @@ public final class SquadDefendTargetingPanel implements HudPanel {
         Squad squad = sim.getSquad(squadId);
         if (squad == null || squad.aliveMembers <= 0
                 || squad.faction != Faction.MARINE || squad.isDroneSquad()
-                || squad.rescueShelterGuard
                 || squad.rescuePickupMech) return false;
         long member = sim.resolveUnit(squad.leaderId);
         if (member == 0L) {

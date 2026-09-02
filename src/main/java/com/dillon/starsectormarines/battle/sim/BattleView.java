@@ -341,4 +341,10 @@ public interface BattleView {
 
     /** Whether boarding is gated by a physical rescue shuttle. */
     boolean hasCivilianPickupShuttle();
+
+    /**
+     * Whether {@code squadId} is the mission-local squad sealed in the rescue
+     * shelter with the cohort. False in ordinary battles.
+     */
+    boolean isShelterGuard(int squadId);
 }
