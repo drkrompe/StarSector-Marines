@@ -77,6 +77,20 @@ public final class ConquestLaneChain {
             return captureZoneIds.clone();
         }
 
+        /**
+         * Whether this place holds that compound.
+         *
+         * <p>Reads the field rather than the accessor deliberately: the
+         * accessor clones, and this is asked from inside the allocation's
+         * greedy pair loop — squads times compounds times rounds, every pulse.
+         */
+        boolean holds(int captureZoneId) {
+            for (int zone : captureZoneIds) {
+                if (zone == captureZoneId) return true;
+            }
+            return false;
+        }
+
         /** Whether every compound on this place is held by the marines. */
         public boolean isHeld(IntPredicate marineHeld) {
             for (int zone : captureZoneIds) {
@@ -142,12 +156,33 @@ public final class ConquestLaneChain {
             claimed.add(mine);
         }
         for (Compound compound : compounds == null ? List.<Compound>of() : compounds) {
+            int[] best = null;
+            long bestDistance = Long.MAX_VALUE;
             for (int lane = 0; lane < routes.size(); lane++) {
                 int index = linkFor(routes.get(lane), compound);
                 if (index < 0) continue;
-                List<int[]> links = claimed.get(lane);
-                links.set(index, append(links.get(index), compound.captureZoneId()));
+                LaneRoute.Link link = routes.get(lane).links().get(index);
+                // The objective stands on every chain: it is the last link of
+                // all of them, and whichever lane finishes first is entitled to
+                // go for it. Every other place belongs to one lane only — claim
+                // bounds are rectangles and claims are not, so two lanes' boxes
+                // can overlap, and a compound on both chains would stop both
+                // fronts on the same building.
+                if (link.band() == LaneRoute.OBJECTIVE_BAND) {
+                    List<int[]> links = claimed.get(lane);
+                    links.set(index, append(links.get(index),
+                            compound.captureZoneId()));
+                    continue;
+                }
+                long distance = distanceSquared(link, compound);
+                if (distance >= bestDistance) continue;
+                bestDistance = distance;
+                best = new int[]{lane, index};
             }
+            if (best == null) continue;
+            List<int[]> links = claimed.get(best[0]);
+            links.set(best[1], append(links.get(best[1]),
+                    compound.captureZoneId()));
         }
         List<List<Link>> lanes = new ArrayList<>();
         for (int lane = 0; lane < routes.size(); lane++) {
@@ -185,14 +220,18 @@ public final class ConquestLaneChain {
         for (int index = 0; index < links.size(); index++) {
             LaneRoute.Link link = links.get(index);
             if (!link.claims(compound.anchorX(), compound.anchorY())) continue;
-            long dx = link.x() - (long) compound.anchorX();
-            long dy = link.y() - (long) compound.anchorY();
-            long distance = dx * dx + dy * dy;
+            long distance = distanceSquared(link, compound);
             if (distance >= bestDistance) continue;
             bestDistance = distance;
             best = index;
         }
         return best;
+    }
+
+    private static long distanceSquared(LaneRoute.Link link, Compound compound) {
+        long dx = link.x() - (long) compound.anchorX();
+        long dy = link.y() - (long) compound.anchorY();
+        return dx * dx + dy * dy;
     }
 
     private static int[] append(int[] zones, int zone) {
@@ -254,9 +293,7 @@ public final class ConquestLaneChain {
      */
     public int linkIndexOn(int lane, int captureZoneId) {
         for (Link link : links(lane)) {
-            for (int zone : link.captureZoneIds()) {
-                if (zone == captureZoneId) return link.index();
-            }
+            if (link.holds(captureZoneId)) return link.index();
         }
         return -1;
     }

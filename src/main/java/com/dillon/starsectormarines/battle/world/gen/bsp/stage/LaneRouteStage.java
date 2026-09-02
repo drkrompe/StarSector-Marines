@@ -140,7 +140,11 @@ public final class LaneRouteStage implements GenStage {
             grounds.add(claimBounds[index]);
         }
         int objectiveIndex = plan.precincts().indexOf(objective);
-        int[] end = anchor(ctx, claim, road, objectiveIndex, objective);
+        // An objective the plan does not list is not a place with claimed
+        // ground, and asking for the bounds of precinct -1 is a crash during
+        // world generation rather than a lane that came up short.
+        int[] end = objectiveIndex < 0 ? null
+                : anchor(ctx, claim, road, objectiveIndex, objective);
         if (end != null) {
             anchors.add(end);
             names.add(objective.name());
