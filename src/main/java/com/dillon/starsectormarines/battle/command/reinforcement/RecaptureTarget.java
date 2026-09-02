@@ -56,6 +56,21 @@ public final class RecaptureTarget {
     boolean manned;
 
     /**
+     * The lane this position stands on, or {@code -1} for one on no lane —
+     * a settlement's guard post, or any map that laid no lanes. Computed once
+     * at service init from the place's claimed ground; positions don't move.
+     */
+    int lane = -1;
+
+    /**
+     * Which rung of {@link #lane} this position belongs to, or {@code -1}
+     * alongside a lane of {@code -1}. This is the finer band: a ring around
+     * the objective says how deep a position is, and a rung says which place
+     * it is part of.
+     */
+    int link = -1;
+
+    /**
      * Consecutive recompute ticks this target has sat {@code open && dispatched}
      * — a reinforcement was posted but no alive squad has been assigned yet
      * (en route, or lost in the delivery pipeline). At
@@ -79,6 +94,12 @@ public final class RecaptureTarget {
 
     /** Squad-assignment Y. */
     public int objectiveY() { return node.anchorY; }
+
+    /** The lane this position stands on, or {@code -1} for one on no lane. */
+    public int lane() { return lane; }
+
+    /** Which rung of its lane, or {@code -1} for a position on no lane. */
+    public int link() { return link; }
 
     public boolean isOpen()       { return open; }
     public boolean isDispatched() { return dispatched; }

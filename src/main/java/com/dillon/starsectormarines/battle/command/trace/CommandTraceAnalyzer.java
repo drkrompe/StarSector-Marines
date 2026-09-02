@@ -63,7 +63,37 @@ public final class CommandTraceAnalyzer {
             int peakPublishedTrackShareBasisPoints,
             PhysicalProgressMetrics physicalProgress,
             CommandInactivityMetrics commandInactivity,
-            OrderMixMetrics orderMix) {
+            OrderMixMetrics orderMix,
+            LaneChainMetrics laneChains) {
+
+        /**
+         * The shape every earlier caller wrote: no chain reading at all, which
+         * is what a mission with no lanes and a run under the lane-chain
+         * control both produce.
+         */
+        public FactionMetrics(int perspectiveSamples, int retargets,
+                              int releases, int reissues,
+                              int rejectedProposals, int stabilityHolds,
+                              int unassignedSquadPulses,
+                              int unassignedSquadTicks,
+                              int unreachableSquadPulses,
+                              int noActionableSquadPulses,
+                              int distantCaptureDeferredSquadPulses,
+                              long reserveSquadTicks,
+                              List<Integer> mobilizationLatencies,
+                              int unmobilizedThreatEpisodes,
+                              int peakTrackShare,
+                              PhysicalProgressMetrics physicalProgress,
+                              CommandInactivityMetrics commandInactivity,
+                              OrderMixMetrics orderMix) {
+            this(perspectiveSamples, retargets, releases, reissues,
+                    rejectedProposals, stabilityHolds, unassignedSquadPulses,
+                    unassignedSquadTicks, unreachableSquadPulses,
+                    noActionableSquadPulses, distantCaptureDeferredSquadPulses,
+                    reserveSquadTicks, mobilizationLatencies,
+                    unmobilizedThreatEpisodes, peakTrackShare, physicalProgress,
+                    commandInactivity, orderMix, LaneChainMetrics.empty());
+        }
 
         public FactionMetrics {
             publishedMobilizationLatenciesTicks =
@@ -73,6 +103,7 @@ public final class CommandTraceAnalyzer {
             commandInactivity = commandInactivity != null
                     ? commandInactivity : CommandInactivityMetrics.empty();
             orderMix = orderMix != null ? orderMix : OrderMixMetrics.empty();
+            laneChains = laneChains != null ? laneChains : LaneChainMetrics.empty();
         }
 
         public FactionMetrics(int perspectiveSamples, int retargets,
@@ -143,6 +174,66 @@ public final class CommandTraceAnalyzer {
                     CommandInactivityMetrics.empty());
         }
     }
+
+    /**
+     * What a Conquest was made of, keyed to the places it was fought over.
+     *
+     * <p>Every other diagnostic here is keyed by <b>track</b> — which third of
+     * the map's width a squad was working in. That was the right key while a
+     * track was a band of uniform ground; on a map grown from places it says
+     * almost nothing, because both a squad standing off the outpost it is about
+     * to take and a squad walking past it to the strongpoint behind report the
+     * same track. The lane and the rung say which place, and a report about a
+     * battle measured in places held has to be able to name them.
+     *
+     * <p>Empty for a mission with no lanes, and under the lane-chain control,
+     * where there are no places to key to and the track share is the whole of
+     * the answer.
+     */
+    public record LaneChainMetrics(List<LaneProgress> lanes,
+                                   List<PlaceWork> places) {
+
+        public LaneChainMetrics {
+            lanes = List.copyOf(lanes);
+            places = List.copyOf(places);
+        }
+
+        public static LaneChainMetrics empty() {
+            return new LaneChainMetrics(List.of(), List.of());
+        }
+
+        public boolean isEmpty() {
+            return lanes.isEmpty() && places.isEmpty();
+        }
+    }
+
+    /**
+     * How far up one lane the marines got, in places rather than in ground.
+     *
+     * <p>{@code frontRegressions} is the reading a forward fraction could not
+     * produce at all: a lane whose strongpoint is retaken has its front come
+     * back a rung, and that is the tug-of-war the whole model is named for.
+     *
+     * @param links       places on the lane with something on them to take
+     * @param linksHeld   how many of those the marines held at the end
+     * @param frontLink   the place still being fought over at the end
+     * @param frontAdvances how many times the front moved up a place
+     * @param frontRegressions how many times it was pushed back down one
+     */
+    public record LaneProgress(int lane, int links, int linksHeld,
+                               int frontLink, int frontAdvances,
+                               int frontRegressions) { }
+
+    /**
+     * What was spent at one place on one lane, in squad-pulses.
+     *
+     * @param secureCompoundSquadPulses pulses under an order to take this place
+     * @param stagingSquadPulses        pulses staging or attacking toward it
+     * @param deferredSquadPulses       pulses where a capture here was withheld
+     *                                  to keep a squad on live front work
+     */
+    public record PlaceWork(int lane, int link, int secureCompoundSquadPulses,
+                            int stagingSquadPulses, int deferredSquadPulses) { }
 
     /**
      * What the commander actually spent its squads on, as a share of published
@@ -619,6 +710,36 @@ public final class CommandTraceAnalyzer {
                         metrics.unmobilizedThreatEpisodes());
                 numberField(out, "peakPublishedTrackShareBasisPoints",
                         metrics.peakPublishedTrackShareBasisPoints());
+                LaneChainMetrics chains = metrics.laneChains();
+                out.append(",\"laneChains\":{\"lanes\":[");
+                for (int i = 0; i < chains.lanes().size(); i++) {
+                    if (i > 0) out.append(',');
+                    LaneProgress lane = chains.lanes().get(i);
+                    out.append('{');
+                    rawNumberField(out, "lane", lane.lane());
+                    numberField(out, "links", lane.links());
+                    numberField(out, "linksHeld", lane.linksHeld());
+                    numberField(out, "frontLink", lane.frontLink());
+                    numberField(out, "frontAdvances", lane.frontAdvances());
+                    numberField(out, "frontRegressions", lane.frontRegressions());
+                    out.append('}');
+                }
+                out.append("],\"places\":[");
+                for (int i = 0; i < chains.places().size(); i++) {
+                    if (i > 0) out.append(',');
+                    PlaceWork place = chains.places().get(i);
+                    out.append('{');
+                    rawNumberField(out, "lane", place.lane());
+                    numberField(out, "link", place.link());
+                    numberField(out, "secureCompoundSquadPulses",
+                            place.secureCompoundSquadPulses());
+                    numberField(out, "stagingSquadPulses",
+                            place.stagingSquadPulses());
+                    numberField(out, "deferredSquadPulses",
+                            place.deferredSquadPulses());
+                    out.append('}');
+                }
+                out.append("]}");
                 PhysicalProgressMetrics physical = metrics.physicalProgress();
                 out.append(",\"physicalProgress\":{");
                 rawNumberField(out, "squadSamples", physical.squadSamples());
@@ -902,6 +1023,8 @@ public final class CommandTraceAnalyzer {
         InactivityAccumulator inactivity = new InactivityAccumulator();
         long reserveTicks = 0;
         int peakShare = 0;
+        Map<Integer, int[]> laneChainState = new HashMap<>();
+        Map<Long, long[]> placeWork = new HashMap<>();
         Map<Integer, ThreatState> threats = new HashMap<>();
         List<Integer> latencies = new ArrayList<>();
         int unanswered = 0;
@@ -973,6 +1096,24 @@ public final class CommandTraceAnalyzer {
                         "distantCaptureDeferred", false)) {
                     distantCaptureDeferredPulses++;
                 }
+                if (!baseline) {
+                    int targetLane = action.optInt("targetLane", -1);
+                    int targetLink = action.optInt("targetLink", -1);
+                    if (targetLane >= 0 && targetLink >= 0) {
+                        long key = ((long) targetLane << 32) | targetLink;
+                        long[] work = placeWork.computeIfAbsent(key,
+                                k -> new long[3]);
+                        if ("SECURE_COMPOUND".equals(
+                                nullableString(action, "assignmentKind"))) {
+                            work[0]++;
+                        } else {
+                            work[1]++;
+                        }
+                        if (action.optBoolean("distantCaptureDeferred", false)) {
+                            work[2]++;
+                        }
+                    }
+                }
                 if ("NO_REACHABLE_COMPOUND_TARGET".equals(reason)) {
                     if (!baseline) {
                         unreachablePulses++;
@@ -1013,6 +1154,21 @@ public final class CommandTraceAnalyzer {
                         track.getInt("effectiveLiveMembers"));
                 totalMembers += members;
                 maxMembers = Math.max(maxMembers, members);
+
+                int chainLinks = track.optInt("chainLinks", -1);
+                if (!baseline && chainLinks > 0) {
+                    // {links, held, front, advances, regressions}
+                    int[] lane = laneChainState.computeIfAbsent(
+                            track.getInt("index"),
+                            k -> new int[]{0, 0, -1, 0, 0});
+                    int front = track.optInt("chainFrontLink", -1);
+                    if (lane[2] >= 0 && front >= 0 && front != lane[2]) {
+                        if (front > lane[2]) lane[3]++; else lane[4]++;
+                    }
+                    lane[0] = chainLinks;
+                    lane[1] = track.optInt("chainLinksHeld", 0);
+                    lane[2] = front;
+                }
 
                 if (faction != Faction.DEFENDER) continue;
                 int trackIndex = track.getInt("index");
@@ -1067,7 +1223,37 @@ public final class CommandTraceAnalyzer {
                 unassignedTicks, unreachablePulses, noActionablePulses,
                 distantCaptureDeferredPulses, reserveTicks, latencies,
                 unanswered, peakShare, physical, inactivity.metrics(),
-                orderMixMetrics(orderMix));
+                orderMixMetrics(orderMix),
+                laneChainMetrics(laneChainState, placeWork));
+    }
+
+    /**
+     * The chain reading, sorted by lane and rung so the row is identical
+     * across a duplicate replay — a map's iteration order is not a fact about
+     * the battle.
+     */
+    private static LaneChainMetrics laneChainMetrics(
+            Map<Integer, int[]> laneState, Map<Long, long[]> placeWork) {
+        if (laneState.isEmpty() && placeWork.isEmpty()) {
+            return LaneChainMetrics.empty();
+        }
+        List<LaneProgress> lanes = new ArrayList<>(laneState.size());
+        for (Map.Entry<Integer, int[]> entry : laneState.entrySet()) {
+            int[] lane = entry.getValue();
+            lanes.add(new LaneProgress(entry.getKey(), lane[0], lane[1],
+                    lane[2], lane[3], lane[4]));
+        }
+        lanes.sort(Comparator.comparingInt(LaneProgress::lane));
+        List<PlaceWork> places = new ArrayList<>(placeWork.size());
+        for (Map.Entry<Long, long[]> entry : placeWork.entrySet()) {
+            long key = entry.getKey();
+            long[] work = entry.getValue();
+            places.add(new PlaceWork((int) (key >> 32), (int) (key & 0xffffffffL),
+                    (int) work[0], (int) work[1], (int) work[2]));
+        }
+        places.sort(Comparator.comparingInt(PlaceWork::lane)
+                .thenComparingInt(PlaceWork::link));
+        return new LaneChainMetrics(lanes, places);
     }
 
     /**

@@ -52,6 +52,8 @@ import com.dillon.starsectormarines.battle.command.AssaultDefenderCommand;
 import com.dillon.starsectormarines.battle.command.AssaultDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce;
@@ -1714,7 +1716,8 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        sim.setAutonomousCommander(Faction.MARINE, new ConquestCommand(tracks),
+        sim.setAutonomousCommander(Faction.MARINE,
+                new ConquestCommand(tracks, map.lanes),
                 ConquestCommandDisclosure.INSTANCE);
         ConquestDefenderStartingForce startingForce =
                 ConquestDefenderStartingForce.capture(sim, tracks);
@@ -2127,6 +2130,30 @@ public final class BattleSetup {
      *             where there's no defender/attacker rear edge — walk-in
      *             falls back to a stable default edge.
      */
+    /**
+     * The lanes this map laid, read as chains of places, for the defender's
+     * reinforcement layer.
+     *
+     * <p>Built from the same recorded routes the marine commander is handed and
+     * the same compound records the capture rule runs on, so the two sides
+     * agree about what stands where without sharing anything either of them
+     * believes. Empty under the lane-chain control, so a control run restores
+     * the band-only defender exactly as it restores the attacker's fraction.
+     */
+    private static ConquestLaneChain conquestLaneChain(BattleSimulation sim,
+                                                       MapResult map) {
+        if (!ConquestCommand.laneChainEnabled()) return ConquestLaneChain.NONE;
+        CompoundService compounds = sim.getCompoundService();
+        if (compounds == null || map.lanes.isEmpty()) return ConquestLaneChain.NONE;
+        List<ConquestLaneChain.Compound> places = new ArrayList<>();
+        for (CompoundService.Record record : compounds.getRecords()) {
+            places.add(new ConquestLaneChain.Compound(
+                    compounds.captureZoneId(record, sim),
+                    record.node.anchorX, record.node.anchorY));
+        }
+        return ConquestLaneChain.of(map.lanes, places);
+    }
+
     private static void installReinforcementLayer(BattleSimulation sim, MapResult map,
                                                   MissionType missionType,
                                                   TraversalAxis axis,
@@ -2137,7 +2164,8 @@ public final class BattleSetup {
         if (missionType == MissionType.CONQUEST && map.frontDepth != null
                 && map.tacticalMap != null && map.tacticalMap.size() > 0) {
             RecaptureTargetService recaptureTargets =
-                    new RecaptureTargetService(map.tacticalMap, map.frontDepth);
+                    new RecaptureTargetService(map.tacticalMap, map.frontDepth,
+                            conquestLaneChain(sim, map));
             sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.frontDepth));
             rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, map.frontDepth));
             sim.setCounterattackSystem(new CounterattackSystem(
