@@ -23,6 +23,8 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -65,6 +67,13 @@ public final class MechLabScreen implements Screen {
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
+    /**
+     * This screen's spec-sheet bindings. It is not a {@code MissionFlowMlxScreen},
+     * so it owns the binder itself and drives it from {@link #advance}, beside the
+     * paper-doll hover rather than instead of it: pointing at a catalog row still
+     * previews that weapon on the doll, and now also says what it is.
+     */
+    private SpecSheetBinder specSheets;
     private StarsectorUiInputAdapter input;
     private MechLabDollCanvas dollCanvas;
     private UiElement dollElement;
@@ -104,6 +113,7 @@ public final class MechLabScreen implements Screen {
     private void installDocument() {
         MarkupInstance candidate = markup.reloadAndBuild(reactor, ROOT_COMPONENT, props());
         UiDocument built;
+        SpecSheetBinder candidateSheets = null;
         try {
             requireWiredElements(candidate);
             built = new UiDocument(candidate.root());
@@ -129,7 +139,8 @@ public final class MechLabScreen implements Screen {
                             () -> previewSeconds,
                             viewModel::hoveredWeapon);
             built.canvases().set(dollElement, dollCanvas);
-            wireEquipmentPreviews(candidate, built);
+            candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
+            wireEquipmentPreviews(candidate, built, candidateSheets);
             dollElement.onPointerMove(this::pointAtDoll);
             dollElement.onPointerDown(this::pressDoll);
             dollElement.onPointerUp(this::activateDoll);
@@ -145,6 +156,7 @@ public final class MechLabScreen implements Screen {
         MarkupInstance previousInstance = markupInstance;
         document = built;
         markupInstance = candidate;
+        specSheets = candidateSheets;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
     }
@@ -203,7 +215,9 @@ public final class MechLabScreen implements Screen {
      * when the player moves from a fitted gantry to a vacant one. Wire every
      * newly attached chassis, equipment, and socket-grid canvas after reconciliation.
      */
-    private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target) {
+    private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target,
+                                       SpecSheetBinder sheets) {
+        MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get());
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
             UiElement canvas = instance.requireElement(row.previewId());
             if (target.canvases().producerOf(canvas) == null) {
@@ -402,8 +416,11 @@ public final class MechLabScreen implements Screen {
         }
         if (markupInstance != null) {
             markupInstance.flush();
-            if (document != null) wireEquipmentPreviews(markupInstance, document);
+            if (document != null) {
+                wireEquipmentPreviews(markupInstance, document, specSheets);
+            }
         }
+        if (specSheets != null) specSheets.update();
         if (document != null) document.advance(dt);
     }
 
@@ -420,6 +437,7 @@ public final class MechLabScreen implements Screen {
     @Override
     public void detach() {
         if (document != null) document.deactivateInput();
+        if (specSheets != null) specSheets.clear();
         input = null;
         // The ship is not this screen's to close. She outlives the page - that
         // is the point of her being the ship rather than this screen's diorama.
@@ -428,8 +446,10 @@ public final class MechLabScreen implements Screen {
     private void closeDocument() {
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
+        if (specSheets != null) specSheets.clear();
         document = null;
         markupInstance = null;
+        specSheets = null;
         dollCanvas = null;
         dollElement = null;
         input = null;
