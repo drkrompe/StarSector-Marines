@@ -1569,7 +1569,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> framing.lookingAt(camera.pose().worldX(),
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
-                            () -> 0d));
+                            () -> 0d,
+                            viewModel::hoveredWeapon));
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
                 if (row.chassisPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
@@ -2018,6 +2019,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("nextGantry", viewModel.nextGantryAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
+        props.put("categoryFilterPills", viewModel.categoryFilterPills());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

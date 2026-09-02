@@ -41,6 +41,14 @@ public final class MechWorkshop {
         return Result.of(Status.FABRICATED_AND_INSTALLED);
     }
 
+    public Result stripWeapon(String mechId, MechMountSlot slot) {
+        CampaignMech mech = bay.mechById(mechId);
+        if (mech == null || slot == null) return Result.of(Status.INVALID);
+        if (mech.weaponAt(slot) == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripWeapon(mechId, slot)
+                ? Result.of(Status.STRIPPED) : Result.of(Status.INCOMPATIBLE);
+    }
+
     public Result fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
         if (!bay.canAddMech(squadId)) return Result.of(Status.LANCE_FULL);
@@ -59,6 +67,8 @@ public final class MechWorkshop {
         ALREADY_INSTALLED,
         INSTALLED_FROM_STORES,
         FABRICATED_AND_INSTALLED,
+        STRIPPED,
+        ALREADY_STRIPPED,
         CHASSIS_FABRICATED,
         INCOMPATIBLE,
         INSUFFICIENT_MATERIALS,
@@ -72,6 +82,8 @@ public final class MechWorkshop {
             return status == Status.ALREADY_INSTALLED
                     || status == Status.INSTALLED_FROM_STORES
                     || status == Status.FABRICATED_AND_INSTALLED
+                    || status == Status.STRIPPED
+                    || status == Status.ALREADY_STRIPPED
                     || status == Status.CHASSIS_FABRICATED;
         }
     }

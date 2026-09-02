@@ -12,6 +12,8 @@ import java.io.Serializable;
 /** Persistent identity and installed kit for one player-owned support mech. */
 public final class CampaignMech implements Serializable {
 
+    public static final String EMPTY_COMPONENT_ID = "empty";
+
     private final String id;
     private String displayName;
     private final MechVariant variant;
@@ -52,14 +54,17 @@ public final class CampaignMech implements Serializable {
     }
 
     public MechWeaponComponent arms() {
+        if (EMPTY_COMPONENT_ID.equals(armsComponentId)) return null;
         return MechWeaponComponent.resolve(armsComponentId, variant.arms);
     }
 
     public MechWeaponComponent leftShoulder() {
+        if (EMPTY_COMPONENT_ID.equals(leftShoulderComponentId)) return null;
         return MechWeaponComponent.resolve(leftShoulderComponentId, variant.leftShoulder);
     }
 
     public MechWeaponComponent rightShoulder() {
+        if (EMPTY_COMPONENT_ID.equals(rightShoulderComponentId)) return null;
         return MechWeaponComponent.resolve(rightShoulderComponentId, variant.rightShoulder);
     }
 
@@ -81,7 +86,7 @@ public final class CampaignMech implements Serializable {
     }
 
     void installWeapon(MechMountSlot slot, MechWeaponComponent component) {
-        String componentId = idOf(component);
+        String componentId = component != null ? component.id : EMPTY_COMPONENT_ID;
         switch (slot) {
             case ARMS -> armsComponentId = componentId;
             case LEFT_SHOULDER -> leftShoulderComponentId = componentId;
