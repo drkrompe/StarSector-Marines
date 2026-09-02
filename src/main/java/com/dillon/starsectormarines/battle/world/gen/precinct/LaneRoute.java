@@ -44,12 +44,38 @@ public record LaneRoute(int lane, List<Link> links, List<Cell> route) {
      * inside its own wall by the time the packer has finished. What a route has
      * to reach is somewhere a marine can stand.
      *
+     * <p><b>The ground is recorded as well as the cell, because a link is a
+     * place and a commander has to know what stands on it.</b> A lane's chain
+     * is a chain of compounds, and the only party that knows which compound
+     * belongs to which place is the generator that put them both there — a
+     * commander pairing them by distance would be guessing at a fact somebody
+     * already had. The bounds are the extent of the precinct's claim, which is
+     * what the packer stamped its buildings inside of.
+     *
      * @param place      the precinct's own name
      * @param band       which rung of the ladder, {@link #OBJECTIVE_BAND} for
      *                   the thing the lane leads to
      * @param routeIndex where in {@link LaneRoute#route} this link stands
+     * @param claimLeft  west edge of the ground this place claims
+     * @param claimTop   north edge of the ground this place claims
+     * @param claimRight east edge, inclusive
+     * @param claimBottom south edge, inclusive
      */
-    public record Link(String place, int band, int x, int y, int routeIndex) { }
+    public record Link(String place, int band, int x, int y, int routeIndex,
+                       int claimLeft, int claimTop, int claimRight,
+                       int claimBottom) {
+
+        /** A place whose claim nobody measured: its own cell and nothing else. */
+        public Link(String place, int band, int x, int y, int routeIndex) {
+            this(place, band, x, y, routeIndex, x, y, x, y);
+        }
+
+        /** Whether this place's claimed ground holds the given cell. */
+        public boolean claims(int cellX, int cellY) {
+            return cellX >= claimLeft && cellX <= claimRight
+                    && cellY >= claimTop && cellY <= claimBottom;
+        }
+    }
 
     /** The band the objective itself stands in: the end of every lane. */
     public static final int OBJECTIVE_BAND = 0;
