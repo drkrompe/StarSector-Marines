@@ -60,6 +60,12 @@ outcomes; `infrastructure-nouns.md` owns future location-bound investments;
 `t3-endgame-nouns.md` owns the exceptional vanilla-state handoff; and
 `narrative-nouns.md` owns truthful presentation.
 
+`meta-progression.md` owns the long-arc frame the child domains share: the
+four currencies the company accumulates or suffers, the stages that fall out
+of them, the growth rule a new feature must answer, and the boundary between
+the company and the player's vanilla holdings. It owns no threshold; each
+number stays with the domain that settles it.
+
 `themes.md`, `economy.md`, and `backgrounds.md` are direction for future
 campaign work. `moral-compass.md` owns the hidden record that can connect
 otherwise separate campaign choices without turning it into an optimisation
@@ -75,3 +81,9 @@ surface.
   ownership or diplomacy. That exceptional boundary belongs only to T3.
 - New content may add a contract, chain, event, or authored operation, but must
   not blur their commitment, reward, and resolution rules.
+- The player's vanilla holdings — the **polity** — are a venue, never a
+  client and never a house. Work on the polity's behalf earns no MRB
+  credibility, no house relationship, and no settlement; the living world
+  seeds no political identity on a player-faction market. Defending the
+  polity settles only through vanilla's own raid outcome path.
+  `meta-progression.md` owns the boundary.

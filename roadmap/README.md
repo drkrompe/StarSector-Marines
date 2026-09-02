@@ -30,7 +30,10 @@ deployment, recovery, and battle writeback. The active product work is making
 that company legible and consequential: retained Fleet Armory workflows,
 company/squad/fire-team presentation, performance-derived experience, and a
 broader equipment and fabrication economy. Start with `campaign-nouns.md`,
-`company-view-nouns.md`, and `progression-nouns.md`.
+`company-view-nouns.md`, and `progression-nouns.md`. The long-arc frame those
+domains share — four currencies, the stages that fall out of them, the growth
+rule, and the boundary with the player's own colonies — is
+`meta-progression.md`.
 
 The opening Independent contract ladder is code-complete and awaiting a live
 play pass before another early-operation variant is contracted. Its standing
