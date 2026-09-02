@@ -6,11 +6,10 @@ on `reinforced-south`.
 
 Written: 2026-09-01
 
-Updated: 2026-09-02 — built and measured both ways on one tree. The chain
-reading, the route staging, the defender's symmetric relief and the chain-keyed
-diagnostics are all in; `conquest-command.md` owns the standing model and the
-matrix table. It is off because it costs `reinforced-south` one held compound
-of seventeen. See "What remains" at the end.
+Updated: 2026-09-02 — three shapes of "open the gate" measured at full length
+and none paid, so the gate is not what costs the south its held compound. The
+route staging is dormant on that fixture in both readings for a structural
+reason. Still off. See "What remains" at the end.
 
 ## Where the tracks came from, and what changed under them
 
@@ -106,31 +105,64 @@ that road is what makes the bend matter instead of leaving it to navigation.
 
 ## What remains
 
-The model shipped; the balance did not. Measured both ways on one tree at
-18,000 ticks, the chain costs `reinforced-south` a held compound (16 of 26
-against 17) and five captures, and ties `full-strength-west` at 7 held for a
-capture more. The full table is in `conquest-command.md`.
+The model shipped; the balance did not. The bar is unchanged and unmet: the
+chain must not give back a held compound on either canonical fixture, and on
+`reinforced-south` it holds 16 against the fraction's 17. The matrix is in
+`conquest-command.md`.
+
+**The capture gate is not the cause, and that is the session's finding.** The
+obvious reading of the first measurement was that the gate refuses compounds
+behind a standing outpost and that opening it would give them back. Three
+shapes of the opening were built and measured at 18,000 ticks against a control
+that reproduced the earlier run exactly, and none of them paid:
+
+| opening | south captures / held | west captures / held |
+|---|---|---|
+| none — the chain as it stands | 20 / 16 | 13 / 7 |
+| a lane opens a rung whenever the allocation can pair nobody | 17 / 16 | 8 / 5 |
+| the same, never opening the objective, and only for a squad with no front work | 20 / 16 | 9 / 6 |
+| the same, and only onto rungs the depth latch has also reached | 20 / 16 | 12 / 7 |
+
+Held never moves off 16 on the south, whatever is offered. Offering the whole
+ladder *lowers* captures to 17, because opening by chain position alone hands
+the allocation the fortress — a thousand secure squad-pulses went into the keep
+out of order on each fixture, and the west's front push fell from a third of
+its orders to a twenty-fifth. Bounding that back to rungs the friendly line has
+come level with recovers the west exactly to its unopened numbers and makes the
+opening inert on the south, because there every uncommitted squad has front
+work and the "nobody left over" trigger never fires. The code was reverted; the
+result is here so the next attempt does not re-derive it.
+
+What the numbers say once the gate is ruled out: **the chain keeps a higher
+share of what it takes and simply takes less** — 16 of 20 against the
+fraction's 17 of 25 — and the compounds it never takes are the lane places
+themselves.
 
 Three things to look at, in the order they are likely to matter:
 
-1. **The capture gate is doing all the work, and it is the blunt half.** On
-   `reinforced-south` the advance-track order is 5 squad-pulses of 3,779 — the
-   route staging the chain exists to feed effectively never fires there — so
-   the whole measured difference is the front gate refusing compounds behind a
-   standing outpost. A gate that refuses a takeable compound needs the staging
-   to be buying something, and on that fixture it is not. Consider letting a
-   squad with no front work take a place behind the front rather than only
-   supporting a neighbour lane.
-2. **Nothing stays held.** Both fixtures end with every lane's front back at
-   rung 0 and no lane place held, having advanced and regressed two or three
-   times. The chain reads the tug-of-war correctly; what it has not changed is
-   that the marines cannot keep a lane place once they take it. That may be a
-   garrison-strength question rather than a command one.
-3. **The churn split.** Marine retargets go 144 → 253 on the south and
-   418 → 288 on the west. One of those is the chain settling a squad on a
-   place; the other is it moving one off. Worth separating before tuning
-   either.
+1. **`reinforced-south` lays two of its three lanes across the advance rather
+   than along it.** Lane 1 runs far west and lane 3 far east, each with its
+   rung 0 near the south edge, while the marines come ashore in the middle and
+   go north; so those lanes' fronts are places the force never goes near, and
+   their fronts sit at rung 0 for the whole battle. The chain's ordering
+   assumes a lane is walked from its beachhead end. Either the lane seeding
+   should place a lane the force will actually use, or the reading needs to
+   admit a lane nobody is walking — and that is a question for the map before
+   it is one for the commander. This is the most likely place the held compound
+   is hiding.
+2. **The route staging cannot be measured on the south at all.** It is 6
+   squad-pulses of 3,779 with the chain on and 4 of 3,607 with it off, because
+   `laneStageChoice` is consulted only for a squad `targetChoice` gives no
+   defender zone to, and on that fixture belief is rich enough that one is
+   always available: 1,348 pulses are born compound garrisons, 1,466 are
+   secure-compound orders, 959 are clear-zone orders, and six reach the staging
+   derivation. The staging half of the design lives on `full-strength-west`,
+   where it is 230 advance-track pulses. Do not tune staging against the south.
+3. **"Nothing stays held" was overstated.** Only two distinct compounds on the
+   south and two on the west ever changed hands back (5 and 7 losses against 20
+   and 13 gains); the fronts return to rung 0 because those particular rung-0
+   places flip, not because the map does. It is a genuine tug-of-war over a
+   couple of outposts, which is what the story is named for, rather than a
+   failure to hold ground.
 
-The acceptance bullets below are met by the reading itself. The bar this
-story is now held to is the one it failed: it must not give back a held
-compound on either canonical fixture.
+The acceptance bullets below are met by the reading itself.

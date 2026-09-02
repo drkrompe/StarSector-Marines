@@ -4,11 +4,13 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — a lane can be read as a chain of places taken in order;
-built, measured both ways, and left off by default because it costs a held
-compound.
+Updated: 2026-09-02 — the chain's front gate is measured not to be what costs
+the held compound, and the route staging is unmeasurable on the south fixture
+by construction; the chain stays off.
 
-Earlier 2026-09-02 — the tracks now have places on them.
+Earlier 2026-09-02 — a lane can be read as a chain of places taken in order;
+built, measured both ways, and left off by default because it costs a held
+compound. Earlier 2026-09-02 — the tracks now have places on them.
 
 Earlier 2026-09-01 — marine capture allocation is bounded to the home track and
 its neighbours, own track first, measured on a tree carrying the prosecution
@@ -109,13 +111,37 @@ nearly doubling on the other.
 
 The reading itself works: the trace records fronts advancing and coming back —
 `+2/-2` on the south's third lane — and the report names the places the work
-went to. What it does not yet do is convert that into ground held. On
-`reinforced-south` the advance-track order is 5 pulses of 3,779, so the route
-staging the chain exists to feed almost never fires there and the change is
-carried entirely by the capture gate refusing everything but the front place.
-Refusing a takeable compound because it is behind a standing outpost is a real
-cost, and on that fixture it is not yet bought back. `lane-chain-tug-of-war.md`
-holds what remains.
+went to. What it does not yet do is convert that into ground held.
+
+**The front gate is not what costs the south its held compound.** That was the
+obvious suspect: on `reinforced-south` the advance-track order is 5 pulses of
+3,779, so the route staging almost never fires there and the whole difference
+is carried by the gate refusing everything but the front place. Refusing a
+takeable compound because it is behind a standing outpost looks like the cost,
+and it is not — measured, held stays at 16 whatever the gate offers. Letting a
+lane open a rung whenever the allocation can pair nobody *lowers* the south to
+17 captures and takes the west to 8 and 5, because opening by chain position
+alone hands the allocation the fortress: a thousand secure squad-pulses went
+into the keep out of order on each fixture, and the west's front push fell from
+a third of its orders to a twenty-fifth. Never opening the objective, and only
+for a squad with no front work, restores 20 and 16 on the south and still costs
+the west; adding the depth latch on top — a rung behind the front opens only
+where the friendly line has come level with it — returns the west to 12 and 7
+and makes the whole opening inert on the south, where every uncommitted squad
+has front work and the trigger never fires. **Held compounds is a question
+about which places the chain never reaches, not about how many it is willing to
+offer at once.** The chain keeps a higher share of what it takes than the
+fraction does — 16 of 20 against 17 of 25 — and takes less.
+
+**The staging half cannot be measured on `reinforced-south`, by construction.**
+An advance-track order is derived only for a squad the front push has no
+believed defender zone for, and on that fixture there is nearly always one: six
+squad-pulses of 3,779 reach the staging derivation with the chain on and four
+of 3,607 with it off. Whatever staging does, that fixture cannot see it;
+`full-strength-west` is where it lives, at 230 advance-track pulses.
+
+`lane-chain-tug-of-war.md` holds what remains, including the measured table for
+the three openings so the next attempt does not re-derive them.
 
 ## Marine command
 
