@@ -70,7 +70,12 @@ abstract class MissionFlowMlxScreen implements Screen {
         return specSheets;
     }
 
-    /** Lets a screen project hover-only presentation after retained input is resolved. */
+    /**
+     * Lets a screen project hover-only presentation after retained input is
+     * resolved. An override owes nothing to the spec sheets: the base updates
+     * the binder itself, after this returns, so a screen cannot silently drop
+     * its overlays by forgetting to call {@code super}.
+     */
     protected void onInputProcessed() {
     }
 
