@@ -1,10 +1,16 @@
 # Lane chains: a Conquest front measured in places held, not ground covered
 
-Status: PLANNED — an improvement the owner has asked for, not a question; it
-reads the route the map already records, described under "And what stands
-between the two" in `precincts.md`.
+Status: IN PROGRESS — the model is built, tested and measured, and ships behind
+`battle.conquest.laneChain`, **off by default**. What remains is making it pay
+on `reinforced-south`.
 
 Written: 2026-09-01
+
+Updated: 2026-09-02 — built and measured both ways on one tree. The chain
+reading, the route staging, the defender's symmetric relief and the chain-keyed
+diagnostics are all in; `conquest-command.md` owns the standing model and the
+matrix table. It is off because it costs `reinforced-south` one held compound
+of seventeen. See "What remains" at the end.
 
 ## Where the tracks came from, and what changed under them
 
@@ -97,3 +103,34 @@ that road is what makes the bend matter instead of leaving it to navigation.
 - A lane whose strongpoint is retaken reads as a front moving back one link,
   in the trace and in the report, rather than as a forward fraction that did
   not change.
+
+## What remains
+
+The model shipped; the balance did not. Measured both ways on one tree at
+18,000 ticks, the chain costs `reinforced-south` a held compound (16 of 26
+against 17) and five captures, and ties `full-strength-west` at 7 held for a
+capture more. The full table is in `conquest-command.md`.
+
+Three things to look at, in the order they are likely to matter:
+
+1. **The capture gate is doing all the work, and it is the blunt half.** On
+   `reinforced-south` the advance-track order is 5 squad-pulses of 3,779 — the
+   route staging the chain exists to feed effectively never fires there — so
+   the whole measured difference is the front gate refusing compounds behind a
+   standing outpost. A gate that refuses a takeable compound needs the staging
+   to be buying something, and on that fixture it is not. Consider letting a
+   squad with no front work take a place behind the front rather than only
+   supporting a neighbour lane.
+2. **Nothing stays held.** Both fixtures end with every lane's front back at
+   rung 0 and no lane place held, having advanced and regressed two or three
+   times. The chain reads the tug-of-war correctly; what it has not changed is
+   that the marines cannot keep a lane place once they take it. That may be a
+   garrison-strength question rather than a command one.
+3. **The churn split.** Marine retargets go 144 → 253 on the south and
+   418 → 288 on the west. One of those is the chain settling a squad on a
+   place; the other is it moving one off. Worth separating before tuning
+   either.
+
+The acceptance bullets below are met by the reading itself. The bar this
+story is now held to is the one it failed: it must not give back a held
+compound on either canonical fixture.
