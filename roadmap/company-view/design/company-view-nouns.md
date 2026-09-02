@@ -212,14 +212,12 @@ remain readable inside. A dossier's upper-right
 portrait sits beside identity and service history; compact class, weapon-tier, and
 armor-tier badges replace implementation terms with formation-readable language.
 Weapon, armor, and specialty descriptions come from their owning data catalogs, not
-from Fleet Armory markup. Those descriptions appear as bounded dossier overlays when
-the corresponding equipment label is hovered; the normal card keeps identity,
-comparison meters, and exact values continuously visible instead of clipping lore into
-the comparison surface. Each issued weapon, armor pattern, specialty item, and carried
-integral system pairs its equipment label and overlay heading with the representative
-vanilla faction flag authored by its owning catalog or armor tradition. A bounded
-overlay scrolls when its full field note exceeds the available card height, so authored
-copy remains reachable rather than being clipped. Health, armor, resistance, and actual movement speed share
+from Fleet Armory markup. Those descriptions open as the shared spec sheet
+(`ui-nouns.md`) when the corresponding equipment label is hovered; the normal card keeps
+identity, comparison meters, and exact values continuously visible instead of clipping
+lore into the comparison surface. Each issued weapon, armor pattern, specialty item, and
+carried integral system pairs its equipment label and sheet heading with the
+representative vanilla faction flag authored by its owning catalog or armor tradition. Health, armor, resistance, and actual movement speed share
 the durability-and-mobility meter block; damage, range, accuracy, and sustained output
 share the weapon block. Catalog-wide ceilings keep every comparison stable across
 team selection and equipment changes.

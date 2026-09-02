@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.ui.spec;
 import java.util.List;
 
 /**
- * What a hover overlay says about one catalog item ({@code spec-sheet.md}).
+ * What a hover overlay says about one catalog item ({@code ui-nouns.md}).
  *
  * <p>A value and nothing else: it carries no reference to the item it describes
  * and no behaviour. The copy factory writes one from the item's owning catalog;

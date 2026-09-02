@@ -23,6 +23,6 @@
  * change and a selection cannot rewrite the baseline
  * ({@code company-view-nouns.md}).
  *
- * <p>See {@code spec-sheet.md} and {@code equipment-lore-catalog.md}.
+ * <p>See {@code ui-nouns.md} and {@code equipment-lore-catalog.md}.
  */
 package com.dillon.starsectormarines.ops.spec;

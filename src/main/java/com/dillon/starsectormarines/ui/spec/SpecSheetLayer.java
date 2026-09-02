@@ -15,7 +15,7 @@ import java.util.WeakHashMap;
 
 /**
  * The one floating overlay a document shows a {@link SpecSheet} in
- * ({@code spec-sheet.md}).
+ * ({@code ui-nouns.md}).
  *
  * <p>One layer per document, installed once at the document root and re-filled
  * from whichever subject is hovered, rather than one popup element per card.

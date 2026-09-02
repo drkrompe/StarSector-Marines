@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — `ui-nouns.md` is the sole fold destination after the
+Updated: 2026-09-02 — the spec sheet joins the ledger; `ui-nouns.md` remains the sole fold destination after the
 redundant toolkit-direction document was retired.
 
 | Story | Shipped | Commit(s) | Fold destination |
@@ -15,3 +15,4 @@ redundant toolkit-direction document was retired.
 | U3 — themes and transitions | 2026-08-24 | `21bebe46` | `ui-nouns.md` |
 | U4 — MLX components and bindings | 2026-08-24 | `7b229fb1` | `ui-nouns.md` |
 | U5 — headless retained-view renderer | 2026-08-24 | `ccb9eb89` | `ui-nouns.md` |
+| Spec sheet — one hover overlay for every catalog item | 2026-09-02 | `e145dc894`, `0cc533099`, `2c7226554`, `13e9d2b9c`..`944453e9f` | `ui-nouns.md` (vocabulary, law 6, extension points); `company-view-nouns.md` dossier overlay redirected |
