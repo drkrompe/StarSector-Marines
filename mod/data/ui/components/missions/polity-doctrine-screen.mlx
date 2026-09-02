@@ -1,0 +1,119 @@
+<template props="title,subtitle,kicker,doctrineHeader,pointsLabel,pointsValue,doctrineCaption,axisRows,fieldsHeader,fieldRows,noteClasses,noteText,releaseHeader,releaseCaption,releasableRows,releasableEmpty,releasedHeader,releasedRows,releasedEmpty,commonFloorNote,backAction">
+  <div id="polity-doctrine-root" class="polity-root">
+    <div id="polity-doctrine-header" class="mission-flow-header surface-dark">
+      <div id="polity-doctrine-heading" class="mission-flow-heading">
+        <div id="polity-doctrine-title" class="label title tone-edge">{title}</div>
+        <div id="polity-doctrine-subtitle" class="label tone-muted">{subtitle}</div>
+      </div>
+      <div id="polity-doctrine-kicker" class="label heading tone-accent mission-flow-context">{kicker}</div>
+    </div>
+    <div id="polity-doctrine-body" class="polity-body">
+      <div id="polity-doctrine-points" class="panel polity-column">
+        <div id="polity-doctrine-points-heading" class="label heading tone-edge section-heading">{doctrineHeader}</div>
+        <div id="polity-doctrine-points-remaining" class="polity-points surface-dark">
+          <div id="polity-doctrine-points-label" class="label heading tone-muted">{pointsLabel}</div>
+          <div id="polity-doctrine-points-value" class="label title tone-accent polity-points-value">{pointsValue}</div>
+        </div>
+        <div id="polity-doctrine-axes" class="polity-axes">
+          <div each="axis in axisRows" key="{axis.id}" id="{axis.id}" class="polity-axis surface-dark">
+            <div id="{axis.copyId}" class="polity-axis-copy">
+              <div id="{axis.labelId}" class="label heading tone-edge polity-axis-name">{axis.label}</div>
+              <div id="{axis.detailId}" class="label tone-muted polity-axis-detail">{axis.detail}</div>
+            </div>
+            <div id="{axis.valueId}" class="label title tone-accent polity-axis-value">{axis.value}</div>
+            <button id="{axis.minusId}" disabled="{axis.minusDisabled}" onclick="{axis.minusAction}">-</button>
+            <button id="{axis.plusId}" disabled="{axis.plusDisabled}" onclick="{axis.plusAction}">+</button>
+          </div>
+        </div>
+        <div id="polity-doctrine-caption" class="label tone-muted polity-caption">{doctrineCaption}</div>
+      </div>
+      <div id="polity-doctrine-fields" class="panel polity-column">
+        <div id="polity-doctrine-fields-heading" class="label heading tone-edge section-heading">{fieldsHeader}</div>
+        <div id="polity-doctrine-field-rows" class="polity-field-rows">
+          <div each="field in fieldRows" key="{field.id}" id="{field.id}" class="polity-field surface-dark">
+            <div id="{field.labelId}" class="label heading tone-muted polity-field-label">{field.label}</div>
+            <div id="{field.valueId}" class="label tone-edge polity-field-value">{field.value}</div>
+          </div>
+        </div>
+        <div id="polity-doctrine-fields-spacer" class="polity-spacer"></div>
+        <div id="polity-doctrine-note" class="{noteClasses}">
+          <div id="polity-doctrine-note-text" class="label tone-muted">{noteText}</div>
+        </div>
+      </div>
+      <div id="polity-doctrine-release" class="panel polity-release">
+        <div id="polity-doctrine-release-heading" class="label heading tone-edge section-heading">{releaseHeader}</div>
+        <div id="polity-doctrine-release-caption" class="label tone-danger polity-caption">{releaseCaption}</div>
+        <div id="polity-doctrine-releasable" class="polity-release-list polity-release-list-wide">
+          <div each="card in releasableRows" key="{card.id}" id="{card.id}" class="polity-release-card surface-dark">
+            <div id="{card.copyId}" class="polity-release-copy">
+              <div id="{card.nameId}" class="label heading tone-edge">{card.name}</div>
+              <div id="{card.detailId}" class="label tone-muted">{card.detail}</div>
+            </div>
+            <button id="{card.actionId}" class="good-surface polity-release-button" onclick="{card.action}">{card.actionLabel}</button>
+          </div>
+        </div>
+        <div id="polity-doctrine-releasable-empty" class="label tone-muted polity-empty">{releasableEmpty}</div>
+        <div id="polity-doctrine-released-heading" class="label heading tone-edge section-heading">{releasedHeader}</div>
+        <div id="polity-doctrine-released" class="polity-release-list">
+          <div each="card in releasedRows" key="{card.id}" id="{card.id}" class="polity-released-card surface-dark">
+            <div id="{card.copyId}" class="polity-release-copy">
+              <div id="{card.nameId}" class="label heading tone-edge">{card.name}</div>
+              <div id="{card.detailId}" class="label tone-muted">{card.detail}</div>
+            </div>
+            <div id="{card.tagId}" class="label heading tone-good polity-released-tag">{card.tag}</div>
+          </div>
+        </div>
+        <div id="polity-doctrine-released-empty" class="label tone-muted polity-empty">{releasedEmpty}</div>
+        <div id="polity-doctrine-common" class="label tone-muted polity-caption">{commonFloorNote}</div>
+      </div>
+    </div>
+    <div id="polity-doctrine-actions" class="mission-flow-actions panel surface-dark">
+      <button id="polity-doctrine-back" onclick="{backAction}">BACK</button>
+      <div id="polity-doctrine-action-spacer" class="action-spacer"></div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .polity-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
+  .mission-flow-heading .title { height: 24px; }
+  .mission-flow-context { width: 360px; padding: 11px 4px; text-align: right; }
+  .polity-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .polity-column { flex-direction: column; width: 520px; padding: 10px; gap: 9px; border-width: 1px; overflow: hidden; }
+  .section-heading { height: 20px; }
+  .polity-points { flex-direction: row; height: 56px; padding: 12px 10px; border-width: 1px; }
+  .polity-points .heading { width: 0px; flex-grow: 1; }
+  .polity-points-value { width: 150px; text-align: right; }
+  .polity-axes { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .polity-axis { flex-direction: row; height: 132px; padding: 10px; gap: 8px; border-width: 1px; }
+  .polity-axis-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .polity-axis-name { height: 20px; }
+  .polity-axis-detail { height: 0px; flex-grow: 1; white-space: normal; }
+  .polity-axis-value { width: 66px; padding: 44px 0px; text-align: center; }
+  .polity-axis button { width: 54px; padding: 52px 15px; border-width: 1px; font-family: title; text-align: center; }
+  .polity-caption { height: 56px; white-space: normal; }
+  .polity-field-rows { flex-direction: column; height: 538px; gap: 7px; overflow: hidden; }
+  .polity-field { flex-direction: column; height: 82px; padding: 9px; gap: 6px; border-width: 1px; }
+  .polity-field-label { height: 18px; }
+  .polity-field-value { height: 0px; flex-grow: 1; white-space: normal; }
+  .polity-note { flex-direction: column; height: 92px; padding: 10px; border-width: 1px; border-color: #263b51; }
+  .polity-note .label { height: 0px; flex-grow: 1; white-space: normal; }
+  .polity-spacer { height: 0px; flex-grow: 1; }
+  .polity-release { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .polity-release-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .polity-release-list-wide { flex-grow: 2; }
+  .polity-release-card { flex-direction: row; height: 62px; padding: 10px; gap: 8px; border-width: 1px; }
+  .polity-released-card { flex-direction: row; height: 54px; padding: 8px 10px; gap: 8px; border-width: 1px; border-color: #263b51; }
+  .polity-release-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 6px; }
+  .polity-release-copy .label { height: 18px; }
+  .polity-release-button { width: 160px; padding: 12px; border-width: 1px; text-align: center; font-family: heading; }
+  .polity-released-tag { width: 130px; padding: 10px 0px; text-align: right; }
+  .polity-empty { height: 20px; }
+  .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
+  .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
+  .action-spacer { width: 0px; flex-grow: 1; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+</style>
