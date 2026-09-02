@@ -25,10 +25,10 @@ public enum GroundProductionQuality {
     /** No ground production at all: worn Common kit, fatigues, and no motor pool. */
     NONE(EquipmentGrade.SURPLUS, 1, false),
 
-    /** Heavy Industry: Service kit, tier-2 patterns, and a shed that can build a mech. */
+    /** Heavy Industry running short, or nothing better than a field shed: Service kit, tier-2 patterns, and a mech. */
     BASIC(EquipmentGrade.SERVICE, 2, true),
 
-    /** Orbital Works, or Orbital Works pulled down by a deficit: a Milspec tail. */
+    /** Heavy Industry, or Orbital Works pulled down by a deficit: a Milspec tail. */
     ADVANCED(EquipmentGrade.MILSPEC, 3, true),
 
     /** Orbital Works with nothing missing: the only step that can make Masterwork. */
@@ -49,19 +49,19 @@ public enum GroundProductionQuality {
      * The step the polity's best producing market sits at.
      *
      * <p>The base ladder is the industry it has: nothing is {@link #NONE},
-     * Heavy Industry is {@link #BASIC}, and Orbital Works is
+     * Heavy Industry is {@link #ADVANCED}, and Orbital Works is
      * {@link #ADVANCED_FULL}. A deficit in supplies or in heavy armaments then
      * pulls that result down <em>one</em> step, never below {@link #NONE} —
      * one step whether one shortage or both, because the shortage is a fact
      * about the market's output rather than a tally to be summed. That is why
-     * Orbital Works running short reads {@link #ADVANCED} and a Heavy Industry
-     * running short falls all the way back to importing.
+     * Orbital Works running short reads {@link #ADVANCED} and Heavy Industry
+     * running short reads {@link #BASIC}: Service kit, no Milspec.
      */
     public static GroundProductionQuality of(boolean heavyIndustry, boolean orbitalWorks,
                                              boolean suppliesDeficit,
                                              boolean heavyArmamentsDeficit) {
         GroundProductionQuality base = orbitalWorks ? ADVANCED_FULL
-                : heavyIndustry ? BASIC
+                : heavyIndustry ? ADVANCED
                 : NONE;
         if (!suppliesDeficit && !heavyArmamentsDeficit) return base;
         return stepDown(base);
