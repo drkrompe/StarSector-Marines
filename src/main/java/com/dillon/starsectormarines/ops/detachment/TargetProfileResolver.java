@@ -6,12 +6,14 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SurfaceZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.campaign.StationedStrength;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Conditions;
 import com.fs.starfarer.api.impl.campaign.ids.Industries;
+import com.fs.starfarer.api.impl.campaign.rulecmd.salvage.MarketCMD;
 
 import java.util.EnumSet;
 
@@ -48,7 +50,15 @@ public final class TargetProfileResolver {
         return TargetProfile.NEUTRAL;
     }
 
-    /** Distill a matched market into the bridge value object. */
+    /**
+     * Distill a matched market into the bridge value object.
+     *
+     * <p>The two defence numbers are read here and nowhere else.
+     * {@code MarketCMD.getDefenderStr} is the same number vanilla resolves its
+     * own ground half with — vanilla's stability scaling is already inside it,
+     * so nothing downstream may scale by stability again — and
+     * {@link StationedStrength#totalAt} is what the company itself put into it.
+     */
     public static TargetProfile fromMarket(MarketAPI market) {
         return new TargetProfile(
                 market.getSize(),
@@ -58,7 +68,9 @@ public final class TargetProfileResolver {
                 market.getFactionId() != null ? market.getFactionId() : "",
                 functions(market),
                 surface(market),
-                link(market));
+                link(market),
+                MarketCMD.getDefenderStr(market),
+                StationedStrength.totalAt(market));
     }
 
     /**

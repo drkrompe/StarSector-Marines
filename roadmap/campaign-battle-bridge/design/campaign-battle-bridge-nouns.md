@@ -24,8 +24,17 @@ need.
   mission's target planet. It is campaign data, not the mod's `CampaignState`.
 - A **target profile** is the campaign-free snapshot of relevant target-market
   signals: settlement scale and stability, defensive hardening, port capacity,
-  faction identity, and the presence of economic roles. It contains only plain
-  values and bridge-owned vocabulary; it never retains a game API object.
+  faction identity, the presence of economic roles, and the market's own ground
+  strength. It contains only plain values and bridge-owned vocabulary; it never
+  retains a game API object.
+- **Ground defence** and **stationed strength** are the profile's two strength
+  numbers. The first is vanilla's own defender strength for the market — its
+  ground-defence stat, with vanilla's stability scaling and industry
+  multipliers already inside it, so no consumer may scale by stability again.
+  The second is the company's own contribution to that same number, read back
+  off the modifiers the mod itself applied there. A consumer that turns strength
+  into troops subtracts the second from the first, so a stationed detachment is
+  never fielded twice; see `polity-ground-doctrine.md`.
 - **Economic functions** are the stable, presence-only roles by which a market
   can be expressed on the ground: habitation, commerce, industry, port,
   extraction, refining, agriculture, and military activity. They are not

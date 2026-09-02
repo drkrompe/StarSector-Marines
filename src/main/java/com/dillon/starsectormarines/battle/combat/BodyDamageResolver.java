@@ -50,7 +50,8 @@ public final class BodyDamageResolver {
         float applied = durability.armorDamage() + (hpBefore - hpAfter);
         CombatTelemetryService telemetry = roster.telemetry();
         if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
-            boolean friendly = roster.identity().faction(attackerId) == carrier.faction(targetId);
+            boolean friendly = roster.identity().faction(attackerId)
+                    .friendlyTo(carrier.faction(targetId));
             telemetry.recordDamageDealt(attackerId, applied, friendly);
             if (hpAfter <= 0f && !friendly) telemetry.recordKill(attackerId);
         }

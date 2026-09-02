@@ -88,10 +88,11 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
     /**
      * The tracer color for a shot whose {@link Tracer#color} is null — the shot's
      * faction default (single source of truth for the tracer-line color and the
-     * matching light-path stamp). Any non-marine faction reads as the defender hue.
+     * matching light-path stamp). The reading is player-side against enemy, so
+     * an allied militia's rounds are the friendly hue rather than an enemy's.
      */
     public static Color defaultTracerColor(Faction faction) {
-        return faction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
+        return Allegiance.of(faction).friendly() ? MARINE_TRACER : DEFENDER_TRACER;
     }
 
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */

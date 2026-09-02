@@ -124,7 +124,7 @@ public final class CompoundService {
             // what {@link TacticalNode#defaultGuard} has always meant: the
             // beachhead is the attacker's own ground and starts taken, every
             // other compound is the defender's and starts held.
-            this.state = node.defaultGuard == Faction.MARINE
+            this.state = Faction.MARINE.friendlyTo(node.defaultGuard)
                     ? CompoundState.MARINE_HELD : CompoundState.DEFENDER_HELD;
         }
     }
@@ -255,7 +255,12 @@ public final class CompoundService {
         ZoneGraph zones = sim.getZoneGraph();
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != faction) continue;
+            // Contest is a question about sides, not identities: an allied
+            // militia standing in a defender compound contests it exactly as a
+            // marine does, and reads as the marines' own presence here. Held is
+            // the other question and is answered by identity — see the state
+            // enum, which has no allied bucket and is not getting one.
+            if (!faction.friendlyTo(sim.identity().faction(unit))) continue;
             int x = sim.world().cellX(unit);
             int y = sim.world().cellY(unit);
             if (x < node.left || x > node.right || y < node.top || y > node.bottom) continue;
@@ -281,7 +286,9 @@ public final class CompoundService {
             if (r.node.kind != kind) continue;
             if (faction == Faction.DEFENDER) {
                 if (r.state != CompoundState.MARINE_HELD) return true;
-            } else if (faction == Faction.MARINE) {
+            } else if (Faction.MARINE.friendlyTo(faction)) {
+                // A compound is only ever held by MARINE or DEFENDER, so an
+                // ally asking about supply is asking about the marine side's.
                 if (r.state == CompoundState.MARINE_HELD) return true;
             }
         }

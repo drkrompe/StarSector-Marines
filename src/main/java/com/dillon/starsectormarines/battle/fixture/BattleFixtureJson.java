@@ -770,6 +770,8 @@ public final class BattleFixtureJson {
         encoded.put("functions", functions);
         encoded.put("surface", profile.surface().name());
         encoded.put("link", profile.link().name());
+        encoded.put("groundDefence", profile.groundDefence());
+        encoded.put("stationedStrength", profile.stationedStrength());
         return encoded;
     }
 
@@ -797,7 +799,15 @@ public final class BattleFixtureJson {
                 encoded.getString("factionId"),
                 functions,
                 surface,
-                link);
+                link,
+                // Optional with a zero default, as surface and link are: a fixture
+                // written before the market's own defence strength was part of the
+                // bridge describes a world and states no garrison, and reads back
+                // as one that fields the allied floor.
+                encoded.has("groundDefence")
+                        ? (float) encoded.getDouble("groundDefence") : 0f,
+                encoded.has("stationedStrength")
+                        ? (float) encoded.getDouble("stationedStrength") : 0f);
     }
 
     private static <E extends Enum<E>> E enumValue(

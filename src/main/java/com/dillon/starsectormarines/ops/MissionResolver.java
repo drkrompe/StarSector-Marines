@@ -197,17 +197,27 @@ public final class MissionResolver {
         UnitRosterService roster = sim.getRoster();
         BattleComponents c = sim.getBattleComponents();
         int marinesAlive = 0;
+        // Allies keep their own ledger beside the company's. The two walks are
+        // deliberately the same walks: an ally is alive or a corpse exactly as
+        // a marine is, and the only difference is which column it lands in.
+        // An allied soldier id is never collected — they are not the company's
+        // people, so nothing here may reach the roster or reputation.
+        int alliesAlive = 0;
         Set<String> survivingSoldierIds = new HashSet<>();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
-            if (roster.identity().faction(unit) == Faction.MARINE) {
+            Faction faction = roster.identity().faction(unit);
+            if (faction == Faction.MARINE) {
                 marinesAlive++;
                 String id = (String) sim.getEntityWorld().getObject(unit, c.IDENTITY,
                         BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID);
                 if (id != null) survivingSoldierIds.add(id);
+            } else if (faction == Faction.ALLY) {
+                alliesAlive++;
             }
         }
         int rawMarinesLost = 0;
+        int alliesLost = 0;
         Set<String> fallenSoldierIds = new HashSet<>();
         for (ArchetypeTable t : sim.getEntityWorld().matched(c.corpses)) {
             Object[] factions = t.objects(c.IDENTITY, BattleComponents.IDENTITY_FACTION).array();
@@ -218,9 +228,12 @@ public final class MissionResolver {
                     rawMarinesLost++;
                     String id = (String) soldierIds[r];
                     if (id != null) fallenSoldierIds.add(id);
+                } else if (factions[r] == Faction.ALLY) {
+                    alliesLost++;
                 }
             }
         }
+        int alliesEngaged = alliesAlive + alliesLost;
 
         // The boats the battle burned, and whoever was still strapped into
         // them. A passenger is neither a live unit nor a corpse — they never
@@ -362,6 +375,8 @@ public final class MissionResolver {
                 .payoutEarned(payoutEarned)
                 .marinesEngaged(marinesEngaged)
                 .marinesLost(marinesLost)
+                .alliesEngaged(alliesEngaged)
+                .alliesLost(alliesLost)
                 .captain(captain)
                 .priorCaptainStatus(priorStatus)
                 .newCaptainStatus(newStatus)

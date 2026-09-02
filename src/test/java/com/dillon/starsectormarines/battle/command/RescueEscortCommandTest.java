@@ -83,7 +83,7 @@ class RescueEscortCommandTest {
         BattleSimulation sim = simulation();
         CivilianEvacuationPayload payload = install(sim);
         Squad shelter = addMarineSquad(sim, 10, 7);
-        shelter.rescueShelterGuard = true;
+        sim.registerShelterGuardSquad(shelter.id);
         Squad pickup = addMarineSquad(sim, 30, 20);
         pickup.rescuePickupGuard = true;
         sim.assignSquadCommand(ObjectiveAssignment.escort(shelter.id, 10, 7),

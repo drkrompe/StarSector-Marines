@@ -93,7 +93,7 @@ public final class PointDefenseRenderSystem implements RenderSystem {
      * is discovered rather than announced.
      */
     private static boolean isKnown(RenderContext ctx, Faction faction, float x, float y) {
-        return faction == Faction.MARINE
+        return Allegiance.of(faction).friendly()
                 || ctx.sim.getFogOfWar().isCellRevealed((int) Math.floor(x), (int) Math.floor(y));
     }
 

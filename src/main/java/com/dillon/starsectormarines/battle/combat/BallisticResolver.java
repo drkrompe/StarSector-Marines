@@ -415,11 +415,12 @@ public final class BallisticResolver {
                     : !roster.isAliveById(candidateId)) continue;
 
             Faction candidateFaction = roster.identity().faction(candidateId);
-            // Civilians are neutral rather than faction-allied, but marine
-            // rescue fire must treat them as protected non-targets. Defender
-            // fire retains ordinary target and incidental-contact behavior.
-            if (shooterFaction == Faction.MARINE
-                    && candidateFaction == Faction.CIVILIAN) {
+            // Civilians are neutral rather than faction-allied, but fire from
+            // the player's side — the company and whoever is friendly to it —
+            // must treat them as protected non-targets. Defender fire retains
+            // ordinary target and incidental-contact behavior.
+            if (candidateFaction == Faction.CIVILIAN
+                    && shooterFaction.friendlyTo(Faction.MARINE)) {
                 continue;
             }
 
@@ -470,7 +471,7 @@ public final class BallisticResolver {
             float contactZ = fromZ + zSlope * rayDistAtEntry;
             if (Math.abs(contactZ) > roster.hitHalfHeight(candidateId)) continue;
 
-            boolean friendly = candidateFaction == shooterFaction;
+            boolean friendly = shooterFaction.friendlyTo(candidateFaction);
             if (friendly && rayDistAtEntry < PROXIMITY_CATCH_ZERO_DISTANCE) continue;
 
             // Contact-position split: the FX endpoint is where the ROUND is,

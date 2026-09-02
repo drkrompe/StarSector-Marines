@@ -211,7 +211,7 @@ public final class SquadAlertSystem {
             float visionRangeSquared = visionRange * visionRange;
             for (int j = 0; j < awarenessCandidates.size; j++) {
                 long other = awarenessCandidates.ids[j];
-                if (identity.faction(other) == squad.faction) continue;
+                if (!squad.faction.hostileTo(identity.faction(other))) continue;
                 if (!identity.type(other).combatant) continue;
                 float dx = world.x(other) - uX;
                 float dy = world.y(other) - uY;

@@ -206,15 +206,17 @@ public class TacticalScoringTest {
     }
 
     @Test
-    public void threatDensityCountsEveryNonSelfCombatantAtInclusiveBoundary() {
+    public void threatDensityCountsEveryHostileCombatantAtInclusiveBoundary() {
         BattleSimulation sim = openArena(30, 20);
         long candidate = unit(sim, Faction.DEFENDER, 10, 10);
-        unit(sim, Faction.DEFENDER, 11, 10);
-        unit(sim, Faction.CIVILIAN, UnitType.SWARM_RUNNER, 10, 11);
-        unit(sim, Faction.DEFENDER, 14, 10);
-        unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 11, 11);
-        unit(sim, Faction.MARINE, 9, 10);
-        unit(sim, Faction.DEFENDER, 15, 10);
+        unit(sim, Faction.DEFENDER, 11, 10);                        // counts
+        unit(sim, Faction.DEFENDER, UnitType.SWARM_RUNNER, 10, 11); // counts
+        unit(sim, Faction.DEFENDER, 14, 10);                        // inclusive boundary, counts
+        unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 11, 11);     // not a combatant
+        unit(sim, Faction.MARINE, 9, 10);                           // the asker's own side
+        unit(sim, Faction.ALLY, UnitType.MILITIA, 12, 10);          // friendly to the asker
+        unit(sim, Faction.CIVILIAN, UnitType.SWARM_RUNNER, 12, 11); // hostile to nobody
+        unit(sim, Faction.DEFENDER, 15, 10);                        // outside the radius
 
         assertEquals(3, sim.getTacticalScoring().threatDensityAt(
                 candidate, Faction.MARINE));
@@ -1265,12 +1267,19 @@ public class TacticalScoringTest {
                 "friendlies and non-combatants are not opportunistic targets");
     }
 
+    /**
+     * Being a different faction was never the question, and with three sides on
+     * the map the two sentences part company. A neutral is neutral whatever
+     * unit type it is drawn as, and an allied militiaman standing closer than
+     * the enemy is not what the marine shoots at.
+     */
     @Test
-    public void closestEnemyInAttackRangeIncludesCivilianFactionCombatant() {
+    public void closestEnemyInAttackRangeTakesTheHostileAndNotTheNeutralOrTheAlly() {
         BattleSimulation sim = openArena(40, 10);
         long marine = unit(sim, Faction.MARINE, 5, 5);
-        long hostile = unit(sim, Faction.CIVILIAN,
-                UnitType.SWARM_RUNNER, 10, 5);
+        unit(sim, Faction.CIVILIAN, UnitType.SWARM_RUNNER, 7, 5);
+        unit(sim, Faction.ALLY, UnitType.MILITIA, 8, 5);
+        long hostile = unit(sim, Faction.DEFENDER, UnitType.MILITIA, 10, 5);
 
         assertEquals(hostile,
                 sim.getTacticalScoring().closestEnemyInAttackRange(marine));

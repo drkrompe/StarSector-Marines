@@ -94,6 +94,29 @@ public final class Mission {
      */
     public final String defenderFactionOverride;
     /**
+     * Faction whose own troops stand beside the company in this battle, or null
+     * — which is every mission but the two defences. A defence is fought at
+     * somebody's market and that somebody has a garrison of its own; every other
+     * mission is the company arriving somewhere it has no friends. The id names
+     * whose ground doctrine those troops wear, resolved through the bridge's one
+     * roster path; how many of them there are is a reading of the target market
+     * rather than of this field. See {@code polity-ground-doctrine.md}.
+     */
+    public final String alliedGarrisonFactionId;
+    /**
+     * How much of the allied faction's own strength turns out here — the numbers
+     * axis of the defending polity's ground doctrine, reaching the battle as a
+     * multiplier on {@code AlliedGarrisonSize} rather than as a headcount.
+     *
+     * <p>{@code 1} on a mission that states none, which is every mission that has
+     * no allied garrison at all and every patron's Garrison defence: a patron's
+     * militia is sized by its own market and the company has no say in it. Only
+     * the polity's own defence carries anything else, because doctrine is a thing
+     * the player's faction has and a patron's is vanilla's business. See
+     * {@code polity-ground-doctrine.md}.
+     */
+    public final float alliedGarrisonStrengthMult;
+    /**
      * How much of this battle's map is settled, or null to derive it from the
      * target market's size.
      *
@@ -245,6 +268,11 @@ public final class Mission {
         this.targetIndustryId = b.targetIndustryId;
         this.targetFactionId  = b.targetFactionId;
         this.defenderFactionOverride = b.defenderFactionOverride;
+        this.alliedGarrisonFactionId = b.alliedGarrisonFactionId;
+        this.alliedGarrisonStrengthMult =
+                Float.isNaN(b.alliedGarrisonStrengthMult)
+                        || b.alliedGarrisonStrengthMult < 0f
+                        ? 1f : b.alliedGarrisonStrengthMult;
         this.sprawl           = b.sprawl;
         this.standoff         = b.standoff;
         this.landing          = b.landing;
@@ -308,6 +336,8 @@ public final class Mission {
         private String targetIndustryId;
         private String targetFactionId;
         private String defenderFactionOverride;
+        private String alliedGarrisonFactionId;
+        private float alliedGarrisonStrengthMult = 1f;
         private PrecinctPlan.Sprawl sprawl;
         private Standoff standoff;
         private Integer lanes;
@@ -354,6 +384,8 @@ public final class Mission {
             this.targetIndustryId = m.targetIndustryId;
             this.targetFactionId = m.targetFactionId;
             this.defenderFactionOverride = m.defenderFactionOverride;
+            this.alliedGarrisonFactionId = m.alliedGarrisonFactionId;
+            this.alliedGarrisonStrengthMult = m.alliedGarrisonStrengthMult;
             this.sprawl = m.sprawl;
             this.standoff = m.standoff;
             this.lanes = m.lanes;
@@ -482,6 +514,25 @@ public final class Mission {
         /** @param defenderFactionOverride faction to defend instead of the market's owner; null to leave it alone. */
         public Builder defenderFactionOverride(String defenderFactionOverride) {
             this.defenderFactionOverride = defenderFactionOverride;
+            return this;
+        }
+
+        /**
+         * @param alliedGarrisonFactionId faction whose own troops fight beside the
+         *     company here; null for a mission with no friends on the ground.
+         */
+        public Builder alliedGarrisonFactionId(String alliedGarrisonFactionId) {
+            this.alliedGarrisonFactionId = alliedGarrisonFactionId;
+            return this;
+        }
+
+        /**
+         * @param alliedGarrisonStrengthMult how much of the allied faction's own
+         *     strength turns out here; {@code 1} for a mission that states no
+         *     doctrine of its own. Negative or NaN reads as 1.
+         */
+        public Builder alliedGarrisonStrengthMult(float alliedGarrisonStrengthMult) {
+            this.alliedGarrisonStrengthMult = alliedGarrisonStrengthMult;
             return this;
         }
 

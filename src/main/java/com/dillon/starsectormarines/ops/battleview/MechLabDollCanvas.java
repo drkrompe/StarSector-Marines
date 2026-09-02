@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -389,7 +390,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float sin = (float) Math.sin(radians);
         List<SocketDropTarget> targets = resolveExplodedDropTargets(layout.sockets(),
                 projection.actorX(), projection.actorY(), projection.hullX(), projection.hullY(),
-                canvasWidth, canvasHeight, cos, sin);
+                canvasWidth, canvasHeight, cos, sin,
+                deployment, deployment != null ? deployment.variant() : null);
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
             boolean occupied = occupied(deployment, socket.id());
@@ -403,11 +405,19 @@ public final class MechLabDollCanvas implements CanvasProducer {
             if (incompatible) {
                 base = withAlpha(base, 80);
             }
-
-            // CAD-style dog-leg leader geometry terminating at the dock bracket
+            // CAD dog-leg leader path to perimeter dock
             List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
-            Color leaderColor = selected ? withAlpha(base, 235) : occupied ? withAlpha(base, 110) : withAlpha(base, 175);
-            float leaderStroke = selected ? 2f : 1f;
+            float leaderStroke = selected ? 3.0f : 2.0f;
+            Color leaderColor = selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : compatible ? new Color(0x69, 0xE7, 0x81, 245)
+                    : withAlpha(base, 240);
+
+            // High-contrast dark outer silhouette for crisp readability on any deck pattern
+            for (int i = 0; i < path.size() - 1; i++) {
+                c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
+                        new Color(0x02, 0x07, 0x0F, 220), leaderStroke + 2.0f);
+            }
+            // Main illuminated CAD line
             for (int i = 0; i < path.size() - 1; i++) {
                 c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
                         leaderColor, leaderStroke);
@@ -451,24 +461,69 @@ public final class MechLabDollCanvas implements CanvasProducer {
                         new Color(0xE5, 0x45, 0x45, 140), 1.5f);
             }
 
-            // Technical mount callout
-            String callout = mountCallout(socket.id(), socket.gridColumns(), socket.gridRows());
-            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 230)
-                    : selected ? new Color(0xFF, 0xD4, 0x64, 230)
+            // Technical mount callout title pill (rendered cleanly above the dock box)
+            String callout = mountCallout(socket);
+            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 255)
+                    : selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : new Color(0xED, 0xF5, 0xFA, 245);
+
+            float textWidth = Fonts.ORBITRON_10.measureWidth(callout);
+            if (textWidth <= 0f) textWidth = callout.length() * 7.5f;
+            float pillW = textWidth + 14f;
+            float pillH = 16f;
+            float pillX = target.left();
+            float pillY = target.top() - pillH - 4f;
+            if (pillY < 20f) {
+                pillY = target.bottom() + 4f;
+            }
+            // High-contrast dark tactical badge
+            c.fillRect(pillX, pillY, pillW, pillH, new Color(0x06, 0x10, 0x1A, 250));
+            // 1px border matching state
+            Color pillBorder = selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : compatible ? new Color(0x69, 0xE7, 0x81, 230)
                     : withAlpha(base, 200);
-            float calloutY = target.top() > 18f ? target.top() - 2f : target.bottom() + 11f;
-            c.text(Fonts.ORBITRON_10, callout, target.left() + 3f, calloutY, calloutColor);
+            c.strokeRect(pillX, pillY, pillW, pillH, pillBorder, 1f);
+            // Crisp Orbitron title text (top-aligned)
+            c.text(Fonts.ORBITRON_10, callout, pillX + 6f, pillY + 3f, calloutColor);
 
             // Capacity footprint cells
             MechWeaponComponent component = weaponAt(deployment, socket.id());
-            int occupiedColumns = component != null ? component.footprintColumns
+            int occupiedColumns = component != null ? socket.gridColumns()
                     : occupied ? socket.gridColumns() : 0;
-            int occupiedRows = component != null ? component.footprintRows
+            int occupiedRows = component != null ? socket.gridRows()
                     : occupied ? socket.gridRows() : 0;
             drawCapacityCells(c, target, base, selected,
                     occupiedColumns, occupiedRows);
+
+            // Item preview icon rendered inside the dock slot
+            MechWeaponComponent previewWeapon = (hasCandidate && compatible) ? candidate : component;
+            if (previewWeapon != null && assets.get() != null) {
+                float alpha = (hasCandidate && compatible && candidate != component) ? 0.72f : selected ? 1.0f : 0.95f;
+                drawDockEquipment(c, target, previewWeapon, alpha);
+            }
         }
         lastSocketTargets = List.copyOf(targets);
+    }
+
+    private void drawDockEquipment(CanvasContext c, SocketDropTarget target,
+                                   MechWeaponComponent component, float alpha) {
+        LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets.get(), component);
+        if (sprite == null) return;
+
+        float availableWidth = target.width() - CAPACITY_INSET * 2f;
+        float availableHeight = target.height() - CAPACITY_INSET * 2f;
+        float scale = Math.min(availableWidth * 0.85f / sprite.pxWidth,
+                availableHeight * 0.85f / sprite.pxHeight);
+        float drawW = sprite.pxWidth * scale;
+        float drawH = sprite.pxHeight * scale;
+
+        // Subtle dark backing badge for clear weapon silhouette contrast over gantry tiles
+        c.fillRect(target.centerX() - drawW * 0.5f - 2f, target.centerY() - drawH * 0.5f - 2f,
+                drawW + 4f, drawH + 4f, new Color(0x04, 0x08, 0x10, (int) (140 * alpha)));
+
+        c.sprite(sprite.sourcePath, sprite.sprite,
+                target.centerX(), target.centerY(),
+                drawW, drawH, 0f, new Color(1f, 1f, 1f, alpha));
     }
 
     static List<float[]> leaderDogLegPath(float anchorX, float anchorY, SocketDropTarget target) {
@@ -547,13 +602,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     static void drawAnchorMechanicalTick(CanvasContext c, float x, float y, Color base, boolean selected) {
-        float size = selected ? 6f : 4f;
+        float size = selected ? 7f : 5f;
+        c.fillRect(x - size * 0.5f - 1f, y - size * 0.5f - 1f, size + 2f, size + 2f,
+                new Color(0x02, 0x07, 0x0F, 220));
         c.fillRect(x - size * 0.5f, y - size * 0.5f, size, size,
-                withAlpha(base, selected ? 245 : 180));
-        float tick = selected ? 6f : 4.5f;
-        Color tickColor = withAlpha(base, selected ? 220 : 150);
-        c.line(x - tick, y, x + tick, y, tickColor, 1f);
-        c.line(x, y - tick, x, y + tick, tickColor, 1f);
+                withAlpha(base, selected ? 255 : 200));
+        float tick = selected ? 7f : 5.5f;
+        Color tickColor = withAlpha(base, selected ? 240 : 180);
+        c.line(x - tick, y, x + tick, y, new Color(0x02, 0x07, 0x0F, 200), 2.5f);
+        c.line(x, y - tick, x, y + tick, new Color(0x02, 0x07, 0x0F, 200), 2.5f);
+        c.line(x - tick, y, x + tick, y, tickColor, 1.5f);
+        c.line(x, y - tick, x, y + tick, tickColor, 1.5f);
     }
 
     static boolean isSocketCompatible(SocketDef socket, MechWeaponComponent candidate) {
@@ -563,6 +622,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         boolean typeMatches = socket.type() == SocketType.OMNI
                 || socket.type().name().equals(candidate.hardpointType.name());
         return typeMatches && socket.accommodates(candidate.footprintColumns, candidate.footprintRows);
+    }
+
+    static String mountCallout(SocketDef socket) {
+        if (socket == null) return "";
+        String label = socket.label();
+        String name = switch (label) {
+            case "ARM ASSEMBLY" -> "ARMS";
+            case "ENGINE CORE" -> "CORE";
+            case "L. SHOULDER" -> "L. SHLDR";
+            case "R. SHOULDER" -> "R. SHLDR";
+            case "AMMO RESERVE" -> "AMMO";
+            default -> label;
+        };
+        return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
     }
 
     static String mountCallout(SocketId id, int cols, int rows) {
@@ -643,13 +716,23 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float canvasWidth, float canvasHeight) {
         float radians = (float) Math.toRadians(doll.facingDegrees());
         return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
-                canvasWidth, canvasHeight, (float) Math.cos(radians), (float) Math.sin(radians));
+                canvasWidth, canvasHeight, (float) Math.cos(radians), (float) Math.sin(radians),
+                null, null);
     }
 
     static List<SocketDropTarget> resolveExplodedDropTargets(
             List<SocketDef> sockets,
             float actorX, float actorY, float hullWidth, float hullHeight,
             float canvasWidth, float canvasHeight, float cos, float sin) {
+        return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
+                canvasWidth, canvasHeight, cos, sin, null, null);
+    }
+
+    static List<SocketDropTarget> resolveExplodedDropTargets(
+            List<SocketDef> sockets,
+            float actorX, float actorY, float hullWidth, float hullHeight,
+            float canvasWidth, float canvasHeight, float cos, float sin,
+            MechDeploymentSpec deployment, MechVariant variant) {
         if (sockets.isEmpty()) return List.of();
 
         final class ResolvedDock {
@@ -663,8 +746,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
             ResolvedDock(SocketDef socket) {
                 this.socket = socket;
-                float anchorLocalX = socket.anchorRight() * hullWidth;
-                float anchorLocalY = socket.anchorForward() * hullHeight;
+                float[] anchor = socketAnchor(socket, deployment, variant);
+                float anchorLocalX = anchor[0] * hullWidth;
+                float anchorLocalY = anchor[1] * hullHeight;
                 float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
                 float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
                 this.anchorX = actorX + anchorWorldX;
@@ -775,22 +859,47 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return targets;
     }
 
+    static float[] socketAnchor(SocketDef socket, MechDeploymentSpec deployment, MechVariant variant) {
+        if (deployment != null && variant != null) {
+            MechWeaponComponent weapon = weaponAt(deployment, socket.id());
+            if (weapon != null) {
+                if (socket.id() == SocketId.ARMS) {
+                    if (variant.chassisAppearance == LayeredMechAppearance.CHASSIS_HOUND) {
+                        return new float[]{0f, 0.24f};
+                    } else if (variant.chassisAppearance == LayeredMechAppearance.CHASSIS_SIROCCO) {
+                        return new float[]{0f, 0.26f};
+                    } else {
+                        return new float[]{0f, 0.22f};
+                    }
+                } else if (socket.id() == SocketId.LEFT_SHOULDER || socket.id() == SocketId.RIGHT_SHOULDER) {
+                    int leftApp = appearance(deployment.leftShoulder());
+                    int rightApp = appearance(deployment.rightShoulder());
+                    boolean isLeft = socket.id() == SocketId.LEFT_SHOULDER;
+                    var pt = MechHardpointGeometry.podMuzzle(variant.chassisAppearance,
+                            leftApp, rightApp, isLeft, weapon.appearanceSelector);
+                    return new float[]{pt.xHullWidths(), pt.yHullWidths() - 0.10f};
+                }
+            }
+        }
+        return new float[]{socket.anchorRight(), socket.anchorForward()};
+    }
+
     static List<CapacityCell> capacityCells(SocketDropTarget target) {
+        int cols = Math.max(1, target.gridColumns());
+        int rows = Math.max(1, target.gridRows());
         float availableWidth = target.width() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (MechFittingLayout.MAX_GRID_COLUMNS - 1);
+                - CAPACITY_GAP * (cols - 1);
         float availableHeight = target.height() - CAPACITY_INSET * 2f
-                - CAPACITY_GAP * (MechFittingLayout.MAX_GRID_ROWS - 1);
-        float cellWidth = availableWidth / MechFittingLayout.MAX_GRID_COLUMNS;
-        float cellHeight = availableHeight / MechFittingLayout.MAX_GRID_ROWS;
+                - CAPACITY_GAP * (rows - 1);
+        float cellWidth = availableWidth / cols;
+        float cellHeight = availableHeight / rows;
         float x = target.left() + CAPACITY_INSET;
         float y = target.top() + CAPACITY_INSET;
-        List<CapacityCell> cells = new ArrayList<>(
-                MechFittingLayout.MAX_GRID_COLUMNS * MechFittingLayout.MAX_GRID_ROWS);
+        List<CapacityCell> cells = new ArrayList<>(cols * rows);
         int index = 0;
-        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
-            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
-                cells.add(new CapacityCell(index++, column, row,
-                        column < target.gridColumns() && row < target.gridRows(),
+        for (int row = 0; row < rows; row++) {
+            for (int column = 0; column < cols; column++) {
+                cells.add(new CapacityCell(index++, column, row, true,
                         x + column * (cellWidth + CAPACITY_GAP),
                         y + row * (cellHeight + CAPACITY_GAP), cellWidth, cellHeight));
             }
@@ -802,20 +911,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                           Color base, boolean selected,
                                           int occupiedColumns, int occupiedRows) {
         for (CapacityCell cell : capacityCells(target)) {
-            boolean filled = cell.active() && cell.column() < occupiedColumns
-                    && cell.row() < occupiedRows;
+            boolean filled = cell.column() < occupiedColumns && cell.row() < occupiedRows;
             c.fillRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    cell.active() ? withAlpha(base, filled ? selected ? 220 : 135 : 32)
-                            : new Color(0x18, 0x1E, 0x24, 215));
+                    withAlpha(base, filled ? (selected ? 220 : 135) : 32));
             c.strokeRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    cell.active() ? withAlpha(base, selected ? 240 : 180)
-                            : new Color(0x4B, 0x53, 0x5A, 190), 1f);
-            if (!cell.active()) {
-                c.line(cell.x() + 2f, cell.y() + 2f,
-                        cell.x() + cell.width() - 2f,
-                        cell.y() + cell.height() - 2f,
-                        new Color(0x5A, 0x61, 0x68, 180), 1f);
-            }
+                    withAlpha(base, selected ? 240 : 180), 1f);
         }
     }
 

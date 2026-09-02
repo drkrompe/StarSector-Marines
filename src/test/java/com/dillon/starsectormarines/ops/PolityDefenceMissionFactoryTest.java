@@ -14,7 +14,7 @@ class PolityDefenceMissionFactoryTest {
     @Test
     void aColonyDefenceIsAnAssaultWithNoContractBehindIt() {
         Mission mission = PolityDefenceMissionFactory.create(
-                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player");
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player", 1f);
 
         assertEquals(MissionSource.POLITY_DEFENCE, mission.source);
         assertEquals(MissionType.ASSAULT, mission.type);
@@ -33,19 +33,44 @@ class PolityDefenceMissionFactoryTest {
     @Test
     void raidersWearTheAttackersOwnKit() {
         Mission mission = PolityDefenceMissionFactory.create(
-                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player");
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player", 1f);
 
         assertEquals("pirates", mission.defenderFactionOverride);
+    }
+
+    /** The colony's own troops meet the landing beside the company. */
+    @Test
+    void theColonysOwnGarrisonStandsWithTheCompany() {
+        Mission mission = PolityDefenceMissionFactory.create(
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player", 1f);
+
+        assertEquals("player", mission.alliedGarrisonFactionId);
+        assertEquals("pirates", mission.defenderFactionOverride);
+    }
+
+    /**
+     * The polity's numbers doctrine is carried on the mission, since this is the
+     * one factory that has a doctrine to carry.
+     */
+    @Test
+    void thePolitysNumbersDoctrineRidesTheMission() {
+        Mission neutral = PolityDefenceMissionFactory.create(
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player", 1f);
+        Mission doubled = PolityDefenceMissionFactory.create(
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", "Jangala", "player", 2f);
+
+        assertEquals(1f, neutral.alliedGarrisonStrengthMult);
+        assertEquals(2f, doubled.alliedGarrisonStrengthMult);
     }
 
     @Test
     void tierRisesWithTheRaidsGroundStrength() {
         Mission small = PolityDefenceMissionFactory.create(
-                new RaidThreat(1L, 3, 5, 10f), 3, "pirates", "Jangala", "player");
+                new RaidThreat(1L, 3, 5, 10f), 3, "pirates", "Jangala", "player", 1f);
         Mission middling = PolityDefenceMissionFactory.create(
-                new RaidThreat(2L, 3, 5, 100f), 3, "pirates", "Jangala", "player");
+                new RaidThreat(2L, 3, 5, 100f), 3, "pirates", "Jangala", "player", 1f);
         Mission large = PolityDefenceMissionFactory.create(
-                new RaidThreat(3L, 3, 5, 400f), 3, "pirates", "Jangala", "player");
+                new RaidThreat(3L, 3, 5, 400f), 3, "pirates", "Jangala", "player", 1f);
 
         assertEquals(OperationTier.FIRST_CONTRACT, small.tier);
         assertEquals(OperationTier.VETERAN, middling.tier);
@@ -57,7 +82,7 @@ class PolityDefenceMissionFactoryTest {
     @Test
     void theIdCarriesTheMarketAndTheRaidItSettles() {
         Mission mission = PolityDefenceMissionFactory.create(
-                new RaidThreat(0xBEEFL, 3, 5, 60f), 12, "pirates", "Jangala", "player");
+                new RaidThreat(0xBEEFL, 3, 5, 60f), 12, "pirates", "Jangala", "player", 1f);
 
         PolityDefenceMissionKey key = PolityDefenceMissionKey.parse(mission.id);
         assertNotNull(key);
@@ -67,8 +92,8 @@ class PolityDefenceMissionFactoryTest {
 
     @Test
     void rejectsAMissingThreatOrColony() {
-        assertNull(PolityDefenceMissionFactory.create(null, 3, "pirates", "Jangala", "player"));
+        assertNull(PolityDefenceMissionFactory.create(null, 3, "pirates", "Jangala", "player", 1f));
         assertNull(PolityDefenceMissionFactory.create(
-                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", null, "player"));
+                new RaidThreat(88L, 3, 5, 60f), 3, "pirates", null, "player", 1f));
     }
 }

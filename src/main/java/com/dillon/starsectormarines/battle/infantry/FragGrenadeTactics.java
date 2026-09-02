@@ -165,7 +165,7 @@ public final class FragGrenadeTactics {
         float dangerSq = dangerRadius * dangerRadius;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long friendly = sim.liveUnitAt(i);
-            if (sim.identity().faction(friendly) != faction) continue;
+            if (!faction.friendlyTo(sim.identity().faction(friendly))) continue;
             if (distanceSq(sim.world().x(friendly), sim.world().y(friendly),
                     targetX, targetY) <= dangerSq) return false;
             if (!sim.world().hasMovement(friendly)) continue;

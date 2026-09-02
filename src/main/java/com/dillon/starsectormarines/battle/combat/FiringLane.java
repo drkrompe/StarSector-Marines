@@ -78,8 +78,20 @@ public final class FiringLane {
     }
 
     /**
-     * Fills {@code out} with the shooter's living faction-mates within
-     * {@code radius} of it, excluding the shooter itself.
+     * Cached once: {@code values()} clones its array on every call and this
+     * runs per firing body per tick.
+     */
+    private static final Faction[] FACTIONS = Faction.values();
+
+    /**
+     * Fills {@code out} with the living bodies {@code faction} is friendly to
+     * within {@code radius} of the shooter, excluding the shooter itself.
+     *
+     * <p>Every friendly faction rather than only the shooter's own: an allied
+     * militiaman standing in a marine's lane catches the round exactly as a
+     * squadmate would, so he is somebody to step around. Each faction has its
+     * own snapshot slice in the index, so this is one bucket walk per friendly
+     * faction and the scratch buffer is reused between them.
      *
      * <p>{@code scratch} is the caller's reusable id bucket; nothing is
      * retained from it.
@@ -90,13 +102,16 @@ public final class FiringLane {
                               LongBucket scratch, Friendlies out) {
         out.clear();
         if (!(radius > 0f) || !Float.isFinite(radius)) return;
-        index.gatherFaction(shooterX, shooterY, radius, faction, scratch);
-        for (int i = 0; i < scratch.size; i++) {
-            long ally = scratch.ids[i];
-            if (ally == shooter) continue;
-            if (!roster.isAliveById(ally)) continue;
-            out.add(roster.world().x(ally), roster.world().y(ally),
-                    roster.radius(ally));
+        for (Faction candidate : FACTIONS) {
+            if (!faction.friendlyTo(candidate)) continue;
+            index.gatherFaction(shooterX, shooterY, radius, candidate, scratch);
+            for (int i = 0; i < scratch.size; i++) {
+                long ally = scratch.ids[i];
+                if (ally == shooter) continue;
+                if (!roster.isAliveById(ally)) continue;
+                out.add(roster.world().x(ally), roster.world().y(ally),
+                        roster.radius(ally));
+            }
         }
     }
 

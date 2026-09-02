@@ -29,10 +29,18 @@ public final class PolityDefenceMissionFactory {
      *                          defended colony's kit
      * @param planetName        the colony's display name
      * @param marketFactionId   the colony's own faction, which the map is generated from
+     *                          and whose allied garrison fights beside the company
+     * @param alliedGarrisonStrengthMult the polity's numbers doctrine, multiplying how
+     *                          much of the colony's own strength turns out. {@code 1} is
+     *                          doctrine-neutral. This is the one place the polity's
+     *                          doctrine reaches a battle: a patron's Garrison defence
+     *                          never carries one, because a patron's militia is sized
+     *                          by its own market. See {@code polity-ground-doctrine.md}.
      */
     public static Mission create(RaidThreat threat, int marketSlot,
                                  String attackerFactionId, String planetName,
-                                 String marketFactionId) {
+                                 String marketFactionId,
+                                 float alliedGarrisonStrengthMult) {
         if (threat == null || planetName == null) return null;
         OperationTier tier = OperationTierForStrength.forGroundStrength(threat.groundStrength);
         String flavor = "A raid has put troops on the ground at " + planetName
@@ -55,6 +63,11 @@ public final class PolityDefenceMissionFactory {
                 // look for a row: -1 is the builder's own "orphan mission" sentinel.
                 .contractId(-1L)
                 .defenderFactionOverride(attackerFactionId)
+                // The colony's own troops meet the landing beside the company. On the
+                // polity that roster is derived rather than authored, but it resolves
+                // through the same faction id as anybody else's.
+                .alliedGarrisonFactionId(marketFactionId)
+                .alliedGarrisonStrengthMult(alliedGarrisonStrengthMult)
                 .build();
     }
 }

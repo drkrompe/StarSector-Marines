@@ -133,8 +133,10 @@ public class Detonations {
         if (hasDirectPayload
                 && roster.isAliveById(det.directTargetId)
                 && (!det.friendlyFireImmune
-                    || roster.identity().faction(det.directTargetId) != det.shooterFaction)) {
-            boolean friendly = roster.identity().faction(det.directTargetId) == det.shooterFaction;
+                    || !det.shooterFaction.friendlyTo(
+                            roster.identity().faction(det.directTargetId)))) {
+            boolean friendly = det.shooterFaction.friendlyTo(
+                    roster.identity().faction(det.directTargetId));
             directImpactSink.apply(new ShotService.PendingImpact(
                     det.directTargetId, det.shooterId, 0f,
                     det.directDamage, det.directPenetration, 1f, friendly));
@@ -154,7 +156,8 @@ public class Detonations {
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
                 if (det.excludesAreaTarget(u)) continue;
-                if (det.friendlyFireImmune && roster.identity().faction(u) == det.shooterFaction) continue;
+                if (det.friendlyFireImmune && det.shooterFaction.friendlyTo(
+                        roster.identity().faction(u))) continue;
                 // TRUE position, not cell center — a unit's physical footprint
                 // (UnitType.radius) is added to the blast radius so bigger units
                 // (mechs, hubs) are caught slightly outside the raw aoeRadius,
@@ -186,7 +189,8 @@ public class Detonations {
                 if (carrier == null || !carrier.isTargetable(bodyId)) continue;
                 if (det.excludesAreaTarget(bodyId)) continue;
                 if (det.friendlyFireImmune
-                        && carrier.faction(bodyId) == det.shooterFaction) continue;
+                        && det.shooterFaction.friendlyTo(
+                                carrier.faction(bodyId))) continue;
                 float ux = world.x(bodyId);
                 float uy = world.y(bodyId);
                 float dx = ux - det.endpointX;

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -73,8 +72,7 @@ public final class ClearAssignedZoneGoal implements Goal {
         // Objective satisfied — assigned zone has no live enemies left.
         // Yield so the next replan picks up a fresh assignment (commander
         // will re-pick its nearest defender on next slow tick).
-        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
-        if (ZoneQueries.zoneClear(targetZone, enemy, sim)) return 0f;
+        if (ZoneQueries.zoneClearOfHostiles(targetZone, squad.faction, sim)) return 0f;
         int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
         if (currentZone < 0) return 0f;
         // Reachability gate — disconnected target zone means the commander's

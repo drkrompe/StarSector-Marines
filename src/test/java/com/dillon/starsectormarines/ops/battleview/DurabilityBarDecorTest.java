@@ -121,10 +121,16 @@ public class DurabilityBarDecorTest {
         assertEquals(Allegiance.PLAYER, Allegiance.of(Faction.MARINE));
         assertEquals(Allegiance.ENEMY, Allegiance.of(Faction.DEFENDER));
         assertEquals(Allegiance.NEUTRAL, Allegiance.of(Faction.CIVILIAN));
+        assertEquals(Allegiance.ALLY, Allegiance.of(Faction.ALLY),
+                "a friendly non-player side is the ally reading, not the enemy "
+                        + "default — this is the one mapping that mis-styles "
+                        + "silently rather than failing loud");
         assertEquals(Allegiance.ENEMY, Allegiance.of(null),
                 "an unknown side must never style as friendly");
         assertTrue(Allegiance.PLAYER.friendly());
+        assertTrue(Allegiance.ALLY.friendly());
         assertFalse(Allegiance.ENEMY.friendly());
+        assertFalse(Allegiance.NEUTRAL.friendly());
     }
 
     @Test

@@ -32,8 +32,14 @@ import java.util.EnumSet;
  */
 public final class StationedStrengthSystem implements CampaignSystem {
 
-    /** Modifier id prefix; the contract id makes it attributable and stable across days. */
-    static final String MODIFIER_ID_PREFIX = "starsector_marines_stationed_";
+    /**
+     * Modifier id prefix; the contract id makes it attributable and stable across days.
+     *
+     * <p>Public because it is also how the contribution is read back out:
+     * {@code StationedStrength.totalAt} sums the market's flat ground-defence
+     * modifiers carrying this prefix, which is exactly the set written here.
+     */
+    public static final String MODIFIER_ID_PREFIX = "starsector_marines_stationed_";
     static final String MODIFIER_DESCRIPTION = "Stationed mercenary detachment";
 
     /** The vanilla ground-defence stat, isolated so a test can record what was written. */

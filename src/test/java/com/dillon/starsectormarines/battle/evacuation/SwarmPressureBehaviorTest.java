@@ -95,11 +95,10 @@ class SwarmPressureBehaviorTest {
                         6, 4, 10, 8, 8, 6, 8, 6)), 12L);
         assertNotNull(payload);
         long runner = runner(sim, 2, 2);
-        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
-        Squad squad = sim.getSquad(squadId);
-        squad.rescueShelterGuard = true;
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        sim.registerShelterGuardSquad(squadId);
         long guard = sim.spawn(new EntitySpec("shelter guard",
-                Faction.MARINE, UnitType.MILITIA, 3, 2).squad(squadId));
+                Faction.ALLY, UnitType.MILITIA, 3, 2).squad(squadId));
         long responder = marine(sim, 15, 11);
         sim.combat().setTargetId(guard, runner);
         sim.setPath(guard, GridPathfinder.findPath(sim.getGrid(),

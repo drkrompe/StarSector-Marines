@@ -721,7 +721,7 @@ public final class AmbientTaskService {
             long candidate = roster.get(i);
             if (candidate == actorId || !roster.identity().type(candidate).combatant) continue;
             if (route.threatPolicy() == AmbientThreatPolicy.HOSTILE_COMBATANT
-                    && roster.identity().faction(candidate) == faction) continue;
+                    && !faction.hostileTo(roster.identity().faction(candidate))) continue;
             float dx = world.x(candidate) - x;
             float dy = world.y(candidate) - y;
             if (dx * dx + dy * dy <= radiusSq) return true;

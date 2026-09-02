@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -102,10 +103,11 @@ class MechLabDollCanvasTest {
     @Test
     void oneSlotSocketRetainsAPracticalMinimumDropAreaOnSmallDolls() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        SocketDef miniFab = layout.socket(SocketId.MINI_FAB);
+        SocketDef oneSlot = new SocketDef(SocketId.MINI_FAB, SocketType.UTILITY,
+                1, 1, 0f, -0.84f, 1.34f, 0.68f, 1.36f, 0.68f, false);
 
         MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(layout.doll(), miniFab,
+                MechLabDollCanvas.socketDropTarget(layout.doll(), oneSlot,
                         200f, 160f, 80f, 80f);
 
         assertEquals(128f, target.width(), 1e-4f);
@@ -142,7 +144,7 @@ class MechLabDollCanvasTest {
     }
 
     @Test
-    void houndArmGridShowsFourUsableCellsInsideTheCommonSixCellFrame() {
+    void houndArmGridShowsExactFourCellsWithoutGhostCells() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
         SocketDef arms = layout.socket(SocketId.ARMS);
         MechLabDollCanvas.SocketDropTarget target =
@@ -152,11 +154,23 @@ class MechLabDollCanvasTest {
         List<MechLabDollCanvas.CapacityCell> cells =
                 MechLabDollCanvas.capacityCells(target);
 
-        assertEquals(6, cells.size());
-        assertEquals(4, cells.stream().filter(
-                MechLabDollCanvas.CapacityCell::active).count());
-        assertFalse(cells.get(2).active());
-        assertFalse(cells.get(5).active());
+        assertEquals(4, cells.size());
+        assertTrue(cells.stream().allMatch(MechLabDollCanvas.CapacityCell::active));
+    }
+
+    @Test
+    void ammoReserveShowsExactTwoCells() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
+        SocketDef ammo = layout.socket(SocketId.AMMO_RESERVE);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), ammo,
+                        400f, 300f, 160f, 160f);
+
+        List<MechLabDollCanvas.CapacityCell> cells =
+                MechLabDollCanvas.capacityCells(target);
+
+        assertEquals(2, cells.size());
+        assertTrue(cells.stream().allMatch(MechLabDollCanvas.CapacityCell::active));
     }
 
     @Test
@@ -178,7 +192,7 @@ class MechLabDollCanvasTest {
     @Test
     void leaderDogLegPathOrthogonalGeometryKeepsCenterClear() {
         MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
-        SocketDef left = layout.socket(SocketId.MINI_FAB);
+        SocketDef left = layout.socket(SocketId.LEFT_SHOULDER);
         MechLabDollCanvas.SocketDropTarget target =
                 MechLabDollCanvas.socketDropTarget(layout.doll(), left,
                         500f, 300f, 160f, 160f);

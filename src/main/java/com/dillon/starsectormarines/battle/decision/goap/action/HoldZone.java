@@ -126,11 +126,11 @@ public final class HoldZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
 
-        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
-        boolean enemiesInZone = !ZoneQueries.zoneClear(targetZoneId, enemy, sim);
+        boolean enemiesInZone =
+                !ZoneQueries.zoneClearOfHostiles(targetZoneId, squad.faction, sim);
 
         if (enemiesInZone) {
-            return engageInZone(member, squad, sim, enemy);
+            return engageInZone(member, squad, sim);
         }
 
         // No enemies: fan out to the assigned post and hold there, rather than
@@ -163,14 +163,14 @@ public final class HoldZone extends AbstractZoneAction {
         }
     }
 
-    private ActionStatus engageInZone(long member, Squad squad, BattleControl sim, Faction enemy) {
+    private ActionStatus engageInZone(long member, Squad squad, BattleControl sim) {
         long target = sim.targetOf(member);
         boolean targetOutOfZone = target != 0L
                 && sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target)) != targetZoneId;
         if (target == 0L
                 || targetOutOfZone
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = pickInZoneTarget(member, sim, enemy);
+            target = pickInZoneTarget(member, sim, squad.faction);
             if (target == 0L) target = sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
@@ -235,12 +235,12 @@ public final class HoldZone extends AbstractZoneAction {
         return ActionStatus.RUNNING;
     }
 
-    private long pickInZoneTarget(long self, BattleView sim, Faction enemy) {
+    private long pickInZoneTarget(long self, BattleView sim, Faction selfFaction) {
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long other = sim.liveUnitAt(i);
-            if (sim.identity().faction(other) != enemy) continue;
+            if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;

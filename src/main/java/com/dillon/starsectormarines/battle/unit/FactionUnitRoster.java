@@ -13,8 +13,8 @@ import java.util.Map;
  * setup and every initial/reinforcement source consumes that profile.
  *
  * <p>The ownership contract lives in {@code reinforcement-nouns.md}. The short version:
- * marines bulk-spawn {@link UnitType#MARINE}; a defender without campaign
- * target context falls back to {@link UnitType#MILITIA}. This type does not
+ * marines bulk-spawn {@link UnitType#MARINE}; a defender or an ally without
+ * campaign target context falls back to {@link UnitType#MILITIA}. This type does not
  * express campaign faction identity or equipment doctrine.
  */
 public final class FactionUnitRoster {
@@ -31,6 +31,15 @@ public final class FactionUnitRoster {
         // civilian "armoured response" reads as nonsense.
         REGISTRY.put(Faction.CIVILIAN,
                 new FactionUnitRoster(UnitType.MILITIA, UnitType.MILITIA, null));
+        // An allied force reaching this fallback carries no campaign target
+        // context either, so it is shaped like a contextless defender: local
+        // militia stiffened by a better-equipped section. Where the ally has a
+        // producer it freezes a GroundRosterProfile of its own, exactly as a
+        // campaign-target defender does, and never asks here. The entry is not
+        // optional — the lookup throws on an unmapped faction, which would turn
+        // the first allied reinforcement into a dead battle.
+        REGISTRY.put(Faction.ALLY,
+                new FactionUnitRoster(UnitType.MILITIA, UnitType.MARINE_RED, UnitType.HEAVY_MECH));
     }
 
     private final UnitType infantry;
