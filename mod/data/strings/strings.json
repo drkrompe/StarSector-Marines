@@ -95,6 +95,27 @@
 		"garrisonDefenseUnknown": "Unclassified threat to the protected market",
 		"garrisonDefenseResolveFirst": "Resolve Defense",
 
+		# Posting — stationing on the player's own colony, with no employer
+		"postingTitle":           "Posting",
+		"postingClientSummary":   "Your own holding  ·  no fee, no contract",
+		"postingRowCreate":       "Post a detachment",
+		"postingRowManage":       "Manage posting",
+		"postingOfferSubtitle":   "Choose the captain and squads that stay behind on this world.",
+		"postingOfferKicker":     "NOTHING POSTED",
+		"postingStatusUnposted":  "No detachment posted",
+		"postingActiveTitle":     "Active posting",
+		"postingActiveSubtitle":  "Review the posted detachment and release it when it is wanted elsewhere.",
+		"postingActiveKicker":    "POSTED DETACHMENT",
+		"postingRetainerLabel":   "PAYS",
+		"postingNoRetainer":      "Nothing",
+		"postingNoTerm":          "Until released",
+		"postingCommitmentHeader": "POSTING COMMITMENT",
+		"postingTermsNotice":     "A posting pays no retainer and has no end date. The detachment holds this world until you release it, and earns the company no credit for it.",
+		"postingAccept":          "Post Detachment",
+		"postingReleaseHeader":   "RELEASE",
+		"postingReleaseWarning":  "Releasing costs nothing: there is no employer to answer to. The squads and their captain return to the roster.",
+		"postingRelease":         "Release Detachment",
+
 		# Self-triggered campaign event popup
 		"eventPopupLocationFmt":  "Location: {0}",
 		"eventPopupDeadlineFmt":  "Response window: {0} days remaining",
