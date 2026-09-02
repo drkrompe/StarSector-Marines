@@ -60,8 +60,8 @@ public final class SpecSheetLayer {
     /**
      * The shared fragment. It lives here rather than in a screen's own MLX
      * because the overlay is one element for every screen: a per-screen copy is
-     * the duplication this story exists to remove. Colours are the armory
-     * tooltip palette so the two read as the same object during migration.
+     * the duplication this story exists to remove. Colours are the Fleet
+     * Armory's own, which is where the first per-card popups lived.
      */
     private static final String CSS = """
             .spec-sheet {

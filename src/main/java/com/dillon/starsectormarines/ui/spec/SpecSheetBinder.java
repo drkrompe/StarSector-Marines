@@ -42,6 +42,12 @@ public final class SpecSheetBinder {
      * Binds one element to a sheet produced on demand. The supplier is asked
      * when the element is hovered, so a subject whose numbers move is described
      * as it is now rather than as it was when the row was built.
+     *
+     * <p>A supplier may answer null, which opens nothing. That is what a fixed
+     * element whose subject changes underneath it needs — the squad-deployment
+     * inspector's four equipment lines are bound once and describe whichever
+     * marine is hovered, and there are moments (no marine, a suit with no
+     * integral system) when the line names nothing to describe.
      */
     public SpecSheetBinder bind(UiElement target, Supplier<SpecSheet> sheet) {
         Objects.requireNonNull(target, "target");
@@ -69,6 +75,15 @@ public final class SpecSheetBinder {
         return bindings.size();
     }
 
+    /**
+     * Whether this element carries a binding. Screens that rebind every frame
+     * as rows arrive ask before rebinding; tests ask to state what a screen
+     * made hoverable.
+     */
+    public boolean isBound(UiElement target) {
+        return target != null && bindings.containsKey(target);
+    }
+
     /** Whether an overlay is currently open for a bound element. */
     public UiElement openTarget() {
         return open;
@@ -90,8 +105,9 @@ public final class SpecSheetBinder {
         }
         if (next == open) return;
         open = next;
-        if (next == null) layer.hide();
-        else layer.show(bindings.get(next).get(), next);
+        SpecSheet sheet = next == null ? null : bindings.get(next).get();
+        if (sheet == null) layer.hide();
+        else layer.show(sheet, next);
     }
 
     private void closeOpen() {
