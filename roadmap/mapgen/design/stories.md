@@ -1,15 +1,16 @@
 # Map generation story board
 
-Status: ACTIVE — fourteen bounded precinct, station, city, economic, or cross-feature
+Status: ACTIVE — fifteen bounded precinct, station, city, economic, or cross-feature
 stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — Conquest on precincts shipped; the grown-road-graph story
-retired with it, its laws folded into `mapgen-nouns.md`.
+Updated: 2026-09-01 — a mission may state how far from the objective its
+attacking force lands.
 
 | Story | Status | Outcome |
 |---|---|---|
+| `approach-standoff.md` | IN PROGRESS | A mission states how far from the objective its beachhead lies; Conquest lands closer than the map edge on the large map. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |

@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
-import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
+import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
@@ -18,13 +18,15 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * recipe's beach — two 5x5 berths a fixed offset either side of a lateral line,
  * stepped along a frontage — with the region replaced. A precinct map has no
  * biome bands and no traversal axis, so there is no shoreline to walk; what it
- * has instead is a statement about where the attack comes from. The berths go in
- * that region, and the approach is the map edge that region sits against, so an
- * area is a beachhead rather than a clearing somewhere behind the line.
+ * has instead is a statement about where the attack comes from and how far out
+ * it lands. {@link ApproachRegion} turns both into the region the berths go in,
+ * and carries the approach the stated band faced, so an area is a beachhead
+ * rather than a clearing somewhere behind the line — and stays one once the
+ * region has been slid inland, off every map edge.
  *
- * <p>Told nothing, the region is the corner {@link SpawnAnchorStage} put the
- * marines in — the two read the same rule, because an arrival area in a corner
- * nobody spawns in is not an arrival area.
+ * <p>{@link SpawnAnchorStage} resolves the same region through the same
+ * function, because an arrival area in a region nobody spawns in is not an
+ * arrival area.
  *
  * <p>Consumes no RNG: candidates are scanned in stable lateral/depth order after
  * every terrain, wall and emplacement mutation has run. Returns quietly when the
@@ -52,12 +54,10 @@ public final class PrecinctLandingAreaStage implements GenStage {
         if (!ctx.landingAreas.isEmpty()) {
             throw new IllegalStateException("precinct landing areas already authored");
         }
-        MapPlacement from = plan.attackerFrom();
-        if (from == null) {
-            from = SpawnAnchorStage.awayFrom(plan.objective(), ctx.width, ctx.height);
-        }
-        int[] region = from.bounds(ctx.width, ctx.height);
-        LandingPad.Approach approach = approachFor(region, ctx.width, ctx.height);
+        ApproachRegion resolved = ApproachRegion.resolve(
+                plan, ctx.get(BspKeys.PRECINCT_CLAIM), ctx.width, ctx.height);
+        int[] region = resolved.bounds();
+        LandingPad.Approach approach = resolved.approach();
         boolean advanceAlongY = approach == LandingPad.Approach.SOUTH
                 || approach == LandingPad.Approach.NORTH;
 
@@ -78,57 +78,9 @@ public final class PrecinctLandingAreaStage implements GenStage {
     }
 
     /**
-     * Which way the region faces off the map.
-     *
-     * <p>A region against an edge lands on it. A region against two — every
-     * corner placement, which is what an unstated attacker gets — takes the edge
-     * with the longer frontage inside the region, because a beachhead wants room
-     * to put several areas side by side. A region against none takes the nearest
-     * edge, which is the {@link MapPlacement#CENTRE} case: the approach still has
-     * to be a real direction for the shuttles to fly in on.
-     */
-    private static LandingPad.Approach approachFor(int[] region, int width, int height) {
-        int lateralX = region[2] - region[0] + 1;
-        int lateralY = region[3] - region[1] + 1;
-        boolean touchesSouth = region[1] <= 0;
-        boolean touchesWest = region[0] <= 0;
-        boolean touchesNorth = region[3] >= height - 1;
-        boolean touchesEast = region[2] >= width - 1;
-        if (touchesSouth || touchesWest || touchesNorth || touchesEast) {
-            LandingPad.Approach best = null;
-            int bestFrontage = -1;
-            if (touchesSouth && lateralX > bestFrontage) {
-                best = LandingPad.Approach.SOUTH;
-                bestFrontage = lateralX;
-            }
-            if (touchesWest && lateralY > bestFrontage) {
-                best = LandingPad.Approach.WEST;
-                bestFrontage = lateralY;
-            }
-            if (touchesNorth && lateralX > bestFrontage) {
-                best = LandingPad.Approach.NORTH;
-                bestFrontage = lateralX;
-            }
-            if (touchesEast && lateralY > bestFrontage) {
-                best = LandingPad.Approach.EAST;
-            }
-            return best;
-        }
-        int south = region[1];
-        int west = region[0];
-        int north = height - 1 - region[3];
-        int east = width - 1 - region[2];
-        int nearest = Math.min(Math.min(south, west), Math.min(north, east));
-        if (south == nearest) return LandingPad.Approach.SOUTH;
-        if (west == nearest) return LandingPad.Approach.WEST;
-        if (north == nearest) return LandingPad.Approach.NORTH;
-        return LandingPad.Approach.EAST;
-    }
-
-    /**
-     * The first legal pair on this lateral line, scanning inward from the
-     * approach edge so what comes back is a beachhead rather than an arbitrary
-     * deep cell.
+     * The first legal pair on this lateral line, scanning inward from the side
+     * of the region that faces the approach, so what comes back is a beachhead
+     * rather than an arbitrary deep cell.
      */
     private static LandingArea firstClearArea(GenContext ctx, int[] region,
                                               LandingPad.Approach approach,

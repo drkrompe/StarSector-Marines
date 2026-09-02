@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
+import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -135,7 +136,7 @@ class PrecinctLandingAreaStageTest {
     void anUnstatedAttackerLandsWhereItSpawns() {
         Generated generated = generate(MapPlacement.NORTH_EAST, null);
         MapResult map = generated.map();
-        int[] corner = SpawnAnchorStage
+        int[] corner = ApproachRegion
                 .awayFrom(generated.plan().objective(), W, H).bounds(W, H);
 
         assertTrue(!map.landingAreas.isEmpty(),

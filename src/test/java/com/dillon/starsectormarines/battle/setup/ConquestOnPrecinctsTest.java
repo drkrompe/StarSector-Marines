@@ -10,17 +10,22 @@ import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
+import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
+import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONObject;
@@ -97,26 +102,96 @@ class ConquestOnPrecinctsTest {
                             + ConquestArrivalConfig.DEFAULT.dropZoneCount()
                             + " drop zones");
 
-            assertMarineSpawnIsInTheAttackerThird(fixture.seed(), map);
+            assertTheForceLandsAtItsStandoff(fixture.seed(), map);
         }
     }
 
     /**
-     * The marines land on the side the axis says, which is the substitution
-     * this story makes: the axis used to paint a beach and now places a
-     * precinct, and both commanders keep reading it either way.
+     * The marines land on the side the axis says, at the distance the mission
+     * states.
+     *
+     * <p>Two facts in one assertion, because they are one arrival. The side is
+     * the substitution the precinct story made: the axis used to paint a beach
+     * and now places a precinct, and both commanders keep reading it either way.
+     * The distance is what a stated {@link Standoff} buys — the map stays
+     * 560x336 and the beachhead moves in until its objective-facing side is
+     * {@code STANDARD} cells short of the claim.
+     *
+     * <p>The claim is read back off {@link MapResult#frontDepth}, whose band 0 is
+     * the objective's own ground by construction. That is the finished map's own
+     * statement of where the thing being taken is, rather than a second copy of
+     * the generator's arithmetic.
      */
-    private static void assertMarineSpawnIsInTheAttackerThird(long seed, MapResult map) {
+    private static void assertTheForceLandsAtItsStandoff(long seed, MapResult map) {
         TraversalAxis axis = rolledAxis(seed);
-        if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            assertTrue(map.marineSpawnY < MapScale.CONQUEST.height / 3,
-                    "SOUTH_TO_NORTH lands in the south third, not at y="
-                            + map.marineSpawnY);
-        } else {
-            assertTrue(map.marineSpawnX < MapScale.CONQUEST.width / 3,
-                    "WEST_TO_EAST lands in the west third, not at x="
-                            + map.marineSpawnX);
+        MapPlacement from = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? MapPlacement.SOUTH : MapPlacement.WEST;
+        ApproachRegion region = ApproachRegion.resolve(
+                from, BattleSetup.CONQUEST_STANDOFF, objectiveClaim(map.frontDepth),
+                MapScale.CONQUEST.width, MapScale.CONQUEST.height);
+
+        assertEquals(BattleSetup.CONQUEST_STANDOFF.cells(), region.standoffCells(),
+                "a Conquest map affords its stated standoff");
+        assertTrue(region.contains(map.marineSpawnX, map.marineSpawnY),
+                "the marine spawn at " + map.marineSpawnX + "," + map.marineSpawnY
+                        + " is outside the region the standoff resolved to "
+                        + region.x0() + "," + region.y0() + ".."
+                        + region.x1() + "," + region.y1());
+        assertTrue(!map.landingAreas.isEmpty(), "the resolved region seated no beachhead");
+        for (LandingArea area : map.landingAreas) {
+            assertTrue(region.contains(area.left, area.bottom)
+                            && region.contains(area.right, area.top),
+                    "arrival area " + area.id + " at " + area.left + "," + area.bottom
+                            + ".." + area.right + "," + area.top
+                            + " lies outside the region the marines spawn in");
         }
+    }
+
+    /**
+     * The objective claim's extent, taken off the finished map's front: band 0
+     * is the objective precinct's own claimed ground.
+     */
+    private static int[] objectiveClaim(FrontDepth depth) {
+        int x0 = depth.width();
+        int y0 = depth.height();
+        int x1 = -1;
+        int y1 = -1;
+        for (int y = 0; y < depth.height(); y++) {
+            for (int x = 0; x < depth.width(); x++) {
+                if (depth.bandAt(x, y) != 0) continue;
+                x0 = Math.min(x0, x);
+                y0 = Math.min(y0, y);
+                x1 = Math.max(x1, x);
+                y1 = Math.max(y1, y);
+            }
+        }
+        return new int[]{x0, y0, x1, y1};
+    }
+
+    /**
+     * A mission that says nothing about its approach gets its own type's
+     * default, and the two mission types disagree on purpose.
+     *
+     * <p>Conquest is the mission whose approach was measured and found too long
+     * on the large map. Assault and Raid have not been measured against a
+     * shorter one at all, so they keep {@link Standoff#FAR} — the beachhead on
+     * the map edge, which is every approach those maps have ever had.
+     */
+    @Test
+    void eachMissionTypeHasItsOwnDefaultApproach() {
+        assertEquals(Standoff.STANDARD, BattleSetup.conquestPlanFor(
+                        OperationTier.REINFORCED, RiskLevel.LOW, DEFENDED_TOWN,
+                        null, TraversalAxis.SOUTH_TO_NORTH, 4096L).standoff(),
+                "Conquest lands at the walk the balance was judged on");
+        assertEquals(Standoff.CLOSE, BattleSetup.conquestPlanFor(
+                        OperationTier.REINFORCED, RiskLevel.LOW, DEFENDED_TOWN,
+                        null, Standoff.CLOSE, TraversalAxis.SOUTH_TO_NORTH, 4096L)
+                        .standoff(),
+                "a stated standoff wins over the mission type's default");
+        assertEquals(Standoff.FAR, BattleSetup.precinctPlanFor(
+                        MissionType.RAID, OperationTier.REINFORCED, RiskLevel.LOW,
+                        DEFENDED_TOWN, MapScale.LARGE, 4096L).standoff(),
+                "a raid keeps the map-edge beachhead it was measured on");
     }
 
     /**
