@@ -1,6 +1,6 @@
 # Story — Mech Lab equipment doll and inventory UX polish
 
-Status: PROPOSED
+Status: COMPLETED
 
 Written: 2026-09-02
 
