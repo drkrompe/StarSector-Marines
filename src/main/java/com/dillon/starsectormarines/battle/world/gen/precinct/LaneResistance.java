@@ -59,8 +59,17 @@ public record LaneResistance(List<Rung> rungs) {
     /**
      * One place on a lane.
      *
-     * @param band     which front band it stands in, {@link #INNERMOST_BAND}
-     *                 abutting the objective
+     * <p><b>The band names the rung, and is not a promise about where it lands.</b>
+     * A rung is seeded a fraction of the way along its lane from the attacker's
+     * region to the objective's, and the front band it turns out to stand in is
+     * a fact about the finished map: {@code FrontDepth} cuts equal rings around
+     * the objective's claim out to the map's furthest cell, and the beachhead is
+     * itself two rings out at Conquest's default standoff — so the outermost
+     * rung stands in front of the force rather than in front band 3, which is
+     * the ground behind it. The number is which rung of the ladder this is,
+     * counting in from the attacker.
+     *
+     * @param band     which rung, {@link #INNERMOST_BAND} abutting the objective
      * @param strength how hard it is to take
      * @param kind     what it is made of
      */

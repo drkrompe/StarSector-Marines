@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -27,7 +28,8 @@ import java.util.Random;
  * mission cares about the answer it should be authoring one instead.
  */
 public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
-                           Standoff standoff) {
+                           Standoff standoff, Lanes lanes,
+                           List<String> unplacedLanePlaces) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
@@ -35,16 +37,24 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         // precinct map had before a standoff existed: the beachhead on the map
         // edge the attacker's own band sits against.
         if (standoff == null) standoff = Standoff.FAR;
+        unplacedLanePlaces = unplacedLanePlaces == null
+                ? List.of() : List.copyOf(unplacedLanePlaces);
     }
 
     /** A plan with no opinion about where the attack comes from. */
     public PrecinctPlan(List<Precinct> precincts) {
-        this(precincts, null, Standoff.FAR);
+        this(precincts, null, Standoff.FAR, null, List.of());
     }
 
     /** A plan that states where the attack comes from but not how far out. */
     public PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) {
-        this(precincts, attackerFrom, Standoff.FAR);
+        this(precincts, attackerFrom, Standoff.FAR, null, List.of());
+    }
+
+    /** A plan whose places, approach and standoff are known but which has no lanes. */
+    public PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
+                        Standoff standoff) {
+        this(precincts, attackerFrom, standoff, null, List.of());
     }
 
     /**
@@ -57,7 +67,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * being sent.
      */
     public PrecinctPlan withStandoff(Standoff standoff) {
-        return new PrecinctPlan(precincts, attackerFrom, standoff);
+        return new PrecinctPlan(precincts, attackerFrom, standoff, lanes, unplacedLanePlaces);
     }
 
     /**
@@ -144,6 +154,72 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
          * can reach — which is what a profile at full density already means.
          */
         DENSE
+    }
+
+    /**
+     * How many lanes of resistance run between the attacker and the objective,
+     * and what stands on each of them.
+     *
+     * <p>A lane is the map's side of a command track: a ribbon along the
+     * traversal axis carrying one programmed place per front band, so a force
+     * working up its track has something to take on the way rather than open
+     * city and then a wall. It is the third thing a Conquest states after where
+     * its objective goes and how far out its force lands.
+     *
+     * <p>The count defaults to {@link #DEFAULT_COUNT} so the map and the
+     * commanders agree by construction. A lane whose {@link LaneResistance} is
+     * absent — a shorter list, or a {@code null} entry — derives its ladder from
+     * the objective's own rung; a stated one wins, which is how a mission says
+     * that one lane is a feint and another is the grind.
+     *
+     * @param count      how many lanes the map lays; one per command track
+     * @param resistance a ladder per lane, or {@code null} entries for derived
+     */
+    public record Lanes(int count, List<LaneResistance> resistance) {
+
+        /**
+         * How many lanes a Conquest lays when nobody says.
+         *
+         * <p>Equal to {@code ConquestTrackLayout.DEFAULT_TRACK_COUNT}, and
+         * restated here rather than imported because the commander package
+         * reads the generator and not the other way round.
+         * {@code LaneTrackAgreementTest} pins the two together.
+         */
+        public static final int DEFAULT_COUNT = 3;
+
+        public Lanes {
+            if (count <= 0) {
+                throw new IllegalArgumentException("a map with " + count + " lanes has none");
+            }
+            resistance = resistance == null
+                    ? Collections.emptyList() : Collections.unmodifiableList(
+                            new ArrayList<>(resistance));
+            if (resistance.size() > count) {
+                throw new IllegalArgumentException("stated " + resistance.size()
+                        + " ladders for " + count + " lanes");
+            }
+        }
+
+        /** The default count, every lane deriving its own ladder. */
+        public static Lanes derived() {
+            return new Lanes(DEFAULT_COUNT, List.of());
+        }
+
+        /** This many lanes, every one of them deriving its own ladder. */
+        public static Lanes of(int count) {
+            return new Lanes(count, List.of());
+        }
+
+        /**
+         * The ladder lane {@code index} carries: the stated one where there is
+         * one, and otherwise the objective's rung stepped down.
+         */
+        public LaneResistance ladderFor(int index, Fortification.Strength objectiveRung) {
+            if (index >= 0 && index < resistance.size() && resistance.get(index) != null) {
+                return resistance.get(index);
+            }
+            return LaneResistance.derive(objectiveRung);
+        }
     }
 
     /** A mission's own answer, which overrides anything derivable. */
@@ -273,6 +349,31 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                                       Fortification.Demand demand,
                                       MapPlacement objective, MapPlacement attackerFrom,
                                       int width, int height, Random rng) {
+        return derive(profile, sprawl, demand, objective, attackerFrom, null,
+                width, height, rng);
+    }
+
+    /**
+     * The same derivation with lanes of resistance laid between the attacker
+     * and the objective.
+     *
+     * <p><b>Lanes are seeded after the objective and before the settlement</b>,
+     * which is the whole of why they are a derivation input rather than
+     * something layered on afterwards the way a {@link Standoff} is. A lane
+     * place has to take its ground while there is ground to take: seeded after
+     * the town, it would be dropped for want of separation or swallowed by a
+     * claim that had already pooled through it. Seeded before, the town grows
+     * around them — a strongpoint stands in the streets, an outpost in the
+     * fields.
+     *
+     * @param lanes what the map lays between the two, or {@code null} for a
+     *              mission with no opinion, which is every mission but Conquest
+     */
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      Fortification.Demand demand,
+                                      MapPlacement objective, MapPlacement attackerFrom,
+                                      Lanes lanes,
+                                      int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
         int margin = marginFor(width, height);
@@ -300,6 +401,18 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     width, height);
         }
 
+        // The ladders come next, while there is still ground to take. They are
+        // built here and added after the garrison below, so the objective stays
+        // the first programmed place in the list and everything that reads
+        // objective() keeps reading the fortress.
+        List<Precinct> lanePlaces = new ArrayList<>();
+        List<String> unplacedLanes = new ArrayList<>();
+        if (lanes != null && objectivePlace != null && attackerFrom != null) {
+            seedLanes(lanes, demand.rung(profile.defenseLevel()),
+                    objectivePlace, objective, attackerFrom, taken, separation,
+                    margin, width, height, rng, lanePlaces, unplacedLanes);
+        }
+
         // A remote map is an installation in country: adding a town to it is
         // the one thing that would stop it being one. The garrison is then the
         // somewhere the battle happens, so the settlement is only kept when
@@ -323,6 +436,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             }
             out.add(objectivePlace);
         }
+        out.addAll(lanePlaces);
 
         for (int i = 0; i < outlyingPlaces(profile.marketSize(), sprawl); i++) {
             int[] hamletSeed = placeSeed(taken, margin, separation, width, height, rng);
@@ -343,7 +457,174 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     : outlyingCharacter(leaning, sprawl, rng);
             out.set(i, precinct.withCharacter(character));
         }
-        return new PrecinctPlan(out, attackerFrom);
+        return new PrecinctPlan(out, attackerFrom, Standoff.FAR, lanes, unplacedLanes);
+    }
+
+    /**
+     * How much of the map one lane place's ground may be.
+     *
+     * <p>Far smaller than {@link #FIT}, and it has to be: nine of these stand on
+     * one map beside the fortress they lead to, and a post that competed with
+     * the objective for ground would be an installation rather than something on
+     * the way to one. Like {@code FIT} it is a first guess to be measured, and
+     * on a Conquest map neither program comes near it — what it is for is the
+     * small map, where an outpost trims itself rather than swallowing the
+     * approach.
+     */
+    private static final float LANE_FIT = 0.02f;
+
+    /**
+     * Minimum cells between two places on the same lane.
+     *
+     * <p>{@link #MIN_SEED_SEPARATION} is calibrated for a town and a garrison,
+     * whose claims run to fifty cells and would grow into one another at
+     * anything less. A lane place claims about four hundred cells — a dozen
+     * cells of radius — so two of them thirty cells apart are two places, and
+     * holding them sixty apart would put fewer rungs on a lane than the ladder
+     * says it has. Separation from everything that is <em>not</em> a lane place
+     * is unchanged: a post is kept out of the fortress and the town the way any
+     * other place is.
+     */
+    private static final int LANE_SEED_SEPARATION = 32;
+
+    /**
+     * Where each rung stands, as a fraction of the way from the attacker's own
+     * region to the objective's.
+     *
+     * <p>Ordered inward-out, so index 0 is band 1 abutting the objective. The
+     * shallowest is kept clear of the beachhead and the deepest clear of the
+     * objective's claim, which is what the numbers are: a rung at the objective
+     * end would be a suburb of the fortress and one at the attacker end would be
+     * a place the marines land on top of.
+     */
+    private static final float[] RUNG_FRACTIONS = {0.80f, 0.55f, 0.30f};
+
+    /**
+     * How far a rung may be jittered sideways from its lane's centre line, as a
+     * share of the lane's own width.
+     *
+     * <p>Enough that the ladder is not a ruled line and that a rung crowded out
+     * by its neighbour has somewhere else to stand; not so much that a lane
+     * stops reading as a lane. It is the retry's whole search space — a rung
+     * that cannot find room inside its own lane is dropped rather than moved
+     * into the next one, because a place in the wrong lane is worse than a lane
+     * with a gap in it.
+     */
+    private static final int LANE_JITTER_SHARE = 4;
+
+    /**
+     * Lays one programmed place per rung on each lane, between the attacker's
+     * region and the objective's.
+     *
+     * <p>The frame comes from the two placements rather than from a stated axis:
+     * whichever of the two spans further is the forward direction, and the other
+     * is the lateral one the lanes are cut across. That is the same pairing
+     * {@code BattleSetup.conquestPlanFor} makes from its traversal axis — north
+     * against south, east against west — arrived at without the generator having
+     * to be told about a Conquest.
+     *
+     * <p>What could not be seated is <b>recorded, never thrown</b>, on the same
+     * law as the unbuilt program and the unplaced defences: a small map with a
+     * short ladder should say how short, because a lane with two rungs on it and
+     * a lane that was never asked for look identical on a finished map.
+     */
+    private static void seedLanes(Lanes lanes, Fortification.Strength objectiveRung,
+                                  Precinct objectivePlace, MapPlacement objective,
+                                  MapPlacement attackerFrom, List<int[]> taken,
+                                  int separation, int margin, int width, int height,
+                                  Random rng, List<Precinct> out, List<String> unplaced) {
+        int[] objectiveCentre = objective.centre(width, height);
+        int[] attackerCentre = attackerFrom.centre(width, height);
+        boolean forwardIsX = Math.abs(objectiveCentre[0] - attackerCentre[0])
+                >= Math.abs(objectiveCentre[1] - attackerCentre[1]);
+        int lateralExtent = forwardIsX ? height : width;
+        int forwardExtent = forwardIsX ? width : height;
+        int attackerForward = forwardIsX ? attackerCentre[0] : attackerCentre[1];
+        // The objective's own seed rather than the middle of the region it was
+        // asked for: the fortress landed somewhere inside that region and the
+        // deepest rung is measured against where it actually is.
+        int objectiveForward = forwardIsX ? objectivePlace.seedX() : objectivePlace.seedY();
+
+        List<int[]> laneSeeds = new ArrayList<>();
+        for (int lane = 0; lane < lanes.count(); lane++) {
+            LaneResistance ladder = lanes.ladderFor(lane, objectiveRung);
+            int laneStart = Math.max(margin,
+                    LaneGeometry.startInclusive(lane, lanes.count(), lateralExtent));
+            int laneEnd = Math.min(lateralExtent - 1 - margin,
+                    LaneGeometry.endInclusive(lane, lanes.count(), lateralExtent));
+            int laneCentre = LaneGeometry.centre(lane, lanes.count(), lateralExtent);
+            int jitter = Math.max(1,
+                    (laneEnd - laneStart + 1) / LANE_JITTER_SHARE);
+            for (int rung = 0; rung < RUNG_FRACTIONS.length; rung++) {
+                LaneResistance.Rung step = ladder.at(LaneResistance.INNERMOST_BAND + rung);
+                if (step == null) continue;
+                int forward = Math.round(attackerForward
+                        + RUNG_FRACTIONS[rung] * (objectiveForward - attackerForward));
+                forward = Math.max(margin, Math.min(forwardExtent - 1 - margin, forward));
+                String name = "lane-" + (lane + 1) + "-band-" + step.band();
+                int[] seed = laneSeed(laneCentre, jitter, laneStart, laneEnd, forward,
+                        forwardIsX, taken, laneSeeds, separation, rng);
+                if (seed == null) {
+                    unplaced.add(name);
+                    continue;
+                }
+                taken.add(seed);
+                laneSeeds.add(seed);
+                out.add(Precinct.garrison(name, seed[0], seed[1],
+                        GrownTrunkPlan.Profile.hamlet(),
+                        step.program().fittedTo(Math.round(LANE_FIT * width * height)),
+                        step.fortification()));
+            }
+        }
+    }
+
+    /**
+     * A cell on this lane at this rung's depth, far enough from everything
+     * already placed, or {@code null} when the lane has no room for it.
+     *
+     * <p>Two separations, because the two questions are different. Against the
+     * fortress, the town and the outlying places the ordinary
+     * {@code separation} applies: those claims run to fifty cells and a post
+     * inside one is a pocket rather than a place. Against the other rungs of the
+     * ladder {@link #LANE_SEED_SEPARATION} applies, because a lane whose rungs
+     * had to be sixty cells apart would have fewer of them than it claims to.
+     */
+    private static int[] laneSeed(int laneCentre, int jitter, int laneStart, int laneEnd,
+                                  int forward, boolean forwardIsX, List<int[]> taken,
+                                  List<int[]> laneSeeds, int separation, Random rng) {
+        int lo = Math.max(laneStart, laneCentre - jitter);
+        int hi = Math.min(laneEnd, laneCentre + jitter);
+        if (hi < lo) return null;
+        int[] best = null;
+        long bestShortfall = Long.MAX_VALUE;
+        for (int attempt = 0; attempt < 64; attempt++) {
+            int lateral = lo + rng.nextInt(hi - lo + 1);
+            int[] candidate = forwardIsX
+                    ? new int[]{forward, lateral} : new int[]{lateral, forward};
+            long shortfall = Math.max(
+                    shortfall(candidate, taken, separation),
+                    shortfall(candidate, laneSeeds, LANE_SEED_SEPARATION));
+            if (shortfall < bestShortfall) {
+                bestShortfall = shortfall;
+                best = candidate;
+            }
+            if (shortfall <= 0) break;
+        }
+        return bestShortfall <= 0 ? best : null;
+    }
+
+    /**
+     * By how much (squared) this candidate is closer to something already placed
+     * than {@code separation} allows; zero or less when it is clear of them all.
+     */
+    private static long shortfall(int[] candidate, List<int[]> placed, int separation) {
+        long worst = Long.MIN_VALUE;
+        for (int[] other : placed) {
+            long dx = other[0] - candidate[0];
+            long dy = other[1] - candidate[1];
+            worst = Math.max(worst, (long) separation * separation - (dx * dx + dy * dy));
+        }
+        return worst == Long.MIN_VALUE ? 0 : worst;
     }
 
     /**

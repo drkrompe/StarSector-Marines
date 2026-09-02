@@ -117,6 +117,19 @@ public final class Mission {
     public final Standoff standoff;
 
     /**
+     * How many lanes of resistance run between this battle's beachhead and its
+     * objective, or null for one per command track.
+     *
+     * <p>The third of the map statements a battle owns, beside {@link #sprawl}
+     * and {@link #standoff}. A mission states the <em>count</em> and nothing
+     * else: what stands on each lane is a ladder stepped down from the
+     * objective's own fortification, which is a fact about the world rather
+     * than about the operation. Only Conquest consults one; see
+     * {@code precincts.md}.
+     */
+    public final Integer lanes;
+
+    /**
      * Fixed battle seed, or null to seed the battle off the wall clock (the
      * ordinary case — a relaunched mission should be a fresh map). Pinned only
      * where the point of the mission is comparing two launches on one
@@ -203,6 +216,7 @@ public final class Mission {
         this.defenderFactionOverride = b.defenderFactionOverride;
         this.sprawl           = b.sprawl;
         this.standoff         = b.standoff;
+        this.lanes            = b.lanes;
         this.battleSeed       = b.battleSeed;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
@@ -259,6 +273,7 @@ public final class Mission {
         private String defenderFactionOverride;
         private PrecinctPlan.Sprawl sprawl;
         private Standoff standoff;
+        private Integer lanes;
         private Long battleSeed;
 
         private long contractId = -1L;
@@ -302,6 +317,7 @@ public final class Mission {
             this.defenderFactionOverride = m.defenderFactionOverride;
             this.sprawl = m.sprawl;
             this.standoff = m.standoff;
+            this.lanes = m.lanes;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
@@ -437,6 +453,12 @@ public final class Mission {
         /** @param standoff how far out this battle lands; null takes the mission type's default. */
         public Builder standoff(Standoff standoff) {
             this.standoff = standoff;
+            return this;
+        }
+
+        /** @param lanes how many lanes of resistance the map lays; null takes one per command track. */
+        public Builder lanes(Integer lanes) {
+            this.lanes = lanes;
             return this;
         }
 
