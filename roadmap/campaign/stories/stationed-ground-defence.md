@@ -129,10 +129,16 @@ agree. Casualties are applied through the ordinary personnel outcome path.
 4. **Absent settlement.** The lapse system's vanilla branch, the grading, and
    the casualty application. Tests pin each band and that a rival-strike lapse
    is untouched.
-5. **Live pass.** One pirate-base raid on a patron market with a stationed
+5. **Attacker identity on the payload.** `GarrisonDefenseMissionFactory`
+   builds its mission with no defender-faction override, so today's raiders
+   wear the defended market's own roster: pirates landing on a Hegemony world
+   arrive in Hegemony kit. The payload already carries the attacker faction;
+   the factory passes it as the override. One line, one test.
+6. **Live pass.** One pirate-base raid on a patron market with a stationed
    squad and the player elsewhere; one fought and won; one fleet-group raid
    on a patron market sharing the player's colony system. Read the raid
-   intel's assessment before and after stationing.
+   intel's assessment before and after stationing, and check the raiders
+   wear their own faction's kit.
 
 ## Acceptance
 

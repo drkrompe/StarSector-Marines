@@ -64,7 +64,9 @@ outcomes; `infrastructure-nouns.md` owns future location-bound investments;
 four currencies the company accumulates or suffers, the stages that fall out
 of them, the growth rule a new feature must answer, and the boundary between
 the company and the player's vanilla holdings. It owns no threshold; each
-number stays with the domain that settles it.
+number stays with the domain that settles it. `polity-ground-doctrine.md`
+owns how the polity's own ground forces are composed: a roster derived from
+its markets the way vanilla derives fleet quality, never authored.
 
 `themes.md`, `economy.md`, and `backgrounds.md` are direction for future
 campaign work. `moral-compass.md` owns the hidden record that can connect
