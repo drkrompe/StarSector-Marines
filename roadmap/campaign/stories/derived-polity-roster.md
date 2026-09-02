@@ -1,0 +1,110 @@
+# Derived polity roster: the colony's own troops, made from its own economy
+
+Status: IN PROGRESS
+
+Written: 2026-09-02
+
+Read `polity-ground-doctrine.md` (the model and its laws — this story is its
+implementation), `meta-progression.md` (the company-and-polity boundary),
+`campaign-battle-bridge-nouns.md` (the one resolve path), `progression-nouns.md`
+(cards, access tiers, the Common floor), and the Sides section of
+`ai-nouns.md` (the allied garrison this feeds) before implementing.
+
+## Goal
+
+The allied garrison ships today with a placeholder: its headcount is a crude
+reading of market size and its kit is whatever roster the registry falls back
+to, because nothing is registered under the player faction. After this story
+the polity has a **ground doctrine of its own** in the sense
+`polity-ground-doctrine.md` gives it: a `GroundRosterProfile` derived from the
+colonies' live economy and the kit the company has released to them, rebuilt
+as the economy moves, registered under the player faction id, and reached by
+the battle through the registry's one resolve path. Its headcount is the
+market's own ground-defence strength, less the company's stationed
+contribution so a detachment never counts twice. Three zero-sum doctrine
+points shape it, edited from a small panel in the colony's Marine Ops dialog.
+
+## Shape (decisions made; the design doc owns the reasons)
+
+- **Released kit** is a set of equipment template card ids persisted on
+  `CampaignState` (a card registry and an id table, in the stationed-strength
+  style), never on the Armory. A release is permanent and never revoked.
+  Every Common-tier card is released by construction; Advanced and Prestige
+  cards are released one at a time by an explicit act. A release grants the
+  definition only; the Armory is untouched.
+- **Ground production quality** is a four-step ladder read off the polity's
+  best producing market — none, basic (Heavy Industry), advanced (Orbital
+  Works), advanced with no deficits — pulled down one step by a deficit in
+  supplies or heavy armaments. The rule is pure; the read is one adapter.
+- **The derivation is pure.** Inputs: the released cards, the quality step,
+  the doctrine points. Output: one profile whose bulk tier is militia in the
+  released primaries, whose grade tables come from the quality step (and only
+  from it — doctrine may tighten, never admit), whose armour is the released
+  patterns capped at the tier the quality step can make, whose specials are
+  the released specials beside "none", and whose heavy support is one mech
+  variant when the heavy-support point is spent and the quality step can
+  fabricate one. The elite tier is the bulk tier one grade band up.
+- **Doctrine** is three ints on `CampaignState` — quality, numbers, heavy
+  support — each 0 to 2, summing to at most 3. Quality tightens the grade
+  table toward its top and raises the elite share; numbers multiplies the
+  garrison headcount; heavy support admits the mech lance. No fourth axis.
+- **Registration** is a campaign system that rebuilds the profile every day
+  from the live economy and installs it under the player faction id,
+  replacing the previous derived profile; a rebuild can also be asked for
+  immediately by the panel. The registry gains a replace-derived operation
+  so a daily rebuild never trips the duplicate-faction check.
+- **Numbers.** `TargetProfile` gains the market's ground-defence strength
+  and the company's stationed contribution there, both read at resolve time,
+  so `AlliedGarrisonSize` becomes a reading of defence strength net of the
+  company, with vanilla's own stability scaling already inside the number.
+  The numbers doctrine reaches the battle as a multiplier on the mission,
+  set by the polity defence factory; a patron's garrison defence uses one.
+- **The panel** is a second polity row in the colony's Marine Ops dialog:
+  the three steppers with points remaining, what the derivation currently
+  yields, this market's headcount, and the release list.
+
+## Slices
+
+1. **Derivation.** A public builder on `GroundRosterProfile`; the quality
+   ladder and its pure rule; the doctrine value type; the derivation itself.
+   Unit tests pin law 3 (no grade the step cannot make, whatever doctrine
+   says), the Common floor, the armour cap, the heavy-support gate, and that
+   the same inputs derive the same profile.
+2. **Numbers.** The two new `TargetProfile` fields with a defaulting
+   constructor, the resolver reads, the fixture codec, the stationed-strength
+   total at a market, the mission multiplier, and `AlliedGarrisonSize`
+   rewritten as defence-strength arithmetic. Tests re-anchor the size
+   function and pin the subtraction.
+3. **Persistence, system, registration.** The released-kit table and the
+   doctrine ints with load guards; the rebuild system with an injectable
+   production-signal source and its live adapter; the registry replace
+   operation; the numbers multiplier wired from state into the polity defence
+   factory. Tests pin the daily replace, the immediate rebuild, and that a
+   legacy save loads with the Common floor and zero points.
+4. **The panel.** The screen, its document, the polity row, and the snapshot
+   entry. Steppers refuse a fourth point; a release is one click and
+   irreversible.
+5. **Live pass.** Found a colony with and without Heavy Industry, release one
+   Advanced card, spend the points three ways, and read the garrison that
+   stands at a spawned raid.
+
+## Acceptance
+
+- A polity with no industry fields Surplus-heavy Common militia; one with
+  Orbital Works and no deficits fields a Masterwork tail; a supplies deficit
+  pulls it down a step.
+- A released Advanced primary appears in the derived roster and an
+  unreleased one never does; the Armory is unchanged by a release.
+- The derived profile resolves under the player faction id and the fallback
+  profile no longer stands in for it.
+- A market's allied headcount falls by exactly the company's stationed
+  contribution there.
+- Doctrine points cannot exceed three, and a point spent on heavy support
+  puts a mech variant in the profile only where the quality step allows.
+
+## Out of scope
+
+- The absent-case multiplier on the ground-defence stat
+  (`polity-ground-doctrine.md`, optional).
+- MRB scrutiny of an armed polity (`meta-progression.md`).
+- Any cost to a release beyond the industry gate.

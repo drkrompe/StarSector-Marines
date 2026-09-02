@@ -1,8 +1,9 @@
 # Polity ground doctrine
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-09-02
+nUpdated: 2026-09-02 — implemented by `derived-polity-roster.md`.
 
 Read `meta-progression.md` for the company-and-polity boundary this sits
 inside, `campaign-battle-bridge-nouns.md` for the one path by which a faction's
