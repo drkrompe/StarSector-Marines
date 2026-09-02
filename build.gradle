@@ -301,6 +301,7 @@ tasks.register('commanderEvidence', Test) {
                 gifFrameDelayMillis: 'commander.evidence.snapshot.frameDelayMillis',
                 snapshotWidth: 'commander.evidence.snapshot.width',
                 snapshotHeight: 'commander.evidence.snapshot.height',
+                snapshotAnnotations: 'commander.evidence.snapshot.annotations',
         ]
         visualArguments.each { argument, property ->
             def value = providers.gradleProperty(argument)
