@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,8 +42,12 @@ public final class UiLayoutEngine {
         element.clearLayoutDirty();
         element.clearDescendantLayoutDirty();
         Rect content = element.box().contentBox();
-        List<UiElement> children = element.children();
+        List<UiElement> allChildren = element.children();
         element.box().scrollHeight(0f);
+        if (allChildren.isEmpty()) return;
+
+        List<UiElement> children = inFlow(allChildren);
+        arrangePositioned(allChildren, content);
         if (children.isEmpty()) return;
 
         if (element.layout() == UiLayout.STACK) {
@@ -64,6 +69,53 @@ public final class UiLayoutEngine {
                 for (UiElement child : children) translate(child, 0f, -scrollTop);
             }
         }
+    }
+
+    /**
+     * The children row, column, grid, and stack distribute between them. An
+     * absolutely positioned child is out of flow, so it neither consumes main
+     * axis space nor shifts its siblings.
+     */
+    private static List<UiElement> inFlow(List<UiElement> children) {
+        for (int index = 0; index < children.size(); index++) {
+            if (children.get(index).position() != UiPosition.ABSOLUTE) continue;
+            List<UiElement> flow = new ArrayList<>(children.size() - 1);
+            for (UiElement child : children) {
+                if (child.position() != UiPosition.ABSOLUTE) flow.add(child);
+            }
+            return flow;
+        }
+        return children;
+    }
+
+    /**
+     * Places every absolutely positioned child against its parent's content
+     * box. An {@code auto} offset is zero and an {@code auto} size fills the
+     * remaining content extent, so a box that declares neither still lands
+     * somewhere bounded rather than at an undefined origin.
+     */
+    private void arrangePositioned(List<UiElement> children, Rect content) {
+        for (UiElement child : children) {
+            if (child.position() != UiPosition.ABSOLUTE) continue;
+            float left = orZero(child.resolvedLeft(content.width()));
+            float top = orZero(child.resolvedTop(content.height()));
+            float width = orRemaining(
+                    preferredAxis(child, true, content.width(), content.height()),
+                    content.width() - left);
+            float height = orRemaining(
+                    preferredAxis(child, false, content.width(), content.height()),
+                    content.height() - top);
+            arrange(child, new Rect(content.x() + left, content.y() + top,
+                    Math.max(0f, width), Math.max(0f, height)), content.width());
+        }
+    }
+
+    private static float orZero(float value) {
+        return Float.isNaN(value) ? 0f : value;
+    }
+
+    private static float orRemaining(float preferred, float remaining) {
+        return Float.isNaN(preferred) ? remaining : preferred;
     }
 
     private static void translate(UiElement element, float deltaX, float deltaY) {

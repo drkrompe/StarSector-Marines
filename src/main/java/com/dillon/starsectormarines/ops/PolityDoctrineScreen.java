@@ -28,7 +28,11 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -78,8 +82,18 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
 
     private static final Runnable NOTHING = () -> { };
 
+    /**
+     * What a subject with no authored prose says until the copy factory lands.
+     * Slice 3 of {@code spec-sheet.md} replaces every one of these with the
+     * item's own field note.
+     */
+    private static final String PENDING_NOTE = "Field note pending catalog copy.";
+
     private final ProductionSignals signals;
     private final Consumer<CampaignState> rebuild;
+
+    /** The props the live document was built from, kept so bindings can read them. */
+    private Map<String, Object> projected;
 
     public PolityDoctrineScreen() {
         this(new VanillaProductionSignals(), PolityRosterSystem::rebuildNow);
@@ -94,8 +108,52 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
     @Override
     protected Map<String, Object> props() {
         CampaignState state = state();
-        return props(Strings::get, state, armory(), signals.bestQuality(),
+        projected = props(Strings::get, state, armory(), signals.bestQuality(),
                 marketProfile(), rebuild, this::rebuildDocument, this::onBack);
+        return projected;
+    }
+
+    @Override
+    protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
+        bindSpecSheets(specSheets(), instance, projected);
+    }
+
+    /**
+     * Every name on this panel a player can ask about: each armour pattern the
+     * militia fields, each mech in its lance, and each kit card on either
+     * release list.
+     *
+     * <p>Static and props-driven so headless evidence hovers the same elements
+     * the game does (law 11) rather than a reconstruction of them.
+     */
+    static void bindSpecSheets(SpecSheetBinder binder, MarkupInstance instance,
+                               Map<String, Object> props) {
+        if (binder == null || props == null) return;
+        for (FieldRow row : rows(props, "fieldRows", FieldRow.class)) {
+            for (FieldSpan span : row.spans()) {
+                binder.bind(instance.requireElement(span.id()), span.sheet());
+            }
+        }
+        for (ReleaseRow row : rows(props, "releasableRows", ReleaseRow.class)) {
+            binder.bind(instance.requireElement(row.id()), row.sheet());
+        }
+        for (ReleasedRow row : rows(props, "releasedRows", ReleasedRow.class)) {
+            binder.bind(instance.requireElement(row.id()), row.sheet());
+        }
+    }
+
+    /** The first element {@link #bindSpecSheets} bound, for headless evidence. */
+    static String firstSpecSheetAnchorId(Map<String, Object> props) {
+        for (FieldRow row : rows(props, "fieldRows", FieldRow.class)) {
+            if (!row.spans().isEmpty()) return row.spans().get(0).id();
+        }
+        throw new IllegalStateException("No field row on this panel carries a spec-sheet subject");
+    }
+
+    private static <T> List<T> rows(Map<String, Object> props, String key, Class<T> type) {
+        List<T> rows = new ArrayList<>();
+        for (Object row : (List<?>) props.get(key)) rows.add(type.cast(row));
+        return rows;
     }
 
     /**
@@ -208,10 +266,12 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
                 copy.apply(productionKey(quality))));
         rows.add(field("grades", copy.apply("polityFieldGrades"),
                 gradeRange(copy, bulk.grades(SUMMARY_RISK))));
-        rows.add(field("armor", copy.apply("polityFieldArmor"),
-                patternNames(bulk.armorPatterns(SUMMARY_RISK))));
-        rows.add(field("lance", copy.apply("polityFieldLance"),
-                lanceName(copy, profile.heavySupport())));
+        List<MarineArmorCatalogDef> patterns = bulk.armorPatterns(SUMMARY_RISK);
+        rows.add(new FieldRow("polity-field-armor", copy.apply("polityFieldArmor"),
+                patternNames(patterns), patternSpans(patterns), true));
+        List<MechVariant> lance = profile.heavySupport();
+        rows.add(new FieldRow("polity-field-lance", copy.apply("polityFieldLance"),
+                lanceName(copy, lance), lanceSpans(lance), false));
         rows.add(field("headcount", copy.apply("polityFieldHeadcount"),
                 headcount(copy, market, doctrine)));
         return List.copyOf(rows);
@@ -250,6 +310,88 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         return text.toString();
     }
 
+    /**
+     * One span per pattern, each its own hoverable subject. The line still
+     * reads as the joined sentence it was; it is simply no longer one label,
+     * because a reader can only ask about a name the document knows is a name.
+     */
+    private static List<FieldSpan> patternSpans(List<MarineArmorCatalogDef> patterns) {
+        float strongest = 0f;
+        for (MarineArmorCatalogDef pattern : patterns) {
+            strongest = Math.max(strongest, pattern.armorCapacity());
+        }
+        List<FieldSpan> spans = new ArrayList<>();
+        for (MarineArmorCatalogDef pattern : patterns) {
+            spans.add(new FieldSpan("polity-field-armor-span-" + spans.size(),
+                    pattern.displayName(), armorSheet(pattern, strongest)));
+        }
+        return List.copyOf(spans);
+    }
+
+    private static List<FieldSpan> lanceSpans(List<MechVariant> lance) {
+        List<FieldSpan> spans = new ArrayList<>();
+        for (MechVariant variant : lance) {
+            spans.add(new FieldSpan("polity-field-lance-span-" + spans.size(),
+                    variant.displayName, mechSheet(variant)));
+        }
+        return List.copyOf(spans);
+    }
+
+    /**
+     * A hand-written sheet. {@code SpecSheets} in the copy package is what
+     * writes these from the item's owning catalog; until it lands the panel
+     * says the true things it already holds rather than nothing at all.
+     *
+     * @param strongest protection of the toughest pattern in the same list, so
+     *                  the meter is a stated local scale rather than an invented
+     *                  global ceiling. {@code CatalogCeilings} owns that scale.
+     */
+    private static SpecSheet armorSheet(MarineArmorCatalogDef pattern, float strongest) {
+        float share = strongest > 0f ? pattern.armorCapacity() / strongest : SpecSheet.Stat.NO_METER;
+        return new SpecSheet(pattern.displayName(),
+                pattern.role().name() + "  ·  TIER " + pattern.tier(),
+                pattern.iconPath(), "armor",
+                List.of(new SpecSheet.Stat("Protection",
+                                decimal(pattern.armorCapacity()), share),
+                        SpecSheet.Stat.of("Deflection", decimal(pattern.armorRating())),
+                        SpecSheet.Stat.of("Movement", multiplier(pattern.moveSpeedMult())),
+                        SpecSheet.Stat.of("Tradition", pattern.tradition().name())),
+                List.of(pattern.description()));
+    }
+
+    private static SpecSheet mechSheet(MechVariant variant) {
+        return new SpecSheet(variant.displayName,
+                variant.defaultRole.displayName().toUpperCase(Locale.ROOT), null, "mech",
+                List.of(SpecSheet.Stat.of("Structure", decimal(variant.maxStructure)),
+                        SpecSheet.Stat.of("Armour", decimal(variant.armorCapacity)),
+                        SpecSheet.Stat.of("Deflection", decimal(variant.armorRating)),
+                        SpecSheet.Stat.of("Speed", decimal(variant.moveSpeed))),
+                List.of(PENDING_NOTE));
+    }
+
+    private static SpecSheet cardSheet(EquipmentTemplateCard card, String detail) {
+        return new SpecSheet(card.displayName(), detail, null, accentOf(card.kind()),
+                card.grade() == null ? List.of()
+                        : List.of(SpecSheet.Stat.of("Grade", card.grade().displayName)),
+                List.of(PENDING_NOTE));
+    }
+
+    private static String accentOf(EquipmentTemplateCard.Kind kind) {
+        return switch (kind) {
+            case PRIMARY -> "weapon";
+            case ARMOR -> "armor";
+            case SPECIAL -> "special";
+        };
+    }
+
+    private static String decimal(float value) {
+        return String.format(Locale.ROOT, "%.0f", value);
+    }
+
+    private static String multiplier(float value) {
+        return String.format(Locale.ROOT, "%.2fx", value);
+    }
+
     private static String lanceName(UnaryOperator<String> copy, List<MechVariant> lance) {
         if (lance.isEmpty()) return copy.apply("polityNoHeavySupport");
         StringBuilder text = new StringBuilder();
@@ -278,9 +420,11 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
                                                    Runnable refresh) {
         List<ReleaseRow> rows = new ArrayList<>();
         for (EquipmentTemplateCard card : ReleasedKit.releasable(state, armory)) {
+            String detail = detailOf(copy, card);
             rows.add(new ReleaseRow("polity-releasable-" + rows.size(), card.displayName(),
-                    detailOf(copy, card), copy.apply("polityReleaseAction"),
-                    () -> release(state, card.id(), rebuild, refresh)));
+                    detail, copy.apply("polityReleaseAction"),
+                    () -> release(state, card.id(), rebuild, refresh),
+                    cardSheet(card, detail)));
         }
         return List.copyOf(rows);
     }
@@ -303,8 +447,9 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         List<ReleasedRow> rows = new ArrayList<>();
         for (EquipmentTemplateCard card : ReleasedKit.releasedCards(state)) {
             if (card.accessTier() == EquipmentAccessTier.COMMON) continue;
+            String detail = detailOf(copy, card);
             rows.add(new ReleasedRow("polity-released-" + rows.size(), card.displayName(),
-                    detailOf(copy, card), copy.apply("polityReleasedTag")));
+                    detail, copy.apply("polityReleasedTag"), cardSheet(card, detail)));
         }
         return List.copyOf(rows);
     }
@@ -354,7 +499,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
     }
 
     private static FieldRow field(String key, String label, String value) {
-        return new FieldRow("polity-field-" + key, label, value);
+        return new FieldRow("polity-field-" + key, label, value, List.of(), false);
     }
 
     /**
@@ -439,18 +584,42 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         }
     }
 
-    record FieldRow(String id, String label, String value) implements MarkupPropertySource {
+    /**
+     * One "what it fields" line. A row whose value is a list of named things
+     * carries them as {@link FieldSpan}s as well as in {@link #value}: the
+     * joined sentence is what the line reads as, the spans are what a reader
+     * can point at.
+     */
+    record FieldRow(String id, String label, String value, List<FieldSpan> spans,
+                    boolean tall) implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "labelId" -> id + "-label";
-                case "valueId" -> id + "-value"; case "label" -> label;
-                case "value" -> value; default -> null;
+                case "valueId" -> id + "-value"; case "spansId" -> id + "-spans";
+                case "label" -> label; case "value" -> value; case "spans" -> spans;
+                case "classes" -> tall
+                        ? "polity-field polity-field-tall surface-dark"
+                        : "polity-field surface-dark";
+                case "valueClasses" -> spans.isEmpty()
+                        ? "label tone-edge polity-field-value" : "polity-field-hidden";
+                case "spansClasses" -> spans.isEmpty()
+                        ? "polity-field-hidden" : "polity-field-spans";
+                default -> null;
+            };
+        }
+    }
+
+    /** One named thing inside a field row, and the sheet that describes it. */
+    record FieldSpan(String id, String label, SpecSheet sheet) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "label" -> label; default -> null;
             };
         }
     }
 
     record ReleaseRow(String id, String name, String detail, String actionLabel,
-                      Runnable action) implements MarkupPropertySource {
+                      Runnable action, SpecSheet sheet) implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "copyId" -> id + "-copy";
@@ -462,7 +631,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         }
     }
 
-    record ReleasedRow(String id, String name, String detail, String tag)
+    record ReleasedRow(String id, String name, String detail, String tag, SpecSheet sheet)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {

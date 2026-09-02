@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugi
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.diagnostics.ProcessExitWatchdog;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
+import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.battle.mech.MechFittingDollCatalog;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalog;
@@ -116,6 +117,11 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         UnitLayerLayouts.loadBuiltins();
         // Chassis fitting dolls, physical mount anchors, and equipment docks.
         MechFittingDollCatalog.loadBuiltins();
+        // Player-facing designation, chassis role, and field note for every mech
+        // and every component fitted to one. Presentation only, and fail-loud:
+        // a spec sheet with nothing behind a chassis the player is being asked
+        // to buy is the defect the catalog exists to remove.
+        MechCatalog.loadBuiltins();
     }
 
     @Override

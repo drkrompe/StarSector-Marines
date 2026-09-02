@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.ops;
+package com.dillon.starsectormarines.ops.spec;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;

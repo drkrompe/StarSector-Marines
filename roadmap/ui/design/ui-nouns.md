@@ -4,7 +4,12 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
+Updated: 2026-09-02 — `position: absolute` and `pointer-events` are ordinary
+parsed CSS: a bounded out-of-flow placement against the immediate parent, and the
+declared exception to design law 6 that lets a hover overlay paint without being
+hit-tested.
+
+Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
 
 Earlier 2026-08-31 — primary world selection now distinguishes a click from a
@@ -46,8 +51,12 @@ them.
 - A **layout box** is the computed border rectangle of one element. Painting and
   hit-testing consume the same box; neither independently derives geometry.
 - A **layout context** arranges a parent's children. The current contexts are row,
-  column, responsive grid, and stack; later capability stories may add absolute
-  placement.
+  column, responsive grid, and stack. `position: absolute` is the bounded escape
+  from all four: such a child leaves its parent's flow entirely, is placed at
+  `left` / `top` inside the parent's content box, and therefore cannot move a
+  sibling. The containing block is always the immediate parent — there is no
+  positioned-ancestor search and no `right` / `bottom` pair — which is what a
+  document-level overlay needs and all one layout pass can honour.
 - **Overflow** is CSS's relationship between a box and content that exceeds it.
   `visible` is the default; `hidden` and `scroll` establish the same padding-box
   clip, while `scroll` additionally promises navigation chrome and input.
@@ -179,7 +188,11 @@ the retained model.
    remains a separate density input that responsive tracks and bounded regions may
    answer deliberately.
 6. **Paint order and hit order agree.** Later content paints above earlier content
-   and is tested first. Invisible or clipped content cannot receive a click.
+   and is tested first. Invisible or clipped content cannot receive a click. The
+   one exception is declared rather than inferred: `pointer-events: none` makes an
+   element and its descendants untargetable while still painting, which is what an
+   overlay opened by a hover needs so it cannot take that hover away from the
+   element it describes and flicker.
 7. **OpenGL state is borrowed.** A painter or canvas producer restores programs,
    buffers, textures, scissors, blend state, and matrices that it changes.
 8. **Standard vocabulary wins.** When HTML or CSS already names a layout or input
@@ -345,7 +358,9 @@ remain navigation/edit commands rather than text.
 Geometric targeting and action eligibility are distinct. The deepest painted box
 under the pointer is the event target even when it is a non-clickable label; pointer
 events bubble through its retained parents, while click and focus defaults search
-for the nearest eligible ancestor. Hover is likewise an ancestor chain.
+for the nearest eligible ancestor. Hover is likewise an ancestor chain, and a
+consumer that wants the innermost element carrying some property reads that chain
+rather than asking every candidate whether it is hovered.
 
 Each document has at most one focused element. Tab traverses eligible elements in
 document order, `tabIndex=-1` remains directly focusable but is skipped, and

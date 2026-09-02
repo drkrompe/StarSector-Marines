@@ -30,9 +30,12 @@
       <div id="polity-doctrine-fields" class="panel polity-column">
         <div id="polity-doctrine-fields-heading" class="label heading tone-edge section-heading">{fieldsHeader}</div>
         <div id="polity-doctrine-field-rows" class="polity-field-rows">
-          <div each="field in fieldRows" key="{field.id}" id="{field.id}" class="polity-field surface-dark">
+          <div each="field in fieldRows" key="{field.id}" id="{field.id}" class="{field.classes}">
             <div id="{field.labelId}" class="label heading tone-muted polity-field-label">{field.label}</div>
-            <div id="{field.valueId}" class="label tone-edge polity-field-value">{field.value}</div>
+            <div id="{field.valueId}" class="{field.valueClasses}">{field.value}</div>
+            <div id="{field.spansId}" class="{field.spansClasses}">
+              <div each="span in field.spans" key="{span.id}" id="{span.id}" class="polity-field-span label tone-edge">{span.label}</div>
+            </div>
           </div>
         </div>
         <div id="polity-doctrine-fields-spacer" class="polity-spacer"></div>
@@ -96,9 +99,14 @@
   .polity-axis button { width: 54px; padding: 52px 15px; border-width: 1px; font-family: title; text-align: center; }
   .polity-caption { height: 56px; white-space: normal; }
   .polity-field-rows { flex-direction: column; height: 538px; gap: 7px; overflow: hidden; }
-  .polity-field { flex-direction: column; height: 82px; padding: 9px; gap: 6px; border-width: 1px; }
+  /* Five rows and four gaps come to exactly the 538px above: a row that grows
+     does not push the column, it is clipped off the bottom of it. */
+  .polity-field { flex-direction: column; height: 65px; padding: 9px; gap: 6px; border-width: 1px; }
+  .polity-field-tall { height: 150px; }
   .polity-field-label { height: 18px; }
   .polity-field-value { height: 0px; flex-grow: 1; white-space: normal; }
+  .polity-field-spans { display: grid; height: 0px; flex-grow: 1; gap: 4px; overflow: hidden; }
+  .polity-field-span { height: 18px; padding: 0px 6px; }
   .polity-note { flex-direction: column; height: 92px; padding: 10px; border-width: 1px; border-color: #263b51; }
   .polity-note .label { height: 0px; flex-grow: 1; white-space: normal; }
   .polity-spacer { height: 0px; flex-grow: 1; }
@@ -116,4 +124,7 @@
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  /* Same as .hidden, plus the flex-grow reset a growing field box needs: a
+     hidden value line that still grows would halve the space its spans want. */
+  .polity-field-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
 </style>

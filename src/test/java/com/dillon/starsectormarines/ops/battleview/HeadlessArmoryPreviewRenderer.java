@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -106,6 +107,10 @@ public final class HeadlessArmoryPreviewRenderer {
                     "data/marines/equipment-templates.template.json"))));
             templates.validateCompleteness();
             EquipmentTemplateCatalog.install(templates);
+        }
+        if (MechCatalog.installed() == null) {
+            MechCatalog.install(MechCatalog.parse(new JSONObject(
+                    Files.readString(modRoot.resolve(MechCatalog.CONTENT_PATH)))));
         }
         if (SquadLoadoutPresentationRegistry.installed() == null) {
             SquadLoadoutPresentationRegistry loadouts =
