@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -230,6 +232,22 @@ public final class MechBay implements Serializable {
         if (component == mech.weaponAt(slot)) return true;
         if (availableWeapon(componentId) <= 0) return false;
         mech.installWeapon(slot, component);
+        return true;
+    }
+
+    /**
+     * Unequips an installed weapon assembly from the specified slot, returning
+     * it directly to available fleet stores.
+     */
+    public boolean stripWeapon(String mechId, MechMountSlot slot) {
+        CampaignMech mech = mechById(mechId);
+        if (mech == null || slot == null) return false;
+        SocketId socketId = socketFor(slot);
+        SocketDef socket = MechFittingLayout.forVariant(
+                mech.variant()).socket(socketId);
+        if (socket == null || socket.factoryLocked()) return false;
+        if (mech.weaponAt(slot) == null) return false;
+        mech.installWeapon(slot, null);
         return true;
     }
 

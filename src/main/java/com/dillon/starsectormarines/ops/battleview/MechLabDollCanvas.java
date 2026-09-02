@@ -13,11 +13,14 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
@@ -79,7 +82,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<List<Gantry>> berths;
     private final IntSupplier workSite;
     private final DoubleSupplier elapsedSeconds;
+    private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
+    private List<SocketDropTarget> lastSocketTargets = List.of();
     private int hoveredVacantGantry = -1;
 
     public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
@@ -94,13 +99,31 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<List<Gantry>> berths,
                              IntSupplier workSite,
                              DoubleSupplier elapsedSeconds) {
+        this(deployments, selectedGantry, selectedSocket, assets, weldingTorch,
+                weldingSparks, fittingOverlaysVisible, ship, roomView, berths,
+                workSite, elapsedSeconds, () -> null);
+    }
+
+    public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
+                             IntSupplier selectedGantry,
+                             Supplier<SocketId> selectedSocket,
+                             Supplier<LayeredMechAssets> assets,
+                             Supplier<SpriteAPI> weldingTorch,
+                             Supplier<SpriteAPI> weldingSparks,
+                             BooleanSupplier fittingOverlaysVisible,
+                             Supplier<ShipDeckBattleScene> ship,
+                             Supplier<ShipDeckBattleScene.RoomView> roomView,
+                             Supplier<List<Gantry>> berths,
+                             IntSupplier workSite,
+                             DoubleSupplier elapsedSeconds,
+                             Supplier<MechWeaponComponent> candidateWeapon) {
         if (deployments == null || selectedGantry == null || selectedSocket == null
                 || assets == null || weldingTorch == null || weldingSparks == null
                 || fittingOverlaysVisible == null
                 || ship == null || roomView == null || berths == null || workSite == null
-                || elapsedSeconds == null) {
+                || elapsedSeconds == null || candidateWeapon == null) {
             throw new IllegalArgumentException(
-                    "deployments, gantry, socket, mech assets, a ship, work site and elapsed time are required");
+                    "deployments, gantry, socket, mech assets, a ship, work site, candidate weapon and elapsed time are required");
         }
         this.deployments = deployments;
         this.selectedGantry = selectedGantry;
@@ -114,6 +137,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         this.berths = berths;
         this.workSite = workSite;
         this.elapsedSeconds = elapsedSeconds;
+        this.candidateWeapon = candidateWeapon;
     }
 
     @Override
@@ -168,7 +192,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
-                    selected, selectedSocket.get(), projection);
+                    selected, selectedSocket.get(), projection, candidateWeapon.get());
+        } else {
+            lastSocketTargets = List.of();
         }
         drawTechnicianFx(context, sceneCamera, host[0],
                 workingPoses(aboard, standing, workSite.getAsInt()), time,
@@ -178,6 +204,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
+    }
+
+    /** The socket dock target at this canvas-local point, or null outside all sockets. */
+    public SocketId socketAt(float canvasX, float canvasY) {
+        if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return null;
+        for (SocketDropTarget target : lastSocketTargets) {
+            if (target.contains(canvasX, canvasY)) return target.id();
+        }
+        return null;
     }
 
     /** The vacant gantry action at this canvas-local point, or -1 outside every action. */
@@ -343,30 +378,86 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return Math.max(0, Math.min(CampaignMechSquad.CAPACITY - 1, requested));
     }
 
-    private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
+    private void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
                                            MechDeploymentSpec deployment, SocketId selectedSocket,
-                                           SceneProjection projection) {
+                                           SceneProjection projection,
+                                           MechWeaponComponent candidate) {
         float radians = (float) Math.toRadians(layout.doll().facingDegrees());
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
+        List<SocketDropTarget> targets = new ArrayList<>();
         for (SocketDef socket : layout.sockets()) {
             SocketDropTarget target = socketDropTarget(socket, projection.actorX(),
                     projection.actorY(), projection.hullX(), projection.hullY(), cos, sin);
+            targets.add(target);
             boolean occupied = occupied(deployment, socket.id());
             boolean selected = socket.id() == selectedSocket;
-            Color base = socketColor(socket.type());
+            boolean locked = socket.factoryLocked();
+            boolean hasCandidate = candidate != null;
+            boolean compatible = hasCandidate && isSocketCompatible(socket, candidate);
+            boolean incompatible = hasCandidate && !compatible && mountFor(socket.id()) != null;
+
+            Color base = locked ? new Color(0x3A, 0x5B, 0x72) : socketColor(socket.type());
+            if (incompatible) {
+                base = withAlpha(base, 80);
+            }
+
+            // CAD-style dog-leg leader geometry terminating at the dock bracket
+            List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
+            Color leaderColor = selected ? withAlpha(base, 235) : occupied ? withAlpha(base, 110) : withAlpha(base, 175);
+            float leaderStroke = selected ? 2f : 1f;
+            for (int i = 0; i < path.size() - 1; i++) {
+                c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
+                        leaderColor, leaderStroke);
+            }
+
+            // Distinct mechanical tick at hull anchor
+            drawAnchorMechanicalTick(c, target.anchorX(), target.anchorY(), base, selected);
+
+            // Dock background fill
             int fillAlpha = selected ? 138 : occupied ? 72 : 112;
-            int strokeAlpha = selected ? 240 : occupied ? 128 : 210;
-            c.line(target.anchorX(), target.anchorY(), target.centerX(), target.centerY(),
-                    withAlpha(base, selected ? 210 : occupied ? 90 : 165),
-                    selected ? 2f : 1f);
-            c.fillRect(target.anchorX() - 3f, target.anchorY() - 3f, 6f, 6f,
-                    withAlpha(base, selected ? 245 : 180));
             c.fillRect(target.left(), target.top(), target.width(), target.height(),
                     withAlpha(base, fillAlpha));
-            c.strokeRect(target.left(), target.top(), target.width(), target.height(),
-                    withAlpha(base, strokeAlpha),
-                    selected ? 2f : 1f);
+
+            // Chamfered corner brackets & state styling
+            float bracketLen = selected ? 18f : locked ? 10f : 14f;
+            float bracketStroke = selected ? 2.5f : locked ? 1f : 1.5f;
+            Color bracketColor = compatible ? new Color(0x69, 0xE7, 0x81, 245)
+                    : selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : withAlpha(base, selected ? 245 : occupied ? 130 : 210);
+            drawCornerBrackets(c, target.left(), target.top(), target.width(), target.height(),
+                    bracketColor, bracketStroke, bracketLen, 5f);
+
+            // Empty state: ambient warning accent ticks
+            if (!occupied && !locked) {
+                Color warnAccent = new Color(0xE5, 0xA8, 0x45, 215);
+                c.line(target.left() + 2f, target.top() + 2f, target.left() + 7f, target.top() + 2f, warnAccent, 1.5f);
+                c.line(target.left() + 2f, target.top() + 2f, target.left() + 2f, target.top() + 7f, warnAccent, 1.5f);
+            }
+
+            // Selected state: glowing inner bracket corners
+            if (selected) {
+                drawCornerBrackets(c, target.left() + 3f, target.top() + 3f,
+                        target.width() - 6f, target.height() - 6f,
+                        withAlpha(base, 160), 1f, bracketLen - 4f, 3f);
+            }
+
+            // Incompatible candidate state: crossing warning indicator
+            if (incompatible) {
+                c.line(target.left() + 8f, target.top() + 8f,
+                        target.right() - 8f, target.bottom() - 8f,
+                        new Color(0xE5, 0x45, 0x45, 140), 1.5f);
+            }
+
+            // Technical mount callout
+            String callout = mountCallout(socket.id(), socket.gridColumns(), socket.gridRows());
+            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 230)
+                    : selected ? new Color(0xFF, 0xD4, 0x64, 230)
+                    : withAlpha(base, 200);
+            float calloutY = target.top() > 18f ? target.top() - 2f : target.bottom() + 11f;
+            c.text(Fonts.ORBITRON_10, callout, target.left() + 3f, calloutY, calloutColor);
+
+            // Capacity footprint cells
             MechWeaponComponent component = weaponAt(deployment, socket.id());
             int occupiedColumns = component != null ? component.footprintColumns
                     : occupied ? socket.gridColumns() : 0;
@@ -375,6 +466,122 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawCapacityCells(c, target, base, selected,
                     occupiedColumns, occupiedRows);
         }
+        lastSocketTargets = List.copyOf(targets);
+    }
+
+    static List<float[]> leaderDogLegPath(float anchorX, float anchorY, SocketDropTarget target) {
+        float targetX;
+        float targetY;
+        if (target.right() < anchorX) {
+            targetX = target.right();
+            targetY = Math.max(target.top() + 8f, Math.min(target.bottom() - 8f, anchorY));
+        } else if (target.left() > anchorX) {
+            targetX = target.left();
+            targetY = Math.max(target.top() + 8f, Math.min(target.bottom() - 8f, anchorY));
+        } else if (target.bottom() < anchorY) {
+            targetX = target.centerX();
+            targetY = target.bottom();
+        } else {
+            targetX = target.centerX();
+            targetY = target.top();
+        }
+
+        List<float[]> points = new ArrayList<>();
+        points.add(new float[]{anchorX, anchorY});
+
+        float dx = targetX - anchorX;
+        float dy = targetY - anchorY;
+        if (Math.abs(dx) > 2f && Math.abs(dy) > 2f) {
+            float signX = Math.signum(dx);
+            float signY = Math.signum(dy);
+            if (Math.abs(dx) >= Math.abs(dy)) {
+                float bevel = Math.min(Math.abs(dy), Math.min(Math.abs(dx) * 0.4f, 16f));
+                float p1x = anchorX + (dx - signX * bevel);
+                float p1y = anchorY;
+                float p2x = targetX;
+                float p2y = anchorY + signY * bevel;
+                points.add(new float[]{p1x, p1y});
+                points.add(new float[]{p2x, p2y});
+            } else {
+                float bevel = Math.min(Math.abs(dx), Math.min(Math.abs(dy) * 0.4f, 16f));
+                float p1x = anchorX;
+                float p1y = anchorY + (dy - signY * bevel);
+                float p2x = anchorX + signX * bevel;
+                float p2y = targetY;
+                points.add(new float[]{p1x, p1y});
+                points.add(new float[]{p2x, p2y});
+            }
+        }
+        points.add(new float[]{targetX, targetY});
+        return points;
+    }
+
+    static void drawCornerBrackets(CanvasContext c, float left, float top, float width, float height,
+                                   Color color, float stroke, float bracketLength, float chamfer) {
+        float right = left + width;
+        float bottom = top + height;
+        float bl = Math.min(bracketLength, Math.min(width, height) * 0.4f);
+        float ch = Math.min(chamfer, bl * 0.5f);
+
+        // Top-Left
+        c.line(left, top + bl, left, top + ch, color, stroke);
+        c.line(left, top + ch, left + ch, top, color, stroke);
+        c.line(left + ch, top, left + bl, top, color, stroke);
+
+        // Top-Right
+        c.line(right - bl, top, right - ch, top, color, stroke);
+        c.line(right - ch, top, right, top + ch, color, stroke);
+        c.line(right, top + ch, right, top + bl, color, stroke);
+
+        // Bottom-Left
+        c.line(left, bottom - bl, left, bottom - ch, color, stroke);
+        c.line(left, bottom - ch, left + ch, bottom, color, stroke);
+        c.line(left + ch, bottom, left + bl, bottom, color, stroke);
+
+        // Bottom-Right
+        c.line(right - bl, bottom, right - ch, bottom, color, stroke);
+        c.line(right - ch, bottom, right, bottom - ch, color, stroke);
+        c.line(right, bottom - ch, right, bottom - bl, color, stroke);
+    }
+
+    static void drawAnchorMechanicalTick(CanvasContext c, float x, float y, Color base, boolean selected) {
+        float size = selected ? 6f : 4f;
+        c.fillRect(x - size * 0.5f, y - size * 0.5f, size, size,
+                withAlpha(base, selected ? 245 : 180));
+        float tick = selected ? 6f : 4.5f;
+        Color tickColor = withAlpha(base, selected ? 220 : 150);
+        c.line(x - tick, y, x + tick, y, tickColor, 1f);
+        c.line(x, y - tick, x, y + tick, tickColor, 1f);
+    }
+
+    static boolean isSocketCompatible(SocketDef socket, MechWeaponComponent candidate) {
+        if (socket == null || candidate == null) return false;
+        MechMountSlot mount = mountFor(socket.id());
+        if (mount == null || !candidate.accepts(mount)) return false;
+        boolean typeMatches = socket.type() == SocketType.OMNI
+                || socket.type().name().equals(candidate.hardpointType.name());
+        return typeMatches && socket.accommodates(candidate.footprintColumns, candidate.footprintRows);
+    }
+
+    static String mountCallout(SocketId id, int cols, int rows) {
+        String name = switch (id) {
+            case CORE -> "CORE";
+            case ARMS -> "ARMS";
+            case LEFT_SHOULDER -> "L. SHLDR";
+            case RIGHT_SHOULDER -> "R. SHLDR";
+            case AMMO_RESERVE -> "AMMO";
+            case MINI_FAB -> "MINI-FAB";
+        };
+        return name + " [" + cols + "×" + rows + "]";
+    }
+
+    static MechMountSlot mountFor(SocketId slot) {
+        return switch (slot) {
+            case ARMS -> MechMountSlot.ARMS;
+            case LEFT_SHOULDER -> MechMountSlot.LEFT_SHOULDER;
+            case RIGHT_SHOULDER -> MechMountSlot.RIGHT_SHOULDER;
+            default -> null;
+        };
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {

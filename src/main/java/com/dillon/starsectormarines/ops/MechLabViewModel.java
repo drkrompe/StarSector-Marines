@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.marine.MechFabricationCatalog;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechWorkshop;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -42,6 +43,9 @@ public final class MechLabViewModel {
     private final MutableSignal<Boolean> assetPickerOpen;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
+    private final MutableSignal<CategoryFilter> catalogFilter;
+    private final MutableSignal<MechWeaponComponent> hoveredWeapon;
+    private final ComputedSignal<List<FilterPill>> categoryFilterPills;
     private final ComputedSignal<String> labSummary;
     private final ComputedSignal<List<SquadRow>> squadRows;
     private final ComputedSignal<List<MechRow>> mechRows;
@@ -98,6 +102,9 @@ public final class MechLabViewModel {
         feedbackText = reactor.signal(
                 "Select an occupied gantry to refit, or press + on a vacant pad to fabricate a chassis.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
+        catalogFilter = reactor.signal(CategoryFilter.ALL);
+        hoveredWeapon = reactor.signal(null);
+        categoryFilterPills = reactor.computed(this::buildFilterPills);
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
         mechRows = reactor.computed(this::buildMechRows);
@@ -123,8 +130,8 @@ public final class MechLabViewModel {
         });
         selectedMechDoctrine = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
-            return mech != null ? roleLabel(mech.role()) : fabricatingChassis()
-                    ? "CHASSIS FORGE" : "Doctrine unavailable";
+            if (mech == null) return fabricatingChassis() ? "CHASSIS FORGE" : "Doctrine unavailable";
+            return roleLabel(mech.role()) + "  ·  " + doctrineAdvice(mech.role());
         });
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
@@ -185,6 +192,24 @@ public final class MechLabViewModel {
     public Runnable nextGantryAction() { return this::nextGantry; }
     public Runnable selectGantryAction(int index) { return () -> selectGantry(index); }
     public Runnable overviewAction() { return this::showLanceOverview; }
+    public Signal<List<FilterPill>> categoryFilterPills() { return categoryFilterPills; }
+    public Signal<CategoryFilter> catalogFilter() { return catalogFilter; }
+    public void setFilter(CategoryFilter filter) {
+        if (filter == null) return;
+        catalogFilter.set(filter);
+    }
+    public CategoryFilter filter() { return catalogFilter.get(); }
+    public void hoverWeapon(MechWeaponComponent component) {
+        if (hoveredWeapon.get() == component) return;
+        hoveredWeapon.set(component);
+    }
+    public void clearHoverWeapon() {
+        if (hoveredWeapon.get() == null) return;
+        hoveredWeapon.set(null);
+    }
+    public MechWeaponComponent hoveredWeapon() { return hoveredWeapon.get(); }
+    public Runnable selectSlotAction(SocketId slot) { return () -> selectSlot(slot); }
+    public Runnable stripWeaponAction(SocketId slot) { return () -> stripWeapon(slot); }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
@@ -329,15 +354,27 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechVariant v = mech.variant();
+        float currentRange = maxWeaponRange(mech);
+        int currentMissiles = missileTriggers(mech);
+
+        MechWeaponComponent candidate = hoveredWeapon.get();
+        MechMountSlot mount = mountFor(selectedSlot.get());
+        float ghostRange = currentRange;
+        int ghostMissiles = currentMissiles;
+        if (candidate != null && mount != null) {
+            ghostRange = prospectiveWeaponRange(mech, mount, candidate);
+            ghostMissiles = prospectiveMissileTriggers(mech, mount, candidate);
+        }
+
         return List.of(
                 meter("armor", "ARMOR", Math.round(v.armorCapacity) + " PLATE",
-                        v.armorCapacity, maximum(x -> x.armorCapacity)),
+                        v.armorCapacity, maximum(x -> x.armorCapacity), v.armorCapacity),
                 meter("mobility", "MOBILITY", number(v.moveSpeed) + " CELLS/S",
-                        v.moveSpeed, maximum(x -> x.moveSpeed)),
-                meter("range", "MAX RANGE", number(maxWeaponRange(mech)) + " CELLS",
-                        maxWeaponRange(mech), maximumWeaponRange()),
-                meter("endurance", "MISSILES", missileTriggers(mech) + " TRIGGERS",
-                        missileTriggers(mech), maximumMissileTriggers()));
+                        v.moveSpeed, maximum(x -> x.moveSpeed), v.moveSpeed),
+                meter("range", "MAX RANGE", number(currentRange) + " CELLS",
+                        currentRange, maximumWeaponRange(), ghostRange),
+                meter("endurance", "MISSILES", currentMissiles + " TRIGGERS",
+                        currentMissiles, maximumMissileTriggers(), ghostMissiles));
     }
 
     private List<SlotRow> buildSlots(List<SocketId> slots) {
@@ -349,13 +386,41 @@ public final class MechLabViewModel {
         for (SocketId slot : slots) {
             SocketDef definition = layout.socket(slot);
             if (definition == null) continue;
+            MechWeaponComponent weapon = slotWeapon(mech, slot);
+            boolean locked = definition.factoryLocked();
+            boolean armed = weapon != null || slot == SocketId.CORE || slot == SocketId.AMMO_RESERVE;
+            String badge = locked ? "LOCKED" : armed ? "ARMED" : "EMPTY";
+            String badgeClasses = locked ? "slot-badge locked" : armed ? "slot-badge armed" : "slot-badge empty";
+
+            String telemetry;
+            if (weapon != null) {
+                telemetry = "DMG " + number(weapon.weaponDef().damage) + " · RNG " + number(weapon.weaponDef().range)
+                        + (weapon.ammoCapacity > 0 ? " · AMMO " + weapon.ammoCapacity : "");
+            } else if (slot == SocketId.MINI_FAB) {
+                telemetry = "SRM " + number(mech.missileReplenisher().srmReplenishmentSeconds()) + "S · LRM "
+                        + number(mech.missileReplenisher().lrmReplenishmentSeconds()) + "S";
+            } else if (slot == SocketId.CORE) {
+                telemetry = "INTEGRAL POWERPLANT";
+            } else if (slot == SocketId.AMMO_RESERVE) {
+                telemetry = ammoSummary(mech);
+            } else {
+                telemetry = "UNFITTED HARDPOINT";
+            }
+
+            boolean canStrip = !locked && weapon != null;
+            String stripClasses = canStrip ? "slot-strip-action" : "slot-strip-action hidden";
+
             String base = "mech-slot:" + slot.name().toLowerCase(Locale.ROOT);
-            rows.add(new SlotRow(base, base + ":copy", base + ":name",
-                    base + ":component", base + ":type", base + ":grid",
+            rows.add(new SlotRow(base, base + ":content", base + ":select", base + ":strip",
+                    base + ":copy", base + ":header", base + ":name",
+                    base + ":badge", base + ":component", base + ":telemetry", base + ":type", base + ":grid",
                     slot,
                     slot == selectedSlot.get() ? "doll-slot selected" : "doll-slot",
-                    slot.label(), slotComponent(mech, slot), slotType(definition),
-                    () -> selectSlot(slot)));
+                    slot.label(), badge, badgeClasses,
+                    slotComponent(mech, slot), telemetry, slotType(definition),
+                    canStrip, stripClasses,
+                    () -> selectSlot(slot),
+                    () -> stripWeapon(slot)));
         }
         return List.copyOf(rows);
     }
@@ -402,45 +467,99 @@ public final class MechLabViewModel {
         boolean occupied = slotWeapon(mech, selectedSlot.get()) != null
                 || selectedSlot.get() == SocketId.CORE
                 || selectedSlot.get() == SocketId.AMMO_RESERVE;
-        return List.of(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
+        return List.of(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
+                base + ":stock", base + ":telemetry", base + ":delta",
                 base + ":detail", base + ":action", base + ":materials", base + ":body",
                 base + ":preview",
                 "catalog-preview hidden", null, null, null, "catalog-row selected",
-                slotComponent(mech, selectedSlot.get()), occupied ? "INSTALLED ASSEMBLY" : "EMPTY SOCKET",
+                slotComponent(mech, selectedSlot.get()),
+                occupied ? "INSTALLED" : "EMPTY",
+                occupied ? "catalog-badge in-cargo" : "catalog-badge fabrication",
+                occupied ? "INSTALLED ASSEMBLY" : "EMPTY SOCKET",
+                "", "", "catalog-delta hidden",
                 buildSelectedSlotRule(), definition != null && definition.factoryLocked()
-                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, List.of(), () -> { }));
+                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, List.of(), "material-costs hidden", () -> { }));
     }
 
     private List<CatalogRow> weaponCatalog(CampaignMech mech, MechMountSlot mount) {
         List<CatalogRow> rows = new ArrayList<>();
+        CategoryFilter filter = catalogFilter.get();
+        MechWeaponComponent current = slotWeapon(mech, selectedSlot.get());
+
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
             MechWeaponComponent component = recipe.component();
             SocketDef socket = selectedSocketDefinition();
             if (socket == null || !component.accepts(mount)
                     || socket.type() != MechFittingLayout.SocketType.OMNI
                     && !socket.type().name().equals(component.hardpointType.name())) continue;
-            boolean fits = socket.accommodates(
-                    component.footprintColumns, component.footprintRows);
-            boolean installed = mech.weaponAt(mount) == component;
+
             int owned = bay.ownedWeapon(component.id);
             int fielded = bay.installedWeapon(component.id);
             int free = bay.availableWeapon(component.id);
-            boolean fabricate = free <= 0;
+
+            // Category filter
+            if (filter == CategoryFilter.BALLISTIC && component.hardpointType != MechWeaponComponent.HardpointType.BALLISTIC) continue;
+            if (filter == CategoryFilter.MISSILE && component.hardpointType != MechWeaponComponent.HardpointType.MISSILE) continue;
+            if (filter == CategoryFilter.ENERGY && component.hardpointType != MechWeaponComponent.HardpointType.ENERGY) continue;
+            if (filter == CategoryFilter.IN_STOCK && free <= 0) continue;
+
+            boolean fits = socket.accommodates(
+                    component.footprintColumns, component.footprintRows);
+            boolean installed = mech.weaponAt(mount) == component;
+            boolean inCargo = free > 0;
+            boolean fabricate = !inCargo;
             boolean affordable = resources.canAfford(recipe.cost());
             boolean disabled = installed || !fits || fabricate && !affordable;
+
+            String badge = inCargo ? "IN CARGO" : "FABRICATION";
+            String badgeClasses = inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
+
+            // Telemetry
+            WeaponDef def = component.weaponDef();
+            String telemetry = "DMG " + number(def.damage) + " · RNG " + number(def.range)
+                    + (component.ammoCapacity > 0 ? " · AMMO " + component.ammoCapacity : " · AMMO ∞");
+
+            // Deltas
+            String deltaText = "";
+            String deltaClasses = "catalog-delta hidden";
+            if (current != null && current != component) {
+                float deltaRng = def.range - current.weaponDef().range;
+                float deltaDmg = def.damage - current.weaponDef().damage;
+                StringBuilder sb = new StringBuilder();
+                if (Math.abs(deltaRng) > 0.01f) {
+                    sb.append("RNG ").append(deltaRng > 0 ? "+" : "").append(number(deltaRng));
+                }
+                if (Math.abs(deltaDmg) > 0.01f) {
+                    if (!sb.isEmpty()) sb.append("  ·  ");
+                    sb.append("DMG ").append(deltaDmg > 0 ? "+" : "").append(number(deltaDmg));
+                }
+                if (!sb.isEmpty()) {
+                    deltaText = sb.toString();
+                    boolean positive = deltaRng >= 0 && deltaDmg >= 0;
+                    boolean negative = deltaRng <= 0 && deltaDmg <= 0;
+                    deltaClasses = positive ? "catalog-delta positive" : negative ? "catalog-delta negative" : "catalog-delta neutral";
+                }
+            }
+
+            String actionLabel = installed ? "INSTALLED" : !fits ? "TOO LARGE"
+                    : inCargo ? "INSTALL SPARE" : "FABRICATE + INSTALL";
+
             String base = "mech-catalog:" + component.id;
-            rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
+            List<MaterialRow> materials = inCargo ? List.of() : materialRows(base, recipe.cost());
+            String materialsClasses = inCargo ? "material-costs hidden" : "material-costs";
+
+            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
+                    base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
                     "catalog-preview", null, component, null,
                     installed ? "catalog-row selected" : "catalog-row", component.displayName,
+                    badge, badgeClasses,
                     recipe.provenance() + "  ·  OWN " + owned + " / FREE " + free,
+                    telemetry, deltaText, deltaClasses,
                     component.hardpointType + "  ·  " + component.footprintColumns
-                            + "×" + component.footprintRows + " GRID  ·  RANGE "
-                            + number(component.weaponDef().range),
-                    installed ? "INSTALLED" : !fits ? "TOO LARGE"
-                            : fabricate ? "FABRICATE + INSTALL" : "INSTALL SPARE",
-                    disabled, materialRows(base, recipe.cost()),
+                            + "×" + component.footprintRows + " GRID",
+                    actionLabel, disabled, materials, materialsClasses,
                     () -> fitWeapon(mount, component)));
         }
         return List.copyOf(rows);
@@ -454,16 +573,20 @@ public final class MechLabViewModel {
             boolean affordable = resources.canAfford(recipe.cost());
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
-            rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
+            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
+                    base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
                     "catalog-preview", variant, null, null, "catalog-row chassis-pattern",
-                    recipe.displayName(), recipe.provenance(),
+                    recipe.displayName(), "CHASSIS", "catalog-badge chassis",
+                    recipe.provenance(),
+                    "SPEED " + number(variant.moveSpeed) + " · ARMOR " + Math.round(variant.armorCapacity),
+                    "", "catalog-delta hidden",
                     Math.round(variant.armorCapacity) + " ARMOR  ·  "
                             + number(variant.moveSpeed) + " MOBILITY  ·  "
                             + roleLabel(variant.defaultRole),
                     !hasSpace ? "LANCE FULL" : "FABRICATE CHASSIS",
-                    !hasSpace || !affordable, materialRows(base, recipe.cost()),
+                    !hasSpace || !affordable, materialRows(base, recipe.cost()), "material-costs",
                     () -> fabricateChassis(variant)));
         }
         return List.copyOf(rows);
@@ -477,17 +600,23 @@ public final class MechLabViewModel {
             int fielded = bay.installedReplenisher(component.id());
             int free = bay.availableReplenisher(component.id());
             boolean disabled = mech == null || installed || free <= 0;
+            boolean inCargo = free > 0;
             String base = "mech-catalog:" + component.id();
-            rows.add(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
+            rows.add(new CatalogRow(base, base + ":copy", base + ":header", base + ":name", base + ":badge",
+                    base + ":stock", base + ":telemetry", base + ":delta",
                     base + ":detail", base + ":action", base + ":materials", base + ":body",
                     base + ":preview",
                     "catalog-preview", null, null, component,
                     installed ? "catalog-row selected" : "catalog-row", component.displayName(),
+                    inCargo ? "IN CARGO" : "FABRICATION", inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication",
                     "OWN " + owned + "  ·  FIELD " + fielded + "  ·  FREE " + free,
+                    "SRM " + number(component.srmReplenishmentSeconds()) + "S · LRM "
+                            + number(component.lrmReplenishmentSeconds()) + "S",
+                    "", "catalog-delta hidden",
                     "SRM " + number(component.srmReplenishmentSeconds()) + "s  ·  LRM "
                             + number(component.lrmReplenishmentSeconds()) + "s",
-                    installed ? "INSTALLED" : free > 0 ? "INSTALL" : "COMMITTED",
-                    disabled, List.of(), () -> install(component.id())));
+                    installed ? "INSTALLED" : inCargo ? "INSTALL SPARE" : "FABRICATE + INSTALL",
+                    disabled, List.of(), "material-costs hidden", () -> install(component.id())));
         }
         return List.copyOf(rows);
     }
@@ -579,7 +708,7 @@ public final class MechLabViewModel {
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
-    private void selectSlot(SocketId slot) {
+    public void selectSlot(SocketId slot) {
         if (selectedMech() == null) return;
         selectedSlot.set(slot);
         fittingFocused.set(true);
@@ -626,6 +755,26 @@ public final class MechLabViewModel {
             case INCOMPATIBLE -> "Refit blocked: incompatible socket type or capacity.";
             case INSUFFICIENT_MATERIALS -> "Fabrication blocked: required fleet materials are short.";
             default -> "Refit blocked: campaign hardware was not changed.";
+        });
+        feedbackClasses.set(result.succeeded()
+                ? "mech-lab-feedback tone-good surface-dark"
+                : "mech-lab-feedback tone-danger surface-dark");
+        if (result.succeeded()) bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    public void stripWeapon(SocketId slot) {
+        CampaignMech mech = selectedMech();
+        MechMountSlot mount = mountFor(slot);
+        if (mech == null || mount == null) return;
+        MechWeaponComponent previous = mech.weaponAt(mount);
+        MechWorkshop.Result result = workshop.stripWeapon(mech.id(), mount);
+        feedbackText.set(switch (result.status()) {
+            case STRIPPED -> (previous != null ? previous.displayName : "Hardware")
+                    + " stripped and returned to cargo stores.";
+            case ALREADY_STRIPPED -> "Hardpoint is already empty.";
+            case INCOMPATIBLE -> "Cannot strip this hardpoint: factory locked.";
+            default -> "Unequip blocked: campaign hardware was not changed.";
         });
         feedbackClasses.set(result.succeeded()
                 ? "mech-lab-feedback tone-good surface-dark"
@@ -766,13 +915,65 @@ public final class MechLabViewModel {
         return mech != null && mount != null ? mech.weaponAt(mount) : null;
     }
 
+    private float prospectiveWeaponRange(CampaignMech mech, MechMountSlot mount, MechWeaponComponent candidate) {
+        float max = 0f;
+        for (MechMountSlot s : MechMountSlot.values()) {
+            MechWeaponComponent w = s == mount ? candidate : mech.weaponAt(s);
+            if (w != null) max = Math.max(max, w.weaponDef().range);
+        }
+        return max;
+    }
+
+    private int prospectiveMissileTriggers(CampaignMech mech, MechMountSlot mount, MechWeaponComponent candidate) {
+        MechWeaponComponent left = mount == MechMountSlot.LEFT_SHOULDER ? candidate : mech.leftShoulder();
+        MechWeaponComponent right = mount == MechMountSlot.RIGHT_SHOULDER ? candidate : mech.rightShoulder();
+        return finiteAmmo(left) + finiteAmmo(right);
+    }
+
+    private static String doctrineAdvice(MechRole role) {
+        return switch (role) {
+            case ARMORED_SUPPORT -> "HEAVY ARMOR · POINT-DEFENSE FIRE";
+            case ASSAULT -> "HIGH MOBILITY · DIRECT STRIKE BURSTS";
+            case LR_SUPPORT -> "FIRE SUPPORT · GUIDED MISSILE PACKS";
+            default -> "BALANCED TACTICAL LOADOUT";
+        };
+    }
+
+    private List<FilterPill> buildFilterPills() {
+        CategoryFilter current = catalogFilter.get();
+        List<FilterPill> pills = new ArrayList<>();
+        for (CategoryFilter f : CategoryFilter.values()) {
+            String id = "mech-filter:" + f.name().toLowerCase(Locale.ROOT);
+            String classes = f == current ? "catalog-filter-pill selected" : "catalog-filter-pill";
+            pills.add(new FilterPill(id, f.label(), classes, () -> setFilter(f)));
+        }
+        return List.copyOf(pills);
+    }
+
     private static PerformanceMeter meter(String suffix, String label, String value,
-                                          float amount, float maximum) {
-        int percent = maximum > 0f ? Math.round(amount / maximum * 100f) : 0;
+                                          float currentAmount, float maximum, float ghostAmount) {
+        int currentPercent = maximum > 0f ? Math.round(currentAmount / maximum * 100f) : 0;
+        int ghostPercent = maximum > 0f ? Math.round(ghostAmount / maximum * 100f) : 0;
+        currentPercent = Math.max(0, Math.min(100, currentPercent));
+        ghostPercent = Math.max(0, Math.min(100, ghostPercent));
+
+        String ghostStyle;
+        String ghostClasses;
+        if (ghostPercent > currentPercent) {
+            ghostStyle = "left: " + currentPercent + "%; width: " + (ghostPercent - currentPercent) + "%;";
+            ghostClasses = "meter-ghost gain";
+        } else if (ghostPercent < currentPercent) {
+            ghostStyle = "left: " + ghostPercent + "%; width: " + (currentPercent - ghostPercent) + "%;";
+            ghostClasses = "meter-ghost loss";
+        } else {
+            ghostStyle = "";
+            ghostClasses = "meter-ghost hidden";
+        }
+
         String base = "mech-meter:" + suffix;
         return new PerformanceMeter(base, base + ":label", base + ":value",
-                base + ":track", base + ":fill", label, value,
-                "width: " + Math.max(0, Math.min(100, percent)) + "%;");
+                base + ":track", base + ":fill", base + ":ghost", label, value,
+                "width: " + currentPercent + "%;", ghostStyle, ghostClasses);
     }
 
     private static float maximum(VariantMetric metric) {
@@ -825,49 +1026,89 @@ public final class MechLabViewModel {
             default -> throw unknown("mech-gantry", p); }; }
     }
 
+    public enum CategoryFilter {
+        ALL("ALL"),
+        BALLISTIC("BALLISTIC"),
+        MISSILE("MISSILE"),
+        ENERGY("ENERGY"),
+        IN_STOCK("IN STOCK");
+
+        private final String label;
+        CategoryFilter(String label) { this.label = label; }
+        public String label() { return label; }
+    }
+
+    public record FilterPill(String id, String label, String classes, Runnable select)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String p) { return switch (p) {
+            case "id" -> id; case "label" -> label; case "classes" -> classes;
+            case "select" -> select; default -> throw unknown("mech-filter-pill", p);
+        }; }
+    }
+
     public record PerformanceMeter(String id, String labelId, String valueId, String trackId,
-                                   String fillId, String label, String value, String fillStyle)
+                                   String fillId, String ghostId, String label, String value,
+                                   String fillStyle, String ghostStyle, String ghostClasses)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "labelId" -> labelId; case "valueId" -> valueId;
-            case "trackId" -> trackId; case "fillId" -> fillId; case "label" -> label;
-            case "value" -> value; case "fillStyle" -> fillStyle;
+            case "trackId" -> trackId; case "fillId" -> fillId; case "ghostId" -> ghostId;
+            case "label" -> label; case "value" -> value; case "fillStyle" -> fillStyle;
+            case "ghostStyle" -> ghostStyle; case "ghostClasses" -> ghostClasses;
             default -> throw unknown("mech-meter", p); }; }
     }
 
-    public record SlotRow(String id, String copyId, String nameId,
-                          String componentId, String typeId, String gridId,
+    public record SlotRow(String id, String contentId, String buttonId, String stripId, String copyId,
+                          String headerId, String nameId,
+                          String badgeId, String componentId, String telemetryId,
+                          String typeId, String gridId,
                           SocketId socketId,
-                          String classes, String name, String component, String type,
-                          Runnable select) implements MarkupPropertySource {
+                          String classes, String name, String badge, String badgeClasses,
+                          String component, String telemetry, String type,
+                          boolean canStrip, String stripClasses,
+                          Runnable select, Runnable stripAction) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "copyId" -> copyId; case "nameId" -> nameId;
-            case "componentId" -> componentId;
-            case "gridId" -> gridId;
-            case "typeId" -> typeId; case "classes" -> classes; case "name" -> name;
-            case "component" -> component; case "type" -> type; case "select" -> select;
+            case "id" -> id; case "contentId" -> contentId; case "buttonId" -> buttonId; case "stripId" -> stripId;
+            case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId; case "badgeId" -> badgeId;
+            case "componentId" -> componentId; case "telemetryId" -> telemetryId;
+            case "gridId" -> gridId; case "typeId" -> typeId; case "classes" -> classes;
+            case "name" -> name; case "badge" -> badge; case "badgeClasses" -> badgeClasses;
+            case "component" -> component; case "telemetry" -> telemetry; case "type" -> type;
+            case "canStrip" -> canStrip; case "stripClasses" -> stripClasses;
+            case "stripDisabled" -> !canStrip;
+            case "select" -> select; case "stripAction" -> stripAction;
             default -> throw unknown("mech-slot", p); }; }
     }
 
-    public record CatalogRow(String id, String copyId, String nameId, String stockId,
+    public record CatalogRow(String id, String copyId, String headerId, String nameId, String badgeId,
+                             String stockId, String telemetryId, String deltaId,
                              String detailId, String actionId, String materialsId, String bodyId,
                              String previewId, String previewClasses,
                              MechVariant chassisPreview,
                              MechWeaponComponent weaponPreview,
                              MissileReplenisherComponent replenisherPreview,
-                             String classes, String name,
-                             String stock, String detail, String actionLabel,
-                             boolean actionDisabled, List<MaterialRow> materials, Runnable action)
+                             String classes, String name, String badge, String badgeClasses,
+                             String stock, String telemetry, String delta, String deltaClasses,
+                             String detail, String actionLabel,
+                             boolean actionDisabled, List<MaterialRow> materials,
+                             String materialsClasses,
+                             Runnable action)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
-            case "id" -> id; case "copyId" -> copyId; case "nameId" -> nameId;
-            case "stockId" -> stockId; case "detailId" -> detailId; case "actionId" -> actionId;
+            case "id" -> id; case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId;
+            case "badgeId" -> badgeId;
+            case "stockId" -> stockId; case "telemetryId" -> telemetryId;
+            case "deltaId" -> deltaId; case "detailId" -> detailId; case "actionId" -> actionId;
             case "materialsId" -> materialsId; case "bodyId" -> bodyId;
             case "previewId" -> previewId;
             case "previewClasses" -> previewClasses;
-            case "classes" -> classes; case "name" -> name; case "stock" -> stock;
+            case "classes" -> classes; case "name" -> name;
+            case "badge" -> badge; case "badgeClasses" -> badgeClasses;
+            case "stock" -> stock; case "telemetry" -> telemetry;
+            case "delta" -> delta; case "deltaClasses" -> deltaClasses;
             case "detail" -> detail; case "actionLabel" -> actionLabel;
             case "actionDisabled" -> actionDisabled; case "materials" -> materials;
+            case "materialsClasses" -> materialsClasses;
             case "action" -> action;
             default -> throw unknown("mech-catalog", p); }; }
     }

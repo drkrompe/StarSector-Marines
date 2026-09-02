@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
@@ -125,12 +126,13 @@ public final class MechLabScreen implements Screen {
                             this::framing,
                             this::berths,
                             this::currentBayId,
-                            () -> previewSeconds);
+                            () -> previewSeconds,
+                            viewModel::hoveredWeapon);
             built.canvases().set(dollElement, dollCanvas);
             wireEquipmentPreviews(candidate, built);
-            dollElement.onPointerMove(this::pointAtVacantGantry);
-            dollElement.onPointerDown(this::pressVacantGantry);
-            dollElement.onPointerUp(this::activateVacantGantry);
+            dollElement.onPointerMove(this::pointAtDoll);
+            dollElement.onPointerDown(this::pressDoll);
+            dollElement.onPointerUp(this::activateDoll);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -184,6 +186,7 @@ public final class MechLabScreen implements Screen {
         props.put("nextGantry", viewModel.nextGantryAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
+        props.put("categoryFilterPills", viewModel.categoryFilterPills());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 context::roomAboard,
                 this::close,
@@ -203,15 +206,23 @@ public final class MechLabScreen implements Screen {
     private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target) {
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
             UiElement canvas = instance.requireElement(row.previewId());
-            if (target.canvases().producerOf(canvas) != null) continue;
-            if (row.chassisPreview() != null) {
-                target.canvases().set(canvas, new MechChassisPreviewCanvas(
-                        row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
-            } else if (row.weaponPreview() != null || row.replenisherPreview() != null) {
-                target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
-                        row.weaponPreview(), row.replenisherPreview(),
-                        () -> previewSprites().layeredMechSprites()));
+            if (target.canvases().producerOf(canvas) == null) {
+                if (row.chassisPreview() != null) {
+                    target.canvases().set(canvas, new MechChassisPreviewCanvas(
+                            row.chassisPreview(), () -> previewSprites().layeredMechSprites()));
+                } else if (row.weaponPreview() != null || row.replenisherPreview() != null) {
+                    target.canvases().set(canvas, MechEquipmentGridCanvas.catalog(
+                            row.weaponPreview(), row.replenisherPreview(),
+                            () -> previewSprites().layeredMechSprites()));
+                }
             }
+            UiElement card = instance.requireElement(row.id());
+            card.onPointerMove(event -> {
+                if (row.weaponPreview() != null) {
+                    viewModel.hoverWeapon(row.weaponPreview());
+                    if (dollElement != null) target.canvases().invalidate(dollElement);
+                }
+            });
         }
         for (MechLabViewModel.SlotRow row : viewModel.slotRows().get()) {
             UiElement canvas = instance.requireElement(row.gridId());
@@ -248,29 +259,40 @@ public final class MechLabScreen implements Screen {
         if (dismissDialog != null) dismissDialog.run();
     }
 
-    private void pointAtVacantGantry(UiPointerEvent event) {
+    private void pointAtDoll(UiPointerEvent event) {
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
         dollCanvas.pointAt(point.x(), point.y());
         document.canvases().invalidate(dollElement);
     }
 
-    private void pressVacantGantry(UiPointerEvent event) {
+    private void pressDoll(UiPointerEvent event) {
         CanvasPoint point = canvasPoint(event);
-        if (point == null || dollCanvas.vacantGantryAt(point.x(), point.y()) < 0) return;
-        event.capturePointer();
-        event.preventDefault();
+        if (point == null) return;
+        if (dollCanvas.vacantGantryAt(point.x(), point.y()) >= 0
+                || dollCanvas.socketAt(point.x(), point.y()) != null) {
+            event.capturePointer();
+            event.preventDefault();
+        }
     }
 
-    private void activateVacantGantry(UiPointerEvent event) {
+    private void activateDoll(UiPointerEvent event) {
         CanvasPoint point = canvasPoint(event);
         event.releasePointerCapture();
         if (point == null) return;
         int gantry = dollCanvas.vacantGantryAt(point.x(), point.y());
-        if (gantry < 0) return;
-        viewModel.selectGantryAction(gantry).run();
-        document.canvases().invalidate(dollElement);
-        event.preventDefault();
+        if (gantry >= 0) {
+            viewModel.selectGantryAction(gantry).run();
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
+        SocketId socket = dollCanvas.socketAt(point.x(), point.y());
+        if (socket != null) {
+            viewModel.selectSlot(socket);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+        }
     }
 
     private CanvasPoint canvasPoint(UiPointerEvent event) {

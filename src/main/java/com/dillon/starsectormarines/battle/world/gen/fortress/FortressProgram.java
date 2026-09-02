@@ -25,13 +25,21 @@ import java.util.function.UnaryOperator;
  * because bunks rank along a passage. None of these are the rectangle a
  * partition happened to leave.
  */
-public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
+public record FortressProgram(List<FortressBuilding> buildings, int airfields, int apron) {
 
     public FortressProgram {
         buildings = List.copyOf(buildings);
         if (airfields < 0) {
             throw new IllegalArgumentException("a fortress cannot owe " + airfields + " airfields");
         }
+        if (apron < 0) {
+            throw new IllegalArgumentException("a place cannot owe " + apron + " cells of apron");
+        }
+    }
+
+    /** A program that owes buildings and airfields but no open ground of its own. */
+    public FortressProgram(List<FortressBuilding> buildings, int airfields) {
+        this(buildings, airfields, 0);
     }
 
     /**
@@ -67,12 +75,25 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
             throw new IllegalArgumentException(
                     "this program has no " + purpose + " to set a count for");
         }
-        return new FortressProgram(out, airfields);
+        return new FortressProgram(out, airfields, apron);
     }
 
     /** The same program owing a different number of airfields; zero is a fortress without one. */
     public FortressProgram withAirfields(int count) {
-        return new FortressProgram(buildings, count);
+        return new FortressProgram(buildings, count, apron);
+    }
+
+    /**
+     * The same program owing a different amount of open ground.
+     *
+     * <p>How a landing place is trimmed to a map it does not fit on. The
+     * {@link #FIT_LADDER} cannot do it: apron is not a building count, and a
+     * beachhead with its apron taken away is not a smaller beachhead but a
+     * place with nowhere to put a shuttle down. Whoever authors the program is
+     * the one that knows what the map can spare.
+     */
+    public FortressProgram withApron(int cells) {
+        return new FortressProgram(buildings, airfields, cells);
     }
 
     /**
@@ -281,6 +302,61 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
                 0);
     }
 
+    /**
+     * How much open ground a landing place owes before anything is built on it.
+     *
+     * <p>The berths are the reason. An arrival area is thirteen cells across
+     * and five deep, and a Conquest asks for three of them sixteen cells apart,
+     * so the beachhead needs something like seventy cells of frontage with room
+     * to scan inward behind it. A compact claim of this many cells comes out
+     * roughly seventy across, which seats them with the fringe to spare that an
+     * irregular outline needs. It is a first guess to be measured, like
+     * {@code PrecinctPlan.FIT}, and the number to move when a beachhead comes
+     * out too tight to seat its areas.
+     */
+    public static final int LANDING_APRON = 3800;
+
+    /**
+     * A civil spaceport: a terminal, a hangar, a control office and a fuel yard
+     * standing back from an open apron.
+     *
+     * <p>The room vocabulary is the stock recipe's spaceport, said as a
+     * program rather than as a parcel fill — a berth, the office that runs it,
+     * somewhere to work an aircraft, and the cargo and fuel that arrive with
+     * it. Every building sits in the {@link Ward#REAR} band so the apron stays
+     * open at the approach end, which is the end shuttles come in over.
+     *
+     * <p>No keep, so the one-keep law is untouched, and no airfield: the ground
+     * the shuttles use is the apron, and a lot would put a runway and a fence
+     * across it.
+     */
+    public static FortressProgram spaceport() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.CIVIC_RECEPTION, TERMINAL, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.HANGAR, LANDING_HANGAR, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.CONTROL_ROOM, CONTROL_OFFICE, Ward.REAR, 1),
+                new FortressBuilding(RoomPurpose.STOCKROOM, FUEL_YARD, Ward.REAR, 1)),
+                0, LANDING_APRON);
+    }
+
+    /** An apron with one hut on it: what an off-grid settlement is supplied through. */
+    public static FortressProgram landingStrip() {
+        return new FortressProgram(List.of(
+                new FortressBuilding(RoomPurpose.CONTROL_ROOM, FIELD_HUT, Ward.REAR, 1)),
+                0, LANDING_APRON);
+    }
+
+    /** Bare ground. It still claims the apron, because the berths stand on it. */
+    public static FortressProgram landingField() {
+        return new FortressProgram(List.of(), 0, LANDING_APRON);
+    }
+
+    private static final RoomShape TERMINAL = RoomShape.rectangle(14, 8);
+    private static final RoomShape LANDING_HANGAR = RoomShape.rectangle(12, 10);
+    private static final RoomShape CONTROL_OFFICE = RoomShape.rectangle(6, 5);
+    private static final RoomShape FUEL_YARD = RoomShape.rectangle(8, 6);
+    private static final RoomShape FIELD_HUT = RoomShape.rectangle(5, 4);
+
     /** Cells of building floor the program needs, walls and roadways excluded. */
     public int floorArea() {
         int area = 0;
@@ -320,7 +396,10 @@ public record FortressProgram(List<FortressBuilding> buildings, int airfields) {
         // wastes around buildings, and a facility is not waste. The lot is
         // reserved out of the ward before packing, so this is what makes sure
         // the ward is sized to afford it.
-        return buildingGround() + airfields * AirbaseLot.area(AirbaseLot.Size.STATION);
+        // The apron is added rather than scaled for the same reason the lot is:
+        // it is ground the place holds and nothing stands on, so the packing
+        // slack has nothing to say about it.
+        return buildingGround() + airfields * AirbaseLot.area(AirbaseLot.Size.STATION) + apron;
     }
 
     /**
