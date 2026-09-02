@@ -382,6 +382,22 @@ public final class CampaignState implements Serializable {
     public byte[]  contractCashMultiplier    = new byte[INITIAL_CAPACITY];
     public int     contractCount         = 0;
 
+    // ---------- stationed-strength applied set (see contracts-nouns.md, law 11) ----------
+
+    /*
+     * Which (contract, market) pairs currently carry a stationed-strength modifier on
+     * vanilla's ground-defence stat. Deliberately its own small table rather than a
+     * contracts[] column: the pair outlives the row it came from, and the whole point
+     * of persisting it is to sweep a modifier whose contract row was compacted away.
+     * Vanilla persists the stat with the market, but the sweep does not trust that.
+     */
+
+    /** Contract that applied the modifier; -1 in unused slots. */
+    public long[]  stationedStrengthContractId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Market slot in {@link #marketRegistry} the modifier stands on; -1 in unused slots. */
+    public int[]   stationedStrengthMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public int     stationedStrengthCount = 0;
+
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
     public final LongIntMap houseIndexById     = new LongIntMap();
@@ -1909,6 +1925,62 @@ public final class CampaignState implements Serializable {
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);
+    }
+
+    /**
+     * Records that a stationed-strength modifier for {@code contractId} now stands on
+     * {@code marketId}. Idempotent — re-recording the same contract rewrites its market
+     * slot rather than appending a second pair.
+     */
+    public void recordStationedStrength(long contractId, int marketId) {
+        int existing = stationedStrengthRow(contractId);
+        if (existing >= 0) {
+            stationedStrengthMarketId[existing] = marketId;
+            return;
+        }
+        ensureStationedStrengthCapacity(stationedStrengthCount + 1);
+        int i = stationedStrengthCount++;
+        stationedStrengthContractId[i] = contractId;
+        stationedStrengthMarketId[i] = marketId;
+    }
+
+    /** Drops the recorded pair for {@code contractId}. Returns whether one was there. */
+    public boolean forgetStationedStrength(long contractId) {
+        int row = stationedStrengthRow(contractId);
+        if (row < 0) return false;
+        forgetStationedStrengthAt(row);
+        return true;
+    }
+
+    /**
+     * Drops the pair at {@code row} by swap-and-pop, so a sweep must walk the set
+     * backwards: the entry moved into {@code row} is one the walk has already seen.
+     */
+    public void forgetStationedStrengthAt(int row) {
+        if (row < 0 || row >= stationedStrengthCount) return;
+        int last = --stationedStrengthCount;
+        stationedStrengthContractId[row] = stationedStrengthContractId[last];
+        stationedStrengthMarketId[row] = stationedStrengthMarketId[last];
+        stationedStrengthContractId[last] = -1L;
+        stationedStrengthMarketId[last] = -1;
+    }
+
+    /** Slot holding {@code contractId}'s applied pair, or {@code -1}. */
+    public int stationedStrengthRow(long contractId) {
+        for (int i = 0; i < stationedStrengthCount; i++) {
+            if (stationedStrengthContractId[i] == contractId) return i;
+        }
+        return -1;
+    }
+
+    private void ensureStationedStrengthCapacity(int needed) {
+        if (needed <= stationedStrengthContractId.length) return;
+        int oldLength = stationedStrengthContractId.length;
+        int n = Math.max(needed, oldLength * 2);
+        stationedStrengthContractId = Arrays.copyOf(stationedStrengthContractId, n);
+        Arrays.fill(stationedStrengthContractId, oldLength, n, -1L);
+        stationedStrengthMarketId = Arrays.copyOf(stationedStrengthMarketId, n);
+        Arrays.fill(stationedStrengthMarketId, oldLength, n, -1);
     }
 
     private static int[] filledInts(int length, int value) {
