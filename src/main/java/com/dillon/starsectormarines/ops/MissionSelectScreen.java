@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.Posting;
 import com.dillon.starsectormarines.campaign.systems.StationingOfferLookup;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -213,6 +215,7 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private List<StationingRow> stationingRows(Client selected) {
+        if (MarineOpsContext.isPolityClient(selected)) return postingRows();
         long active = findActiveStationing(selected);
         long contractId = active >= 0L ? active : findStationingOffer(selected);
         if (contractId < 0L) return List.of();
@@ -227,6 +230,25 @@ public final class MissionSelectScreen implements Screen {
         return List.of(new StationingRow("stationing-contract",
                 "stationing-contract-title", "stationing-contract-action",
                 title, active >= 0L ? "Manage assignment" : "Configure assignment",
+                () -> configureStationing(contractId)));
+    }
+
+    /**
+     * The polity's one row. A posting is not offered and not accepted — there is no
+     * OFFERED row to find, so the row exists whether or not anything is posted yet and
+     * the draft sentinel carries "post here" into the stationing screen.
+     */
+    private List<StationingRow> postingRows() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null || context == null || context.market == null) return List.of();
+        CampaignState state = script.state();
+        int row = Posting.activeRowAt(state,
+                state.marketRegistry.intern(context.market.getId()));
+        long contractId = row >= 0 ? state.contractId[row] : Posting.DRAFT_CONTRACT_ID;
+        return List.of(new StationingRow("stationing-contract",
+                "stationing-contract-title", "stationing-contract-action",
+                Strings.get("postingTitle"),
+                Strings.get(row >= 0 ? "postingRowManage" : "postingRowCreate"),
                 () -> configureStationing(contractId)));
     }
 
@@ -290,6 +312,7 @@ public final class MissionSelectScreen implements Screen {
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return "Developer catalogue  ·  " + missions.size() + " eligible operation fixtures";
         }
+        if (MarineOpsContext.isPolityClient(client)) return Strings.get("postingClientSummary");
         return missions.size() + (missions.size() == 1 ? " current offer" : " current offers")
                 + "  ·  most markets will have none";
     }

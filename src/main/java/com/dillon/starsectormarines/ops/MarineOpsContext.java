@@ -581,7 +581,12 @@ public class MarineOpsContext {
         List<Mission> cached = missionsByClient.get(key);
         if (cached != null) return cached;
         List<Mission> generated;
-        if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
+        if (POLITY_CLIENT_FACTION_ID.equals(client.factionId)) {
+            // The polity is a venue, never a client (meta-progression.md): it cannot
+            // hire the company, so the industry catalog must not manufacture work on
+            // its own colony. What it offers instead is a posting, and later a defence.
+            generated = Collections.emptyList();
+        } else if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
             Mission eventMission = localCampaignEventMission();
             generated = eventMission != null
                     ? Collections.singletonList(eventMission)
@@ -599,6 +604,17 @@ public class MarineOpsContext {
     /** Local mission-only client for a committed civilian distress response. */
     public static final String DISTRESS_CLIENT_FACTION_ID =
             "marines_distress_net_client";
+    /**
+     * The player's own polity at one of its own markets. Not a patron and not a
+     * faction the company contracts with — it holds the posting row and, later, the
+     * defence of a colony under raid. See {@code meta-progression.md}.
+     */
+    public static final String POLITY_CLIENT_FACTION_ID = "marines_polity_client";
+
+    /** True for the synthetic client that stands for the player's own holdings. */
+    public static boolean isPolityClient(Client client) {
+        return client != null && POLITY_CLIENT_FACTION_ID.equals(client.factionId);
+    }
 
     private static List<Client> resolveClients(PlanetAPI planet, MarketAPI market) {
         List<Client> out = new ArrayList<>();
@@ -644,6 +660,17 @@ public class MarineOpsContext {
                     crest,
                     RepLevel.NEUTRAL, false, null));
             seen.add(DISTRESS_CLIENT_FACTION_ID);
+        }
+
+        // 0c. The player's own colony. Never rep-locked: the polity is the company's
+        //     own holding rather than a party it has a relationship with.
+        if (market != null && market.isPlayerOwned()) {
+            FactionAPI owner = market.getFaction();
+            out.add(new Client(POLITY_CLIENT_FACTION_ID,
+                    owner != null ? owner.getDisplayName() : market.getName(),
+                    owner != null ? owner.getCrest() : null,
+                    RepLevel.NEUTRAL, false, null));
+            seen.add(POLITY_CLIENT_FACTION_ID);
         }
 
         // 1. Planet's owning faction (if it has one)
