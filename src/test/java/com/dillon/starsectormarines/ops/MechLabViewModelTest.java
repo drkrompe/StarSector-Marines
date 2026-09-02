@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -246,6 +248,68 @@ class MechLabViewModelTest {
             assertTrue(instance.requireElement("page-nav-mech-lab")
                     .hasClass("page-nav-current"));
         }
+    }
+
+    /**
+     * Every chassis and every piece of hardware in the catalog is a name a
+     * player can ask about, and hovering one opens that item's spec sheet
+     * beside the paper-doll preview the same hover drives.
+     */
+    @Test
+    void everyCatalogSubjectIsAskable() throws Exception {
+        Reactor reactor = new Reactor();
+        // The starter bay with a mount selected, because the catalog lists what
+        // could go in the chosen socket -- and a binding test against an empty
+        // catalog passes by measuring nothing.
+        MechLabViewModel viewModel = new MechLabViewModel(
+                reactor, MechBay.legacyStarterFixture());
+        viewModel.mechRows().get().get(0).select().run();
+        viewModel.slotRows().get().stream()
+                .filter(row -> row.name().contains("SHOULDER"))
+                .findFirst().orElseThrow().select().run();
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "mech-lab", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer);
+            List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
+            MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
+            document.layout(1744f, 938f);
+
+            int subjects = 0;
+            for (MechLabViewModel.CatalogRow row : rows) {
+                boolean subject = row.chassisPreview() != null || row.weaponPreview() != null;
+                if (subject) subjects++;
+                assertEquals(subject, binder.isBound(instance.requireElement(row.nameId())),
+                        row.nameId() + " is bound the wrong way round");
+            }
+            assertTrue(subjects > 0, "the catalog offered nothing to describe");
+            assertEquals(subjects, binder.size());
+
+            UiElement name = instance.requireElement(
+                    MechLabSpecSheets.firstSpecSheetAnchorId(rows));
+            document.pointerMoved(centerX(name), centerY(name));
+            binder.update();
+            document.advance(0f);
+
+            assertTrue(layer.visible());
+            assertEquals(name.text(),
+                    instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-title").text());
+        }
+    }
+
+    private static float centerX(UiElement element) {
+        return element.box().borderBox().x() + element.box().borderBox().width() * 0.5f;
+    }
+
+    private static float centerY(UiElement element) {
+        return element.box().borderBox().y() + element.box().borderBox().height() * 0.5f;
     }
 
     @Test
