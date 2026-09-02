@@ -112,6 +112,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -792,6 +793,27 @@ public final class BattleSetup {
                                         PrecinctPlan.Sprawl sprawl, Standoff standoff,
                                         PrecinctPlan.Lanes lanes,
                                         TraversalAxis axis, long seed) {
+        return conquestPlanFor(tier, risk, profile, sprawl, standoff, lanes, null,
+                axis, seed);
+    }
+
+    /**
+     * As above, with the battle's own statement of what it comes down on.
+     *
+     * <p><b>A Conquest always has a landing place</b>, stated or derived — the
+     * beachhead is a precinct on this map, claimed before the town floods, and
+     * a Conquest with none would be back to landing in whatever street a scan
+     * found first. That is the one way this dial differs from the sprawl, the
+     * standoff and the lanes, where {@code null} can honestly mean "none".
+     *
+     * @param landing what the force comes down on, or {@code null} for the kind
+     *                the target world offers
+     */
+    static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile,
+                                        PrecinctPlan.Sprawl sprawl, Standoff standoff,
+                                        PrecinctPlan.Lanes lanes, LandingKind landing,
+                                        TraversalAxis axis, long seed) {
         if (profile == null || profile.marketSize() <= 0) return null;
         if (profile.defenseLevel() <= 0) return null;
         PrecinctPlan.Sprawl resolved = sprawl != null
@@ -800,13 +822,17 @@ public final class BattleSetup {
                 ? MapPlacement.NORTH : MapPlacement.EAST;
         MapPlacement attackerFrom = axis == TraversalAxis.SOUTH_TO_NORTH
                 ? MapPlacement.SOUTH : MapPlacement.WEST;
+        // Resolved here rather than layered on afterwards: the landing place is
+        // seeded against the standoff, so the derivation has to be told it.
+        Standoff resolvedStandoff = standoff != null ? standoff : CONQUEST_STANDOFF;
+        LandingKind resolvedLanding = landing != null
+                ? landing : LandingKind.derive(profile, resolved);
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 objective, attackerFrom,
-                lanes,
+                lanes, resolvedStandoff, resolvedLanding,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
-                new Random(seed ^ PRECINCT_SEED_SALT))
-                .withStandoff(standoff != null ? standoff : CONQUEST_STANDOFF);
+                new Random(seed ^ PRECINCT_SEED_SALT));
     }
 
     /** Tier-aware catch-all with both sides' authored fighter commitments. */
@@ -1466,6 +1492,29 @@ public final class BattleSetup {
                                                PrecinctPlan.Sprawl sprawl,
                                                Standoff standoff,
                                                Integer laneCount) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan,
+                sprawl, standoff, laneCount, null);
+    }
+
+    /**
+     * Conquest build carrying the battle's stated landing kind as well.
+     *
+     * @param landing what the force comes down on, or {@code null} for the kind
+     *                the target world offers. A Conquest always lands on a
+     *                place; this says which kind of place.
+     */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan,
+                                               PrecinctPlan.Sprawl sprawl,
+                                               Standoff standoff,
+                                               Integer laneCount,
+                                               LandingKind landing) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
@@ -1479,7 +1528,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
-                tier, risk, sprawl, standoff, laneCount);
+                tier, risk, sprawl, standoff, laneCount, landing);
         MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1859,9 +1908,31 @@ public final class BattleSetup {
                                                   PrecinctPlan.Sprawl sprawl,
                                                   Standoff standoff,
                                                   Integer laneCount) {
+        return createConquest(seed, manifest, enemyHasHeavyArmor, tier, risk, profile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
+                standoff, laneCount, null);
+    }
+
+    /**
+     * Tier-aware Conquest carrying all four of the battle's own map statements;
+     * {@code null} takes the derived sprawl, Conquest's default standoff, one
+     * lane per command track, and the landing kind the world offers.
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  ShuttleArrivalPlan arrivalPlan,
+                                                  PrecinctPlan.Sprawl sprawl,
+                                                  Standoff standoff,
+                                                  Integer laneCount,
+                                                  LandingKind landing) {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, profile, marineFighterSupport,
-                enemyFighterSupport, arrivalPlan, sprawl, standoff, laneCount).sim();
+                enemyFighterSupport, arrivalPlan, sprawl, standoff, laneCount,
+                landing).sim();
     }
 
     /**
@@ -1973,7 +2044,8 @@ public final class BattleSetup {
                                            TraversalAxis axis, TargetProfile profile,
                                            OperationTier tier, RiskLevel risk,
                                            PrecinctPlan.Sprawl sprawl,
-                                           Standoff standoff, Integer laneCount) {
+                                           Standoff standoff, Integer laneCount,
+                                           LandingKind landing) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         // Zero is a statement rather than the absence of one: it asks for the
         // map this feature replaced — three tracks arriving at one wall with
@@ -1986,7 +2058,7 @@ public final class BattleSetup {
             // what the seed decides: a re-roll that kept the same places would
             // be the same map filled differently, which is not another map.
             PrecinctPlan plan = conquestPlanFor(tier, risk, profile, sprawl, standoff,
-                    lanes, axis, mapSeed);
+                    lanes, landing, axis, mapSeed);
             // A plan and an axis are two different maps and the generator
             // refuses both, so the axis rides in only when there is no plan —
             // a marketless or undefended Conquest keeps the stock crossroad.
