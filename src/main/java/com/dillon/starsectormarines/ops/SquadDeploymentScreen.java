@@ -460,7 +460,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
      * One marine in a squad card, and the sheets behind the four equipment lines
      * the inspector shows for them. The lines are catalog items even though the
      * inspector as a whole is a dossier, so hovering one opens the item's own
-     * spec sheet ({@code spec-sheet.md}). A sheet is null where the billet
+     * spec sheet ({@code ui-nouns.md}). A sheet is null where the billet
      * carries nothing of that kind.
      */
     record MemberRow(String id, String classes, String name, String equipment,

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Writes one {@link SpecSheet} per catalog item ({@code spec-sheet.md}).
+ * Writes one {@link SpecSheet} per catalog item ({@code ui-nouns.md}).
  *
  * <p>Every screen that lets a player hover an item's name asks here, so the same
  * thing is described the same way wherever it is read. Before this the copy

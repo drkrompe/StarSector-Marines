@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * Which names in the Mech Lab's catalog a player can ask about
- * ({@code spec-sheet.md}).
+ * ({@code ui-nouns.md}).
  *
  * <p>The catalog names a chassis or a piece of hardware per row, so the row's
  * name is the subject and the sheet comes from the mech catalog. This runs

@@ -83,11 +83,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
 
     private static final Runnable NOTHING = () -> { };
 
-    /**
-     * What a subject with no authored prose says until the copy factory lands.
-     * Slice 3 of {@code spec-sheet.md} replaces every one of these with the
-     * item's own field note.
-     */
+    /** Where the production step is read from; injected so the preview needs no sector. */
     private final ProductionSignals signals;
     private final Consumer<CampaignState> rebuild;
 

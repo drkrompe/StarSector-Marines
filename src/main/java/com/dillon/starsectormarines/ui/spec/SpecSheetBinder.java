@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * What ties one retained element to one {@link SpecSheet} ({@code spec-sheet.md}).
+ * What ties one retained element to one {@link SpecSheet} ({@code ui-nouns.md}).
  *
  * <p>A binding is made from Java, by element, where the screen builds the
  * element's row. There is no markup attribute for it: the sheet is data the

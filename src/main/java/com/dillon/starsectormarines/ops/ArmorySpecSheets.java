@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 
 /**
  * Which elements of the Fleet Armory's cards a player can ask about
- * ({@code spec-sheet.md}).
+ * ({@code ui-nouns.md}).
  *
  * <p>Static and projection-driven so headless evidence hovers the same elements
  * the game does (law 11) rather than a reconstruction of them. It replaces

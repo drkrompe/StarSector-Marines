@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — `position: absolute` and `pointer-events` are ordinary
+Updated: 2026-09-02 — the spec sheet, `position: absolute` and `pointer-events` are ordinary
 parsed CSS: a bounded out-of-flow placement against the immediate parent, and the
 declared exception to design law 6 that lets a hover overlay paint without being
 hit-tested.
@@ -105,6 +105,32 @@ them.
   whose deck is still being laid out shows it waiting and keeps its action.
   `BOATS` names the hangar exactly as `MECH LAB` names the vehicle bay, so the
   gating is a property of the route rather than something each screen remembers.
+- A **spec sheet** is the bounded hover overlay that says what one catalog item
+  is: a heading with the item's crest, a subtitle of designation, role, tier,
+  grade or access, stat rows with meters measured against catalog-wide
+  ceilings, and the item's field note. It is a value with no reference to the
+  item and no behaviour, written by one copy factory from the item's owning
+  catalog — a weapon at a grade, an armour pattern, a special item, an integral
+  system, a mech chassis or component, or an equipment template card, which
+  resolves to the equipment it names. No screen assembles one by hand from
+  catalog fields, and no item's prose lives in markup; a mech's note is data
+  beside the weapon and armour catalogs, not a field on its enum.
+- A **subject** is any catalog item a spec sheet can be written for. A marine,
+  a squad, or a doctrine template is a dossier rather than a subject: it is
+  described by its own screen, and only the catalog items it names carry
+  sheets.
+- The **spec-sheet layer** is one floating element per document, above every
+  screen element, placed beside the hovered subject on the side with room and
+  clamped to the document, sized to its measured text rather than an estimate,
+  and transparent to the pointer so it cannot take the hover that opened it.
+  Show and hide are class toggles so stylesheet transitions apply.
+- A **binding** ties one retained element to one sheet, or to a supplier of
+  one when the element is fixed and the subject under it changes with the
+  projection. Bindings are made from Java where a screen builds the element's
+  row; there is no markup attribute, because the sheet is data the screen
+  already holds and an attribute would need a second way to name the subject.
+  The deepest bound element on the hover chain wins, and a screen that binds
+  nothing pays nothing.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.
@@ -500,3 +526,5 @@ does not substitute for the others.
   contracts are proven in-engine.
 - A new screen adopts the retained stack as one surface; migration does not require
   a flag day across every Marine Ops screen.
+- A new kind of catalog item becomes a spec-sheet subject by gaining one copy
+  factory; every bound screen shows it without change.
