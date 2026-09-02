@@ -62,7 +62,7 @@ class MissionResolverPolityDefenceTest {
         Mission mission = PolityDefenceMissionFactory.create(
                 new RaidThreat(EVENT_KEY, state.marketRegistry.intern("jangala"),
                         state.factionRegistry.intern("pirates"), 60f),
-                state.marketRegistry.intern("jangala"), "pirates", "Jangala", "player");
+                state.marketRegistry.intern("jangala"), "pirates", "Jangala", "player", 1f);
         return MissionOutcome.builder().mission(mission).victory(victory).build();
     }
 

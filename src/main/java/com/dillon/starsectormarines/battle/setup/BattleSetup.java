@@ -886,6 +886,29 @@ public final class BattleSetup {
                                                      FlybyRoster enemyFighterSupport,
                                                      PrecinctPlan.Sprawl sprawl,
                                                      String alliedGarrisonFactionId) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk, type,
+                profile, marineFighterSupport, enemyFighterSupport, sprawl,
+                alliedGarrisonFactionId, 1f);
+    }
+
+    /**
+     * Tier-aware catch-all that also carries the allied faction's own numbers
+     * doctrine.
+     *
+     * @param alliedGarrisonStrengthMult how much of the market's own strength turns
+     *     out, from {@code Mission.alliedGarrisonStrengthMult}; {@code 1} is
+     *     doctrine-neutral and is what every mission but the polity's own defence
+     *     carries.
+     */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile,
+                                                     FlybyRoster marineFighterSupport,
+                                                     FlybyRoster enemyFighterSupport,
+                                                     PrecinctPlan.Sprawl sprawl,
+                                                     String alliedGarrisonFactionId,
+                                                     float alliedGarrisonStrengthMult) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
@@ -1022,7 +1045,8 @@ public final class BattleSetup {
         // After the defenders and their claims, so the mobile-squad capture and
         // the setup-garrison claim above see the battle they were written for and
         // an ALLY squad can never fall into either.
-        installAlliedGarrison(sim, map, profile, alliedGarrisonFactionId, risk, seed);
+        installAlliedGarrison(sim, map, profile, alliedGarrisonFactionId,
+                alliedGarrisonStrengthMult, risk, seed);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, type, null, groundRoster, risk,
@@ -1810,9 +1834,10 @@ public final class BattleSetup {
     private static void installAlliedGarrison(BattleSimulation sim, MapResult map,
                                               TargetProfile profile,
                                               String alliedGarrisonFactionId,
+                                              float alliedGarrisonStrengthMult,
                                               RiskLevel risk, long seed) {
         if (alliedGarrisonFactionId == null) return;
-        int squads = AlliedGarrisonSize.squads(profile);
+        int squads = AlliedGarrisonSize.squads(profile, alliedGarrisonStrengthMult);
         if (squads <= 0) return;
         AlliedGarrison.install(sim, map,
                 GroundRosterRegistry.resolve(alliedGarrisonFactionId), squads, risk,

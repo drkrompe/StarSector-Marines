@@ -759,9 +759,11 @@ public class MarineOpsContext {
                 ? market.getFaction().getId() : null;
         List<Mission> out = new ArrayList<>();
         for (RaidThreat threat : threats) {
+            // Doctrine-neutral until the polity's numbers axis is persisted on
+            // CampaignState; that slice replaces this one argument and nothing else.
             Mission mission = PolityDefenceMissionFactory.create(threat, marketSlot,
                     state.factionRegistry.get(threat.attackerFactionId),
-                    planet.getName(), marketFactionId);
+                    planet.getName(), marketFactionId, 1f);
             if (mission != null) out.add(mission);
         }
         return out;

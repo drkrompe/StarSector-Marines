@@ -81,7 +81,12 @@ The derived roster has four inputs and one output.
    down the way metals deficits pull vanilla's ship quality down.
 3. **Numbers.** Headcount at a market is its vanilla ground-defence stat with
    the company's own stationed strength subtracted, so a detachment never
-   counts twice, scaled by stability the way vanilla scales fleet numbers.
+   counts twice, scaled by stability the way vanilla scales fleet numbers —
+   which vanilla has already done by the time the number is read, since the
+   stability multiplier sits on the same stat `MarketCMD.getDefenderStr`
+   reads. Nothing downstream scales by stability a second time. The subtracted
+   term is read back off the market's own modifiers rather than recomputed
+   from campaign rows, so it is exactly what was written and cannot drift.
 4. **Doctrine.** Zero-sum choices, few enough to be a decision: quality moves
    the elite share and tightens the grade table; numbers raises headcount;
    heavy support admits a mech lance at markets with the industry to fabricate
@@ -98,9 +103,9 @@ through faction identity.
 
 - **The polity defence** (`polity-defence-raid-hook.md`): the polity's allied
   garrison stands beside the company against the landing. This is the first
-  producer of the allied side (`ai-nouns.md`, Sides); today it is sized by a
-  placeholder read off the target profile, until the derived headcount above
-  exists.
+  producer of the allied side (`ai-nouns.md`, Sides), and the only mission that
+  carries a numbers multiplier: doctrine is something the player's faction has,
+  so a patron's Garrison defence fields whatever its own market says.
 - **A Garrison defence on a patron's market**: the same producer fields the
   patron faction's militia beside the company, from its authored roster. The
   polity is only the case where the roster is derived.
