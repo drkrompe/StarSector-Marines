@@ -107,6 +107,7 @@ public final class CampaignMarineDeployment {
                 owners.add(roster.squadForSoldier(soldier.id()));
             }
         }
+        seatNcoFirst(active, owners);
         int seats = Math.min(requiredSeats, active.size());
         // Counted over the seats that actually fit, not the squad's manning:
         // a manifest can be short, and the battle tier assembles toward what
@@ -130,6 +131,48 @@ public final class CampaignMarineDeployment {
                     armor.integralSystem()));
         }
         return new CampaignMarineDeployment(frozen);
+    }
+
+    /**
+     * Moves each squad's NCO to the head of that squad's own run of the
+     * manifest.
+     *
+     * <p><b>The NCO is the first off the boat and the last onto it.</b> Every
+     * posture's cohesion pull is a pull toward {@code Squad.leaderId}, so an
+     * NCO seated on a later lift would drag the squad it is meant to lead back
+     * toward the landing zone while walking out to it. Seating the leader first
+     * removes that case instead of guarding the billet on arrival: first in the
+     * run is the squad's first lift, and a manifest cut short at
+     * {@code requiredSeats} drops the tail of a squad rather than its NCO. The
+     * ramp end of the same law is {@code AirSystem.embark}, where the leader
+     * boards last so a lift that cannot take the whole squad leaves the NCO on
+     * the field with the rest of it.
+     *
+     * <p>A stable partition of each contiguous run, not a sort: everyone else
+     * keeps the roster order the freeze's determinism rests on. Both branches
+     * above walk squads and then members, so a squad's seats are one run.
+     * Applied here rather than in {@code MarineRoster.squadMembers} or
+     * {@code lineReadySoldiers}, which are roster views the company screens
+     * read and which mean billet order.
+     */
+    private static void seatNcoFirst(List<MarineSoldier> active,
+                                     List<MarineSquad> owners) {
+        int runStart = 0;
+        while (runStart < owners.size()) {
+            MarineSquad squad = owners.get(runStart);
+            int runEnd = runStart + 1;
+            while (runEnd < owners.size() && owners.get(runEnd) == squad) runEnd++;
+            String ncoId = squad != null ? squad.leaderSoldierId() : null;
+            if (ncoId != null) {
+                for (int i = runStart + 1; i < runEnd; i++) {
+                    if (!ncoId.equals(active.get(i).id())) continue;
+                    active.add(runStart, active.remove(i));
+                    owners.add(runStart, owners.remove(i));
+                    break;
+                }
+            }
+            runStart = runEnd;
+        }
     }
 
     public MarineLoadout seat(int index) {
