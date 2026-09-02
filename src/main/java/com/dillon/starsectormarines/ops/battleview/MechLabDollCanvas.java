@@ -488,14 +488,42 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
             // Capacity footprint cells
             MechWeaponComponent component = weaponAt(deployment, socket.id());
-            int occupiedColumns = component != null ? component.footprintColumns
+            int occupiedColumns = component != null ? socket.gridColumns()
                     : occupied ? socket.gridColumns() : 0;
-            int occupiedRows = component != null ? component.footprintRows
+            int occupiedRows = component != null ? socket.gridRows()
                     : occupied ? socket.gridRows() : 0;
             drawCapacityCells(c, target, base, selected,
                     occupiedColumns, occupiedRows);
+
+            // Item preview icon rendered inside the dock slot
+            MechWeaponComponent previewWeapon = (hasCandidate && compatible) ? candidate : component;
+            if (previewWeapon != null && assets.get() != null) {
+                float alpha = (hasCandidate && compatible && candidate != component) ? 0.72f : selected ? 1.0f : 0.95f;
+                drawDockEquipment(c, target, previewWeapon, alpha);
+            }
         }
         lastSocketTargets = List.copyOf(targets);
+    }
+
+    private void drawDockEquipment(CanvasContext c, SocketDropTarget target,
+                                   MechWeaponComponent component, float alpha) {
+        LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets.get(), component);
+        if (sprite == null) return;
+
+        float availableWidth = target.width() - CAPACITY_INSET * 2f;
+        float availableHeight = target.height() - CAPACITY_INSET * 2f;
+        float scale = Math.min(availableWidth * 0.85f / sprite.pxWidth,
+                availableHeight * 0.85f / sprite.pxHeight);
+        float drawW = sprite.pxWidth * scale;
+        float drawH = sprite.pxHeight * scale;
+
+        // Subtle dark backing badge for clear weapon silhouette contrast over gantry tiles
+        c.fillRect(target.centerX() - drawW * 0.5f - 2f, target.centerY() - drawH * 0.5f - 2f,
+                drawW + 4f, drawH + 4f, new Color(0x04, 0x08, 0x10, (int) (140 * alpha)));
+
+        c.sprite(sprite.sourcePath, sprite.sprite,
+                target.centerX(), target.centerY(),
+                drawW, drawH, 0f, new Color(1f, 1f, 1f, alpha));
     }
 
     static List<float[]> leaderDogLegPath(float anchorX, float anchorY, SocketDropTarget target) {
