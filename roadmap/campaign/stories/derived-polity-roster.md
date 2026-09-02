@@ -4,8 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
-Updated: 2026-09-02 — slices 1 (Derivation), 2 (Numbers) and 3 (Persistence,
-system, registration) shipped; the panel and the live pass remain.
+Updated: 2026-09-02 — slices 1 (Derivation), 2 (Numbers), 3 (Persistence,
+system, registration) and 4 (The panel) shipped; only the live pass remains.
 
 Read `polity-ground-doctrine.md` (the model and its laws — this story is its
 implementation), `meta-progression.md` (the company-and-polity boundary),
@@ -91,9 +91,19 @@ points shape it, edited from a small panel in the colony's Marine Ops dialog.
    `PolityRosterSystem` rebuilds daily and on game load; and
    `MarineOpsContext.polityDefenceMissions` now passes
    `PolityDoctrineLedger.read(state).numbersMultiplier()`.
-4. **The panel.** The screen, its document, the polity row, and the snapshot
-   entry. Steppers refuse a fourth point; a release is one click and
-   irreversible.
+4. ~~**The panel.**~~ SHIPPED. `PolityDoctrineScreen` and
+   `polity-doctrine-screen.mlx` are a second polity row beside the posting one,
+   reached at `ScreenId.POLITY_DOCTRINE`. Three steppers refuse a fourth point
+   and refuse a third on one axis; every press writes through
+   `PolityDoctrine.of` and rebuilds the roster at once. The middle column says
+   what the derivation currently yields — production step, issued grades,
+   armour patterns, the lance, and this market's own headcount net of the
+   company's posted detachment — and the right column releases one owned card
+   at a time, irreversibly, with the Common floor named rather than listed. The
+   whole panel is built from a static props seam taking stated inputs, so it
+   projects with no sector; `GroundRosterProfile.Issue` gained read-only
+   `grades`/`armorPatterns` so the summary reads the derived tables rather than
+   re-deriving them. `polity-ground-doctrine-wide.png` is its `ui` snapshot.
 5. **Live pass.** Found a colony with and without Heavy Industry, release one
    Advanced card, spend the points three ways, and read the garrison that
    stands at a spawned raid.

@@ -33,6 +33,12 @@ public enum ScreenId {
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,
+    /**
+     * The polity's own ground doctrine: three zero-sum points, what the colony's
+     * economy makes of them, and the kit the company has released to it. Reached
+     * from the polity client's row at one of the player's own markets.
+     */
+    POLITY_DOCTRINE,
     BATTLE,
     RESULTS,
     LOOT;
