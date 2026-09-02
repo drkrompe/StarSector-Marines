@@ -161,6 +161,113 @@ class PrecinctLanePlanTest {
         assertTrue(plan.unplacedLanePlaces().isEmpty());
     }
 
+    /**
+     * A stated zig-zag seeds its places at its own waypoints, in path order.
+     *
+     * <p>Not on them to the cell: a rung is jittered inside its lane so a
+     * neighbour crowding it has somewhere to stand. What the path decides is
+     * where in the lane it stands, so the assertion is that each rung is beside
+     * its own waypoint and that the bend survives — the middle rung of a
+     * three-point zig-zag is on the other side of the lane from its neighbours.
+     */
+    @Test
+    void aStatedZigZagSeedsItsPlacesAtItsWaypoints() {
+        int width = MapScale.CONQUEST.width;
+        int height = MapScale.CONQUEST.height;
+        // Lane 1 of three, so the strip is the production one: out east along
+        // the low side, up across the strip, back down toward the keep. The
+        // other two lanes derive, which is also what a mission stating one
+        // lane's route and leaving the rest alone gets.
+        LanePath zigzag = LanePath.ofCells(width, height, 200, 45, 300, 100, 400, 45);
+        PrecinctPlan plan = conquestLike(
+                new PrecinctPlan.Lanes(3, List.of(), List.of(zigzag)),
+                width, height, 4096L);
+
+        assertTrue(plan.unplacedLanePlaces().isEmpty(),
+                "the stated path dropped " + plan.unplacedLanePlaces());
+        // Within the jitter a rung is allowed inside its own lane — a fifth of
+        // a 82-cell strip here — because a rung crowded out of its waypoint
+        // still has to have somewhere to stand.
+        int jitter = 20;
+        int[][] expected = {{200, 45}, {300, 100}, {400, 45}};
+        String[] bands = {"lane-1-band-3", "lane-1-band-2", "lane-1-band-1"};
+        for (int i = 0; i < bands.length; i++) {
+            Precinct place = named(plan, bands[i]);
+            assertEquals(expected[i][0], place.seedX(),
+                    bands[i] + " stands off its waypoint's forward position");
+            assertTrue(Math.abs(place.seedY() - expected[i][1]) <= jitter,
+                    bands[i] + " seeded at y=" + place.seedY() + ", nowhere near its "
+                            + "waypoint at y=" + expected[i][1]);
+        }
+        assertTrue(named(plan, "lane-1-band-2").seedY()
+                        > named(plan, "lane-1-band-3").seedY() + 15,
+                "the bend was flattened out of the stated path");
+    }
+
+    /**
+     * A waypoint stated inside somewhere else slides along its own path, and the
+     * plan says so.
+     *
+     * <p>The middle waypoint is put on the fortress's own doorstep, which is the
+     * one place a lane place may not stand. It gives way toward the objective —
+     * a rung that has to move should move to the front rather than back into the
+     * force behind it — and the move is named, because a route quietly changed
+     * is a route nobody wrote.
+     */
+    @Test
+    void aStatedWaypointInsideAnotherPlaceIsMovedAndReported() {
+        int width = MapScale.CONQUEST.width;
+        int height = MapScale.CONQUEST.height;
+        PrecinctPlan reference = conquestLike(PrecinctPlan.Lanes.of(1),
+                width, height, 4096L);
+        Precinct objective = reference.objective();
+        assertNotNull(objective);
+
+        LanePath onTopOfTheKeep = LanePath.ofCells(width, height,
+                200, objective.seedY(),
+                objective.seedX() - 10, objective.seedY(),
+                objective.seedX() - 5, objective.seedY());
+        PrecinctPlan plan = conquestLike(
+                PrecinctPlan.Lanes.along(List.of(onTopOfTheKeep)), width, height, 4096L);
+
+        assertFalse(plan.movedLaneWaypoints().isEmpty(),
+                "a waypoint on the fortress was seeded where it was asked for");
+        assertTrue(plan.movedLaneWaypoints().get(0).startsWith("lane-1 waypoint "),
+                "the report names the lane and the waypoint: "
+                        + plan.movedLaneWaypoints());
+        assertEquals(reference.objective().seedX(), plan.objective().seedX(),
+                "moving a waypoint moved the fortress");
+    }
+
+    /** A derived plan states no moves, because nothing had to give way. */
+    @Test
+    void aDerivedPlanMovesNoWaypoints() {
+        PrecinctPlan plan = conquestLike(PrecinctPlan.Lanes.derived(),
+                MapScale.CONQUEST.width, MapScale.CONQUEST.height, 4096L);
+        assertTrue(plan.movedLaneWaypoints().isEmpty(),
+                "a derived path had to be fitted: " + plan.movedLaneWaypoints());
+    }
+
+    /**
+     * Two derived lanes on one map are not parallel lines.
+     *
+     * <p>What the meandering derivation is for. A straight ladder puts every
+     * rung of a lane on one lateral, so the reading is simply whether a lane's
+     * rungs differ from each other laterally at all.
+     */
+    @Test
+    void aDerivedLaneBends() {
+        PrecinctPlan plan = conquestLike(PrecinctPlan.Lanes.derived(),
+                MapScale.CONQUEST.width, MapScale.CONQUEST.height, 4096L);
+        boolean bent = false;
+        for (int lane = 1; lane <= 3; lane++) {
+            int outer = named(plan, "lane-" + lane + "-band-3").seedY();
+            int inner = named(plan, "lane-" + lane + "-band-1").seedY();
+            if (Math.abs(outer - inner) > 8) bent = true;
+        }
+        assertTrue(bent, "not one of three derived lanes bends across its own strip");
+    }
+
     /** The same seed lays the same ladder, which is what a replayed fixture needs. */
     @Test
     void laneSeedingIsDeterministicInTheSeed() {
@@ -197,6 +304,13 @@ class PrecinctLanePlanTest {
 
     private static int laneOf(Precinct place) {
         return Integer.parseInt(place.name().split("-")[1]);
+    }
+
+    private static Precinct named(PrecinctPlan plan, String name) {
+        for (Precinct precinct : plan.precincts()) {
+            if (precinct.name().equals(name)) return precinct;
+        }
+        throw new AssertionError("no place called " + name + " in " + plan.precincts());
     }
 
     private static int forwardOf(PrecinctPlan plan, String name) {
