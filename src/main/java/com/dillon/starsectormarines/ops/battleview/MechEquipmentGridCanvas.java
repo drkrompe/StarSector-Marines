@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -12,12 +11,10 @@ import java.awt.Color;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
-/** Canonical 3x2 fitting-grid projection shared by catalog cards and socket rows. */
+/** Canonical fitting-grid projection shared by catalog cards and socket rows. */
 public final class MechEquipmentGridCanvas implements CanvasProducer {
 
     private static final Color BACKGROUND = new Color(0x07, 0x11, 0x19);
-    private static final Color BLOCKED = new Color(0x1A, 0x21, 0x29);
-    private static final Color BLOCKED_LINE = new Color(0x42, 0x4B, 0x54);
 
     private final Supplier<SocketDef> socket;
     private final Supplier<MechWeaponComponent> weapon;
@@ -50,44 +47,38 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         float height = context.metrics().surfaceHeight();
         float inset = Math.max(4f, Math.min(width, height) * 0.07f);
         float gap = Math.max(2f, Math.min(width, height) * 0.025f);
-        float cellWidth = (width - inset * 2f - gap * 2f)
-                / MechFittingLayout.MAX_GRID_COLUMNS;
-        float cellHeight = (height - inset * 2f - gap)
-                / MechFittingLayout.MAX_GRID_ROWS;
         context.fillRect(0f, 0f, width, height, BACKGROUND);
 
         SocketDef definition = socket.get();
         MechWeaponComponent component = weapon.get();
         MissileReplenisherComponent subsystem = replenisher.get();
-        int activeColumns = definition != null
-                ? definition.gridColumns() : MechFittingLayout.MAX_GRID_COLUMNS;
-        int activeRows = definition != null
-                ? definition.gridRows() : MechFittingLayout.MAX_GRID_ROWS;
+
+        GridMetrics metrics = resolveGridMetrics(definition, component, width, height, inset, gap);
+        int gridColumns = metrics.columns();
+        int gridRows = metrics.rows();
+        float cellWidth = metrics.cellWidth();
+        float cellHeight = metrics.cellHeight();
+
         int itemColumns = component != null ? component.footprintColumns
                 : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
         int itemRows = component != null ? component.footprintRows
                 : subsystem != null || occupied.getAsBoolean() ? 1 : 0;
-        int itemStartColumn = Math.max(0, (activeColumns - itemColumns) / 2);
-        int itemStartRow = Math.max(0, (activeRows - itemRows) / 2);
+        itemColumns = Math.min(gridColumns, itemColumns);
+        itemRows = Math.min(gridRows, itemRows);
+        int itemStartColumn = Math.max(0, (gridColumns - itemColumns) / 2);
+        int itemStartRow = Math.max(0, (gridRows - itemRows) / 2);
         Color accent = color(definition != null ? definition.type()
                 : component != null ? socketType(component) : SocketType.UTILITY);
 
-        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
-            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
+        for (int row = 0; row < gridRows; row++) {
+            for (int column = 0; column < gridColumns; column++) {
                 float x = inset + column * (cellWidth + gap);
                 float y = inset + row * (cellHeight + gap);
-                boolean active = column < activeColumns && row < activeRows;
-                boolean filled = active && column >= itemStartColumn
+                boolean filled = column >= itemStartColumn
                         && column < itemStartColumn + itemColumns
                         && row >= itemStartRow && row < itemStartRow + itemRows;
                 context.fillRect(x, y, cellWidth, cellHeight,
-                        !active ? BLOCKED : withAlpha(accent, filled ? 116 : 28));
-                if (!active) {
-                    context.line(x + 3f, y + 3f, x + cellWidth - 3f,
-                            y + cellHeight - 3f, BLOCKED_LINE, 1f);
-                    context.line(x + cellWidth - 3f, y + 3f, x + 3f,
-                            y + cellHeight - 3f, BLOCKED_LINE, 1f);
-                }
+                        withAlpha(accent, filled ? 116 : 28));
             }
         }
 
@@ -95,15 +86,31 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                 itemColumns, itemRows, itemStartColumn, itemStartRow,
                 inset, gap, cellWidth, cellHeight);
 
-        for (int row = 0; row < MechFittingLayout.MAX_GRID_ROWS; row++) {
-            for (int column = 0; column < MechFittingLayout.MAX_GRID_COLUMNS; column++) {
+        for (int row = 0; row < gridRows; row++) {
+            for (int column = 0; column < gridColumns; column++) {
                 float x = inset + column * (cellWidth + gap);
                 float y = inset + row * (cellHeight + gap);
-                boolean active = column < activeColumns && row < activeRows;
                 context.strokeRect(x, y, cellWidth, cellHeight,
-                        active ? withAlpha(accent, 205) : BLOCKED_LINE, active ? 1.5f : 1f);
+                        withAlpha(accent, 205), 1.5f);
             }
         }
+    }
+
+    record GridMetrics(int columns, int rows, float cellWidth, float cellHeight) {}
+
+    static GridMetrics resolveGridMetrics(SocketDef definition, MechWeaponComponent component,
+                                          float width, float height, float inset, float gap) {
+        int gridColumns = definition != null
+                ? definition.gridColumns()
+                : component != null ? component.footprintColumns : 1;
+        int gridRows = definition != null
+                ? definition.gridRows()
+                : component != null ? component.footprintRows : 1;
+        gridColumns = Math.max(1, gridColumns);
+        gridRows = Math.max(1, gridRows);
+        float cellWidth = (width - inset * 2f - gap * (gridColumns - 1)) / gridColumns;
+        float cellHeight = (height - inset * 2f - gap * (gridRows - 1)) / gridRows;
+        return new GridMetrics(gridColumns, gridRows, cellWidth, cellHeight);
     }
 
     private void drawEquipment(CanvasContext context, MechWeaponComponent component,
