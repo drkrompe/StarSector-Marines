@@ -1,7 +1,8 @@
 # Lane chains: a Conquest front measured in places held, not ground covered
 
 Status: PLANNED — an improvement the owner has asked for, not a question; it
-follows `lane-paths.md`, which records the route the chain reads.
+reads the route the map already records, described under "And what stands
+between the two" in `precincts.md`.
 
 Written: 2026-09-01
 
@@ -70,8 +71,9 @@ force converges on the keep exactly as it does today.
 
 ## What the path adds
 
-A lane is a stated or derived path once `lane-paths.md` lands, and the map
-records the route between consecutive links. The commander therefore never
+A lane is a stated or derived path, and the map records the walkable route
+between consecutive links — see "And what stands between the two" in
+`precincts.md`. The commander therefore never
 infers a route: it reads one. A lane that zig-zags or goes round a ridge is
 the same chain with a longer road between two of its links, and staging along
 that road is what makes the bend matter instead of leaving it to navigation.
