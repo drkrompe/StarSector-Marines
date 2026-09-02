@@ -29,6 +29,7 @@ public final class PolityDefenceMissionFactory {
      *                          defended colony's kit
      * @param planetName        the colony's display name
      * @param marketFactionId   the colony's own faction, which the map is generated from
+     *                          and whose allied garrison fights beside the company
      */
     public static Mission create(RaidThreat threat, int marketSlot,
                                  String attackerFactionId, String planetName,
@@ -55,6 +56,10 @@ public final class PolityDefenceMissionFactory {
                 // look for a row: -1 is the builder's own "orphan mission" sentinel.
                 .contractId(-1L)
                 .defenderFactionOverride(attackerFactionId)
+                // The colony's own troops meet the landing beside the company. On the
+                // polity that roster is derived rather than authored, but it resolves
+                // through the same faction id as anybody else's.
+                .alliedGarrisonFactionId(marketFactionId)
                 .build();
     }
 }

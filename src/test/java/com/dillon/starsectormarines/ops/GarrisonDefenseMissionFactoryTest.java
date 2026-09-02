@@ -106,6 +106,31 @@ class GarrisonDefenseMissionFactoryTest {
     }
 
     /**
+     * The patron whose market is being defended has troops of its own, and they
+     * fight beside the company rather than against it — so the allied garrison
+     * names the defended market, never the raider the override names.
+     */
+    @Test
+    void theDefendedMarketsOwnGarrisonStandsWithTheCompany() {
+        CampaignState state = new CampaignState();
+        int captain = state.captainRegistry.intern("captain-1");
+        long id = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
+                ContractState.IN_PROGRESS, 10, 100, -1, (byte) 0,
+                captain, 7, -1, 0, 1_000,
+                (byte) 25, (byte) 15, (byte) 105);
+        state.contractMarinesCommitted[0] = 20;
+        state.contractDefenseEventKey[0] = 77L;
+        state.contractDefenseTriggerType[0] = GarrisonDefenseTriggerType.VANILLA_RAID.toByte();
+        state.contractDefenseAttackerFactionId[0] = state.factionRegistry.intern("pirates");
+
+        Mission mission = GarrisonDefenseMissionFactory.create(
+                GarrisonDefensePayload.from(state, id), "Jangala", "hegemony");
+
+        assertEquals("hegemony", mission.alliedGarrisonFactionId);
+        assertEquals("pirates", mission.defenderFactionOverride);
+    }
+
+    /**
      * A vanilla raid states how many it is landing, so the operation is sized off that
      * rather than off the risk label: 200 raid strength outgrows Reinforced's 175.
      */

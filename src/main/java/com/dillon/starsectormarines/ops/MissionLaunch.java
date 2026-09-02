@@ -245,9 +245,14 @@ public final class MissionLaunch {
                 break;
             case ASSAULT:
             default:
+                // The allied garrison rides the same profile the defenders were
+                // built from. The override above rewrote its faction id and
+                // nothing else, and the garrison's size reads market size,
+                // stability and defence rating — none of which it touched.
                 sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
                         enemyHasHeavyArmor, m.tier, m.risk, m.type, profile,
-                        det.marineWings, m.enemyFighterSupport, sprawl);
+                        det.marineWings, m.enemyFighterSupport, sprawl,
+                        m.alliedGarrisonFactionId);
                 break;
         }
 
