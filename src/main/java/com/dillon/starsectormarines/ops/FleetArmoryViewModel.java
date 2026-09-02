@@ -778,7 +778,7 @@ public final class FleetArmoryViewModel {
     }
 
     private static List<StatMeter> armorComparisonStats(String cardId, MarineArmorCatalogDef armor) {
-        float evasion = 1f - armor.incomingAccuracyMult();
+        float evasion = CatalogCeilings.evasionOf(armor);
         return List.of(
                 StatMeter.of(cardId + ":armor-value", "ARMOR",
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
@@ -790,15 +790,7 @@ public final class FleetArmoryViewModel {
                         String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
                         armor.moveSpeedMult(), CatalogCeilings.moveSpeedMult()),
                 StatMeter.of(cardId + ":evasion", "EVASION",
-                        signedPercent(evasion), evasion, maximumEvasion()));
-    }
-
-    private static float maximumEvasion() {
-        float maximum = 0.01f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult());
-        }
-        return maximum;
+                        signedPercent(evasion), evasion, CatalogCeilings.armorEvasion()));
     }
 
     private static String signedPercent(float value) {

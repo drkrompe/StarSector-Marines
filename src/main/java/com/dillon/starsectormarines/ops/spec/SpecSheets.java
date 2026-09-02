@@ -141,7 +141,9 @@ public final class SpecSheets {
                         StatMeter.fraction(def.armorRating(), CatalogCeilings.armorRating())),
                 new Stat("MOVE", oneDecimal(move),
                         StatMeter.fraction(def.moveSpeedMult(), CatalogCeilings.moveSpeedMult())),
-                new Stat("EVASION", percent(evasion),
+                // Signed: three shipped patterns are easier to hit than a bare
+                // marine, and a sheet that hid that would be recommending them.
+                new Stat("EVASION", signedPercent(evasion),
                         StatMeter.fraction(evasion, CatalogCeilings.armorEvasion())));
     }
 
@@ -253,9 +255,7 @@ public final class SpecSheets {
         return new SpecSheet(
                 component.displayName,
                 joined(entry.designation(), mountLabel(component),
-                        component.hardpointType.name().charAt(0)
-                                + component.hardpointType.name().substring(1)
-                                        .toLowerCase(Locale.ROOT)),
+                        titleCase(component.hardpointType.name())),
                 null,
                 ACCENT_MECH,
                 List.of(),
@@ -277,8 +277,7 @@ public final class SpecSheets {
             case ARMOR -> armor(MarineArmorCatalogRegistry.require(card.equipmentId()));
             case SPECIAL -> special(requireSpecial(card.equipmentId()));
         };
-        String access = card.accessTier().name().charAt(0)
-                + card.accessTier().name().substring(1).toLowerCase(Locale.ROOT);
+        String access = titleCase(card.accessTier().name());
         String lead = card.grade() != null
                 ? access + SEPARATOR + card.grade().displayName + " issue"
                 : access;
@@ -304,6 +303,11 @@ public final class SpecSheets {
             fitted.add(variant.rightShoulder);
         }
         return fitted;
+    }
+
+    /** An enum constant as a word: {@code MISSILE} reads Missile, not MISSILE. */
+    private static String titleCase(String constant) {
+        return constant.charAt(0) + constant.substring(1).toLowerCase(Locale.ROOT);
     }
 
     private static String mountLabel(MechWeaponComponent component) {
@@ -344,6 +348,12 @@ public final class SpecSheets {
 
     private static String whole(float value) {
         return String.format(Locale.ROOT, "%.0f", value);
+    }
+
+    /** A share the wearer may also be on the wrong side of, so it carries its sign. */
+    private static String signedPercent(float fraction) {
+        int rounded = Math.round(fraction * 100f);
+        return (rounded > 0 ? "+" : "") + rounded + "%";
     }
 
     private static String percent(float fraction) {
