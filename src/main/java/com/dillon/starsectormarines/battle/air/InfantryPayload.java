@@ -95,6 +95,10 @@ public enum InfantryPayload implements AirDeliveryPayload {
         if (squad != null) squad.originalSize++;
         long unit = context.spawn(marine);
         if (squad != null) {
+            // Asked before leadership is settled, so the distance is measured
+            // against whoever was already leading this squad on the ground
+            // rather than against the arriving marine himself.
+            if (tag != null) context.markLateArrival(squad, unit, cell[0], cell[1]);
             // The campaign NCO takes the billet outright; otherwise leadership
             // still falls to whoever landed first.
             if (tag != null && tag.leader) squad.leaderId = unit;

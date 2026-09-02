@@ -62,12 +62,47 @@ public final class InfantryCohesion {
             }
         }
 
+        return pullTarget(self, squad, sim);
+    }
+
+    /**
+     * Whether {@code self} stands inside {@link #COHESION_RADIUS} of the
+     * squadmate it would otherwise be pulled toward — the distance rule of
+     * {@link #cohesionOverride} without its engagement escape.
+     *
+     * <p>Offered separately because that helper answers {@code null} to two
+     * different questions: "close enough already" and "in a fight worth
+     * staying in". A caller deciding whether a marine has <em>rejoined</em> its
+     * squad has to tell those apart, and a marine trading fire thirty cells
+     * from his squad has not rejoined it.
+     *
+     * <p>True when there is nobody to close on — no squad, no live squadmate,
+     * or a squad of one.
+     */
+    public static boolean withinCohesion(long self, BattleView sim) {
+        Squad squad = sim.squadOf(self);
+        return squad == null || pullTarget(self, squad, sim) == null;
+    }
+
+    /**
+     * The cell {@code self} is pulled toward, or null when it is already inside
+     * {@link #COHESION_RADIUS} or has nobody to close on. The one distance rule
+     * both public entry points read.
+     *
+     * <p>The anchor is the live {@link Squad#leaderId} cell when there is one
+     * other than {@code self}, and the others-only centroid otherwise. The
+     * centroid branch reconstructs itself out of the squad's cached aggregate,
+     * which is refreshed once per tick and therefore does not yet count a
+     * marine spawned later in the same tick — the landing case reads a slightly
+     * overstated distance there, which errs toward treating an arrival as late.
+     */
+    private static int[] pullTarget(long self, Squad squad, BattleView sim) {
         long leader = sim.resolveUnit(squad.leaderId);
         if (leader != 0L && leader != self) {
-            float dx = sim.world().x(leader) - sim.world().x(self);
-            float dy = sim.world().y(leader) - sim.world().y(self);
-            float dist = (float) Math.sqrt(dx * dx + dy * dy);
-            if (dist <= COHESION_RADIUS) return null;
+            if (withinCohesion(sim.world().x(self), sim.world().y(self),
+                    sim.world().x(leader), sim.world().y(leader))) {
+                return null;
+            }
             return new int[]{sim.world().cellX(leader), sim.world().cellY(leader)};
         }
 
@@ -76,17 +111,27 @@ public final class InfantryCohesion {
         // Reconstruct the others-only centroid: (sum - self) / (count - 1).
         // squad.centroidX/Y are true-position (center-based), matching x()/y().
         int othersCount = squad.aliveMembers - 1;
+        if (othersCount <= 0) return null;
         float sumX = squad.centroidX * squad.aliveMembers - sim.world().x(self);
         float sumY = squad.centroidY * squad.aliveMembers - sim.world().y(self);
         float cx = sumX / othersCount;
         float cy = sumY / othersCount;
-        float dx = cx - sim.world().x(self);
-        float dy = cy - sim.world().y(self);
-        float dist = (float) Math.sqrt(dx * dx + dy * dy);
-        if (dist <= COHESION_RADIUS) return null;
+        if (withinCohesion(sim.world().x(self), sim.world().y(self), cx, cy)) return null;
         // The containing cell of a continuous position is its floor (round
         // would bias toward the next cell for center-based coordinates).
         return new int[]{(int) Math.floor(cx), (int) Math.floor(cy)};
+    }
+
+    /**
+     * Whether a member standing at ({@code x}, {@code y}) is inside
+     * {@link #COHESION_RADIUS} of the squadmate anchor at ({@code anchorX},
+     * {@code anchorY}). The one distance comparison every cohesion caller
+     * makes; what differs between them is only how the anchor was found.
+     */
+    public static boolean withinCohesion(float x, float y, float anchorX, float anchorY) {
+        float dx = anchorX - x;
+        float dy = anchorY - y;
+        return dx * dx + dy * dy <= COHESION_RADIUS * COHESION_RADIUS;
     }
 
     /**

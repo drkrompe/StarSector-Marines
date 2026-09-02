@@ -5,7 +5,7 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
@@ -32,11 +32,15 @@ public final class EngineSlotResolver {
     private static final EngineSlotData[] EMPTY = new EngineSlotData[0];
 
     /**
-     * Key: vanilla hull id (lowercase). HashMap because we now key on
-     * arbitrary hull strings (shuttles + fighters + future air entities);
-     * EnumMap is no longer sufficient.
+     * Key: vanilla hull id (lowercase). A map rather than an EnumMap because we
+     * key on arbitrary hull strings (shuttles + fighters + future air entities),
+     * and concurrent because it is filled lazily <em>during</em> a battle and
+     * two battles can run in one JVM. The value is a pure function of the hull
+     * id, so the only thing a race could cost is a repeated parse; loading
+     * under {@code computeIfAbsent} spends nothing to remove even that.
      */
-    private static final Map<String, EngineSlotData[]> CACHE_BY_HULL = new HashMap<>();
+    private static final Map<String, EngineSlotData[]> CACHE_BY_HULL =
+            new ConcurrentHashMap<>();
 
     private EngineSlotResolver() {}
 
@@ -54,12 +58,8 @@ public final class EngineSlotResolver {
      */
     public static EngineSlotData[] resolve(String hullId, float visualLengthCells) {
         if (hullId == null || hullId.isEmpty()) return EMPTY;
-        EngineSlotData[] cached = CACHE_BY_HULL.get(hullId);
-        if (cached != null) return cached;
-
-        EngineSlotData[] resolved = doResolve(hullId, visualLengthCells);
-        CACHE_BY_HULL.put(hullId, resolved);
-        return resolved;
+        return CACHE_BY_HULL.computeIfAbsent(
+                hullId, id -> doResolve(id, visualLengthCells));
     }
 
     /**

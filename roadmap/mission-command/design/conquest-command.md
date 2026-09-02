@@ -4,7 +4,11 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-01 — the defender's reserve is a share of its mobile pool and
+Updated: 2026-09-01 — marine capture allocation is bounded to the home track and
+its neighbours, own track first, measured on a tree carrying the prosecution
+fall-through fix; the far-track walk it used to authorize is refused and
+published as its own reason.
+Earlier 2026-09-01 — the defender's reserve is a share of its mobile pool and
 each threatened track's response scales with the threat, so a large garrison
 commits in proportion to itself. Earlier 2026-08-30 — a track with no believed
 front now stages forward, bounded by its neighbours' lead, instead of standing
@@ -29,6 +33,51 @@ occupancy permits a measured probe, not a declaration of clearance. Fresh
 distant capture allocations preserve squads already committed or adjacent, use
 squads without useful front work first, and retain at least one executable
 front squad while actionable resistance exists when force size permits.
+
+**Capture allocation obeys the same track law the front push does: the home
+track and its neighbours, own track first.** A track is a coordination
+preference rather than an ownership fence, and support means a neighbour — the
+far side of the map is not one on any reading of it. So a fresh detachment is
+paired only with a compound at most one track from the squad's home, and takes
+a *neighbour's* compound only while its own track has nothing worth doing:
+neither a defender zone the front push would send it to, nor an uncaptured
+compound of its own it could take. Its own track's compound it may always take.
+Nearest-pair ordering is unchanged among whatever survives that bound, so the
+allocation is narrowed rather than reordered. A squad already holding a capture
+keeps it and a squad standing at a compound commits to it whatever track it is
+on — those are about ground already reached, not about detaching somebody to
+walk.
+
+Without the bound the capture allocation was the one map-global thing in a
+command built out of tracks, ranking every uncaptured compound against every
+uncommitted squad on straight-line distance alone. The observed cost was a squad
+walking the width of the map to a compound two tracks from where it was born,
+its own track left to a fraction of its strength facing known contacts and the
+receiving track already crowded, with the preserve pass then keeping that order
+for the rest of the battle. The walk itself is a squad out of the fight, and the
+track it leaves does not advance while it is gone.
+
+The canonical matrix says the bound costs nothing either fixture is decided on:
+the reinforced fixture captures 7 and holds 2 either way, and the full-strength
+one captures 3 against 2 with none held either way, surviving to 12315 ticks
+where the control falls at 10812. **What it now mostly buys is that the
+pathology cannot return.** With the bound off this tree barely commits a
+far-track pairing anyway — one across both fixtures — because the prosecution
+fall-through fix removed the squad that produced them: a squad under
+hold-and-prosecute with no firing cell inside its leash used to freeze for as
+long as the contact stayed visible, and a frozen squad is exactly the
+uncommitted, work-free squad the distant fill reaches for. The first measurement
+of this switch was taken before that fix and read the opposite — 6 captures and
+2 held against 12 and 11 — which is an artifact of the freeze rather than a
+trade, and should not be re-derived.
+
+A squad refused by the bound and left with nothing else publishes its own
+assignment reason, because a far-track refusal and an empty map are otherwise
+the same sentence.
+
+The two convergence phases are map-global for a reason no measurement can move:
+once the keep or one contested compound is the whole remaining objective, there
+is no other front to hold.
 
 When belief shows open-ground resistance but no discrete room is assignable,
 an advance-track order stages behind the hostile frontier, bounded by friendly

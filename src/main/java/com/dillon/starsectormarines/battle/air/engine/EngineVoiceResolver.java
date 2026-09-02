@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 /**
@@ -26,8 +27,9 @@ public final class EngineVoiceResolver {
 
     private static final Logger LOG = Global.getLogger(EngineVoiceResolver.class);
 
-    /** Key: vanilla hull id. One shared cache across all air entities. */
-    private static final Map<String, EngineVoice> CACHE_BY_HULL = new HashMap<>();
+    /** Key: vanilla hull id. One shared cache across all air entities, filled lazily during a battle and concurrent because two battles can run in one JVM. The value is a pure function of the id, so a race would only re-read the spec. */
+    private static final Map<String, EngineVoice> CACHE_BY_HULL =
+            new ConcurrentHashMap<>();
 
     private EngineVoiceResolver() {}
 
@@ -38,11 +40,8 @@ public final class EngineVoiceResolver {
      */
     public static EngineVoice resolve(String hullId) {
         if (hullId == null || hullId.isEmpty()) return EngineVoice.DEFAULT;
-        EngineVoice cached = CACHE_BY_HULL.get(hullId);
-        if (cached != null) return cached;
-        EngineVoice resolved = doResolve(hullId);
-        CACHE_BY_HULL.put(hullId, resolved);
-        return resolved;
+        return CACHE_BY_HULL.computeIfAbsent(
+                hullId, EngineVoiceResolver::doResolve);
     }
 
     private static EngineVoice doResolve(String hullId) {

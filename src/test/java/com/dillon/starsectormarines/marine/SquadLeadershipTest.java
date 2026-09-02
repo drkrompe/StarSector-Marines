@@ -178,19 +178,17 @@ class SquadLeadershipTest {
         MarineSoldier leader = roster.squadLeader(squad);
         assertNotNull(leader);
 
-        // Five green marines tie on rank and experience, so which one holds
-        // the badge comes down to the id tiebreak — stable inside a roster,
-        // arbitrary across them. Asserting a *specific* billet leads was a
-        // one-in-five coin flip and is not what this test is about. What must
-        // hold is the shape: the manned teams each have a leader and the
-        // empty one has nobody.
+        // Five green marines tie on rank and experience, so the billet
+        // separates them and the first one leads. Asserting which billet that
+        // is belongs to the derivation's own test; what must hold here is the
+        // shape: the manned teams each have a leader and the empty one has
+        // nobody.
         int leaderTeam = squad.teamIndexOf(leader.id());
         assertTrue(leaderTeam == 0 || leaderTeam == 1,
                 "the leader comes from a manned team, not the empty third");
 
-        // Count, do not index: which member of a team wins its lance-corporal
-        // billet is the same id tiebreak, so "team 0 slot 0 is the NCO" is a
-        // coin flip whenever that team has more than one marine in it.
+        // Count, do not index: this is about every manned team having exactly
+        // one leader, not about which billet in it is senior.
         int otherTeam = leaderTeam == 0 ? 1 : 0;
         int lanceCorporals = 0;
         for (String memberId : squad.teamMembers(otherTeam)) {

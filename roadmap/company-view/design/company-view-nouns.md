@@ -4,11 +4,14 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a boat can be lost: a berth stands vacant on the deck and
-on the hangar picture, whoever was aboard is fallen, and the yard builds the
-hull's own pattern back into the hole for a material bill. Deployment squad
-cards' compact command block uses the roster officer's persisted Starsector
-portrait beside rank, name, command relationship, and selection availability.
+Updated: 2026-09-01 — the NCO is the first off the boat and the last onto it:
+seated at the head of their squad's run of the manifest, and left on the field
+by a lift that cannot take the whole squad. A marine who lands outside cohesion
+of a squad that has stopped forming up is rejoining: it closes on its squad,
+returns fire, initiates nothing, and is left out of the squad's slots and
+arrival rules until it is back. A boat can be lost: a berth stands vacant on the
+deck and on the hangar picture, whoever was aboard is fallen, and the yard
+builds the hull's own pattern back into the hole for a material bill.
 
 ## Purpose
 
@@ -149,8 +152,11 @@ promotion track.
 
 Each non-empty line squad has one roster-derived NCO. Other manned fire teams
 have their own enlisted lead. Leadership is recalculated after membership,
-fitness, or relevant experience changes using rank, then experience, then a
-stable identity tie-break. A wounded senior may resume the billet on return; a
+fitness, or relevant experience changes using rank, then experience, then the
+senior billet. Equals are separated by where they stand on the roll, not by a
+marine's identity: an identity here is a generated one, so a seeded roster that
+resolved its ties that way produced a different NCO every time it was built —
+which the frozen manifest now depends on, since it seats that NCO first. A wounded senior may resume the billet on return; a
 lost or unfit leader is replaced deterministically. Fire-team membership is
 likewise derived from current billet order, so transfers and casualties cannot
 leave a second stored partition behind. The historical squad roll may retain KIA
@@ -665,12 +671,42 @@ six-seat Aeroshuttles in each paired arrival group to deliver a twelve-marine
 squad together; the transport boundary may cut across fire-team membership,
 while the ground squad and its three stable fire teams remain unchanged.
 
+**The NCO is the first off the boat and the last onto it.** A squad's seats are
+frozen with its leader at the head of the squad's own run of the manifest, so
+the NCO rides the squad's first lift and is on the ground as the leader the rest
+of it closes on; a manifest cut short by the seats actually available drops the
+tail of a squad rather than its NCO. The same law read from the ramp is that a
+leader boards last: a lift that cannot take the whole squad leaves the NCO
+standing with the people it could not carry. Everyone else keeps roster order,
+because seat assignment must be the same on every run for the same roster and
+selection.
+
+This is a law of lift ordering rather than a rule about the leadership billet,
+and deliberately so. Cohesion is a pull toward the leader, so an NCO who landed
+on a later lift would take the billet and drag the squad it is supposed to lead
+back toward the landing zone while walking out to meet it. Deferring the billet
+instead would leave a squad led by whoever happened to land first while its
+actual NCO stood among them, which is a worse answer to a case that did not need
+to exist. Ordering the lift removes the case.
+
 A tagged or mission-grouped squad may assemble over several craft or passes. Until its frozen manifest is
 present, the form-up gate suspends execution of its advancing assignment while
 retaining the authoritative command directive and still allowing self-defense.
 A timeout prevents a lost lift or split landing from deadlocking the mission.
-Explicit rejoin behavior for a genuinely late arrival after that point remains
-open in `c8-lift-capacity-and-multi-pass-drops.md`.
+
+A campaign marine who lands outside squad cohesion of a squad that is no longer
+forming up is **rejoining**. That is the case the timeout leaves behind, and it
+is equally a second lift arriving after the squad stepped off or a replacement
+wave joining a squad already in contact. A rejoining marine closes on its squad,
+returns fire at whatever is already within its own reach, and initiates nothing:
+it does not acquire a contact of its own, take a firing position, or spend squad
+equipment on the way. The squad meanwhile plans around it — a rejoining member is
+left out of role and slot assignment and out of the rules that ask whether the
+whole squad has arrived somewhere, so a squad is never pinned on somebody still
+crossing. The state retires by itself the moment the marine is back inside
+cohesion, and it becomes an ordinary member again on that tick. Cohesion is one
+radius and one rule; rejoining is a priority over the squad's plan rather than a
+second way of measuring distance. `SquadRejoin` is where it lives.
 
 ## Task-force command
 

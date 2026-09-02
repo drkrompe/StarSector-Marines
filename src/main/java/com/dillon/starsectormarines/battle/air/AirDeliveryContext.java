@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
+import com.dillon.starsectormarines.battle.infantry.SquadRejoin;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
@@ -147,6 +148,16 @@ public final class AirDeliveryContext {
         return roster.squadForArrivalGroup(faction, type,
                 mission.arrivalGroupId, mission.currentCycle,
                 mission.expectedArrivalStrength);
+    }
+
+    /**
+     * Marks a campaign marine that joined a squad it landed away from — the
+     * late-arrival case the form-up gate's timeout leaves behind.
+     *
+     * @see com.dillon.starsectormarines.battle.infantry.SquadRejoin
+     */
+    public void markLateArrival(Squad squad, long unit, int cellX, int cellY) {
+        SquadRejoin.markIfLateArrival(squad, unit, cellX, cellY, roster);
     }
 
     public String nextUnitName() {

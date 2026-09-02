@@ -112,7 +112,6 @@ import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
-import com.dillon.starsectormarines.battle.nav.LosCache;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
@@ -482,9 +481,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final TickProfile tickProfile = new TickProfile();
     /** Per-tick sub-step profile (behavior buckets + heavy primitives like pathfind / target-pick). Reset at the top of every {@link #tick()}; snapshotted into {@link TickProfile.Spike#innerSnapshot} when a spike fires so spike JSONs carry the diagnostic breakdown. Exposed via the static {@link TickInnerProfile#current()} slot so non-sim call sites (GridPathfinder, TacticalScoring) can record without threading the sim reference through. */
     private final TickInnerProfile tickInnerProfile = new TickInnerProfile();
-    // LosCache is per-thread (ThreadLocal lazy-init in LosCache itself);
-    // the sim no longer owns a single instance — clearAll() at tick top
-    // sweeps every worker's slot.
+    // The LoS caches are per-thread and per navigation grid, held by the grid
+    // (see LosCaches). The sim owns none directly — navigation.beginTick()
+    // sweeps this grid's worker slots and opens their window.
 
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
@@ -660,7 +659,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.squadContactOnset = new SquadContactOnsetSystem(
                 rosterService, tacticalScoring);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
-                rosterService, damageService, tickInnerProfile);
+                rosterService, damageService, tickInnerProfile,
+                this.grid.losCaches());
         this.ambientTasks = new AmbientTaskService(
                 rosterService, navigation, taskPoints);
         deathDispatcher.subscribe(event -> ambientTasks.release(event.unitId()));
@@ -1638,7 +1638,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // The host thread participates in profiling/LoS work outside the
         // parallel dispatch, so release its slots at the same ownership edge.
         TickInnerProfile.releaseCurrentThread();
-        LosCache.releaseCurrentThread();
+        navigation.releaseCurrentThreadLosCache();
     }
 
     private void tick() {
@@ -1670,8 +1670,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         TickInnerProfile.resetAllWorkers();
         tickInnerProfile.reset();
         TickInnerProfile.setCurrent(tickInnerProfile);
-        // Per-tick LoS cache + spatial-state setup — sweeps every worker's
-        // LosCache slot so cached pairs can't outlive a prior-tick wall
+        // Per-tick LoS cache + spatial-state setup — sweeps this grid's
+        // worker LoS slots so cached pairs can't outlive a prior-tick wall
         // breach, then enables auto-init for the duration of the tick. Paired
         // with navigation.endTick() at the bottom.
         navigation.beginTick();
@@ -2071,7 +2071,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // window (e.g., test harness, mid-frame UI hook) is a clean no-op
         // rather than silently writing into the previous tick's counters.
         TickInnerProfile.setCurrent(null);
-        // Switch the per-thread LosCache off so off-tick callers see null
+        // Switch this grid's per-thread LoS caches off so off-tick callers see null
         // and fall through to live Bresenham (preserving the old off-tick
         // behavior that tests + UI hooks depend on).
         navigation.endTick();

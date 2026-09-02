@@ -378,10 +378,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // to someone walking the other way, so the squad plans around the
             // team that peeled and takes it back on the replan that fires when
             // its morale clears.
+            //
+            // A late arrival is out for the same reason and by the same rule:
+            // it is crossing open ground to reach the squad, and a plan that
+            // slotted it would either stall on it or drag the step back toward
+            // the landing zone. It comes back into the pool on the replan after
+            // its rejoin retires.
             List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
                 if (squad.fireTeamBroken(sim.squad().fireTeamIndex(member))) continue;
+                if (squad.isRejoining(member)) continue;
                 aliveMembers.add(member);
             }
             for (SquadPlan.Step step : plan.steps()) {
