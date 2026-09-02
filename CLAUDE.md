@@ -133,7 +133,17 @@ Do not run builds or leave generated task files there.
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —
   `LosCache` and the map generator's own preview fields — and both are fixed;
-  two replicas now produce byte-identical traces. Use `-PmaxTicks=9000` or
+  two replicas now produce byte-identical traces.
+  **Conquest is the slow one, and slow is not stuck.** At 560x336 the matrix
+  takes about 17 minutes of wall clock with the fixtures side by side (one
+  replay each; the other four missions finish in under half a minute), because
+  a 400-seat fixture on that map runs near 30 ticks/s before contact and slower
+  after it. A run with no output for twenty minutes once looked like a frozen
+  map and was killed; it was honest work. Before killing one, read the staging
+  trace under `build/reports/commander/.conquest-staging-*/traces/` — its
+  `compound-state` events say whether the battle is moving — or ask the cheap
+  question first: `-PmaxTicks=3000` plays both fixtures in about 100s. Use
+  `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
