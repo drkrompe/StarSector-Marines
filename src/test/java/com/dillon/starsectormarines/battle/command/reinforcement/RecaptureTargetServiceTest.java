@@ -96,10 +96,14 @@ public class RecaptureTargetServiceTest {
         List<LaneRoute.Link> links = List.of(
                 new LaneRoute.Link("lane-1-band-3", 3, 10, 25, 25, 6, 20, 14, 30),
                 new LaneRoute.Link("lane-1-band-1", 1, 10, 55, 55, 6, 50, 14, 60));
+        List<ConquestLaneChain.Compound> compounds = new ArrayList<>();
+        compounds.add(new ConquestLaneChain.Compound(outerZone, 10, 25));
+        // A negative zone stands for a rung nothing was stamped on.
+        if (deepZone >= 0) {
+            compounds.add(new ConquestLaneChain.Compound(deepZone, 10, 55));
+        }
         return ConquestLaneChain.of(
-                List.of(new LaneRoute(0, links, route)),
-                List.of(new ConquestLaneChain.Compound(outerZone, 10, 25),
-                        new ConquestLaneChain.Compound(deepZone, 10, 55)));
+                List.of(new LaneRoute(0, links, route)), compounds);
     }
 
     @Test
@@ -132,6 +136,27 @@ public class RecaptureTargetServiceTest {
         reg.setLaneState(0, 1, 0);
         assertTrue(reg.isContested(outerTarget), "the place just lost is what to retake");
         assertTrue(reg.isContested(deepTarget), "and the next one is what to hold");
+    }
+
+    @Test
+    public void aPositionOnAPlaceWithNothingOnItKeepsItsBand() {
+        FrontDepth front = frontDepth();
+        // A rung the map found room for but stamped no compound on: it can
+        // never be the lane's front and can never be lost, so the chain has no
+        // answer for the guard posts standing on it.
+        TacticalNode post = node(TacticalNode.Kind.GUARDPOST, 10, 55, Faction.DEFENDER, 4);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(post)), front, laneChain(7, -1));
+        RecaptureTarget target = targetFor(reg, post);
+        assertNotNull(target);
+        assertEquals(1, target.link(), "it still belongs to the place it stands on");
+
+        reg.setLaneState(0, 0, -1);
+        reg.setContested(target.band, true);
+        assertTrue(reg.isContested(target),
+                "an empty rung falls back to its ring rather than out of the layer");
+        reg.setContested(target.band, false);
+        assertFalse(reg.isContested(target));
     }
 
     @Test
