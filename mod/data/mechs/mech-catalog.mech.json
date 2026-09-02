@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+
+  "chassis": [
+    {
+      "variant": "bulwark",
+      "designation": "BLW-9",
+      "role": "Heavy line chassis",
+      "description": "A League siege walker built the way the coalition builds everything: replaceable actuators, shared control standards, and a hull thick enough that its faults can be argued about at leisure. Member worlds assemble it under licence from Kazeron drawings, and enough sets have been sold, captured and rebuilt since that no two are quite the same machine. It shares its name with the coalition battlesuit, and its crews will tell you it shares the temperament."
+    },
+    {
+      "variant": "hound",
+      "designation": "HND-3",
+      "role": "Light raider chassis",
+      "description": "A light frame that began as a frontier survey walker and lost its instrument mast to somebody's cutting torch. Independent yards on a dozen worlds build the pattern out of commodity running gear, which is why it turns up in militia sheds, pirate holds and contractor manifests without anyone being able to say whose it was. It is quick, cheap to keep walking, and honest about how little it will absorb."
+    },
+    {
+      "variant": "sirocco",
+      "designation": "SRC-5",
+      "role": "Fire support chassis",
+      "description": "A Sindrian-derived support walker laid out around a stable firing platform and two shoulder racks, exported in quantity because the Diktat would rather sell the machine than the doctrine for using it. The shoulders are its purpose; the arm mount exists so that the thing is not helpless once the racks run dry. Crews outside the Diktat learn its habits from salvage and from each other."
+    }
+  ],
+
+  "components": [
+    {
+      "component": "component.mech-dual-chainguns",
+      "designation": "MCG-D",
+      "description": "A matched pair of Domain-pattern rotary cannon hung off an arm assembly, the arrangement every arsenal reaches for when it wants a walker able to answer everything at once. The mechanism is old enough that no faction claims it and common enough that none of them guards it. Crews call the second barrel the argument settler."
+    },
+    {
+      "component": "component.mech-nose-chaingun",
+      "designation": "MCG-N",
+      "description": "One of the same rotary cannon carried alone in a light chassis's nose, because a second would cost the machine a leg's worth of mass. Frontier yards fit them out of the crates the paired mounts arrive in. It is the cheapest way to make a raider worth taking seriously."
+    },
+    {
+      "component": "component.mech-dual-linear-cannons",
+      "designation": "MLC-D",
+      "description": "Twin magnetic accelerators in an arm assembly, a Tri-Tachyon design licensed to anyone who can supply the cells and keep the rails trued. The corporate yards treat the pattern as unglamorous work and sell the drawings freely. Everyone else treats a walker that can reach that far as worth the maintenance."
+    },
+    {
+      "component": "component.mech-heavy-cannon",
+      "designation": "MHC",
+      "description": "A single large-bore arm gun of Hegemony manufacture, built to put one deliberate shell into something that had earned it. It is the longest continuously produced mech weapon in circulation and the easiest anywhere to find ammunition for. Its crews are unhurried people."
+    },
+    {
+      "component": "component.mech-dual-pulse-lasers",
+      "designation": "MPL-D",
+      "description": "A paired emitter array from the same Tri-Tachyon security family as the Lancer, scaled up until it needs a walker's power plant to matter. Corporate response teams field them; everyone else buys them second-hand and complains about the diagnostics. Nothing about the pattern is subtle, the light included."
+    },
+    {
+      "component": "component.mech-bastion-autocannons",
+      "designation": "BAC-D",
+      "description": "The League's interchangeable autocannon in its paired arm fit, sharing feed geometry and control standards with half the coalition's other hardware. Kazeron sells the drawings as readily as the guns, which is why member worlds and the people raiding them field the same weapon. Interoperability rather than performance is the point of it."
+    },
+    {
+      "component": "component.mech-demolition-cannon",
+      "designation": "FBR",
+      "description": "The Foundry Breaker: a short mortar bored out of mining stock and hung where an arm gun should be, meant for walls rather than for people. Pirate and Pather foundry cells build them from whatever the last yard yielded, which is why no two share a bore. It carries very few shells and every one of them is spent on architecture."
+    },
+    {
+      "component": "component.mech-dual-muster-autoguns",
+      "designation": "CAG-6D",
+      "description": "A paired fit of the Muster, the mass-market convoy gun assembled around commodity receivers and open feeds. Commercial worlds, militias and contractors buy them by the crate, and captured sets turn up wherever those convoys stopped. It is common-market hardware in a military mount and it does not pretend otherwise."
+    },
+    {
+      "component": "component.mech-nose-muster-autogun",
+      "designation": "CAG-6N",
+      "description": "One Muster autogun in a light chassis's nose, which is how most militia walkers are armed and how most of them stay affordable. The same crates supply it as supply the paired mount, and the same yards fit it in an afternoon. Nobody has ever been proud of one."
+    },
+    {
+      "component": "component.mech-quarry-breaker",
+      "designation": "QBC-2",
+      "description": "A mining and demolition projector on a walker's arm, sold out of extraction works and breaker yards to people who intend to knock something down. Its shell bin is small, its cycle is slow, and its accuracy is a matter of local opinion. Contractors and outlaws field it anyway, on the grounds that a wall is a large target."
+    },
+    {
+      "component": "component.mech-srm-5",
+      "designation": "SRM-5",
+      "description": "A small sealed short-range missile pod, the lightest rack a shoulder hardpoint will accept. Every arsenal in the sector builds a version, and the sealed cassette is what separates a military pod from a rail with rockets on it. A light chassis carries one and treats it as its whole argument up close."
+    },
+    {
+      "component": "component.mech-srm-15",
+      "designation": "SRM-15",
+      "description": "The heavy shoulder rack of the same sealed family, three cells deep and fed from a bin the chassis has to be designed around. Coalition and Hegemony formations issue them, wealthy independents buy them, and everyone else finds one still attached to something they had to kill first. It is a doorway weapon and it is unapologetic about it."
+    },
+    {
+      "component": "component.mech-lrm-5",
+      "designation": "LRM-5",
+      "description": "A small indirect-fire rack that lobs its missiles over whatever stands in the way, using guidance a light chassis has no other use for. It is standard fire-support fitment across the coalition and the Diktat and circulates freely by salvage besides. Its crews rarely see what they hit."
+    },
+    {
+      "component": "component.mech-lrm-15",
+      "designation": "LRM-15",
+      "description": "The full artillery rack: boosted missiles on a shoulder mount, and the reason a support walker is built with its feet so far apart. Diktat and League batteries field them in pairs, and the drawings have leaked far enough that a pirate band occasionally manages one. A machine carrying two is not expected to be anywhere near the fighting."
+    },
+    {
+      "component": "component.mech-shoulder-laser",
+      "designation": "SLC",
+      "description": "The Lance Cannon: a single heavy emitter on a shoulder yoke, drawing straight off the reactor and dispensing with ammunition altogether. Tri-Tachyon built the pattern for facilities that could not be resupplied; everyone else fits it to machines they mean to keep in the field indefinitely. Heat rather than supply is what limits it."
+    },
+    {
+      "component": "component.mech-thermal-lance",
+      "designation": "LBT",
+      "description": "Lion's Brand, a Sindrian prestige emitter fitted where a missile rack would go, bright enough that its crews are told to consider the effect on morale part of the weapon. Lion's Guard formations carry them, and diverted or captured examples are the only ones anybody else sees. It is expensive, conspicuous, and entirely serious."
+    },
+    {
+      "component": "component.mech-pioneer-rocket",
+      "designation": "PRC-4",
+      "description": "An open rail of seismic and obstacle-clearing rockets, adapted from public-works stock onto a shoulder hardpoint by yards with nothing better to hand. Frontier surveys, contractors and salvage crews all carry the pattern for the job it was drawn for. Bolted to a walker it is finite, loose and unsheltered — a cheaper answer than a sealed pod, and visibly one."
+    }
+  ]
+}
