@@ -8,10 +8,15 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.polity.GroundProductionQuality;
 import com.dillon.starsectormarines.campaign.polity.PolityDoctrine;
 import com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger;
+import com.dillon.starsectormarines.campaign.polity.ReleasedKit;
 import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineArmory;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -206,6 +211,65 @@ class PolityDoctrineScreenPropsTest {
         return PolityDoctrineScreen.props(copy, state, armory,
                 GroundProductionQuality.ADVANCED, market,
                 rebuilds::add, () -> refreshes++, () -> { });
+    }
+
+    /**
+     * Every name on the panel carries the sheet its owning catalog writes, not
+     * one this screen assembled. The panel's own hand-written sheets were
+     * placeholders with a "field note pending" line where the prose goes; the
+     * factory is where that prose lives.
+     */
+    @Test
+    void everyNameOnThePanelCarriesTheCatalogsOwnSheet() {
+        CampaignState state = new CampaignState();
+        PolityDoctrineLedger.write(state, PolityDoctrine.of(1, 1, 1));
+        ReleasedKit.release(state, EquipmentTemplateCatalog.armorId(ADVANCED_PATTERN));
+        MarineArmory armory = new MarineArmory();
+        armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(SECOND_PATTERN));
+
+        Map<String, Object> props = props(state, armory, market(260f, 0f));
+
+        List<PolityDoctrineScreen.FieldSpan> spans = spans(props);
+        assertFalse(spans.isEmpty(), "the panel named nothing a player could ask about");
+        for (PolityDoctrineScreen.FieldSpan span : spans) {
+            SpecSheet sheet = span.sheet();
+            assertEquals(span.label(), sheet.title(),
+                    span.id() + " describes something other than the name it shows");
+            assertFalse(sheet.stats().isEmpty(), span.id() + " has no stats");
+            assertFalse(sheet.notes().isEmpty(), span.id() + " has no field note");
+        }
+        // An armour pattern is described exactly as the armoury describes it.
+        PolityDoctrineScreen.FieldSpan pattern = spans.get(0);
+        assertEquals(SpecSheets.armor(
+                        MarineArmorCatalogRegistry.require(militiaPatternId(pattern))).notes(),
+                pattern.sheet().notes());
+
+        for (PolityDoctrineScreen.ReleaseRow row : releasable(props)) {
+            assertFalse(row.sheet().notes().isEmpty(),
+                    row.id() + " offers a card with nothing said about it");
+        }
+        for (PolityDoctrineScreen.ReleasedRow row : released(props)) {
+            assertFalse(row.sheet().notes().isEmpty(),
+                    row.id() + " lists a card with nothing said about it");
+        }
+    }
+
+    /** The pattern id behind a span, found by the display name the span shows. */
+    private static String militiaPatternId(PolityDoctrineScreen.FieldSpan span) {
+        for (MarineArmorCatalogDef def : MarineArmorCatalogRegistry.installed().all()) {
+            if (def.displayName().equals(span.label())) return def.id();
+        }
+        throw new AssertionError("no armour pattern named " + span.label());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<PolityDoctrineScreen.FieldSpan> spans(Map<String, Object> props) {
+        List<PolityDoctrineScreen.FieldSpan> spans = new ArrayList<>();
+        for (PolityDoctrineScreen.FieldRow row
+                : (List<PolityDoctrineScreen.FieldRow>) props.get("fieldRows")) {
+            spans.addAll(row.spans());
+        }
+        return spans;
     }
 
     private static TargetProfile market(float groundDefence, float stationed) {

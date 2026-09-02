@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -87,8 +88,6 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
      * Slice 3 of {@code spec-sheet.md} replaces every one of these with the
      * item's own field note.
      */
-    private static final String PENDING_NOTE = "Field note pending catalog copy.";
-
     private final ProductionSignals signals;
     private final Consumer<CampaignState> rebuild;
 
@@ -316,14 +315,10 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
      * because a reader can only ask about a name the document knows is a name.
      */
     private static List<FieldSpan> patternSpans(List<MarineArmorCatalogDef> patterns) {
-        float strongest = 0f;
-        for (MarineArmorCatalogDef pattern : patterns) {
-            strongest = Math.max(strongest, pattern.armorCapacity());
-        }
         List<FieldSpan> spans = new ArrayList<>();
         for (MarineArmorCatalogDef pattern : patterns) {
             spans.add(new FieldSpan("polity-field-armor-span-" + spans.size(),
-                    pattern.displayName(), armorSheet(pattern, strongest)));
+                    pattern.displayName(), SpecSheets.armor(pattern)));
         }
         return List.copyOf(spans);
     }
@@ -332,64 +327,9 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         List<FieldSpan> spans = new ArrayList<>();
         for (MechVariant variant : lance) {
             spans.add(new FieldSpan("polity-field-lance-span-" + spans.size(),
-                    variant.displayName, mechSheet(variant)));
+                    variant.displayName, SpecSheets.mech(variant)));
         }
         return List.copyOf(spans);
-    }
-
-    /**
-     * A hand-written sheet. {@code SpecSheets} in the copy package is what
-     * writes these from the item's owning catalog; until it lands the panel
-     * says the true things it already holds rather than nothing at all.
-     *
-     * @param strongest protection of the toughest pattern in the same list, so
-     *                  the meter is a stated local scale rather than an invented
-     *                  global ceiling. {@code CatalogCeilings} owns that scale.
-     */
-    private static SpecSheet armorSheet(MarineArmorCatalogDef pattern, float strongest) {
-        float share = strongest > 0f ? pattern.armorCapacity() / strongest : SpecSheet.Stat.NO_METER;
-        return new SpecSheet(pattern.displayName(),
-                pattern.role().name() + "  ·  TIER " + pattern.tier(),
-                pattern.iconPath(), "armor",
-                List.of(new SpecSheet.Stat("Protection",
-                                decimal(pattern.armorCapacity()), share),
-                        SpecSheet.Stat.of("Deflection", decimal(pattern.armorRating())),
-                        SpecSheet.Stat.of("Movement", multiplier(pattern.moveSpeedMult())),
-                        SpecSheet.Stat.of("Tradition", pattern.tradition().name())),
-                List.of(pattern.description()));
-    }
-
-    private static SpecSheet mechSheet(MechVariant variant) {
-        return new SpecSheet(variant.displayName,
-                variant.defaultRole.displayName().toUpperCase(Locale.ROOT), null, "mech",
-                List.of(SpecSheet.Stat.of("Structure", decimal(variant.maxStructure)),
-                        SpecSheet.Stat.of("Armour", decimal(variant.armorCapacity)),
-                        SpecSheet.Stat.of("Deflection", decimal(variant.armorRating)),
-                        SpecSheet.Stat.of("Speed", decimal(variant.moveSpeed))),
-                List.of(PENDING_NOTE));
-    }
-
-    private static SpecSheet cardSheet(EquipmentTemplateCard card, String detail) {
-        return new SpecSheet(card.displayName(), detail, null, accentOf(card.kind()),
-                card.grade() == null ? List.of()
-                        : List.of(SpecSheet.Stat.of("Grade", card.grade().displayName)),
-                List.of(PENDING_NOTE));
-    }
-
-    private static String accentOf(EquipmentTemplateCard.Kind kind) {
-        return switch (kind) {
-            case PRIMARY -> "weapon";
-            case ARMOR -> "armor";
-            case SPECIAL -> "special";
-        };
-    }
-
-    private static String decimal(float value) {
-        return String.format(Locale.ROOT, "%.0f", value);
-    }
-
-    private static String multiplier(float value) {
-        return String.format(Locale.ROOT, "%.2fx", value);
     }
 
     private static String lanceName(UnaryOperator<String> copy, List<MechVariant> lance) {
@@ -424,7 +364,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
             rows.add(new ReleaseRow("polity-releasable-" + rows.size(), card.displayName(),
                     detail, copy.apply("polityReleaseAction"),
                     () -> release(state, card.id(), rebuild, refresh),
-                    cardSheet(card, detail)));
+                    SpecSheets.card(card)));
         }
         return List.copyOf(rows);
     }
@@ -449,7 +389,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
             if (card.accessTier() == EquipmentAccessTier.COMMON) continue;
             String detail = detailOf(copy, card);
             rows.add(new ReleasedRow("polity-released-" + rows.size(), card.displayName(),
-                    detail, copy.apply("polityReleasedTag"), cardSheet(card, detail)));
+                    detail, copy.apply("polityReleasedTag"), SpecSheets.card(card)));
         }
         return List.copyOf(rows);
     }
