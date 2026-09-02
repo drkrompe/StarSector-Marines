@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugi
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.diagnostics.ProcessExitWatchdog;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
+import com.dillon.starsectormarines.battle.mech.MechFittingDollCatalog;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalog;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -111,6 +112,8 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Modular unit clips turn simulation-authored locomotion/action phases
         // into layer transforms. The standalone editor reads the same document.
         UnitLayerLayouts.loadBuiltins();
+        // Chassis fitting dolls, physical mount anchors, and equipment docks.
+        MechFittingDollCatalog.loadBuiltins();
     }
 
     @Override

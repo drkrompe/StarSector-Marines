@@ -101,7 +101,7 @@ class MechLabViewModelTest {
                 .filter(row -> row.name().startsWith("Hound"))
                 .findFirst().orElseThrow().select().run();
         viewModel.slotRows().get().stream()
-                .filter(row -> row.name().equals("ARM ASSEMBLY"))
+                .filter(row -> row.socketId() == SocketId.ARMS)
                 .findFirst().orElseThrow().select().run();
 
         MechLabViewModel.CatalogRow heavy = viewModel.catalogRows().get().stream()

@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "dolls": [
+    {
+      "variant": "hound",
+      "facingDegrees": 180.0,
+      "sockets": [
+        {
+          "id": "CORE",
+          "label": "ENGINE CORE",
+          "type": "CORE",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, 0.02],
+          "dockDirection": [0.0, -1.45],
+          "footprintHull": [1.70, 0.68],
+          "factoryLocked": true
+        },
+        {
+          "id": "ARMS",
+          "label": "NOSE MOUNT",
+          "type": "BALLISTIC",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, 0.66],
+          "dockDirection": [0.0, 1.45],
+          "footprintHull": [2.00, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "LEFT_SHOULDER",
+          "label": "SHOULDER",
+          "type": "MISSILE",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [-0.62, 0.04],
+          "dockDirection": [-1.34, -0.46],
+          "footprintHull": [1.36, 0.72],
+          "factoryLocked": false
+        },
+        {
+          "id": "AMMO_RESERVE",
+          "label": "AMMO RESERVE",
+          "type": "AMMO",
+          "gridColumns": 2,
+          "gridRows": 1,
+          "anchor": [0.0, -0.54],
+          "dockDirection": [-1.34, 0.68],
+          "footprintHull": [1.64, 0.68],
+          "factoryLocked": true
+        }
+      ]
+    },
+    {
+      "variant": "sirocco",
+      "facingDegrees": 180.0,
+      "sockets": [
+        {
+          "id": "CORE",
+          "label": "ENGINE CORE",
+          "type": "CORE",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, 0.02],
+          "dockDirection": [0.0, -1.45],
+          "footprintHull": [1.70, 0.68],
+          "factoryLocked": true
+        },
+        {
+          "id": "ARMS",
+          "label": "NOSE CANNON",
+          "type": "BALLISTIC",
+          "gridColumns": 3,
+          "gridRows": 2,
+          "anchor": [0.0, 0.72],
+          "dockDirection": [0.0, 1.45],
+          "footprintHull": [2.08, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "LEFT_SHOULDER",
+          "label": "L. SHOULDER",
+          "type": "MISSILE",
+          "gridColumns": 3,
+          "gridRows": 2,
+          "anchor": [-0.64, 0.04],
+          "dockDirection": [-1.34, -0.46],
+          "footprintHull": [1.36, 0.72],
+          "factoryLocked": false
+        },
+        {
+          "id": "RIGHT_SHOULDER",
+          "label": "R. SHOULDER",
+          "type": "OMNI",
+          "gridColumns": 3,
+          "gridRows": 2,
+          "anchor": [0.64, 0.04],
+          "dockDirection": [1.34, -0.46],
+          "footprintHull": [1.36, 0.72],
+          "factoryLocked": false
+        },
+        {
+          "id": "AMMO_RESERVE",
+          "label": "AMMO RESERVE",
+          "type": "AMMO",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, -0.55],
+          "dockDirection": [-1.34, 0.68],
+          "footprintHull": [1.64, 0.68],
+          "factoryLocked": true
+        },
+        {
+          "id": "MINI_FAB",
+          "label": "MINI-FAB",
+          "type": "UTILITY",
+          "gridColumns": 1,
+          "gridRows": 1,
+          "anchor": [0.0, -0.86],
+          "dockDirection": [1.34, 0.68],
+          "footprintHull": [1.36, 0.68],
+          "factoryLocked": false
+        }
+      ]
+    },
+    {
+      "variant": "bulwark",
+      "facingDegrees": 180.0,
+      "sockets": [
+        {
+          "id": "CORE",
+          "label": "ENGINE CORE",
+          "type": "CORE",
+          "gridColumns": 2,
+          "gridRows": 2,
+          "anchor": [0.0, 0.03],
+          "dockDirection": [0.0, -1.50],
+          "footprintHull": [1.70, 0.68],
+          "factoryLocked": true
+        },
+        {
+          "id": "ARMS",
+          "label": "ARM ASSEMBLY",
+          "type": "OMNI",
+          "gridColumns": 3,
+          "gridRows": 2,
+          "anchor": [0.0, 0.72],
+          "dockDirection": [0.0, 1.50],
+          "footprintHull": [2.20, 0.68],
+          "factoryLocked": false
+        },
+        {
+          "id": "LEFT_SHOULDER",
+          "label": "L. SHOULDER",
+          "type": "MISSILE",
+          "gridColumns": 3,
+          "gridRows": 2,
+          "anchor": [-0.72, 0.08],
+          "dockDirection": [-1.38, -0.48],
+          "footprintHull": [1.40, 0.72],
+          "factoryLocked": false
+        },
+        {
+          "id": "RIGHT_SHOULDER",
+          "label": "R. SHOULDER",
+          "type": "OMNI",
+          "gridColumns": 3,
+          "gridRows": 2,
+          "anchor": [0.72, 0.08],
+          "dockDirection": [1.38, -0.48],
+          "footprintHull": [1.40, 0.72],
+          "factoryLocked": false
+        },
+        {
+          "id": "AMMO_RESERVE",
+          "label": "AMMO RESERVE",
+          "type": "AMMO",
+          "gridColumns": 3,
+          "gridRows": 1,
+          "anchor": [0.0, -0.58],
+          "dockDirection": [-1.38, 0.72],
+          "footprintHull": [1.70, 0.68],
+          "factoryLocked": true
+        },
+        {
+          "id": "MINI_FAB",
+          "label": "MINI-FAB",
+          "type": "UTILITY",
+          "gridColumns": 1,
+          "gridRows": 1,
+          "anchor": [0.0, -0.92],
+          "dockDirection": [1.38, 0.72],
+          "footprintHull": [1.40, 0.68],
+          "factoryLocked": false
+        }
+      ]
+    }
+  ]
+}
