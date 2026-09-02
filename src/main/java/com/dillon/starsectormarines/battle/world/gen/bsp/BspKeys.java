@@ -179,6 +179,21 @@ public final class BspKeys {
     public static final GenKey<Integer> LANDING_AREAS_AUTHORED =
             GenKey.of("landingAreasAuthored");
 
+    /**
+     * Cells of approach the attacker's resolved region actually got, along the
+     * traversal axis, between its objective-facing side and the objective
+     * claim's attacker-facing boundary.
+     *
+     * <p>Same law as {@link #UNPLACED_PROGRAM}. A mission states a
+     * {@code Standoff} and a map may not be able to afford it — the band slides
+     * as far as it can and this is how far that was — and a beachhead that
+     * landed further out than the mission asked for is otherwise not
+     * distinguishable from one that landed where it wanted.
+     * {@link Integer#MAX_VALUE} where there was no claim to stand off from.
+     */
+    public static final GenKey<Integer> APPROACH_STANDOFF =
+            GenKey.of("approachStandoff");
+
     public static final GenKey<int[]> MARINE_SPAWN = GenKey.of("marineSpawn");
 
     /** Defender spawn cell {@code [x, y]}. Produced by the spawn stage. */

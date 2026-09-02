@@ -26,15 +26,38 @@ import java.util.Random;
  * battles varied, not a simulation of settlement patterns, and the moment a
  * mission cares about the answer it should be authoring one instead.
  */
-public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) {
+public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
+                           Standoff standoff) {
 
     public PrecinctPlan {
         precincts = List.copyOf(precincts);
+        // A plan that says nothing about its approach gets the one every
+        // precinct map had before a standoff existed: the beachhead on the map
+        // edge the attacker's own band sits against.
+        if (standoff == null) standoff = Standoff.FAR;
     }
 
     /** A plan with no opinion about where the attack comes from. */
     public PrecinctPlan(List<Precinct> precincts) {
-        this(precincts, null);
+        this(precincts, null, Standoff.FAR);
+    }
+
+    /** A plan that states where the attack comes from but not how far out. */
+    public PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom) {
+        this(precincts, attackerFrom, Standoff.FAR);
+    }
+
+    /**
+     * The same plan with a stated approach length.
+     *
+     * <p>Layered on rather than taken at derivation, because how far a force
+     * lands from the objective is a mission's statement about its own battle and
+     * has nothing to do with the world the places were derived from — the same
+     * derived map is a long approach or a short one depending only on who is
+     * being sent.
+     */
+    public PrecinctPlan withStandoff(Standoff standoff) {
+        return new PrecinctPlan(precincts, attackerFrom, standoff);
     }
 
     /**

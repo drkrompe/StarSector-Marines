@@ -112,6 +112,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -677,9 +678,13 @@ public final class BattleSetup {
         if (type == MissionType.RAID && resolved == PrecinctPlan.Sprawl.REMOTE) {
             resolved = PrecinctPlan.Sprawl.BALANCED;
         }
+        // FAR is the beachhead on the map edge, which is the only approach these
+        // maps have ever had. Nothing about a search-and-strike mission has been
+        // measured against a shorter one, so it keeps what it was measured on.
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
-                scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT));
+                scale.width, scale.height, new Random(seed ^ PRECINCT_SEED_SALT))
+                .withStandoff(Standoff.FAR);
     }
 
     /**
@@ -719,6 +724,31 @@ public final class BattleSetup {
                                         TargetProfile profile,
                                         PrecinctPlan.Sprawl sprawl,
                                         TraversalAxis axis, long seed) {
+        return conquestPlanFor(tier, risk, profile, sprawl, null, axis, seed);
+    }
+
+    /**
+     * Conquest's default approach: the walk the map this model was balanced on
+     * actually had.
+     *
+     * <p>The near third of a 560x336 map is a long way from a claim in the far
+     * third — measured, nothing changed hands for the first four battle-minutes
+     * of a matrix fixture, because the marines were walking two thirds of a map
+     * twice as long on each axis as the one the balance was judged on. The map
+     * stays large and the landing moves in.
+     */
+    static final Standoff CONQUEST_STANDOFF = Standoff.STANDARD;
+
+    /**
+     * As above, with the battle's own statement of how far out it lands.
+     *
+     * @param standoff the mission's stated standoff, or {@code null} for
+     *                 Conquest's own default
+     */
+    static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile,
+                                        PrecinctPlan.Sprawl sprawl, Standoff standoff,
+                                        TraversalAxis axis, long seed) {
         if (profile == null || profile.marketSize() <= 0) return null;
         if (profile.defenseLevel() <= 0) return null;
         PrecinctPlan.Sprawl resolved = sprawl != null
@@ -731,7 +761,8 @@ public final class BattleSetup {
                 MissionFortification.demand(tier, risk),
                 objective, attackerFrom,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
-                new Random(seed ^ PRECINCT_SEED_SALT));
+                new Random(seed ^ PRECINCT_SEED_SALT))
+                .withStandoff(standoff != null ? standoff : CONQUEST_STANDOFF);
     }
 
     /** Tier-aware catch-all with both sides' authored fighter commitments. */

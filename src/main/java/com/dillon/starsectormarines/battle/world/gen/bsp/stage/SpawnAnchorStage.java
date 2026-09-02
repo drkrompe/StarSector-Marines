@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
-import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
+import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -37,7 +37,7 @@ public final class SpawnAnchorStage implements GenStage {
             // high-X fallback below is arbitrary against wherever the objective
             // actually grew - on a map whose garrison is in the west it puts
             // the attacker on top of it. The plan already says both things.
-            marine = pickPlacementSpawn(grid, plan, rng, ctx.width, ctx.height);
+            marine = pickPlacementSpawn(grid, ctx, plan, rng);
             defender = pickObjectiveSpawn(grid, ctx, plan, rng);
         } else if (axis != null) {
             marine   = pickBiomeSpawn(grid, ctx.topology, biomeMap, BiomeKind.BEACH,
@@ -55,45 +55,23 @@ public final class SpawnAnchorStage implements GenStage {
     /**
      * Where the attacking force arrives on a precinct map.
      *
-     * <p>The mission's stated placement when it gave one. Failing that, the
-     * corner furthest from the objective — an attacker landing beside the thing
-     * it is meant to take has no approach to fight through, which is most of
-     * what a conquest map is for.
-     */
-    private static int[] pickPlacementSpawn(NavigationGrid grid, PrecinctPlan plan,
-                                            Random rng, int width, int height) {
-        MapPlacement from = plan.attackerFrom();
-        if (from == null) from = awayFrom(plan.objective(), width, height);
-        int[] rect = from.bounds(width, height);
-        return pickSpawnAnchor(grid, rect[0], rect[1], rect[2], rect[3], rng);
-    }
-
-    /**
-     * The third of the map whose middle is furthest from the objective.
+     * <p>{@link ApproachRegion} resolves the mission's two statements — roughly
+     * where, and how much approach — against the objective's grown claim.
+     * {@link PrecinctLandingAreaStage} resolves the same region from the same
+     * function, because a beachhead in a region nobody spawns in is a beachhead
+     * nobody lands on.
      *
-     * <p>Shared with {@link PrecinctLandingAreaStage}, which has to seat its
-     * berths in the region the attacker actually arrives in. Two copies of the
-     * rule would be two answers the first time either moved, and a beachhead in
-     * a corner nobody spawns in is a beachhead nobody lands on.
+     * <p>What the map afforded is bound under {@link BspKeys#APPROACH_STANDOFF}
+     * rather than dropped: a standoff a small map could not pay for leaves
+     * nothing on the finished map to notice.
      */
-    static MapPlacement awayFrom(Precinct objective, int width, int height) {
-        if (objective == null) return MapPlacement.ANYWHERE;
-        MapPlacement[] corners = {
-                MapPlacement.SOUTH_WEST, MapPlacement.SOUTH_EAST,
-                MapPlacement.NORTH_WEST, MapPlacement.NORTH_EAST};
-        MapPlacement best = corners[0];
-        long bestDist = -1;
-        for (MapPlacement corner : corners) {
-            int[] centre = corner.centre(width, height);
-            long dx = centre[0] - objective.seedX();
-            long dy = centre[1] - objective.seedY();
-            long dist = dx * dx + dy * dy;
-            if (dist > bestDist) {
-                bestDist = dist;
-                best = corner;
-            }
-        }
-        return best;
+    private static int[] pickPlacementSpawn(NavigationGrid grid, GenContext ctx,
+                                            PrecinctPlan plan, Random rng) {
+        ApproachRegion region = ApproachRegion.resolve(
+                plan, ctx.get(BspKeys.PRECINCT_CLAIM), ctx.width, ctx.height);
+        ctx.put(BspKeys.APPROACH_STANDOFF, region.standoffCells());
+        return pickSpawnAnchor(grid, region.x0(), region.y0(),
+                region.x1(), region.y1(), rng);
     }
 
     /**
