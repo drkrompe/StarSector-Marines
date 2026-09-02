@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 
 import java.util.ArrayList;
@@ -131,6 +132,19 @@ public final class Mission {
     public final Integer lanes;
 
     /**
+     * What this battle's force comes down on, or null for the kind the target
+     * world offers.
+     *
+     * <p>The fourth of the map statements a battle owns, beside {@link #sprawl},
+     * {@link #standoff} and {@link #lanes}. Whether the beachhead is a civil
+     * spaceport, a bare field or a strip with a hut on it is a fact about the
+     * world, so a mission that says nothing gets the world's own answer; a
+     * mission that wants the marines put down on open ground says so. Only
+     * Conquest lays a landing place; see {@code precincts.md}.
+     */
+    public final LandingKind landing;
+
+    /**
      * The route each of those lanes takes, in lane order, or null for lanes
      * that derive their own.
      *
@@ -233,6 +247,7 @@ public final class Mission {
         this.defenderFactionOverride = b.defenderFactionOverride;
         this.sprawl           = b.sprawl;
         this.standoff         = b.standoff;
+        this.landing          = b.landing;
         this.lanes            = b.lanes;
         // Not List.copyOf: a null entry is a lane that derives its own route,
         // which is exactly what a mission stating one lane's path and leaving
@@ -296,6 +311,7 @@ public final class Mission {
         private PrecinctPlan.Sprawl sprawl;
         private Standoff standoff;
         private Integer lanes;
+        private LandingKind landing;
         private List<LanePath> lanePaths;
         private Long battleSeed;
 
@@ -341,6 +357,7 @@ public final class Mission {
             this.sprawl = m.sprawl;
             this.standoff = m.standoff;
             this.lanes = m.lanes;
+            this.landing = m.landing;
             this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
@@ -483,6 +500,12 @@ public final class Mission {
         /** @param lanes how many lanes of resistance the map lays; null takes one per command track. */
         public Builder lanes(Integer lanes) {
             this.lanes = lanes;
+            return this;
+        }
+
+        /** @param landing what this battle comes down on; null takes the world's own answer. */
+        public Builder landing(LandingKind landing) {
+            this.landing = landing;
             return this;
         }
 

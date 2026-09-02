@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 
 /**
@@ -75,6 +76,19 @@ final class DebugMissionDifficulty {
     static Mission atLanes(Mission mission, Integer requestedLanes) {
         if (mission == null || !mission.source.isDebug()) return mission;
         return Mission.builder(mission).lanes(requestedLanes).build();
+    }
+
+    /**
+     * Returns the same mission for production work. DEBUG work states what it
+     * comes down on directly, so a spaceport beachhead and a bare field can be
+     * played back to back on one board.
+     *
+     * @param requestedLanding the landing kind to state, or {@code null} to
+     *                         hand the answer back to the target world.
+     */
+    static Mission atLanding(Mission mission, LandingKind requestedLanding) {
+        if (mission == null || !mission.source.isDebug()) return mission;
+        return Mission.builder(mission).landing(requestedLanding).build();
     }
 
     private static boolean isTierGridEntry(Mission mission) {

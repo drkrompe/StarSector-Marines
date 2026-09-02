@@ -30,13 +30,19 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
  *                are themed from and where its centre is. Required for a zoned
  *                precinct and absent for a programmed one, whose interior is
  *                packed rather than themed
+ * @param landing what the attacking force comes down on here, or {@code null}
+ *                for the ordinary case — a place nobody lands on. A landing
+ *                place is programmed like any other, and this is what tells the
+ *                stages that emit its nodes and seat its berths that the ground
+ *                is the marines' rather than the defender's
  */
 public record Precinct(String name, int seedX, int seedY,
                        GrownTrunkPlan.Profile growth,
                        FortressProgram program,
                        Boundary boundary,
                        Fortification fortification,
-                       PrecinctCharacter character) {
+                       PrecinctCharacter character,
+                       LandingKind landing) {
 
     /** A place whose wall, if it has one, is of ordinary strength. */
     public Precinct(String name, int seedX, int seedY, GrownTrunkPlan.Profile growth,
@@ -50,6 +56,13 @@ public record Precinct(String name, int seedX, int seedY,
                     FortressProgram program, Boundary boundary, Fortification fortification) {
         this(name, seedX, seedY, growth, program, boundary, fortification,
                 program == null ? PrecinctCharacter.TOWN : null);
+    }
+
+    /** A place nobody lands on, which is every place but one. */
+    public Precinct(String name, int seedX, int seedY, GrownTrunkPlan.Profile growth,
+                    FortressProgram program, Boundary boundary, Fortification fortification,
+                    PrecinctCharacter character) {
+        this(name, seedX, seedY, growth, program, boundary, fortification, character, null);
     }
 
     /** What happens at the edge of a precinct once its interior exists. */
@@ -84,6 +97,10 @@ public record Precinct(String name, int seedX, int seedY,
             throw new IllegalArgumentException(name + " is programmed, so its interior is "
                     + "packed from its program and a character would say nothing");
         }
+        if (landing != null && program == null) {
+            throw new IllegalArgumentException(name + " is landed on but has no program, "
+                    + "so nothing claims the apron the berths stand on");
+        }
     }
 
     /** A place whose parcels are zoned and filled the ordinary way, as a town. */
@@ -110,10 +127,29 @@ public record Precinct(String name, int seedX, int seedY,
         return new Precinct(name, x, y, growth, program, Boundary.WALLED, fortification, null);
     }
 
+    /**
+     * The ground the attacking force comes ashore on.
+     *
+     * <p>Open rather than walled, and programmed rather than zoned: its apron
+     * is what its program owes, so it claims its ground with the other
+     * programmed places — before the settlement floods — and a town grows round
+     * the beachhead instead of over it.
+     */
+    public static Precinct landing(String name, int x, int y,
+                                   GrownTrunkPlan.Profile growth, LandingKind kind,
+                                   FortressProgram program) {
+        return new Precinct(name, x, y, growth, program, Boundary.OPEN, null, null, kind);
+    }
+
     /** This place, said to be a different kind of place inside. Zoned precincts only. */
     public Precinct withCharacter(PrecinctCharacter character) {
         return new Precinct(name, seedX, seedY, growth, program, boundary, fortification,
-                character);
+                character, landing);
+    }
+
+    /** Whether the attacking force comes ashore here. */
+    public boolean isLanding() {
+        return landing != null;
     }
 
     /** Whether this precinct packs authored footprints rather than zoning its parcels. */

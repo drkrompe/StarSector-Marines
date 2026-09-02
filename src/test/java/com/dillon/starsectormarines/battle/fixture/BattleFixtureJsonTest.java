@@ -518,7 +518,7 @@ class BattleFixtureJsonTest {
                 base.enemyHasHeavyArmor(), base.tier(), base.risk(),
                 base.targetProfile(), base.marineFighterSupport(),
                 base.enemyFighterSupport(), base.arrivalPlan(), base.sprawl(),
-                base.standoff(), lanes, paths);
+                base.standoff(), lanes, base.landing(), paths);
     }
 
     private static ConquestBattleFixture standoffConquestFixture(Standoff standoff) {
