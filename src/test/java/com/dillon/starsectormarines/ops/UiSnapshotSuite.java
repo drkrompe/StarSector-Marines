@@ -101,6 +101,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/missions/squad-deployment.mlx");
     private static final List<String> STATIONING_COMPONENTS = List.of(
             "data/ui/components/missions/stationing-screen.mlx");
+    private static final List<String> POLITY_DOCTRINE_COMPONENTS = List.of(
+            "data/ui/components/missions/polity-doctrine-screen.mlx");
     private static final List<String> MISSION_RESULTS_COMPONENTS = List.of(
             "data/ui/components/missions/mission-results.mlx");
     private static final List<String> MISSION_LOOT_COMPONENTS = List.of(
@@ -215,6 +217,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMissionFlow(context, renderer, STATIONING_COMPONENTS,
                                 StationingScreen.ROOT_COMPONENT,
                                 StationingScreen.previewProps(true, true))),
+                new SnapshotArtifact("polity-ground-doctrine-wide.png",
+                        renderMissionFlow(context, renderer, POLITY_DOCTRINE_COMPONENTS,
+                                PolityDoctrineScreen.ROOT_COMPONENT,
+                                PolityDoctrineScreen.previewProps(
+                                        ModStrings.fromDisk(context.modRoot())))),
                 new SnapshotArtifact("mission-results-wide.png",
                         renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
                                 ResultsScreen.ROOT_COMPONENT,

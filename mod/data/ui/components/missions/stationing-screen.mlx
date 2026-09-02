@@ -21,7 +21,7 @@
             <div id="stationing-term-label" class="label heading tone-muted">{termLabel}</div>
             <div id="stationing-term-value" class="label title tone-accent">{termValue}</div>
           </div>
-          <button id="stationing-term-minus" disabled="{minusDisabled}" onclick="{minusAction}">−</button>
+          <button id="stationing-term-minus" disabled="{minusDisabled}" onclick="{minusAction}">-</button>
           <button id="stationing-term-plus" disabled="{plusDisabled}" onclick="{plusAction}">+</button>
         </div>
         <div id="stationing-retainer" class="stationing-retainer surface-dark">

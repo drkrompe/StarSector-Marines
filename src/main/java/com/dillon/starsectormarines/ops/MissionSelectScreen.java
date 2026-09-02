@@ -234,9 +234,11 @@ public final class MissionSelectScreen implements Screen {
     }
 
     /**
-     * The polity's one row. A posting is not offered and not accepted — there is no
+     * The polity's two rows. A posting is not offered and not accepted — there is no
      * OFFERED row to find, so the row exists whether or not anything is posted yet and
-     * the draft sentinel carries "post here" into the stationing screen.
+     * the draft sentinel carries "post here" into the stationing screen. Beside it sits
+     * the colony's own ground doctrine ({@code polity-ground-doctrine.md}), which is
+     * about the polity's troops rather than about the company's.
      */
     private List<StationingRow> postingRows() {
         CampaignStateScript script = CampaignStateScript.getInstance();
@@ -245,11 +247,17 @@ public final class MissionSelectScreen implements Screen {
         int row = Posting.activeRowAt(state,
                 state.marketRegistry.intern(context.market.getId()));
         long contractId = row >= 0 ? state.contractId[row] : Posting.DRAFT_CONTRACT_ID;
-        return List.of(new StationingRow("stationing-contract",
-                "stationing-contract-title", "stationing-contract-action",
-                Strings.get("postingTitle"),
-                Strings.get(row >= 0 ? "postingRowManage" : "postingRowCreate"),
-                () -> configureStationing(contractId)));
+        return List.of(
+                new StationingRow("stationing-contract",
+                        "stationing-contract-title", "stationing-contract-action",
+                        Strings.get("postingTitle"),
+                        Strings.get(row >= 0 ? "postingRowManage" : "postingRowCreate"),
+                        () -> configureStationing(contractId)),
+                new StationingRow("polity-doctrine-row",
+                        "polity-doctrine-row-title", "polity-doctrine-row-action",
+                        Strings.get("polityDoctrineTitle"),
+                        Strings.get("polityDoctrineRowAction"),
+                        this::openPolityDoctrine));
     }
 
     private void putDetail(Map<String, Object> props, Mission mission) {
@@ -374,6 +382,12 @@ public final class MissionSelectScreen implements Screen {
         context.setSelectedMission(null);
         context.setSelectedStationingContractId(contractId);
         context.goTo(ScreenId.STATIONING);
+    }
+
+    private void openPolityDoctrine() {
+        if (context == null) return;
+        context.setSelectedMission(null);
+        context.goTo(ScreenId.POLITY_DOCTRINE);
     }
 
     private void onArmory() {
