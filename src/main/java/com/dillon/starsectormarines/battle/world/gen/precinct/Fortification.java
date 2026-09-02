@@ -201,10 +201,22 @@ public record Fortification(int gates, int wallHp, Map<DefensePostKind, Integer>
 
         /** The fortification a world of this rating gets under this demand. */
         public Fortification resolve(int defenceRating) {
+            return rung(defenceRating).fortification();
+        }
+
+        /**
+         * The same answer as a rung on the ladder rather than as a
+         * fortification.
+         *
+         * <p>What a lane's {@link LaneResistance} steps down from: an approach
+         * is stated relative to the thing it leads to, so it needs the
+         * objective's <em>place</em> on the ladder and not the loadout that
+         * place resolved to.
+         */
+        public Strength rung(int defenceRating) {
             return Strength.forDefenceRating(defenceRating)
                     .nudged(variance)
-                    .noHarderThan(ceiling)
-                    .fortification();
+                    .noHarderThan(ceiling);
         }
     }
 

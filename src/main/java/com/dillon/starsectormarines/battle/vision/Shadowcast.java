@@ -94,15 +94,19 @@ public final class Shadowcast {
                 int cx = sx + dx;
                 int cy = sy + dy;
 
-                if (cx < 0 || cx >= w || cy < 0 || cy >= h) {
-                    blocked = false;
-                    continue;
-                }
+                // A cell off the map or outside the disc says nothing about what
+                // is in shadow, so the blocked run carries across it. Clearing
+                // the flag here instead was the defect: a row whose tail falls
+                // outside the disc - which is most rows, since the column bound
+                // comes from the slope and not from the range - ended unblocked
+                // however solid its visible part was, so the octant never broke
+                // and re-scanned, from its original start slope, the wedge the
+                // recursion had already covered. That is vision through a wall
+                // and, compounding row on row, thousands of duplicate writes
+                // into a buffer sized for a disc.
+                if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
 
-                if (dx * dx + dy * dy > range * range) {
-                    blocked = false;
-                    continue;
-                }
+                if (dx * dx + dy * dy > range * range) continue;
 
                 float leftSlope  = (col - 0.5f) / r;
                 float rightSlope = (col + 0.5f) / r;
@@ -150,8 +154,22 @@ public final class Shadowcast {
     /**
      * Returns the maximum number of cells a single shadowcast can produce for
      * a given range. Use to pre-size the output array.
+     *
+     * <p>This is the bounding square of the disc rather than the disc's own
+     * area, because a cast writes more cells than the disc holds. The eight
+     * octants each scan their boundary rays inclusively, so the four axes and
+     * the four diagonals are written twice — the diagonals out to
+     * {@code range / sqrt(2)}, where they leave the disc. The area formula
+     * accounted for the axes and not the diagonals, which left it about a
+     * hundred and seventy short at the fog service's own 60-cell ceiling.
+     * Nothing hit it while every long-sighted observer stood behind a wall; an
+     * emplacement in open country sees the whole disc, and the overflow is an
+     * {@code ArrayIndexOutOfBoundsException} thousands of ticks into a battle.
+     * The square is 30% more memory at the ceiling — 58KB against 46KB, once
+     * per fog service — and cannot be exceeded however the rays are counted.
      */
     public static int maxCells(int range) {
-        return (int) (Math.PI * range * range) + 4 * range + 4;
+        int span = 2 * range + 1;
+        return span * span + 1;
     }
 }

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
@@ -161,6 +162,39 @@ class PrecinctPlanForMissionTest {
                 MapScale.MEDIUM, SEED, PrecinctPlan.Sprawl.BALANCED);
         assertEquals(seedsOf(stated), seedsOf(derived),
                 "a battle that said nothing about sprawl did not take the derived answer");
+    }
+
+    /**
+     * A Conquest that says nothing lays the default ladder; one that says zero
+     * lays none. Both readings cannot live on the same null, and for a while
+     * they did: the plan replaced a deliberate {@code null} with the default,
+     * which made the stated control unreachable and turned a control run into a
+     * re-run of the thing it was controlling for.
+     */
+    @Test
+    void aConquestThatStatesNoLanesGetsNone() {
+        PrecinctPlan unstated = BattleSetup.conquestPlanFor(
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                PrecinctPlan.Sprawl.BALANCED, null,
+                TraversalAxis.SOUTH_TO_NORTH, SEED);
+        assertTrue(lanePlaces(unstated) > 0,
+                "a Conquest that says nothing about lanes lays the default ladder");
+
+        PrecinctPlan none = BattleSetup.conquestPlanFor(
+                OperationTier.ESTABLISHED, RiskLevel.MEDIUM, MARKET,
+                PrecinctPlan.Sprawl.BALANCED, null, null,
+                TraversalAxis.SOUTH_TO_NORTH, SEED);
+        assertEquals(0, lanePlaces(none),
+                "a Conquest that states no lanes must lay none - it is the control "
+                        + "the lane balance evidence is read against");
+        assertNotNull(none.objective(),
+                "laying no lanes is not laying no objective");
+    }
+
+    private static long lanePlaces(PrecinctPlan plan) {
+        return plan.precincts().stream()
+                .filter(precinct -> precinct.name().startsWith("lane-"))
+                .count();
     }
 
     @Test

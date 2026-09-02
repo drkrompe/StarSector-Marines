@@ -4,7 +4,9 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-01 — marine capture allocation is bounded to the home track and
+Updated: 2026-09-02 — the tracks now have places on them.
+
+Earlier 2026-09-01 — marine capture allocation is bounded to the home track and
 its neighbours, own track first, measured on a tree carrying the prosecution
 fall-through fix; the far-track walk it used to authorize is refused and
 published as its own reason.
@@ -24,7 +26,10 @@ Conquest is a directional territorial command duel. Three lateral **tracks**
 organize a readable front across the map's traversal axis. A track is a sticky
 coordination preference, not an ownership fence: squads may support a neighbor
 when their home track has no useful work, and the whole mobile force may
-converge for the culminating keep or final contested compound.
+converge for the culminating keep or final contested compound. The tracks now have
+places on them: the map seeds a lane of garrison outposts and strongpoints along
+each track between the beachhead and the fortress, so an advancing track finds
+compounds to take on the way (see `precincts.md`).
 
 ## Marine command
 
