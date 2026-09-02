@@ -37,15 +37,17 @@ public final class MissionMapRequirements {
 
     static {
         // Conquest is the mission with real structural demands: a fortified
-        // defender, a keep to take, an air arm to ground, and a shore to land
-        // on. Every other mission type is deliberately absent — it requires
-        // nothing until somebody can say what it actually needs, and an
-        // invented requirement is worse than none.
+        // defender, a keep to take, an air arm to ground, a shore to land on,
+        // and a way to reach every compound it is won by taking. Every other
+        // mission type is deliberately absent — it requires nothing until
+        // somebody can say what it actually needs, and an invented
+        // requirement is worse than none.
         REQUIRED.put(MissionType.CONQUEST, EnumSet.of(
                 MapFeature.DEFENDER_GARRISON,
                 MapFeature.CENTRAL_KEEP,
                 MapFeature.GARRISON_AIRFIELD,
-                MapFeature.MARINE_LANDING_ZONE));
+                MapFeature.MARINE_LANDING_ZONE,
+                MapFeature.WALKABLE_COMPOUNDS));
     }
 
     private MissionMapRequirements() { }

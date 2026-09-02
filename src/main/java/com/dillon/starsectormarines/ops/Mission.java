@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
@@ -167,6 +168,22 @@ public final class Mission {
     public final LandingKind landing;
 
     /**
+     * The route each of those lanes takes, in lane order, or null for lanes
+     * that derive their own.
+     *
+     * <p>The other half of the lane statement, and the one a mission designer
+     * reaches for when the ground matters: a lane is a path from the beachhead
+     * to the objective, and writing one down is how a scenario says that the
+     * eastern approach goes round the lake rather than across it. Stated as
+     * fractions of the map, so the same brief lays out at any size.
+     *
+     * <p>Empty rather than null for a mission that says nothing, so a caller
+     * need not guard. A count of zero outranks any route: a lane that does not
+     * exist has nowhere to go.
+     */
+    public final List<LanePath> lanePaths;
+
+    /**
      * Fixed battle seed, or null to seed the battle off the wall clock (the
      * ordinary case — a relaunched mission should be a fresh map). Pinned only
      * where the point of the mission is comparing two launches on one
@@ -260,6 +277,11 @@ public final class Mission {
         this.standoff         = b.standoff;
         this.landing          = b.landing;
         this.lanes            = b.lanes;
+        // Not List.copyOf: a null entry is a lane that derives its own route,
+        // which is exactly what a mission stating one lane's path and leaving
+        // the others alone writes down.
+        this.lanePaths        = b.lanePaths == null ? Collections.emptyList()
+                : Collections.unmodifiableList(new ArrayList<>(b.lanePaths));
         this.battleSeed       = b.battleSeed;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
@@ -320,6 +342,7 @@ public final class Mission {
         private Standoff standoff;
         private Integer lanes;
         private LandingKind landing;
+        private List<LanePath> lanePaths;
         private Long battleSeed;
 
         private long contractId = -1L;
@@ -367,6 +390,7 @@ public final class Mission {
             this.standoff = m.standoff;
             this.lanes = m.lanes;
             this.landing = m.landing;
+            this.lanePaths = m.lanePaths;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
@@ -533,6 +557,16 @@ public final class Mission {
         /** @param landing what this battle comes down on; null takes the world's own answer. */
         public Builder landing(LandingKind landing) {
             this.landing = landing;
+            return this;
+        }
+
+        /**
+         * @param lanePaths the route each lane takes, in lane order, with a
+         *                  null entry for a lane that derives its own; null or
+         *                  empty leaves every lane to derive.
+         */
+        public Builder lanePaths(List<LanePath> lanePaths) {
+            this.lanePaths = lanePaths;
             return this;
         }
 

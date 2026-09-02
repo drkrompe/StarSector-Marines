@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.precinct.ApproachRegion;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.precinct.MapPlacement;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -46,6 +47,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -109,8 +111,10 @@ class ConquestOnPrecinctsTest {
 
             assertTheForceLandsAtItsStandoff(fixture.seed(), map);
             assertTheBeachheadIsAPlaceTheMarinesHold(map, sim);
+            assertNothingElseStandsInTheBeachhead(map);
             assertThereIsResistanceInDepth(fixture, map);
             assertEveryCompoundCanBeWalkedTo(map);
+            assertEveryLaneRouteIsWalkable(map);
         }
     }
 
@@ -159,6 +163,35 @@ class ConquestOnPrecinctsTest {
                                 + " at " + extent(other) + ", so the marines land on "
                                 + "somebody else's ground");
             }
+        }
+    }
+
+    /**
+     * Nothing else stands inside the ground the marines come ashore on.
+     *
+     * <p>Wider than the per-berth check above, and it is the one that caught a
+     * real defect: the lane ladder used to be seeded before the landing place,
+     * so the outermost rung took ground the beachhead's claim then grew around,
+     * and {@code reinforced-south} put an enemy barracks inside the marines'
+     * own landing zone — clear of every berth, and still a garrison the force
+     * lands beside. The order is objective, landing, lanes, settlement now, and
+     * a waypoint that falls in the beachhead slides forward along its own path.
+     *
+     * <p>Asked of every compound rather than of lane places alone, because a
+     * settlement building inside the landing zone would be the same fault
+     * arriving from the other direction.
+     */
+    private static void assertNothingElseStandsInTheBeachhead(MapResult map) {
+        TacticalNode beachhead = map.tacticalMap.all().stream()
+                .filter(node -> node.kind == TacticalNode.Kind.BEACHHEAD)
+                .findFirst().orElseThrow();
+        for (TacticalNode other : map.tacticalMap.all()) {
+            if (other == beachhead || !CompoundService.isCompound(other.kind)) continue;
+            boolean apart = other.right < beachhead.left || other.left > beachhead.right
+                    || other.bottom > beachhead.top || other.top < beachhead.bottom;
+            assertTrue(apart, "a " + other.kind + " at " + extent(other)
+                    + " stands inside the landing place " + extent(beachhead)
+                    + ", so the marines come ashore beside it");
         }
     }
 
@@ -296,6 +329,52 @@ class ConquestOnPrecinctsTest {
             assertTrue(reached, node.kind + " at " + node.anchorX + "," + node.anchorY
                     + " cannot be walked to from the marine spawn at "
                     + map.marineSpawnX + "," + map.marineSpawnY);
+        }
+    }
+
+    /**
+     * Every lane's recorded route can be walked, end to end, link by link.
+     *
+     * <p>The same law as {@link #assertEveryCompoundCanBeWalkedTo}, stated for
+     * the road between the places rather than for the places. A lane is a route
+     * through its links and the commander stages along it; a lane whose route
+     * could not be walked is a generation defect, not a shorter route — and it
+     * is invisible on a finished map, because the record simply comes back
+     * short.
+     *
+     * <p>Walkability is asserted rather than assumed: the read-back searches
+     * walkable ground only, so a route it produced is walkable by construction
+     * and this would pass on a route that had never been checked. What it
+     * actually catches is a route that stopped early — a link missing from the
+     * chain, or a polyline that never reached the keep.
+     */
+    private static void assertEveryLaneRouteIsWalkable(MapResult map) {
+        assertFalse(map.lanes.isEmpty(), "a Conquest map with lanes recorded none");
+        for (LaneRoute lane : map.lanes) {
+            assertTrue(lane.isWalked(), "lane " + (lane.lane() + 1)
+                    + " records " + lane.links().size() + " links and "
+                    + lane.route().size() + " cells of route, which is not a way through");
+            assertEquals(LaneRoute.OBJECTIVE_BAND,
+                    lane.links().get(lane.links().size() - 1).band(),
+                    "lane " + (lane.lane() + 1) + " does not end at the objective");
+            for (LaneRoute.Cell cell : lane.route()) {
+                assertTrue(map.grid.isWalkable(cell.x(), cell.y()),
+                        "lane " + (lane.lane() + 1) + " routes through "
+                                + cell.x() + "," + cell.y() + ", which is not walkable");
+            }
+            // Cell by cell and in order: a polyline with a jump in it is two
+            // routes, and a commander pacing along it would teleport.
+            for (int i = 1; i < lane.route().size(); i++) {
+                LaneRoute.Cell was = lane.route().get(i - 1);
+                LaneRoute.Cell now = lane.route().get(i);
+                assertEquals(1, Math.abs(was.x() - now.x()) + Math.abs(was.y() - now.y()),
+                        "lane " + (lane.lane() + 1) + " jumps from " + was + " to " + now);
+            }
+            for (LaneRoute.Link link : lane.links()) {
+                LaneRoute.Cell at = lane.route().get(link.routeIndex());
+                assertEquals(link.x(), at.x(), link.place() + " is not on its own route");
+                assertEquals(link.y(), at.y(), link.place() + " is not on its own route");
+            }
         }
     }
 

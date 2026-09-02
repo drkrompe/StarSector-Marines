@@ -502,10 +502,27 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     width, height);
         }
 
-        // The ladders come next, while there is still ground to take. They are
-        // built here and added after the garrison below, so the objective stays
-        // the first programmed place in the list and everything that reads
-        // objective() keeps reading the fortress.
+        // The beachhead next, and it has to come before the ladders.
+        //
+        // A landing place is decided by arithmetic rather than by a draw — the
+        // approach region, the standoff and the program's own radius — so it
+        // cannot give way to anything, while a lane rung is jittered and has a
+        // whole path to slide along. Seeded the other way round, the outermost
+        // rung took ground the landing claim then grew over, and the marines
+        // came ashore beside an enemy outpost standing inside their own landing
+        // zone. Measured on reinforced-south: a lane barracks inside the
+        // beachhead's own footprint. It takes no draw of its own, so the town
+        // and the outlying places fall exactly where they did.
+        Precinct landingPlace = null;
+        if (landing != null && attackerFrom != null) {
+            landingPlace = seedLanding(landing, standoff, objectivePlace, attackerFrom,
+                    taken, margin, width, height);
+        }
+
+        // The ladders take what the objective and the beachhead have left.
+        // They are built here and added after the garrison below, so the
+        // objective stays the first programmed place in the list and everything
+        // that reads objective() keeps reading the fortress.
         List<Precinct> lanePlaces = new ArrayList<>();
         List<String> unplacedLanes = new ArrayList<>();
         List<String> movedWaypoints = new ArrayList<>();
@@ -514,15 +531,6 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     objectivePlace, objective, attackerFrom, taken, separation,
                     margin, width, height, rng, lanePlaces, unplacedLanes,
                     movedWaypoints);
-        }
-
-        // And the beachhead, before the town floods. Its ground is claimed with
-        // the other programmed places, so a settlement grows around the place
-        // the marines land on rather than over it.
-        Precinct landingPlace = null;
-        if (landing != null && attackerFrom != null) {
-            landingPlace = seedLanding(landing, standoff, objectivePlace, attackerFrom,
-                    taken, margin, width, height);
         }
 
         // A remote map is an installation in country: adding a town to it is

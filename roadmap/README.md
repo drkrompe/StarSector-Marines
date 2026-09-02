@@ -105,7 +105,8 @@ plan of places — a settlement of the world's character and a garrison as hard
 as the world's rating and the mission's tier allow, Conquest at 560x336 — and
 a mission states whether its map is a lone fortress, a small city, or all
 sprawl, how far out its force lands, and how many lanes of resistance stand
-between the two; `precincts.md` owns that model. See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
+between the two, along what path each lane runs; `precincts.md` owns that
+model. See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
 `moddable-weapons-nouns.md`.
 
 Faction identity has one enduring lore-reference catalog for use before authoring

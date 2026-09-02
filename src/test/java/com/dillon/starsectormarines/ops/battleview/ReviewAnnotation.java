@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.List;
+
 /**
  * One mark a review frame carries over the battle it draws — a label, an
  * arrow, or an outlined place.
@@ -71,6 +73,31 @@ public sealed interface ReviewAnnotation {
         /** Cells up, inclusive. */
         public int height() { return top - bottom + 1; }
     }
+
+    /**
+     * A run of cells drawn as a connected line, with an optional word at its
+     * far end. What a route looks like when it is not a straight arrow: a lane
+     * bends round whatever stood in its way, and drawing that as a line from
+     * the first link to the last would be a picture of the bend not existing.
+     *
+     * <p>Fewer than two points is not a line and is refused, on the same
+     * reasoning that refuses a zero-length {@link Arrow}.
+     */
+    record Polyline(List<Point> points, String text, ReviewStyle style)
+            implements ReviewAnnotation {
+        public Polyline {
+            if (points == null || points.size() < 2) {
+                throw new IllegalArgumentException("a polyline of "
+                        + (points == null ? 0 : points.size()) + " points is not a line");
+            }
+            points = List.copyOf(points);
+            text = text == null ? "" : text.trim();
+            style = requireStyle(style);
+        }
+    }
+
+    /** One cell on a {@link Polyline}. */
+    record Point(float cellX, float cellY) { }
 
     private static String requireText(String text) {
         String trimmed = text == null ? "" : text.trim();

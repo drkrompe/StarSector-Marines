@@ -624,11 +624,22 @@ on every frame the beachhead was three boxes on whatever happened to be clear.
 Nothing on the map was *the landing zone*: the settlement could grow over it, no
 defender reasoned about it, and there was nothing to hold or lose.
 
-**The landing zone is a precinct.** It is seeded after the objective and the
-lanes and before the settlement, so it claims its ground with the other
+**The landing zone is a precinct.** It is seeded second — after the objective,
+before the lanes and the settlement — so it claims its ground with the other
 programmed places and a town grows around it rather than under it. Its berths
 are authored inside its own claim, the marine spawn is inside it, and nothing
 else may claim a cell of it.
+
+**It outranks the ladders because it cannot give way and they can.** A landing
+place is decided by arithmetic — the approach region, the standoff, and the
+program's own radius — so there is nothing to re-roll if the ground it wants is
+taken. A lane rung is jittered and has a whole path to slide along. Seeded the
+other way round the outermost rung took ground the landing claim then grew over,
+and on `reinforced-south` the marines came ashore beside an enemy barracks
+standing inside their own landing zone. The lane refusal rule treats the landing
+claim like any other claim, so the rung slides forward along its path instead.
+Ordering costs no draw of its own, so the town and the outlying places fall
+exactly where they did.
 
 **Every kind of landing place owes an apron**, and that is what makes the claim
 big enough to be one. A `FortressProgram` may owe open ground no building stands
@@ -731,7 +742,7 @@ wall; one settlement installation out in the town; and three marine tracks
 advancing up open streets to arrive at the same gate together. Every compound
 the capture rule counts stood inside the objective's own claim.
 
-**A lane is the map's side of a track.** One per track, a ribbon along the
+**A lane is the map's side of a track.** One per track, a route along the
 traversal axis from the attacker's region to the objective's claim. It is the
 third thing a Conquest states about its map, after where the objective goes and
 how far out its force lands: `Lanes`, whose count defaults to the commanders'
@@ -739,6 +750,70 @@ own `ConquestTrackLayout.DEFAULT_TRACK_COUNT`, so the map and the command layer
 agree by construction rather than by two numbers somebody keeps in step. Lanes
 are Conquest vocabulary; Assault and Raid state none and generate exactly as
 they did.
+
+**A lane is a path, because a ribbon cannot describe a bend.** A `LanePath` is
+an ordered list of waypoints from the attacker region to the objective, stated
+as fractions of the map so one brief lays out at any scale — the shape
+`MapPlacement` already has. The ladder stands on it, one rung per waypoint in
+path order: band 3 first, band 1 last, the objective beyond. A strip with its
+rungs up the middle laid the layers a Conquest was missing and is measured
+below, and it still cannot say *where the route goes*. A lane that has to work
+round a lake, a ridge or a claimed town had no way to be stated, and the
+commanders read the same map as a forward fraction, which is exactly the thing
+a bend is not.
+
+**A derived path meanders, within a bound that is about the centreline rather
+than the strip.** The straight form — the rungs up the middle at the same three
+fractions — is kept as the simplest derivation. The default walks the lane band
+by band with a bounded lateral drift, so two lanes on one map are not parallel
+lines. The bound is a sixth of the lane's own span, measured from the
+centreline and not merely clamped to the strip's edges: a random walk clamped
+only at the edges wanders to one side and stays there, which is a lane that has
+quietly become somebody else's.
+
+**Its drift is drawn from a stream of its own, and that is not a detail.** The
+first version drew from the plan's rng, which shifted every settlement and
+outlying seed downstream of it and moved compounds out of the front band the
+band law asserts. It read exactly like a geometry defect, and setting the drift
+to a single cell reproduced the identical failure — which is what proved it was
+the stream and not the shape. `pathRng` is salted off the objective's own seed
+and takes nothing from the plan's, so a map with paths seeds its town and its
+hinterland precisely where a map without them did, and any difference measured
+is the lanes themselves.
+
+**A waypoint moves along its path rather than being dropped.** A waypoint
+landing inside another place's claim, inside the objective, inside the landing
+zone, or on ground the map cannot walk slides forward along the path heading
+first and backward second, and keeps its place only when neither works. The
+check is a predicate over ground rather than a list of things to avoid, so
+water and rock are refused the day `world-surface-palette.md` puts them on the
+map without this rule being rewritten. A stated waypoint that has to move
+reports the move by name and distance, the way an unplaced rung reports itself;
+what could not be honoured is evidence, never a crash.
+
+**The route is a road, and the map records it.** Each lane place's artery aims
+at the *next link on its path* rather than at the objective's centroid, so
+interconnect's flood-walk weld bends around whatever stands between. After
+topology the route between consecutive links is read back as the cheapest
+walkable path along the road network — on-road cells at a unit, off-road cells
+at eight, so a route prefers the street and will still cut across a field
+rather than fail — and recorded as `MapResult.lanes`: per lane, its compounds
+in order and the polyline of cells between them. That record is the seam the
+commander's chain will read; the generator owes the route, the commander owes
+what is done along it. A route that cannot be walked is recorded short rather
+than thrown, and `ConquestOnPrecinctsTest` is what fails on it — the same way
+compound reachability is enforced, and the shape that leaves `conquestMap`'s
+re-roll free to find a better seed.
+
+**The review frame draws it, which is how a bend is seen before a battle is
+played.** Each lane's route is a pale-blue polyline through its numbered links
+— `2.1`, `2.2`, `2.3` outward-in — drawn under the compound boxes so a place
+still reads as a place. The colour is deliberately not amber; amber is ordnance
+and civilians in this palette.
+
+**A mission may state a path per lane**, nullable for derived, on the same
+mission, fixture and debug-stepper route the lane count already travels. A
+mission author writes the zig-zag; a fixture pins one for evidence.
 
 **Resistance is a ladder of places along each lane.** Every rung is a garrison
 precinct in the full sense this doc gives the objective — it claims
@@ -788,11 +863,12 @@ on `reinforced-south`, and twelve to three on `full-strength-west`. That is
 resistance in depth. Front band 3 holds nothing, and should not.
 
 **Placement follows the tracks, before growth.** Lane places are seeded after
-the objective and before the settlement, so the town grows around them — a
-strongpoint stands in the streets, an outpost in the fields. Lane *k*'s
-centreline is the lateral centre of track *k*, and its rungs sit at fractions
-0.30, 0.55 and 0.80 of the way from the attacker placement's centre to the
-objective precinct's own seed, jittered laterally inside the track's span. The
+the objective and the landing zone and before the settlement, so the town grows
+around them — a strongpoint stands in the streets, an outpost in the fields.
+Lane *k*'s centreline is the lateral centre of track *k*, and its waypoints sit
+at fractions 0.30, 0.55 and 0.80 of the way from the attacker placement's
+centre to the objective precinct's own seed, drifting laterally inside the
+track's span, with each rung jittered about the waypoint it stands on. The
 plan's margin and its separation from the fortress and the town are respected;
 **a lane's own rungs keep a smaller separation among themselves** — 32 cells
 against the plan's 60 at this scale — because consecutive rungs are fifty to
@@ -828,6 +904,43 @@ be read together and nothing else that landed in between is in the difference.
 | reinforced-south | 3 | timeout | 18000 | 4410 | 4530 | 23 | 19 | 18 | 203 | 417 |
 | full-strength-west | none | timeout | 18000 | 15570 | never | 12 | 0 | 0 | 265 | 159 |
 | full-strength-west | 3 | timeout | 18000 | 2820 | 2940 | 24 | 7 | 6 | 278 | 498 |
+
+**Re-measured once the lanes ran on paths**, at full length on the same two
+fixtures. This is not an isolation and should not be read as one: the same
+window carries the landing place becoming a precinct the marines start holding,
+the beachhead taking its ground before the ladders, and the compound
+reachability re-roll, so what it says is where the feature *arrived*, not what
+each part of it was worth.
+
+| fixture | shape | result | ticks | compounds | captures | held | marine losses | defender losses |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| reinforced-south | strip | timeout | 18000 | 23 | 19 | 18 | 203 | 417 |
+| reinforced-south | paths | timeout | 18000 | 26 | 25 | 17 | 234 | 442 |
+| full-strength-west | strip | timeout | 18000 | 24 | 7 | 6 | 278 | 498 |
+| full-strength-west | paths | timeout | 18000 | 25 | 12 | 7 | 334 | 448 |
+
+**`full-strength-west` is better on every axis that matters.** Twelve compounds
+taken against seven and seven held against six, on one more compound, with fifty
+fewer defenders killed doing it — the marines are getting further up the ladder
+rather than trading harder at the bottom of it. Retargets go from 141 to 418 and
+defender mobilizations from 9 to 21, which is what a front that is actually
+moving looks like from the command layer.
+
+**`reinforced-south` takes almost everything and cannot hold it**, which is a
+different problem from the one lanes started with. Twenty-five captures on a map
+of twenty-six is a near-sweep, against nineteen of twenty-three; the marines
+reach one compound short of all of them and end holding seventeen, so eight were
+taken and lost. Mixed compound-ticks — ground with both sides standing on it —
+go from 27,318 to 40,845. The clock is no longer reached because the assault
+stalls; it is reached because taking and holding have become separate jobs and
+the force is doing the first one.
+
+**That sharpens the open question rather than answering it.** The tick budget and
+the lift have not moved while the compound count has risen by three again, and a
+Conquest is won by holding every compound at once. Whether the answer is a longer
+clock, a bigger lift, or a defender that retakes less is a balance question for
+the command layer, and it is worth deciding on the evidence above rather than by
+adding compounds until the figure looks right.
 
 **The fixture that could not be fought is now a battle.** `full-strength-west`
 went fifteen thousand ticks — eight battle-minutes — before anything was
