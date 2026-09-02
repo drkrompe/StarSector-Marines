@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
+import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -32,6 +33,8 @@ import java.nio.file.Paths;
  * Without the weapon registry, every {@code WeaponDef} stat read throws;
  * without special equipment, persisted loadout ids and utility presentation
  * cannot resolve. Both catalogs deliberately fail loud rather than degrading.
+ * The mech catalog is the same kind of thing for chassis and their components:
+ * without it every mech spec sheet throws rather than reading blank.
  *
  * <p>Registered globally via {@code META-INF/services/org.junit.jupiter.api.extension.Extension}
  * + {@code junit.jupiter.extensions.autodetection.enabled=true} in
@@ -89,6 +92,10 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             }
             loadouts.validateBuiltins();
             SquadLoadoutPresentationRegistry.install(loadouts);
+        }
+        if (MechCatalog.installed() == null) {
+            MechCatalog.install(MechCatalog.parse(new JSONObject(
+                    Files.readString(Paths.get("mod", MechCatalog.CONTENT_PATH)))));
         }
         if (GroundRosterRegistry.installed() == null) {
             GroundRosterRegistry rosters = new GroundRosterRegistry();

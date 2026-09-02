@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
@@ -60,15 +61,15 @@ class EquipmentDoctrineDesignerViewModelTest {
         EquipmentDoctrineDesignerViewModel.BilletCard weapon =
                 viewModel.billets().get().get(0);
         assertEquals(List.of("DMG", "RNG", "ACC", "DPS"), weapon.stats().stream()
-                .map(EquipmentDoctrineDesignerViewModel.StatMeter::label).toList());
+                .map(StatMeter::label).toList());
         assertTrue(weapon.flavor().contains("Fire-team lead"));
         List<String> before = weapon.stats().stream()
-                .map(EquipmentDoctrineDesignerViewModel.StatMeter::fillStyle).toList();
+                .map(StatMeter::fillStyle).toList();
 
         weapon.cyclePrimary().run();
 
         List<String> after = viewModel.billets().get().get(0).stats().stream()
-                .map(EquipmentDoctrineDesignerViewModel.StatMeter::fillStyle).toList();
+                .map(StatMeter::fillStyle).toList();
         assertNotEquals(before, after);
 
     }

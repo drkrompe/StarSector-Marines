@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
+import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
@@ -71,9 +73,9 @@ class FleetArmoryViewModelTest {
         FleetArmoryViewModel.MarineViewerCard firstMarine =
                 viewModel.marineCards().get().get(0);
         assertEquals(List.of("DMG", "RNG", "ACC", "DPS"), firstMarine.weaponStats()
-                .stream().map(FleetArmoryViewModel.StatMeter::label).toList());
+                .stream().map(StatMeter::label).toList());
         assertEquals(List.of("HEALTH", "ARMOR", "RESIST", "SPEED"), firstMarine.armorStats()
-                .stream().map(FleetArmoryViewModel.StatMeter::label).toList());
+                .stream().map(StatMeter::label).toList());
         assertTrue(firstMarine.weaponStats().stream().allMatch(stat ->
                 stat.fillStyle().matches("width: \\d{1,3}%;")));
         // The card shows a role from the closed vocabulary rather than whatever
@@ -421,7 +423,7 @@ class FleetArmoryViewModelTest {
 
         for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
             assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVASION"), card.stats().stream()
-                    .map(FleetArmoryViewModel.StatMeter::label).toList());
+                    .map(StatMeter::label).toList());
         }
     }
 

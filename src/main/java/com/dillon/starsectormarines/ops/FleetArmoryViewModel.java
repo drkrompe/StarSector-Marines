@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -38,6 +37,9 @@ import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
+import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
+import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -776,27 +778,19 @@ public final class FleetArmoryViewModel {
     }
 
     private static List<StatMeter> armorComparisonStats(String cardId, MarineArmorCatalogDef armor) {
-        float evasion = 1f - armor.incomingAccuracyMult();
+        float evasion = CatalogCeilings.evasionOf(armor);
         return List.of(
-                statMeter(cardId + ":armor-value", "ARMOR",
+                StatMeter.of(cardId + ":armor-value", "ARMOR",
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
-                        armor.armorCapacity(), maximumArmorCapacity()),
-                statMeter(cardId + ":resist", "RESIST",
+                        armor.armorCapacity(), CatalogCeilings.armorCapacity()),
+                StatMeter.of(cardId + ":resist", "RESIST",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
-                        armor.armorRating(), maximumArmorRating()),
-                statMeter(cardId + ":move", "MOVE",
+                        armor.armorRating(), CatalogCeilings.armorRating()),
+                StatMeter.of(cardId + ":move", "MOVE",
                         String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
-                        armor.moveSpeedMult(), maximumMoveSpeed()),
-                statMeter(cardId + ":evasion", "EVASION",
-                        signedPercent(evasion), evasion, maximumEvasion()));
-    }
-
-    private static float maximumEvasion() {
-        float maximum = 0.01f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult());
-        }
-        return maximum;
+                        armor.moveSpeedMult(), CatalogCeilings.moveSpeedMult()),
+                StatMeter.of(cardId + ":evasion", "EVASION",
+                        signedPercent(evasion), evasion, CatalogCeilings.armorEvasion()));
     }
 
     private static String signedPercent(float value) {
@@ -1399,15 +1393,15 @@ public final class FleetArmoryViewModel {
         float dps = InfantryCombatStats.estimatedDps(
                 billet.primaryDef(), billet.grade(), profile);
         return List.of(
-                statMeter(cardId + ":damage", "DMG", formatOneDecimal(damage),
-                        damage, maximumWeaponDamage()),
-                statMeter(cardId + ":range", "RNG", formatOneDecimal(range),
-                        range, maximumWeaponRange()),
-                statMeter(cardId + ":accuracy", "ACC",
+                StatMeter.of(cardId + ":damage", "DMG", formatOneDecimal(damage),
+                        damage, CatalogCeilings.weaponDamage()),
+                StatMeter.of(cardId + ":range", "RNG", formatOneDecimal(range),
+                        range, CatalogCeilings.weaponRange()),
+                StatMeter.of(cardId + ":accuracy", "ACC",
                         String.format(Locale.ROOT, "%.0f%%", accuracy * 100f),
                         accuracy, 1f),
-                statMeter(cardId + ":dps", "DPS", formatOneDecimal(dps),
-                        dps, maximumWeaponDps(profile)));
+                StatMeter.of(cardId + ":dps", "DPS", formatOneDecimal(dps),
+                        dps, CatalogCeilings.weaponDps(profile)));
     }
 
     private static String weaponDelta(
@@ -1456,90 +1450,24 @@ public final class FleetArmoryViewModel {
         if (billet == null) return List.of();
         MarineArmorCatalogDef armor = billet.armorDef();
         return List.of(
-                statMeter(cardId + ":health", "HEALTH",
+                StatMeter.of(cardId + ":health", "HEALTH",
                         String.format(Locale.ROOT, "%.0f", UnitType.MARINE.maxHp),
                         UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
-                statMeter(cardId + ":armor-value", "ARMOR",
+                StatMeter.of(cardId + ":armor-value", "ARMOR",
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
-                        armor.armorCapacity(), maximumArmorCapacity()),
-                statMeter(cardId + ":resist", "RESIST",
+                        armor.armorCapacity(), CatalogCeilings.armorCapacity()),
+                StatMeter.of(cardId + ":resist", "RESIST",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
-                        armor.armorRating(), maximumArmorRating()),
-                statMeter(cardId + ":speed", "SPEED",
+                        armor.armorRating(), CatalogCeilings.armorRating()),
+                StatMeter.of(cardId + ":speed", "SPEED",
                         String.format(Locale.ROOT, "%.1f",
                                 UnitType.MARINE.moveSpeed * armor.moveSpeedMult()),
                         UnitType.MARINE.moveSpeed * armor.moveSpeedMult(),
-                        UnitType.MARINE.moveSpeed * maximumMoveSpeed()));
-    }
-
-    private static StatMeter statMeter(
-            String id, String label, String value, float amount, float maximum) {
-        int percentage = maximum > 0f
-                ? Math.round(Math.max(0f, Math.min(1f, amount / maximum)) * 100f) : 0;
-        return new StatMeter(id, id + ":label", id + ":track", id + ":fill",
-                id + ":value", label, value, "width: " + percentage + "%;");
+                        UnitType.MARINE.moveSpeed * CatalogCeilings.moveSpeedMult()));
     }
 
     private static String formatOneDecimal(float value) {
         return String.format(Locale.ROOT, "%.1f", value);
-    }
-
-    private static float maximumWeaponDamage() {
-        float maximum = 1f;
-        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                maximum = Math.max(maximum, InfantryCombatStats.damage(weapon, grade));
-            }
-        }
-        return maximum;
-    }
-
-    private static float maximumWeaponRange() {
-        float maximum = 1f;
-        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                maximum = Math.max(maximum, InfantryCombatStats.range(weapon, grade));
-            }
-        }
-        return maximum;
-    }
-
-    private static float maximumWeaponDps(SoldierProfile profile) {
-        float maximum = 1f;
-        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                maximum = Math.max(maximum,
-                        InfantryCombatStats.estimatedDps(weapon, grade, profile));
-            }
-        }
-        return maximum;
-    }
-
-    private static float maximumArmorCapacity() {
-        float maximum = 1f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.armorCapacity());
-        }
-        return maximum;
-    }
-
-    private static float maximumArmorRating() {
-        float maximum = 1f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.armorRating());
-        }
-        return maximum;
-    }
-
-    private static float maximumMoveSpeed() {
-        float maximum = 1f;
-        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            maximum = Math.max(maximum, armor.moveSpeedMult());
-        }
-        return maximum;
     }
 
     private static String armorDelta(
@@ -1942,26 +1870,6 @@ public final class FleetArmoryViewModel {
                 case "deltaClasses" -> deltaClasses;
                 case "career" -> career;
                 default -> throw new IllegalArgumentException("Unknown marine-card property");
-            };
-        }
-    }
-
-    public record StatMeter(
-            String id, String labelId, String trackId, String fillId, String valueId,
-            String label, String value, String fillStyle)
-            implements MarkupPropertySource {
-        @Override
-        public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id;
-                case "labelId" -> labelId;
-                case "trackId" -> trackId;
-                case "fillId" -> fillId;
-                case "valueId" -> valueId;
-                case "label" -> label;
-                case "value" -> value;
-                case "fillStyle" -> fillStyle;
-                default -> throw new IllegalArgumentException("Unknown stat-meter property");
             };
         }
     }
