@@ -37,14 +37,23 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
         List<RaidThreat> activeThreats(CampaignState state);
     }
 
-    static final class RaidThreat {
-        final long eventKey;
-        final int marketId;
-        final int attackerFactionId;
+    /**
+     * One live raid aimed at one market. Read by the Garrison arming path above and, for
+     * a market the player owns, by {@link PolityThreatQuery} deciding whether the company
+     * may meet the landing itself.
+     *
+     * <p>{@code marketId} and {@code attackerFactionId} are {@code CampaignState} registry
+     * slots rather than vanilla ids, because that is what the tables downstream store.
+     */
+    public static final class RaidThreat {
+        public final long eventKey;
+        public final int marketId;
+        public final int attackerFactionId;
         /** Attacker ground strength in vanilla's raid-strength units; 0 when unestimated. */
-        final float groundStrength;
+        public final float groundStrength;
 
-        RaidThreat(long eventKey, int marketId, int attackerFactionId, float groundStrength) {
+        public RaidThreat(long eventKey, int marketId, int attackerFactionId,
+                          float groundStrength) {
             this.eventKey = eventKey;
             this.marketId = marketId;
             this.attackerFactionId = attackerFactionId;
@@ -89,7 +98,8 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
         }
     }
 
-    private static List<RaidThreat> readLiveThreats(CampaignState state) {
+    /** Every live raid of both vanilla shapes, one entry per raid and targeted market. */
+    static List<RaidThreat> readLiveThreats(CampaignState state) {
         if (Global.getSector() == null || Global.getSector().getIntelManager() == null) {
             return Collections.emptyList();
         }
