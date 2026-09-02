@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -84,6 +85,8 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         int freshestContactTick = contacts.stream()
                 .mapToInt(CommanderContact::observedTick).max().orElse(-1);
         List<CommanderContact> actionable = actionable(contacts, frame.tick());
+        RallyChoice[] rallies = rallies(pool, assigned, actionable, payload,
+                frame);
 
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
@@ -131,20 +134,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                 continue;
             }
 
-            CommanderContact contact = index > 0 && !actionable.isEmpty()
-                    ? actionable.get((index - 1) % actionable.size()) : null;
-            int[] rally = contact != null
-                    ? rally(squad, index, contact.cellX(), contact.cellY(),
-                    frame) : null;
-            // The published role names the ground actually taken. A contact
-            // with no reachable rally position is as unactionable as no contact
-            // at all, and the squad standing on the source perimeter is not
-            // interdicting anything however it got there.
-            boolean interdicting = rally != null;
-            if (rally == null) {
-                rally = rally(squad, index, payload.sourceCellX(),
-                        payload.sourceCellY(), frame);
-            }
+            RallyChoice rally = rallies[index];
             if (rally == null) {
                 proposals.add(CommandProposal.claim(squad.squadId(),
                         CommandAuthority.MISSION_COMMAND,
@@ -157,7 +147,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
             }
 
             Role role = index == 0 ? Role.SOURCE_GUARD
-                    : interdicting ? Role.INTERDICTION
+                    : rally.interdicting() ? Role.INTERDICTION
                     : Role.ALARM_RESPONDER;
             String reason = role == Role.SOURCE_GUARD
                     ? payload.alarmActive() ? "SOURCE_ALARM_SECURITY"
@@ -166,12 +156,12 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                     ? "BELIEVED_CONTACT_INTERDICTION"
                     : "SOURCE_ALARM_RESPONSE";
             ObjectiveAssignment assignment = ObjectiveAssignment.defendSite(
-                    squad.squadId(), rally[0], rally[1]);
+                    squad.squadId(), rally.cellX(), rally.cellY());
             proposals.add(CommandProposal.assign(assignment,
                     CommandAuthority.MISSION_COMMAND, reason,
                     stabilityBreak(squad, assignment)));
             intents.add(new SquadIntent(squad.squadId(), role, reason,
-                    assignment.kind(), rally[0], rally[1],
+                    assignment.kind(), rally.cellX(), rally.cellY(),
                     squad.localContact()));
         }
 
@@ -230,19 +220,78 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                 .toList();
     }
 
+    /**
+     * Where each assigned squad rallies, and whether that cell was chosen off a
+     * believed contact rather than off the source.
+     *
+     * <p>Every cell in one pulse is distinct. The pool is bounded source
+     * security and its whole point is that the source's security is spread
+     * around the source, so two squads sent to stand on one another is a
+     * formation nobody would order — and the two searches that can produce it
+     * run from different centres, so neither can see the collision on its own.
+     * An interdiction cell derived from a contact standing near the source may
+     * land exactly on the guard's, and it did. Choosing in pool order with the
+     * taken cells carried forward is what makes the searches aware of each
+     * other; the source guard is index 0 and therefore keeps the cell it would
+     * have had before.
+     *
+     * @param pool       the mobile pool, in the plan's own stable order
+     * @param assigned   how many of it this pulse mobilizes
+     * @param actionable the beliefs a responder may still be sent to
+     * @return one choice per assigned index, null where nothing is reachable
+     */
+    private static RallyChoice[] rallies(List<CommandSquadState> pool,
+                                         int assigned,
+                                         List<CommanderContact> actionable,
+                                         ExtractionObjectiveFacts payload,
+                                         ExtractionDefenderCommandFrame frame) {
+        RallyChoice[] choices = new RallyChoice[assigned];
+        Set<Long> taken = new HashSet<>();
+        for (int index = 0; index < assigned; index++) {
+            CommandSquadState squad = pool.get(index);
+            CommanderContact contact = index > 0 && !actionable.isEmpty()
+                    ? actionable.get((index - 1) % actionable.size()) : null;
+            int[] rally = contact != null
+                    ? rally(squad, index, contact.cellX(), contact.cellY(),
+                    frame, taken) : null;
+            // The published role names the ground actually taken. A contact
+            // with no reachable rally position is as unactionable as no contact
+            // at all, and the squad standing on the source perimeter is not
+            // interdicting anything however it got there.
+            boolean interdicting = rally != null;
+            if (rally == null) {
+                rally = rally(squad, index, payload.sourceCellX(),
+                        payload.sourceCellY(), frame, taken);
+            }
+            if (rally == null) continue;
+            taken.add(cellKey(rally[0], rally[1]));
+            choices[index] = new RallyChoice(rally[0], rally[1], interdicting);
+        }
+        return choices;
+    }
+
     private static int[] rally(CommandSquadState squad, int slot,
                                int centerX, int centerY,
-                               ExtractionDefenderCommandFrame frame) {
+                               ExtractionDefenderCommandFrame frame,
+                               Set<Long> taken) {
         for (int i = 0; i < RALLY_OFFSETS.length; i++) {
             int[] offset = RALLY_OFFSETS[(slot + i) % RALLY_OFFSETS.length];
             int x = centerX + offset[0];
             int y = centerY + offset[1];
+            if (taken.contains(cellKey(x, y))) continue;
             if (frame.topology().isWalkable(x, y)
                     && frame.topology().reachable(squad.anchorCellX(),
                     squad.anchorCellY(), x, y)) return new int[]{x, y};
         }
         return null;
     }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xffffffffL);
+    }
+
+    /** One squad's rally cell for this pulse, and how it was selected. */
+    private record RallyChoice(int cellX, int cellY, boolean interdicting) { }
 
     private static boolean strategyOwned(CommandDirective directive) {
         return directive != null
