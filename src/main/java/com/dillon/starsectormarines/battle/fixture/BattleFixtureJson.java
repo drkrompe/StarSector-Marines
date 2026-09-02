@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
@@ -80,6 +81,7 @@ public final class BattleFixtureJson {
             putSprawl(root, conquest.sprawl());
             putStandoff(root, conquest.standoff());
             putLanes(root, conquest.lanes());
+            putLanding(root, conquest.landing());
             return root;
         }
         if (fixture instanceof SabotageBattleFixture sabotage) {
@@ -252,7 +254,8 @@ public final class BattleFixtureJson {
                 arrivalPlanFromJson(root.getJSONObject("arrivalPlan")),
                 sprawlFromJson(root),
                 standoffFromJson(root),
-                lanesFromJson(root));
+                lanesFromJson(root),
+                landingFromJson(root));
     }
 
     private static SabotageBattleFixture decodeSabotage(
@@ -657,6 +660,22 @@ public final class BattleFixtureJson {
         }
         // Zero is the stated control: a Conquest with nothing on its tracks.
         return lanes;
+    }
+
+    /**
+     * Writes what the battle comes down on, and nothing at all when it has no
+     * opinion. Same rule as {@link #putSprawl}: absent is the derived case, so
+     * a fixture written before landing kinds existed still lands on whatever
+     * its target world offers.
+     */
+    private static void putLanding(JSONObject root, LandingKind landing) throws Exception {
+        if (landing != null) root.put("landing", landing.name());
+    }
+
+    /** The document's stated landing kind, or null for the world's own answer. */
+    private static LandingKind landingFromJson(JSONObject root) throws Exception {
+        return nullableEnum(LandingKind.class,
+                root.has("landing") ? root.getString("landing") : null, "landing");
     }
 
     /** The document's stated standoff, or null for the mission type's default. */

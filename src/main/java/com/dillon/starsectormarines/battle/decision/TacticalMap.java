@@ -28,6 +28,24 @@ public final class TacticalMap {
         this.nodes = new ArrayList<>(nodes);
     }
 
+    /**
+     * Adds a node discovered after the link pass, at generation time only.
+     *
+     * <p>One caller, and the reason is ordering rather than convenience: the
+     * beachhead is made of the arrival areas, and those are authored by the
+     * last stage in the recipe — after the terrain, the walls and the
+     * emplacements every berth has to be clear of, and therefore after the map
+     * was built and linked. A node added here carries no links, which is
+     * honest: nothing overwatches or supplies a beachhead.
+     *
+     * <p>Same lifecycle contract as {@link TacticalNode#setCompoundBounds}:
+     * called during map generation, never at runtime. Treat the map as frozen
+     * once a {@code MapResult} exposes it.
+     */
+    public void add(TacticalNode node) {
+        nodes.add(node);
+    }
+
     /** Every node on the map, in emission order. */
     public List<TacticalNode> all() {
         return Collections.unmodifiableList(nodes);
