@@ -105,6 +105,48 @@ class GarrisonDefenseMissionFactoryTest {
                 .defenderFactionOverride);
     }
 
+    /**
+     * A vanilla raid states how many it is landing, so the operation is sized off that
+     * rather than off the risk label: 200 raid strength outgrows Reinforced's 175.
+     */
+    @Test
+    void aVanillaRaidSizesTheOperationFromItsOwnLandingStrength() {
+        Mission mission = GarrisonDefenseMissionFactory.create(
+                strengthPayload(GarrisonDefenseTriggerType.VANILLA_RAID, 200f),
+                "Jangala", "hegemony");
+
+        assertEquals(OperationTier.FULL_STRENGTH, mission.tier);
+    }
+
+    /** Only the raid reader estimates a landing; every other trigger keeps the default. */
+    @Test
+    void aRivalStrikeKeepsTheDefaultTier() {
+        Mission rival = GarrisonDefenseMissionFactory.create(
+                strengthPayload(GarrisonDefenseTriggerType.RIVAL_STRIKE, 200f),
+                "Jangala", "hegemony");
+        Mission unestimatedRaid = GarrisonDefenseMissionFactory.create(
+                strengthPayload(GarrisonDefenseTriggerType.VANILLA_RAID, 0f),
+                "Jangala", "hegemony");
+
+        assertEquals(OperationTier.VETERAN, rival.tier);
+        assertEquals(OperationTier.VETERAN, unestimatedRaid.tier);
+    }
+
+    private static GarrisonDefensePayload strengthPayload(GarrisonDefenseTriggerType type,
+                                                          float strength) {
+        CampaignState state = new CampaignState();
+        int captain = state.captainRegistry.intern("captain-1");
+        long id = state.addContract(1L, -1L, -1L, ContractType.GARRISON,
+                ContractState.IN_PROGRESS, 10, 100, -1, (byte) 0,
+                captain, 7, -1, 0, 1_000,
+                (byte) 25, (byte) 15, (byte) 105);
+        state.contractMarinesCommitted[0] = 20;
+        state.contractDefenseEventKey[0] = 77L;
+        state.contractDefenseTriggerType[0] = type.toByte();
+        state.contractDefenseAttackerStrength[0] = strength;
+        return GarrisonDefensePayload.from(state, id);
+    }
+
     private static int totalCycles(Detachment detachment) {
         int total = 0;
         for (ShuttleAssignment assignment : detachment.shuttleManifest) {

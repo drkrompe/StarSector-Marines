@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
@@ -24,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -35,6 +39,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -103,6 +108,137 @@ class ConquestOnPrecinctsTest {
                             + " drop zones");
 
             assertTheForceLandsAtItsStandoff(fixture.seed(), map);
+            assertThereIsResistanceInDepth(fixture, map);
+            assertEveryCompoundCanBeWalkedTo(map);
+        }
+    }
+
+    /**
+     * The tracks have places on them, and they are layered.
+     *
+     * <p>Two readings of the same set of compounds. <b>Depth</b> is which
+     * {@link FrontDepth} band each one stands in, and <b>breadth</b> is which of
+     * {@code ConquestTrackLayout}'s lateral thirds it stands in — the map's side
+     * of the lanes the commanders advance up. Before this a Conquest map put
+     * every compound in band 0 inside one wall, and all three tracks arrived at
+     * it with nothing to take on the way.
+     *
+     * <p><b>Bands 1 and 2, not 1 to 3, and that is a measurement rather than a
+     * concession.</b> A front band is a ring around the objective, cut into
+     * three equal rings out to the map's furthest cell; a lane is a ribbon along
+     * the axis. On both canonical fixtures band 3 is the ground <em>behind</em>
+     * the beachhead: at {@code CLOSE} the force lands about two hundred cells
+     * short of the claim, which is band 2, so a rung placed in band 3 would
+     * stand at the marines' backs. On {@code full-strength-west} it is
+     * impossible rather than merely undesirable — the lateral extent is 336
+     * cells against a ring width of 139, so no cell in front of the beachhead is
+     * far enough from the claim to be band 3 at all. The ladder still has three
+     * rungs; the outer one shares band 2 with the middle one.
+     */
+    private static void assertThereIsResistanceInDepth(ConquestBattleFixture fixture,
+                                                       MapResult map) {
+        ConquestTrackLayout tracks = new ConquestTrackLayout(rolledAxis(fixture.seed()),
+                MapScale.CONQUEST.width, MapScale.CONQUEST.height);
+        int[][] byBandAndLane = new int[map.frontDepth.bands()][tracks.trackCount()];
+        for (TacticalNode node : map.tacticalMap.all()) {
+            if (!CompoundService.isCompound(node.kind)) continue;
+            int lane = tracks.trackForCell(node.anchorX, node.anchorY);
+            if (lane < 0) continue;
+            byBandAndLane[map.frontDepth.bandAt(node.anchorX, node.anchorY)][lane]++;
+        }
+
+        String tally = tally(byBandAndLane);
+        // The plan the first attempt derives. A re-rolled map is a different
+        // plan, so this is what the shortfall was rather than what it is — which
+        // is still the number worth printing when the assertion below fails.
+        PrecinctPlan plan = BattleSetup.conquestPlanFor(fixture.tier(), fixture.risk(),
+                fixture.targetProfile(), fixture.sprawl(),
+                rolledAxis(fixture.seed()), fixture.seed());
+        String unplaced = plan.unplacedLanePlaces().size() + " rungs unseated "
+                + plan.unplacedLanePlaces();
+
+        for (int band = 1; band <= 2; band++) {
+            int lanes = 0;
+            for (int lane = 0; lane < tracks.trackCount(); lane++) {
+                if (byBandAndLane[band][lane] > 0) lanes++;
+            }
+            assertTrue(lanes >= 2, "front band " + band + " holds compounds in "
+                    + lanes + " of " + tracks.trackCount() + " lanes; " + tally
+                    + "; " + unplaced);
+        }
+        for (int lane = 0; lane < tracks.trackCount(); lane++) {
+            int ahead = 0;
+            for (int band = 1; band < map.frontDepth.bands(); band++) {
+                ahead += byBandAndLane[band][lane];
+            }
+            assertTrue(ahead > 0, "lane " + lane + " has nothing on it outside the "
+                    + "objective's own claim; " + tally + "; " + unplaced);
+        }
+    }
+
+    /** The band-by-lane grid, for an assertion message that says what was found. */
+    private static String tally(int[][] byBandAndLane) {
+        StringBuilder out = new StringBuilder("compounds by band x lane");
+        for (int band = 0; band < byBandAndLane.length; band++) {
+            out.append(" [").append(band).append(':');
+            for (int lane = 0; lane < byBandAndLane[band].length; lane++) {
+                out.append(' ').append(byBandAndLane[band][lane]);
+            }
+            out.append(']');
+        }
+        return out.toString();
+    }
+
+    /**
+     * Every compound is reachable from the marine spawn.
+     *
+     * <p>The standing law {@code conquest-nouns.md} states: victory requires
+     * every compound to flip, so one nobody can walk into is an unwinnable
+     * mission rather than a cosmetic defect. It is asserted here because lanes
+     * put nine more walled places on the map, each with its own gates, and a
+     * post that sealed itself would be exactly that failure.
+     *
+     * <p>Reached means <em>some</em> walkable cell of the compound's footprint,
+     * not its anchor: a tactical-node anchor carries no promise of standing on
+     * open floor, which is the trap {@code mapgen-nouns.md} already records.
+     */
+    private static void assertEveryCompoundCanBeWalkedTo(MapResult map) {
+        NavigationGrid grid = map.grid;
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        boolean[][] seen = new boolean[width][height];
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        queue.add(new int[]{map.marineSpawnX, map.marineSpawnY});
+        seen[map.marineSpawnX][map.marineSpawnY] = true;
+        int[][] steps = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!queue.isEmpty()) {
+            int[] at = queue.poll();
+            for (int[] step : steps) {
+                int nx = at[0] + step[0];
+                int ny = at[1] + step[1];
+                if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+                if (seen[nx][ny] || !grid.isWalkable(nx, ny)) continue;
+                seen[nx][ny] = true;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        for (TacticalNode node : map.tacticalMap.all()) {
+            if (!CompoundService.isCompound(node.kind)) continue;
+            boolean reached = false;
+            for (int x = Math.min(node.left, node.right);
+                 x <= Math.max(node.left, node.right) && !reached; x++) {
+                for (int y = Math.min(node.top, node.bottom);
+                     y <= Math.max(node.top, node.bottom); y++) {
+                    if (x < 0 || y < 0 || x >= width || y >= height) continue;
+                    if (seen[x][y]) {
+                        reached = true;
+                        break;
+                    }
+                }
+            }
+            assertTrue(reached, node.kind + " at " + node.anchorX + "," + node.anchorY
+                    + " cannot be walked to from the marine spawn at "
+                    + map.marineSpawnX + "," + map.marineSpawnY);
         }
     }
 
@@ -211,12 +347,18 @@ class ConquestOnPrecinctsTest {
             SurfacePalette.ROCK, SettlementLink.ROAD);
 
     /**
-     * Every sprawl states exactly one place to take, and a remote map is that
-     * place and nothing else.
+     * Every sprawl states exactly one place with a keep in it, and a remote map
+     * is places and country and nothing else.
      *
      * <p>The one keep is the law {@code BspCityGenerator} now enforces on any
-     * map with an objective, and it starts here: two programmed precincts would
-     * be two command posts however well the fillers behaved.
+     * map with an objective, and it starts here: two keeps would be two command
+     * posts however well the fillers behaved.
+     *
+     * <p><b>It is the keep that is unique, not the programmed precinct.</b> A
+     * Conquest map now carries ten of those — the fortress and the nine rungs of
+     * its lanes — and what keeps the law true is that neither lane program packs
+     * a {@code KEEP_THRONE}. Counting programmed places instead would pass only
+     * while lanes did not exist.
      */
     @Test
     void everySprawlStatesOnePlaceToTake() {
@@ -225,9 +367,16 @@ class ConquestOnPrecinctsTest {
                     OperationTier.REINFORCED, RiskLevel.LOW, DEFENDED_TOWN,
                     sprawl, TraversalAxis.SOUTH_TO_NORTH, 4096L);
             assertNotNull(plan, "a defended market derives a plan at " + sprawl);
-            long programmed = plan.precincts().stream()
-                    .filter(Precinct::isProgrammed).count();
-            assertEquals(1, programmed, sprawl + " states one place to take");
+            long keeps = plan.precincts().stream()
+                    .filter(Precinct::isProgrammed)
+                    .filter(precinct -> precinct.program()
+                            .countOf(RoomPurpose.KEEP_THRONE) > 0)
+                    .count();
+            assertEquals(1, keeps, sprawl + " states one place to take");
+            assertEquals(plan.objective(), plan.precincts().stream()
+                            .filter(Precinct::isProgrammed).findFirst().orElseThrow(),
+                    sprawl + " lets a lane place stand ahead of the fortress in the "
+                            + "list, so everything reading objective() reads the wrong one");
             long zoned = plan.precincts().stream()
                     .filter(precinct -> !precinct.isProgrammed()).count();
             if (sprawl == PrecinctPlan.Sprawl.REMOTE) {

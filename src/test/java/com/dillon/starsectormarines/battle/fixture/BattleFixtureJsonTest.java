@@ -429,6 +429,54 @@ class BattleFixtureJsonTest {
                 () -> BattleFixtureJson.fromJson(encoded));
     }
 
+    /**
+     * How many lanes of resistance the map lays survives a round trip, and its
+     * absence survives it too. Same law as the standoff: an absent {@code lanes}
+     * is one per command track, which is what every fixture written before the
+     * field existed means.
+     */
+    @Test
+    void carriesAStatedLaneCountAndLeavesAnUnstatedOneAlone() throws Exception {
+        ConquestBattleFixture stated = laneConquestFixture(1);
+        JSONObject encoded = BattleFixtureJson.toJson(stated);
+        assertEquals(1, encoded.getInt("lanes"));
+        assertEquals(stated, BattleFixtureJson.fromJson(encoded));
+
+        // Zero is a statement rather than the absence of one: it asks for the
+        // map Conquest had before lanes existed, which is the control.
+        ConquestBattleFixture none = laneConquestFixture(0);
+        JSONObject noneEncoded = BattleFixtureJson.toJson(none);
+        assertEquals(0, noneEncoded.getInt("lanes"));
+        assertEquals(none, BattleFixtureJson.fromJson(noneEncoded));
+
+        ConquestBattleFixture silent = laneConquestFixture(null);
+        JSONObject silentEncoded = BattleFixtureJson.toJson(silent);
+        assertFalse(silentEncoded.has("lanes"),
+                "a fixture that states no lane count must write no key, or every "
+                        + "checked-in conquest fixture stops being what it was");
+        assertNull(((ConquestBattleFixture) BattleFixtureJson.fromJson(silentEncoded))
+                        .lanes(),
+                "an absent lane count decodes to the default case, not to a value");
+    }
+
+    /** A negative lane count is refused the way an unknown enum is. */
+    @Test
+    void rejectsANegativeLaneCount() throws Exception {
+        JSONObject encoded = BattleFixtureJson.toJson(laneConquestFixture(2));
+        encoded.put("lanes", -1);
+        assertThrows(IllegalArgumentException.class,
+                () -> BattleFixtureJson.fromJson(encoded));
+    }
+
+    private static ConquestBattleFixture laneConquestFixture(Integer lanes) {
+        ConquestBattleFixture base = standoffConquestFixture(Standoff.CLOSE);
+        return new ConquestBattleFixture(base.seed(), base.manifest(),
+                base.enemyHasHeavyArmor(), base.tier(), base.risk(),
+                base.targetProfile(), base.marineFighterSupport(),
+                base.enemyFighterSupport(), base.arrivalPlan(), base.sprawl(),
+                base.standoff(), lanes);
+    }
+
     private static ConquestBattleFixture standoffConquestFixture(Standoff standoff) {
         return new ConquestBattleFixture(
                 141_418L,
