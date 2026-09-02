@@ -318,6 +318,33 @@ public final class ConquestLaneChain {
         return best;
     }
 
+    /**
+     * The same, refusing a cell that is nowhere near the road.
+     *
+     * <p>What a standoff needs to know is where along the lane a contact
+     * stands, and a contact half the map off the road does not stand anywhere
+     * along it — taking its nearest route cell anyway would put the safe line
+     * behind a body that is not in the way. {@code -1} when the nearest route
+     * cell is further than {@code within} cells away.
+     */
+    public int routeIndexWithin(int lane, float x, float y, float within) {
+        List<LaneRoute.Cell> cells = route(lane);
+        if (cells.isEmpty()) return -1;
+        int best = -1;
+        double bestDistance = Double.MAX_VALUE;
+        for (int i = 0; i < cells.size(); i++) {
+            LaneRoute.Cell cell = cells.get(i);
+            double dx = cell.x() + 0.5 - x;
+            double dy = cell.y() + 0.5 - y;
+            double distance = dx * dx + dy * dy;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = i;
+            }
+        }
+        return bestDistance <= (double) within * within ? best : -1;
+    }
+
     /** How many cells this lane's route runs for. */
     public int routeLength(int lane) {
         return route(lane).size();

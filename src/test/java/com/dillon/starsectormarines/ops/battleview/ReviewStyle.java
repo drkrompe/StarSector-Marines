@@ -38,6 +38,17 @@ public enum ReviewStyle {
      * because a map carries three of these and one of that.
      */
     ROUTE(new Color(150, 190, 255), 1.8f),
+    /**
+     * The place a lane is currently being fought over: its front link, the
+     * first one the marines do not hold.
+     *
+     * <p>The route's own colour brought forward to white rather than a new
+     * hue, because it is the same object saying something more — a reader
+     * looking at three lanes wants to see at a glance which rung each of them
+     * has got to, and a fourth colour on the frame would have to be learned.
+     * Heavy, because it is one label per lane among a dozen.
+     */
+    FRONT(new Color(226, 240, 255), 2.4f),
     /** Anything else worth writing on the map. */
     NOTE(new Color(205, 205, 215), 1.4f);
 

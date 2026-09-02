@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
@@ -219,6 +220,33 @@ public final class ConquestCommand implements ConquestFrontCommand,
     static boolean HOME_TRACK_CAPTURES_ENABLED = Boolean.parseBoolean(
             System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "true"));
 
+    /**
+     * {@code -Dbattle.conquest.laneChain=false} restores the forward-fraction
+     * reading: a compound becomes assignable once the track's friendly lead is
+     * within {@link #CAPTURE_FRONT_REACH_CELLS} of its depth, and a staging
+     * order is derived along the traversal axis rather than along the road the
+     * map recorded. That is the control this layer has to be measured against,
+     * and it is a switch rather than an older commit because a
+     * commit-to-commit comparison measures every other difference between the
+     * two trees at the same time.
+     *
+     * <p>With it on, a lane is a chain of places and the only one worth
+     * assaulting is the first the marines do not hold. The fraction it replaces
+     * measured how far up the map the line had walked, which on a grown map
+     * says nothing about what is held: a track reads 0.8 advanced with its
+     * strongpoint still the defenders'. It also cannot go backwards, so a place
+     * retaken left the picture unchanged.
+     *
+     * <p>A map with no lanes on it is unaffected either way: the chain is empty
+     * and every compound falls through to the fraction, which is what every
+     * mission but Conquest and every Conquest on an ungrown map does.
+     */
+    public static final String LANE_CHAIN_PROPERTY = "battle.conquest.laneChain";
+
+    /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
+    static boolean LANE_CHAIN_ENABLED = Boolean.parseBoolean(
+            System.getProperty(LANE_CHAIN_PROPERTY, "true"));
+
     /** Stand this many cells behind the nearest believed hostile in a track. */
     static final int TRACK_LINE_STANDOFF_CELLS = 8;
     /** A staging marker may lead the current friendly line by at most this much. */
@@ -256,6 +284,33 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private final TraversalAxis axis;
     /** Shared production geometry; lazily synthesized only by the legacy axis constructor used in tests. */
     private ConquestTrackLayout trackLayout;
+
+    /**
+     * The routes the map recorded for its lanes, handed over at setup. Empty
+     * for every mission that lays none, which is all of them but Conquest.
+     */
+    private final List<LaneRoute> laneRoutes;
+
+    /**
+     * The lanes read as chains of places, built once the compounds are known.
+     *
+     * <p>Not built in the constructor because a chain is lanes <em>and</em>
+     * compounds together, and the compounds arrive with the first frozen
+     * command frame. Topology and compound identity are static after spawn
+     * settle, so this is read once and kept.
+     */
+    private ConquestLaneChain laneChain = ConquestLaneChain.NONE;
+    private boolean laneChainRead = false;
+    /** Per lane, this pulse: the front link, and how much of the ladder is held. */
+    private int[] chainFront = new int[0];
+    private int[] chainLinks = new int[0];
+    private int[] chainHeld = new int[0];
+    /** Capture zones the marines hold, refreshed with the compound targets. */
+    private final IntOpenHashSet marineHeldZones = new IntOpenHashSet();
+    /** Per lane, this pulse: how far along its road the friendly line has come. */
+    private int[] routeLead = new int[0];
+    /** Per lane, this pulse: where believed hostiles stand along its road, sorted. */
+    private int[][] routeContacts = new int[0][];
 
     /** Lazy: built from the first frozen command frame after battle setup settles. */
     private boolean initialized = false;
@@ -411,12 +466,26 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     public ConquestCommand(TraversalAxis axis) {
         this.axis = axis;
+        this.laneRoutes = List.of();
         this.frontSnapshot = ConquestFrontSnapshot.empty(axis);
     }
 
     public ConquestCommand(ConquestTrackLayout trackLayout) {
+        this(trackLayout, List.of());
+    }
+
+    /**
+     * The production constructor: the track fence and the roads the map's own
+     * lanes run on.
+     *
+     * @param laneRoutes what {@code MapResult.lanes} recorded, or empty for a
+     *                   map that laid no lanes
+     */
+    public ConquestCommand(ConquestTrackLayout trackLayout,
+                           List<LaneRoute> laneRoutes) {
         this.trackLayout = trackLayout;
         this.axis = trackLayout.axis();
+        this.laneRoutes = laneRoutes == null ? List.of() : List.copyOf(laneRoutes);
         this.frontSnapshot = ConquestFrontSnapshot.empty(Faction.MARINE, axis);
     }
 
@@ -441,6 +510,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             initialized = true;
         }
         refreshCompoundTargets(frame);
+        prepareRouteFrame(frame);
 
         // Candidate squads for assignment: alive marines, minus any born-holding
         // garrison squad. Compound garrisons are NOT assigned here — the dedicated
@@ -949,7 +1019,25 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return slots[index] >= compoundTargets.get(index).desiredSquads;
     }
 
+    /**
+     * Whether a distant detachment may be sent at this compound yet.
+     *
+     * <p><b>A compound on a lane answers with the chain, not with the
+     * fraction.</b> A lane is taken in order, so the only place on it worth
+     * detaching anybody to is the first the marines do not hold; everything
+     * further up is behind a place still standing, and the forward-fraction
+     * latch would have offered it the moment the line drew level with its
+     * depth. That is the whole of "assault progress is ownership along the
+     * chain" as the allocation sees it.
+     *
+     * <p>A compound on <em>no</em> lane — a settlement's supply hub, the
+     * beachhead — keeps the latched depth reading. There is no ladder to place
+     * it on, and refusing it outright would strand it.
+     */
     private boolean frontHasReached(CompoundTarget t) {
+        if (laneChainInForce() && laneChain.isOnChain(t.captureZoneId)) {
+            return isChainFront(t.captureZoneId);
+        }
         return frontReachedCaptureZones.contains(t.captureZoneId);
     }
 
@@ -1152,10 +1240,41 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 markerCellY = zoneMarkerY[assignment.targetZoneId()];
             }
         }
-        return new SquadDirective(squad.id, preferredTrack, effectiveTrack,
-                reason, assignment != null ? assignment.kind() : null,
+        SquadDirective published = new SquadDirective(squad.id, preferredTrack,
+                effectiveTrack, reason,
+                assignment != null ? assignment.kind() : null,
                 assignment != null ? assignment.targetZoneId() : -1,
                 targetCellX, targetCellY, markerCellX, markerCellY);
+        int[] chainTarget = chainTargetOf(assignment, effectiveTrack);
+        return chainTarget == null ? published
+                : published.withChainTarget(chainTarget[0], chainTarget[1]);
+    }
+
+    /**
+     * Which place on which lane an order is about, or {@code null} for one
+     * about no place at all.
+     *
+     * <p>A capture names its own compound, so it is keyed to the place that
+     * compound stands on. A staging or attack order names ground rather than a
+     * building, and the place it is about is its lane's front — which is the
+     * thing the squad is being walked toward. A report keyed only by track can
+     * say a squad was working in the middle third of the map and not what it
+     * was sent to take.
+     */
+    private int[] chainTargetOf(ObjectiveAssignment assignment, int effectiveTrack) {
+        if (!laneChainInForce() || assignment == null) return null;
+        if (assignment.kind() == AssignmentKind.SECURE_COMPOUND) {
+            int zone = assignment.targetZoneId();
+            for (int lane = 0; lane < laneChain.laneCount(); lane++) {
+                int index = laneChain.linkIndexOn(lane, zone);
+                if (index >= 0) return new int[]{lane, index};
+            }
+            return null;
+        }
+        if (effectiveTrack < 0 || effectiveTrack >= laneChain.laneCount()) return null;
+        int front = chainFront[effectiveTrack];
+        if (front < 0 || front >= laneChain.links(effectiveTrack).size()) return null;
+        return new int[]{effectiveTrack, front};
     }
 
     /**
@@ -1269,6 +1388,72 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 .comparingInt((CompoundTarget target) -> target.captureZoneId)
                 .thenComparingInt(target -> target.node.anchorX)
                 .thenComparingInt(target -> target.node.anchorY));
+        readLaneChain();
+    }
+
+    /**
+     * Reads the lanes as chains once, then re-reads each lane's front.
+     *
+     * <p>The chain itself is topology — which compound stands on which place —
+     * and is settled the first time compounds are disclosed. The front is
+     * ownership and moves, in both directions, so it is read every pulse from
+     * the same frozen compound states the rest of the plan runs on.
+     */
+    private void readLaneChain() {
+        if (compoundTargets.isEmpty()) return;
+        if (!laneChainRead && !laneRoutes.isEmpty()) {
+            List<ConquestLaneChain.Compound> compounds =
+                    new ArrayList<>(compoundTargets.size());
+            for (CompoundTarget target : compoundTargets) {
+                compounds.add(new ConquestLaneChain.Compound(target.captureZoneId,
+                        target.node.anchorX, target.node.anchorY));
+            }
+            laneChain = ConquestLaneChain.of(laneRoutes, compounds);
+            chainFront = new int[laneChain.laneCount()];
+            chainLinks = new int[laneChain.laneCount()];
+            chainHeld = new int[laneChain.laneCount()];
+        }
+        laneChainRead = true;
+        if (laneChain.laneCount() == 0) return;
+        marineHeldZones.clear();
+        for (CompoundTarget target : compoundTargets) {
+            if (target.state == CompoundService.CompoundState.MARINE_HELD) {
+                marineHeldZones.add(target.captureZoneId);
+            }
+        }
+        for (int lane = 0; lane < laneChain.laneCount(); lane++) {
+            chainFront[lane] = laneChain.frontLink(lane, marineHeldZones::contains);
+            int links = 0;
+            int held = 0;
+            for (ConquestLaneChain.Link link : laneChain.links(lane)) {
+                if (!link.hasCompounds()) continue;
+                links++;
+                if (link.isHeld(marineHeldZones::contains)) held++;
+            }
+            chainLinks[lane] = links;
+            chainHeld[lane] = held;
+        }
+    }
+
+    /** Whether the chain is the reading in force for this battle. */
+    private boolean laneChainInForce() {
+        return LANE_CHAIN_ENABLED && laneChain.laneCount() > 0
+                && laneChain.hasChains();
+    }
+
+    /**
+     * Whether this compound is the next place to take on a lane it stands on.
+     *
+     * <p>Asked of every lane rather than of one, because the objective stands
+     * on all of them: the fortress is the last link of three chains, and
+     * whichever finishes first is entitled to go for it.
+     */
+    private boolean isChainFront(int captureZoneId) {
+        for (int lane = 0; lane < laneChain.laneCount(); lane++) {
+            int index = laneChain.linkIndexOn(lane, captureZoneId);
+            if (index >= 0 && index == chainFront[lane]) return true;
+        }
+        return false;
     }
 
     /**
@@ -1384,6 +1569,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (track < 0 || track >= STRIP_COUNT) return null;
         if (frame.influence() == null) return null;
 
+        TrackStage onRoute = laneRouteChoice(squad, track, frame, attacking);
+        if (onRoute != null) return onRoute;
+
         int squadLateral = Math.round(trackLayout.lateralCoordinate(
                 squad.centroidX, squad.centroidY));
         TrackFront front = trackFront(squad, track, frame);
@@ -1431,6 +1619,144 @@ public final class ConquestCommand implements ConquestFrontCommand,
         // spend their time restaging. Left switched off rather than shipped on
         // the strength of the idea: see awayFromOwnLosses.
         return reachableTrackStage(squad, track, lateral, desiredForward, frame);
+    }
+
+    /**
+     * The same staging decision, taken along the road the map recorded.
+     *
+     * <p><b>The bounds are the axis version's, measured on the route rather
+     * than on the map.</b> A squad may not stage past the next place on its
+     * lane, may not lead the friendly line on that lane by more than
+     * {@link #TRACK_LINE_LEAD_CELLS}, may not stride further than
+     * {@link #TRACK_LINE_MAX_STRIDE_CELLS} in one order, must keep
+     * {@link #TRACK_LINE_STANDOFF_CELLS} behind the nearest believed hostile
+     * standing on the road ahead of it, and may not be pulled backwards. Each
+     * of those used to be a forward coordinate; on a grown map the road between
+     * two places is wherever interconnect put it, so a bound measured up the
+     * map is a bound on a line the ground does not follow.
+     *
+     * <p>The destination is a cell <em>of the route</em>, walked back from the
+     * one the bounds chose until one is walkable and reachable — so a stage is
+     * on the road by construction rather than snapped toward it, which is the
+     * acceptance this layer owes.
+     *
+     * <p>{@code null} when the lane has no route, no place left to take, or the
+     * squad already stands at or past the next one. The axis derivation then
+     * runs, which is also what the whole of a lane-less map gets.
+     */
+    private TrackStage laneRouteChoice(PlanningSquad squad, int track,
+                                       ConquestCommandFrame frame,
+                                       boolean attacking) {
+        if (!laneChainInForce()) return null;
+        if (track < 0 || track >= laneChain.laneCount()) return null;
+        List<ConquestLaneChain.Link> links = laneChain.links(track);
+        int front = chainFront[track];
+        if (front < 0 || front >= links.size()) return null;
+        int length = laneChain.routeLength(track);
+        if (length <= 0) return null;
+        int at = laneChain.routeIndexNear(track, squad.centroidX, squad.centroidY);
+        if (at < 0) return null;
+        int goal = Math.min(links.get(front).routeIndex(), length - 1);
+        if (goal <= at) return null;
+
+        int desired = Math.min(goal, at + TRACK_LINE_MAX_STRIDE_CELLS);
+        desired = Math.min(desired, routeLead[track] + TRACK_LINE_LEAD_CELLS);
+        if (!attacking) {
+            int hostile = nearestHostileOnRoute(track, at);
+            if (hostile != Integer.MAX_VALUE) {
+                desired = Math.min(desired, hostile - TRACK_LINE_STANDOFF_CELLS);
+            }
+        }
+        desired = desired / TRACK_LINE_BAND_CELLS * TRACK_LINE_BAND_CELLS;
+        if (desired < at + TRACK_LINE_MIN_ADVANCE_CELLS) return null;
+
+        int floor = Math.max(at + TRACK_LINE_MIN_ADVANCE_CELLS,
+                desired - TRACK_LINE_SNAP_RADIUS);
+        CommandTopology topology = frame.topology();
+        if (!topology.inBounds(squad.anchorCellX, squad.anchorCellY)
+                || !topology.isWalkable(squad.anchorCellX, squad.anchorCellY)) {
+            return null;
+        }
+        for (int index = desired; index >= floor; index--) {
+            LaneRoute.Cell cell = laneChain.routeCell(track, index);
+            if (cell == null) continue;
+            if (!topology.inBounds(cell.x(), cell.y())
+                    || !topology.isWalkable(cell.x(), cell.y())) continue;
+            boolean atTarget = squad.anchorCellX == cell.x()
+                    && squad.anchorCellY == cell.y();
+            if (!atTarget && !topology.reachable(squad.anchorCellX,
+                    squad.anchorCellY, cell.x(), cell.y())) continue;
+            return new TrackStage(track, cell.x(), cell.y());
+        }
+        return null;
+    }
+
+    /**
+     * The nearest believed hostile standing on this lane's road ahead of a
+     * squad at route index {@code at}, or {@link Integer#MAX_VALUE} for a road
+     * with nobody on it.
+     *
+     * <p>Contacts are placed on the route once per pulse rather than once per
+     * squad, and only those actually near the road are placed at all — a
+     * contact off in the fields is not in front of anybody walking it. That is
+     * the same reasoning as the corridor bound the axis derivation uses, asked
+     * of the road instead of of a lateral band.
+     */
+    private int nearestHostileOnRoute(int track, int at) {
+        int[] contacts = routeContacts[track];
+        for (int index : contacts) {
+            if (index > at) return index;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    /**
+     * Places this pulse's own squads and believed contacts on each lane's road.
+     *
+     * <p>Once per plan, not once per squad: finding where a body stands along a
+     * route is a walk of the whole route, and asking it inside the per-squad
+     * derivation would run that walk squads times contacts times lanes every
+     * pulse for an answer that does not change within the pulse.
+     */
+    private void prepareRouteFrame(ConquestCommandFrame frame) {
+        int lanes = laneChain.laneCount();
+        if (!laneChainInForce()) {
+            routeLead = new int[0];
+            routeContacts = new int[0][];
+            return;
+        }
+        routeLead = new int[lanes];
+        routeContacts = new int[lanes][];
+        Arrays.fill(routeLead, 0);
+        List<List<Integer>> contacts = new ArrayList<>(lanes);
+        for (int lane = 0; lane < lanes; lane++) contacts.add(new ArrayList<>());
+
+        for (CommandSquadState other : frame.squads()) {
+            if (other.aliveMembers() <= 0 || other.role() == UnitRole.GARRISON) continue;
+            int lane = trackLayout.trackForLateral(trackLayout.lateralCoordinate(
+                    other.centroidX(), other.centroidY()));
+            if (lane < 0 || lane >= lanes) continue;
+            int index = laneChain.routeIndexNear(lane, other.centroidX(),
+                    other.centroidY());
+            if (index > routeLead[lane]) routeLead[lane] = index;
+        }
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence != null) {
+            for (CommanderContact contact : influence.contacts()) {
+                int lane = trackLayout.trackForCell(contact.cellX(), contact.cellY());
+                if (lane < 0 || lane >= lanes) continue;
+                int index = laneChain.routeIndexWithin(lane, contact.cellX() + 0.5f,
+                        contact.cellY() + 0.5f, TRACK_LINE_STANDOFF_LATERAL_CELLS);
+                if (index >= 0) contacts.get(lane).add(index);
+            }
+        }
+        for (int lane = 0; lane < lanes; lane++) {
+            List<Integer> found = contacts.get(lane);
+            int[] out = new int[found.size()];
+            for (int i = 0; i < out.length; i++) out[i] = found.get(i);
+            Arrays.sort(out);
+            routeContacts[lane] = out;
+        }
     }
 
     /**
@@ -1835,12 +2161,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
             int lateralEnd = trackLayout.lateralEndInclusive(track);
             float bodyProgress = preferredMembers[track] > 0
                     ? bodyProgressSum[track] / preferredMembers[track] : -1f;
+            boolean onChain = laneChainInForce() && track < chainLinks.length;
             tracks.add(new TrackState(track, lateralStart, lateralEnd,
                     preferredSquads[track], effectiveSquads[track],
                     effectiveMembers[track], bodyProgress, leadProgress[track],
                     knownHostileFront[track], knownContacts[track],
                     friendlyPressure[track], hostilePressure[track],
-                    targetZones[track]));
+                    targetZones[track], -1,
+                    onChain ? chainLinks[track] : -1,
+                    onChain ? chainHeld[track] : -1,
+                    onChain ? chainFront[track] : -1));
         }
         return new ConquestFrontSnapshot(frame.tick(),
                 influenceTick, axis, phase, remainingCompounds,

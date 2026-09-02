@@ -1714,7 +1714,8 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        sim.setAutonomousCommander(Faction.MARINE, new ConquestCommand(tracks),
+        sim.setAutonomousCommander(Faction.MARINE,
+                new ConquestCommand(tracks, map.lanes),
                 ConquestCommandDisclosure.INSTANCE);
         ConquestDefenderStartingForce startingForce =
                 ConquestDefenderStartingForce.capture(sim, tracks);

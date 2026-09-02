@@ -564,6 +564,9 @@ public final class CommandTraceRecorder {
         floatField(out, "friendlyPressure", track.friendlyPressure());
         floatField(out, "knownHostilePressure", track.knownHostilePressure());
         numberField(out, "targetZoneId", track.targetZoneId());
+        numberField(out, "chainLinks", track.chainLinks());
+        numberField(out, "chainLinksHeld", track.chainLinksHeld());
+        numberField(out, "chainFrontLink", track.chainFrontLink());
         out.append('}');
     }
 
@@ -583,6 +586,8 @@ public final class CommandTraceRecorder {
         numberField(out, "markerCellY", action.markerCellY());
         booleanField(out, "distantCaptureDeferred",
                 action.distantCaptureDeferred());
+        numberField(out, "targetLane", action.targetLane());
+        numberField(out, "targetLink", action.targetLink());
         out.append('}');
     }
 
