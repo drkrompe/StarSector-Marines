@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
+import com.dillon.starsectormarines.campaign.systems.StationedStrengthSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
@@ -35,6 +37,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CampaignStateSystemOrderTest {
@@ -78,6 +81,8 @@ class CampaignStateSystemOrderTest {
         int rescueSpawn = indexOf(systems, CivilianRescueSpawnSystem.class);
         int silentColony = indexOf(systems, SilentColonySpawnSystem.class);
         int extraction = indexOf(systems, StationingDefaultExtractionSystem.class);
+        int polityRoster = indexOf(systems, PolityRosterSystem.class);
+        int stationedStrength = indexOf(systems, StationedStrengthSystem.class);
 
         assertTrue(defaults < retainers);
         assertTrue(power < ambitions);
@@ -122,6 +127,10 @@ class CampaignStateSystemOrderTest {
         assertTrue(moralCompass < captainDrift);
         assertTrue(civilWarParticipation < discovery);
         assertTrue(lifecycle < extraction);
+        // The day's derived polity roster stands before anything reads a market's ground
+        // defence, and the stationed-strength write stays last of all.
+        assertTrue(polityRoster < stationedStrength);
+        assertEquals(systems.size() - 1, stationedStrength);
     }
 
     private static int indexOf(List<CampaignSystem> systems,

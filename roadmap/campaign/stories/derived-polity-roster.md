@@ -4,7 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
-Updated: 2026-09-02 — slices 1 (Derivation) and 2 (Numbers) shipped.
+Updated: 2026-09-02 — slices 1 (Derivation), 2 (Numbers) and 3 (Persistence,
+system, registration) shipped; the panel and the live pass remain.
 
 Read `polity-ground-doctrine.md` (the model and its laws — this story is its
 implementation), `meta-progression.md` (the company-and-polity boundary),
@@ -80,12 +81,16 @@ points shape it, edited from a small panel in the colony's Marine Ops dialog.
    `PolityDefenceMissionFactory` sets and `BattleSetup` threads. The multiplier
    argument at `MarineOpsContext.polityDefenceMissions` is still the literal
    `1f` slice 3 replaces.
-3. **Persistence, system, registration.** The released-kit table and the
-   doctrine ints with load guards; the rebuild system with an injectable
-   production-signal source and its live adapter; the registry replace
-   operation; the numbers multiplier wired from state into the polity defence
-   factory. Tests pin the daily replace, the immediate rebuild, and that a
-   legacy save loads with the Common floor and zero points.
+3. ~~**Persistence, system, registration.**~~ SHIPPED. `CampaignState` carries
+   the released-kit table (`equipmentTemplateRegistry`,
+   `releasedKitTemplateId`, `CampaignTable.RELEASED_KIT`) and the three doctrine
+   ints, both with legacy-load guards; `ReleasedKit` and `PolityDoctrineLedger`
+   are their only accessors; `ProductionSignals` / `MarketProductionSignals` /
+   `VanillaProductionSignals` split the pure ladder from the one live market
+   read; `GroundRosterRegistry.replaceDerived` makes a rebuild a replacement;
+   `PolityRosterSystem` rebuilds daily and on game load; and
+   `MarineOpsContext.polityDefenceMissions` now passes
+   `PolityDoctrineLedger.read(state).numbersMultiplier()`.
 4. **The panel.** The screen, its document, the polity row, and the snapshot
    entry. Steppers refuse a fourth point; a release is one click and
    irreversible.

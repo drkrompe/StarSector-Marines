@@ -35,6 +35,14 @@ public final class CampaignState implements Serializable {
     public final IdRegistry marketRegistry = new IdRegistry();
     /** Captain ids interned for the {@code contractCaptainId[]} column — UUID strings → ints. */
     public final IdRegistry captainRegistry = new IdRegistry();
+    /**
+     * Equipment template card ids interned for the {@code releasedKitTemplateId[]} column.
+     *
+     * <p>Not {@code final} like its siblings: it arrived after the first saves did, so a
+     * legacy load hands it back {@code null} and {@link #readResolve} has to put a fresh
+     * one in place.
+     */
+    public IdRegistry equipmentTemplateRegistry = new IdRegistry();
 
     // ---------- houses[] ----------
 
@@ -423,6 +431,36 @@ public final class CampaignState implements Serializable {
     /** Campaign day the defence settled; -1 in unused slots. */
     public int[]   polityDefenceDay = filledInts(INITIAL_CAPACITY, -1);
     public int     polityDefenceCount = 0;
+
+    // ---------- released kit (see polity-ground-doctrine.md, law 2) ----------
+
+    /*
+     * Which equipment templates the company has released to its own polity. A release
+     * grants the polity the definition and never touches the company's Armory, so this
+     * is deliberately its own table here rather than a flag on the Armory's owned set:
+     * the two answer different questions, and the derivation reads only this one.
+     *
+     * Common-band cards are never listed. They are released by construction — every
+     * market sells them — so listing them would put the same fact in two places and let
+     * a save disagree with the catalog. See ReleasedKit.
+     */
+
+    /** Card slot in {@link #equipmentTemplateRegistry}; -1 in unused slots. */
+    public int[]   releasedKitTemplateId = filledInts(INITIAL_CAPACITY, -1);
+    public int     releasedKitCount = 0;
+
+    // ---------- polity ground doctrine (see polity-ground-doctrine.md) ----------
+
+    /*
+     * The three zero-sum axes, held as plain ints rather than as a PolityDoctrine so the
+     * saved shape stays primitive like every other column here. PolityDoctrineLedger is
+     * the one reader and writer; it clamps on read, so an overspent save loads as a
+     * legal allocation rather than refusing to load at all.
+     */
+
+    public int polityDoctrineQuality = 0;
+    public int polityDoctrineNumbers = 0;
+    public int polityDoctrineHeavySupport = 0;
 
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
@@ -1931,7 +1969,50 @@ public final class CampaignState implements Serializable {
                 Math.min(polityDefenceEventKey.length, polityDefenceMarketId.length),
                 Math.min(polityDefenceWon.length, polityDefenceDay.length));
         polityDefenceCount = Math.max(0, Math.min(polityDefenceCount, polityDefenceCapacity));
+        // A save from before the polity could be armed carries neither the card registry
+        // nor the column. Both restore empty, which is the Common floor and nothing else —
+        // exactly what such a save meant.
+        if (equipmentTemplateRegistry == null) {
+            equipmentTemplateRegistry = new IdRegistry();
+        }
+        if (releasedKitTemplateId == null) {
+            releasedKitTemplateId = filledInts(INITIAL_CAPACITY, -1);
+            releasedKitCount = 0;
+        }
+        releasedKitCount = Math.max(0,
+                Math.min(releasedKitCount, releasedKitTemplateId.length));
         return this;
+    }
+
+    /**
+     * Records that the polity now holds the template in {@code templateSlot}.
+     *
+     * @return the row it landed on, or -1 when the slot is unnameable or already held.
+     *         A release is permanent and never revoked, so there is no forget.
+     */
+    public int recordReleasedKit(int templateSlot) {
+        if (templateSlot < 0 || releasedKitRow(templateSlot) >= 0) return -1;
+        ensureReleasedKitCapacity(releasedKitCount + 1);
+        int i = releasedKitCount++;
+        releasedKitTemplateId[i] = templateSlot;
+        return i;
+    }
+
+    /** Row holding {@code templateSlot}, or -1 when the polity has not been given it. */
+    public int releasedKitRow(int templateSlot) {
+        if (templateSlot < 0) return -1;
+        for (int i = 0; i < releasedKitCount; i++) {
+            if (releasedKitTemplateId[i] == templateSlot) return i;
+        }
+        return -1;
+    }
+
+    private void ensureReleasedKitCapacity(int needed) {
+        if (needed <= releasedKitTemplateId.length) return;
+        int oldLength = releasedKitTemplateId.length;
+        int n = Math.max(needed, oldLength * 2);
+        releasedKitTemplateId = Arrays.copyOf(releasedKitTemplateId, n);
+        Arrays.fill(releasedKitTemplateId, oldLength, n, -1);
     }
 
     private void ensureContractCapacity(int needed) {
