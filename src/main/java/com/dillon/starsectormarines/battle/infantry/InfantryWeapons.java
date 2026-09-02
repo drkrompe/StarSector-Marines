@@ -405,7 +405,7 @@ public class InfantryWeapons {
         SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
         if (contactTool.activation() != SpecialActivation.CLOSE_CONTACT) return;
         Faction carrierFaction = roster.identity().faction(carrier);
-        boolean friendly = roster.identity().faction(target) == carrierFaction;
+        boolean friendly = carrierFaction.friendlyTo(roster.identity().faction(target));
         float damage = friendly
                 ? contactTool.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
                 : contactTool.damage();

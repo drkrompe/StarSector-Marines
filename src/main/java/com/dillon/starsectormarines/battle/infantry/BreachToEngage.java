@@ -324,7 +324,7 @@ public final class BreachToEngage implements Goal {
         int liveN = sim.liveUnitCount();
         for (int ei = 0; ei < liveN; ei++) { long enemy = sim.liveUnitAt(ei);
             if (!sim.identity().type(enemy).combatant) continue;
-            if (sim.identity().faction(enemy) == squad.faction) continue;
+            if (!squad.faction.hostileTo(sim.identity().faction(enemy))) continue;
             if (zones.zoneIdAt(sim.world().cellX(enemy), sim.world().cellY(enemy)) != squadZone) continue;
             for (int mi = 0; mi < liveN; mi++) { long member = sim.liveUnitAt(mi);
                 if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;

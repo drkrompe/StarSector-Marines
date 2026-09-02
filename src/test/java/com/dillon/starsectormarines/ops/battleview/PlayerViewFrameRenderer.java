@@ -45,6 +45,13 @@ public final class PlayerViewFrameRenderer {
     private static final Color MARINE_MARKER = new Color(68, 214, 255, 240);
     private static final Color DEFENDER_MARKER = new Color(255, 83, 83, 240);
     private static final Color CIVILIAN_MARKER = new Color(255, 218, 73, 240);
+    /**
+     * Friendly, and not the player's. Green rather than a second blue: the one
+     * thing a reader has to be able to do at a glance is tell an allied militia
+     * from the company's own marines, and a shade of the player's colour is
+     * exactly the reading that fails at this marker size.
+     */
+    private static final Color ALLY_MARKER = new Color(90, 230, 140, 240);
 
     /**
      * The player's world passes. FOG and ROOFS are the two the neutral review
@@ -140,7 +147,7 @@ public final class PlayerViewFrameRenderer {
             case MARINE -> MARINE_MARKER;
             case DEFENDER -> DEFENDER_MARKER;
             case CIVILIAN -> CIVILIAN_MARKER;
-            default -> null;
+            case ALLY -> ALLY_MARKER;
         };
     }
 

@@ -45,12 +45,11 @@ public final class ClearZone extends AbstractZoneAction {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        // Quick exit when the zone reads clear for this squad's enemy faction.
+        // Quick exit when the zone reads clear of everything this squad fights.
         // Checked from anywhere (global predicate) so an all-outside squad —
         // e.g. the lone in-zone member died — still advances the plan rather
         // than deadlocking behind the zone-entry gate below.
-        Faction enemy = enemyOf(squad.faction);
-        if (ZoneQueries.zoneClear(targetZoneId, enemy, sim)) {
+        if (ZoneQueries.zoneClearOfHostiles(targetZoneId, squad.faction, sim)) {
             return ActionStatus.SUCCESS;
         }
 
@@ -150,12 +149,12 @@ public final class ClearZone extends AbstractZoneAction {
      * to the normal squad-aware picker).
      */
     private long pickInZoneTarget(long self, BattleView sim) {
-        Faction enemy = enemyOf(sim.identity().faction(self));
+        Faction selfFaction = sim.identity().faction(self);
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long other = sim.liveUnitAt(i);
-            if (sim.identity().faction(other) != enemy) continue;
+            if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
@@ -185,12 +184,12 @@ public final class ClearZone extends AbstractZoneAction {
      * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
      */
     private long pickNearestInZoneEnemy(long self, BattleView sim) {
-        Faction enemy = enemyOf(sim.identity().faction(self));
+        Faction selfFaction = sim.identity().faction(self);
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long other = sim.liveUnitAt(i);
-            if (sim.identity().faction(other) != enemy) continue;
+            if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
             float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
@@ -200,14 +199,5 @@ public final class ClearZone extends AbstractZoneAction {
             }
         }
         return best;
-    }
-
-    /**
-     * Marine ↔ defender flip used to scope the zone-clear predicate. Civilians
-     * never count; turrets carry whichever faction owns the emplacement and
-     * fall under the normal enemy bucket via faction equality.
-     */
-    private static Faction enemyOf(Faction f) {
-        return f == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
     }
 }

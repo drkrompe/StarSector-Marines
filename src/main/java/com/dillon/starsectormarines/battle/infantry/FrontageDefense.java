@@ -416,9 +416,8 @@ public final class FrontageDefense implements Goal {
 
     /** True once any enemy stands inside the held zones — the fight is indoors and belongs to the room-clearing behaviors. */
     private static boolean breached(List<Integer> heldZones, Squad squad, BattleView sim) {
-        Faction enemy = squad.faction == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
         for (int zoneId : heldZones) {
-            if (!ZoneQueries.zoneClear(zoneId, enemy, sim)) return true;
+            if (!ZoneQueries.zoneClearOfHostiles(zoneId, squad.faction, sim)) return true;
         }
         return false;
     }

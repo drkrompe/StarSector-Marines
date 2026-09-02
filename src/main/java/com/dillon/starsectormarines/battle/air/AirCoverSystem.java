@@ -105,8 +105,7 @@ public final class AirCoverSystem {
      *         declines; neither invents an origin.
      */
     private boolean dispatch(BattleSimulation sim, FighterWing wing) {
-        Faction enemy = opposing(wing.side);
-        long target = EnemyConcentration.densest(sim, enemy);
+        long target = EnemyConcentration.densest(sim, wing.side);
         if (target == 0L) return false;
         World world = sim.world();
         float targetX = world.x(target);
@@ -164,9 +163,5 @@ public final class AirCoverSystem {
             sumY += world.y(ours[i]);
         }
         return new float[] { sumX / count, sumY / count };
-    }
-
-    private static Faction opposing(Faction side) {
-        return side == Faction.MARINE ? Faction.DEFENDER : Faction.MARINE;
     }
 }

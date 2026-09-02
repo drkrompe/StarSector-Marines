@@ -208,7 +208,8 @@ public final class LaneSidestep {
 
         long target = engagementTarget(unit, sim);
         if (target == 0L) return false;
-        if (sim.identity().faction(target) == sim.identity().faction(unit)) return false;
+        if (sim.identity().faction(unit)
+                .friendlyTo(sim.identity().faction(target))) return false;
 
         float fromX = world.x(unit);
         float fromY = world.y(unit);

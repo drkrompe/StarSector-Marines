@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.logistics;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 /**
@@ -42,8 +41,10 @@ public final class ResupplySystem {
         World world = roster.world();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long unit = roster.get(i);
-            Faction faction = roster.identity().faction(unit);
-            if (faction == cache.faction || faction == Faction.CIVILIAN) continue;
+            // Contested by whoever the cache's owner actually fights. A
+            // friendly faction standing over it is not shutting it, and a
+            // civilian never was.
+            if (!cache.faction.hostileTo(roster.identity().faction(unit))) continue;
             float dx = world.x(unit) - (cache.cellX + 0.5f);
             float dy = world.y(unit) - (cache.cellY + 0.5f);
             if (dx * dx + dy * dy <= r2) return true;

@@ -160,7 +160,7 @@ public final class WorldStateBuilder {
         long unit = sim.resolveUnit(contact.unitId());
         return unit != 0L
                 && sim.identity().has(unit)
-                && sim.identity().faction(unit) != squad.faction
+                && squad.faction.hostileTo(sim.identity().faction(unit))
                 && sim.identity().type(unit).combatant;
     }
 
@@ -241,7 +241,7 @@ public final class WorldStateBuilder {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (!sim.identity().type(u).combatant) continue;
-            if (sim.identity().faction(u) == squad.faction) continue;
+            if (!squad.faction.hostileTo(sim.identity().faction(u))) continue;
             if (sim.movement().atCell(u, dwX, dwY)) return true;
         }
         return false;
