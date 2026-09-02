@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -9,7 +11,9 @@ import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Per-tick recompute driver for {@link RecaptureTargetService} — the
@@ -71,10 +75,24 @@ public final class RecaptureTargetSystem {
     private boolean seeded = false;
     private float accumulator = 0f;
 
+    /**
+     * Per lane and rung, whether the marines held that place at the previous
+     * recompute. The only way to know which place was lost <em>most
+     * recently</em> is to have been watching, so the watching lives here — the
+     * transient recompute bookkeeping this System owns — rather than on the
+     * Service, which holds the answer.
+     */
+    private final boolean[][] linkWasHeld;
+
     public RecaptureTargetSystem(RecaptureTargetService targets, FrontDepth frontDepth) {
         this.targets = targets;
         this.frontDepth = frontDepth;
         this.disagreeStreak = new int[frontDepth.bands()];
+        ConquestLaneChain chain = targets.laneChain();
+        this.linkWasHeld = new boolean[chain.laneCount()][];
+        for (int lane = 0; lane < chain.laneCount(); lane++) {
+            linkWasHeld[lane] = new boolean[chain.links(lane).size()];
+        }
     }
 
     /** Slow-tick: accumulate {@code dt}, then on cadence recompute contested bands and open targets. */
@@ -84,7 +102,43 @@ public final class RecaptureTargetSystem {
         if (accumulator < TICK_PERIOD) return;
         accumulator -= TICK_PERIOD;
         updateContested(sim);
+        updateLaneChain(sim);
         updateOpenState(sim);
+    }
+
+    /**
+     * Re-reads each lane's front and the place it most recently lost.
+     *
+     * <p>The front is ownership along the chain, which is a fact the compound
+     * service already holds; what needs remembering is which place changed
+     * hands last, because "retake the one just lost" is a claim about order and
+     * a snapshot has none. A place is <em>lost</em> on the recompute at which
+     * every compound on it first reads marine-held.
+     *
+     * <p>Nothing happens on a map with no lanes, which is every mission but
+     * Conquest: the arrays are empty and every target keeps its band.
+     */
+    private void updateLaneChain(BattleView sim) {
+        ConquestLaneChain chain = targets.laneChain();
+        if (chain.laneCount() == 0) return;
+        CompoundService compounds = sim.getCompoundService();
+        if (compounds == null) return;
+        Set<Integer> marineHeld = new HashSet<>();
+        for (CompoundService.Record record : compounds.getRecords()) {
+            if (record.state != CompoundService.CompoundState.MARINE_HELD) continue;
+            marineHeld.add(compounds.captureZoneId(record, sim));
+        }
+        for (int lane = 0; lane < chain.laneCount(); lane++) {
+            int lastLost = targets.laneLastLost(lane);
+            for (ConquestLaneChain.Link link : chain.links(lane)) {
+                if (!link.hasCompounds()) continue;
+                boolean held = link.isHeld(marineHeld::contains);
+                if (held && !linkWasHeld[lane][link.index()]) lastLost = link.index();
+                linkWasHeld[lane][link.index()] = held;
+            }
+            targets.setLaneState(lane, chain.frontLink(lane, marineHeld::contains),
+                    lastLost);
+        }
     }
 
     private void updateContested(BattleView sim) {
