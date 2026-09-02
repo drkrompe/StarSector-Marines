@@ -205,4 +205,36 @@ class MechLabDollCanvasTest {
         assertTrue(target.contains(target.centerX(), target.centerY()));
         assertFalse(target.contains(target.centerX() + 500f, target.centerY()));
     }
+
+    @Test
+    void resolveExplodedDropTargetsGuaranteesZeroPairwiseOverlapsAcrossAllVariants() {
+        for (MechVariant variant : MechVariant.values()) {
+            MechFittingLayout layout = MechFittingLayout.forVariant(variant);
+            // Standard resolution canvas
+            List<MechLabDollCanvas.SocketDropTarget> targets =
+                    MechLabDollCanvas.resolveExplodedDropTargets(layout.doll(), layout.sockets(),
+                            450f, 290f, 160f, 160f, 900f, 580f);
+
+            assertEquals(layout.sockets().size(), targets.size());
+
+            // Check no pairwise overlaps
+            for (int i = 0; i < targets.size(); i++) {
+                MechLabDollCanvas.SocketDropTarget a = targets.get(i);
+                // Bounds check
+                assertTrue(a.left() >= 0f, "Target " + a.id() + " outside left on " + variant);
+                assertTrue(a.right() <= 900f, "Target " + a.id() + " outside right on " + variant);
+                assertTrue(a.top() >= 0f, "Target " + a.id() + " outside top on " + variant);
+                assertTrue(a.bottom() <= 580f, "Target " + a.id() + " outside bottom on " + variant);
+
+                for (int j = i + 1; j < targets.size(); j++) {
+                    MechLabDollCanvas.SocketDropTarget b = targets.get(j);
+                    float overlapX = Math.min(a.right(), b.right()) - Math.max(a.left(), b.left());
+                    float overlapY = Math.min(a.bottom(), b.bottom()) - Math.max(a.top(), b.top());
+                    boolean overlaps = overlapX > 0f && overlapY > 0f;
+                    assertFalse(overlaps, "Targets " + a.id() + " and " + b.id()
+                            + " overlap on " + variant + ": overlapX=" + overlapX + ", overlapY=" + overlapY);
+                }
+            }
+        }
+    }
 }
