@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
-import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -192,15 +191,13 @@ public final class SpecSheets {
             throw new IllegalArgumentException(
                     "An integral-system sheet needs a pattern that carries one");
         }
-        IntegralSystemDef system = carrier.integralSystem();
         return new SpecSheet(
                 IntegralSystemCopy.flavorName(carrier),
                 IntegralSystemCopy.summary(carrier),
                 IntegralSystemCopy.iconPath(carrier),
                 ACCENT_SYSTEM,
                 List.of(),
-                List.of(IntegralSystemCopy.detail(carrier), system.familyName()
-                        + SEPARATOR + system.grade().displayName));
+                IntegralSystemCopy.detailParagraphs(carrier));
     }
 
     /**
