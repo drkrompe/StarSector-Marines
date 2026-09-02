@@ -26,6 +26,18 @@ public enum ReviewStyle {
     LANDING(new Color(86, 255, 170), 1.8f),
     /** The line from the beachhead to what it was sent at. */
     APPROACH(new Color(240, 240, 255), 2.4f),
+    /**
+     * The road a lane of resistance runs along, through its numbered links.
+     *
+     * <p>Inside the palette above rather than beside it: amber would read
+     * clearly and is exactly the hue the frame already spends on ordnance and
+     * on civilians. A pale blue-violet is the far end of the violet the
+     * compounds are outlined in, which is the relationship — a route joins the
+     * boxes it passes through — and it is a long line where a body is a dot,
+     * so nothing about it can be taken for a unit. Thinner than the approach,
+     * because a map carries three of these and one of that.
+     */
+    ROUTE(new Color(150, 190, 255), 1.8f),
     /** Anything else worth writing on the map. */
     NOTE(new Color(205, 205, 215), 1.4f);
 

@@ -101,6 +101,8 @@ final class ReviewAnnotationPainter {
                 paintBox(graphics, camera, imageHeight, metrics, words, box);
             } else if (mark instanceof ReviewAnnotation.Arrow arrow) {
                 paintArrow(graphics, camera, imageHeight, metrics, words, arrow);
+            } else if (mark instanceof ReviewAnnotation.Polyline route) {
+                paintPolyline(graphics, camera, imageHeight, metrics, words, route);
             } else if (mark instanceof ReviewAnnotation.Label label) {
                 paintLabel(graphics, camera, imageHeight, metrics, words, label);
             }
@@ -204,6 +206,46 @@ final class ReviewAnnotationPainter {
                         midX - textWidth(metrics, arrow.text()) / 2,
                         midY - plateHeight - 4),
                 new int[]{midY + 4, midY - 2 * plateHeight - 6}));
+    }
+
+    /**
+     * A route, drawn as one connected line with a halo under it.
+     *
+     * <p>Every cell of a lane route is a point, and at whole-map zoom a
+     * five-hundred-cell route is a few hundred pixels of line: drawn as one
+     * {@code Polygon} the joins are continuous where drawing each segment
+     * separately leaves a rounded cap at every cell and a line twice as heavy
+     * as it was asked to be.
+     */
+    private static void paintPolyline(Graphics2D graphics, BattleCamera camera,
+                                      int imageHeight, FontMetrics metrics,
+                                      List<PendingLabel> words,
+                                      ReviewAnnotation.Polyline route) {
+        int count = route.points().size();
+        int[] xs = new int[count];
+        int[] ys = new int[count];
+        for (int i = 0; i < count; i++) {
+            ReviewAnnotation.Point point = route.points().get(i);
+            xs[i] = Math.round(screenX(camera, point.cellX() + 0.5f));
+            ys[i] = Math.round(screenY(camera, imageHeight, point.cellY() + 0.5f));
+        }
+        graphics.setStroke(new BasicStroke(route.style().strokeWidth + 2f,
+                BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        graphics.setColor(HALO);
+        graphics.drawPolyline(xs, ys, count);
+        graphics.setStroke(new BasicStroke(route.style().strokeWidth,
+                BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        graphics.setColor(route.style().color);
+        graphics.drawPolyline(xs, ys, count);
+
+        if (route.text().isEmpty()) return;
+        int plateHeight = plateHeight(metrics);
+        int at = count / 2;
+        words.add(new PendingLabel(route.text(), route.style(),
+                plateFor(metrics, route.text(),
+                        xs[at] - textWidth(metrics, route.text()) / 2,
+                        ys[at] - plateHeight - 3),
+                new int[]{ys[at] + 3, ys[at] - 2 * plateHeight - 6}));
     }
 
     private static void paintLabel(Graphics2D graphics, BattleCamera camera,

@@ -70,6 +70,17 @@ public final class ReviewAnnotations implements Iterable<ReviewAnnotation> {
             return add(new ReviewAnnotation.Arrow(fromX, fromY, toX, toY, text, style));
         }
 
+        /**
+         * A run of cells drawn as a connected line. Fewer than two points is
+         * not a line and is dropped rather than refused, so a caller may hand
+         * over whatever route it was given.
+         */
+        public Builder polyline(List<ReviewAnnotation.Point> points, String text,
+                                ReviewStyle style) {
+            if (points == null || points.size() < 2) return this;
+            return add(new ReviewAnnotation.Polyline(points, text, style));
+        }
+
         public Builder box(int left, int bottom, int right, int top,
                            String text, ReviewStyle style) {
             return add(new ReviewAnnotation.Box(left, bottom, right, top, text, style));

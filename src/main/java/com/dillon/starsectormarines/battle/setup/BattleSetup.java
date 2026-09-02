@@ -1521,6 +1521,11 @@ public final class BattleSetup {
         sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
+        // The lanes the map laid, for the same reason the pads are handed over:
+        // map geometry is consumed at setup and dropped, and a review or a
+        // commander re-deriving a route would be a second answer to it.
+        sim.setLaneRoutes(map.lanes);
+
         List<ConquestArrivalSlot> arrivalSlots = conquestArrivalSlots(
                 map, assignments, axis, rng, resolvedArrivalPlan);
         stampLzPads(sim, arrivalSlots.stream()

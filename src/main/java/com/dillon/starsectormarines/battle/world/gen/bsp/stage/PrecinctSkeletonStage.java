@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneResistance;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctAllowance;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctArtery;
@@ -56,8 +57,12 @@ public final class PrecinctSkeletonStage implements GenStage {
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
             if (precinct.boundary() != Precinct.Boundary.WALLED) continue;
+            // A lane place's way out heads for the next link on its own lane,
+            // because that is where its road has business going. Everything
+            // else takes the nearest way out it always did.
             PrecinctArtery.ensure(claim, grown.owner(), i,
-                    precinct.seedX(), precinct.seedY(), ctx.width, ctx.height);
+                    precinct.seedX(), precinct.seedY(), ctx.width, ctx.height,
+                    nextLink(plan, precinct));
         }
 
         // Growth does not stop at a claim, so a place throws a street network
@@ -99,6 +104,44 @@ public final class PrecinctSkeletonStage implements GenStage {
         ctx.put(BspKeys.UNPLACED_LANE_PLACES, plan.unplacedLanePlaces());
         ctx.put(BspKeys.PRECINCT_CLAIM, claim);
         ctx.put(BspKeys.PRECINCT_ROAD, grown.owner());
+    }
+
+    /**
+     * The seed of the next place along this one's lane, or {@code null} where it
+     * has no lane or is the last link before the objective.
+     *
+     * <p>Named rather than indexed, because a lane place's name is what the plan
+     * and the route read-back already agree on: a rung in band 2 is followed by
+     * the rung in band 1, and the deepest rung is followed by the objective
+     * itself. A rung the plan could not seat leaves a gap, and the search steps
+     * past it to whatever the lane does have.
+     */
+    private static int[] nextLink(PrecinctPlan plan, Precinct precinct) {
+        String name = precinct.name();
+        if (!name.startsWith("lane-")) return null;
+        String[] parts = name.split("-");
+        if (parts.length < 4) return null;
+        int lane;
+        int band;
+        try {
+            lane = Integer.parseInt(parts[1]);
+            band = Integer.parseInt(parts[3]);
+        } catch (NumberFormatException notALanePlace) {
+            return null;
+        }
+        for (int next = band - 1; next >= LaneResistance.INNERMOST_BAND; next--) {
+            Precinct link = named(plan, "lane-" + lane + "-band-" + next);
+            if (link != null) return new int[]{link.seedX(), link.seedY()};
+        }
+        Precinct objective = plan.objective();
+        return objective == null ? null : new int[]{objective.seedX(), objective.seedY()};
+    }
+
+    private static Precinct named(PrecinctPlan plan, String name) {
+        for (Precinct precinct : plan.precincts()) {
+            if (precinct.name().equals(name)) return precinct;
+        }
+        return null;
     }
 
     /**
