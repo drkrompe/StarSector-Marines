@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.campaign.systems;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.PolityThreatFilter;
+import com.dillon.starsectormarines.campaign.Posting;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem.RaidThreat;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
@@ -46,13 +47,18 @@ public final class PolityThreatQuery {
         String marketId = market.getId();
         int marketSlot = state.marketRegistry.intern(marketId);
         boolean playerOwned = market.isPlayerOwned();
+        // A posted detachment already answers this market's raids through the ordinary
+        // stationing response, so the offer stands down rather than duplicating it.
+        boolean postingStands = Posting.activeRowAt(state, marketSlot) >= 0;
         List<RaidThreat> out = new ArrayList<>();
         for (RaidThreat threat : live) {
             if (threat == null || threat.marketId != marketSlot) continue;
             String attackerFactionId = state.factionRegistry.get(threat.attackerFactionId);
             RaidStatus status = LIVE_VANILLA.status(marketId, attackerFactionId);
             boolean settled = alreadySettled != null && alreadySettled.test(threat.eventKey);
-            if (PolityThreatFilter.fightable(playerOwned, status, settled)) out.add(threat);
+            if (PolityThreatFilter.fightable(playerOwned, status, settled, postingStands)) {
+                out.add(threat);
+            }
         }
         return out;
     }

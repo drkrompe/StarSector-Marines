@@ -14,4 +14,4 @@ can be made a bounded vertical slice.
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
 | `stationed-ground-defence.md` | In progress — slices 1–5 shipped, live pass remains | A Garrison detachment counts toward the protected market's vanilla ground defences, a won vanilla-triggered defence sends the raid home, and an unanswered one settles from vanilla's own result. Adds the raid-intel reader beside the existing fleet-group trigger. First of the pair. |
-| `polity-defence-raid-hook.md` | Planned | Meet a vanilla raid on a player-owned colony on the ground, and post a detachment there for the days the player is elsewhere. Depends on the stationed-defence story for its readers, ending handle, and absent settlement. |
+| `polity-defence-raid-hook.md` | In progress — slices 1–6 shipped, live acceptance remains | Meet a vanilla raid on a player-owned colony on the ground, and post a detachment there for the days the player is elsewhere. Depends on the stationed-defence story for its readers, ending handle, and absent settlement. |

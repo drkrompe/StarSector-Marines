@@ -28,6 +28,8 @@ import com.dillon.starsectormarines.campaign.GarrisonDefenseResolution;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.HousePromotion;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultResolution;
+import com.dillon.starsectormarines.campaign.PolityDefenceMissionKey;
+import com.dillon.starsectormarines.campaign.PolityDefenceResolution;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultMissionKey;
 import com.dillon.starsectormarines.campaign.StakeLedger;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
@@ -36,7 +38,9 @@ import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.campaign.systems.PolityRaidLookup;
 import com.dillon.starsectormarines.campaign.systems.RaidEnder;
+import com.dillon.starsectormarines.campaign.systems.VanillaPolityRaidLookup;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidEnder;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
@@ -146,6 +150,13 @@ public final class MissionResolver {
     /** Test seam: replaces the live vanilla raid ender. Null restores it. */
     static void setRaidEnder(RaidEnder ender) {
         raidEnder = ender != null ? ender : new VanillaRaidEnder();
+    }
+
+    private static PolityRaidLookup polityRaidLookup = new VanillaPolityRaidLookup();
+
+    /** Test seam: replaces the live raid lookup a polity defence ends through. */
+    static void setPolityRaidLookup(PolityRaidLookup lookup) {
+        polityRaidLookup = lookup != null ? lookup : new VanillaPolityRaidLookup();
     }
 
     /**
@@ -410,6 +421,17 @@ public final class MissionResolver {
                 }
             }
         }
+        if (outcome.missionSource == MissionSource.POLITY_DEFENCE) {
+            CampaignStateScript script = CampaignStateScript.getInstance();
+            PolityDefenceResolution.Result result = settlePolityDefence(
+                    script != null ? script.state() : null, outcome);
+            // Exactly-once, the way the campaign-event branch is: a defence already on
+            // the ledger settles nothing further, and pays nothing further either.
+            if (result != PolityDefenceResolution.Result.RESOLVED_WON
+                    && result != PolityDefenceResolution.Result.RESOLVED_LOST) {
+                return;
+            }
+        }
         CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null
                 ? Global.getSector().getPlayerFleet().getCargo()
                 : null;
@@ -481,6 +503,51 @@ public final class MissionResolver {
                 + " xp=" + outcome.xpGained
                 + " captainStatus=" + outcome.newCaptainStatus
                 + " promotedTo=" + outcome.promotedTo);
+    }
+
+    /**
+     * Settles a colony defence fought for the player's own polity: writes the ledger row
+     * and, on a win, sends the raid home. The one write to vanilla in this branch.
+     *
+     * <p>Takes the state explicitly rather than reading
+     * {@link CampaignStateScript#getInstance()} itself, so the decision can be driven
+     * without a sector; {@link #apply} supplies the live one.
+     *
+     * @return the resolution, or {@code null} when the mission carries no readable key
+     */
+    static PolityDefenceResolution.Result settlePolityDefence(CampaignState state,
+                                                              MissionOutcome outcome) {
+        PolityDefenceMissionKey key = PolityDefenceMissionKey.parse(outcome.missionId);
+        if (key == null) {
+            LOG.info("MarineOps: polity defence " + outcome.missionId
+                    + " carries no readable key — no writeback");
+            return null;
+        }
+        PolityDefenceResolution.Result result = PolityDefenceResolution.apply(
+                state, key, outcome.victory, currentDayInt());
+        LOG.info("MarineOps: polity defence " + outcome.missionId + " → " + result);
+        if (result == PolityDefenceResolution.Result.RESOLVED_WON) {
+            endPolityRaid(state, key);
+        }
+        return result;
+    }
+
+    /**
+     * Sends home the raid a won polity defence was fought against. The attacker is read
+     * back out of the live sector rather than off a contract row, because a polity
+     * defence has no row; a raid that is no longer live has nothing left to end.
+     */
+    private static void endPolityRaid(CampaignState state, PolityDefenceMissionKey key) {
+        String marketId = state.marketRegistry.get(key.marketSlot);
+        String attackerFactionId = polityRaidLookup.attackerFactionId(state, key.eventKey);
+        if (marketId == null || attackerFactionId == null) {
+            LOG.info("MarineOps: won polity defence at market slot " + key.marketSlot
+                    + " found no live raid " + key.eventKey + " to end");
+            return;
+        }
+        int sentHome = raidEnder.endRaidsTargeting(marketId, attackerFactionId);
+        LOG.info("MarineOps: won polity defence at " + marketId + " ended " + sentHome
+                + " raid(s) by " + attackerFactionId);
     }
 
     /**
