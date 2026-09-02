@@ -15,12 +15,14 @@ import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,7 +207,9 @@ public final class EquipmentDoctrineDesignerViewModel {
                     "Grade  ·  " + title(issue.grade().name()),
                     "Special  ·  " + specialName(issue.specialDef()),
                     () -> cycleRole(billet), () -> cycleWeapon(billet),
-                    () -> cycleGrade(billet), () -> cycleSpecial(billet)));
+                    () -> cycleGrade(billet), () -> cycleSpecial(billet),
+                    SpecSheets.weapon(issue.primaryDef(), issue.grade()),
+                    issue.specialDef() != null ? SpecSheets.special(issue.specialDef()) : null));
         }
         return List.copyOf(result);
     }
@@ -450,7 +454,8 @@ public final class EquipmentDoctrineDesignerViewModel {
                              String gradeId, String specialId, String title,
                              String flavor, List<StatMeter> stats, String statFillClasses, String role,
                              String primary, String grade, String special, Runnable cycleRole,
-                             Runnable cyclePrimary, Runnable cycleGrade, Runnable cycleSpecial)
+                             Runnable cyclePrimary, Runnable cycleGrade, Runnable cycleSpecial,
+                             SpecSheet primarySheet, SpecSheet specialSheet)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
