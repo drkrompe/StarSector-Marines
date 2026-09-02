@@ -170,17 +170,25 @@ public final class AnimatedGifWriter implements AutoCloseable {
         closed = true;
         IOException failure = null;
         try {
-            writer.endWriteSequence();
-        } catch (IOException ex) {
-            failure = ex;
-        }
-        try {
-            output.close();
-        } catch (IOException ex) {
-            if (failure == null) failure = ex;
-            else failure.addSuppressed(ex);
+            // Whatever the trailer does, the stream holds the file: on Windows
+            // an unclosed one is a lock, and the caller's own cleanup then
+            // fails with "the process cannot access the file" over whatever
+            // actually went wrong. So the close is owed even to an unchecked
+            // failure out of the encoder.
+            try {
+                writer.endWriteSequence();
+            } catch (IOException ex) {
+                failure = ex;
+            }
         } finally {
-            writer.dispose();
+            try {
+                output.close();
+            } catch (IOException ex) {
+                if (failure == null) failure = ex;
+                else failure.addSuppressed(ex);
+            } finally {
+                writer.dispose();
+            }
         }
         if (failure != null) throw failure;
     }

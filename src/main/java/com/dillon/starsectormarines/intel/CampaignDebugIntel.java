@@ -24,6 +24,9 @@ import com.dillon.starsectormarines.campaign.systems.DebugCivilianRescueSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugDefectorAsylumSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugKingmakerTestamentSpawner;
 import com.dillon.starsectormarines.campaign.systems.DebugSilentColonySpawner;
+import com.dillon.starsectormarines.campaign.systems.DebugVanillaRaidSpawnerFleetGroup;
+import com.dillon.starsectormarines.campaign.systems.DebugVanillaRaidSpawnerRaidIntel;
+import com.dillon.starsectormarines.campaign.systems.DebugVanillaRaidSpawnerTargets;
 import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
@@ -81,6 +84,8 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_SPAWN_DEFECTOR = "spawn-defector-asylum";
     private static final String BTN_SPAWN_TESTAMENT = "spawn-kingmaker-testament";
     private static final String BTN_ADVANCE_DEFECTOR = "advance-defector-followup";
+    private static final String BTN_SPAWN_FG_RAID  = "spawn-fleet-group-raid";
+    private static final String BTN_SPAWN_PIRATE_RAID = "spawn-pirate-raid";
     private static final String BTN_CLEAR_TERMINAL = "clear-terminal";
     private static final String BTN_ACCEPT         = "accept:";
     private static final String BTN_FORCE_COMPLETE = "complete:";
@@ -88,6 +93,9 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
 
     /** UI-state only; not persisted. Default ON when the player is in a system. */
     private boolean filterToLocalSystem = true;
+
+    /** What the last vanilla-raid spawn button reported; shown under those buttons. */
+    private String lastRaidSpawnResult;
 
     @Override
     protected String getName() {
@@ -209,6 +217,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
                 320f, 24f, 8f);
         ui.addButton("Advance committed defector to follow-up",
                 BTN_ADVANCE_DEFECTOR, 320f, 24f, 8f);
+        addVanillaRaidButtons(ui);
         ui.addButton("Clear terminal contracts (cleanup)", BTN_CLEAR_TERMINAL, 320f, 24f, 8f);
         ui.addButton("Reseed houses (wipes existing)", BTN_RESEED, 320f, 24f, 8f);
 
@@ -494,6 +503,10 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             spawnKingmakerTestament(s);
         } else if (BTN_ADVANCE_DEFECTOR.equals(buttonId)) {
             advanceDefector(s);
+        } else if (BTN_SPAWN_FG_RAID.equals(buttonId)) {
+            lastRaidSpawnResult = DebugVanillaRaidSpawnerFleetGroup.spawn();
+        } else if (BTN_SPAWN_PIRATE_RAID.equals(buttonId)) {
+            lastRaidSpawnResult = DebugVanillaRaidSpawnerRaidIntel.spawn();
         } else if (BTN_CLEAR_TERMINAL.equals(buttonId)) {
             clearTerminalContracts(s);
         } else if (buttonId instanceof String) {
@@ -584,6 +597,25 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             if (HouseStatus.fromByte(s.houseStatus[i]) != HouseStatus.ACTIVE) continue;
             if (!localMarketSlots.contains(s.houseMarketId[i])) continue;
             DebugContractOfferSpawner.spawn(s, i, type, day);
+        }
+    }
+
+    /**
+     * The two vanilla-raid spawns the polity-defence work is accepted against: one
+     * fleet-group raid and one staged raid intel, each against the player's own colony.
+     * Both are disabled while the player owns nothing to raid, since neither spawner has
+     * a target then and a live button that always reports the same refusal is noise.
+     */
+    private void addVanillaRaidButtons(TooltipMakerAPI ui) {
+        MarketAPI target = DebugVanillaRaidSpawnerTargets.playerTarget();
+        boolean owns = target != null;
+        String suffix = owns ? " on " + target.getName() : " (you own no colony)";
+        ui.addButton("Spawn vanilla fleet-group raid" + suffix,
+                BTN_SPAWN_FG_RAID, 320f, 24f, 8f).setEnabled(owns);
+        ui.addButton("Spawn vanilla punitive expedition" + suffix,
+                BTN_SPAWN_PIRATE_RAID, 320f, 24f, 8f).setEnabled(owns);
+        if (lastRaidSpawnResult != null) {
+            ui.addPara(lastRaidSpawnResult, Color.LIGHT_GRAY, 4f);
         }
     }
 
