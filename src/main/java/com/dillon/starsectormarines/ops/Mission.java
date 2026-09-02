@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -104,6 +105,18 @@ public final class Mission {
     public final PrecinctPlan.Sprawl sprawl;
 
     /**
+     * How far from the objective this battle's force lands, or null to take the
+     * mission type's own default.
+     *
+     * <p>The same shape as {@link #sprawl} and for the same reason: how much
+     * approach a force has to fight through is a statement about this battle
+     * rather than about the planet. Only Conquest consults one today, and its
+     * default is the walk the balance was measured on; everything else lands on
+     * the map edge.
+     */
+    public final Standoff standoff;
+
+    /**
      * Fixed battle seed, or null to seed the battle off the wall clock (the
      * ordinary case — a relaunched mission should be a fresh map). Pinned only
      * where the point of the mission is comparing two launches on one
@@ -189,6 +202,7 @@ public final class Mission {
         this.targetFactionId  = b.targetFactionId;
         this.defenderFactionOverride = b.defenderFactionOverride;
         this.sprawl           = b.sprawl;
+        this.standoff         = b.standoff;
         this.battleSeed       = b.battleSeed;
         this.contractId        = b.contractId;
         this.campaignEventId = b.campaignEventId > 0L ? b.campaignEventId : -1L;
@@ -244,6 +258,7 @@ public final class Mission {
         private String targetFactionId;
         private String defenderFactionOverride;
         private PrecinctPlan.Sprawl sprawl;
+        private Standoff standoff;
         private Long battleSeed;
 
         private long contractId = -1L;
@@ -286,6 +301,7 @@ public final class Mission {
             this.targetFactionId = m.targetFactionId;
             this.defenderFactionOverride = m.defenderFactionOverride;
             this.sprawl = m.sprawl;
+            this.standoff = m.standoff;
             this.battleSeed = m.battleSeed;
             this.contractId = m.contractId;
             this.campaignEventId = m.campaignEventId;
@@ -415,6 +431,12 @@ public final class Mission {
         /** @param sprawl how settled this battle's map is; null derives it from the market. */
         public Builder sprawl(PrecinctPlan.Sprawl sprawl) {
             this.sprawl = sprawl;
+            return this;
+        }
+
+        /** @param standoff how far out this battle lands; null takes the mission type's default. */
+        public Builder standoff(Standoff standoff) {
+            this.standoff = standoff;
             return this;
         }
 

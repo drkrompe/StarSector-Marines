@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
@@ -391,6 +392,53 @@ class BattleFixtureJsonTest {
         encoded.put("sprawl", "MEGALOPOLIS");
         assertThrows(IllegalArgumentException.class,
                 () -> BattleFixtureJson.fromJson(encoded));
+    }
+
+    /**
+     * How far out the force lands survives a round trip, and its absence
+     * survives it too — an absent {@code standoff} is the mission type's own
+     * default, which is what every fixture written before the field existed
+     * means.
+     */
+    @Test
+    void carriesAStatedStandoffAndLeavesAnUnstatedOneAlone() throws Exception {
+        ConquestBattleFixture stated = standoffConquestFixture(Standoff.CLOSE);
+
+        JSONObject encoded = BattleFixtureJson.toJson(stated);
+        assertEquals("CLOSE", encoded.getString("standoff"));
+        assertEquals(stated, BattleFixtureJson.fromJson(encoded));
+
+        ConquestBattleFixture silent = standoffConquestFixture(null);
+        JSONObject silentEncoded = BattleFixtureJson.toJson(silent);
+        assertFalse(silentEncoded.has("standoff"),
+                "a fixture that states no standoff must write no key, or every "
+                        + "checked-in conquest fixture stops being what it was");
+        ConquestBattleFixture silentDecoded =
+                (ConquestBattleFixture) BattleFixtureJson.fromJson(silentEncoded);
+        assertNull(silentDecoded.standoff(),
+                "an absent standoff decodes to the default case, not to a value");
+    }
+
+    /** An unknown standoff fails the way every other unknown enum here does. */
+    @Test
+    void rejectsAnUnknownStandoff() throws Exception {
+        JSONObject encoded = BattleFixtureJson.toJson(
+                standoffConquestFixture(Standoff.CLOSE));
+        encoded.put("standoff", "ADJACENT");
+        assertThrows(IllegalArgumentException.class,
+                () -> BattleFixtureJson.fromJson(encoded));
+    }
+
+    private static ConquestBattleFixture standoffConquestFixture(Standoff standoff) {
+        return new ConquestBattleFixture(
+                141_418L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 3, 6)),
+                true, OperationTier.REINFORCED, RiskLevel.HIGH,
+                new TargetProfile(6, 5, 4, 2, "independent",
+                        EnumSet.of(EconomicFunction.SPACEPORT,
+                                EconomicFunction.HEAVY_INDUSTRY),
+                        SurfacePalette.ROCK, SettlementLink.ROAD),
+                List.of(), List.of(), ShuttleArrivalPlan.legacy(), null, standoff);
     }
 
     private static RaidBattleFixture sprawlRaidFixture(PrecinctPlan.Sprawl sprawl) {
