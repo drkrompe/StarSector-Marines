@@ -1094,20 +1094,32 @@ public final class BattleSetup {
             float lzCenterY = lz.centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY,
                     scale.width, scale.height, lz.approach);
+            boolean localMilitia = i < localTransports;
             long shuttleId = sim.spawnShuttle(
-                    assignment.type, assignment.airframe, Faction.MARINE,
+                    assignment.type, assignment.airframe,
+                    localMilitia ? Faction.ALLY : Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1], entry[2], entry[3],
                     i * SHUTTLE_DROP_STAGGER_SEC,
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
-            shuttleMission.commandClaim = SquadCommandClaim.mission(
-                    OpeningOperationCommand.issuer(Faction.MARINE),
-                    "opening-operation landing force");
+            if (localMilitia) {
+                // The employer's lift carries the employer's troops, and the
+                // marine commander cannot claim them: the arbiter refuses a
+                // directive whose perspective is not the squad's own. So they
+                // land owned by garrison authority instead, holding the pad
+                // they came ashore on — which is what a client's militia
+                // arriving at a relief job is actually for.
+                shuttleMission.garrisonNode = openingDefenseNode(
+                        lz.centerX, lz.centerY, Faction.ALLY, sim.getGrid());
+            } else {
+                shuttleMission.commandClaim = SquadCommandClaim.mission(
+                        OpeningOperationCommand.issuer(Faction.MARINE),
+                        "opening-operation landing force");
+            }
             MarineLoadout[][] cycleLoadouts =
                     new MarineLoadout[assignment.cycles][];
-            boolean localMilitia = i < localTransports;
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                 cycleLoadouts[cycle] = localMilitia
                         ? InfantryLoadoutRolls.defenderSquad(
@@ -2687,7 +2699,11 @@ public final class BattleSetup {
                 0, map.grid.getHeight() - 1);
         List<int[]> cells = pickDefensiveCluster(
                 map.grid, anchorX, anchorY, OPENING_LOCAL_MILITIA);
-        spawnOpeningMilitiaSquads(sim, cells, Faction.MARINE,
+        // The relief job's local line belongs to the employer, not the company.
+        // Under ALLY it keeps everything it had — the same kit, the same posts,
+        // the same garrison authority — and stops being a marine squad the
+        // player's commander can see or a click can move.
+        spawnOpeningMilitiaSquads(sim, cells, Faction.ALLY,
                 "local", true, rng);
         return cells.isEmpty()
                 ? new int[]{anchorX, anchorY} : cells.get(0).clone();

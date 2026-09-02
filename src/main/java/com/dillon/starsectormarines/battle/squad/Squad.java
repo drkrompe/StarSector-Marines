@@ -275,13 +275,6 @@ public final class Squad {
      */
     public boolean rescuePickupGuard;
 
-    /**
-     * Local militia sealed inside the civilian-rescue shelter. The squad is
-     * inert and excluded from swarm targeting while shelter protection is
-     * active, then holds its authored compound post after relief.
-     */
-    public boolean rescueShelterGuard;
-
     /** Rescue-line mech squad that patrols the authored five-point perimeter. */
     public boolean rescuePickupMech;
     /** Packed x/y perimeter points for the rescue mech's quiet-state patrol. */
