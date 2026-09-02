@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.HouseStatus;
+import com.dillon.starsectormarines.campaign.Posting;
 
 import java.util.EnumSet;
 import java.util.Random;
@@ -51,6 +52,10 @@ public final class StationingDefaultSystem implements CampaignSystem {
     public void tick(CampaignState state, int day) {
         for (int row = 0; row < state.contractCount; row++) {
             if (!ContractType.fromByte(state.contractType[row]).isStationing()) continue;
+            // Nobody can breach a contract nobody made. A posting has no employer, so
+            // the patron-fall check and the monthly default roll both mean nothing on
+            // it — and left in, the roll would default it at the housePower-0 rate.
+            if (Posting.isPosting(state, row)) continue;
             ContractState contractState = ContractState.fromByte(state.contractState[row]);
             if (contractState != ContractState.ACTIVE
                     && contractState != ContractState.IN_PROGRESS) {
