@@ -123,6 +123,9 @@ public class BriefingScreen implements Screen {
     private static final float SQUAD_ROW_H = 32f;
     private static final float SQUAD_ROW_GAP = 4f;
     private static final int DEBUG_MAX_CONQUEST_DROP_ZONES = 4;
+
+    /** How many resistance lanes the DEBUG dial will step up to. */
+    private static final int DEBUG_MAX_RESISTANCE_LANES = 5;
     private static final int DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE = 4;
     private static final float DEBUG_CONQUEST_JITTER_STEP_SEC = 0.25f;
     private static final float DEBUG_MAX_CONQUEST_JITTER_SEC = 3f;
@@ -501,6 +504,11 @@ public class BriefingScreen implements Screen {
                     mission.standoff != null ? mission.standoff.name() : "default",
                     false, false,
                     () -> cycleDebugStandoff(-1), () -> cycleDebugStandoff(1)));
+            controls.add(conquestControl("debug-map-lanes", "Resistance lanes",
+                    mission.lanes != null ? Integer.toString(mission.lanes) : "default",
+                    false, mission.lanes != null
+                            && mission.lanes >= DEBUG_MAX_RESISTANCE_LANES,
+                    () -> adjustDebugLanes(-1), () -> adjustDebugLanes(1)));
             controls.add(conquestControl("debug-drop-zones", "Drop zones",
                     Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
                     debugConquestArrivalConfig.dropZoneCount() <= 1,
@@ -572,6 +580,29 @@ public class BriefingScreen implements Screen {
         int next = Math.floorMod(current + step, values.length + 1);
         Mission adjusted = DebugMissionDifficulty.atStandoff(mission,
                 next == 0 ? null : values[next - 1]);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    /**
+     * Steps the DEBUG briefing through the default lane count and the stated
+     * ones, so a map with a ladder on every track and one with none can be
+     * played back to back.
+     *
+     * <p>Zero is a stated position rather than the absence of one: a Conquest
+     * with no lanes is the map this feature replaced, and being able to play it
+     * beside the map that has them is the whole reason the dial exists.
+     */
+    private void adjustDebugLanes(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        // Index 0 is the mission type's own default; 1 is no lanes at all, and
+        // the counts follow, the way the sprawl cycle carries "derived".
+        int current = mission.lanes != null ? mission.lanes + 1 : 0;
+        int next = Math.floorMod(current + step, DEBUG_MAX_RESISTANCE_LANES + 2);
+        Mission adjusted = DebugMissionDifficulty.atLanes(mission,
+                next == 0 ? null : next - 1);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);
         rebuild();

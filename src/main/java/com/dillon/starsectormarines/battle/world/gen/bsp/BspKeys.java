@@ -144,6 +144,21 @@ public final class BspKeys {
     public static final GenKey<Map<String, Map<DefensePostKind, Integer>>> UNPLACED_DEFENCES =
             GenKey.of("unplacedDefences");
 
+    /**
+     * The lane places the plan could not seat, by name, bound even when empty.
+     *
+     * <p>The same law as {@link #UNPLACED_PROGRAM}, one level up again. A lane's
+     * ladder is stated as a rung per front band; a map may have no room for one
+     * of them, and a lane with two rungs on it is indistinguishable on a
+     * finished map from a lane that was only ever asked for two. Named rather
+     * than counted, because <em>which</em> rung is missing is the whole of the
+     * question — a lane missing its deepest place is a track with nothing
+     * standing in front of the fortress, and a lane missing its shallowest is a
+     * force that lands unopposed.
+     */
+    public static final GenKey<List<String>> UNPLACED_LANE_PLACES =
+            GenKey.of("unplacedLanePlaces");
+
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
 
