@@ -72,5 +72,6 @@ public final class GarrisonDefenseResolution {
         state.contractDefenseTriggerType[row] = GarrisonDefenseTriggerType.NONE.toByte();
         state.contractDefenseAttackerHouseId[row] = -1L;
         state.contractDefenseAttackerFactionId[row] = -1;
+        state.contractDefenseAttackerStrength[row] = 0f;
     }
 }

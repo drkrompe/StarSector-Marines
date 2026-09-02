@@ -17,6 +17,10 @@ public final class GarrisonDefensePayload {
     public final int marketId;
     public final long attackerHouseId;
     public final int attackerFactionId;
+    /** Attacker ground strength in vanilla's raid-strength units; 0 when unestimated. */
+    public final float attackerStrength;
+    /** Attacking faction id as vanilla knows it, or null when the slot is unset. */
+    public final String attackerFactionKey;
     public final String captainId;
     public final int committedMarines;
     public final List<String> fireteamIds;
@@ -28,6 +32,7 @@ public final class GarrisonDefensePayload {
                                    GarrisonDefenseTriggerType triggerType,
                                    int triggeredDay, int marketId,
                                    long attackerHouseId, int attackerFactionId,
+                                   float attackerStrength, String attackerFactionKey,
                                    String captainId, int committedMarines,
                                    List<String> fireteamIds, int activeSeats,
                                    byte salvageBaseline, byte salvageNegotiated) {
@@ -38,6 +43,8 @@ public final class GarrisonDefensePayload {
         this.marketId = marketId;
         this.attackerHouseId = attackerHouseId;
         this.attackerFactionId = attackerFactionId;
+        this.attackerStrength = attackerStrength;
+        this.attackerFactionKey = attackerFactionKey;
         this.captainId = captainId;
         this.committedMarines = committedMarines;
         this.fireteamIds = Collections.unmodifiableList(new ArrayList<>(fireteamIds));
@@ -73,10 +80,13 @@ public final class GarrisonDefensePayload {
         int activeSeats = fireteamIds.isEmpty()
                 ? state.contractMarinesCommitted[row]
                 : roster.stationedActiveCount(contractId);
+        int attackerSlot = state.contractDefenseAttackerFactionId[row];
+        String attackerFactionKey = attackerSlot >= 0
+                ? state.factionRegistry.get(attackerSlot) : null;
         return new GarrisonDefensePayload(contractId, state.contractDefenseEventKey[row],
                 type, state.contractDefenseTriggeredTick[row], state.contractMarketId[row],
-                state.contractDefenseAttackerHouseId[row],
-                state.contractDefenseAttackerFactionId[row], captainId,
+                state.contractDefenseAttackerHouseId[row], attackerSlot,
+                state.contractDefenseAttackerStrength[row], attackerFactionKey, captainId,
                 state.contractMarinesCommitted[row], fireteamIds, activeSeats,
                 state.contractSalvageBaseline[row], state.contractSalvageNegotiated[row]);
     }

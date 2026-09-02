@@ -10,9 +10,16 @@ public final class GarrisonDefenseTrigger {
 
     private GarrisonDefenseTrigger() {}
 
+    /**
+     * Arms every eligible Garrison row at {@code marketId} for one external event.
+     *
+     * @param attackerStrength the attacker's ground strength in vanilla's own raid-strength
+     *                         units, or 0 for a mod-simulated producer that has no estimate.
+     */
     public static int arm(CampaignState state, long eventKey, int marketId,
                           GarrisonDefenseTriggerType triggerType,
-                          long attackerHouseId, int attackerFactionId, int day) {
+                          long attackerHouseId, int attackerFactionId,
+                          float attackerStrength, int day) {
         if (state == null || eventKey == 0L || marketId < 0 || triggerType == null
                 || triggerType == GarrisonDefenseTriggerType.NONE) {
             return 0;
@@ -43,6 +50,7 @@ public final class GarrisonDefenseTrigger {
             state.contractDefenseTriggerType[row] = triggerType.toByte();
             state.contractDefenseAttackerHouseId[row] = attackerHouseId;
             state.contractDefenseAttackerFactionId[row] = attackerFactionId;
+            state.contractDefenseAttackerStrength[row] = attackerStrength;
             armed++;
         }
         return armed;

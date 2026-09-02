@@ -39,6 +39,9 @@ public final class GarrisonDefenseMissionFactory {
                 .salvageNegotiated(payload.salvageNegotiated)
                 .contractSalvageBaseline(payload.salvageBaseline)
                 .contractSalvageNegotiated(payload.salvageNegotiated)
+                // Without this the raiders wear the defended market's own roster:
+                // pirates landing on a Hegemony world arrive in Hegemony kit.
+                .defenderFactionOverride(payload.attackerFactionKey)
                 .build();
     }
 

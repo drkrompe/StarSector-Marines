@@ -40,6 +40,7 @@ class ContractTableCompactorTest {
         state.contractDefenseTriggerType[1] = GarrisonDefenseTriggerType.VANILLA_RAID.toByte();
         state.contractDefenseAttackerHouseId[1] = 59L;
         state.contractDefenseAttackerFactionId[1] = 60;
+        state.contractDefenseAttackerStrength[1] = 61.5f;
         state.contractResponseDeadlineTick[1] = 65;
         state.contractNoticeAckKey[1] = 57L;
         state.contractNoticeAckStage[1] = 2;
@@ -79,6 +80,7 @@ class ContractTableCompactorTest {
                 GarrisonDefenseTriggerType.fromByte(state.contractDefenseTriggerType[0]));
         assertEquals(59L, state.contractDefenseAttackerHouseId[0]);
         assertEquals(60, state.contractDefenseAttackerFactionId[0]);
+        assertEquals(61.5f, state.contractDefenseAttackerStrength[0], 0.001f);
         assertEquals(65, state.contractResponseDeadlineTick[0]);
         assertEquals(57L, state.contractNoticeAckKey[0]);
         assertEquals(2, state.contractNoticeAckStage[0]);

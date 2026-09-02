@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — made ordinary supply sparse and persisted each mission offer's operation scale.
+Updated: 2026-09-02 — named stationed strength and the posting; a vanilla-triggered defence now settles from vanilla's own result when unanswered.
 
 Campaign contracts turn the player's relationship with a patron into a bounded
 piece of work. They sit between the campaign's political chains and an
@@ -43,6 +43,15 @@ not own the political simulation, battle presentation, cargo, or narrator.
 - A **response** is the player decision owed when a pending stationing defense
   or incident is armed. It may be fought through the established response
   route, held for later while time remains, or explicitly written off.
+- **Stationed strength** is what a Garrison detachment is worth to the place
+  it holds while the player is elsewhere: a contribution to the protected
+  market's vanilla ground defences, sized by its living seats and experience
+  standard, present for exactly the term. It is the thing the retainer buys.
+- A **posting** is stationing without a patron: the player's own detachment
+  bound to one of the player's own markets, with no retainer, no term, and no
+  commercial consequence. It shares the response and settlement machinery as
+  a row whose employer is nobody; `meta-progression.md` owns why the polity
+  is never a client.
 - **Recovery** is the system-generated follow-on to an employer-breached
   stationing contract. It is not a sixth patron-offered work type.
 - A **settlement** is the one terminal contract outcome: completed, failed,
@@ -111,6 +120,17 @@ second roster.
    live defense or incident into success. A response has one persisted deadline
    on campaign day, and an unanswered response settles as a failure with the
    same domain path whether the player chooses to write it off or lets it lapse.
+   The one exception is a defence armed by a vanilla raid: the stationed
+   detachment fought that raid through vanilla's own strength ratio whether or
+   not the player came, so an unanswered vanilla-triggered defence settles
+   from vanilla's result — held, held with losses, or overrun — graded on the
+   raid effectiveness computed with the detachment counted.
+11. A stationed detachment's strength reaches vanilla through one attributable,
+    replay-safe modifier on the protected market's ground defences, applied
+    for the term and removed with it. A won vanilla-triggered defence ends the
+    raid only through vanilla's own abort or fail path. Neither write touches
+    market ownership, stability, or industries directly; those remain
+    vanilla's to settle.
 6. Player-event presentation is a projection of persisted pending work, not a
    second event store. A notice is acknowledged only after presentation and may
    reappear only at its defined urgency; resolving the underlying work removes
@@ -134,8 +154,10 @@ second roster.
 1. An eligible patron makes a bounded offer. The player lets it expire or
    accepts terms.
 2. A mission contract produces operations until its terminal result. A
-   stationing contract binds personnel, pays for its committed duration, and
-   may arm a local response.
+   stationing contract binds personnel, pays for its committed duration,
+   contributes its stationed strength to the protected market, and may arm a
+   local response — from the mod's own political pressures or from a vanilla
+   raid of either shape on that market.
 3. Operation or stationing policy writes one settlement. The result updates the
    agreement's relationship and credibility consequences, and may inform the
    political layer.

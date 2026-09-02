@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
+import com.dillon.starsectormarines.campaign.systems.StationedStrengthSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingIncidentSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingLapseSystem;
@@ -114,7 +115,10 @@ public class CampaignStateScript implements EveryFrameScript {
                 new DefectorAsylumSpawnSystem(),
                 new SilentColonySpawnSystem(),
                 new CivilWarParticipationOfferSystem(),
-                new ThreatInterventionOfferSystem()
+                new ThreatInterventionOfferSystem(),
+                // Last: the modifier must reflect the day's settled state, so every
+                // system that can end a term or move personnel has already run.
+                new StationedStrengthSystem()
         ));
     }
 

@@ -352,6 +352,12 @@ public final class CampaignState implements Serializable {
     /** Attacking faction registry slot, or -1 when unknown. */
     public int[]   contractDefenseAttackerFactionId = filledInts(INITIAL_CAPACITY, -1);
     /**
+     * Ground strength the attacker brings to the pending defense, in vanilla's own
+     * raid-strength units; 0 when the producer cannot estimate it. Mod-simulated
+     * producers (rival strike, internal flip) leave it 0.
+     */
+    public float[] contractDefenseAttackerStrength = new float[INITIAL_CAPACITY];
+    /**
      * Day by which the player must answer the currently pending Garrison defense or
      * Cadre incident; -1 when no response is outstanding. Armed by
      * {@code StationingLapseSystem} on first observation of a pending payload and
@@ -381,6 +387,22 @@ public final class CampaignState implements Serializable {
     /** Cash multiplier (0..255; 100 = baseline). Higher = traded salvage for cash. */
     public byte[]  contractCashMultiplier    = new byte[INITIAL_CAPACITY];
     public int     contractCount         = 0;
+
+    // ---------- stationed-strength applied set (see contracts-nouns.md, law 11) ----------
+
+    /*
+     * Which (contract, market) pairs currently carry a stationed-strength modifier on
+     * vanilla's ground-defence stat. Deliberately its own small table rather than a
+     * contracts[] column: the pair outlives the row it came from, and the whole point
+     * of persisting it is to sweep a modifier whose contract row was compacted away.
+     * Vanilla persists the stat with the market, but the sweep does not trust that.
+     */
+
+    /** Contract that applied the modifier; -1 in unused slots. */
+    public long[]  stationedStrengthContractId = filledLongs(INITIAL_CAPACITY, -1L);
+    /** Market slot in {@link #marketRegistry} the modifier stands on; -1 in unused slots. */
+    public int[]   stationedStrengthMarketId = filledInts(INITIAL_CAPACITY, -1);
+    public int     stationedStrengthCount = 0;
 
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
@@ -1015,6 +1037,7 @@ public final class CampaignState implements Serializable {
         contractDefenseTriggerType[i] = GarrisonDefenseTriggerType.NONE.toByte();
         contractDefenseAttackerHouseId[i] = -1L;
         contractDefenseAttackerFactionId[i] = -1;
+        contractDefenseAttackerStrength[i] = 0f;
         contractResponseDeadlineTick[i] = -1;
         contractNoticeAckKey[i]     = 0L;
         contractNoticeAckStage[i]   = 0;
@@ -1824,6 +1847,10 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractDefenseAttackerFactionId = filledInts(n, -1);
         }
+        if (contractDefenseAttackerStrength == null) {
+            int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
+            contractDefenseAttackerStrength = new float[n];
+        }
         if (contractResponseDeadlineTick == null) {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractResponseDeadlineTick = filledInts(n, -1);
@@ -1848,6 +1875,20 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractNoticeAckStage = new byte[n];
         }
+        if (stationedStrengthContractId == null) {
+            int n = stationedStrengthMarketId != null
+                    ? stationedStrengthMarketId.length : INITIAL_CAPACITY;
+            stationedStrengthContractId = filledLongs(n, -1L);
+            stationedStrengthCount = 0;
+        }
+        if (stationedStrengthMarketId == null) {
+            stationedStrengthMarketId = filledInts(stationedStrengthContractId.length, -1);
+            stationedStrengthCount = 0;
+        }
+        // The pair is one table, so a count that outruns the arrays it addresses would
+        // walk off the end of a save written while they were shorter.
+        stationedStrengthCount = Math.max(0,
+                Math.min(stationedStrengthCount, stationedStrengthContractId.length));
         return this;
     }
 
@@ -1902,6 +1943,7 @@ public final class CampaignState implements Serializable {
         Arrays.fill(contractDefenseAttackerHouseId, oldLength, n, -1L);
         contractDefenseAttackerFactionId = Arrays.copyOf(contractDefenseAttackerFactionId, n);
         Arrays.fill(contractDefenseAttackerFactionId, oldLength, n, -1);
+        contractDefenseAttackerStrength = Arrays.copyOf(contractDefenseAttackerStrength, n);
         contractResponseDeadlineTick = Arrays.copyOf(contractResponseDeadlineTick, n);
         Arrays.fill(contractResponseDeadlineTick, oldLength, n, -1);
         contractNoticeAckKey = Arrays.copyOf(contractNoticeAckKey, n);
@@ -1909,6 +1951,62 @@ public final class CampaignState implements Serializable {
         contractSalvageBaseline   = Arrays.copyOf(contractSalvageBaseline, n);
         contractSalvageNegotiated = Arrays.copyOf(contractSalvageNegotiated, n);
         contractCashMultiplier    = Arrays.copyOf(contractCashMultiplier, n);
+    }
+
+    /**
+     * Records that a stationed-strength modifier for {@code contractId} now stands on
+     * {@code marketId}. Idempotent — re-recording the same contract rewrites its market
+     * slot rather than appending a second pair.
+     */
+    public void recordStationedStrength(long contractId, int marketId) {
+        int existing = stationedStrengthRow(contractId);
+        if (existing >= 0) {
+            stationedStrengthMarketId[existing] = marketId;
+            return;
+        }
+        ensureStationedStrengthCapacity(stationedStrengthCount + 1);
+        int i = stationedStrengthCount++;
+        stationedStrengthContractId[i] = contractId;
+        stationedStrengthMarketId[i] = marketId;
+    }
+
+    /** Drops the recorded pair for {@code contractId}. Returns whether one was there. */
+    public boolean forgetStationedStrength(long contractId) {
+        int row = stationedStrengthRow(contractId);
+        if (row < 0) return false;
+        forgetStationedStrengthAt(row);
+        return true;
+    }
+
+    /**
+     * Drops the pair at {@code row} by swap-and-pop, so a sweep must walk the set
+     * backwards: the entry moved into {@code row} is one the walk has already seen.
+     */
+    public void forgetStationedStrengthAt(int row) {
+        if (row < 0 || row >= stationedStrengthCount) return;
+        int last = --stationedStrengthCount;
+        stationedStrengthContractId[row] = stationedStrengthContractId[last];
+        stationedStrengthMarketId[row] = stationedStrengthMarketId[last];
+        stationedStrengthContractId[last] = -1L;
+        stationedStrengthMarketId[last] = -1;
+    }
+
+    /** Slot holding {@code contractId}'s applied pair, or {@code -1}. */
+    public int stationedStrengthRow(long contractId) {
+        for (int i = 0; i < stationedStrengthCount; i++) {
+            if (stationedStrengthContractId[i] == contractId) return i;
+        }
+        return -1;
+    }
+
+    private void ensureStationedStrengthCapacity(int needed) {
+        if (needed <= stationedStrengthContractId.length) return;
+        int oldLength = stationedStrengthContractId.length;
+        int n = Math.max(needed, oldLength * 2);
+        stationedStrengthContractId = Arrays.copyOf(stationedStrengthContractId, n);
+        Arrays.fill(stationedStrengthContractId, oldLength, n, -1L);
+        stationedStrengthMarketId = Arrays.copyOf(stationedStrengthMarketId, n);
+        Arrays.fill(stationedStrengthMarketId, oldLength, n, -1);
     }
 
     private static int[] filledInts(int length, int value) {
