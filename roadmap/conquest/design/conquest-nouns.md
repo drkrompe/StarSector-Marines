@@ -5,7 +5,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 Written: 2026-08-23
 
 Updated: 2026-09-01 — the map is a plan of places at 560x336 (`precincts.md`);
-the garrison precinct supplies every feature the mission requires.
+the garrison precinct supplies every feature the mission requires; a mission
+states how far from the objective its force lands.
 
 Earlier 2026-09-01 — Full Strength now authors eighty-four squads / 1,008
 marines into one three-lane battle through the existing six-shuttle ferry.
@@ -105,9 +106,17 @@ the commander's advance, and later cycles create new squads rather than
 silently enlarging the first. Employer and player craft never share an arrival
 group or reusable pair across the ownership boundary.
 
+**How far out the force lands is stated, not the map edge.** A Conquest states
+a standoff alongside its sprawl and its arrival config — how many cells of
+approach lie between the beachhead and the objective's claim — and Conquest is
+the only mission that states one. Its default is the walk the balance was judged
+on rather than the map edge, because the map grew to 560x336 and the approach
+grew with it. See `precincts.md` for the standoff itself.
+
 Arrival areas are generated after terrain, structures, and the spawn anchor are
 final. Each publishes two clear 5×5 berths, a shared SOUTH or WEST approach, and
-a stable identity. Player pairs are balanced across the mission's configured
+a stable identity. The approach is still the edge the mission's own attacker
+band faced, whatever ground the standoff moved the areas onto. Player pairs are balanced across the mission's configured
 areas and additional committed hulls or selected squads increase cycles rather
 than permanent on-map craft. More than one configured pair per area reuses its
 two berths on staggered arrival groups. Employer lift remains ownership-separated
