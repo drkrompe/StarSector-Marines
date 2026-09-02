@@ -69,7 +69,7 @@ class CivilianRescueBattleFactoryTest {
         assertEquals(SwarmDefenseRoster.LOW_COUNT,
                 sim.swarmTargetPopulation());
         List<Squad> shelterGuards = sim.getSquads().stream()
-                .filter(squad -> squad.rescueShelterGuard)
+                .filter(squad -> sim.isShelterGuard(squad.id))
                 .toList();
         assertEquals(1, shelterGuards.size());
         Squad shelterGuard = shelterGuards.get(0);
@@ -82,7 +82,9 @@ class CivilianRescueBattleFactoryTest {
             if (!sim.squad().hasSquad(unit)
                     || sim.squad().squadId(unit) != shelterGuard.id) continue;
             shelterMembers++;
-            assertEquals(Faction.MARINE, sim.identity().faction(unit));
+            assertEquals(Faction.ALLY, sim.identity().faction(unit),
+                    "the shelter's own militia is an allied force, not one of"
+                            + " the player's squads wearing a flag");
             assertEquals(UnitType.MILITIA, sim.identity().type(unit));
             assertTrue(sim.combat().primaryWeapon(unit) != null);
             int building = sim.getTopology().getBuildingId(

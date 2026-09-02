@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
@@ -84,6 +83,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static final Color HEADER_FG     = new Color(0xC8, 0xE0, 0xFF);
     private static final Color MARINE_FG     = new Color(0x80, 0xC0, 0xFF);
     private static final Color DEFENDER_FG   = new Color(0xFF, 0xA0, 0x80);
+    /**
+     * Allies get a hue of their own rather than the player's. This panel is
+     * read to tell one side's squads from another's, and an allied militia
+     * drawn in marine blue would be indistinguishable from a squad a click can
+     * actually move — which is the one thing about it worth seeing here.
+     */
+    private static final Color ALLY_FG       = new Color(0x90, 0xE0, 0xB0);
     private static final Color IDLE_FG       = new Color(0x70, 0x70, 0x70);
 
     // --- Detail mode ---
@@ -356,7 +362,11 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // "scroll to see more" hint (replaced by the post-dump status
         // banner for DUMP_STATUS_DURATION sim-seconds after a dump click).
         float headerY = y0 + h - HEADER_H;
-        Color idColor = (s.faction == Faction.MARINE) ? MARINE_FG : DEFENDER_FG;
+        Color idColor = switch (s.faction) {
+            case MARINE -> MARINE_FG;
+            case ALLY -> ALLY_FG;
+            default -> DEFENDER_FG;
+        };
         String squadLabel = debugHeaderLabel(s);
         Fonts.ORBITRON_20.drawString(squadLabel, x0 + PAD_INNER,
                 headerY + HEADER_H - 6f, idColor, alphaMult);
