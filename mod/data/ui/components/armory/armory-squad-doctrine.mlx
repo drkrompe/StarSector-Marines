@@ -30,7 +30,12 @@
             <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
           </div>
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
-          <div id="{tile.distributionId}" class="doctrine-distribution label">{tile.distribution}</div>
+          <div id="{tile.distributionId}" class="{tile.distributionClasses}">{tile.distribution}</div>
+          <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}">
+            <div id="{tile.distributionGridId}" class="doctrine-span-grid">
+              <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span label">{span.label}</div>
+            </div>
+          </div>
         </button>
       </div>
     </div>
@@ -53,8 +58,20 @@
           </div>
           <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
           <div id="{tile.compositionId}" class="doctrine-composition label">SECTION  ·  {tile.composition}</div>
-          <div id="{tile.distributionId}" class="doctrine-distribution label">ISSUED  ·  {tile.distribution}</div>
-          <div id="{tile.carriesId}" class="doctrine-carries label">CARRIES  ·  {tile.carries}</div>
+          <div id="{tile.distributionId}" class="{tile.distributionClasses}">ISSUED  ·  {tile.distribution}</div>
+          <div id="{tile.distributionRowId}" class="{tile.distributionRowClasses}">
+            <div id="{tile.distributionTagId}" class="doctrine-line-tag label">ISSUED</div>
+            <div id="{tile.distributionGridId}" class="doctrine-span-grid">
+              <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span label">{span.label}</div>
+            </div>
+          </div>
+          <div id="{tile.carriesId}" class="{tile.carriesClasses}">CARRIES  ·  {tile.carries}</div>
+          <div id="{tile.carriesRowId}" class="{tile.carriesRowClasses}">
+            <div id="{tile.carriesTagId}" class="doctrine-line-tag label">CARRIES</div>
+            <div id="{tile.carriesGridId}" class="doctrine-span-grid">
+              <div each="span in tile.carriesSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-carries-span label">{span.label}</div>
+            </div>
+          </div>
         </button>
       </div>
     </div>
@@ -98,7 +115,7 @@
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
   #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 476px; height: 206px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
+  .doctrine-tile { flex-direction: column; width: 476px; height: 214px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
   .doctrine-tile.rarity-common { border-color: #607188; }
   .doctrine-tile.rarity-uncommon { border-color: #53c6e8; background-color: #10202c; }
   .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
@@ -123,6 +140,20 @@
   .doctrine-composition { height: 18px; color: #7fb2d8; }
   .doctrine-distribution { height: 34px; color: #d8bd67; white-space: normal; }
   .doctrine-carries { height: 18px; color: #8fd6a6; }
+
+  /* An issue line is drawn as one span per entry so a reader can point at a
+     name; the grid is what wraps it, since a flow row does not. The plain
+     label above stays as the fallback for a line with nothing to list, and
+     exactly one of the two is ever laid out. */
+  .doctrine-span-row { flex-direction: row; gap: 6px; overflow: hidden; }
+  .doctrine-distribution-row { height: 40px; }
+  .doctrine-carries-row { height: 18px; }
+  .doctrine-line-tag { width: 58px; padding: 1px 0px; color: #7d8ea1; }
+  .doctrine-span-grid { display: grid; width: 0px; flex-grow: 1; gap: 3px; overflow: hidden; }
+  .doctrine-span { height: 17px; padding: 1px 2px; }
+  .doctrine-issue-span { color: #d8bd67; }
+  .doctrine-carries-span { color: #8fd6a6; }
+  .doctrine-line-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
   .cargo-costs { display: grid; height: 54px; gap: 4px; overflow: hidden; }
   .cargo-costs.empty { height: 0px; gap: 0px; }
   .cargo-cost { width: 236px; height: 25px; flex-direction: row; padding: 2px 4px; gap: 4px; border-width: 1px; border-color: #50677e; background-color: #101a25; }

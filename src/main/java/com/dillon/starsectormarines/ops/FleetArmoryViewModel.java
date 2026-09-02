@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -37,6 +38,7 @@ import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
@@ -564,10 +566,11 @@ public final class FleetArmoryViewModel {
             if (issuableOnly.get() && !affordable(
                     doctrine.id(), selectedArmorDoctrineId.get())) continue;
             String id = "weapon-doctrine:" + doctrine.id();
+            List<DoctrineSpan> issue = weaponDistributionSpans(id, doctrine);
             tiles.add(doctrineTile(id, doctrine.id().equals(selected),
                     doctrine.displayName(), LoadoutEffectiveness.weaponRating(doctrine),
                     presentation, doctrineMetadata(presentation),
-                    "", weaponDistribution(doctrine), "",
+                    "", joinSpans(issue), issue, "", List.of(),
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
         return rankedByRating(tiles);
@@ -592,11 +595,13 @@ public final class FleetArmoryViewModel {
             // not get better, the kit filling it does.
             String metadata = titleCase(plan.tradition().key.replace('_', ' '))
                     + "  ·  FIELDS TIER " + tierMark(maximumArmorTier(issued));
+            List<DoctrineSpan> patterns = armorDistributionSpans(id, issued);
+            List<DoctrineSpan> capabilities = armorCapabilitySpans(id, issued);
             tiles.add(doctrineTile(id, plan.id().equals(selected),
                     plan.displayName(), LoadoutEffectiveness.armorRating(issued),
                     presentation, metadata,
-                    roleComposition(plan), armorDistribution(issued),
-                    armorCapabilities(issued),
+                    roleComposition(plan), joinSpans(patterns), patterns,
+                    armorCapabilities(capabilities), capabilities,
                     () -> selectArmorDoctrine(plan.id())));
         }
         return rankedByRating(tiles);
@@ -637,7 +642,8 @@ public final class FleetArmoryViewModel {
     private static DoctrineTile doctrineTile(
             String id, boolean selected, String name, int rating,
             SquadLoadoutPresentationDef presentation, String metadata,
-            String composition, String distribution, String carries, Runnable select) {
+            String composition, String distribution, List<DoctrineSpan> distributionSpans,
+            String carries, List<DoctrineSpan> carriesSpans, Runnable select) {
         String rarityClass = presentation.rarity().cssClass();
         String classes = "doctrine-tile " + rarityClass
                 + (selected ? " selected" : "");
@@ -649,7 +655,8 @@ public final class FleetArmoryViewModel {
                 factionLogoClasses(presentation.factionLogo()),
                 name, presentation.rarity().displayName(), rating,
                 "RATING " + rating, presentation.factionLogo(), metadata,
-                presentation.lore(), composition, distribution, carries, select);
+                presentation.lore(), composition, distribution, distributionSpans,
+                carries, carriesSpans, select);
     }
 
     private static String factionLogoClasses(String factionLogo) {
@@ -1113,20 +1120,86 @@ public final class FleetArmoryViewModel {
         return weapons.displayName() + "  /  " + armor.displayName();
     }
 
-    private static String weaponDistribution(SquadWeaponDoctrine doctrine) {
-        List<String> parts = new ArrayList<>();
+    /**
+     * The twelve-billet issue as one entry per weapon, each its own spec-sheet
+     * subject ({@code ui-nouns.md}). The line still reads as the joined
+     * sentence it always did — {@link #joinSpans} rebuilds it — but a reader
+     * can only ask about a name the document knows is a name.
+     *
+     * <p>The specialty entry is a count of items that need not be the same
+     * item. It carries a sheet when the loadout names exactly one and none at
+     * all when it mixes them, because there is no single thing "2 special"
+     * would then be describing.
+     */
+    private static List<DoctrineSpan> weaponDistributionSpans(
+            String tileId, SquadWeaponDoctrine doctrine) {
+        List<DoctrineSpan> spans = new ArrayList<>();
         for (WeaponDef weapon : WeaponRegistry.installed().all()) {
             if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             int count = 0;
-            for (var issue : doctrine.issues()) {
-                if (issue.primaryId().equals(weapon.id)) count++;
+            Map<EquipmentGrade, Integer> grades = new EnumMap<>(EquipmentGrade.class);
+            for (SquadWeaponIssue issue : doctrine.issues()) {
+                if (!issue.primaryId().equals(weapon.id)) continue;
+                count++;
+                grades.merge(issue.grade(), 1, Integer::sum);
             }
-            if (count > 0) parts.add(count + " " + weapon.displayName);
+            if (count == 0) continue;
+            spans.add(span(tileId, "distribution", spans.size(),
+                    count + " " + weapon.displayName, weaponSheet(weapon, grades)));
         }
         int specials = 0;
-        for (var issue : doctrine.issues()) if (issue.specialEquipmentId() != null) specials++;
-        if (specials > 0) parts.add(specials + " special");
-        return String.join("  ·  ", parts);
+        String only = null;
+        boolean mixed = false;
+        for (SquadWeaponIssue issue : doctrine.issues()) {
+            String specialId = issue.specialEquipmentId();
+            if (specialId == null) continue;
+            specials++;
+            if (only == null) only = specialId;
+            else if (!only.equals(specialId)) mixed = true;
+        }
+        if (specials > 0) {
+            SpecialEquipmentDef def = mixed ? null : SpecialEquipmentRegistry.get(only);
+            spans.add(span(tileId, "distribution", spans.size(),
+                    specials + " special", def == null ? null : SpecSheets.special(def)));
+        }
+        return last(spans);
+    }
+
+    /**
+     * The sheet for one weapon as <em>this loadout</em> issues it.
+     *
+     * <p>A loadout's billets each carry their own grade, so one weapon may
+     * appear at several. The sheet is quoted at the grade <b>most</b> of its
+     * carriers actually get, because a spec sheet reports what the simulation
+     * applies rather than a catalog default, and the majority issue is the one
+     * a player is deciding about. A tie goes to the higher grade — there is no
+     * majority to quote, and the loadout was authored to reach it — which
+     * cannot flatter the loadout silently, because a spread is named in the
+     * subtitle either way.
+     */
+    private static SpecSheet weaponSheet(WeaponDef weapon,
+                                         Map<EquipmentGrade, Integer> grades) {
+        EquipmentGrade quoted = null;
+        EquipmentGrade lowest = null;
+        EquipmentGrade highest = null;
+        int best = 0;
+        for (Map.Entry<EquipmentGrade, Integer> issued : grades.entrySet()) {
+            EquipmentGrade grade = issued.getKey();
+            int count = issued.getValue();
+            if (quoted == null || count > best
+                    || (count == best && grade.tier > quoted.tier)) {
+                quoted = grade;
+                best = count;
+            }
+            if (lowest == null || grade.tier < lowest.tier) lowest = grade;
+            if (highest == null || grade.tier > highest.tier) highest = grade;
+        }
+        SpecSheet sheet = SpecSheets.weapon(weapon, quoted);
+        if (lowest == highest) return sheet;
+        return new SpecSheet(sheet.title(),
+                sheet.subtitle() + "  ·  issued " + lowest.displayName + "–"
+                        + highest.displayName + " here",
+                sheet.crestPath(), sheet.accent(), sheet.stats(), sheet.notes());
     }
 
     /**
@@ -1181,33 +1254,86 @@ public final class FleetArmoryViewModel {
      * <em>issued</em> doctrine rather than the plan, so it improves as the
      * company's stock does — the same rule the issue line follows.
      */
-    private static String armorCapabilities(SquadArmorDoctrine doctrine) {
+    private static String armorCapabilities(List<DoctrineSpan> capabilities) {
+        return capabilities.isEmpty()
+                ? "Nothing beyond plate and training" : joinSpans(capabilities);
+    }
+
+    /**
+     * The carried capabilities as spans.
+     *
+     * <p>A family is named rather than a pattern, and several patterns may
+     * carry the same family under different names and different numbers — so
+     * an entry carries the integral system's sheet only when this issue fills
+     * it from one pattern. Where two patterns contribute to the same family
+     * there is no one suit the entry describes, and quoting either one's clock
+     * would be inventing a number this loadout does not field.
+     */
+    private static List<DoctrineSpan> armorCapabilitySpans(
+            String tileId, SquadArmorDoctrine doctrine) {
         Map<String, Integer> counts = new LinkedHashMap<>();
+        Map<String, MarineArmorCatalogDef> carriers = new LinkedHashMap<>();
+        Map<String, Boolean> shared = new LinkedHashMap<>();
         for (String issueId : doctrine.issueIds()) {
             MarineArmorCatalogDef pattern = MarineArmorCatalogRegistry.installed().get(issueId);
             if (pattern == null || !pattern.hasIntegralSystem()) continue;
-            counts.merge(pattern.integralSystem().familyName(), 1, Integer::sum);
+            String family = pattern.integralSystem().familyName();
+            counts.merge(family, 1, Integer::sum);
+            MarineArmorCatalogDef first = carriers.putIfAbsent(family, pattern);
+            if (first != null && !first.id().equals(pattern.id())) shared.put(family, true);
         }
-        if (counts.isEmpty()) return "Nothing beyond plate and training";
+        if (counts.isEmpty()) return List.of();
         List<Map.Entry<String, Integer>> ranked = new ArrayList<>(counts.entrySet());
         ranked.sort(Map.Entry.<String, Integer>comparingByValue().reversed()
                 .thenComparing(Map.Entry.comparingByKey()));
-        List<String> parts = new ArrayList<>();
+        List<DoctrineSpan> spans = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : ranked) {
-            parts.add(entry.getValue() + " " + entry.getKey());
+            String family = entry.getKey();
+            SpecSheet sheet = shared.containsKey(family)
+                    ? null : SpecSheets.integralSystem(carriers.get(family));
+            spans.add(span(tileId, "carries", spans.size(),
+                    entry.getValue() + " " + family, sheet));
         }
-        return String.join("  ·  ", parts);
+        return last(spans);
     }
 
-    private static String armorDistribution(SquadArmorDoctrine doctrine) {
-        List<String> parts = new ArrayList<>();
+    private static List<DoctrineSpan> armorDistributionSpans(
+            String tileId, SquadArmorDoctrine doctrine) {
+        List<DoctrineSpan> spans = new ArrayList<>();
         for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
             int count = 0;
             for (String issueId : doctrine.issueIds()) {
                 if (issueId.equals(pattern.id())) count++;
             }
-            if (count > 0) parts.add(count + " " + pattern.displayName());
+            if (count == 0) continue;
+            spans.add(span(tileId, "distribution", spans.size(),
+                    count + " " + pattern.displayName(), SpecSheets.armor(pattern)));
         }
+        return last(spans);
+    }
+
+    private static DoctrineSpan span(String tileId, String line, int index,
+                                     String text, SpecSheet sheet) {
+        return new DoctrineSpan(tileId + ":" + line + "-span:" + index, text, false, sheet);
+    }
+
+    /**
+     * Marks the closing entry, which is the one that does not trail a
+     * separator. The line reads as a sentence and only the last word of a
+     * sentence ends it.
+     */
+    private static List<DoctrineSpan> last(List<DoctrineSpan> spans) {
+        if (spans.isEmpty()) return List.of();
+        DoctrineSpan closing = spans.get(spans.size() - 1);
+        spans.set(spans.size() - 1,
+                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet()));
+        return List.copyOf(spans);
+    }
+
+    /** The joined sentence the spans read as, for the line's plain fallback. */
+    private static String joinSpans(List<DoctrineSpan> spans) {
+        List<String> parts = new ArrayList<>();
+        for (DoctrineSpan span : spans) parts.add(span.text());
         return String.join("  ·  ", parts);
     }
 
@@ -1523,7 +1649,8 @@ public final class FleetArmoryViewModel {
             String factionLogoClasses, String name, String rarity, int rating,
             String ratingLabel, String factionLogo, String metadata,
             String description, String composition, String distribution,
-            String carries,
+            List<DoctrineSpan> distributionSpans, String carries,
+            List<DoctrineSpan> carriesSpans,
             Runnable select) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1539,7 +1666,13 @@ public final class FleetArmoryViewModel {
                 case "descriptionId" -> descriptionId;
                 case "compositionId" -> compositionId;
                 case "distributionId" -> distributionId;
+                case "distributionRowId" -> distributionId + "-spans";
+                case "distributionGridId" -> distributionId + "-grid";
+                case "distributionTagId" -> distributionId + "-tag";
                 case "carriesId" -> carriesId;
+                case "carriesRowId" -> carriesId + "-spans";
+                case "carriesGridId" -> carriesId + "-grid";
+                case "carriesTagId" -> carriesId + "-tag";
                 case "classes" -> classes;
                 case "rarityClasses" -> rarityClasses;
                 case "ratingClasses" -> ratingClasses;
@@ -1553,9 +1686,44 @@ public final class FleetArmoryViewModel {
                 case "description" -> description;
                 case "composition" -> composition;
                 case "distribution" -> distribution;
+                case "distributionSpans" -> distributionSpans;
+                // A line is drawn as spans or as the joined sentence, never as
+                // both: the fallback is what a loadout issuing nothing to list
+                // still has to say.
+                case "distributionClasses" -> distributionSpans.isEmpty()
+                        ? "doctrine-distribution label" : "doctrine-line-hidden";
+                case "distributionRowClasses" -> distributionSpans.isEmpty()
+                        ? "doctrine-line-hidden" : "doctrine-span-row doctrine-distribution-row";
                 case "carries" -> carries;
+                case "carriesSpans" -> carriesSpans;
+                case "carriesClasses" -> carriesSpans.isEmpty()
+                        ? "doctrine-carries label" : "doctrine-line-hidden";
+                case "carriesRowClasses" -> carriesSpans.isEmpty()
+                        ? "doctrine-line-hidden" : "doctrine-span-row doctrine-carries-row";
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown doctrine-tile property");
+            };
+        }
+    }
+
+    /**
+     * One named entry inside a loadout card's issue line, and the sheet that
+     * describes it ({@code ui-nouns.md}). The joined sentence is what the line
+     * reads as; the spans are what a reader can point at.
+     *
+     * <p>The sheet is null where the entry names no single catalog item — a
+     * specialty count over mixed items, a capability family filled from two
+     * patterns — and a binding on it then opens nothing.
+     */
+    public record DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "label" -> closing ? text : text + "  ·";
+                case "text" -> text;
+                default -> throw new IllegalArgumentException("Unknown doctrine-span property");
             };
         }
     }

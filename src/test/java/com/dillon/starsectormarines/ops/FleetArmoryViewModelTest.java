@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.ArmorRole;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
@@ -15,6 +19,7 @@ import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -315,6 +320,154 @@ class FleetArmoryViewModelTest {
             document.advance(0f);
             assertFalse(layer.visible());
         }
+    }
+
+    /**
+     * A loadout card's issue line names catalog items, so each entry on it is a
+     * subject rather than a run of text: a weapon at the grade this loadout
+     * issues it, an armour pattern, or a capability whose one carrier can be
+     * named ({@code company-view-nouns.md}). The card itself is a loadout and
+     * carries no sheet of its own.
+     */
+    @Test
+    void everyLoadoutCardIssueEntryOpensItsOwnSpecSheet() throws Exception {
+        MarineRoster roster = fullSquad();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(reactor, "fleet-armory-fireteam",
+                props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer);
+            ArmorySpecSheets.bindDoctrineTiles(
+                    binder, instance, viewModel.weaponDoctrineTiles());
+            ArmorySpecSheets.bindDoctrineTiles(
+                    binder, instance, viewModel.armorDoctrineTiles());
+            document.layout(1744f, 938f);
+
+            List<FleetArmoryViewModel.DoctrineTile> weapons =
+                    viewModel.weaponDoctrineTiles().get();
+            List<FleetArmoryViewModel.DoctrineTile> armor =
+                    viewModel.armorDoctrineTiles().get();
+            assertFalse(weapons.isEmpty(), "no weapon loadout is known, so this proves nothing");
+            assertFalse(armor.isEmpty(), "no tactic sheet is known, so this proves nothing");
+
+            int entries = 0;
+            for (FleetArmoryViewModel.DoctrineTile tile : concat(weapons, armor)) {
+                for (FleetArmoryViewModel.DoctrineSpan span : concatSpans(tile)) {
+                    assertTrue(binder.isBound(instance.requireElement(span.id())),
+                            span.id() + " is a name in the issue line and is not askable");
+                    entries++;
+                }
+                assertFalse(binder.isBound(instance.requireElement(tile.nameId())),
+                        "a loadout is a definition, not a catalog item");
+            }
+            assertEquals(entries, binder.size());
+
+            // The joined sentence and the spans are the same line said twice.
+            FleetArmoryViewModel.DoctrineTile card = weapons.get(0);
+            List<String> texts = new ArrayList<>();
+            for (FleetArmoryViewModel.DoctrineSpan span : card.distributionSpans()) {
+                texts.add(span.text());
+            }
+            assertEquals(card.distribution(), String.join("  ·  ", texts));
+
+            // A weapon entry is quoted at the grade this loadout issues it at.
+            SquadWeaponDoctrine doctrine = roster.armory().weaponDoctrines().stream()
+                    .filter(known -> card.id().endsWith(":" + known.id()))
+                    .findFirst().orElseThrow();
+            int weaponEntries = 0;
+            for (FleetArmoryViewModel.DoctrineSpan span : card.distributionSpans()) {
+                WeaponDef issued = primaryNamedBy(span.text());
+                if (issued == null) continue;
+                weaponEntries++;
+                assertEquals(issued.catalogName(issuedGrade(doctrine, issued)),
+                        span.sheet().title(),
+                        span.text() + " is not described as this loadout issues it");
+            }
+            assertTrue(weaponEntries > 0,
+                    "the first weapon loadout lists no weapon, so this proves nothing");
+
+            // A tactic sheet's ISSUED entries are the armour patterns themselves.
+            FleetArmoryViewModel.DoctrineTile sheet = armor.get(0);
+            assertFalse(sheet.distributionSpans().isEmpty());
+            for (FleetArmoryViewModel.DoctrineSpan span : sheet.distributionSpans()) {
+                MarineArmorCatalogDef pattern = patternNamedBy(span.text());
+                assertNotNull(pattern, span.text() + " names no known armour pattern");
+                assertEquals(pattern.displayName(), span.sheet().title());
+            }
+
+            // And the binding actually answers the pointer, on the picker that
+            // is laid out — a hidden picker's rows have no box to point at.
+            FleetArmoryViewModel.DoctrineSpan first = card.distributionSpans().get(0);
+            UiElement target = instance.requireElement(first.id());
+            assertFalse(layer.visible());
+            document.pointerMoved(centerX(target), centerY(target));
+            binder.update();
+            document.advance(0f);
+            assertTrue(layer.visible());
+            assertSame(target, binder.openTarget());
+            assertEquals(first.sheet().title(),
+                    instance.requireElement(SpecSheetLayer.ELEMENT_ID + "-title").text());
+        }
+    }
+
+    private static List<FleetArmoryViewModel.DoctrineTile> concat(
+            List<FleetArmoryViewModel.DoctrineTile> first,
+            List<FleetArmoryViewModel.DoctrineTile> second) {
+        List<FleetArmoryViewModel.DoctrineTile> all = new ArrayList<>(first);
+        all.addAll(second);
+        return all;
+    }
+
+    private static List<FleetArmoryViewModel.DoctrineSpan> concatSpans(
+            FleetArmoryViewModel.DoctrineTile tile) {
+        List<FleetArmoryViewModel.DoctrineSpan> all =
+                new ArrayList<>(tile.distributionSpans());
+        all.addAll(tile.carriesSpans());
+        return all;
+    }
+
+    /** The marine primary an entry such as {@code 3 Field Rifle} counts, or null. */
+    private static WeaponDef primaryNamedBy(String text) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount == MountClass.MARINE_PRIMARY
+                    && text.endsWith(" " + weapon.displayName)) {
+                return weapon;
+            }
+        }
+        return null;
+    }
+
+    private static MarineArmorCatalogDef patternNamedBy(String text) {
+        for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
+            if (text.endsWith(" " + pattern.displayName())) return pattern;
+        }
+        return null;
+    }
+
+    /** The grade most of this loadout's carriers of one weapon are issued at. */
+    private static EquipmentGrade issuedGrade(SquadWeaponDoctrine doctrine, WeaponDef weapon) {
+        Map<EquipmentGrade, Integer> counts = new LinkedHashMap<>();
+        for (SquadWeaponIssue issue : doctrine.issues()) {
+            if (issue.primaryId().equals(weapon.id)) counts.merge(issue.grade(), 1, Integer::sum);
+        }
+        EquipmentGrade quoted = null;
+        int best = 0;
+        for (Map.Entry<EquipmentGrade, Integer> issued : counts.entrySet()) {
+            if (quoted == null || issued.getValue() > best
+                    || (issued.getValue() == best && issued.getKey().tier > quoted.tier)) {
+                quoted = issued.getKey();
+                best = issued.getValue();
+            }
+        }
+        return quoted;
     }
 
     @Test

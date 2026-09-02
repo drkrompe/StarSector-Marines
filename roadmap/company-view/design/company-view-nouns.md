@@ -4,14 +4,10 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the NCO is the first off the boat and the last onto it:
-seated at the head of their squad's run of the manifest, and left on the field
-by a lift that cannot take the whole squad. A marine who lands outside cohesion
-of a squad that has stopped forming up is rejoining: it closes on its squad,
-returns fire, initiates nothing, and is left out of the squad's slots and
-arrival rules until it is back. A boat can be lost: a berth stands vacant on the
-deck and on the hangar picture, whoever was aboard is fallen, and the yard
-builds the hull's own pattern back into the hole for a material bill.
+Updated: 2026-09-02 — a loadout card's twelve-billet distribution reads as one
+joined line built from one entry per named thing, and each entry opens that
+item's spec sheet; an entry counting items that need not be the same item names
+nothing and opens nothing.
 
 ## Purpose
 
@@ -228,7 +224,13 @@ filters bound a growing list without reducing the dossier detail. The browser co
 only definitions the company actually knows; unknown definitions have no placeholder,
 silhouette, name, tier, rarity, provenance, or lore to spoil future discovery. Each
 known entry leads with an authored power tier, campaign rarity, provenance, substantial
-setting paragraph, and deterministic twelve-billet distribution. Tier describes
+setting paragraph, and deterministic twelve-billet distribution. That distribution reads
+as one joined line and is built from one entry per named thing, so each entry opens that
+item's spec sheet (`ui-nouns.md`) on hover: a weapon at the grade the loadout issues it,
+an armour pattern, a carried integral system. An entry that counts items which need not
+be the same item — a specialty count over a mixed issue, a capability family filled from
+two patterns — names no single catalog item and opens nothing, and a role count is a
+count rather than a catalog item at all. Tier describes
 expected capability while rarity describes acquisition scarcity and presentation.
 Rarity is never a random-roll weight, and selection never rolls equipment from a pool.
 Faction-authored entries pair that provenance with the owning faction's vanilla flag,

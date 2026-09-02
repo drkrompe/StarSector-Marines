@@ -63,6 +63,9 @@ public final class FleetArmoryScreen implements Screen {
      * markup has flushed and the hover chain is the one the player is pointing at.
      */
     private SpecSheetBinder specSheets;
+    /** The loadout projections the live document's entries were bound against. */
+    private List<FleetArmoryViewModel.DoctrineTile> boundWeaponTiles;
+    private List<FleetArmoryViewModel.DoctrineTile> boundArmorTiles;
     private StarsectorUiInputAdapter input;
     private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
@@ -144,6 +147,11 @@ public final class FleetArmoryScreen implements Screen {
             if (view == View.FIRETEAMS) {
                 ArmorySpecSheets.bindMarineCards(
                         candidateSheets, candidate, viewModel.marineCards());
+                // A new document holds new elements even where the projection
+                // behind them is the one already bound, so the guard is cleared.
+                boundWeaponTiles = null;
+                boundArmorTiles = null;
+                bindLoadoutCards(candidateSheets, candidate);
             } else if (view == View.DESIGNER) {
                 ArmorySpecSheets.bindBilletCards(
                         candidateSheets, candidate, designerViewModel.billets());
@@ -165,6 +173,26 @@ public final class FleetArmoryScreen implements Screen {
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
         if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
+    }
+
+    /**
+     * Both pickers are laid out at once, so both lists' entries are wired.
+     *
+     * <p>Finding an entry's element costs a walk of the document — a span's id
+     * is minted by the reconciler and is not in the instance's own index — so
+     * this runs only when a picker has actually reprojected. A computed signal
+     * hands back the same list until it recomputes, which is exactly the
+     * question being asked.
+     */
+    private void bindLoadoutCards(SpecSheetBinder binder, MarkupInstance instance) {
+        if (binder == null || instance == null) return;
+        List<FleetArmoryViewModel.DoctrineTile> weapons = viewModel.weaponDoctrineTiles().get();
+        List<FleetArmoryViewModel.DoctrineTile> armor = viewModel.armorDoctrineTiles().get();
+        if (weapons == boundWeaponTiles && armor == boundArmorTiles) return;
+        boundWeaponTiles = weapons;
+        boundArmorTiles = armor;
+        ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.weaponDoctrineTiles());
+        ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.armorDoctrineTiles());
     }
 
     private Map<String, Object> props() {
@@ -325,6 +353,10 @@ public final class FleetArmoryScreen implements Screen {
             viewModel.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
+        // Loadout cards come and go with the rarity and supplies filters, so
+        // the entries a reader can ask about are wired after reconciliation
+        // rather than only when the document was installed.
+        if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
         if (specSheets != null) specSheets.update();
         if ((view == View.FIRETEAMS || view == View.DESIGNER)
                 && Float.isFinite(dt) && dt > 0f) {
@@ -361,6 +393,8 @@ public final class FleetArmoryScreen implements Screen {
         document = null;
         markupInstance = null;
         specSheets = null;
+        boundWeaponTiles = null;
+        boundArmorTiles = null;
         input = null;
     }
 
