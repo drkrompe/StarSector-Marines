@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -97,6 +98,30 @@ class DebugMissionDifficultyTest {
 
         assertNull(DebugMissionDifficulty.atSprawl(dense, null).sprawl,
                 "clearing the statement hands the answer back to the market");
+    }
+
+    /**
+     * How far out the force lands is the battle's statement too, so the DEBUG
+     * board may make it — and hand it back to the mission type's default.
+     */
+    @Test
+    void theDebugBoardStatesHowFarOutItLands() {
+        Mission mission = Mission.builder()
+                .id("debug:CONQUEST:REINFORCED:0")
+                .name("CONQUEST — Reinforced")
+                .type(MissionType.CONQUEST)
+                .source(MissionSource.DEBUG)
+                .tier(OperationTier.REINFORCED)
+                .risk(RiskLevel.MEDIUM)
+                .build();
+
+        Mission close = DebugMissionDifficulty.atStandoff(mission, Standoff.CLOSE);
+        assertEquals(Standoff.CLOSE, close.standoff);
+        assertEquals(OperationTier.REINFORCED, close.tier,
+                "stating a standoff is not a statement about scale");
+
+        assertNull(DebugMissionDifficulty.atStandoff(close, null).standoff,
+                "clearing the statement hands the answer back to the mission type");
     }
 
     @Test

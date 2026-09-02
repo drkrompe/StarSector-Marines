@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -20,6 +21,11 @@ import java.util.Objects;
  * or {@code null} to derive it from the target market. Absent from a fixture
  * document means null, so a fixture written before the field existed still
  * derives its own answer rather than being pinned to one.
+ *
+ * <p>{@code standoff} is the same shape for how far from the objective the
+ * force lands, or {@code null} for Conquest's own default. It is on this
+ * fixture and not the others because Conquest is the only mission that consults
+ * one — everything else takes the map-edge beachhead it was measured on.
  */
 public record ConquestBattleFixture(
         long seed,
@@ -31,7 +37,8 @@ public record ConquestBattleFixture(
         List<FighterWingCommitment> marineFighterSupport,
         List<FighterWingCommitment> enemyFighterSupport,
         ShuttleArrivalPlan arrivalPlan,
-        PrecinctPlan.Sprawl sprawl) implements BattleFixture {
+        PrecinctPlan.Sprawl sprawl,
+        Standoff standoff) implements BattleFixture {
 
     public static final String KIND = "CONQUEST";
 
@@ -47,6 +54,19 @@ public record ConquestBattleFixture(
         arrivalPlan = Objects.requireNonNull(arrivalPlan, "arrivalPlan");
     }
 
+    /** A fixture that states a sprawl but nothing about its approach. */
+    public ConquestBattleFixture(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
+                null);
+    }
+
     /** A fixture that says nothing about sprawl; the market derives it. */
     public ConquestBattleFixture(
             long seed, List<ShuttleAssignment> manifest,
@@ -56,7 +76,8 @@ public record ConquestBattleFixture(
             List<FighterWingCommitment> enemyFighterSupport,
             ShuttleArrivalPlan arrivalPlan) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
-                marineFighterSupport, enemyFighterSupport, arrivalPlan, null);
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, null,
+                null);
     }
 
     /** V1 fixture compatibility: historical Conquest arrivals were independent. */
@@ -88,12 +109,24 @@ public record ConquestBattleFixture(
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport,
             ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport,
+                arrivalPlan, sprawl, null);
+    }
+
+    public static ConquestBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
+            Standoff standoff) {
         return new ConquestBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
                 FighterWingCommitment.captureRoster(enemyFighterSupport),
-                arrivalPlan, sprawl);
+                arrivalPlan, sprawl, standoff);
     }
 
     public static ConquestBattleFixture fromFactoryInputs(
@@ -117,6 +150,6 @@ public record ConquestBattleFixture(
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
                 FighterWingCommitment.toRoster(enemyFighterSupport), arrivalPlan,
-                sprawl);
+                sprawl, standoff);
     }
 }

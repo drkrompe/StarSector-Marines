@@ -1379,6 +1379,26 @@ public final class BattleSetup {
                                                FlybyRoster enemyFighterSupport,
                                                ShuttleArrivalPlan arrivalPlan,
                                                PrecinctPlan.Sprawl sprawl) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan,
+                sprawl, null);
+    }
+
+    /**
+     * Conquest build carrying the battle's stated approach length as well.
+     *
+     * @param standoff how far from the objective the force lands, or
+     *                 {@code null} for Conquest's own default
+     */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan,
+                                               PrecinctPlan.Sprawl sprawl,
+                                               Standoff standoff) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
@@ -1392,7 +1412,7 @@ public final class BattleSetup {
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
-                tier, risk, sprawl);
+                tier, risk, sprawl, standoff);
         MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
@@ -1735,9 +1755,27 @@ public final class BattleSetup {
                                                   FlybyRoster enemyFighterSupport,
                                                   ShuttleArrivalPlan arrivalPlan,
                                                   PrecinctPlan.Sprawl sprawl) {
+        return createConquest(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport, arrivalPlan,
+                sprawl, null);
+    }
+
+    /**
+     * Tier-aware Conquest carrying both of the battle's own map statements;
+     * {@code null} takes the derived sprawl and Conquest's default standoff.
+     */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  ShuttleArrivalPlan arrivalPlan,
+                                                  PrecinctPlan.Sprawl sprawl,
+                                                  Standoff standoff) {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, profile, marineFighterSupport,
-                enemyFighterSupport, arrivalPlan, sprawl).sim();
+                enemyFighterSupport, arrivalPlan, sprawl, standoff).sim();
     }
 
     /**
@@ -1848,14 +1886,16 @@ public final class BattleSetup {
     private static ConquestMap conquestMap(int gridW, int gridH, long seed,
                                            TraversalAxis axis, TargetProfile profile,
                                            OperationTier tier, RiskLevel risk,
-                                           PrecinctPlan.Sprawl sprawl) {
+                                           PrecinctPlan.Sprawl sprawl,
+                                           Standoff standoff) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         for (int attempt = 0; attempt < CONQUEST_MAP_ATTEMPTS; attempt++) {
             long mapSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             // Derived per attempt rather than once, because the plan is half of
             // what the seed decides: a re-roll that kept the same places would
             // be the same map filled differently, which is not another map.
-            PrecinctPlan plan = conquestPlanFor(tier, risk, profile, sprawl, axis, mapSeed);
+            PrecinctPlan plan = conquestPlanFor(tier, risk, profile, sprawl, standoff,
+                    axis, mapSeed);
             // A plan and an axis are two different maps and the generator
             // refuses both, so the axis rides in only when there is no plan —
             // a marketless or undefended Conquest keeps the stock crossroad.

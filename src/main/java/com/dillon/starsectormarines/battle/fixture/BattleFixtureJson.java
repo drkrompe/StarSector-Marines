@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -77,6 +78,7 @@ public final class BattleFixtureJson {
                     wingsToJson(conquest.enemyFighterSupport()));
             root.put("arrivalPlan", arrivalPlanToJson(conquest.arrivalPlan()));
             putSprawl(root, conquest.sprawl());
+            putStandoff(root, conquest.standoff());
             return root;
         }
         if (fixture instanceof SabotageBattleFixture sabotage) {
@@ -247,7 +249,8 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
                 arrivalPlanFromJson(root.getJSONObject("arrivalPlan")),
-                sprawlFromJson(root));
+                sprawlFromJson(root),
+                standoffFromJson(root));
     }
 
     private static SabotageBattleFixture decodeSabotage(
@@ -621,6 +624,22 @@ public final class BattleFixtureJson {
     private static void putSprawl(JSONObject root, PrecinctPlan.Sprawl sprawl)
             throws Exception {
         if (sprawl != null) root.put("sprawl", sprawl.name());
+    }
+
+    /**
+     * Writes how far out the battle lands, and nothing at all when it has no
+     * opinion. Same rule as {@link #putSprawl}, and Conquest is the only
+     * fixture that carries one because it is the only mission that reads one.
+     */
+    private static void putStandoff(JSONObject root, Standoff standoff)
+            throws Exception {
+        if (standoff != null) root.put("standoff", standoff.name());
+    }
+
+    /** The document's stated standoff, or null for the mission type's default. */
+    private static Standoff standoffFromJson(JSONObject root) throws Exception {
+        return nullableEnum(Standoff.class,
+                root.has("standoff") ? root.getString("standoff") : null, "standoff");
     }
 
     /** The document's stated sprawl, or null when it leaves it to the market. */

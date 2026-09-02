@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -494,6 +495,12 @@ public class BriefingScreen implements Screen {
                     () -> cycleDebugSprawl(-1), () -> cycleDebugSprawl(1)));
         }
         if (mission.type == MissionType.CONQUEST) {
+            // Conquest is the only mission that reads a standoff, for the same
+            // reason it is the only one offered the dial.
+            controls.add(conquestControl("debug-map-standoff", "Landing standoff",
+                    mission.standoff != null ? mission.standoff.name() : "default",
+                    false, false,
+                    () -> cycleDebugStandoff(-1), () -> cycleDebugStandoff(1)));
             controls.add(conquestControl("debug-drop-zones", "Drop zones",
                     Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
                     debugConquestArrivalConfig.dropZoneCount() <= 1,
@@ -545,6 +552,25 @@ public class BriefingScreen implements Screen {
         int current = mission.sprawl != null ? mission.sprawl.ordinal() + 1 : 0;
         int next = Math.floorMod(current + step, values.length + 1);
         Mission adjusted = DebugMissionDifficulty.atSprawl(mission,
+                next == 0 ? null : values[next - 1]);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    /**
+     * Steps the DEBUG briefing through the mission type's default and the three
+     * stated approaches, so one map can be played at each of them.
+     */
+    private void cycleDebugStandoff(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        Standoff[] values = Standoff.values();
+        // Index 0 is the mission type's own default; the stated values follow
+        // it, the way the sprawl cycle carries "derived".
+        int current = mission.standoff != null ? mission.standoff.ordinal() + 1 : 0;
+        int next = Math.floorMod(current + step, values.length + 1);
+        Mission adjusted = DebugMissionDifficulty.atStandoff(mission,
                 next == 0 ? null : values[next - 1]);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);
