@@ -565,8 +565,10 @@ tick 11850 and lose four of them again to the counterattack, ending the clock
 holding seven with twice the casualties. `CLOSE` lands closer still and wins
 four thousand ticks earlier than `FAR` with fewer losses on both sides. The
 reading is not that closer is better; it is that arriving faster than the force
-can consolidate is a different battle from arriving slowly, and the setting the
-default sits on is the one where that shows.
+can consolidate is a different battle from arriving slowly, and the middle
+setting is the one where that shows. **Conquest's default is `CLOSE`**, on this
+table rather than on the walk the old map had: it is the only setting that wins
+the fixture that can be won, and it costs the other one the least.
 
 `full-strength-west` is a timeout at every setting and captures nothing, so it
 separates the three only on cost: marine losses fall monotonically as the
