@@ -135,6 +135,70 @@ class ExtractionDefenderCommandTest {
         }
     }
 
+    @Test
+    void anInterdictionSearchWillNotOfferTheCellTheSourceGuardAlreadyHolds() {
+        try (BattleSimulation sim = simulation()) {
+            int[] route = {15, 8, 14, 8, 13, 8, 12, 8, 11, 8,
+                    10, 8, 9, 8, 8, 8, 7, 8, 6, 8, 5, 8, 4, 8};
+            ExtractionObjective objective = new ExtractionObjective(
+                    "EXTRACTION-01", "recovery package",
+                    sim.getZoneGraph().zoneIdAt(15, 8), route);
+            sim.addObjective(objective);
+            Set<Integer> mobile = new TreeSet<>();
+            for (int i = 0; i < 4; i++) mobile.add(squad(sim, 20, 3 + i * 2));
+            ExtractionDefenderCommand command =
+                    new ExtractionDefenderCommand(mobile);
+
+            still(sim, "escort", 15, 8);
+            // Four cells west of the guard's own post. The interdiction search
+            // opens on this contact plus (4, 0), which is the cell the source
+            // guard took first.
+            still(sim, "seen", 11, 4);
+            sim.advance(BattleSimulation.TICK_DT);
+            objective.tick(sim);
+            CommanderService.runSingle(command,
+                    ExtractionDefenderCommandDisclosure.INSTANCE, sim);
+            ExtractionDefenseSnapshot alarm = command.defenseSnapshot();
+
+            assertTrue(alarm.alarmActive());
+            assertTrue(sim.getCommanderInfluence(Faction.DEFENDER).contacts()
+                            .stream().anyMatch(seen -> seen.cellX() == 11
+                                    && seen.cellY() == 4),
+                    "the collision this test is named for needs that contact");
+            SquadIntent guard = alarm.squadIntents().stream()
+                    .filter(intent -> intent.role() == Role.SOURCE_GUARD)
+                    .findFirst().orElseThrow();
+            assertEquals(15, guard.targetCellX());
+            assertEquals(4, guard.targetCellY());
+
+            List<SquadIntent> interdiction = alarm.squadIntents().stream()
+                    .filter(intent -> intent.role() == Role.INTERDICTION)
+                    .toList();
+            assertFalse(interdiction.isEmpty(),
+                    "no interdiction squad was published to measure");
+            for (SquadIntent squad : interdiction) {
+                assertFalse(squad.targetCellX() == guard.targetCellX()
+                                && squad.targetCellY() == guard.targetCellY(),
+                        "interdiction was sent onto the guard's cell: " + squad);
+            }
+            List<SquadIntent> rallied = alarm.squadIntents().stream()
+                    .filter(intent -> intent.targetCellX() >= 0)
+                    .toList();
+            assertEquals(rallied.size(), rallied.stream()
+                            .map(intent -> intent.targetCellX() + ","
+                                    + intent.targetCellY())
+                            .distinct().count(),
+                    "two squads of one pulse rallied on one cell");
+        }
+    }
+
+    private static void still(BattleSimulation sim, String name, int x, int y) {
+        EntitySpec spec = new EntitySpec(name, Faction.MARINE,
+                UnitType.MARINE, x, y);
+        spec.moveSpeed = 0f;
+        sim.spawn(spec);
+    }
+
     private static CommanderContact contact(long unitId, int observedTick) {
         return new CommanderContact(unitId, 4, 4, observedTick, 1f, 1f,
                 BeliefSource.DIRECT, 0);

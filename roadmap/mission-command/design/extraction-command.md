@@ -6,7 +6,7 @@ Colony has stable Marine expedition branches; live acceptance remains open.
 
 Written: 2026-08-27
 
-Updated: 2026-09-01 — defined an actionable contact for the Extraction alarm responders, so the source-perimeter fallback is a rule rather than a total belief loss.
+Updated: 2026-09-01 — every rally cell of one Extraction defender pulse is distinct, across roles rather than only within the source-perimeter fallback.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -78,8 +78,13 @@ Generic conventional defenders receive a small mission-owned patrol pool while
 authored garrisons retain their posts. One patrol guards the public source and
 the rest remain an explicit reserve until the identity-free alarm mobilizes at
 most three squads. Responders use defender-local contact beliefs for
-interdiction when one is actionable; otherwise they reinforce separate
-reachable source-perimeter positions. The alarm authorizes mobilization but
+interdiction when one is actionable; otherwise they reinforce reachable
+source-perimeter positions. Every rally cell of one pulse is distinct, whichever
+centre selected it: the source guard chooses first and each later squad's search
+declines the cells already taken. Bounded source security means security spread
+around the source, and an interdiction cell derived from a contact standing near
+it can otherwise land exactly on the guard's own — a collision neither search
+can see from its own centre. The alarm authorizes mobilization but
 never reveals egress, live package position, progress, cohort state, escort,
 controlling squad, or hostile identity.
 
