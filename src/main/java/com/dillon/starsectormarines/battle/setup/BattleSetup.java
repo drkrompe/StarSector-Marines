@@ -731,7 +731,8 @@ public final class BattleSetup {
                                         TargetProfile profile,
                                         PrecinctPlan.Sprawl sprawl,
                                         TraversalAxis axis, long seed) {
-        return conquestPlanFor(tier, risk, profile, sprawl, null, null, axis, seed);
+        return conquestPlanFor(tier, risk, profile, sprawl, null,
+                PrecinctPlan.Lanes.derived(), axis, seed);
     }
 
     /** As above, with the battle's own statement of how far out it lands. */
@@ -739,7 +740,8 @@ public final class BattleSetup {
                                         TargetProfile profile,
                                         PrecinctPlan.Sprawl sprawl, Standoff standoff,
                                         TraversalAxis axis, long seed) {
-        return conquestPlanFor(tier, risk, profile, sprawl, standoff, null, axis, seed);
+        return conquestPlanFor(tier, risk, profile, sprawl, standoff,
+                PrecinctPlan.Lanes.derived(), axis, seed);
     }
 
     /**
@@ -772,10 +774,18 @@ public final class BattleSetup {
      * at one wall with open city behind them. Assault and Raid state none and
      * generate exactly as they did.
      *
+     * <p><b>{@code null} lanes means none, and the overloads above state the
+     * default instead.</b> The two readings of null cannot both live here: a
+     * mission that says nothing wants the default ladder, and a mission that
+     * says zero wants the map this feature replaced, which is the control a
+     * balance run is read against. Resolving the mission's statement is the
+     * caller's job — {@code conquestMap} does it — and this takes the answer
+     * literally. It read null as "the default" for a while, which made the
+     * stated control unreachable and a control run a re-run.
+     *
      * @param standoff the mission's stated standoff, or {@code null} for
      *                 Conquest's own default
-     * @param lanes    the mission's stated lanes, or {@code null} for the
-     *                 default count with every ladder derived
+     * @param lanes    the lanes this map lays, or {@code null} for none
      */
     static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
                                         TargetProfile profile,
@@ -793,7 +803,7 @@ public final class BattleSetup {
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 objective, attackerFrom,
-                lanes != null ? lanes : PrecinctPlan.Lanes.derived(),
+                lanes,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
                 new Random(seed ^ PRECINCT_SEED_SALT))
                 .withStandoff(standoff != null ? standoff : CONQUEST_STANDOFF);
