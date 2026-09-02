@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntPredicate;
 
 /**
  * The marks a reader of a mission frame wants without having to be told:
@@ -67,20 +69,60 @@ public final class BattleReviewAnnotations {
      */
     private static void addLaneRoutes(ReviewAnnotations.Builder marks,
                                       BattleSimulation simulation) {
+        ConquestLaneChain chain = chainOf(simulation);
+        IntPredicate held = marineHeldZones(simulation);
         for (LaneRoute lane : simulation.getLaneRoutes()) {
             List<ReviewAnnotation.Point> points = new ArrayList<>(lane.route().size());
             for (LaneRoute.Cell cell : lane.route()) {
                 points.add(new ReviewAnnotation.Point(cell.x(), cell.y()));
             }
             marks.polyline(points, "lane " + (lane.lane() + 1), ReviewStyle.ROUTE);
+            int front = chain.frontLink(lane.lane(), held);
             int link = 0;
-            for (LaneRoute.Link at : lane.links()) {
+            for (int index = 0; index < lane.links().size(); index++) {
+                LaneRoute.Link at = lane.links().get(index);
                 if (at.band() == LaneRoute.OBJECTIVE_BAND) continue;
                 link++;
+                boolean isFront = index == front;
                 marks.label(at.x(), at.y(),
-                        (lane.lane() + 1) + "." + link, ReviewStyle.ROUTE);
+                        (lane.lane() + 1) + "." + link + (isFront ? " front" : ""),
+                        isFront ? ReviewStyle.FRONT : ReviewStyle.ROUTE);
             }
         }
+    }
+
+    /**
+     * The lanes read as chains, so a frame can say which place each of them is
+     * being fought over.
+     *
+     * <p>Built here rather than read off the commander for the same reason
+     * everything else on the frame is: a review is a neutral observer's
+     * picture, and the commander's own chain is a marine-perspective object it
+     * has no business reaching into. Both are read from the same recorded lanes
+     * and the same compound records, so they agree by construction.
+     */
+    private static ConquestLaneChain chainOf(BattleSimulation simulation) {
+        CompoundService compounds = simulation.getCompoundService();
+        if (compounds == null) return ConquestLaneChain.NONE;
+        List<ConquestLaneChain.Compound> places = new ArrayList<>();
+        for (CompoundService.Record record : compounds.getRecords()) {
+            places.add(new ConquestLaneChain.Compound(
+                    compounds.captureZoneId(record, simulation),
+                    record.node.anchorX, record.node.anchorY));
+        }
+        return ConquestLaneChain.of(simulation.getLaneRoutes(), places);
+    }
+
+    /** Which capture zones the marines hold right now. */
+    private static IntPredicate marineHeldZones(BattleSimulation simulation) {
+        CompoundService compounds = simulation.getCompoundService();
+        if (compounds == null) return zone -> false;
+        Set<Integer> held = new LinkedHashSet<>();
+        for (CompoundService.Record record : compounds.getRecords()) {
+            if (record.state != CompoundService.CompoundState.MARINE_HELD) continue;
+            held.add(compounds.captureZoneId(record, simulation));
+        }
+        return held::contains;
     }
 
     /**

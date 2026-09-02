@@ -81,7 +81,31 @@ public record ConquestFrontSnapshot(
             float friendlyPressure,
             float knownHostilePressure,
             int targetZoneId,
-            int responderCap) {
+            int responderCap,
+            int chainLinks,
+            int chainLinksHeld,
+            int chainFrontLink) {
+
+        /**
+         * A picture from a command whose map laid no lanes, or one taken before
+         * the chain was read: {@code -1} for both chain fields reads as "this
+         * track has no ladder on it" rather than as an empty one.
+         */
+        public TrackState(int index, int lateralStart, int lateralEnd,
+                          int preferredSquads, int effectiveSquads,
+                          int effectiveLiveMembers, float friendlyBodyProgress,
+                          float friendlyLeadProgress,
+                          float knownHostileFrontProgress,
+                          int knownHostileContacts, float friendlyPressure,
+                          float knownHostilePressure, int targetZoneId,
+                          int responderCap) {
+            this(index, lateralStart, lateralEnd, preferredSquads,
+                    effectiveSquads, effectiveLiveMembers,
+                    friendlyBodyProgress, friendlyLeadProgress,
+                    knownHostileFrontProgress, knownHostileContacts,
+                    friendlyPressure, knownHostilePressure, targetZoneId,
+                    responderCap, -1, -1, -1);
+        }
 
         /**
          * A picture from a command that does not bound its per-track response,
@@ -100,6 +124,15 @@ public record ConquestFrontSnapshot(
                     friendlyBodyProgress, friendlyLeadProgress,
                     knownHostileFrontProgress, knownHostileContacts,
                     friendlyPressure, knownHostilePressure, targetZoneId, -1);
+        }
+
+        /**
+         * How much of this track's ladder the marines hold, as places rather
+         * than ground: {@code -1} where the track has no ladder to score.
+         */
+        public float chainProgress() {
+            if (chainLinks <= 0 || chainLinksHeld < 0) return -1f;
+            return Math.min(1f, (float) chainLinksHeld / chainLinks);
         }
     }
 
@@ -169,7 +202,20 @@ public record ConquestFrontSnapshot(
             int targetCellY,
             int markerCellX,
             int markerCellY,
-            boolean distantCaptureDeferred) {
+            boolean distantCaptureDeferred,
+            int targetLane,
+            int targetLink) {
+
+        public SquadDirective(int squadId, int preferredTrack,
+                              int effectiveTrack, AssignmentReason reason,
+                              AssignmentKind assignmentKind, int targetZoneId,
+                              int targetCellX, int targetCellY,
+                              int markerCellX, int markerCellY,
+                              boolean distantCaptureDeferred) {
+            this(squadId, preferredTrack, effectiveTrack, reason,
+                    assignmentKind, targetZoneId, targetCellX, targetCellY,
+                    markerCellX, markerCellY, distantCaptureDeferred, -1, -1);
+        }
 
         public SquadDirective(int squadId, int preferredTrack,
                               int effectiveTrack, AssignmentReason reason,
@@ -200,7 +246,24 @@ public record ConquestFrontSnapshot(
         public SquadDirective withDistantCaptureDeferred() {
             return new SquadDirective(squadId, preferredTrack, effectiveTrack,
                     reason, assignmentKind, targetZoneId, targetCellX,
-                    targetCellY, markerCellX, markerCellY, true);
+                    targetCellY, markerCellX, markerCellY, true,
+                    targetLane, targetLink);
+        }
+
+        /**
+         * The same order, keyed to the place on the lane it is about.
+         *
+         * <p>A track index says which third of the map a squad is working in;
+         * a lane and a link say <em>what it is being sent to take</em>, which
+         * is what the report has to be able to say once progress is measured
+         * in places held. {@code -1} for an order about no place at all — a
+         * settlement compound, or open ground.
+         */
+        public SquadDirective withChainTarget(int lane, int link) {
+            return new SquadDirective(squadId, preferredTrack, effectiveTrack,
+                    reason, assignmentKind, targetZoneId, targetCellX,
+                    targetCellY, markerCellX, markerCellY,
+                    distantCaptureDeferred, lane, link);
         }
     }
 

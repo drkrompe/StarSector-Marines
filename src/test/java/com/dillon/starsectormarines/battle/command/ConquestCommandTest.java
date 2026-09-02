@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1826,6 +1828,169 @@ public class ConquestCommandTest {
                     "an open slot two tracks away must not read as an empty map");
         }
 
+    }
+
+    /**
+     * The chain gate, asked of the allocation rather than of the reading.
+     *
+     * <p>{@link ConquestLaneChainTest} owns whether the front is derived
+     * correctly; what is asked here is whether the commander sends people at
+     * the place the chain names and not at the one distance would have picked.
+     * One hand-written lane route is laid up a synthetic grid — a generated
+     * map would answer for the generator as well.
+     */
+    @Nested
+    class LaneChains {
+
+        private boolean restore;
+
+        @BeforeEach
+        void chainOn() {
+            restore = ConquestCommand.LANE_CHAIN_ENABLED;
+            ConquestCommand.LANE_CHAIN_ENABLED = true;
+        }
+
+        @AfterEach
+        void chainBack() {
+            ConquestCommand.LANE_CHAIN_ENABLED = restore;
+        }
+
+        /**
+         * Two walled places up strip 0, each opening east onto open ground, so
+         * a squad standing outside is adjacent to neither and the allocation
+         * has to choose between them on its own terms.
+         */
+        private BattleSimulation twoPlacesUpStripZero() {
+            NavigationGrid grid = new NavigationGrid(W, H);
+            for (int y = 0; y < H; y++) {
+                for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+            }
+            wallRoom(grid, 0, 4, 2);
+            wallRoom(grid, 5, 9, 7);
+            return new BattleSimulation(grid, new CellTopology(W, H));
+        }
+
+        /** A room from x=3 to x=7 between the two rows, its door east at {@code doorY}. */
+        private void wallRoom(NavigationGrid grid, int top, int bottom, int doorY) {
+            for (int x = 3; x <= 7; x++) {
+                grid.setWalkable(x, top, false);
+                grid.setWalkable(x, bottom, false);
+            }
+            for (int y = top; y <= bottom; y++) {
+                grid.setWalkable(3, y, false);
+                grid.setWalkable(7, y, false);
+            }
+            grid.setWalkable(7, doorY, true);
+            grid.setDoorway(7, doorY, true);
+        }
+
+        /** A lane straight up strip 0 through both places. */
+        private LaneRoute laneUpStripZero() {
+            List<LaneRoute.Cell> route = new ArrayList<>();
+            for (int y = 0; y < H; y++) route.add(new LaneRoute.Cell(5, y));
+            List<LaneRoute.Link> links = List.of(
+                    new LaneRoute.Link("lane-1-band-3", 3, 5, 2, 2, 3, 0, 7, 4),
+                    new LaneRoute.Link("lane-1-band-1", 1, 5, 7, 7, 3, 5, 7, 9));
+            return new LaneRoute(0, links, route);
+        }
+
+        private ConquestCommand commandWithLane() {
+            return new ConquestCommand(new ConquestTrackLayout(
+                    TraversalAxis.SOUTH_TO_NORTH, W, H), List.of(laneUpStripZero()));
+        }
+
+        private TacticalNode outerPlace(BattleSimulation sim) {
+            return registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                    5, 2, 4, 1, 6, 3, Faction.DEFENDER, 80, 4));
+        }
+
+        private TacticalNode deepPlace(BattleSimulation sim) {
+            return registerCompound(sim, new TacticalNode(TacticalNode.Kind.BARRACKS,
+                    5, 7, 4, 6, 6, 8, Faction.DEFENDER, 80, 4));
+        }
+
+        private int captureZone(BattleSimulation sim, TacticalNode node) {
+            return sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY);
+        }
+
+        @Test
+        public void theOuterPlaceIsTakenFirstEvenFromBesideTheDeepOne() {
+            BattleSimulation sim = twoPlacesUpStripZero();
+            TacticalNode outer = outerPlace(sim);
+            TacticalNode deep = deepPlace(sim);
+            // Nearer the deep place and adjacent to neither, so distance alone
+            // would pair it with the deep one.
+            Squad squad = addMarineSquad(sim, 9f, 8f);
+
+            ConquestCommand cmd = commandWithLane();
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(squad), "the lane's front is assignable");
+            assertEquals(captureZone(sim, outer),
+                    squad.assignedObjective.targetZoneId(),
+                    "a lane is taken in order: the strongpoint waits for the outpost");
+            assertNotEquals(captureZone(sim, deep),
+                    squad.assignedObjective.targetZoneId());
+        }
+
+        @Test
+        public void theControlTakesWhicheverIsNearest() {
+            ConquestCommand.LANE_CHAIN_ENABLED = false;
+            BattleSimulation sim = twoPlacesUpStripZero();
+            outerPlace(sim);
+            TacticalNode deep = deepPlace(sim);
+            Squad squad = addMarineSquad(sim, 9f, 8f);
+
+            ConquestCommand cmd = commandWithLane();
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(squad));
+            assertEquals(captureZone(sim, deep),
+                    squad.assignedObjective.targetZoneId(),
+                    "with the chain off, the fraction offers both and distance picks");
+        }
+
+        @Test
+        public void takingTheOuterPlaceOpensTheNextOne() {
+            BattleSimulation sim = twoPlacesUpStripZero();
+            TacticalNode outer = outerPlace(sim);
+            TacticalNode deep = deepPlace(sim);
+            sim.getCompoundService().getRecords().stream()
+                    .filter(record -> record.node == outer)
+                    .forEach(record ->
+                            record.state = CompoundService.CompoundState.MARINE_HELD);
+            Squad squad = addMarineSquad(sim, 9f, 8f);
+
+            ConquestCommand cmd = commandWithLane();
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(squad), "the front has moved up the chain");
+            assertEquals(captureZone(sim, deep),
+                    squad.assignedObjective.targetZoneId());
+        }
+
+        @Test
+        public void aTrackPublishesHowMuchOfItsLadderIsHeld() {
+            BattleSimulation sim = twoPlacesUpStripZero();
+            TacticalNode outer = outerPlace(sim);
+            deepPlace(sim);
+            sim.getCompoundService().getRecords().stream()
+                    .filter(record -> record.node == outer)
+                    .forEach(record ->
+                            record.state = CompoundService.CompoundState.MARINE_HELD);
+            addMarineSquad(sim, 9f, 8f);
+
+            ConquestCommand cmd = commandWithLane();
+            tick(cmd, sim);
+
+            ConquestFrontSnapshot.TrackState track = cmd.frontSnapshot().track(0);
+            assertEquals(2, track.chainLinks());
+            assertEquals(1, track.chainLinksHeld());
+            assertEquals(1, track.chainFrontLink());
+            assertEquals(0.5f, track.chainProgress(), 0.0001f);
+            assertEquals(-1, cmd.frontSnapshot().track(2).chainLinks(),
+                    "a track the map laid no lane up has no ladder to score");
+        }
     }
 
     private static void tick(ConquestCommand command, BattleSimulation sim) {
