@@ -167,25 +167,36 @@ public final class CatalogCeilings {
     /**
      * The largest share of an incoming hit chance any pattern denies.
      *
-     * <p>A suit's authored value is a multiplier on the shooter's chance to hit
-     * the wearer, so the part worth reading is what it takes away. A catalog
-     * where nothing evades reads as a floor of one rather than dividing by zero.
+     * <p>The floor is a hundredth rather than zero purely so the division has a
+     * denominator; a catalog in which nothing evades has no evasion meter worth
+     * drawing either way.
      */
     public static float armorEvasion() {
         float cached = armorEvasion;
         if (cached > 0f) return cached;
-        float scanned = 0f;
+        float scanned = 0.01f;
         for (MarineArmorCatalogDef armor : armorPatterns()) {
             scanned = Math.max(scanned, evasionOf(armor));
         }
-        armorEvasion = scanned > 0f ? scanned : 1f;
-        return armorEvasion;
+        armorEvasion = scanned;
+        return scanned;
     }
 
-    /** What share of an incoming hit chance this pattern denies, in 0..1. */
+    /**
+     * What share of an incoming hit chance this pattern denies.
+     *
+     * <p>A suit's authored value is a multiplier on the shooter's chance to hit
+     * the wearer, so the part worth reading is what it takes away — and
+     * <b>this is signed on purpose</b>. Three shipped patterns are above one:
+     * a lashplate harness, a packframe and the Lion's Mantle are conspicuous
+     * enough to be <em>easier</em> to hit than a bare marine, and that penalty
+     * is half of what a player is weighing. Clamping it to zero was tried and
+     * changed the armour-comparison card from "-3%" to "0%", which is the
+     * brochure this copy exists not to be. The meter's own fill clamps; the
+     * number does not.
+     */
     public static float evasionOf(MarineArmorCatalogDef armor) {
-        return armor == null ? 0f
-                : Math.max(0f, Math.min(1f, 1f - armor.incomingAccuracyMult()));
+        return armor == null ? 0f : 1f - armor.incomingAccuracyMult();
     }
 
     /** Toughest chassis in the mech catalog. */

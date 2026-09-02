@@ -60,20 +60,25 @@ class CatalogCeilingsTest {
     }
 
     /**
-     * Evasion is the one axis with no prior scan: it reads a suit's authored
-     * multiplier on incoming accuracy from the side that says what the suit
-     * denies, so the ceiling is the largest share anything denies.
+     * Evasion reads a suit's authored multiplier on incoming accuracy from the
+     * side that says what the suit denies, and keeps its sign: a pattern above
+     * one is conspicuous enough to be easier to hit, which is half of what a
+     * player weighs. A clamp here changed the armour-comparison card from -3%
+     * to 0%, so this pins the sign rather than only the magnitude.
      */
     @Test
-    void evasionIsTheShareOfAnIncomingHitChanceASuitDenies() {
-        float best = 0f;
+    void evasionIsSignedSoAConspicuousSuitStillSaysSo() {
+        float best = 0.01f;
+        int penalised = 0;
         for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
-            best = Math.max(best, 1f - armor.incomingAccuracyMult());
-            assertEquals(Math.max(0f, Math.min(1f, 1f - armor.incomingAccuracyMult())),
-                    CatalogCeilings.evasionOf(armor), 0.0001f);
+            float evasion = 1f - armor.incomingAccuracyMult();
+            best = Math.max(best, evasion);
+            assertEquals(evasion, CatalogCeilings.evasionOf(armor), 0.0001f);
+            if (evasion < 0f) penalised++;
         }
         assertEquals(best, CatalogCeilings.armorEvasion(), 0.0001f);
         assertTrue(best > 0f, "some shipped pattern is harder to hit than a bare marine");
+        assertTrue(penalised > 0, "some shipped pattern is easier to hit, and says so");
     }
 
     @Test
