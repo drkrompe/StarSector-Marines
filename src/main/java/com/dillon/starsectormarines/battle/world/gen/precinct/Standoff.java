@@ -7,8 +7,8 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
  * states how much approach it wants its marines to fight through, and the map
  * arranges itself around the answer. The distance is measured along the
  * traversal axis, between the attacker region's objective-facing side and the
- * objective precinct's claim boundary on the attacker-facing side — the ground
- * the force actually has to cross before anything it came for is in reach.
+ * objective precinct's claim boundary on the attacker-facing side. Read the
+ * paragraph below before treating that as the distance the force walks.
  *
  * <p><b>Cells, not a fraction of the map.</b> A standoff is a walk, and a walk
  * does not scale with the map: doubling the map should not double the minutes
@@ -16,6 +16,21 @@ package com.dillon.starsectormarines.battle.world.gen.precinct;
  * map had — the attacker band's far side around x=93 against an objective claim
  * edge near x=170 — which is the whole point of stating it in cells. The same
  * walk on a bigger map.
+ *
+ * <p><b>It is not the walk, and that is deliberate for now.</b> The gap above is
+ * measured to the band's objective-facing side, while
+ * {@code PrecinctLandingAreaStage} scans berths inward from the other one, so
+ * the band's own depth — a third of the map — is an unstated addition to every
+ * standoff. Measured at 560x336: {@link #CLOSE} states 40 cells and puts the
+ * southern beachhead 149 cells from the claim and the western one 226. Reading
+ * the gap from the landing side instead was built and replayed at full length,
+ * and it is a materially worse battle, because the shuttles pay the slide twice
+ * on every re-arm run and a beachhead on the objective's doorstep is a ferry
+ * across the whole map: {@code reinforced-south} went from a marine victory at
+ * tick 13,680 holding eleven compounds for 95 losses to a timeout holding nine
+ * for 174, and {@code full-strength-west} stopped contesting anything at all.
+ * So the number stays as it is until the arrival cadence is looked at with it.
+ * See {@code conquest-560-contact.md}, which carries both measurements.
  *
  * <p><b>{@link #FAR} is not a large number, it is the absence of a slide.</b>
  * The attacker region stays exactly the band the mission stated, against the map

@@ -519,13 +519,43 @@ already has: `CLOSE` at 40 cells, `STANDARD` at 80, and `FAR`, which is the
 stated band unchanged and reproduces every map that existed before this to the
 cell. The distance is measured along the traversal axis, between the attacker
 region's objective-facing side and the objective precinct's claim boundary on
-the attacker-facing side — the ground the force actually has to cross.
+the attacker-facing side.
 
 **Cells, not a fraction of the map.** A standoff is a walk, and a walk does not
 scale with the map: doubling the map should not double the minutes before first
 contact. `STANDARD` is roughly the approach the 280x168 map had — the attacker
 band's far side around x=93 against an objective claim edge near x=170 — which
 is the whole point of stating it in cells. The same walk on a bigger map.
+
+**It is not the walk, though, and the number to reach for is not the stated
+one.** The gap is read off the band's objective-facing side while
+`PrecinctLandingAreaStage` scans berths inward from the other one, so the band's
+own depth is an unstated addition to every standoff — and a stated band is a
+third of the map, so the addition doubles when the map does. Measured on the two
+Conquest fixtures at `CLOSE`, whose stated standoff is 40: the southern
+beachhead seats at y≈80 against a claim edge at y=229, and the western one at
+x≈195 against a claim edge at x=416. Asked for forty cells, the force walks
+**149** and **226**. That is also what makes the table below read the way it
+does — moving `FAR` to `CLOSE` moves the berths 78 cells, and at the measured
+~18 ticks a cell that is ~1,400 ticks of walk against 225 ticks of extra inbound
+flight, which is the 1,380 that was observed with no residual big enough to hide
+another mechanism in.
+
+**Reading it from the landing side instead was built, replayed at full length,
+and is a worse battle.** With the gap measured from the berths and a slid
+region's leading side squeezed against the claim, `CLOSE` produces a forty-cell
+beachhead and first contact moves in 1,440 ticks — and reinforced-south goes
+from a marine victory at 13,680 holding eleven compounds for 95 losses to a
+timeout holding nine for 174, while full-strength-west stops contesting anything
+at all. The cause is the other half of the trade: **the shuttles pay the slide
+twice on every re-arm run.** The arrival cycle is about 460 ticks plus 5.3 ticks
+per cell of slide, so a beachhead on the objective's doorstep is a ferry across
+the whole map — reinforced-south's cycle goes 875 → 1,600 and
+full-strength-west's 1,450 → 2,775, landing 19 of its 34 squads in the whole
+battle and peaking at 49 live marines. A shorter walk bought with a slower
+build-up is not a shorter battle. The correction is right and wants the arrival
+cadence looked at in the same change; `conquest-560-contact.md` carries both
+measurements.
 
 **Resolved after growth, not at derivation.** The objective's claim is only
 known once the places have grown, so `PrecinctPlan` carries the statement and

@@ -4,9 +4,11 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the map is a plan of places at 560x336 (`precincts.md`);
-the garrison precinct supplies every feature the mission requires; a mission
-states how far from the objective its force lands.
+Updated: 2026-09-01 — a stated standoff is not the walk, and the beachhead's
+distance from the map edge is also the shuttle cycle; the map is a plan of
+places at 560x336 (`precincts.md`); the garrison precinct supplies every feature
+the mission requires; a mission states how far from the objective its force
+lands.
 
 Earlier 2026-09-01 — Full Strength now authors eighty-four squads / 1,008
 marines into one three-lane battle through the existing six-shuttle ferry.
@@ -111,7 +113,14 @@ a standoff alongside its sprawl and its arrival config — how many cells of
 approach lie between the beachhead and the objective's claim — and Conquest is
 the only mission that states one. Its default is the short approach, `CLOSE`,
 because the map grew to 560x336 and the matrix chose it over the walk the old
-map had. See `precincts.md` for the standoff and the table that decided it.
+map had. The stated cells are **not** the walk: they are counted to the far side
+of the beachhead band, and the band's own depth — a third of the map — rides on
+top unstated, so `CLOSE`'s forty cells are 149 on the southern fixture and 226
+on the western one. Counting them from the berths instead was measured at full
+length and is a worse battle, because the beachhead's distance from the map edge
+is also the length of every shuttle re-arm run; the two want deciding together.
+See `precincts.md` for the standoff and the table that decided it, and
+`conquest-560-contact.md` for both measurements.
 
 Arrival areas are generated after terrain, structures, and the spawn anchor are
 final. Each publishes two clear 5×5 berths, a shared SOUTH or WEST approach, and
