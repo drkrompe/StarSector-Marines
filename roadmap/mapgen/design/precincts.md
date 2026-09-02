@@ -9,9 +9,11 @@ Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-09-02 — each Conquest command track now carries a lane
-with a ladder of garrison places on it, so the ground between the beachhead and
-the fortress holds compounds a track has to take.
+Updated: 2026-09-02 — the landing zone is a precinct with a kind, claimed
+before the town grows and held as a compound the marines can lose; each Conquest
+command track carries a lane with a ladder of garrison places on it, so the
+ground between the beachhead and the fortress holds compounds a track has to
+take.
 
 Earlier 2026-09-01 — Conquest generates as places at 560x336; the front is a
 depth from the objective rather than a biome; a mission states its sprawl and
@@ -414,7 +416,9 @@ stage chose, sharing that choice so the beachhead and the spawn cannot disagree
 — scanning inward from whichever map edge the region touches so the first legal
 area is a beachhead. The stock recipe did this on its beach band and threw
 without one; measured at 560x336 a precinct map seats eleven areas from the
-south and six from the west, against the three a Conquest asks for.
+south and six from the west, against the three a Conquest asks for. Where the
+plan states a landing place the berths are confined to it — see "It can be
+landed on, and the landing place is a place" below.
 
 **It has one keep.** A settlement's military base used to emit a command post
 of its own, because only a biome told the filler otherwise, and a Conquest with
@@ -609,6 +613,113 @@ separates the three only on cost: marine losses fall monotonically as the
 landing moves in (368 / 279 / 265), and the retarget churn that made it stand
 out — 1272 against reinforced-south's 554 — falls to 418 and 298. Eight
 battle-minutes of walking was most of what that fixture was measuring.
+
+## It can be landed on, and the landing place is a place
+
+The attacker region is a third of the map and the landing stage used to scan it
+for the first open ground a pair of berths fitted on. Open ground is anything
+walkable outside a building, which includes the streets of a settlement, so on
+one 560x336 frame the marines came down in the middle of a base district — and
+on every frame the beachhead was three boxes on whatever happened to be clear.
+Nothing on the map was *the landing zone*: the settlement could grow over it, no
+defender reasoned about it, and there was nothing to hold or lose.
+
+**The landing zone is a precinct.** It is seeded after the objective and the
+lanes and before the settlement, so it claims its ground with the other
+programmed places and a town grows around it rather than under it. Its berths
+are authored inside its own claim, the marine spawn is inside it, and nothing
+else may claim a cell of it.
+
+**Every kind of landing place owes an apron**, and that is what makes the claim
+big enough to be one. A `FortressProgram` may owe open ground no building stands
+on — added to the envelope rather than scaled by the packing slack, exactly as
+an airbase lot is — because a beachhead is mostly the ground the shuttles use.
+An arrival area is thirteen cells across and five deep and a Conquest asks for
+three of them sixteen apart, so the apron has to buy something like seventy
+cells of frontage with room to scan inward behind it; a compact claim of the
+shipped figure comes out about that wide. It is a first guess to be measured,
+like the program fit, and it is the number to move when a beachhead comes out
+too tight to seat its areas.
+
+**It has a kind, derived from the world and stateable by the mission.** A
+`LandingKind`:
+
+| kind | what stands there | derived when |
+|---|---|---|
+| `SPACEPORT` | a programmed place: a terminal, a hangar, a control office and a fuel yard set back from the apron — the civil spaceport vocabulary the stock recipe's fills already use | the market reports a real spaceport |
+| `FIELD` | apron and nothing built | no spaceport, or a `REMOTE` world |
+| `STRIP` | apron with one hut on it, the off-grid `LANDING` link's shape | a settlement supplied by ship |
+
+A remote world is a field whatever its market reports: the sprawl already said
+there is no settlement on this map, and a civil spaceport campus standing alone
+in that country is the town it declined. Stated on the mission, the fixture and
+the debug stepper the way sprawl, standoff and lanes are, and derived from the
+target world when nobody says.
+
+**The standoff enters the derivation rather than being layered on.** A landing
+place is seeded *against* the standoff — where the force lands is what a
+standoff states — so a plan whose beachhead is a precinct cannot decide where
+that precinct goes without knowing it. `withStandoff` remains for a plan with no
+landing place, where the statement is read once at the end by `ApproachRegion`.
+
+**One piece of arithmetic here is an estimate, and it cannot be anything else.**
+The region a standoff resolves to is measured against the objective's *grown
+claim*, and every seed is placed before growth runs. So the landing seed is
+resolved against a circle around the objective's seed whose area is its
+program's envelope times a road allowance — measured on the garrison, whose
+5293-cell envelope claims 8566 to 9908 cells, a ratio of 1.6 to 1.9. Coarse, and
+it only has to be: what it decides is where inside a band a third of the map
+deep the beachhead sits, so being ten cells out moves the walk by ten cells. The
+berths are then scanned in the **overlap** of the landing claim and the resolved
+region, so an estimate that missed still lands the force where the standoff
+says; that a claim and a region failed to meet at all is recorded under
+`BspKeys.LANDING_ON_ITS_PLACE` rather than passing in silence.
+
+**It is held, and it can be lost.** The landing place registers as a compound —
+a `BEACHHEAD` node whose default guard is the marines, which is the whole of how
+it starts `MARINE_HELD`: a compound's opening state is its node's own default
+guard, so the state machine needed no special case and the recapture path it
+already had runs unchanged in the direction it could always run. A defender
+standing on it alone for the defender hold time takes it. Its footprint is the
+landing precinct's claim rather than the berths alone, because the apron between
+two berths is as much the ground the shuttles are using as the berths are.
+
+**A beachhead carries no supply, and that is why it is a `BEACHHEAD` and not
+one of the other compound kinds.** An armoury permits convoy reinforcement, a
+barracks walk-in, a command post shuttle delivery — and a map has exactly one
+keep. A beachhead permits nothing: no resource is produced from it and no
+delivery means gates on it, so making the marines' own ground a compound adds a
+place to hold without moving a single supply lever. It is not a recapture target
+either, because that layer buckets defender-guarded nodes; the defender
+commander reaches it through compound state directly, which is the path a
+counterattack on a marine-held compound already took.
+
+**Its rooms are the marines' own.** A landing precinct's packed buildings emit
+as interior positions rather than as places of their own — a spaceport terminal
+read as an armoury would be a defender supply compound standing on the
+beachhead, and a Conquest is won by flipping every compound — and it emits no
+points of interest, because nothing raids the ground it landed on.
+
+**Which front band it lands in is a fact about the finished map, not a
+statement.** The story that asked for this expected band 3; measured on both
+canonical fixtures at Conquest's `CLOSE` standoff it is band 2, for the same
+reason the lane ladder's rungs are: a front band is a ring around the objective
+and at a short standoff the beachhead is inside the second one. Band 3 is the
+ground behind the marines.
+
+Measured at 560x336 on the two canonical fixtures, both `SPACEPORT` from their
+own market data: five arrival areas each, every one inside both the resolved
+approach region and the landing claim, the marine spawn inside the claim, and
+the beachhead reading `MARINE_HELD` at tick zero.
+
+**It is annotated as what it is.** The review frame boxes it by kind and state
+like any other compound, in the landing style rather than the objective one, and
+the approach arrow starts from it instead of from the mean of the berth
+footprints.
+
+**What losing it costs is deliberately not decided here.** Whether a lift may
+still land on a contested beachhead is a rule for `reinforcement-nouns.md` to
+state; this makes the place exist.
 
 ## And what stands between the two
 

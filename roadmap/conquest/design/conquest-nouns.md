@@ -4,8 +4,10 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — a Conquest map states lanes, and its compounds
-stand in depth along them rather than all inside the objective's claim.
+Updated: 2026-09-02 — the ground the marines came ashore on is a place with a
+kind, and a compound they already hold; a Conquest map states lanes, and its
+compounds stand in depth along them rather than all inside the objective's
+claim.
 
 Earlier 2026-09-01 — a stated standoff is not the walk, and the beachhead's
 distance from the map edge is also the shuttle cycle; the map is a plan of
@@ -135,6 +137,18 @@ is also the length of every shuttle re-arm run; the two want deciding together.
 See `precincts.md` for the standoff and the table that decided it, and
 `conquest-560-contact.md` for both measurements.
 
+**The ground it lands on is a place, and the place has a kind.** A Conquest
+states a `LandingKind` alongside its standoff, or lets the target world derive
+one: a market with a spaceport tier lands on a **spaceport**, a settlement whose
+only link off-world is a pad lands on a **strip**, and everything else — a
+remote installation included — lands on a bare **field**. The kind is the
+landing place's building program, so a spaceport comes with a terminal, a
+hangar, a control office and a fuel yard standing around the berths, while a
+field is the apron and nothing else. Every kind owes that apron: claiming the
+ground the shuttles set down on is the whole reason the landing zone is a
+precinct rather than a search for space, and `precincts.md` is canonical for how
+it is seeded, claimed and confined.
+
 Arrival areas are generated after terrain, structures, and the spawn anchor are
 final. Each publishes two clear 5×5 berths, a shared SOUTH or WEST approach, and
 a stable identity. The approach is still the edge the mission's own attacker
@@ -151,8 +165,10 @@ mission policies.
 
 ## Territory and compounds
 
-A **compound** is a defender supply hub represented by a tactical
-`COMMAND_POST`, `BARRACKS`, or `ARMORY`. It has one ownership state:
+A **compound** is a piece of ground one side holds, represented by a tactical
+`COMMAND_POST`, `BARRACKS`, `ARMORY`, `AIRBASE`, or `BEACHHEAD`. All but the last
+are defender supply hubs; the beachhead is the marines' own. It has one
+ownership state:
 
 - **DEFENDER_HELD** is defender territory, including a temporarily empty
   compound that defenders still control.
@@ -160,6 +176,17 @@ A **compound** is a defender supply hub represented by a tactical
   until the capture completes.
 - **MARINE_HELD** is territory captured by marines. That compound no longer
   supplies the defender.
+
+**A compound is not necessarily the defender's.** The landing place registers
+as a `BEACHHEAD` compound whose default guard is the marines, so it starts the
+battle at `MARINE_HELD` and runs the same capture rule as everything else: a
+defender who reaches the apron contests it, and holds it once the shorter
+defender timer runs out. It is territory in exactly the sense the rest of this
+section means, taken the other way round. It carries **no supply** — nothing is
+convoyed to it and nobody walks out of it re-armed — and it is not a recapture
+target, because that layer buckets defender-guarded places. What losing it
+should cost the assault is deliberately undecided; the map states the ground and
+the reversal, and the consequence is left to whatever decides it later.
 
 **Compounds exist in depth, not only inside the objective's claim.** Each
 Conquest lane carries outposts and strongpoints along its track, and every one
