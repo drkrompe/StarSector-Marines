@@ -4,7 +4,12 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a marine rejoining its squad outranks every reflex that
+Updated: 2026-09-02 — the simulation has a third side that fights: an allied
+faction, friendly to the player and hostile to the defender, with its own
+command, sight, ledger, and reading; the three player-faction fakes stand on
+it, and a defended market's own garrison is its first producer.
+
+Earlier 2026-09-01 — a marine rejoining its squad outranks every reflex that
 would start a fight for it, and a refusal from the firing-position search has
 three answers rather than two.
 
@@ -102,6 +107,49 @@ posture, and fire intent. It is a decision system, not the authority for combat
 resolution, map topology, campaign objectives, player control, or strategic
 force allocation. Read `mission-command-nouns.md` for the shared commander
 architecture and its per-mission designs.
+
+## Sides
+
+The simulation fields three sides that fight and one that does not. `MARINE`
+is the player's company. `DEFENDER` is whatever opposed force the mission
+generated. `ALLY` is a friendly force that is not the player's: a client's
+militia, a patron's garrison auxiliaries, a defended market's own troops.
+`CIVILIAN` is the neutral bucket. **Hostility is a relation, read in one
+place.** `Faction.hostileTo` and `Faction.friendlyTo` answer every question
+about target, enemy, friendly fire, or protected non-target; a chain of
+identity comparisons answers the two-sided question correctly and the
+three-sided one silently wrong, so no such chain is allowed to exist. MARINE
+and ALLY are friendly to each other and hostile to DEFENDER; nothing is hostile
+to CIVILIAN or to itself; fire from the player's side, allied fire included,
+treats civilians as protected non-targets.
+
+An ally is not the player's to command. Allied squads are never in the
+player's command pool and never take a player order; they plan under garrison
+authority — a hold-node claim from their producer — and under their own
+commander where one is ever registered, using the same per-faction commander
+architecture the defender uses. A claim from another perspective is refused.
+
+An ally counts in its own ledger. A mission's terminal check names the sides
+it counts: the marine side's elimination objective counts `DEFENDER`, the
+defender side's counts `MARINE`, so an allied wipe never ends the battle and
+a marine wipe with allies still standing is the player's defeat. Allied
+casualties are recorded on the mission outcome as engaged and lost, never as
+company personnel, and never reach reputation or the roster. An ally contests
+a compound the way any hostile presence does, but only MARINE and DEFENDER
+ever hold one.
+
+An ally shares the player's picture: `ALLY` is a standing fog contributor, and
+reads as `ALLY` in every render bucket that keys on allegiance. The three
+forces that used to be faked as the player's — employer lift seats, the
+opening operation's local militia, and the civilian-rescue shelter guard —
+are allied now and carry what they carried before under the faction they
+should have had. The **allied garrison** is the first producer written for
+the side: a defended market's own troops, kitted from that faction's ground
+roster through the bridge's one resolve path, sized from the target profile
+by a placeholder `polity-ground-doctrine.md` will replace, and placed as a
+line between where the company comes ashore and the landing force. It is
+requested by the mission's stated allied faction and is inert for every
+mission that states none.
 
 ## Decision layers
 
