@@ -83,6 +83,7 @@ public final class RecaptureTargetService {
         this.chain = chain == null ? ConquestLaneChain.NONE : chain;
         this.laneFront = new int[this.chain.laneCount()];
         this.laneLastLost = new int[this.chain.laneCount()];
+        Arrays.fill(this.laneFront, -1);
         Arrays.fill(this.laneLastLost, -1);
         for (int b = 0; b < bands; b++) {
             byBand.add(new ArrayList<>());
@@ -119,6 +120,16 @@ public final class RecaptureTargetService {
      */
     public boolean isContested(RecaptureTarget target) {
         if (target.lane < 0 || target.lane >= laneFront.length) {
+            return isContested(target.band);
+        }
+        // A place with no compound on it can never be the front and can never
+        // be lost, because both of those are read from compound ownership. Its
+        // guard posts are still positions somebody may attack, so they keep the
+        // band reading rather than falling out of the reinforcement layer for
+        // the whole battle.
+        List<ConquestLaneChain.Link> links = chain.links(target.lane);
+        if (target.link < 0 || target.link >= links.size()
+                || !links.get(target.link).hasCompounds()) {
             return isContested(target.band);
         }
         return target.link == laneFront[target.lane]
