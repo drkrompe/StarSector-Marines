@@ -126,16 +126,23 @@ public final class VanillaRaidGarrisonSystem implements CampaignSystem {
     }
 
     /**
-     * Ground strength the fleet group can land: the sum over its spawned fleets once they
-     * exist, and otherwise the route-strength estimate that
+     * Ground strength the fleet group can land in one go: the strongest of its spawned
+     * fleets once they exist, and otherwise the route-strength estimate that
      * {@code FGRaidAction.performRaid} itself falls back on for an unspawned group.
+     *
+     * <p>The strongest single fleet rather than the sum, because that is the unit vanilla
+     * grades a landing in: {@code performRaid} takes one fleet and reads
+     * {@code MarketCMD.getRaidStr} off that fleet alone, so a group of four lands four
+     * times at its own strength rather than once at the total. The unspawned branch is
+     * already per-fleet — vanilla divides the route strength by the group's fleet count —
+     * and summing the spawned branch made the two answer in different units.
      */
     private static float fleetGroupGroundStrength(GenericRaidFGI raid) {
         float spawned = 0f;
         List<CampaignFleetAPI> fleets = raid.getFleets();
         if (fleets != null) {
             for (CampaignFleetAPI fleet : fleets) {
-                if (fleet != null) spawned += MarketCMD.getRaidStr(fleet);
+                if (fleet != null) spawned = Math.max(spawned, MarketCMD.getRaidStr(fleet));
             }
         }
         if (spawned > 0f) return spawned;

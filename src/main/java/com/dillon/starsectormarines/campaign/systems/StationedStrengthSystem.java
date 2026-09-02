@@ -43,6 +43,7 @@ public final class StationedStrengthSystem implements CampaignSystem {
         boolean remove(String marketId, String modifierId);
     }
 
+    /** The live marine roster, isolated so a test can seat a detachment without a sector. */
     interface RosterSource {
         MarineRoster roster();
     }

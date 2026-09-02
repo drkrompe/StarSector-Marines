@@ -43,7 +43,11 @@ final class VanillaRaidScan {
             GenericRaidFGI.GenericRaidParams params = raid.getParams();
             if (params == null) continue;
             FGRaidAction.FGRaidParams raidParams = params.raidParams;
-            boolean over = raid.isEnded() || raid.isEnding() || raid.isAborted();
+            // isFailed() as well, matching the reader that arms the defence: a group whose
+            // raid action finished with nothing to show is over without ending yet, and
+            // abort() fires reportFGIAborted unconditionally on one nobody armed against.
+            boolean over = raid.isEnded() || raid.isEnding() || raid.isAborted()
+                    || raid.isFailed();
             boolean anyHostile = raidParams != null && raidParams.allowAnyHostileMarket;
             if (targets(marketId, factionId, params.factionId, over,
                     marketIds(raidParams != null ? raidParams.allowedTargets : null),
