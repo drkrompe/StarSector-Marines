@@ -4,7 +4,7 @@ Status: ACTIVE — target-profile transport is campaign-free, while ground consu
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — named faction identity as a terrain-independent axis and added the defender-faction override.
+Updated: 2026-09-02 — the player faction's derived roster resolves through the same single path as every authored one.
 
 Read `stories.md` for open work.
 
@@ -126,6 +126,13 @@ no second resolve path and no faction parameter threaded through battle setup:
 the guarantee above is only worth as much as the number of places that can
 break it. A mission with no override is byte-identical to one that never had
 the concept.
+
+The player faction's own roster keeps to the same path. `polity-ground-doctrine.md`
+derives it from the polity's live markets rather than authoring it, and
+registers the result under the player faction id, so a battle on a
+player-owned world resolves its troops exactly as a battle on anyone else's:
+one faction id, one lookup. The market's other signals still reach generation
+only through the target profile.
 
 Comparing defenders is only a comparison when the battlefield holds still, so a
 mission built for that purpose also pins its generation seed; ordinary missions
