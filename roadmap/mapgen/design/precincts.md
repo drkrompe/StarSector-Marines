@@ -797,19 +797,24 @@ interconnect's flood-walk weld bends around whatever stands between. After
 topology the route between consecutive links is read back as the cheapest
 walkable path along the road network — on-road cells at a unit, off-road cells
 at eight, so a route prefers the street and will still cut across a field
-rather than fail — and recorded as `MapResult.lanes`: per lane, its compounds
-in order and the polyline of cells between them. That record is the seam the
-commander's chain will read; the generator owes the route, the commander owes
-what is done along it. A route that cannot be walked is recorded short rather
-than thrown, and `ConquestOnPrecinctsTest` is what fails on it — the same way
-compound reachability is enforced, and the shape that leaves `conquestMap`'s
+rather than fail — and recorded as `MapResult.lanes`: per lane, its places
+in order, the extent of the ground each of them claims, and the polyline of
+cells between them. That record is the seam the commanders' chain reads: the
+claim bounds are what pair a compound with the place it stands on, and the
+polyline is what an advance stages along. The generator owes the route, the
+commander owes what is done along it — see `conquest-command.md`. A route that
+cannot be walked is recorded short rather than thrown, and
+`ConquestOnPrecinctsTest` is what fails on it — the same way compound
+reachability is enforced, and the shape that leaves `conquestMap`'s
 re-roll free to find a better seed.
 
 **The review frame draws it, which is how a bend is seen before a battle is
 played.** Each lane's route is a pale-blue polyline through its numbered links
 — `2.1`, `2.2`, `2.3` outward-in — drawn under the compound boxes so a place
-still reads as a place. The colour is deliberately not amber; amber is ordnance
-and civilians in this palette.
+still reads as a place. The rung a lane is currently being fought over is
+brought forward to white and reads `front`, so three lanes' progress is legible
+at a glance without a fourth colour to learn. The colour is deliberately not
+amber; amber is ordnance and civilians in this palette.
 
 **A mission may state a path per lane**, nullable for derived, on the same
 mission, fixture and debug-stepper route the lane count already travels. A

@@ -4,7 +4,10 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the ground the marines came ashore on is a place with a
+Updated: 2026-09-02 — a lane's compounds stand in an order, and taking a lane is
+taking them in it; a lane's front is the first place the marines do not hold.
+
+Earlier 2026-09-02 — the ground the marines came ashore on is a place with a
 kind, and a compound they already hold; a Conquest map states lanes, and its
 compounds stand in depth along them rather than all inside the objective's
 claim.
@@ -194,6 +197,19 @@ of them registers as an ordinary compound: the same capture-room resolution, the
 same asymmetric capture, the same reachability guarantee, and the same victory
 law that requires every compound to flip. No lane place carries a keep, so the
 keep remains the culminating compound and the one-keep law is unchanged.
+
+**They stand in an order, and that order is what a lane's progress means.** A
+lane is a chain of places from the beachhead to the keep, each holding the
+compounds stamped on its own claimed ground, and the lane's front is the first
+place the marines do not hold. Taking a lane is taking its places in order:
+capture allocation offers only the front place of a lane, so the strongpoint
+behind an outpost waits for the outpost, and a place retaken moves the front
+back a rung. The objective is the last link of every lane, which is what lets
+whichever lane finishes first go for the fortress. Compounds off every lane — a
+settlement's supply hub, the beachhead — are territory in the full sense of this
+section but stand on no chain, and are allocated as they always were.
+`conquest-command.md` owns how both commanders read that chain and what the
+control switch restores.
 
 Capture is deliberately asymmetric. Marines must sustain uncontested control
 long enough to take a compound; defenders recover a contested compound more
