@@ -75,10 +75,10 @@ override names the raiding faction, and the operation tier is read from the
 raid's ground strength through the mission-tier recommendation rather than
 from a patron's demand. A colony is a real market, so its map is never
 Neutral. The detachment is the posted one when there is a posting and a
-briefing-time selection when there is not. Once `allied-faction.md` has
-shipped, the colony's own allied garrison stands beside the company, kitted
-from `polity-ground-doctrine.md`; until then the colony's troops are absent
-from the ground, as a patron's are from a Garrison defence today.
+briefing-time selection when there is not. The colony's own allied garrison
+stands beside the company under the allied faction (`ai-nouns.md`, Sides),
+kitted from its ground roster; a patron's militia does the same in a Garrison
+defence.
 
 **A win ends the raid; a loss does nothing.** The ending handle from
 `stationed-ground-defence.md` — abort for a fleet group, force-fail for raid

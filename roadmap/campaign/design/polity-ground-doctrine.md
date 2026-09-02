@@ -96,7 +96,9 @@ through faction identity.
 
 - **The polity defence** (`polity-defence-raid-hook.md`): the polity's allied
   garrison stands beside the company against the landing. This is the first
-  producer of an allied side in the battle, owned by `allied-faction.md`.
+  producer of the allied side (`ai-nouns.md`, Sides); today it is sized by a
+  placeholder read off the target profile, until the derived headcount above
+  exists.
 - **A Garrison defence on a patron's market**: the same producer fields the
   patron faction's militia beside the company, from its authored roster. The
   polity is only the case where the roster is derived.
