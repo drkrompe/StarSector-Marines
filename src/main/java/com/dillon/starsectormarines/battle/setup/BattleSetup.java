@@ -271,6 +271,9 @@ public final class BattleSetup {
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
         sim.setDefensePosts(defensePosts);
+        // The map's own statement of where the front is, so the trace can say
+        // which band a compound stands in without re-deriving it.
+        sim.setFrontDepth(map.frontDepth);
         for (ParkedAircraft aircraft : parkedAircraft) sim.addParkedAircraft(aircraft);
         for (Doodad d : map.doodads) sim.addDoodad(d);
         for (Doodad d : parkedVehicles) sim.addDoodad(d);
