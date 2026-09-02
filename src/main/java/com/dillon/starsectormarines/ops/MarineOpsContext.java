@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger;
 import com.dillon.starsectormarines.campaign.systems.PolityThreatQuery;
 import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem.RaidThreat;
 import com.dillon.starsectormarines.marine.CampaignBoat;
@@ -757,13 +758,26 @@ public class MarineOpsContext {
         int marketSlot = state.marketRegistry.intern(market.getId());
         String marketFactionId = market.getFaction() != null
                 ? market.getFaction().getId() : null;
+        return polityDefenceMissions(state, threats, marketSlot, planet.getName(),
+                marketFactionId);
+    }
+
+    /**
+     * The mission rows for a set of live threats, split out from the market and planet
+     * lookup above so the doctrine wiring can be asserted without a sector.
+     */
+    static List<Mission> polityDefenceMissions(CampaignState state, List<RaidThreat> threats,
+                                               int marketSlot, String planetName,
+                                               String marketFactionId) {
+        // The one place the polity's doctrine reaches a battle: a patron's Garrison
+        // defence carries no multiplier, because a patron's militia is sized by its own
+        // market. See polity-ground-doctrine.md.
+        float numbers = PolityDoctrineLedger.read(state).numbersMultiplier();
         List<Mission> out = new ArrayList<>();
         for (RaidThreat threat : threats) {
-            // Doctrine-neutral until the polity's numbers axis is persisted on
-            // CampaignState; that slice replaces this one argument and nothing else.
             Mission mission = PolityDefenceMissionFactory.create(threat, marketSlot,
                     state.factionRegistry.get(threat.attackerFactionId),
-                    planet.getName(), marketFactionId, 1f);
+                    planetName, marketFactionId, numbers);
             if (mission != null) out.add(mission);
         }
         return out;
