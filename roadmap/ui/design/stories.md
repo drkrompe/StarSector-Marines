@@ -1,12 +1,13 @@
 # UI foundation open work
 
-Status: SHIPPED — no open foundation stories
+Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — U5 shipped the engine-free retained-view UX workflow.
+Updated: 2026-09-02 — `spec-sheet.md` opened.
 
 Read `ui-nouns.md` before changing a UI-foundation story.
 
-No UI-foundation stories are open. The active production use of this toolkit is
-`c15-retained-fleet-armory.md`.
+| Story | State | Summary |
+|-------|-------|---------|
+| `spec-sheet.md` | In progress | One hover overlay for every catalog item: a `SpecSheet` value, one copy factory over the owning catalogs, one floating layer per document, adopted on the polity doctrine panel and migrated onto by the Fleet Armory, Mech Lab and doctrine designer. |
