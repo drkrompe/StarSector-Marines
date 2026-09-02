@@ -2,21 +2,28 @@
  * Feature domain — the player polity's own ground doctrine.
  *
  * <p>Category: feature domain (campaign tier).
- * <br>Charter:  the pure half of {@code polity-ground-doctrine.md}. Reads the
- *           colonies' production capacity as a four-step ladder
+ * <br>Charter:  {@code polity-ground-doctrine.md}. Grades the colonies' production
+ *           capacity on a four-step ladder
  *           ({@link com.dillon.starsectormarines.campaign.polity.GroundProductionQuality}),
  *           holds the three zero-sum doctrine points
  *           ({@link com.dillon.starsectormarines.campaign.polity.PolityDoctrine}),
- *           and derives the player faction's
+ *           derives the player faction's
  *           {@code GroundRosterProfile} from those plus the equipment template
  *           cards the company has released
- *           ({@link com.dillon.starsectormarines.campaign.polity.PolityRosterDerivation}).
- * <br>Boundary: everything here is a pure function of its arguments. No
- *           Starsector campaign state, no market reads, no registry
- *           installation, no persistence. The adapter that reads a market's
- *           industries and deficits, the state that persists released cards and
- *           doctrine points, and the system that registers the derived profile
- *           each live with their own tier and call in here.
+ *           ({@link com.dillon.starsectormarines.campaign.polity.PolityRosterDerivation}),
+ *           and owns the two accessors that read those inputs off
+ *           {@code CampaignState}
+ *           ({@link com.dillon.starsectormarines.campaign.polity.ReleasedKit},
+ *           {@link com.dillon.starsectormarines.campaign.polity.PolityDoctrineLedger}).
+ * <br>Boundary: the model is a pure function of its arguments. The ladder, the
+ *           doctrine value, and the derivation read no campaign state, no
+ *           market, and no registry, and one live read is isolated behind
+ *           {@link com.dillon.starsectormarines.campaign.polity.ProductionSignals}
+ *           so its pure counterpart
+ *           ({@link com.dillon.starsectormarines.campaign.polity.MarketProductionSignals})
+ *           is what everything else measures. Nothing here installs the derived
+ *           profile or runs on a clock: {@code PolityRosterSystem} owns the
+ *           daily rebuild and the one write into the roster registry.
  *
  * <p>The laws this package must not break are in
  * {@code polity-ground-doctrine.md}: a release grants a definition and never
