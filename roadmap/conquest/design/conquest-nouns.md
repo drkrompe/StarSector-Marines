@@ -4,7 +4,10 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a stated standoff is not the walk, and the beachhead's
+Updated: 2026-09-02 — a Conquest map states lanes, and its compounds
+stand in depth along them rather than all inside the objective's claim.
+
+Earlier 2026-09-01 — a stated standoff is not the walk, and the beachhead's
 distance from the map edge is also the shuttle cycle; the map is a plan of
 places at 560x336 (`precincts.md`); the garrison precinct supplies every feature
 the mission requires; a mission states how far from the objective its force
@@ -63,6 +66,16 @@ and rooms are the garrison — and the shore is the paired landing areas the
 precinct recipe authors in the attacker's region. The re-roll is unchanged: a
 plan is derived per attempt from the attempt's own seed, so a re-roll is a
 different set of places and not the same places on a different fill.
+
+**Layers between the shore and the keep are part of the same structural
+promise, and are not one of the checked requirements.** A conquest states
+`Lanes` on its map plan, and the precinct recipe seeds a ladder of garrison
+places along each command track between the beachhead and the fortress, so a
+track meets compounds on the way rather than arriving at one wall with the other
+two. It is deliberately not a requirement: a rung that finds no room is dropped
+and recorded rather than re-rolled on, because a thinner ladder is a worse
+battle where a missing airfield is a broken promise. `precincts.md` owns how the
+ladder is derived and placed.
 
 **A mission with nothing stated requires nothing.** Requirements are a claim
 about a particular mission, and inventing one for a mission nobody has thought
@@ -147,6 +160,13 @@ A **compound** is a defender supply hub represented by a tactical
   until the capture completes.
 - **MARINE_HELD** is territory captured by marines. That compound no longer
   supplies the defender.
+
+**Compounds exist in depth, not only inside the objective's claim.** Each
+Conquest lane carries outposts and strongpoints along its track, and every one
+of them registers as an ordinary compound: the same capture-room resolution, the
+same asymmetric capture, the same reachability guarantee, and the same victory
+law that requires every compound to flip. No lane place carries a keep, so the
+keep remains the culminating compound and the one-keep law is unchanged.
 
 Capture is deliberately asymmetric. Marines must sustain uncontested control
 long enough to take a compound; defenders recover a contested compound more

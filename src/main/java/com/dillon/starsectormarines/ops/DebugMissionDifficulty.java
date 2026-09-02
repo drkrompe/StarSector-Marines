@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 
 /**
- * Applies the DEBUG briefing's operation-scale, map-sprawl and approach-length
- * choices to one mission.
+ * Applies the DEBUG briefing's operation-scale, map-sprawl, approach-length and
+ * lane-count choices to one mission.
  */
 final class DebugMissionDifficulty {
 
@@ -62,6 +62,19 @@ final class DebugMissionDifficulty {
     static Mission atStandoff(Mission mission, Standoff requestedStandoff) {
         if (mission == null || !mission.source.isDebug()) return mission;
         return Mission.builder(mission).standoff(requestedStandoff).build();
+    }
+
+    /**
+     * Returns the same mission for production work. DEBUG work states how many
+     * lanes of resistance its map lays, so a battle can be played against the
+     * default ladder, against one lane, or against none at all on one board.
+     *
+     * @param requestedLanes the lane count to state, or {@code null} to hand
+     *                       the answer back to the mission type's default.
+     */
+    static Mission atLanes(Mission mission, Integer requestedLanes) {
+        if (mission == null || !mission.source.isDebug()) return mission;
+        return Mission.builder(mission).lanes(requestedLanes).build();
     }
 
     private static boolean isTierGridEntry(Mission mission) {
