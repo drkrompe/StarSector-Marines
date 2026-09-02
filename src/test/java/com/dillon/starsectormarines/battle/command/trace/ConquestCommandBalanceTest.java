@@ -22,7 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -62,6 +61,8 @@ class ConquestCommandBalanceTest {
         Path traces = staging.resolve("traces");
         Files.createDirectories(traces);
 
+        // The cleanup must never become the report: see EvidenceCleanup.
+        Throwable primary = null;
         try {
             List<FixtureSpec> matrix = selectedMatrix();
             boolean canonical = maxTicks == DEFAULT_MAX_TICKS
@@ -118,8 +119,11 @@ class ConquestCommandBalanceTest {
                     summaryMarkdown(rows, maxTicks, canonical, repeat),
                     StandardCharsets.UTF_8);
             publishReports(staging, output);
+        } catch (Throwable failure) {
+            primary = failure;
+            throw failure;
         } finally {
-            deleteTree(staging);
+            EvidenceCleanup.deleteTreeQuietlyAfter(primary, staging);
         }
         System.out.println("[commander-balance] report "
                 + output.resolve("summary.md").toAbsolutePath());
@@ -626,6 +630,7 @@ class ConquestCommandBalanceTest {
         boolean hadPrevious = Files.exists(normalizedOutput);
         boolean previousMoved = false;
         boolean published = false;
+        Throwable primary = null;
         try {
             if (hadPrevious) {
                 Files.move(normalizedOutput, backup);
@@ -633,7 +638,7 @@ class ConquestCommandBalanceTest {
             }
             Files.move(staging, normalizedOutput);
             published = true;
-        } catch (Exception failure) {
+        } catch (Throwable failure) {
             if (previousMoved && !Files.exists(normalizedOutput)) {
                 try {
                     Files.move(backup, normalizedOutput);
@@ -641,17 +646,11 @@ class ConquestCommandBalanceTest {
                     failure.addSuppressed(restoreFailure);
                 }
             }
+            primary = failure;
             throw failure;
         } finally {
-            if (published || !Files.exists(backup)) deleteTree(backupHolder);
-        }
-    }
-
-    static void deleteTree(Path root) throws Exception {
-        if (root == null || !Files.exists(root)) return;
-        try (var paths = Files.walk(root)) {
-            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
-                Files.deleteIfExists(path);
+            if (published || !Files.exists(backup)) {
+                EvidenceCleanup.deleteTreeQuietlyAfter(primary, backupHolder);
             }
         }
     }
