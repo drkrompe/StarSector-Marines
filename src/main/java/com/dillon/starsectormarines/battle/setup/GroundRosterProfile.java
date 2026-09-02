@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
@@ -10,6 +11,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
@@ -117,6 +119,100 @@ public final class GroundRosterProfile {
             }
             return Map.copyOf(copy);
         }
+
+        /** Starts an issue package for one force tier. */
+        public static Builder builder(UnitType unitType) {
+            return new Builder(unitType);
+        }
+
+        /**
+         * Assembles one {@link Issue} from weighted entries rather than from
+         * JSON, so a <em>derived</em> doctrine — the polity's, which is rebuilt
+         * from its own economy rather than authored — is built through the same
+         * construction and the same validation as every catalogued one. The
+         * weighted tables stay package-private; a caller states values and
+         * weights and never holds a table.
+         */
+        public static final class Builder {
+            private final UnitType unitType;
+            private final List<Entry<WeaponDef>> primaries = new ArrayList<>();
+            private final EnumMap<RiskLevel, List<Entry<EquipmentGrade>>> grades =
+                    new EnumMap<>(RiskLevel.class);
+            private final EnumMap<RiskLevel, List<Entry<MarineArmorCatalogDef>>> armor =
+                    new EnumMap<>(RiskLevel.class);
+            private final EnumMap<RiskLevel, List<Entry<SpecialEquipmentDef>>> specials =
+                    new EnumMap<>(RiskLevel.class);
+
+            private Builder(UnitType unitType) {
+                if (unitType == null) {
+                    throw new IllegalArgumentException("issue unitType is required");
+                }
+                if (!unitType.usesInfantryTraining()) {
+                    throw new IllegalArgumentException(
+                            "issue unitType must be trained infantry, got " + unitType);
+                }
+                this.unitType = unitType;
+            }
+
+            public Builder primary(WeaponDef weapon, int weight) {
+                if (weapon == null) {
+                    throw new IllegalArgumentException("issue primary weapon is required");
+                }
+                if (weapon.mount != MountClass.MARINE_PRIMARY) {
+                    throw new IllegalArgumentException(
+                            "issue references non-primary weapon '" + weapon.id + "'");
+                }
+                primaries.add(new Entry<>(weapon, weight));
+                return this;
+            }
+
+            public Builder grade(RiskLevel risk, EquipmentGrade grade, int weight) {
+                if (grade == null) {
+                    throw new IllegalArgumentException("issue equipment grade is required");
+                }
+                bucket(grades, risk).add(new Entry<>(grade, weight));
+                return this;
+            }
+
+            public Builder armor(RiskLevel risk, MarineArmorCatalogDef pattern, int weight) {
+                if (pattern == null) {
+                    throw new IllegalArgumentException("issue armor pattern is required");
+                }
+                bucket(armor, risk).add(new Entry<>(pattern, weight));
+                return this;
+            }
+
+            /**
+             * A null {@code special} is the authored "none" outcome — the roll
+             * that issues no special item at all — exactly as the catalog spells
+             * it, so a derived table and an authored one read the same.
+             */
+            public Builder special(RiskLevel risk, SpecialEquipmentDef special, int weight) {
+                bucket(specials, risk).add(new Entry<>(special, weight));
+                return this;
+            }
+
+            public Issue build() {
+                return new Issue(unitType, new WeightedTable<>(primaries),
+                        tables(grades), tables(armor), tables(specials));
+            }
+
+            private static <T> List<Entry<T>> bucket(
+                    EnumMap<RiskLevel, List<Entry<T>>> source, RiskLevel risk) {
+                if (risk == null) throw new IllegalArgumentException("issue risk level is required");
+                return source.computeIfAbsent(risk, key -> new ArrayList<>());
+            }
+
+            /** A risk left out entirely is reported by {@link #completeRiskMap}. */
+            private static <T> Map<RiskLevel, WeightedTable<T>> tables(
+                    EnumMap<RiskLevel, List<Entry<T>>> source) {
+                EnumMap<RiskLevel, WeightedTable<T>> result = new EnumMap<>(RiskLevel.class);
+                for (Map.Entry<RiskLevel, List<Entry<T>>> entry : source.entrySet()) {
+                    result.put(entry.getKey(), new WeightedTable<>(entry.getValue()));
+                }
+                return result;
+            }
+        }
     }
 
     private final String id;
@@ -163,5 +259,98 @@ public final class GroundRosterProfile {
 
     private static RiskLevel resolvedRisk(RiskLevel risk) {
         return risk != null ? risk : RiskLevel.LOW;
+    }
+
+    /** Starts a profile under the given catalog id. */
+    public static Builder builder(String id) {
+        return new Builder(id);
+    }
+
+    /**
+     * The one construction path for a profile. The catalog parser feeds it, and
+     * so does the polity's derivation, so a derived doctrine cannot quietly
+     * satisfy weaker rules than an authored one.
+     */
+    public static final class Builder {
+        private final String id;
+        private final Set<String> factionIds = new LinkedHashSet<>();
+        private final List<MechVariant> heavySupport = new ArrayList<>();
+        private Issue bulk;
+        private Issue elite;
+
+        private Builder(String id) {
+            if (id == null || id.isBlank()) {
+                throw new IllegalArgumentException("Ground-roster profile id is required");
+            }
+            this.id = id;
+        }
+
+        /** Authored order is preserved; the first id is the profile's public name. */
+        public Builder factionId(String factionId) {
+            if (factionId == null || factionId.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Ground-roster profile '" + id + "' has a blank faction id");
+            }
+            factionIds.add(factionId);
+            return this;
+        }
+
+        public Builder factionIds(Collection<String> ids) {
+            if (ids == null) {
+                throw new IllegalArgumentException("Ground-roster faction ids are required");
+            }
+            for (String factionId : ids) factionId(factionId);
+            return this;
+        }
+
+        public Builder bulk(Issue issue) {
+            bulk = requireIssue(issue, "bulk");
+            return this;
+        }
+
+        public Builder elite(Issue issue) {
+            elite = requireIssue(issue, "elite");
+            return this;
+        }
+
+        public Builder addHeavySupport(MechVariant variant) {
+            if (variant == null) {
+                throw new IllegalArgumentException(
+                        "Ground-roster profile '" + id + "' has a null heavy-support variant");
+            }
+            heavySupport.add(variant);
+            return this;
+        }
+
+        /** Replaces the support cycle; an empty cycle is legal and means no mechs. */
+        public Builder heavySupport(Collection<MechVariant> variants) {
+            if (variants == null) {
+                throw new IllegalArgumentException(
+                        "Ground-roster profile '" + id + "' has a null heavy-support cycle");
+            }
+            heavySupport.clear();
+            for (MechVariant variant : variants) addHeavySupport(variant);
+            return this;
+        }
+
+        public GroundRosterProfile build() {
+            if (factionIds.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Ground-roster profile '" + id + "' has no faction ids");
+            }
+            if (bulk == null || elite == null) {
+                throw new IllegalArgumentException("Ground-roster profile '" + id
+                        + "' needs both a bulk and an elite issue");
+            }
+            return new GroundRosterProfile(id, factionIds, bulk, elite, heavySupport);
+        }
+
+        private Issue requireIssue(Issue issue, String tier) {
+            if (issue == null) {
+                throw new IllegalArgumentException("Ground-roster profile '" + id
+                        + "' has no " + tier + " issue");
+            }
+            return issue;
+        }
     }
 }
