@@ -4,6 +4,10 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
+Updated: 2026-09-02 — slice 1 (Derivation) landed: `GroundRosterProfile.Builder`,
+`GroundProductionQuality`, `PolityDoctrine`, `PolityRosterDerivation`. Slices 2-5
+remain.
+
 Read `polity-ground-doctrine.md` (the model and its laws — this story is its
 implementation), `meta-progression.md` (the company-and-polity boundary),
 `campaign-battle-bridge-nouns.md` (the one resolve path), `progression-nouns.md`
