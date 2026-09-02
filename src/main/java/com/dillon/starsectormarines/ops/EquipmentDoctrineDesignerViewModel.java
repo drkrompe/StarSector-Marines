@@ -3,9 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
-import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -16,6 +14,8 @@ import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
+import com.dillon.starsectormarines.ops.spec.StatMeter;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -381,60 +381,18 @@ public final class EquipmentDoctrineDesignerViewModel {
         float accuracy = InfantryCombatStats.accuracy(issue.primaryDef(), issue.grade(), profile);
         float dps = InfantryCombatStats.estimatedDps(issue.primaryDef(), issue.grade(), profile);
         return List.of(
-                statMeter(cardId + ":damage", "DMG", formatOneDecimal(damage),
-                        damage, maximumWeaponDamage()),
-                statMeter(cardId + ":range", "RNG", formatOneDecimal(range),
-                        range, maximumWeaponRange()),
-                statMeter(cardId + ":accuracy", "ACC",
+                StatMeter.of(cardId + ":damage", "DMG", formatOneDecimal(damage),
+                        damage, CatalogCeilings.weaponDamage()),
+                StatMeter.of(cardId + ":range", "RNG", formatOneDecimal(range),
+                        range, CatalogCeilings.weaponRange()),
+                StatMeter.of(cardId + ":accuracy", "ACC",
                         String.format(Locale.ROOT, "%.0f%%", accuracy * 100f), accuracy, 1f),
-                statMeter(cardId + ":dps", "DPS", formatOneDecimal(dps),
-                        dps, maximumWeaponDps(profile)));
-    }
-
-    private static StatMeter statMeter(
-            String id, String label, String value, float amount, float maximum) {
-        int percentage = maximum > 0f
-                ? Math.round(Math.max(0f, Math.min(1f, amount / maximum)) * 100f) : 0;
-        return new StatMeter(id, id + ":label", id + ":track", id + ":fill",
-                id + ":value", label, value, "width: " + percentage + "%;");
+                StatMeter.of(cardId + ":dps", "DPS", formatOneDecimal(dps),
+                        dps, CatalogCeilings.weaponDps(profile)));
     }
 
     private static String formatOneDecimal(float value) {
         return String.format(Locale.ROOT, "%.1f", value);
-    }
-
-    private static float maximumWeaponDamage() {
-        float maximum = 1f;
-        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                maximum = Math.max(maximum, InfantryCombatStats.damage(weapon, grade));
-            }
-        }
-        return maximum;
-    }
-
-    private static float maximumWeaponRange() {
-        float maximum = 1f;
-        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                maximum = Math.max(maximum, InfantryCombatStats.range(weapon, grade));
-            }
-        }
-        return maximum;
-    }
-
-    private static float maximumWeaponDps(SoldierProfile profile) {
-        float maximum = 1f;
-        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                maximum = Math.max(maximum,
-                        InfantryCombatStats.estimatedDps(weapon, grade, profile));
-            }
-        }
-        return maximum;
     }
 
     private static String title(String value) {
@@ -511,16 +469,4 @@ public final class EquipmentDoctrineDesignerViewModel {
         }
     }
 
-    public record StatMeter(
-            String id, String labelId, String trackId, String fillId, String valueId,
-            String label, String value, String fillStyle) implements MarkupPropertySource {
-        @Override public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id; case "labelId" -> labelId; case "trackId" -> trackId;
-                case "fillId" -> fillId; case "valueId" -> valueId; case "label" -> label;
-                case "value" -> value; case "fillStyle" -> fillStyle;
-                default -> throw new IllegalArgumentException("Unknown stat meter property");
-            };
-        }
-    }
 }
