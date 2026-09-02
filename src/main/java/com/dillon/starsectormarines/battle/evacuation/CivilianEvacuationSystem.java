@@ -37,6 +37,17 @@ public final class CivilianEvacuationSystem {
     private boolean evacuationTriggered;
     private boolean respondingMarineObserved;
     private long pickupShuttleId;
+    /**
+     * The squad sealed in the shelter with the cohort, or {@link Squad#NO_SQUAD}.
+     *
+     * <p>This used to be a boolean on {@link Squad} itself, which existed
+     * because the guard was a marine squad that had to be kept out of the
+     * player's command pool. It is an allied squad now and the faction does
+     * that, so what is left is the one thing genuinely local to this mission:
+     * <em>which</em> squad is the one in the shelter. That belongs beside the
+     * evacuation state it is guarding rather than on every squad in the game.
+     */
+    private int shelterGuardSquadId = Squad.NO_SQUAD;
 
     public CivilianEvacuationSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) {
@@ -59,6 +70,24 @@ public final class CivilianEvacuationSystem {
         this.placement = placement;
         configured = true;
         return true;
+    }
+
+    /**
+     * Records the squad standing guard over the sealed cohort. One only; a
+     * second registration is refused rather than silently replacing the first.
+     */
+    public boolean registerShelterGuard(int squadId) {
+        if (squadId == Squad.NO_SQUAD
+                || shelterGuardSquadId != Squad.NO_SQUAD) {
+            return false;
+        }
+        shelterGuardSquadId = squadId;
+        return true;
+    }
+
+    /** Whether {@code squadId} is the squad sealed in the shelter. */
+    public boolean isShelterGuard(int squadId) {
+        return squadId != Squad.NO_SQUAD && squadId == shelterGuardSquadId;
     }
 
     /** Associates the configured cohort with its physical pickup craft. */
@@ -279,8 +308,8 @@ public final class CivilianEvacuationSystem {
         return dx * dx + dy * dy;
     }
 
-    private static boolean marineWithin(int x, int y, int distance,
-                                        BattleSimulation sim) {
+    private boolean marineWithin(int x, int y, int distance,
+                                 BattleSimulation sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (!isRespondingMarine(unit, sim)) continue;
@@ -291,23 +320,25 @@ public final class CivilianEvacuationSystem {
         return false;
     }
 
-    private static boolean hasRespondingMarine(BattleSimulation sim) {
+    private boolean hasRespondingMarine(BattleSimulation sim) {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             if (isRespondingMarine(sim.liveUnitAt(i), sim)) return true;
         }
         return false;
     }
 
-    private static boolean isRespondingMarine(long unit,
-                                               BattleSimulation sim) {
+    private boolean isRespondingMarine(long unit, BattleSimulation sim) {
+        // The guard is allied rather than marine since the migration, so the
+        // faction test alone already excludes it. The guard test is kept
+        // because "somebody came to relieve the shelter" must never be
+        // answered by the people already inside it, whatever side they are on.
         return sim.identity().faction(unit) == Faction.MARINE
                 && !isShelterGuard(unit, sim);
     }
 
-    private static boolean isShelterGuard(long unit,
-                                          BattleSimulation sim) {
+    private boolean isShelterGuard(long unit, BattleSimulation sim) {
         Squad squad = sim.squadOf(unit);
-        return squad != null && squad.rescueShelterGuard;
+        return squad != null && isShelterGuard(squad.id);
     }
 
     private void board(long id, BattleSimulation sim) {

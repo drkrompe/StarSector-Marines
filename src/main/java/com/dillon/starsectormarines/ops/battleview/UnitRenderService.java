@@ -799,9 +799,10 @@ public final class UnitRenderService implements RenderSystem {
                 }
                 if (cache == null || cache.sheet == null || cache.frames == null
                         || cache.frames.frames.length == 0) {
-                    Faction faction = (Faction) factions[r];
-                    Color col = faction == Faction.MARINE ? MARINE_COLOR
-                            : faction == Faction.DEFENDER ? DEFENDER_COLOR : CIVILIAN_COLOR;
+                    Allegiance allegiance = Allegiance.of((Faction) factions[r]);
+                    Color col = allegiance.friendly() ? MARINE_COLOR
+                            : allegiance == Allegiance.NEUTRAL
+                            ? CIVILIAN_COLOR : DEFENDER_COLOR;
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
                     emitSolidQuad(out, cx, cy, half, col, unitAlpha);

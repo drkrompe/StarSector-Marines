@@ -255,6 +255,8 @@
 		"resultsSalvageModifiedFmt": "{0}% · +{1}% recovery · {2} stacks · Cr. {3}",
 		"resultsCasualtiesLabel": "Marines Lost:",
 		"resultsCasualtiesFmt":   "{0} of {1}",
+		"resultsAlliedLossesLabel": "Allied Losses:",
+		"resultsAlliedLossesFmt": "{0} of {1}",
 		"resultsBoatsLostLabel":  "Boats Lost:",
 		"resultsBoatsLostFmt":    "{0} — {1}",
 		"resultsCaptainLabel":    "Captain:",

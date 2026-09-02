@@ -39,6 +39,14 @@ public final class MissionOutcome {
     public final int            payoutEarned;
     public final int            marinesEngaged;
     public final int            marinesLost;
+    /**
+     * Allied combatants that took the field beside the company, and how many
+     * of them fell. Their own ledger: an allied casualty is reported but never
+     * reaches {@link #survivingSoldierIds}, {@link #fallenSoldierIds}, the
+     * personnel outcome, or reputation — allies are not the company's people.
+     */
+    public final int            alliesEngaged;
+    public final int            alliesLost;
     /** Planet name the mission targeted; null if no specific target. */
     public final String         targetPlanetName;
     /** Industry id the mission targeted; null if no industry-specific target. */
@@ -128,6 +136,8 @@ public final class MissionOutcome {
         this.payoutEarned       = b.payoutEarned;
         this.marinesEngaged     = b.marinesEngaged;
         this.marinesLost        = b.marinesLost;
+        this.alliesEngaged      = b.alliesEngaged;
+        this.alliesLost         = b.alliesLost;
         this.captainId          = b.captainId;
         this.captainName        = b.captainName;
         this.priorCaptainStatus = b.priorCaptainStatus;
@@ -192,6 +202,8 @@ public final class MissionOutcome {
         private int payoutEarned;
         private int marinesEngaged;
         private int marinesLost;
+        private int alliesEngaged;
+        private int alliesLost;
         private String targetPlanetName;
         private String targetIndustryId;
         private String targetFactionId;
@@ -306,6 +318,16 @@ public final class MissionOutcome {
 
         public Builder marinesLost(int marinesLost) {
             this.marinesLost = marinesLost;
+            return this;
+        }
+
+        public Builder alliesEngaged(int alliesEngaged) {
+            this.alliesEngaged = alliesEngaged;
+            return this;
+        }
+
+        public Builder alliesLost(int alliesLost) {
+            this.alliesLost = alliesLost;
             return this;
         }
 

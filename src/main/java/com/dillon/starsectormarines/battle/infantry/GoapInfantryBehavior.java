@@ -450,7 +450,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
 
     private static boolean protectedShelterGuard(
             Squad squad, BattleSimulation sim) {
-        return squad.rescueShelterGuard && sim.isCivilianShelterProtected();
+        return sim.isShelterGuard(squad.id) && sim.isCivilianShelterProtected();
     }
 
     private static boolean continuesBoundingAdvance(SquadPlan plan, Squad squad) {
