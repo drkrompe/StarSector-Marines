@@ -528,9 +528,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         List<String> movedWaypoints = new ArrayList<>();
         if (lanes != null && objectivePlace != null && attackerFrom != null) {
             seedLanes(lanes, demand.rung(profile.defenseLevel()),
-                    objectivePlace, objective, attackerFrom, taken, separation,
-                    margin, width, height, rng, lanePlaces, unplacedLanes,
-                    movedWaypoints);
+                    objectivePlace, objective, attackerFrom, landingPlace, taken,
+                    separation, margin, width, height, rng, lanePlaces,
+                    unplacedLanes, movedWaypoints);
         }
 
         // A remote map is an installation in country: adding a town to it is
@@ -707,7 +707,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
     private static final float LANE_FIT = 0.02f;
 
     /**
-     * Minimum cells between two places on the same lane.
+     * Minimum cells between two lane places.
      *
      * <p>{@link #MIN_SEED_SEPARATION} is calibrated for a town and a garrison,
      * whose claims run to fifty cells and would grow into one another at
@@ -717,12 +717,27 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * says it has. Separation from everything that is <em>not</em> a lane place
      * is unchanged: a post is kept out of the fortress and the town the way any
      * other place is.
+     *
+     * <p><b>It applies between any two lane places, and until the fan it never
+     * applied at all.</b> A seated rung was appended to the plan's own
+     * {@code taken} list as well as to the ladder's, so the ordinary separation
+     * always found it there first and the smaller figure was dominated by the
+     * larger one. The symptom was a middle lane one rung short on both canonical
+     * fixtures — its rungs stand fifty-six cells apart on the forward axis, four
+     * short of the plan's sixty — and the fan sharpens it, because the middle
+     * lane is the shortest and its rungs the closest together. The lane seeds are
+     * measured against separately now, which is what the paragraph above always
+     * claimed.
      */
     private static final int LANE_SEED_SEPARATION = 32;
 
     /**
-     * Where each rung stands, as a fraction of the way from the attacker's own
-     * region to the objective's.
+     * Where each rung stands, as a fraction of the way from the beachhead to the
+     * objective.
+     *
+     * <p>The middle one is also where the fan is at its widest, because
+     * {@link LanePath#peakOf} takes the ladder's own middle rung: a spread whose
+     * widest point were not a rung would be widest where nothing stands.
      *
      * <p><b>Ordered in path order</b>, so index 0 is the outermost rung — the
      * one nearest the beachhead — and the last is band 1 abutting the objective.
@@ -741,9 +756,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * <p>Enough that the ladder is not a ruled line and that a rung crowded out
      * by its neighbour has somewhere else to stand; not so much that a lane
      * stops reading as a lane. It is the retry's whole search space — a rung
-     * that cannot find room inside its own lane is dropped rather than moved
-     * into the next one, because a place in the wrong lane is worse than a lane
-     * with a gap in it.
+     * that cannot find room beside its own waypoint is dropped rather than
+     * moved somewhere else, because a place off its lane's route is worse than
+     * a lane with a gap in it.
      */
     private static final int LANE_JITTER_SHARE = 4;
 
@@ -757,6 +772,16 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * {@code BattleSetup.conquestPlanFor} makes from its traversal axis — north
      * against south, east against west — arrived at without the generator having
      * to be told about a Conquest.
+     *
+     * <p><b>Every derived lane runs from the beachhead to the keep.</b> The two
+     * ends are shared and the lanes differ in the middle: the frame's start is
+     * the landing precinct's own seed rather than the middle of the lane's third
+     * of the attacker region, and the spread that pushes a lane out toward that
+     * third closes again at both ends. Before this, two of three lanes on
+     * {@code reinforced-south} began two hundred cells sideways from the only
+     * ground the force stands on, and their fronts never moved. A plan with no
+     * landing place keeps the region's centre, which is every mission but
+     * Conquest.
      *
      * <p><b>A lane is a route and its rungs stand on it.</b> The path is the
      * mission's where it stated one and {@link LanePath#meandering} otherwise,
@@ -774,7 +799,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     private static void seedLanes(Lanes lanes, Fortification.Strength objectiveRung,
                                   Precinct objectivePlace, MapPlacement objective,
-                                  MapPlacement attackerFrom, List<int[]> taken,
+                                  MapPlacement attackerFrom, Precinct landingPlace,
+                                  List<int[]> taken,
                                   int separation, int margin, int width, int height,
                                   Random rng, List<Precinct> out, List<String> unplaced,
                                   List<String> moved) {
@@ -783,11 +809,18 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         boolean forwardIsX = Math.abs(objectiveCentre[0] - attackerCentre[0])
                 >= Math.abs(objectiveCentre[1] - attackerCentre[1]);
         int lateralExtent = forwardIsX ? height : width;
-        int attackerForward = forwardIsX ? attackerCentre[0] : attackerCentre[1];
+        // The beachhead's own seed where there is one: a lane begins where the
+        // force begins, not in the middle of a region a third of the map deep.
+        int[] start = landingPlace != null
+                ? new int[]{landingPlace.seedX(), landingPlace.seedY()}
+                : attackerCentre;
+        int startForward = forwardIsX ? start[0] : start[1];
+        int startLateral = forwardIsX ? start[1] : start[0];
         // The objective's own seed rather than the middle of the region it was
         // asked for: the fortress landed somewhere inside that region and the
         // deepest rung is measured against where it actually is.
-        int objectiveForward = forwardIsX ? objectivePlace.seedX() : objectivePlace.seedY();
+        int endForward = forwardIsX ? objectivePlace.seedX() : objectivePlace.seedY();
+        int endLateral = forwardIsX ? objectivePlace.seedY() : objectivePlace.seedX();
 
         // The paths draw from a stream of their own, salted off where the
         // objective actually landed. Deterministic in the plan, because that
@@ -799,6 +832,10 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         Random pathRng = new Random(objectivePlace.seedX() * 0x9E3779B97F4A7C15L
                 ^ objectivePlace.seedY() * 0xC2B2AE3D27D4EB4FL);
 
+        // What was on the map before any rung was: the fortress and the
+        // beachhead. Held apart from the ladder's own seeds so a rung is judged
+        // against each at its own separation — see LANE_SEED_SEPARATION.
+        List<int[]> others = List.copyOf(taken);
         List<int[]> laneSeeds = new ArrayList<>();
         for (int lane = 0; lane < lanes.count(); lane++) {
             LaneResistance ladder = lanes.ladderFor(lane, objectiveRung);
@@ -806,18 +843,19 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     LaneGeometry.startInclusive(lane, lanes.count(), lateralExtent));
             int laneEnd = Math.min(lateralExtent - 1 - margin,
                     LaneGeometry.endInclusive(lane, lanes.count(), lateralExtent));
-            LanePath.Frame frame = new LanePath.Frame(forwardIsX, attackerForward,
-                    objectiveForward, laneStart, laneEnd, width, height);
+            LanePath.Frame frame = new LanePath.Frame(forwardIsX,
+                    startForward, startLateral, endForward, endLateral,
+                    laneStart, laneEnd, width, height);
             LanePath stated = lanes.pathFor(lane);
             LanePath path = stated != null
                     ? stated
                     : LanePath.meandering(frame, RUNG_FRACTIONS, margin, pathRng);
             // Room measured against everything already placed — the fortress,
-            // the earlier lanes' posts — which is what "inside another place's
-            // claim" means before any claim has been grown.
-            List<int[]> placed = List.copyOf(taken);
+            // the beachhead, the earlier lanes' posts — which is what "inside
+            // another place's claim" means before any claim has been grown.
+            List<int[]> laid = List.copyOf(laneSeeds);
             LanePath.Fit fit = path.fitted(width, height,
-                    (x, y) -> shortfall(new int[]{x, y}, placed, separation) <= 0,
+                    (x, y) -> clearOfEverything(new int[]{x, y}, others, laid, separation),
                     2 * separation);
             for (LanePath.Move move : fit.moved()) {
                 moved.add("lane-" + (lane + 1) + " waypoint " + (move.index() + 1)
@@ -843,8 +881,9 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                 int forward = forwardIsX ? waypoint[0] : waypoint[1];
                 int lateral = forwardIsX ? waypoint[1] : waypoint[0];
                 String name = "lane-" + (lane + 1) + "-band-" + step.band();
-                int[] seed = laneSeed(lateral, jitter, laneStart, laneEnd, forward,
-                        forwardIsX, taken, laneSeeds, separation, rng);
+                int[] seed = laneSeed(lateral, jitter, margin,
+                        lateralExtent - 1 - margin, forward,
+                        forwardIsX, others, laneSeeds, separation, rng);
                 if (seed == null) {
                     unplaced.add(name);
                     continue;
@@ -866,7 +905,14 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * <p>The jitter window is centred on the <em>waypoint's</em> lateral rather
      * than the lane's, because the waypoint is where the rung was told to stand.
      * It is still the retry's whole search space: a rung that cannot find room
-     * beside its own waypoint is dropped rather than moved into the next lane.
+     * beside its own waypoint is dropped rather than moved somewhere else.
+     *
+     * <p><b>The window is bounded by the map's margin and not by the lane's own
+     * third.</b> Since lanes fan, a lane stands inside its third only at its
+     * widest band and shares the axis with the other two at both ends; clamping
+     * to the third left the innermost rung of an outer lane four cells of window
+     * to search and it was dropped for a reason that had nothing to do with the
+     * ground.
      *
      * <p>Two separations, because the two questions are different. Against the
      * fortress, the town and the outlying places the ordinary
@@ -875,11 +921,12 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * ladder {@link #LANE_SEED_SEPARATION} applies, because a lane whose rungs
      * had to be sixty cells apart would have fewer of them than it claims to.
      */
-    private static int[] laneSeed(int waypointLateral, int jitter, int laneStart, int laneEnd,
+    private static int[] laneSeed(int waypointLateral, int jitter,
+                                  int lateralLow, int lateralHigh,
                                   int forward, boolean forwardIsX, List<int[]> taken,
                                   List<int[]> laneSeeds, int separation, Random rng) {
-        int lo = Math.max(laneStart, waypointLateral - jitter);
-        int hi = Math.min(laneEnd, waypointLateral + jitter);
+        int lo = Math.max(lateralLow, waypointLateral - jitter);
+        int hi = Math.min(lateralHigh, waypointLateral + jitter);
         if (hi < lo) return null;
         int[] best = null;
         long bestShortfall = Long.MAX_VALUE;
@@ -897,6 +944,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             if (shortfall <= 0) break;
         }
         return bestShortfall <= 0 ? best : null;
+    }
+
+    /**
+     * Whether a lane waypoint may stand here: clear of the fortress and the
+     * beachhead at the plan's own separation, and of the ladder's other rungs at
+     * {@link #LANE_SEED_SEPARATION}.
+     */
+    private static boolean clearOfEverything(int[] candidate, List<int[]> others,
+                                             List<int[]> laneSeeds, int separation) {
+        return shortfall(candidate, others, separation) <= 0
+                && shortfall(candidate, laneSeeds, LANE_SEED_SEPARATION) <= 0;
     }
 
     /**
