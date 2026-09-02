@@ -8,8 +8,10 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 import com.dillon.starsectormarines.campaign.HouseRank;
+import com.dillon.starsectormarines.campaign.Posting;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentType;
+import com.dillon.starsectormarines.campaign.systems.PostingService;
 import com.dillon.starsectormarines.campaign.systems.StationingAssignmentService;
 import com.dillon.starsectormarines.campaign.systems.StationingContractTerms;
 import com.dillon.starsectormarines.campaign.systems.StationingWithdrawalService;
@@ -62,15 +64,74 @@ public final class StationingScreen extends MissionFlowMlxScreen {
     @Override
     protected Map<String, Object> props() {
         CampaignState state = state();
-        int row = state != null ? state.contractIndex(context.getSelectedStationingContractId()) : -1;
+        long contractId = context.getSelectedStationingContractId();
+        if (contractId == Posting.DRAFT_CONTRACT_ID) return postingOfferProps(state);
+        int row = state != null ? state.contractIndex(contractId) : -1;
         if (row < 0) return unavailableProps();
         ContractType type = ContractType.fromByte(state.contractType[row]);
         ContractState contractState = ContractState.fromByte(state.contractState[row]);
         if (contractState == ContractState.ACTIVE || contractState == ContractState.IN_PROGRESS) {
-            return managementProps(state, row, type);
+            return managementProps(state, row, type, Posting.isPosting(state, row));
         }
         if (contractState != ContractState.OFFERED) return unavailableProps();
         return offerProps(state, row, type);
+    }
+
+    /**
+     * The offer screen with the commercial half removed. A posting has no patron to
+     * derive a rank from, no term to choose, and no retainer to quote, so the term
+     * controls are hidden rather than shown reading zero — the only decision left
+     * here is which captain and which squads stay behind.
+     */
+    private Map<String, Object> postingOfferProps(CampaignState state) {
+        MarineRoster roster = roster();
+        MarineCaptain captain = context.getSelectedCaptain();
+        int selectedSquads = CaptainDeploymentPolicy.selectedCount(roster, selectedSquadIds);
+        int commandCap = captain != null ? captain.rank().squadCommandCap() : 0;
+        int active = selectedStatusCount(roster, MarineSoldierStatus.ACTIVE);
+        int wia = selectedStatusCount(roster, MarineSoldierStatus.WIA);
+        boolean commandValid = state != null && marketId() != null && selectedSquads > 0
+                && active > 0
+                && CaptainDeploymentPolicy.isValidCommand(roster, captain, selectedSquadIds)
+                && selectionAvailable(roster);
+
+        Map<String, Object> props = commonProps(Strings.get("postingTitle"),
+                Strings.get("postingOfferSubtitle"), Strings.get("postingOfferKicker"));
+        props.put("overviewRows", List.of(
+                row("stationing-state", "Status", Strings.get("postingStatusUnposted")),
+                row("stationing-command", "Command",
+                        captain != null ? captain.name() : "No captain"),
+                row("stationing-strength", "Detachment", selectedSquads + " / " + commandCap
+                        + " squads · " + active + " RTD · " + wia + " WIA")));
+        props.put("captainHeader", "COMMANDING CAPTAIN");
+        props.put("captainRows", captainRows());
+        props.put("formationHeader", "AVAILABLE LINE SQUADS");
+        props.put("formationSummary",
+                commandValid ? "DETACHMENT READY" : "DETACHMENT INCOMPLETE");
+        props.put("squadRows", offerSquadRows(roster, captain));
+        props.put("noticeClasses", "stationing-notice neutral");
+        props.put("noticeTitle", Strings.get("postingCommitmentHeader"));
+        props.put("noticeBody", Strings.get("postingTermsNotice"));
+        putNoTerms(props);
+        props.put("primaryDisabled", !commandValid);
+        props.put("primaryClasses", "good-surface");
+        props.put("primaryLabel", Strings.get("postingAccept"));
+        props.put("primaryAction", (Runnable) this::onPost);
+        hideSecondary(props);
+        return props;
+    }
+
+    /** A posting has neither term nor retainer; both read as absent rather than zero. */
+    private static void putNoTerms(Map<String, Object> props) {
+        props.put("termClasses", "stationing-term-controls hidden");
+        props.put("termLabel", "");
+        props.put("termValue", "");
+        props.put("retainerLabel", Strings.get("postingRetainerLabel"));
+        props.put("retainerValue", Strings.get("postingNoRetainer"));
+        props.put("minusDisabled", true);
+        props.put("minusAction", (Runnable) () -> { });
+        props.put("plusDisabled", true);
+        props.put("plusAction", (Runnable) () -> { });
     }
 
     private Map<String, Object> offerProps(CampaignState state, int row, ContractType type) {
@@ -121,7 +182,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         return props;
     }
 
-    private Map<String, Object> managementProps(CampaignState state, int row, ContractType type) {
+    private Map<String, Object> managementProps(CampaignState state, int row,
+                                                ContractType type, boolean posting) {
         MarineRoster roster = roster();
         int captainSlot = state.contractCaptainId[row];
         String captainId = captainSlot >= 0 ? state.captainRegistry.get(captainSlot) : null;
@@ -138,9 +200,12 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         GarrisonDefensePayload defense = GarrisonDefensePayload.from(
                 state, state.contractId[row], roster);
 
-        Map<String, Object> props = commonProps("Active " + displayType(type) + " assignment",
-                "Review the bound detachment, remaining term, and any response owed.",
-                "ACTIVE POSTING");
+        Map<String, Object> props = commonProps(
+                posting ? Strings.get("postingActiveTitle")
+                        : "Active " + displayType(type) + " assignment",
+                posting ? Strings.get("postingActiveSubtitle")
+                        : "Review the bound detachment, remaining term, and any response owed.",
+                posting ? Strings.get("postingActiveKicker") : "ACTIVE POSTING");
         props.put("overviewRows", List.of(
                 row("stationing-state", "Status", incident != null || defense != null
                         ? "Response pending" : "In good standing"),
@@ -148,7 +213,8 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                 row("stationing-strength", "Detachment", stationed.isEmpty()
                         ? state.contractMarinesCommitted[row] + " committed marines"
                         : stationed.size() + " squads · " + active + " RTD · " + wia + " WIA"),
-                row("stationing-remaining", "Time remaining", daysRemaining + " days")));
+                row("stationing-remaining", "Time remaining", posting
+                        ? Strings.get("postingNoTerm") : daysRemaining + " days")));
         props.put("captainHeader", "POSTED COMMAND");
         props.put("captainRows", List.of(captainCard("stationing-posted-captain",
                 captainName, captain != null ? captain.rank().displayName() : "Bound captain",
@@ -157,22 +223,27 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         props.put("formationSummary", active + " RTD · " + wia + " WIA · "
                 + state.contractMarinesCommitted[row] + " LIVING");
         props.put("squadRows", managementSquadRows(roster, stationed));
-        props.put("termClasses", "stationing-term-controls hidden");
-        props.put("termLabel", "");
-        props.put("termValue", "");
-        props.put("retainerLabel", "MONTHLY RETAINER");
-        props.put("retainerValue", credits(state.contractRetainerPerMonth[row]));
-        props.put("minusDisabled", true);
-        props.put("minusAction", (Runnable) () -> { });
-        props.put("plusDisabled", true);
-        props.put("plusAction", (Runnable) () -> { });
-        configureResponse(props, incident, defense, captainName);
+        if (posting) {
+            putNoTerms(props);
+        } else {
+            props.put("termClasses", "stationing-term-controls hidden");
+            props.put("termLabel", "");
+            props.put("termValue", "");
+            props.put("retainerLabel", "MONTHLY RETAINER");
+            props.put("retainerValue", credits(state.contractRetainerPerMonth[row]));
+            props.put("minusDisabled", true);
+            props.put("minusAction", (Runnable) () -> { });
+            props.put("plusDisabled", true);
+            props.put("plusAction", (Runnable) () -> { });
+        }
+        configureResponse(props, incident, defense, captainName, posting);
         return props;
     }
 
     private void configureResponse(Map<String, Object> props,
                                    StationingIncidentPayload incident,
-                                   GarrisonDefensePayload defense, String captainName) {
+                                   GarrisonDefensePayload defense, String captainName,
+                                   boolean posting) {
         if (incident != null) {
             props.put("noticeClasses", "stationing-notice danger");
             props.put("noticeTitle", Strings.get("stationingIncidentPending"));
@@ -183,7 +254,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
             props.put("secondaryClasses", "warning-surface");
             props.put("secondaryLabel", Strings.get("stationingIncidentRespond"));
             props.put("secondaryAction", (Runnable) () -> onRespond(incident));
-            configureWithdraw(props, false);
+            configureWithdraw(props, false, posting);
         } else if (defense != null) {
             props.put("noticeClasses", "stationing-notice warning");
             props.put("noticeTitle", Strings.get("garrisonDefensePending"));
@@ -194,13 +265,15 @@ public final class StationingScreen extends MissionFlowMlxScreen {
             props.put("secondaryClasses", "warning-surface");
             props.put("secondaryLabel", Strings.get("stationingIncidentRespond"));
             props.put("secondaryAction", (Runnable) () -> onRespond(defense));
-            configureWithdraw(props, true);
+            configureWithdraw(props, true, posting);
         } else {
             props.put("noticeClasses", "stationing-notice danger");
-            props.put("noticeTitle", "EARLY WITHDRAWAL");
-            props.put("noticeBody", Strings.get("stationingWithdrawWarning"));
+            props.put("noticeTitle", posting
+                    ? Strings.get("postingReleaseHeader") : "EARLY WITHDRAWAL");
+            props.put("noticeBody", Strings.get(posting
+                    ? "postingReleaseWarning" : "stationingWithdrawWarning"));
             hideSecondary(props);
-            configureWithdraw(props, false);
+            configureWithdraw(props, false, posting);
         }
     }
 
@@ -211,11 +284,12 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         props.put("secondaryAction", (Runnable) () -> { });
     }
 
-    private void configureWithdraw(Map<String, Object> props, boolean blocked) {
+    private void configureWithdraw(Map<String, Object> props, boolean blocked,
+                                   boolean posting) {
         props.put("primaryDisabled", blocked);
         props.put("primaryClasses", "danger-surface");
-        props.put("primaryLabel", Strings.get(blocked
-                ? "garrisonDefenseResolveFirst" : "stationingWithdraw"));
+        props.put("primaryLabel", Strings.get(blocked ? "garrisonDefenseResolveFirst"
+                : posting ? "postingRelease" : "stationingWithdraw"));
         props.put("primaryAction", (Runnable) this::onWithdraw);
     }
 
@@ -398,13 +472,36 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         else rebuildDocument();
     }
 
+    private void onPost() {
+        CampaignState state = state();
+        MarineRoster roster = roster();
+        MarineCaptain captain = context.getSelectedCaptain();
+        String marketId = marketId();
+        if (state == null || roster == null || captain == null || marketId == null) return;
+        int day = Global.getSector() != null ? CampaignClock.day() : 0;
+        if (PostingService.post(state, marketId, roster, captain,
+                new ArrayList<>(selectedSquadIds), day) >= 0L) finish();
+        else rebuildDocument();
+    }
+
+    /**
+     * A posting is released rather than withdrawn from: there is no employer to
+     * abandon, so the release path settles the row without a reputation write.
+     */
     private void onWithdraw() {
         CampaignState state = state();
         if (state == null) return;
+        long contractId = context.getSelectedStationingContractId();
         int day = Global.getSector() != null ? CampaignClock.day() : 0;
-        if (StationingWithdrawalService.withdraw(
-                state, context.getSelectedStationingContractId(), day)) finish();
+        boolean settled = Posting.isPostingId(state, contractId)
+                ? PostingService.release(state, contractId, roster(), day)
+                : StationingWithdrawalService.withdraw(state, contractId, day);
+        if (settled) finish();
         else rebuildDocument();
+    }
+
+    private String marketId() {
+        return context != null && context.market != null ? context.market.getId() : null;
     }
 
     private void onRespond(StationingIncidentPayload payload) {

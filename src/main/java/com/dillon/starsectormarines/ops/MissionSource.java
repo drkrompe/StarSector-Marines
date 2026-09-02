@@ -21,6 +21,8 @@ package com.dillon.starsectormarines.ops;
  *       test with no campaign-event lineage or writeback.</li>
  *   <li>{@link #DEBUG} — ordinary picker-only mission with fixture personnel
  *       and no campaign writeback.</li>
+ *   <li>{@link #POLITY_DEFENCE} — a vanilla raid on the player's own colony,
+ *       fought by a briefing-time selection rather than a contract.</li>
  * </ul>
  */
 public enum MissionSource {
@@ -35,7 +37,13 @@ public enum MissionSource {
     /** Ordinary debug-picker mission; never mutates campaign state. */
     DEBUG,
     /** Production-shaped debug rescue; append-only to preserve prior ordinals. */
-    DEBUG_CANONICAL_CIVILIAN_RESCUE;
+    DEBUG_CANONICAL_CIVILIAN_RESCUE,
+    /**
+     * A vanilla raid met on the ground on the player's own colony. Offered by a
+     * briefing-time selection rather than by a contract row, resolved by its own key,
+     * and never inherits contract economics. Append-only: ordinals are persisted.
+     */
+    POLITY_DEFENCE;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT
