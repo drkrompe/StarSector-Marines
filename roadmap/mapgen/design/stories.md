@@ -11,6 +11,7 @@ ladder stands on and a walkable route the map records, folded into
 
 | Story | Status | Outcome |
 |---|---|---|
+| `lane-fan.md` | PLANNED | Derived lanes share both ends — the beachhead and the keep — and spread only in the middle, so every ladder starts where the force stands. The map-side answer to the chain's lost held compound. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |
