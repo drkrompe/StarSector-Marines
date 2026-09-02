@@ -192,7 +192,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
-                    selected, selectedSocket.get(), projection, candidateWeapon.get());
+                    selected, selectedSocket.get(), projection, candidateWeapon.get(),
+                    width, height);
         } else {
             lastSocketTargets = List.of();
         }
@@ -379,17 +380,18 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
-                                           MechDeploymentSpec deployment, SocketId selectedSocket,
-                                           SceneProjection projection,
-                                           MechWeaponComponent candidate) {
+                                    MechDeploymentSpec deployment, SocketId selectedSocket,
+                                    SceneProjection projection,
+                                    MechWeaponComponent candidate,
+                                    float canvasWidth, float canvasHeight) {
         float radians = (float) Math.toRadians(layout.doll().facingDegrees());
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
-        List<SocketDropTarget> targets = new ArrayList<>();
-        for (SocketDef socket : layout.sockets()) {
-            SocketDropTarget target = socketDropTarget(socket, projection.actorX(),
-                    projection.actorY(), projection.hullX(), projection.hullY(), cos, sin);
-            targets.add(target);
+        List<SocketDropTarget> targets = resolveExplodedDropTargets(layout.sockets(),
+                projection.actorX(), projection.actorY(), projection.hullX(), projection.hullY(),
+                canvasWidth, canvasHeight, cos, sin);
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = layout.socket(target.id());
             boolean occupied = occupied(deployment, socket.id());
             boolean selected = socket.id() == selectedSocket;
             boolean locked = socket.factoryLocked();
@@ -401,11 +403,19 @@ public final class MechLabDollCanvas implements CanvasProducer {
             if (incompatible) {
                 base = withAlpha(base, 80);
             }
-
-            // CAD-style dog-leg leader geometry terminating at the dock bracket
+            // CAD dog-leg leader path to perimeter dock
             List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
-            Color leaderColor = selected ? withAlpha(base, 235) : occupied ? withAlpha(base, 110) : withAlpha(base, 175);
-            float leaderStroke = selected ? 2f : 1f;
+            float leaderStroke = selected ? 3.0f : 2.0f;
+            Color leaderColor = selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : compatible ? new Color(0x69, 0xE7, 0x81, 245)
+                    : withAlpha(base, 240);
+
+            // High-contrast dark outer silhouette for crisp readability on any deck pattern
+            for (int i = 0; i < path.size() - 1; i++) {
+                c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
+                        new Color(0x02, 0x07, 0x0F, 220), leaderStroke + 2.0f);
+            }
+            // Main illuminated CAD line
             for (int i = 0; i < path.size() - 1; i++) {
                 c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
                         leaderColor, leaderStroke);
@@ -449,13 +459,30 @@ public final class MechLabDollCanvas implements CanvasProducer {
                         new Color(0xE5, 0x45, 0x45, 140), 1.5f);
             }
 
-            // Technical mount callout
-            String callout = mountCallout(socket.id(), socket.gridColumns(), socket.gridRows());
-            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 230)
-                    : selected ? new Color(0xFF, 0xD4, 0x64, 230)
+            // Technical mount callout title pill (rendered cleanly above the dock box)
+            String callout = mountCallout(socket);
+            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 255)
+                    : selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : new Color(0xED, 0xF5, 0xFA, 245);
+
+            float textWidth = Fonts.ORBITRON_10.measureWidth(callout);
+            if (textWidth <= 0f) textWidth = callout.length() * 7.5f;
+            float pillW = textWidth + 14f;
+            float pillH = 16f;
+            float pillX = target.left();
+            float pillY = target.top() - pillH - 4f;
+            if (pillY < 20f) {
+                pillY = target.bottom() + 4f;
+            }
+            // High-contrast dark tactical badge
+            c.fillRect(pillX, pillY, pillW, pillH, new Color(0x06, 0x10, 0x1A, 250));
+            // 1px border matching state
+            Color pillBorder = selected ? new Color(0xFF, 0xD4, 0x64, 255)
+                    : compatible ? new Color(0x69, 0xE7, 0x81, 230)
                     : withAlpha(base, 200);
-            float calloutY = target.top() > 18f ? target.top() - 2f : target.bottom() + 11f;
-            c.text(Fonts.ORBITRON_10, callout, target.left() + 3f, calloutY, calloutColor);
+            c.strokeRect(pillX, pillY, pillW, pillH, pillBorder, 1f);
+            // Crisp Orbitron title text (top-aligned)
+            c.text(Fonts.ORBITRON_10, callout, pillX + 6f, pillY + 3f, calloutColor);
 
             // Capacity footprint cells
             MechWeaponComponent component = weaponAt(deployment, socket.id());
@@ -545,13 +572,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     static void drawAnchorMechanicalTick(CanvasContext c, float x, float y, Color base, boolean selected) {
-        float size = selected ? 6f : 4f;
+        float size = selected ? 7f : 5f;
+        c.fillRect(x - size * 0.5f - 1f, y - size * 0.5f - 1f, size + 2f, size + 2f,
+                new Color(0x02, 0x07, 0x0F, 220));
         c.fillRect(x - size * 0.5f, y - size * 0.5f, size, size,
-                withAlpha(base, selected ? 245 : 180));
-        float tick = selected ? 6f : 4.5f;
-        Color tickColor = withAlpha(base, selected ? 220 : 150);
-        c.line(x - tick, y, x + tick, y, tickColor, 1f);
-        c.line(x, y - tick, x, y + tick, tickColor, 1f);
+                withAlpha(base, selected ? 255 : 200));
+        float tick = selected ? 7f : 5.5f;
+        Color tickColor = withAlpha(base, selected ? 240 : 180);
+        c.line(x - tick, y, x + tick, y, new Color(0x02, 0x07, 0x0F, 200), 2.5f);
+        c.line(x, y - tick, x, y + tick, new Color(0x02, 0x07, 0x0F, 200), 2.5f);
+        c.line(x - tick, y, x + tick, y, tickColor, 1.5f);
+        c.line(x, y - tick, x, y + tick, tickColor, 1.5f);
     }
 
     static boolean isSocketCompatible(SocketDef socket, MechWeaponComponent candidate) {
@@ -561,6 +592,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         boolean typeMatches = socket.type() == SocketType.OMNI
                 || socket.type().name().equals(candidate.hardpointType.name());
         return typeMatches && socket.accommodates(candidate.footprintColumns, candidate.footprintRows);
+    }
+
+    static String mountCallout(SocketDef socket) {
+        if (socket == null) return "";
+        String label = socket.label();
+        String name = switch (label) {
+            case "ARM ASSEMBLY" -> "ARMS";
+            case "ENGINE CORE" -> "CORE";
+            case "L. SHOULDER" -> "L. SHLDR";
+            case "R. SHOULDER" -> "R. SHLDR";
+            case "AMMO RESERVE" -> "AMMO";
+            default -> label;
+        };
+        return name + " [" + socket.gridColumns() + "×" + socket.gridRows() + "]";
     }
 
     static String mountCallout(SocketId id, int cols, int rows) {
@@ -630,6 +675,147 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return new SocketDropTarget(socket.id(), socket.gridColumns(), socket.gridRows(),
                 actorX + anchorWorldX, actorY - anchorWorldY,
                 actorX + dockWorldX, actorY - dockWorldY, width, height);
+    }
+
+    static final float DOCK_MARGIN = 16f;
+    static final float DOCK_MIN_GAP = 12f;
+
+    static List<SocketDropTarget> resolveExplodedDropTargets(
+            DollDef doll, List<SocketDef> sockets,
+            float actorX, float actorY, float hullWidth, float hullHeight,
+            float canvasWidth, float canvasHeight) {
+        float radians = (float) Math.toRadians(doll.facingDegrees());
+        return resolveExplodedDropTargets(sockets, actorX, actorY, hullWidth, hullHeight,
+                canvasWidth, canvasHeight, (float) Math.cos(radians), (float) Math.sin(radians));
+    }
+
+    static List<SocketDropTarget> resolveExplodedDropTargets(
+            List<SocketDef> sockets,
+            float actorX, float actorY, float hullWidth, float hullHeight,
+            float canvasWidth, float canvasHeight, float cos, float sin) {
+        if (sockets.isEmpty()) return List.of();
+
+        final class ResolvedDock {
+            final SocketDef socket;
+            final float anchorX;
+            final float anchorY;
+            final float width;
+            final float height;
+            float centerX;
+            float centerY;
+
+            ResolvedDock(SocketDef socket) {
+                this.socket = socket;
+                float anchorLocalX = socket.anchorRight() * hullWidth;
+                float anchorLocalY = socket.anchorForward() * hullHeight;
+                float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
+                float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
+                this.anchorX = actorX + anchorWorldX;
+                this.anchorY = actorY - anchorWorldY;
+
+                this.width = Math.max(MIN_DROP_TARGET_WIDTH, socket.footprintWidthHull() * hullWidth);
+                this.height = Math.max(MIN_DROP_TARGET_HEIGHT, socket.footprintHeightHull() * hullHeight);
+
+                float dockLocalX = socket.dockRight();
+                float dockLocalY = socket.dockForward();
+                float dirX = dockLocalX * cos - dockLocalY * sin;
+                float dirY = -(dockLocalX * sin + dockLocalY * cos);
+
+                if (dirX < -0.25f) {
+                    this.centerX = DOCK_MARGIN + this.width * 0.5f;
+                    if (dirY < 0f) {
+                        this.centerY = DOCK_MARGIN + this.height * 0.5f + 16f;
+                    } else {
+                        this.centerY = canvasHeight - DOCK_MARGIN - this.height * 0.5f - 16f;
+                    }
+                } else if (dirX > 0.25f) {
+                    this.centerX = canvasWidth - DOCK_MARGIN - this.width * 0.5f;
+                    if (dirY < 0f) {
+                        this.centerY = DOCK_MARGIN + this.height * 0.5f + 16f;
+                    } else {
+                        this.centerY = canvasHeight - DOCK_MARGIN - this.height * 0.5f - 16f;
+                    }
+                } else {
+                    this.centerX = Math.max(DOCK_MARGIN + this.width * 0.5f,
+                            Math.min(canvasWidth - DOCK_MARGIN - this.width * 0.5f, actorX));
+                    if (dirY < 0f) {
+                        this.centerY = DOCK_MARGIN + this.height * 0.5f;
+                    } else {
+                        this.centerY = canvasHeight - DOCK_MARGIN - this.height * 0.5f;
+                    }
+                }
+            }
+        }
+
+        List<ResolvedDock> docks = new ArrayList<>(sockets.size());
+        for (SocketDef socket : sockets) {
+            docks.add(new ResolvedDock(socket));
+        }
+
+        float mechClearanceX = Math.max(hullWidth * 0.6f, 65f);
+        float mechClearanceY = Math.max(hullHeight * 0.6f, 65f);
+        for (ResolvedDock dock : docks) {
+            float halfW = dock.width * 0.5f;
+            float halfH = dock.height * 0.5f;
+            float overlapX = (mechClearanceX + halfW) - Math.abs(dock.centerX - actorX);
+            float overlapY = (mechClearanceY + halfH) - Math.abs(dock.centerY - actorY);
+            if (overlapX > 0f && overlapY > 0f) {
+                if (overlapX < overlapY) {
+                    dock.centerX += (dock.centerX >= actorX ? overlapX : -overlapX);
+                } else {
+                    dock.centerY += (dock.centerY >= actorY ? overlapY : -overlapY);
+                }
+            }
+        }
+
+        for (int iter = 0; iter < 8; iter++) {
+            boolean changed = false;
+            for (int i = 0; i < docks.size(); i++) {
+                for (int j = i + 1; j < docks.size(); j++) {
+                    ResolvedDock a = docks.get(i);
+                    ResolvedDock b = docks.get(j);
+                    float dx = b.centerX - a.centerX;
+                    float dy = b.centerY - a.centerY;
+                    float targetDistX = (a.width + b.width) * 0.5f + DOCK_MIN_GAP;
+                    float targetDistY = (a.height + b.height) * 0.5f + DOCK_MIN_GAP;
+                    float overlapX = targetDistX - Math.abs(dx);
+                    float overlapY = targetDistY - Math.abs(dy);
+                    if (overlapX > 0f && overlapY > 0f) {
+                        changed = true;
+                        if (overlapX < overlapY) {
+                            float push = overlapX * 0.5f;
+                            float sign = dx >= 0f ? 1f : -1f;
+                            a.centerX -= push * sign;
+                            b.centerX += push * sign;
+                        } else {
+                            float push = overlapY * 0.5f;
+                            float sign = dy >= 0f ? 1f : -1f;
+                            a.centerY -= push * sign;
+                            b.centerY += push * sign;
+                        }
+                    }
+                }
+            }
+            for (ResolvedDock dock : docks) {
+                float halfW = dock.width * 0.5f;
+                float halfH = dock.height * 0.5f;
+                dock.centerX = Math.max(DOCK_MARGIN + halfW,
+                        Math.min(canvasWidth - DOCK_MARGIN - halfW, dock.centerX));
+                dock.centerY = Math.max(DOCK_MARGIN + halfH,
+                        Math.min(canvasHeight - DOCK_MARGIN - halfH, dock.centerY));
+            }
+            if (!changed) break;
+        }
+
+        List<SocketDropTarget> targets = new ArrayList<>(docks.size());
+        for (ResolvedDock dock : docks) {
+            targets.add(new SocketDropTarget(
+                    dock.socket.id(), dock.socket.gridColumns(), dock.socket.gridRows(),
+                    dock.anchorX, dock.anchorY,
+                    dock.centerX, dock.centerY,
+                    dock.width, dock.height));
+        }
+        return targets;
     }
 
     static List<CapacityCell> capacityCells(SocketDropTarget target) {

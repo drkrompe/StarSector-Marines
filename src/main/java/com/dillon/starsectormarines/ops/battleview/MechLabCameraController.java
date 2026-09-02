@@ -26,7 +26,7 @@ public final class MechLabCameraController {
     }
 
     static final float WIDE_ZOOM_NOTCHES = 0f;
-    static final float FITTING_ZOOM_NOTCHES = 6.25f;
+    static final float FITTING_ZOOM_NOTCHES = 8.5f;
     static final float TRANSITION_SECONDS = 0.72f;
 
     private final Anchors anchors;
