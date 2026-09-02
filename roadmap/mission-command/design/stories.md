@@ -25,7 +25,7 @@ Design: `conquest-command.md`
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
-| `lane-chain-tug-of-war.md` | IN PROGRESS | Built and measured; ships behind `battle.conquest.laneChain`, off by default because it gives back a held compound on `reinforced-south`. Remaining: make it pay. |
+| `lane-chain-tug-of-war.md` | IN PROGRESS | Off by default behind `battle.conquest.laneChain`; three shapes of opening the front gate measured and none paid, so the held compound is about which places the chain never reaches. Next: the south fixture lays two lanes across the advance rather than along it. |
 
 ## Sabotage
 
