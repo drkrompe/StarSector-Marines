@@ -174,4 +174,35 @@ class MechLabDollCanvasTest {
         assertEquals(740f, target.centerX(), 1e-3f);
         assertEquals(300f, target.centerY(), 1e-3f);
     }
+
+    @Test
+    void leaderDogLegPathOrthogonalGeometryKeepsCenterClear() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        SocketDef left = layout.socket(SocketId.MINI_FAB);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), left,
+                        500f, 300f, 160f, 160f);
+
+        List<float[]> points = MechLabDollCanvas.leaderDogLegPath(target.anchorX(), target.anchorY(), target);
+        assertFalse(points.isEmpty());
+        // First point is the anchor
+        assertEquals(target.anchorX(), points.get(0)[0], 1e-3f);
+        assertEquals(target.anchorY(), points.get(0)[1], 1e-3f);
+        // Last point terminates on dock edge
+        float[] last = points.get(points.size() - 1);
+        assertTrue(last[0] >= target.left() - 1e-3f && last[0] <= target.right() + 1e-3f);
+        assertTrue(last[1] >= target.top() - 1e-3f && last[1] <= target.bottom() + 1e-3f);
+    }
+
+    @Test
+    void socketAtDetectsHitOnTarget() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        SocketDef arms = layout.socket(SocketId.ARMS);
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
+                        400f, 300f, 160f, 160f);
+
+        assertTrue(target.contains(target.centerX(), target.centerY()));
+        assertFalse(target.contains(target.centerX() + 500f, target.centerY()));
+    }
 }

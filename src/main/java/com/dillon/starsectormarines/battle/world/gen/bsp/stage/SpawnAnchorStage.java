@@ -67,11 +67,54 @@ public final class SpawnAnchorStage implements GenStage {
      */
     private static int[] pickPlacementSpawn(NavigationGrid grid, GenContext ctx,
                                             PrecinctPlan plan, Random rng) {
+        int[][] claim = ctx.get(BspKeys.PRECINCT_CLAIM);
         ApproachRegion region = ApproachRegion.resolve(
-                plan, ctx.get(BspKeys.PRECINCT_CLAIM), ctx.width, ctx.height);
+                plan, claim, ctx.width, ctx.height);
         ctx.put(BspKeys.APPROACH_STANDOFF, region.standoffCells());
+        // The landing place when the plan seeded one: the force comes ashore on
+        // its own ground, not merely somewhere in the region that ground was
+        // put in. Intersected rather than substituted, so a plan whose estimate
+        // missed still spawns where the standoff says.
+        int landing = claim == null ? -1 : plan.landingIndex();
+        if (landing >= 0) {
+            int[] place = ApproachRegion.claimBounds(claim, landing, ctx.width, ctx.height);
+            if (place != null) {
+                int x0 = Math.max(region.x0(), place[0]);
+                int y0 = Math.max(region.y0(), place[1]);
+                int x1 = Math.min(region.x1(), place[2]);
+                int y1 = Math.min(region.y1(), place[3]);
+                if (x0 <= x1 && y0 <= y1) {
+                    return pickClaimedSpawn(grid, claim, landing, x0, y0, x1, y1, rng);
+                }
+            }
+        }
         return pickSpawnAnchor(grid, region.x0(), region.y0(),
                 region.x1(), region.y1(), rng);
+    }
+
+    /**
+     * A walkable cell the landing place actually owns, falling back to the rect
+     * when its claim holds none — a claim of pure road or pure building is not
+     * a map anybody should fail to generate over.
+     */
+    private static int[] pickClaimedSpawn(NavigationGrid grid, int[][] claim, int who,
+                                          int xMin, int yMin, int xMax, int yMax,
+                                          Random rng) {
+        int spanX = Math.max(1, xMax - xMin);
+        int spanY = Math.max(1, yMax - yMin);
+        for (int i = 0; i < 64; i++) {
+            int x = xMin + rng.nextInt(spanX);
+            int y = yMin + rng.nextInt(spanY);
+            if (grid.inBounds(x, y) && grid.isWalkable(x, y) && claim[x][y] == who) {
+                return new int[]{x, y};
+            }
+        }
+        for (int y = yMin; y <= yMax; y++) {
+            for (int x = xMin; x <= xMax; x++) {
+                if (grid.isWalkable(x, y) && claim[x][y] == who) return new int[]{x, y};
+            }
+        }
+        return pickSpawnAnchor(grid, xMin, yMin, xMax, yMax, rng);
     }
 
     /**

@@ -195,6 +195,19 @@ public final class BspKeys {
             GenKey.of("landingAreasAuthored");
 
     /**
+     * Whether the berths were seated on the landing precinct's own claim.
+     *
+     * <p>Bound only on a map whose plan states a landing place. A landing
+     * precinct is seeded before growth, against an estimate of where the
+     * objective's claim will end up, so it can in principle come out somewhere
+     * the resolved approach region never reaches. The berths then fall back to
+     * the region, which is a worse map rather than a broken one — and this is
+     * what says so, on the same law as {@link #UNPLACED_PROGRAM}.
+     */
+    public static final GenKey<Boolean> LANDING_ON_ITS_PLACE =
+            GenKey.of("landingOnItsPlace");
+
+    /**
      * Cells of approach the attacker's resolved region actually got, along the
      * traversal axis, between its objective-facing side and the objective
      * claim's attacker-facing boundary.
