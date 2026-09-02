@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
-import com.dillon.starsectormarines.battle.nav.LosCache;
+import com.dillon.starsectormarines.battle.nav.LosCaches;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
@@ -87,13 +87,17 @@ public final class UnitUpdateSystem implements AutoCloseable {
     private final TickInnerProfile tickInnerProfile;
     private final UnitRosterService roster;
     private final int minimumParallelUnits;
+    /** The navigation grid's line-of-sight caches, so a terminating worker drops its own slot on the grid it ticked rather than on whichever grid happens to be current. */
+    private final LosCaches losCaches;
 
     public UnitUpdateSystem(UnitRosterService roster,
                             DamageService damageService,
-                            TickInnerProfile tickInnerProfile) {
+                            TickInnerProfile tickInnerProfile,
+                            LosCaches losCaches) {
+        this.losCaches = losCaches;
         this.pool = new ForkJoinPool(
                 configuredPoolParallelism(),
-                BattleUpdateWorker::new,
+                worker -> new BattleUpdateWorker(worker, losCaches),
                 null, false);
         this.roster = roster;
         this.damageService = damageService;
@@ -186,8 +190,12 @@ public final class UnitUpdateSystem implements AutoCloseable {
     /** Worker teardown is the ownership boundary for registered thread-local scratch. */
     private static final class BattleUpdateWorker extends ForkJoinWorkerThread {
 
-        private BattleUpdateWorker(ForkJoinPool pool) {
+        /** The grid this pool ticks for. A pool outlives no simulation, but a worker thread can be reused across grids, so the release names the one it belongs to. */
+        private final LosCaches losCaches;
+
+        private BattleUpdateWorker(ForkJoinPool pool, LosCaches losCaches) {
             super(pool);
+            this.losCaches = losCaches;
             setDaemon(true);
             setName("BattleSim-Update-" + getPoolIndex());
         }
@@ -196,7 +204,7 @@ public final class UnitUpdateSystem implements AutoCloseable {
         protected void onTermination(Throwable failure) {
             try {
                 TickInnerProfile.releaseCurrentThread();
-                LosCache.releaseCurrentThread();
+                losCaches.releaseCurrentThread();
             } finally {
                 super.onTermination(failure);
             }

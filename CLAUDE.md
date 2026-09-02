@@ -128,9 +128,12 @@ Do not run builds or leave generated task files there.
   and 422s of wall clock — and the assert is a determinism check on the
   simulation rather than evidence about the battle, so it does not need to ride
   along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
-  restores the double replay here when a particular balance run wants it;
-  `-Pparallelism=N` runs that many replays side by side, and is off by default
-  for the reason `simDeterminism` records. Use `-PmaxTicks=9000` or
+  restores the double replay here when a particular balance run wants it.
+  Replays run **side by side by default**, on half the machine's processors —
+  `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
+  control. It was serial until `simDeterminism` found two process-globals —
+  `LosCache` and the map generator's own preview fields — and both are fixed;
+  two replicas now produce byte-identical traces. Use `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
   `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
   first replay and assemble `visuals/<fixture>/review.gif`; the frames add
@@ -144,18 +147,29 @@ Do not run builds or leave generated task files there.
   length: the question "does the same fixture play the same way twice" needs one
   fixture and a few thousand ticks, not eighteen thousand of two. Opt-in and
   excluded from `test` / `check`.
-  `-Pparallelism=2` runs the two replicas side by side, which asks a second
+  The two replicas run **side by side by default** (half the machine's
+  processors; `-Pparallelism=1` is the serial control), which asks a second
   question the serial form cannot: whether two simulations in one JVM can see
-  each other. **They currently can, and this found it on its first run.** The
-  sim's per-thread scratch is all `ThreadLocal`, but `LosCache` is not per
-  simulation — its enable flag is one static volatile that every sim raises at
-  its own tick top and lowers at its own tick end, and `clearAll` sweeps every
-  cache in the process rather than the caller's own. So one battle empties
-  another's line-of-sight cache mid-tick and switches its caching off, and two
+  each other. **They could, and this found it on its first run.** The sim's
+  per-thread scratch is all `ThreadLocal`, but `LosCache` was not per
+  simulation — its enable flag was one static volatile that every sim raised at
+  its own tick top and lowered at its own tick end, and `clearAll` swept every
+  cache in the process rather than the caller's own. So one battle emptied
+  another's line-of-sight cache mid-tick and switched its caching off, and two
   replicas of `reinforced-south` that agreed for three hundred ticks recorded
-  the same compound-presence change one tick apart. Until a cache belongs to the
-  sim that owns it, concurrency is a probe rather than a check, and evidence
-  runs stay serial.
+  the same compound-presence change one tick apart. A cache now belongs to the
+  `NavigationGrid` whose topology invalidates it, so a sweep reaches only that
+  grid's own.
+  **The second thing it found was worse, and only concurrency could find it.**
+  `BspCityGenerator` is one instance shared by every battle in the process, and
+  `assembleResult` stored the finished tactical map, road graph and biome map on
+  `this` before handing them to the `MapResult` — reading them back off the
+  instance rather than out of the context it had just generated. So a battle
+  whose generation overlapped another's was built on **the other battle's
+  map**: a `reinforced-south` replica came out with `full-strength-west`'s
+  compounds and its garrison allocated against them. It is composed from locals
+  now; the `last*` fields remain as the single-threaded preview seam the render
+  tests read. Nothing serial ever saw it, and nothing serial ever will.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

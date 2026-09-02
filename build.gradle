@@ -325,11 +325,13 @@ tasks.register('commanderEvidence', Test) {
 // commander-evidence run cost, and none of it was evidence about the battle.
 // What the check actually needs is one fixture and a few thousand ticks.
 //
-// Raising `-Pparallelism` runs the replicas side by side, which asks a second
-// question the serial form never could: whether two simulations in one JVM see
-// each other. They currently do - LosCache's enable flag and its clearAll sweep
-// are process-global rather than per sim - so that mode fails today, and is a
-// probe rather than a check until a cache belongs to the sim that owns it.
+// The replicas run side by side, which asks a second question the serial form
+// never could: whether two simulations in one JVM see each other. They did,
+// twice over, and this probe is what found both - LosCache's enable flag and
+// clearAll sweep were process-global rather than per sim, and the shared map
+// generator handed one battle the map another had just finished. The caches now
+// belong to the NavigationGrid whose topology invalidates them, and a MapResult
+// is composed from its own context. `-Pparallelism=1` is the serial control.
 tasks.register('simDeterminism', Test) {
     group = 'verification'
     description = 'Replay the conquest matrix twice for a bounded tick budget and fail on the first byte that differs.'
@@ -347,7 +349,10 @@ tasks.register('simDeterminism', Test) {
             providers.gradleProperty('parallelism')
                     .orElse(providers.systemProperty(
                             'commander.evidence.parallelism'))
-                    .getOrElse('1').trim()
+                    .getOrElse(Math.max(1,
+                            Runtime.runtime.availableProcessors().intdiv(2))
+                            .toString())
+                    .trim()
     systemProperty 'commander.balance.maxTicks',
             providers.gradleProperty('maxTicks').getOrElse('3000').trim()
     systemProperty 'commander.balance.outputDir',

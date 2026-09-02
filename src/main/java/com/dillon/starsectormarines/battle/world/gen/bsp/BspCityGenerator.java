@@ -637,22 +637,32 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * Surface the preview accessors and assemble the {@link MapResult} from a
-     * finished context. Overlays a given recipe didn't produce read back null
+     * Assemble the {@link MapResult} from a finished context, then surface the
+     * preview accessors. Overlays a given recipe didn't produce read back null
      * and degrade gracefully (empty compound list, {@link RoadGraph#EMPTY}, null
      * biome/district/tactical-region maps) — so this is shared verbatim across
      * the urban and station recipes.
+     *
+     * <p><b>The result is composed from locals, never read back off the
+     * {@code last*} fields.</b> One generator instance serves every battle in
+     * the process, so a version of this that stored the tactical map on
+     * {@code this} and then handed {@code this.lastTacticalMap} to the
+     * {@link MapResult} gave a battle whichever map a concurrently generating
+     * battle had just published. That is not a subtle drift: a Conquest fixture
+     * came out with another fixture's compounds, its garrison allocated against
+     * them, and {@code simDeterminism -Pparallelism=2} caught it as two
+     * replicas of one fixture disagreeing on their first referee line.
+     *
+     * <p>The {@code last*} fields themselves stay: they are a preview seam for
+     * the map-render tests, each of which generates on one thread through its
+     * own generator. They say what this instance generated most recently and
+     * nothing more, and no {@link MapResult} depends on them.
      */
     private MapResult assembleResult(GenContext ctx) {
-        this.lastBiomeMap = ctx.get(BspKeys.BIOME_MAP);
-        this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);
         List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
-        this.lastCompounds = compounds != null ? compounds : new ArrayList<>();
-        this.lastTacticalMap = ctx.get(BspKeys.TACTICAL_MAP);
+        TacticalMap tacticalMap = ctx.get(BspKeys.TACTICAL_MAP);
         RoadGraph roadGraph = ctx.get(BspKeys.ROAD_GRAPH);
-        this.lastRoadGraph = roadGraph != null ? roadGraph : RoadGraph.EMPTY;
-        this.lastTacticalRegions = ctx.get(BspKeys.TACTICAL_REGIONS);
-        this.lastStationGraph = ctx.get(BspKeys.STATION_GRAPH);
+        BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
 
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
         int[] marine = ctx.get(BspKeys.MARINE_SPAWN);
@@ -662,14 +672,24 @@ public final class BspCityGenerator implements MapGenerator {
         // city map now uses too: a fortress vehicle shed publishes the same
         // machine berths a deck's bay does, and dropping them here would leave
         // the sheds furnished and empty.
-        return new MapResult(ctx.grid, ctx.topology,
+        MapResult result = new MapResult(ctx.grid, ctx.topology,
                 marine[0], marine[1], defender[0], defender[1],
-                ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
-                ctx.defensePosts, this.lastRoadGraph, ctx.landingPads,
-                ctx.landingAreas,
-                ctx.get(BspKeys.BIOME_MAP), ctx.gantries, ctx.fixtureTasks,
+                ctx.pois, ctx.doodads, tacticalMap, buildings,
+                ctx.defensePosts,
+                roadGraph != null ? roadGraph : RoadGraph.EMPTY,
+                ctx.landingPads, ctx.landingAreas,
+                biomeMap, ctx.gantries, ctx.fixtureTasks,
                 ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR),
                 ctx.get(BspKeys.FRONT_DEPTH));
+
+        this.lastBiomeMap = biomeMap;
+        this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);
+        this.lastCompounds = compounds != null ? compounds : new ArrayList<>();
+        this.lastTacticalMap = tacticalMap;
+        this.lastRoadGraph = roadGraph != null ? roadGraph : RoadGraph.EMPTY;
+        this.lastTacticalRegions = ctx.get(BspKeys.TACTICAL_REGIONS);
+        this.lastStationGraph = ctx.get(BspKeys.STATION_GRAPH);
+        return result;
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */
