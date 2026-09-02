@@ -60,10 +60,17 @@ public final class ConquestLaneChain {
      */
     public record Link(int lane, int index, String place, int band,
                        int cellX, int cellY, int routeIndex,
-                       int[] captureZoneIds) {
+                       int claimLeft, int claimTop, int claimRight,
+                       int claimBottom, int[] captureZoneIds) {
 
         public Link {
             captureZoneIds = captureZoneIds.clone();
+        }
+
+        /** Whether this place's claimed ground holds the given cell. */
+        public boolean claims(int x, int y) {
+            return x >= claimLeft && x <= claimRight
+                    && y >= claimTop && y <= claimBottom;
         }
 
         @Override public int[] captureZoneIds() {
@@ -151,7 +158,8 @@ public final class ConquestLaneChain {
                 int[] zones = claimed.get(lane).get(index);
                 Arrays.sort(zones);
                 links.add(new Link(route.lane(), index, at.place(), at.band(),
-                        at.x(), at.y(), at.routeIndex(), zones));
+                        at.x(), at.y(), at.routeIndex(), at.claimLeft(),
+                        at.claimTop(), at.claimRight(), at.claimBottom(), zones));
             }
             lanes.add(List.copyOf(links));
         }
@@ -348,6 +356,33 @@ public final class ConquestLaneChain {
     /** How many cells this lane's route runs for. */
     public int routeLength(int lane) {
         return route(lane).size();
+    }
+
+    /**
+     * The place whose claimed ground holds this cell, as
+     * {@code {lane, link index}}, or {@code null} for ground no lane claims.
+     *
+     * <p>What this answers for is a defender position that is not a compound —
+     * a guard post, a gun nest — which the reinforcement layer wants to bucket
+     * by the place it belongs to rather than by the ring it happens to stand
+     * in. Ties go to the nearer place, and then to the earlier lane and rung,
+     * so the bucketing is the same on every replay.
+     */
+    public int[] placeAt(int x, int y) {
+        int[] best = null;
+        long bestDistance = Long.MAX_VALUE;
+        for (int lane = 0; lane < lanes.size(); lane++) {
+            for (Link link : lanes.get(lane)) {
+                if (!link.claims(x, y)) continue;
+                long dx = link.cellX() - (long) x;
+                long dy = link.cellY() - (long) y;
+                long distance = dx * dx + dy * dy;
+                if (distance >= bestDistance) continue;
+                bestDistance = distance;
+                best = new int[]{lane, link.index()};
+            }
+        }
+        return best;
     }
 
     /** The route cell at {@code index}, or {@code null} when there is none. */

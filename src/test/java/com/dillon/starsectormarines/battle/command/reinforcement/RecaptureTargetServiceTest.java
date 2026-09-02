@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.command.ConquestLaneChain;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -13,8 +14,10 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -81,6 +84,70 @@ public class RecaptureTargetServiceTest {
             if (t.node == node) return t;
         }
         return null;
+    }
+
+    /**
+     * A lane straight up the map with a place at y=25 and one at y=55, each
+     * claiming a small box of ground around its own anchor.
+     */
+    private static ConquestLaneChain laneChain(int outerZone, int deepZone) {
+        List<LaneRoute.Cell> route = new ArrayList<>();
+        for (int y = 0; y < H; y++) route.add(new LaneRoute.Cell(10, y));
+        List<LaneRoute.Link> links = List.of(
+                new LaneRoute.Link("lane-1-band-3", 3, 10, 25, 25, 6, 20, 14, 30),
+                new LaneRoute.Link("lane-1-band-1", 1, 10, 55, 55, 6, 50, 14, 60));
+        return ConquestLaneChain.of(
+                List.of(new LaneRoute(0, links, route)),
+                List.of(new ConquestLaneChain.Compound(outerZone, 10, 25),
+                        new ConquestLaneChain.Compound(deepZone, 10, 55)));
+    }
+
+    @Test
+    public void aPositionOnALaneIsWantedAtTheFrontRatherThanInItsBand() {
+        FrontDepth front = frontDepth();
+        TacticalNode outer = node(TacticalNode.Kind.GUARDPOST, 10, 25, Faction.DEFENDER, 4);
+        TacticalNode deep = node(TacticalNode.Kind.HEAVY_TOWER, 10, 55, Faction.DEFENDER, 4);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(outer, deep)), front, laneChain(7, 8));
+        // Every band contested, so nothing here is being decided by the ring.
+        for (int b = 0; b < front.bands(); b++) reg.setContested(b, true);
+
+        RecaptureTarget outerTarget = targetFor(reg, outer);
+        RecaptureTarget deepTarget = targetFor(reg, deep);
+        assertNotNull(outerTarget);
+        assertNotNull(deepTarget);
+        assertEquals(0, outerTarget.lane(), "the outer post stands on the lane");
+        assertEquals(0, outerTarget.link());
+        assertEquals(1, deepTarget.link());
+
+        // Nothing lost yet: the front is the outer place, and it alone is worth
+        // holding. The strongpoint behind it is not being attacked.
+        reg.setLaneState(0, 0, -1);
+        assertTrue(reg.isContested(outerTarget));
+        assertFalse(reg.isContested(deepTarget),
+                "a place the marines have not reached is not where a relief goes");
+
+        // Outer place taken: it is what to retake, and the strongpoint is now
+        // the front, so both are wanted.
+        reg.setLaneState(0, 1, 0);
+        assertTrue(reg.isContested(outerTarget), "the place just lost is what to retake");
+        assertTrue(reg.isContested(deepTarget), "and the next one is what to hold");
+    }
+
+    @Test
+    public void aPositionOnNoLaneKeepsItsBand() {
+        FrontDepth front = frontDepth();
+        TacticalNode offLane = node(TacticalNode.Kind.GUARDPOST, 2, 90, Faction.DEFENDER, 4);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(offLane)), front, laneChain(7, 8));
+        RecaptureTarget target = targetFor(reg, offLane);
+        assertNotNull(target);
+        assertEquals(-1, target.lane(), "a settlement post stands on no lane");
+
+        reg.setContested(target.band, false);
+        assertFalse(reg.isContested(target));
+        reg.setContested(target.band, true);
+        assertTrue(reg.isContested(target), "off the chain the ring still decides");
     }
 
     @Test
