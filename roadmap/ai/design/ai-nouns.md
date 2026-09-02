@@ -145,11 +145,13 @@ opening operation's local militia, and the civilian-rescue shelter guard —
 are allied now and carry what they carried before under the faction they
 should have had. The **allied garrison** is the first producer written for
 the side: a defended market's own troops, kitted from that faction's ground
-roster through the bridge's one resolve path, sized from the target profile
-by a placeholder `polity-ground-doctrine.md` will replace, and placed as a
-line between where the company comes ashore and the landing force. It is
-requested by the mission's stated allied faction and is inert for every
-mission that states none.
+roster through the bridge's one resolve path, sized from the market's own
+ground-defence strength net of the company's stationed contribution there
+(`polity-ground-doctrine.md`), and placed as a line between where the company
+comes ashore and the landing force. It is requested by the mission's stated
+allied faction and is inert for every mission that states none; how many turn
+out is the market's business, plus whatever numbers doctrine the mission
+carries, and never the defender-faction override's.
 
 ## Decision layers
 

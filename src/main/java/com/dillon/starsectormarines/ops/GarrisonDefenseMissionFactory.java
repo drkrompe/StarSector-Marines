@@ -43,7 +43,10 @@ public final class GarrisonDefenseMissionFactory {
                 // pirates landing on a Hegemony world arrive in Hegemony kit.
                 .defenderFactionOverride(payload.attackerFactionKey)
                 // The market being defended has troops of its own, and they are on
-                // the company's side. They wear the patron's authored doctrine.
+                // the company's side. They wear the patron's authored doctrine, and
+                // turn out in the numbers their own market says: a patron's ground
+                // doctrine is vanilla's business, so the strength multiplier stays
+                // at the builder's neutral 1.
                 .alliedGarrisonFactionId(factionId);
         // A vanilla raid states how many it is landing, so size the operation off that
         // rather than off the risk label. Every other trigger keeps the builder default.

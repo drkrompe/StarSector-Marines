@@ -13,58 +13,130 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AlliedGarrisonSizeTest {
 
-    @Test
-    void aBiggerMarketTurnsOutMoreOfItsOwn() {
-        int previous = 0;
-        for (int size = 1; size <= 10; size++) {
-            int squads = AlliedGarrisonSize.squads(market(size, 6, 0));
-            assertTrue(squads >= previous,
-                    "squads must not fall as market size rises, at size " + size);
-            previous = squads;
-        }
-        assertEquals(1, AlliedGarrisonSize.squads(market(3, 6, 0)));
-        assertEquals(2, AlliedGarrisonSize.squads(market(4, 6, 0)));
-        assertEquals(3, AlliedGarrisonSize.squads(market(5, 6, 0)));
-        assertEquals(4, AlliedGarrisonSize.squads(market(6, 6, 0)));
-        assertEquals(4, AlliedGarrisonSize.squads(market(10, 6, 0)));
-    }
+    /**
+     * The reference colony: size 5, no defence industry, stability 6 — vanilla's
+     * {@code 200 * (0.25 + 0.6 * 0.75)} — which is the number
+     * {@link AlliedGarrisonSize#STRENGTH_PER_SQUAD} was chosen against.
+     */
+    private static final float PLAIN_SIZE_FIVE = 140f;
+
+    /** The same colony with Heavy Batteries: vanilla's x3 on the same stat. */
+    private static final float HEAVY_BATTERIES_SIZE_FIVE = 420f;
 
     @Test
-    void aDefendedMarketFieldsOneMore() {
+    void aStrongerMarketTurnsOutMoreOfItsOwn() {
         int previous = 0;
-        for (int defense = 0; defense <= 7; defense++) {
-            int squads = AlliedGarrisonSize.squads(market(5, 6, defense));
+        for (float strength = 0f; strength <= 600f; strength += 25f) {
+            int squads = AlliedGarrisonSize.squads(market(5, strength, 0f));
             assertTrue(squads >= previous,
-                    "squads must not fall as defence rises, at level " + defense);
+                    "squads must not fall as defence strength rises, at " + strength);
             previous = squads;
         }
-        assertEquals(3, AlliedGarrisonSize.squads(market(5, 6, 2)));
-        assertEquals(4, AlliedGarrisonSize.squads(market(5, 6, 3)));
     }
 
+    /** A plain colony fields three fireteams; this is what the constant is for. */
     @Test
-    void anUnstableMarketCannotTurnItsWholeGarrisonOut() {
-        assertEquals(3, AlliedGarrisonSize.squads(market(5, 4, 0)));
-        assertEquals(2, AlliedGarrisonSize.squads(market(5, 3, 0)));
+    void aPlainColonyFieldsThreeSquads() {
+        assertEquals(3, AlliedGarrisonSize.squads(market(5, PLAIN_SIZE_FIVE, 0f)));
+    }
+
+    /** A well-defended one runs into the cap rather than past it. */
+    @Test
+    void aWellDefendedColonyCapsRatherThanFieldingABattalion() {
+        assertEquals(AlliedGarrisonSize.MAX_SQUADS,
+                AlliedGarrisonSize.squads(market(5, HEAVY_BATTERIES_SIZE_FIVE, 0f)));
+        // A size-10 capital behind a star fortress and a shield is far past it.
+        assertEquals(AlliedGarrisonSize.MAX_SQUADS,
+                AlliedGarrisonSize.squads(market(10, 6_000f, 0f)));
+    }
+
+    /**
+     * The whole point of the subtraction: the company's stationed detachment is
+     * inside vanilla's defender strength, so it must come back out before the
+     * number becomes a militia, or those marines turn out twice.
+     */
+    @Test
+    void theCompanysOwnStationedStrengthComesBackOutFirst() {
+        int unstationed = AlliedGarrisonSize.squads(market(6, 300f, 0f));
+        int stationed = AlliedGarrisonSize.squads(market(6, 300f, 150f));
+        assertEquals(7, unstationed);
+        assertEquals(3, stationed);
+        assertTrue(stationed < unstationed);
+    }
+
+    /** A colony defended entirely by the company still fields its own floor. */
+    @Test
+    void aMarketWhoseWholeDefenceIsTheCompanyFieldsTheFloor() {
+        assertEquals(AlliedGarrisonSize.MIN_SQUADS,
+                AlliedGarrisonSize.squads(market(5, 200f, 200f)));
+        // And an over-subtraction never goes negative.
+        assertEquals(AlliedGarrisonSize.MIN_SQUADS,
+                AlliedGarrisonSize.squads(market(5, 200f, 500f)));
+    }
+
+    /** The numbers doctrine multiplies the market's own strength. */
+    @Test
+    void theNumbersDoctrineMultipliesWhatTurnsOut() {
+        TargetProfile plain = market(5, PLAIN_SIZE_FIVE, 0f);
+        assertEquals(3, AlliedGarrisonSize.squads(plain, 1f));
+        assertEquals(2, AlliedGarrisonSize.squads(plain, 0.5f));
+        assertEquals(6, AlliedGarrisonSize.squads(plain, 2f));
+        // The one-argument form is the doctrine-neutral case, spelled out.
+        assertEquals(AlliedGarrisonSize.squads(plain, 1f),
+                AlliedGarrisonSize.squads(plain));
+    }
+
+    /** The cap binds the multiplier too — doctrine cannot field a battalion. */
+    @Test
+    void theCapBindsTheMultiplier() {
+        assertEquals(AlliedGarrisonSize.MAX_SQUADS,
+                AlliedGarrisonSize.squads(market(5, PLAIN_SIZE_FIVE, 0f), 10f));
+    }
+
+    /** And so does the floor: a doctrine of nothing is still a garrison. */
+    @Test
+    void theFloorBindsTheMultiplier() {
+        assertEquals(AlliedGarrisonSize.MIN_SQUADS,
+                AlliedGarrisonSize.squads(market(5, PLAIN_SIZE_FIVE, 0f), 0f));
+        assertEquals(AlliedGarrisonSize.MIN_SQUADS,
+                AlliedGarrisonSize.squads(market(5, PLAIN_SIZE_FIVE, 0f), -3f));
+        assertEquals(AlliedGarrisonSize.MIN_SQUADS,
+                AlliedGarrisonSize.squads(market(5, PLAIN_SIZE_FIVE, 0f), Float.NaN));
     }
 
     /** No market, no garrison: nobody owns the ground, so nobody defends it. */
     @Test
     void noMarketFieldsNobody() {
         assertEquals(0, AlliedGarrisonSize.squads(TargetProfile.NEUTRAL));
+        assertEquals(0, AlliedGarrisonSize.squads(TargetProfile.NEUTRAL, 3f));
         assertEquals(0, AlliedGarrisonSize.squads(null));
+        // Market size is what says a market is there, not defence strength.
+        assertEquals(0, AlliedGarrisonSize.squads(market(0, 400f, 0f)));
     }
 
     /** A colony with a garrison of nobody is a colony that was already taken. */
     @Test
     void everyRealMarketKeepsAtLeastOneSquad() {
-        assertEquals(1, AlliedGarrisonSize.squads(market(1, 0, 0)));
-        assertEquals(1, AlliedGarrisonSize.squads(market(3, 1, 0)));
+        assertEquals(1, AlliedGarrisonSize.squads(market(1, 0f, 0f)));
+        assertEquals(1, AlliedGarrisonSize.squads(market(3, 35f, 0f)));
     }
 
-    private static TargetProfile market(int size, int stability, int defense) {
-        return new TargetProfile(size, stability, defense, 0, "hegemony",
+    /**
+     * Stability is inside {@link TargetProfile#groundDefence()} already, since
+     * vanilla writes it onto the same stat {@code getDefenderStr} reads. This is
+     * the same colony at stability 3 and 10, and nothing here scales it again.
+     */
+    @Test
+    void stabilityArrivesAlreadyApplied() {
+        assertEquals(2, AlliedGarrisonSize.squads(market(5, 200f * 0.475f, 0f)));
+        assertEquals(4, AlliedGarrisonSize.squads(market(5, 200f, 0f)));
+    }
+
+    private static TargetProfile market(int size, float groundDefence,
+                                        float stationedStrength) {
+        return new TargetProfile(size, 6, 0, 0, "hegemony",
                 EnumSet.noneOf(EconomicFunction.class),
-                SurfacePalette.ROCK, SettlementLink.ROAD);
+                SurfacePalette.ROCK, SettlementLink.ROAD,
+                groundDefence, stationedStrength);
     }
 }

@@ -103,6 +103,19 @@ public final class Mission {
      */
     public final String alliedGarrisonFactionId;
     /**
+     * How much of the allied faction's own strength turns out here — the numbers
+     * axis of the defending polity's ground doctrine, reaching the battle as a
+     * multiplier on {@code AlliedGarrisonSize} rather than as a headcount.
+     *
+     * <p>{@code 1} on a mission that states none, which is every mission that has
+     * no allied garrison at all and every patron's Garrison defence: a patron's
+     * militia is sized by its own market and the company has no say in it. Only
+     * the polity's own defence carries anything else, because doctrine is a thing
+     * the player's faction has and a patron's is vanilla's business. See
+     * {@code polity-ground-doctrine.md}.
+     */
+    public final float alliedGarrisonStrengthMult;
+    /**
      * How much of this battle's map is settled, or null to derive it from the
      * target market's size.
      *
@@ -239,6 +252,10 @@ public final class Mission {
         this.targetFactionId  = b.targetFactionId;
         this.defenderFactionOverride = b.defenderFactionOverride;
         this.alliedGarrisonFactionId = b.alliedGarrisonFactionId;
+        this.alliedGarrisonStrengthMult =
+                Float.isNaN(b.alliedGarrisonStrengthMult)
+                        || b.alliedGarrisonStrengthMult < 0f
+                        ? 1f : b.alliedGarrisonStrengthMult;
         this.sprawl           = b.sprawl;
         this.standoff         = b.standoff;
         this.landing          = b.landing;
@@ -298,6 +315,7 @@ public final class Mission {
         private String targetFactionId;
         private String defenderFactionOverride;
         private String alliedGarrisonFactionId;
+        private float alliedGarrisonStrengthMult = 1f;
         private PrecinctPlan.Sprawl sprawl;
         private Standoff standoff;
         private Integer lanes;
@@ -344,6 +362,7 @@ public final class Mission {
             this.targetFactionId = m.targetFactionId;
             this.defenderFactionOverride = m.defenderFactionOverride;
             this.alliedGarrisonFactionId = m.alliedGarrisonFactionId;
+            this.alliedGarrisonStrengthMult = m.alliedGarrisonStrengthMult;
             this.sprawl = m.sprawl;
             this.standoff = m.standoff;
             this.lanes = m.lanes;
@@ -480,6 +499,16 @@ public final class Mission {
          */
         public Builder alliedGarrisonFactionId(String alliedGarrisonFactionId) {
             this.alliedGarrisonFactionId = alliedGarrisonFactionId;
+            return this;
+        }
+
+        /**
+         * @param alliedGarrisonStrengthMult how much of the allied faction's own
+         *     strength turns out here; {@code 1} for a mission that states no
+         *     doctrine of its own. Negative or NaN reads as 1.
+         */
+        public Builder alliedGarrisonStrengthMult(float alliedGarrisonStrengthMult) {
+            this.alliedGarrisonStrengthMult = alliedGarrisonStrengthMult;
             return this;
         }
 

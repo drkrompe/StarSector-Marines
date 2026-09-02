@@ -4,6 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
+Updated: 2026-09-02 — slice 2 (Numbers) shipped.
+
 Read `polity-ground-doctrine.md` (the model and its laws — this story is its
 implementation), `meta-progression.md` (the company-and-polity boundary),
 `campaign-battle-bridge-nouns.md` (the one resolve path), `progression-nouns.md`
@@ -70,11 +72,14 @@ points shape it, edited from a small panel in the colony's Marine Ops dialog.
    Unit tests pin law 3 (no grade the step cannot make, whatever doctrine
    says), the Common floor, the armour cap, the heavy-support gate, and that
    the same inputs derive the same profile.
-2. **Numbers.** The two new `TargetProfile` fields with a defaulting
-   constructor, the resolver reads, the fixture codec, the stationed-strength
-   total at a market, the mission multiplier, and `AlliedGarrisonSize`
-   rewritten as defence-strength arithmetic. Tests re-anchor the size
-   function and pin the subtraction.
+2. ~~**Numbers.**~~ SHIPPED. `TargetProfile` carries `groundDefence` and
+   `stationedStrength`; `StationedStrength.totalAt` reads the company's own
+   contribution back off the market's modifiers; `AlliedGarrisonSize` is
+   defence-strength arithmetic at 45 strength per fireteam, floor 1, cap 8; the
+   mission carries `alliedGarrisonStrengthMult`, which
+   `PolityDefenceMissionFactory` sets and `BattleSetup` threads. The multiplier
+   argument at `MarineOpsContext.polityDefenceMissions` is still the literal
+   `1f` slice 3 replaces.
 3. **Persistence, system, registration.** The released-kit table and the
    doctrine ints with load guards; the rebuild system with an injectable
    production-signal source and its live adapter; the registry replace

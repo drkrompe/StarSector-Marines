@@ -128,6 +128,9 @@ class GarrisonDefenseMissionFactoryTest {
 
         assertEquals("hegemony", mission.alliedGarrisonFactionId);
         assertEquals("pirates", mission.defenderFactionOverride);
+        // A patron's militia is sized by its own market; the company has no
+        // doctrine to spend on somebody else's colony.
+        assertEquals(1f, mission.alliedGarrisonStrengthMult);
     }
 
     /**

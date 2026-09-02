@@ -60,6 +60,22 @@ class AlliedGarrisonPlaceholderTest {
         }
     }
 
+    /**
+     * The mission's numbers doctrine reaches the ground through this seam and no
+     * other, so it is asked here rather than only of the size function.
+     */
+    @Test
+    void theMissionsNumbersDoctrineReachesTheGround() {
+        try (BattleSimulation neutral = placeholder("hegemony", 1f);
+             BattleSimulation doubled = placeholder("hegemony", 2f)) {
+            assertEquals(AlliedGarrisonSize.squads(market(), 2f)
+                            * AlliedGarrison.SQUAD_SIZE,
+                    alliedUnits(doubled));
+            assertTrue(alliedUnits(doubled) > alliedUnits(neutral),
+                    "a doubled numbers doctrine must field more of the colony");
+        }
+    }
+
     private static BattleSimulation placeholder(String alliedGarrisonFactionId) {
         return BattleSetup.createPlaceholder(7_311L, MANIFEST, false,
                 OperationTier.FIRST_CONTRACT, RiskLevel.LOW, MissionType.ASSAULT,
@@ -67,11 +83,24 @@ class AlliedGarrisonPlaceholderTest {
                 alliedGarrisonFactionId);
     }
 
-    /** A settled, defended market — the shape a defence is fought over. */
+    private static BattleSimulation placeholder(String alliedGarrisonFactionId,
+                                                float strengthMultiplier) {
+        return BattleSetup.createPlaceholder(7_311L, MANIFEST, false,
+                OperationTier.FIRST_CONTRACT, RiskLevel.LOW, MissionType.ASSAULT,
+                market(), FlybyRoster.EMPTY, FlybyRoster.EMPTY, null,
+                alliedGarrisonFactionId, strengthMultiplier);
+    }
+
+    /**
+     * A settled, defended market — the shape a defence is fought over. Its
+     * ground-defence strength is vanilla's own for a size-5 colony at stability
+     * 6 with no defence industry ({@code 200 * 0.7}), so this fixture fields the
+     * three fireteams it has always fielded.
+     */
     private static TargetProfile market() {
         return new TargetProfile(5, 6, 2, 1, "hegemony",
                 EnumSet.noneOf(EconomicFunction.class),
-                SurfacePalette.ROCK, SettlementLink.ROAD);
+                SurfacePalette.ROCK, SettlementLink.ROAD, 140f, 0f);
     }
 
     private static int alliedUnits(BattleSimulation sim) {
