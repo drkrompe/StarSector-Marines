@@ -61,17 +61,6 @@
             <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
           </div>
 
-          <div id="mech-performance-grid" class="{performanceClasses}">
-            <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter surface-dark">
-              <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
-              <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
-              <div id="{meter.trackId}" class="meter-track">
-                <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
-                <div id="{meter.ghostId}" class="{meter.ghostClasses}" style="{meter.ghostStyle}" />
-              </div>
-            </div>
-          </div>
-
           <div id="mech-fitting-body" class="fitting-body">
             <div id="mech-component-catalog" class="{catalogClasses}">
               <div id="mech-catalog-kicker" class="section-title label heading tone-edge">EQUIPMENT / SELECTED SOCKET</div>
@@ -116,7 +105,7 @@
                 <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
                 <div id="mech-garage-status" class="label heading tone-muted garage-status">FABRICATION CREW ACTIVE  ·  LOGISTICS ROTATION</div>
               </div>
-              <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="520" />
+              <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="580" />
               <div id="mech-overview-rail" class="{overviewRailClasses}">
                 <div id="mech-overview-gantries" class="overview-gantry-list">
                   <button each="gantry in gantryRows" key="{gantry.id}" id="{gantry.id}" class="{gantry.classes}" disabled="{gantry.disabled}" onclick="{gantry.select}">
@@ -130,6 +119,22 @@
             </div>
 
             <div id="mech-slot-rack" class="{slotRackClasses}">
+              <div id="mech-performance-card" class="performance-card surface-dark">
+                <div id="mech-specs-header" class="specs-header">
+                  <div id="mech-specs-title" class="section-title label heading tone-edge">SPECIFICATIONS</div>
+                  <div id="mech-specs-doctrine" class="label heading tone-muted specs-doctrine"></div>
+                </div>
+                <div id="mech-performance-grid" class="{performanceClasses}">
+                  <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter">
+                    <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
+                    <div id="{meter.trackId}" class="meter-track">
+                      <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
+                      <div id="{meter.ghostId}" class="{meter.ghostClasses}" style="{meter.ghostStyle}" />
+                    </div>
+                    <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
+                  </div>
+                </div>
+              </div>
               <div id="mech-slot-heading" class="section-title label heading tone-edge">FITTING LOCATIONS</div>
               <div id="mech-slot-copy" class="label tone-muted slot-copy">Select a socket to filter hardware.</div>
               <div id="mech-slot-list" class="slot-list">
@@ -194,18 +199,21 @@
   .mech-card-action { height: 24px; padding-top: 3px; text-align: right; }
 
   .fitting-workspace { flex-direction: column; width: 100%; height: 100%; gap: 6px; overflow: hidden; }
-  .asset-strip { flex-direction: row; height: 52px; padding: 6px 8px; gap: 8px; }
+  .asset-strip { flex-direction: row; height: 44px; padding: 4px 8px; gap: 8px; }
   .asset-strip-copy { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; }
   .asset-name { width: 210px; height: 27px; font-family: title; }
   .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
-  .gantry-navigator { flex-direction: row; width: 300px; height: 38px; gap: 4px; }
-  .gantry-step { width: 62px; height: 38px; padding: 6px; }
-  .gantry-position { width: 0px; flex-grow: 1; height: 38px; padding: 8px 5px; text-align: center; background-color: #0c1620; border-width: 1px; }
+  .gantry-navigator { flex-direction: row; width: 290px; height: 34px; gap: 3px; }
+  .gantry-step { width: 60px; height: 34px; padding: 5px; }
+  .gantry-position { width: 0px; flex-grow: 1; height: 34px; padding: 7px 5px; text-align: center; background-color: #0c1620; border-width: 1px; }
   .doctrine { width: 0px; flex-grow: 1; padding-top: 5px; text-align: right; }
-  .performance-grid { flex-direction: row; height: 50px; gap: 5px; }
-  .performance-meter { flex-direction: row; width: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 1px; }
-  .meter-label { width: 90px; padding-top: 3px; }
-  .meter-value { width: 96px; padding-top: 3px; text-align: right; }
+  .performance-card { flex-direction: column; width: 100%; height: 112px; padding: 5px 6px; gap: 3px; border-width: 1px; }
+  .specs-header { flex-direction: row; width: 100%; height: 16px; }
+  .specs-doctrine { width: 0px; flex-grow: 1; height: 16px; text-align: right; }
+  .performance-grid { flex-direction: column; width: 100%; height: 82px; gap: 2px; }
+  .performance-meter { flex-direction: row; width: 100%; height: 18px; padding: 1px 2px; gap: 4px; }
+  .meter-label { width: 82px; height: 16px; }
+  .meter-value { width: 90px; height: 16px; text-align: right; }
   .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #76b9d4; }
   .meter-ghost { height: 100%; }
@@ -261,7 +269,7 @@
   .overview-station, .overview-name, .overview-detail { height: 18px; }
   .overview-browse { width: 142px; height: 76px; padding: 7px; text-align: center; }
 
-  .slot-panel { flex-direction: column; width: 310px; padding: 7px; gap: 5px; overflow: hidden; }
+  .slot-panel { flex-direction: column; width: 325px; padding: 6px; gap: 4px; overflow: hidden; }
   .slot-copy { height: 32px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .doll-slot { flex-direction: row; width: 100%; height: 86px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
