@@ -111,6 +111,7 @@ class ConquestOnPrecinctsTest {
 
             assertTheForceLandsAtItsStandoff(fixture.seed(), map);
             assertTheBeachheadIsAPlaceTheMarinesHold(map, sim);
+            assertNothingElseStandsInTheBeachhead(map);
             assertThereIsResistanceInDepth(fixture, map);
             assertEveryCompoundCanBeWalkedTo(map);
             assertEveryLaneRouteIsWalkable(map);
@@ -162,6 +163,35 @@ class ConquestOnPrecinctsTest {
                                 + " at " + extent(other) + ", so the marines land on "
                                 + "somebody else's ground");
             }
+        }
+    }
+
+    /**
+     * Nothing else stands inside the ground the marines come ashore on.
+     *
+     * <p>Wider than the per-berth check above, and it is the one that caught a
+     * real defect: the lane ladder used to be seeded before the landing place,
+     * so the outermost rung took ground the beachhead's claim then grew around,
+     * and {@code reinforced-south} put an enemy barracks inside the marines'
+     * own landing zone — clear of every berth, and still a garrison the force
+     * lands beside. The order is objective, landing, lanes, settlement now, and
+     * a waypoint that falls in the beachhead slides forward along its own path.
+     *
+     * <p>Asked of every compound rather than of lane places alone, because a
+     * settlement building inside the landing zone would be the same fault
+     * arriving from the other direction.
+     */
+    private static void assertNothingElseStandsInTheBeachhead(MapResult map) {
+        TacticalNode beachhead = map.tacticalMap.all().stream()
+                .filter(node -> node.kind == TacticalNode.Kind.BEACHHEAD)
+                .findFirst().orElseThrow();
+        for (TacticalNode other : map.tacticalMap.all()) {
+            if (other == beachhead || !CompoundService.isCompound(other.kind)) continue;
+            boolean apart = other.right < beachhead.left || other.left > beachhead.right
+                    || other.bottom > beachhead.top || other.top < beachhead.bottom;
+            assertTrue(apart, "a " + other.kind + " at " + extent(other)
+                    + " stands inside the landing place " + extent(beachhead)
+                    + ", so the marines come ashore beside it");
         }
     }
 

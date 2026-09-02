@@ -49,7 +49,26 @@ class MissionMapRequirementsTest {
                 : List.of(LandingPad.garrison(12, 12, LandingPad.Approach.NORTH));
         int spawnX = gone.contains(MapFeature.MARINE_LANDING_ZONE) ? -1 : 2;
 
-        return new MapResult(new NavigationGrid(20, 20), new CellTopology(20, 20),
+        // Open ground everywhere, so a compound is reachable unless this
+        // fixture deliberately walls it off. A bare grid is all zeros — not one
+        // walkable cell — which would fail the reachability requirement for a
+        // reason that has nothing to do with what a case is asking about.
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        for (int x = 0; x < 20; x++) {
+            for (int y = 0; y < 20; y++) grid.setWalkableFloor(x, y);
+        }
+        if (gone.contains(MapFeature.WALKABLE_COMPOUNDS)) {
+            // Ring the keep in wall. Its own cells stay open, so the compound
+            // is a perfectly good building that simply cannot be walked into.
+            for (int x = 7; x <= 11; x++) {
+                for (int y = 7; y <= 11; y++) {
+                    if (x > 7 && x < 11 && y > 7 && y < 11) continue;
+                    grid.setTag(x, y, NavigationGrid.CellTag.WALKABLE, false);
+                }
+            }
+        }
+
+        return new MapResult(grid, new CellTopology(20, 20),
                 spawnX, spawnX, 18, 18, List.of(), List.of(),
                 new TacticalMap(nodes), Buildings.EMPTY, List.of(), RoadGraph.EMPTY, pads);
     }
@@ -67,6 +86,24 @@ class MissionMapRequirementsTest {
 
         assertEquals(EnumSet.of(MapFeature.GARRISON_AIRFIELD), missing,
                 "the missing airfield was not the thing reported missing");
+    }
+
+    /**
+     * A compound nobody can walk into is not a valid conquest map.
+     *
+     * <p>Conquest is won by flipping every compound, so a sealed one is a
+     * battle that cannot be finished rather than a blemish. Every pass that
+     * could seal one — a boundary whose gates all faced the wrong way, a lane
+     * place grown across the only approach — declines correctly and knows
+     * nothing about it.
+     */
+    @Test
+    void aMapWithACompoundNobodyCanWalkToIsNotAValidConquestMap() {
+        EnumSet<MapFeature> missing = MissionMapRequirements.missingFrom(
+                MissionType.CONQUEST, mapWithout(MapFeature.WALKABLE_COMPOUNDS));
+
+        assertEquals(EnumSet.of(MapFeature.WALKABLE_COMPOUNDS), missing,
+                "the sealed compound was not the thing reported missing");
     }
 
     /** Every requirement is checked, not just the first one that fails. */

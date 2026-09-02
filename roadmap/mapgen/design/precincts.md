@@ -624,11 +624,22 @@ on every frame the beachhead was three boxes on whatever happened to be clear.
 Nothing on the map was *the landing zone*: the settlement could grow over it, no
 defender reasoned about it, and there was nothing to hold or lose.
 
-**The landing zone is a precinct.** It is seeded after the objective and the
-lanes and before the settlement, so it claims its ground with the other
+**The landing zone is a precinct.** It is seeded second — after the objective,
+before the lanes and the settlement — so it claims its ground with the other
 programmed places and a town grows around it rather than under it. Its berths
 are authored inside its own claim, the marine spawn is inside it, and nothing
 else may claim a cell of it.
+
+**It outranks the ladders because it cannot give way and they can.** A landing
+place is decided by arithmetic — the approach region, the standoff, and the
+program's own radius — so there is nothing to re-roll if the ground it wants is
+taken. A lane rung is jittered and has a whole path to slide along. Seeded the
+other way round the outermost rung took ground the landing claim then grew over,
+and on `reinforced-south` the marines came ashore beside an enemy barracks
+standing inside their own landing zone. The lane refusal rule treats the landing
+claim like any other claim, so the rung slides forward along its path instead.
+Ordering costs no draw of its own, so the town and the outlying places fall
+exactly where they did.
 
 **Every kind of landing place owes an apron**, and that is what makes the claim
 big enough to be one. A `FortressProgram` may owe open ground no building stands
