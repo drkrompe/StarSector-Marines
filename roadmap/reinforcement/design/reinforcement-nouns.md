@@ -4,9 +4,17 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — a request goes to the means that would answer it soonest, and a means that says it could deliver has to be able to.
+Updated: 2026-09-01 — the front is a `FrontDepth` band, zero at the objective, rather than a biome; see `precincts.md`.
+
+Earlier 2026-08-29 — a request goes to the means that would answer it soonest, and a means that says it could deliver has to be able to.
 
 ## Vocabulary
+
+A **front band** is how deep into the defender's territory a cell is: a
+`FrontDepth` band index carried on the map result, zero at the objective and
+rising toward the attacker, with a rearward step toward the objective. It
+replaced the biome band as the front's unit so a map with no biomes still has a
+front; `precincts.md` owns it.
 
 - A **reinforcement request** is a side-owned statement that a position needs more force. It carries a reason, intended scale, a delivery hint, and optionally a tactical objective. It is not itself a spawn or a delivery order.
 - A **trigger** decides when to post a request. It owns the local condition that makes the request meaningful; it does not choose a vehicle, aircraft, or entry point.
@@ -15,8 +23,8 @@ Updated: 2026-08-29 — a request goes to the means that would answer it soonest
 - The **delivery hint** is where a means should look for a viable landing or entry area. Where it is *safe* to arrive is a further question, and only the command layer watching the front can answer it: a **delivery deployment policy** rear-shifts the hint behind the known hostile front, and every means that has to arrive somewhere asks it — a convoy for its entry and drop, a shuttle for its landing zone. Without it an air drop lands on the rally, which on a losing track is exactly where the enemy is. The **objective** is where the delivered squad belongs tactically. Keeping them separate lets a squad arrive safely behind the front and then re-man the contested position.
 - A **supply gate** is the defender-held compound capability required by a means: BARRACKS supplies walk-ins, ARMORY supplies convoys, and shuttle drops need both a COMMAND_POST and — on a map that has one — the AIRBASE the aircraft actually fly from, *and* an airworthy airframe standing on it. Holding the ground and having something to put in the air are different questions and both are asked; see `air-nouns.md` on based aircraft. A command post authorises a drop; an airfield is where the lift lives, so taking the field ends air delivery whoever still holds the headquarters. A map with no authored airfield keeps the command post as its only air gate, because a field cannot be a requirement on battles that were never given one. A contested compound still supplies; a marine-held compound does not.
 - A **reinforcement ticket** is one unit of the `REINFORCEMENT` resource required for an ordinary dispatch. ARMORYs produce tickets while their side holds them. Tickets measure continuing field capacity, not a mission-scripted wave count.
-- A **recapture target** is a once-manned defender tactical position that has become open while its biome slice remains contested. It is a Conquest-specific answer to *where should the next defender response go*, not a general replacement for all reinforcement triggers.
-- A **counterattack** is a bounded defender reserve commitment. It earmarks tickets before the wave, telegraphs its intent, and then attempts a short burst of prepaid requests against a conceded biome slice. The earmark is a wager: delivery failure does not silently restore it after launch.
+- A **recapture target** is a once-manned defender tactical position that has become open while its front band remains contested. It is a Conquest-specific answer to *where should the next defender response go*, not a general replacement for all reinforcement triggers.
+- A **counterattack** is a bounded defender reserve commitment. It earmarks tickets before the wave, telegraphs its intent, and then attempts a short burst of prepaid requests against a conceded front band. The earmark is a wager: delivery failure does not silently restore it after launch.
 - A **side unit roster** is the small battle-side fallback used by player, story, and legacy payloads when no campaign target exists. It is not campaign-faction doctrine.
 - A **ground roster profile** is the immutable, data-authored defender doctrine resolved from `TargetProfile.factionId()` once during battle setup. It chooses bulk/elite compatibility shells, weighted primary families, risk-banded equipment grades, concrete armor patterns, special issue, and optional heavy-support identities. Unknown faction ids resolve to Independent.
 
@@ -56,7 +64,7 @@ What they are given is an ordinary hold-this-place task, the kind a garrison get
 
 The selected means creates normal battle actors rather than a reinforcement-specific simulation path. A convoy follows the vehicle/delivery model owned by `convoy-nouns.md`; a shuttle follows the air transport model owned by `air-nouns.md`; a walk-in creates an ordinary infantry squad. Each defender means receives the same battle-frozen ground roster as initial allocation: convoys and walk-ins draw bulk issue, while shuttle drops draw elite issue. Once delivered, the squad enters the normal roster, commander, and tactical-assignment flow.
 
-For Conquest, recapture-target recomputation runs before reinforcement dispatch. The frontline trigger chooses the defender-rear-most contested biome slice with an open target, rotates through that slice's targets, gives the request a rear-shifted delivery hint, and assigns the target as its objective. At convoy dispatch, defender command may refine that hint into a safe band behind its latest known hostile front without changing the objective. The delivered convoy squad is minted under `conquest-defender` with a node hold or lost-zone clear assignment; a shuttle drop is minted the same way. Marking a target dispatched prevents duplicate waves while an answer is in flight. Terminal rejection releases that reservation immediately, while a later in-flight or assignment failure retains the bounded timeout recovery path.
+For Conquest, recapture-target recomputation runs before reinforcement dispatch. The frontline trigger chooses the defender-rear-most contested front band with an open target, rotates through that slice's targets, gives the request a rear-shifted delivery hint, and assigns the target as its objective. At convoy dispatch, defender command may refine that hint into a safe band behind its latest known hostile front without changing the objective. The delivered convoy squad is minted under `conquest-defender` with a node hold or lost-zone clear assignment; a shuttle drop is minted the same way. Marking a target dispatched prevents duplicate waves while an answer is in flight. Terminal rejection releases that reservation immediately, while a later in-flight or assignment failure retains the bounded timeout recovery path.
 
 Zone loss remains a parallel trigger: when marines take a previously defender-held objective, it posts a defender request that uses the lost zone as both delivery hint and tactical objective. This fallback operates alongside either the Conquest frontline trigger or the non-Conquest garrison trigger.
 

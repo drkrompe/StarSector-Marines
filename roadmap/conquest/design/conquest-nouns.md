@@ -4,7 +4,10 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — Full Strength now authors eighty-four squads / 1,008
+Updated: 2026-09-01 — the map is a plan of places at 560x336 (`precincts.md`);
+the garrison precinct supplies every feature the mission requires.
+
+Earlier 2026-09-01 — Full Strength now authors eighty-four squads / 1,008
 marines into one three-lane battle through the existing six-shuttle ferry.
 
 Earlier 2026-08-29 — a mission now states the map features it requires and a
@@ -50,6 +53,13 @@ the first attempt is always the caller's own seed — an ordinary battle is
 bit-for-bit what it was. Running out of seeds is a real fault and says which
 features were missing, because handing back an invalid map is exactly how the
 missing airfield survived as long as it did.
+
+On a precinct map every one of those comes from the garrison precinct — its
+keep is the command post, its reserved lots are the airfield, its guard posts
+and rooms are the garrison — and the shore is the paired landing areas the
+precinct recipe authors in the attacker's region. The re-roll is unchanged: a
+plan is derived per attempt from the attempt's own seed, so a re-roll is a
+different set of places and not the same places on a different fill.
 
 **A mission with nothing stated requires nothing.** Requirements are a claim
 about a particular mission, and inventing one for a mission nobody has thought

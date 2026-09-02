@@ -4,13 +4,13 @@ Status: ACTIVE — adopted and wired. A `PrecinctPlan` handed to
 `MapGenerator.generate` builds a whole map this way: places seeded from a world
 or authored, grown, welded onto one road network, claimed, allowed ground,
 filled — zoned from a character or packed from a program — walled and gated.
-Assault and Raid against a real market generate their maps this way. What
-remains is the shape work below.
+Conquest, Assault and Raid against a real market generate their maps this way,
+Conquest at 560x336. What remains is the shape work below.
 
 Written: 2026-09-01
 
-Updated: 2026-09-01 — the plan is a per-call argument, fits the map it is
-given, and reaches Assault and Raid; a programmed place claims first.
+Updated: 2026-09-01 — Conquest generates as places at 560x336; the front is a
+depth from the objective rather than a biome; a mission states its sprawl.
 
 ## The shift
 
@@ -403,6 +403,27 @@ map are meant to have one each.
 clears tactical nodes standing on its reservation and a building's node has no
 business being removed by an airfield.
 
+**It can be landed on.** A closing stage authors paired shuttle berths inside
+the attacker's region — the plan's stated placement, or the corner the spawn
+stage chose, sharing that choice so the beachhead and the spawn cannot disagree
+— scanning inward from whichever map edge the region touches so the first legal
+area is a beachhead. The stock recipe did this on its beach band and threw
+without one; measured at 560x336 a precinct map seats eleven areas from the
+south and six from the west, against the three a Conquest asks for.
+
+**It has one keep.** A settlement's military base used to emit a command post
+of its own, because only a biome told the filler otherwise, and a Conquest with
+two command posts has no canonical keep at all. On a map whose plan has a
+programmed objective the keep is the garrison's, and a settlement's base is
+stores or quarters the way the port's and the city's are on the stock recipe.
+
+**It owns its guns.** Its emplacements were manned all along; what was wrong
+was one layer down, where the non-conquest factories built their post list from
+nothing and then scattered random posts, so a precinct's whole fortification —
+walled, gated, seeded — was generated and discarded before the battle saw it. A
+map that stated its own posts keeps them, and the scatter runs only on a map
+that stated none.
+
 **Its stores and its seat of command are points of interest as well**, in the
 other vocabulary a battle uses: the armoury, vehicle bay, stockroom and parts
 cage as depots, the keep as administrative, the control room as comms. Found
@@ -482,17 +503,41 @@ corner furthest from the objective. A force landing beside the thing it is meant
 to take has no approach to fight through, which is most of what a conquest map
 is for.
 
+**A derived plan may be told roughly where its objective is.** The derivation
+takes an objective placement and an attacker placement as well as the world:
+the garrison is seeded inside the one and the plan carries the other, and the
+settlement and outlying places fall where the map wants them. That is how
+Conquest gets a fortress at the far end of its axis without authoring the rest
+of the map, and the six-argument derivation is unchanged to the cell.
+
 ## Which battles are made of places
 
-`BattleSetup` derives a plan for **Assault and Raid** against a real market and
-for nothing else. Both are search-and-strike missions whose balance is not
-pinned, so a map that is a set of places changes something nobody has committed
-a number to. Conquest stays on the stock crossroad until the grown maps are
-judged; Sabotage, Extraction, Civilian Rescue, Silent Colony and the opening
+`BattleSetup` derives a plan for **Conquest, Assault and Raid** against a real
+market. Sabotage, Extraction, Civilian Rescue, Silent Colony and the opening
 operations keep the recipe they have. The gate is the market: a battle with no
 market behind it — a headless fixture, an operation against no planet — has no
 size, rating or economy to derive from and takes the stock map, which is the
 rule `BspCityGenerator.recipeFor` already applies to the grown recipe.
+
+**Conquest is placed from its axis, at its own scale.** Conquest rolls a
+traversal axis as it always did, because both commanders' tracks, the shuttle
+entry and the reinforcement rear edge are keyed on it; the plan is then derived
+with the objective in the far third of that axis and the attacker in the near
+one, so the map agrees with everything that reads the axis. Its map is
+`MapScale.CONQUEST`, 560x336 — mission-owned rather than tier-owned, because
+Conquest is the authored siege the tier model exempts from ordinary scaling and
+this model was measured at that size. The stock crossroad recipe is no longer
+what Conquest plays on; it stays reachable through the axis-without-plan
+generate for tests, scenes and a marketless Conquest, and retiring it is
+separate work.
+
+**How settled the map is belongs to the mission.** `Sprawl` is mission
+vocabulary now: a mission may state `REMOTE`, `BALANCED` or `DENSE`, a fixture
+may carry it, the debug briefing cycles it, and a mission that says nothing
+takes the market's own answer from `SettlementZoning` — an outpost of size
+three or less is remote, a size-eight market and up is a conurbation, and
+everything between is a town with an installation and outlying places. Raid
+clamps `REMOTE` to `BALANCED` until tactical nodes are targets.
 
 **The plan is an argument of the generate call, never state on the generator.**
 `BattleSetup.MAP_GEN` is one instance shared by every factory, and a plan stored
@@ -510,6 +555,30 @@ distance — rather than in the high-X half, because on a precinct map the sides
 are wherever the objective grew. `ExtractionPayloadLayout` and
 `SabotageSiteLayout` still carry the half-map rule; they are not on this recipe
 and the rule is right for the map they get.
+
+## The front is a depth, not a biome
+
+The reinforcement layer — recapture targets, the front-line trigger, the
+counterattack — needs to know how deep into the defender's territory a cell is.
+It used to read that off `BiomeKind`: bucket every defender node and every live
+defender by biome band, walk the bands fortress-city-port-beach, rally a
+reinforcement by shifting rearward along the axis. A precinct map has no biome
+map, and on one the whole layer silently failed to install.
+
+`FrontDepth` is that answer with the biome taken out: a per-cell band index,
+zero at the objective and rising toward the attacker, four bands on every map,
+with a name per band and a **rearward** step that walks toward the objective's
+centroid rather than along an axis. Both recipes build it in a closing stage so
+they cannot disagree about what a front is — the stock recipe from its biome
+map, the precinct recipe from the objective's claim, band 0 being the claim
+itself and the rest three equal rings of distance out to the furthest cell.
+`BiomeMap` keeps its theming and terrain role on the stock recipe; it just
+stopped being the front.
+
+On the stock recipe this is behaviour-preserving except in one honest place: a
+reinforcement anchored on the map edge used to rally by stepping along the
+axis and clamping against that edge; it now steps toward the objective. One
+Conquest fixture's trace diverged at exactly that rally and nowhere else.
 
 ## A derived plan fits the map it is given
 
@@ -754,24 +823,21 @@ no draw it did not take before.
 3. **Whether `Compound` collapses into this.** A compound is already a claimed
    group of leaves with a purpose; it may be a small precinct, or a distinct
    thing that lives *inside* one.
-4. **What `BiomeKind` becomes.** It is read as front-line progression ordering
-   by `CounterattackSystem`, `FrontLineReinforcementTrigger` and
-   `RecaptureTargetService`. Distance from the objective precinct is the natural
-   answer once places exist.
-5. **A wall does not look as strong as it is.** Wall hit points are invisible: an
+4. **A wall does not look as strong as it is.** Wall hit points are invisible: an
    80hp picket fence and a 1200hp citadel wall draw with identical art on a
    one-cell line. The emplacements carry the reading now, which is most of what
    was wanted, but a thicker wall for a harder fortification would be nearly
    free — the outline is already computed — and would make the strength legible
    before contact as well as harder to breach.
-6. **Two stages on the conquest recipe have no counterpart on the precinct
-   path**, both deliberately so far. `VehicleCorridorStage` is conquest-only,
-   so a walled precinct's guaranteed drivable gate opens onto no reserved
-   corridor; whether it needs one is a real question once armour uses these
-   maps. `OverwatchTowerStage` is parked behind `overwatch-tower-adoption.md`,
-   and `PrecinctDefence` covers the same ground from a stated dial, so that
-   story should be re-read against the emplacement loadout before it is picked
-   up.
+5. **`OverwatchTowerStage` has no counterpart on the precinct path**,
+   deliberately so far: it is parked behind `overwatch-tower-adoption.md`, and
+   `PrecinctDefence` covers the same ground from a stated dial, so that story
+   should be re-read against the emplacement loadout before it is picked up.
+   `VehicleCorridorStage` was the other, and it closed the other way: a survey
+   found the corridor has **no battle-time consumer at all** — every reference
+   is inside the generator and one validation test, and convoys drive on the
+   road graph — so a walled precinct's drivable gate opening onto no reserved
+   corridor loses nothing the game ever collected.
 
 (The ground allowance is now derived — see below.)
 
