@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -40,6 +41,7 @@ import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -48,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleFixtureJsonTest {
 
@@ -468,13 +471,54 @@ class BattleFixtureJsonTest {
                 () -> BattleFixtureJson.fromJson(encoded));
     }
 
+    /**
+     * A stated route survives a round trip, a lane left to derive stays null in
+     * its slot, and a fixture that states nothing writes no key at all.
+     *
+     * <p>The last of those is the one that matters for the checked-in fixtures:
+     * a key written for the derived case would change every conquest document
+     * in the tree into one that pins a route.
+     */
+    @Test
+    void carriesStatedLaneRoutesAndLeavesUnstatedOnesAlone() throws Exception {
+        LanePath zigzag = LanePath.ofCells(560, 336, 200, 45, 300, 100, 400, 45);
+        List<LanePath> stated = new ArrayList<>();
+        stated.add(zigzag);
+        stated.add(null);
+        ConquestBattleFixture pinned = laneConquestFixture(3, stated);
+
+        JSONObject encoded = BattleFixtureJson.toJson(pinned);
+        assertEquals(3, encoded.getJSONArray("lanePaths").getJSONArray(0).length(),
+                "three waypoints on the stated lane");
+        assertTrue(encoded.getJSONArray("lanePaths").isNull(1),
+                "a lane that derives is written as null, not as an empty route");
+
+        ConquestBattleFixture back = (ConquestBattleFixture) BattleFixtureJson.fromJson(encoded);
+        assertEquals(zigzag, back.lanePaths().get(0));
+        assertNull(back.lanePaths().get(1));
+
+        ConquestBattleFixture silent = laneConquestFixture(3, null);
+        JSONObject silentEncoded = BattleFixtureJson.toJson(silent);
+        assertFalse(silentEncoded.has("lanePaths"),
+                "a fixture that pins no route must write no key, or every "
+                        + "checked-in conquest fixture starts pinning one");
+        assertNull(((ConquestBattleFixture) BattleFixtureJson.fromJson(silentEncoded))
+                        .lanePaths(),
+                "an absent route list decodes to the derived case, not to a value");
+    }
+
     private static ConquestBattleFixture laneConquestFixture(Integer lanes) {
+        return laneConquestFixture(lanes, null);
+    }
+
+    private static ConquestBattleFixture laneConquestFixture(Integer lanes,
+                                                             List<LanePath> paths) {
         ConquestBattleFixture base = standoffConquestFixture(Standoff.CLOSE);
         return new ConquestBattleFixture(base.seed(), base.manifest(),
                 base.enemyHasHeavyArmor(), base.tier(), base.risk(),
                 base.targetProfile(), base.marineFighterSupport(),
                 base.enemyFighterSupport(), base.arrivalPlan(), base.sprawl(),
-                base.standoff(), lanes);
+                base.standoff(), lanes, paths);
     }
 
     private static ConquestBattleFixture standoffConquestFixture(Standoff standoff) {

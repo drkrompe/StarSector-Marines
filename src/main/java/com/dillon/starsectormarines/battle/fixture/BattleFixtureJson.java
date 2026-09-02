@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.marine.BoatFitting;
@@ -80,6 +81,7 @@ public final class BattleFixtureJson {
             putSprawl(root, conquest.sprawl());
             putStandoff(root, conquest.standoff());
             putLanes(root, conquest.lanes());
+            putLanePaths(root, conquest.lanePaths());
             return root;
         }
         if (fixture instanceof SabotageBattleFixture sabotage) {
@@ -252,7 +254,8 @@ public final class BattleFixtureJson {
                 arrivalPlanFromJson(root.getJSONObject("arrivalPlan")),
                 sprawlFromJson(root),
                 standoffFromJson(root),
-                lanesFromJson(root));
+                lanesFromJson(root),
+                lanePathsFromJson(root));
     }
 
     private static SabotageBattleFixture decodeSabotage(
@@ -657,6 +660,63 @@ public final class BattleFixtureJson {
         }
         // Zero is the stated control: a Conquest with nothing on its tracks.
         return lanes;
+    }
+
+    /**
+     * Writes the routes the lanes take, and nothing at all when every lane
+     * derives its own.
+     *
+     * <p>An array per lane in lane order, each an array of {@code [x, y]}
+     * fractions of the map — the same units {@code MapPlacement} is stated in,
+     * so a pinned zig-zag means the same thing at any map size. A lane that
+     * derives is written as {@code null} in its slot, so a document may state
+     * the second lane's route and leave the other two alone.
+     */
+    private static void putLanePaths(JSONObject root, List<LanePath> paths)
+            throws Exception {
+        if (paths == null || paths.isEmpty()) return;
+        JSONArray lanes = new JSONArray();
+        for (LanePath path : paths) {
+            if (path == null) {
+                lanes.put(JSONObject.NULL);
+                continue;
+            }
+            JSONArray waypoints = new JSONArray();
+            for (LanePath.Waypoint waypoint : path.waypoints()) {
+                JSONArray pair = new JSONArray();
+                pair.put(waypoint.x());
+                pair.put(waypoint.y());
+                waypoints.put(pair);
+            }
+            lanes.put(waypoints);
+        }
+        root.put("lanePaths", lanes);
+    }
+
+    /** The document's stated lane routes, or null where every lane derives. */
+    private static List<LanePath> lanePathsFromJson(JSONObject root) throws Exception {
+        if (!root.has("lanePaths") || root.isNull("lanePaths")) return null;
+        JSONArray lanes = root.getJSONArray("lanePaths");
+        List<LanePath> out = new ArrayList<>(lanes.length());
+        for (int lane = 0; lane < lanes.length(); lane++) {
+            if (lanes.isNull(lane)) {
+                out.add(null);
+                continue;
+            }
+            JSONArray waypoints = lanes.getJSONArray(lane);
+            List<LanePath.Waypoint> path = new ArrayList<>(waypoints.length());
+            for (int i = 0; i < waypoints.length(); i++) {
+                JSONArray pair = waypoints.getJSONArray(i);
+                if (pair.length() != 2) {
+                    throw new IllegalArgumentException("lane " + (lane + 1)
+                            + " waypoint " + (i + 1) + " is not an x,y pair");
+                }
+                path.add(new LanePath.Waypoint(
+                        (float) pair.getDouble(0), (float) pair.getDouble(1)));
+            }
+            out.add(new LanePath(path));
+        }
+        return out;
     }
 
     /** The document's stated standoff, or null for the mission type's default. */
