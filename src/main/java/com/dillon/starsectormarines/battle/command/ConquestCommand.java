@@ -221,21 +221,29 @@ public final class ConquestCommand implements ConquestFrontCommand,
             System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "true"));
 
     /**
-     * {@code -Dbattle.conquest.laneChain=false} restores the forward-fraction
-     * reading: a compound becomes assignable once the track's friendly lead is
-     * within {@link #CAPTURE_FRONT_REACH_CELLS} of its depth, and a staging
-     * order is derived along the traversal axis rather than along the road the
-     * map recorded. That is the control this layer has to be measured against,
-     * and it is a switch rather than an older commit because a
-     * commit-to-commit comparison measures every other difference between the
-     * two trees at the same time.
+     * {@code -Dbattle.conquest.laneChain=true} reads a lane as a chain of
+     * places: the only one worth assaulting is the first the marines do not
+     * hold, and a staging order is derived along the road the map recorded
+     * between two of them.
      *
-     * <p>With it on, a lane is a chain of places and the only one worth
-     * assaulting is the first the marines do not hold. The fraction it replaces
-     * measured how far up the map the line had walked, which on a grown map
-     * says nothing about what is held: a track reads 0.8 advanced with its
-     * strongpoint still the defenders'. It also cannot go backwards, so a place
-     * retaken left the picture unchanged.
+     * <p><b>Off by default, because the matrix says so.</b> The reading it
+     * replaces is a forward fraction of the map — a compound becomes assignable
+     * once the track's friendly lead is within
+     * {@link #CAPTURE_FRONT_REACH_CELLS} of its depth, and staging runs along
+     * the traversal axis — and that fraction is close to meaningless on a map
+     * grown from places: a track reads 0.8 advanced with its strongpoint still
+     * the defenders', and cannot record a place retaken at all. The chain reads
+     * the battle better and does not yet win it. Measured both ways on one
+     * tree, the chain costs {@code reinforced-south} one held compound of
+     * seventeen and five captures of twenty-five, for twenty-two fewer marines
+     * lost; it gains {@code full-strength-west} a capture at even held and
+     * forty-eight more marines lost. Held compounds is what a Conquest is
+     * decided on, so it stays behind the switch until it pays.
+     *
+     * <p>The switch governs the whole reading rather than one side of it, so
+     * either state is a whole battle. It is a switch rather than an older
+     * commit because a commit-to-commit comparison measures every other
+     * difference between the two trees at the same time.
      *
      * <p>A map with no lanes on it is unaffected either way: the chain is empty
      * and every compound falls through to the fraction, which is what every
@@ -245,7 +253,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
     static boolean LANE_CHAIN_ENABLED = Boolean.parseBoolean(
-            System.getProperty(LANE_CHAIN_PROPERTY, "true"));
+            System.getProperty(LANE_CHAIN_PROPERTY, "false"));
 
     /**
      * Whether the chain reading is in force, for the defender's own layer.
@@ -321,6 +329,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private int[] chainHeld = new int[0];
     /** Capture zones the marines hold, refreshed with the compound targets. */
     private final IntOpenHashSet marineHeldZones = new IntOpenHashSet();
+    /**
+     * Capture zones standing on some lane's front place this pulse.
+     *
+     * <p>A set rather than a walk of the chain because {@link #frontHasReached}
+     * is asked from inside the greedy pair loop — squads times compounds times
+     * rounds — and the reading does not change within a pulse.
+     */
+    private final IntOpenHashSet chainFrontZones = new IntOpenHashSet();
     /** Per lane, this pulse: how far along its road the friendly line has come. */
     private int[] routeLead = new int[0];
     /** Per lane, this pulse: where believed hostiles stand along its road, sorted. */
@@ -1279,6 +1295,13 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (!laneChainInForce() || assignment == null) return null;
         if (assignment.kind() == AssignmentKind.SECURE_COMPOUND) {
             int zone = assignment.targetZoneId();
+            // The squad's own lane first, because the objective is the last
+            // link of every chain and a lane-2 squad taking the keep is taking
+            // its own lane's last place, not lane 0's.
+            if (effectiveTrack >= 0 && effectiveTrack < laneChain.laneCount()) {
+                int own = laneChain.linkIndexOn(effectiveTrack, zone);
+                if (own >= 0) return new int[]{effectiveTrack, own};
+            }
             for (int lane = 0; lane < laneChain.laneCount(); lane++) {
                 int index = laneChain.linkIndexOn(lane, zone);
                 if (index >= 0) return new int[]{lane, index};
@@ -1414,7 +1437,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * the same frozen compound states the rest of the plan runs on.
      */
     private void readLaneChain() {
-        if (compoundTargets.isEmpty()) return;
+        if (compoundTargets.isEmpty()) {
+            // No compounds disclosed is not "the front is where it was": clear
+            // the pulse-local reading rather than steer off a frozen one.
+            Arrays.fill(chainFront, 0);
+            Arrays.fill(chainLinks, 0);
+            Arrays.fill(chainHeld, 0);
+            chainFrontZones.clear();
+            return;
+        }
         if (!laneChainRead && !laneRoutes.isEmpty()) {
             List<ConquestLaneChain.Compound> compounds =
                     new ArrayList<>(compoundTargets.size());
@@ -1447,6 +1478,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
             chainLinks[lane] = links;
             chainHeld[lane] = held;
         }
+        chainFrontZones.clear();
+        for (int lane = 0; lane < laneChain.laneCount(); lane++) {
+            List<ConquestLaneChain.Link> links = laneChain.links(lane);
+            int front = chainFront[lane];
+            if (front < 0 || front >= links.size()) continue;
+            for (int zone : links.get(front).captureZoneIds()) {
+                chainFrontZones.add(zone);
+            }
+        }
     }
 
     /** Whether the chain is the reading in force for this battle. */
@@ -1463,11 +1503,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * whichever finishes first is entitled to go for it.
      */
     private boolean isChainFront(int captureZoneId) {
-        for (int lane = 0; lane < laneChain.laneCount(); lane++) {
-            int index = laneChain.linkIndexOn(lane, captureZoneId);
-            if (index >= 0 && index == chainFront[lane]) return true;
-        }
-        return false;
+        return chainFrontZones.contains(captureZoneId);
     }
 
     /**
@@ -1583,9 +1619,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (track < 0 || track >= STRIP_COUNT) return null;
         if (frame.influence() == null) return null;
 
-        TrackStage onRoute = laneRouteChoice(squad, track, frame, attacking);
-        if (onRoute != null) return onRoute;
-
         int squadLateral = Math.round(trackLayout.lateralCoordinate(
                 squad.centroidX, squad.centroidY));
         TrackFront front = trackFront(squad, track, frame);
@@ -1594,8 +1627,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
         // — the tactical layer has a real target for it — and an exterior
         // contact the commander has not yet placed must stay ambient rather
         // than becoming a fabricated forward order.
+        //
+        // The gate stands in front of the route derivation as well: a road to
+        // the next place is a better line to walk than the axis, and it is not
+        // a reason to issue an order the commander has decided not to issue.
         if (!front.believed()
                 && (attacking || !EMPTY_TRACK_ADVANCE_ENABLED)) return null;
+
+        TrackStage onRoute = laneRouteChoice(squad, track, frame, attacking);
+        if (onRoute != null) return onRoute;
 
         int squadForward = Math.round(trackLayout.forwardCoordinate(
                 squad.centroidX, squad.centroidY));
@@ -1750,8 +1790,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
             int lane = trackLayout.trackForLateral(trackLayout.lateralCoordinate(
                     other.centroidX(), other.centroidY()));
             if (lane < 0 || lane >= lanes) continue;
-            int index = laneChain.routeIndexNear(lane, other.centroidX(),
-                    other.centroidY());
+            // Bounded to the road for the same reason a contact is: a squad
+            // off in the fields is not part of the line on this lane, and
+            // taking its nearest route cell anyway would let one stray body
+            // unlock a stage for everybody behind it.
+            int index = laneChain.routeIndexWithin(lane, other.centroidX(),
+                    other.centroidY(), TRACK_LINE_STANDOFF_LATERAL_CELLS);
             if (index > routeLead[lane]) routeLead[lane] = index;
         }
         CommanderInfluenceSnapshot influence = frame.influence();

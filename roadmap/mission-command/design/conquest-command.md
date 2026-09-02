@@ -4,7 +4,11 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — the tracks now have places on them.
+Updated: 2026-09-02 — a lane can be read as a chain of places taken in order;
+built, measured both ways, and left off by default because it costs a held
+compound.
+
+Earlier 2026-09-02 — the tracks now have places on them.
 
 Earlier 2026-09-01 — marine capture allocation is bounded to the home track and
 its neighbours, own track first, measured on a tree carrying the prosecution
@@ -26,10 +30,92 @@ Conquest is a directional territorial command duel. Three lateral **tracks**
 organize a readable front across the map's traversal axis. A track is a sticky
 coordination preference, not an ownership fence: squads may support a neighbor
 when their home track has no useful work, and the whole mobile force may
-converge for the culminating keep or final contested compound. The tracks now have
+converge for the culminating keep or final contested compound. The tracks have
 places on them: the map seeds a lane of garrison outposts and strongpoints along
 each track between the beachhead and the fortress, so an advancing track finds
 compounds to take on the way (see `precincts.md`).
+
+## The chain is the front; the track is the fence
+
+**Off by default: `battle.conquest.laneChain=true` turns it on.** Everything in
+this section describes what that switch buys and what it costs. It is built,
+tested and measured; it is not the shipped default, because measured both ways
+on one tree it costs `reinforced-south` a held compound. The numbers are at the
+end of the section.
+
+**A lane's state is ownership along its chain.** A lane is its ordered places
+from the beachhead to the keep — the recorded links of `MapResult.lanes`, each
+holding the compounds the packer stamped on its claimed ground. The lane's
+**front** is the first place the marines do not hold; that place is the lane's
+objective, everything behind it is ground already won, and everything beyond it
+is behind something still standing. Progress is a chain index.
+
+That replaces a forward fraction of the map, which was the right abstraction for
+a biome-band map and is close to meaningless on one grown from places: a track
+could read 0.8 advanced with its strongpoint still the defenders', and could not
+read a place retaken at all, because a fraction cannot go backwards. The chain
+can, and a lane whose strongpoint is retaken reads as a front coming back one
+rung, in the trace and in the report.
+
+**A compound is paired with the place it stands on by the generator, not by the
+commander.** Each recorded link carries the extent of its precinct's claim, and
+a compound belongs to the link whose claimed ground holds its anchor. Matching
+them by distance at battle time would be a second answer to a question the
+generator had already settled, and the two would disagree the first time either
+moved. A compound on no lane's ground — a settlement's supply hub, the beachhead
+— is off every chain and keeps the depth-latched reading the distant capture
+allocation has always used; there is no ladder to place it on and refusing it
+outright would strand it. A rung the map found no room for is stepped over
+rather than blocking the lane behind a capture that can never happen.
+
+**Staging follows the road, measured along it.** An advance-track order stages
+on the recorded route toward the next link, under the same laws the front push
+already had — friendly lead, safe stride, standoff behind the nearest believed
+hostile on that road, and no backtracking — but each of them counted in route
+cells instead of forward coordinate. The destination is a cell *of* the route,
+walked back until one is walkable and reachable, so a stage is on the road by
+construction rather than snapped toward it. A squad in contact gets the same
+derivation without the standoff, as it did before. A lane with no route, no
+place left to take, or a squad already past the next one falls through to the
+axis derivation, which is also the whole of what a lane-less map gets.
+
+**The tracks stay, as the lateral fence.** Which lane a squad belongs to,
+neighbour support, cohesion and the capture allocation's home-track bound are
+all still track questions and are unchanged. What a track stopped being is the
+measure of progress.
+
+**One switch governs both sides**, or a run measures a half-changed battle:
+with the chain off the attacker uses the forward fraction and the axis
+derivation, and the defender's reinforcement layer buckets by front band. The
+chain is map geometry and compound ownership — neutral referee facts either
+side may read — so a shared switch is not shared belief.
+
+**What it measures, and why it is off.** The canonical matrix, both ways from
+one tree at 18,000 ticks:
+
+| fixture | reading | captures | held | marine losses | defender losses | retargets |
+|---|---|---:|---:|---:|---:|---:|
+| reinforced-south | chain | 20 | 16 | 212 | 388 | 253 |
+| reinforced-south | fraction | 25 | 17 | 234 | 442 | 144 |
+| full-strength-west | chain | 13 | 7 | 382 | 446 | 288 |
+| full-strength-west | fraction | 12 | 7 | 334 | 448 | 418 |
+
+Held compounds is the outcome a Conquest is decided on, and the chain gives one
+back on `reinforced-south` while tying on `full-strength-west`. That is the
+whole reason it is off; everything else in the table is a trade somebody could
+argue either way — twenty-two fewer marines lost on the south, a capture and
+forty-eight more losses on the west, and churn that halves on one fixture while
+nearly doubling on the other.
+
+The reading itself works: the trace records fronts advancing and coming back —
+`+2/-2` on the south's third lane — and the report names the places the work
+went to. What it does not yet do is convert that into ground held. On
+`reinforced-south` the advance-track order is 5 pulses of 3,779, so the route
+staging the chain exists to feed almost never fires there and the change is
+carried entirely by the capture gate refusing everything but the front place.
+Refusing a takeable compound because it is behind a standing outpost is a real
+cost, and on that fixture it is not yet bought back. `lane-chain-tug-of-war.md`
+holds what remains.
 
 ## Marine command
 
@@ -152,6 +238,18 @@ belief honesty. The share is computed from the same coarse threatened-track
 picture, so a larger response is a larger response to a report — not a finer
 one, and never an enemy identity or an exact cell.
 
+**Where a relief goes is the chain's answer too, and symmetric to the
+attacker's.** A defender position standing on a lane is bucketed by that place
+rather than by the front band it happens to fall in, and is worth reinforcing
+only while its place is the lane's front — the one the marines are coming for —
+or the place they most recently took, which is what to retake. Everything
+further back on the lane is behind the fighting and everything further forward
+is not being attacked yet. A ring around the objective says how deep a position
+is and nothing about which lane is contested; the chain says exactly that.
+Which place changed hands last is a claim about order rather than a snapshot, so
+the reinforcement recompute remembers what it saw. A position on no lane keeps
+the band reading, which is what a settlement's guard post has and should have.
+
 Explicit hold, recapture, and relief tasks outrank soft track response. A
 Conquest convoy enters through the strict defender rear edge, uses a frozen
 behind-front deployment hint, and hands its passenger squad directly to
@@ -178,6 +276,25 @@ dominant assignment kind, and either known contact, an active compound objective
 or simple on-line status. It is an explanation of published orders, not another
 sensor: no-contact means no commander report, and the brief never consults
 neutral occupancy, capture progress, or the defender snapshot.
+
+**The Conquest diagnostics are keyed to places as well as to tracks.** Every
+published order carries the lane and rung it is about — its own compound's place
+for a capture, its lane's front for a staging or attack order — and every track
+state carries its ladder: how many places it has, how many the marines hold, and
+which rung is the front. The analysis reports, per lane, places held of places
+and how many times the front moved each way, and per place, the squad-pulses
+spent taking it, staging toward it, or withheld from it for front work. A track
+index alone cannot separate a squad standing off the outpost it is taking from
+one walking past it to the strongpoint behind, and a report about a battle
+measured in places held has to be able to name them. The chain-keyed rows are
+empty for a mission with no lanes and with the chain reading off, where there
+are no places to key to.
+
+The review frame marks each lane's front alongside its numbered links, so the
+picture and the report say the same thing about which rung a lane has got to.
+It derives the chain from the same recorded lanes and compound records the
+commander does rather than reading the commander's own, which is the ordinary
+neutral-observer rule.
 
 Conquest evidence measures assignment churn, response latency, reserve time,
 track concentration, target closure, target-zone arrival, capture-zone

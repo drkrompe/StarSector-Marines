@@ -136,6 +136,23 @@ class ConquestLaneChainTest {
     }
 
     @Test
+    @DisplayName("a place that is not the objective belongs to one lane only")
+    void anOrdinaryPlaceIsOnOneChain() {
+        // Two lanes whose claim boxes overlap on the outermost rung. Bounds are
+        // rectangles and claims are not, so this is a real map's failure mode:
+        // one compound on both chains would stop both fronts on it.
+        ConquestLaneChain chain = ConquestLaneChain.of(
+                List.of(lane(0, 10, 12, 4, 4, 4), lane(1, 16, 12, 4, 4, 4)),
+                List.of(compound(1, 0, 11)));
+
+        int onFirst = chain.links(0).get(0).captureZoneIds().length;
+        int onSecond = chain.links(1).get(0).captureZoneIds().length;
+        assertEquals(1, onFirst + onSecond, "the nearer place takes it, and only it");
+        assertEquals(1, onFirst, "the first lane's rung is the nearer of the two");
+        assertEquals(0, chain.laneOfCompound(1));
+    }
+
+    @Test
     @DisplayName("progress along the route is the nearest recorded cell")
     void routeProgressIsMeasuredOnTheRoute() {
         ConquestLaneChain chain = ConquestLaneChain.of(List.of(lane(0, 10)),

@@ -2147,8 +2147,13 @@ public final class BattleSetup {
         if (compounds == null || map.lanes.isEmpty()) return ConquestLaneChain.NONE;
         List<ConquestLaneChain.Compound> places = new ArrayList<>();
         for (CompoundService.Record record : compounds.getRecords()) {
-            places.add(new ConquestLaneChain.Compound(
-                    compounds.captureZoneId(record, sim),
+            int captureZone = compounds.captureZoneId(record, sim);
+            // The same guard the marine commander's own chain applies. A
+            // compound with no resolved capture room is not territory either
+            // side can read, and letting -1 onto a link pins that lane's front
+            // on a place that can never be held.
+            if (captureZone < 0) continue;
+            places.add(new ConquestLaneChain.Compound(captureZone,
                     record.node.anchorX, record.node.anchorY));
         }
         return ConquestLaneChain.of(map.lanes, places);
