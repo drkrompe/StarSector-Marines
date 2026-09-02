@@ -390,8 +390,11 @@ public class BriefingScreen implements Screen {
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
         long payout = (long) mission.payout * cashMult / 100L;
+        // A polity defence pays nothing by design, and a green zero reads as a reward
+        // that failed to load. Same rule the debrief already uses.
         rows.add(BriefingViewModel.info("payout", "Payout",
-                NumberFormat.getIntegerInstance().format(payout) + " credits", "tone-good"));
+                NumberFormat.getIntegerInstance().format(payout) + " credits",
+                payout > 0L ? "tone-good" : "tone-muted"));
         int salvageBaseline = mission.contractSalvageBaseline & 0xFF;
         if (salvageBaseline > 0) {
             int negotiated = mission.contractSalvageNegotiated & 0xFF;

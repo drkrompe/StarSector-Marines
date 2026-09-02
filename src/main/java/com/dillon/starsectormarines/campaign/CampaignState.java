@@ -404,6 +404,26 @@ public final class CampaignState implements Serializable {
     public int[]   stationedStrengthMarketId = filledInts(INITIAL_CAPACITY, -1);
     public int     stationedStrengthCount = 0;
 
+    // ---------- polity defence ledger (see polity-defence-raid-hook.md) ----------
+
+    /*
+     * Which vanilla raids the company has already met on the ground at one of the
+     * player's own colonies, and how that went. Its own small table rather than a
+     * contracts[] column, because a polity defence has no contract behind it: the pair
+     * (raid, market) is the identity, and the whole reason to persist it is so the
+     * offer does not come back and the resolution cannot settle twice.
+     */
+
+    /** Raid identity from {@code VanillaRaidGarrisonSystem.eventKey}; 0 in unused slots. */
+    public long[]  polityDefenceEventKey = new long[INITIAL_CAPACITY];
+    /** Defended market's slot in {@link #marketRegistry}; -1 in unused slots. */
+    public int[]   polityDefenceMarketId = filledInts(INITIAL_CAPACITY, -1);
+    /** 1 when the company won the ground and vanilla's raid was sent home. */
+    public byte[]  polityDefenceWon = new byte[INITIAL_CAPACITY];
+    /** Campaign day the defence settled; -1 in unused slots. */
+    public int[]   polityDefenceDay = filledInts(INITIAL_CAPACITY, -1);
+    public int     polityDefenceCount = 0;
+
     // ---------- id → row-index maps (average O(1); see campaign architecture) ----------
 
     public final LongIntMap houseIndexById     = new LongIntMap();
@@ -1889,6 +1909,28 @@ public final class CampaignState implements Serializable {
         // walk off the end of a save written while they were shorter.
         stationedStrengthCount = Math.max(0,
                 Math.min(stationedStrengthCount, stationedStrengthContractId.length));
+        if (polityDefenceEventKey == null) {
+            int n = polityDefenceMarketId != null
+                    ? polityDefenceMarketId.length : INITIAL_CAPACITY;
+            polityDefenceEventKey = new long[n];
+            polityDefenceCount = 0;
+        }
+        if (polityDefenceMarketId == null) {
+            polityDefenceMarketId = filledInts(polityDefenceEventKey.length, -1);
+            polityDefenceCount = 0;
+        }
+        if (polityDefenceWon == null) {
+            polityDefenceWon = new byte[polityDefenceEventKey.length];
+        }
+        if (polityDefenceDay == null) {
+            polityDefenceDay = filledInts(polityDefenceEventKey.length, -1);
+        }
+        // Four columns of one table, so the count is clamped to the shortest of them:
+        // a save written while any was smaller would otherwise walk off its end.
+        int polityDefenceCapacity = Math.min(
+                Math.min(polityDefenceEventKey.length, polityDefenceMarketId.length),
+                Math.min(polityDefenceWon.length, polityDefenceDay.length));
+        polityDefenceCount = Math.max(0, Math.min(polityDefenceCount, polityDefenceCapacity));
         return this;
     }
 
@@ -2007,6 +2049,62 @@ public final class CampaignState implements Serializable {
         Arrays.fill(stationedStrengthContractId, oldLength, n, -1L);
         stationedStrengthMarketId = Arrays.copyOf(stationedStrengthMarketId, n);
         Arrays.fill(stationedStrengthMarketId, oldLength, n, -1);
+    }
+
+    /**
+     * Records that the company met raid {@code eventKey} on the ground at
+     * {@code marketSlot}. Write-once: a pair already on the ledger is refused rather
+     * than rewritten, because that is what makes a replayed resolution a no-op.
+     *
+     * @return the row it landed on, or {@code -1} when the pair is already recorded or
+     *         the arguments cannot name one
+     */
+    public int recordPolityDefence(long eventKey, int marketSlot, boolean won, int day) {
+        if (eventKey == 0L || marketSlot < 0) return -1;
+        if (polityDefenceRow(eventKey, marketSlot) >= 0) return -1;
+        ensurePolityDefenceCapacity(polityDefenceCount + 1);
+        int i = polityDefenceCount++;
+        polityDefenceEventKey[i] = eventKey;
+        polityDefenceMarketId[i] = marketSlot;
+        polityDefenceWon[i] = (byte) (won ? 1 : 0);
+        polityDefenceDay[i] = day;
+        return i;
+    }
+
+    /** Row holding the settled defence of {@code marketSlot} against {@code eventKey}, or -1. */
+    public int polityDefenceRow(long eventKey, int marketSlot) {
+        if (eventKey == 0L || marketSlot < 0) return -1;
+        for (int i = 0; i < polityDefenceCount; i++) {
+            if (polityDefenceEventKey[i] == eventKey && polityDefenceMarketId[i] == marketSlot) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Whether raid {@code eventKey} has already been fought. The key already mixes the
+     * targeted market in, so this is the market-agnostic form the dialog-time offer
+     * filter needs.
+     */
+    public boolean hasPolityDefence(long eventKey) {
+        if (eventKey == 0L) return false;
+        for (int i = 0; i < polityDefenceCount; i++) {
+            if (polityDefenceEventKey[i] == eventKey) return true;
+        }
+        return false;
+    }
+
+    private void ensurePolityDefenceCapacity(int needed) {
+        if (needed <= polityDefenceEventKey.length) return;
+        int oldLength = polityDefenceEventKey.length;
+        int n = Math.max(needed, oldLength * 2);
+        polityDefenceEventKey = Arrays.copyOf(polityDefenceEventKey, n);
+        polityDefenceMarketId = Arrays.copyOf(polityDefenceMarketId, n);
+        Arrays.fill(polityDefenceMarketId, oldLength, n, -1);
+        polityDefenceWon = Arrays.copyOf(polityDefenceWon, n);
+        polityDefenceDay = Arrays.copyOf(polityDefenceDay, n);
+        Arrays.fill(polityDefenceDay, oldLength, n, -1);
     }
 
     private static int[] filledInts(int length, int value) {
