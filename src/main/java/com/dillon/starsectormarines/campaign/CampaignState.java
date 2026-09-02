@@ -1875,6 +1875,20 @@ public final class CampaignState implements Serializable {
             int n = contractId != null ? contractId.length : INITIAL_CAPACITY;
             contractNoticeAckStage = new byte[n];
         }
+        if (stationedStrengthContractId == null) {
+            int n = stationedStrengthMarketId != null
+                    ? stationedStrengthMarketId.length : INITIAL_CAPACITY;
+            stationedStrengthContractId = filledLongs(n, -1L);
+            stationedStrengthCount = 0;
+        }
+        if (stationedStrengthMarketId == null) {
+            stationedStrengthMarketId = filledInts(stationedStrengthContractId.length, -1);
+            stationedStrengthCount = 0;
+        }
+        // The pair is one table, so a count that outruns the arrays it addresses would
+        // walk off the end of a save written while they were shorter.
+        stationedStrengthCount = Math.max(0,
+                Math.min(stationedStrengthCount, stationedStrengthContractId.length));
         return this;
     }
 
