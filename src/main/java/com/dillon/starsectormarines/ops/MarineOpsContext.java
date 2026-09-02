@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.ContractType;
+import com.dillon.starsectormarines.campaign.systems.PolityThreatQuery;
+import com.dillon.starsectormarines.campaign.systems.VanillaRaidGarrisonSystem.RaidThreat;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
@@ -584,8 +586,9 @@ public class MarineOpsContext {
         if (POLITY_CLIENT_FACTION_ID.equals(client.factionId)) {
             // The polity is a venue, never a client (meta-progression.md): it cannot
             // hire the company, so the industry catalog must not manufacture work on
-            // its own colony. What it offers instead is a posting, and later a defence.
-            generated = Collections.emptyList();
+            // its own colony. What it offers is a posting and, while a raid is on the
+            // ground, the defence of the colony itself.
+            generated = Collections.unmodifiableList(polityDefenceMissions());
         } else if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
             Mission eventMission = localCampaignEventMission();
             generated = eventMission != null
@@ -731,6 +734,37 @@ public class MarineOpsContext {
     private static void appendIfWorkExists(List<Client> out, PlanetAPI planet,
                                            Client client) {
         if (!MissionGenerator.generate(planet, client).isEmpty()) out.add(client);
+    }
+
+    /**
+     * The colony defences on offer here: one per live vanilla raid this market can still
+     * be defended against. A query rather than a record — nothing about a pending threat
+     * is persisted, because the vanilla intel object already holds the raid
+     * ({@code polity-defence-raid-hook.md}).
+     *
+     * <p>These are ordinary mission rows, so they render, brief, and launch through the
+     * same {@code MissionSelectScreen} to {@code BriefingScreen} path every other mission
+     * takes, with the detachment chosen at the briefing.
+     */
+    private List<Mission> polityDefenceMissions() {
+        if (market == null || planet == null) return Collections.emptyList();
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        CampaignState state = script != null ? script.state() : null;
+        if (state == null) return Collections.emptyList();
+        List<RaidThreat> threats = PolityThreatQuery.fightableAt(
+                state, market, state::hasPolityDefence);
+        if (threats.isEmpty()) return Collections.emptyList();
+        int marketSlot = state.marketRegistry.intern(market.getId());
+        String marketFactionId = market.getFaction() != null
+                ? market.getFaction().getId() : null;
+        List<Mission> out = new ArrayList<>();
+        for (RaidThreat threat : threats) {
+            Mission mission = PolityDefenceMissionFactory.create(threat, marketSlot,
+                    state.factionRegistry.get(threat.attackerFactionId),
+                    planet.getName(), marketFactionId);
+            if (mission != null) out.add(mission);
+        }
+        return out;
     }
 
     private Mission localCampaignEventMission() {

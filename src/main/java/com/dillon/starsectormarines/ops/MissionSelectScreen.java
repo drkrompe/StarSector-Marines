@@ -312,7 +312,12 @@ public final class MissionSelectScreen implements Screen {
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return "Developer catalogue  ·  " + missions.size() + " eligible operation fixtures";
         }
-        if (MarineOpsContext.isPolityClient(client)) return Strings.get("postingClientSummary");
+        if (MarineOpsContext.isPolityClient(client)) {
+            // A polity row is a live raid and nothing else, so a non-empty list is the
+            // one thing worth saying before the player opens it.
+            return Strings.get(missions == null || missions.isEmpty()
+                    ? "postingClientSummary" : "postingClientSummaryRaid");
+        }
         return missions.size() + (missions.size() == 1 ? " current offer" : " current offers")
                 + "  ·  most markets will have none";
     }
