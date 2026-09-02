@@ -78,8 +78,12 @@ public final class PrecinctWardStage implements GenStage {
                 // After the lots, because authoring one clears tactical nodes
                 // and points of interest standing on its reservation, and a
                 // building has no business being removed by an airfield.
-                emitTacticalNodes(ctx, result);
-                emitPointsOfInterest(ctx, result);
+                if (precinct.isLanding()) {
+                    emitLandingNodes(ctx, result);
+                } else {
+                    emitTacticalNodes(ctx, result);
+                    emitPointsOfInterest(ctx, result);
+                }
                 // Recorded rather than dropped. Ground is granted from the
                 // program, but granted ground is not the same as ground the
                 // packer can use: measured on a cramped map, a garrison owed
@@ -141,6 +145,34 @@ public final class PrecinctWardStage implements GenStage {
                     room.originX() + room.shape().width() - 1,
                     room.originY() + room.shape().height() - 1,
                     Faction.DEFENDER, weight(kind), 3, false));
+        }
+    }
+
+    /**
+     * The same for a landing place, whose rooms are the marines' own.
+     *
+     * <p>Two differences, and both follow from whose ground it is. The rooms
+     * are {@link TacticalNode.Kind#INNER_POSITION} — positions inside a place
+     * rather than places of their own — because a spaceport terminal read as an
+     * {@code ARMORY} would register as a defender supply compound standing on
+     * the beachhead, and a Conquest is won by flipping every compound. The
+     * beachhead <em>is</em> a compound, exactly one, and
+     * {@link PrecinctLandingAreaStage} emits it once the berths it is made of
+     * exist.
+     *
+     * <p>No points of interest either: a point of interest is a prize a mission
+     * puts an objective on, and nothing raids the ground it landed on.
+     */
+    private static void emitLandingNodes(GenContext ctx, FortressInterior.Result result) {
+        for (RoomPacker.Placed room : result.placed()) {
+            int[] stand = standCell(ctx, room);
+            if (stand == null) continue;
+            ctx.tactical.add(new TacticalNode(TacticalNode.Kind.INNER_POSITION,
+                    stand[0], stand[1],
+                    room.originX(), room.originY(),
+                    room.originX() + room.shape().width() - 1,
+                    room.originY() + room.shape().height() - 1,
+                    Faction.MARINE, weight(TacticalNode.Kind.INNER_POSITION), 0, false));
         }
     }
 

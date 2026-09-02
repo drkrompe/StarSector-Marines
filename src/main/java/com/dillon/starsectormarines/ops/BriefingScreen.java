@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -507,6 +508,10 @@ public class BriefingScreen implements Screen {
                     mission.standoff != null ? mission.standoff.name() : "default",
                     false, false,
                     () -> cycleDebugStandoff(-1), () -> cycleDebugStandoff(1)));
+            controls.add(conquestControl("debug-map-landing", "Landing place",
+                    mission.landing != null ? mission.landing.name() : "derived",
+                    false, false,
+                    () -> cycleDebugLanding(-1), () -> cycleDebugLanding(1)));
             controls.add(conquestControl("debug-map-lanes", "Resistance lanes",
                     mission.lanes != null ? Integer.toString(mission.lanes) : "default",
                     false, mission.lanes != null
@@ -606,6 +611,26 @@ public class BriefingScreen implements Screen {
         int next = Math.floorMod(current + step, DEBUG_MAX_RESISTANCE_LANES + 2);
         Mission adjusted = DebugMissionDifficulty.atLanes(mission,
                 next == 0 ? null : next - 1);
+        if (adjusted == null) return;
+        ctx.setSelectedMission(adjusted);
+        rebuild();
+    }
+
+    /**
+     * Steps the DEBUG briefing through the world's own answer and the three
+     * landing kinds, so a beachhead on a spaceport campus and one on bare
+     * ground can be played back to back.
+     */
+    private void cycleDebugLanding(int step) {
+        Mission mission = ctx.getSelectedMission();
+        if (mission == null) return;
+        LandingKind[] values = LandingKind.values();
+        // Index 0 is the world's own answer; the stated kinds follow it, the
+        // way the sprawl cycle carries "derived".
+        int current = mission.landing != null ? mission.landing.ordinal() + 1 : 0;
+        int next = Math.floorMod(current + step, values.length + 1);
+        Mission adjusted = DebugMissionDifficulty.atLanding(mission,
+                next == 0 ? null : values[next - 1]);
         if (adjusted == null) return;
         ctx.setSelectedMission(adjusted);
         rebuild();

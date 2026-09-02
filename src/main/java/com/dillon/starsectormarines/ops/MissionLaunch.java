@@ -221,7 +221,8 @@ public final class MissionLaunch {
                                 det.shuttleManifest, enemyHasHeavyArmor,
                                 m.tier, m.risk, profile, det.marineWings,
                                 m.enemyFighterSupport,
-                                conquestArrivalPlan, sprawl, m.standoff, m.lanes);
+                                conquestArrivalPlan, sprawl, m.standoff, m.lanes,
+                                m.landing);
                 sim = conquestFixture.build();
                 fixture = conquestFixture;
                 break;
