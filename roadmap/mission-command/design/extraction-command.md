@@ -6,7 +6,7 @@ Colony has stable Marine expedition branches; live acceptance remains open.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — shipped deterministic Civilian Rescue corridor command and its separately disclosed swarm-pressure director.
+Updated: 2026-09-01 — defined an actionable contact for the Extraction alarm responders, so the source-perimeter fallback is a rule rather than a total belief loss.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -62,17 +62,15 @@ The published command picture carries payload phase, position, route guide,
 progress, escort control, stable role, reason, assignment kind, target cell,
 and local-contact state. The selected-squad overlay, squad dump, and
 perspective trace all consume that picture. `commanderEvidence
--Pmission=extraction` replays the production fixture twice under forced-serial
-scheduling. With paired command active, the current canonical fixture reaches
-an explained defender win at tick 5,304 after the package advances 32 percent;
-it proves ownership, redaction, source-perimeter fallback, belief-driven
+-Pmission=extraction` replays the production fixture under forced-serial
+scheduling; `-Prepeat=2` restores the paired byte-stable replay. The canonical
+matrix proves ownership, redaction, source-perimeter fallback, belief-driven
 interdiction, and deterministic terminal law. The paired alarm-response fixture
 deliberately concentrates twelve six-seat
 shuttles into one sortie. It is branch evidence rather than a balance target:
-Marines complete extraction at tick 9,183 while defenders publish the alarm
-interdiction phase. Across the matrix, defenders publish both belief-driven
-interdiction and source-perimeter fallback when no contact is actionable. Both
-fixtures replay byte-identically.
+it exists so the alarm interdiction phase is published somewhere in the matrix.
+Across the matrix, defenders publish both belief-driven interdiction and
+source-perimeter fallback when no contact is actionable.
 `-Pfixture` and `-PmaxTicks` continue to select labelled ad hoc evidence rather
 than adding a mission-specific Gradle task.
 
@@ -80,10 +78,25 @@ Generic conventional defenders receive a small mission-owned patrol pool while
 authored garrisons retain their posts. One patrol guards the public source and
 the rest remain an explicit reserve until the identity-free alarm mobilizes at
 most three squads. Responders use defender-local contact beliefs for
-interdiction when available; without a contact they reinforce separate
+interdiction when one is actionable; otherwise they reinforce separate
 reachable source-perimeter positions. The alarm authorizes mobilization but
 never reveals egress, live package position, progress, cohort state, escort,
 controlling squad, or hostile identity.
+
+**Actionable is narrower than known, and the difference is what the fallback
+is for.** The side's whole belief set is a memory: the influence picture
+aggregates every defender squad's contacts across the map and keeps each one
+until its confidence decays away, tens of seconds after anybody last had eyes
+on it. A belief older than one command pulse says where the enemy was; a
+belief whose ground this responder cannot reach names a place it cannot go.
+Neither is something to interdict, and the answer to both is the source
+perimeter — this pool is bounded source security, not a hunting party, and
+treating the whole remembered set as targets sends the source's own reserve
+across the map to a garrison's last glimpse and back again on the next pulse.
+The published role therefore names the ground actually taken rather than the
+intent that selected it: a squad standing on the source perimeter is a
+responder however it got there. The coarse contact count the defender
+publishes stays the whole known set, because that is what the side knows.
 
 The defender overlay, squad dump, and perspective trace publish only the
 source, alarm and terminal disclosure, a coarse contact summary, mobile/reserve

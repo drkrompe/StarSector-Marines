@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot.Pha
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot.Role;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot.SquadIntent;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
@@ -19,6 +20,23 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         ExtractionDefenderCommandFrame, ExtractionDefenseSnapshot> {
 
     static final int ALARM_RESPONSE_LIMIT = 3;
+    /**
+     * How old a believed contact may be and still be somewhere worth sending a
+     * responder: one command pulse, the interval between the picture this plan
+     * was made from and the next one.
+     *
+     * <p>The mobile pool is bounded source security, not a hunting party. The
+     * defender influence snapshot aggregates the beliefs of every defender
+     * squad on the map and holds each one until its confidence decays away,
+     * which is tens of seconds after anybody last had eyes on it; treating that
+     * whole set as interdictable sends the source's own reserve across the map
+     * to the place a garrison last glimpsed somebody, and then back again on
+     * the next pulse. A sighting older than the pulse is where the enemy was.
+     * There is nothing left to interdict, and the doctrine's answer to that is
+     * the source perimeter.
+     */
+    static final int ACTIONABLE_CONTACT_TICKS = Math.round(
+            CommanderService.COMMANDER_TICK_PERIOD / BattleSimulation.TICK_DT);
     private static final int[][] RALLY_OFFSETS = {
             {0, -4}, {4, 0}, {0, 4}, {-4, 0},
             {3, -3}, {3, 3}, {-3, 3}, {-3, -3}, {0, 0}
@@ -65,6 +83,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
         List<CommanderContact> contacts = contacts(frame);
         int freshestContactTick = contacts.stream()
                 .mapToInt(CommanderContact::observedTick).max().orElse(-1);
+        List<CommanderContact> actionable = actionable(contacts, frame.tick());
 
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
@@ -112,14 +131,17 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                 continue;
             }
 
-            CommanderContact contact = index > 0 && !contacts.isEmpty()
-                    ? contacts.get((index - 1) % contacts.size()) : null;
-            int centerX = contact != null ? contact.cellX()
-                    : payload.sourceCellX();
-            int centerY = contact != null ? contact.cellY()
-                    : payload.sourceCellY();
-            int[] rally = rally(squad, index, centerX, centerY, frame);
-            if (rally == null && contact != null) {
+            CommanderContact contact = index > 0 && !actionable.isEmpty()
+                    ? actionable.get((index - 1) % actionable.size()) : null;
+            int[] rally = contact != null
+                    ? rally(squad, index, contact.cellX(), contact.cellY(),
+                    frame) : null;
+            // The published role names the ground actually taken. A contact
+            // with no reachable rally position is as unactionable as no contact
+            // at all, and the squad standing on the source perimeter is not
+            // interdicting anything however it got there.
+            boolean interdicting = rally != null;
+            if (rally == null) {
                 rally = rally(squad, index, payload.sourceCellX(),
                         payload.sourceCellY(), frame);
             }
@@ -135,7 +157,7 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
             }
 
             Role role = index == 0 ? Role.SOURCE_GUARD
-                    : contact != null ? Role.INTERDICTION
+                    : interdicting ? Role.INTERDICTION
                     : Role.ALARM_RESPONDER;
             String reason = role == Role.SOURCE_GUARD
                     ? payload.alarmActive() ? "SOURCE_ALARM_SECURITY"
@@ -186,6 +208,25 @@ public final class ExtractionDefenderCommand implements AutonomousMissionCommand
                                 CommanderContact::confidence).reversed())
                         .thenComparingInt(CommanderContact::cellY)
                         .thenComparingInt(CommanderContact::cellX))
+                .toList();
+    }
+
+    /**
+     * The believed contacts a responder may still be sent to, freshest first
+     * and in the order the caller gave them.
+     *
+     * <p>Everything the commander knows still reaches the published picture as
+     * a coarse count; this narrows only what a responder may be ordered onto.
+     * The whole known set is a memory, and a memory is not a target.
+     *
+     * @param contacts the side's known contacts, freshest first
+     * @param tick     the tick this plan is being made on
+     */
+    static List<CommanderContact> actionable(List<CommanderContact> contacts,
+                                             int tick) {
+        return contacts.stream()
+                .filter(contact -> tick - contact.observedTick()
+                        <= ACTIONABLE_CONTACT_TICKS)
                 .toList();
     }
 
