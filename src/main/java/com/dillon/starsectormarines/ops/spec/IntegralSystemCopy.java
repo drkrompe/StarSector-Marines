@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.ops;
+package com.dillon.starsectormarines.ops.spec;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.BraceSpec;
@@ -31,13 +31,13 @@ import java.util.Locale;
  * Anything a future system authors but does not yet simulate stays out of this
  * copy until it does; the Armory is evidence, not a brochure.
  */
-final class IntegralSystemCopy {
+public final class IntegralSystemCopy {
 
     private static final String SEPARATOR = "  ·  ";
 
     private IntegralSystemCopy() { }
 
-    static boolean carried(MarineArmorCatalogDef armor) {
+    public static boolean carried(MarineArmorCatalogDef armor) {
         return armor != null && armor.hasIntegralSystem();
     }
 
@@ -47,7 +47,7 @@ final class IntegralSystemCopy {
      * that symmetry is the point — a suit's system and a billet's special item
      * are separate issues, and the screen should not imply one costs the other.
      */
-    static String summary(MarineArmorCatalogDef armor) {
+    public static String summary(MarineArmorCatalogDef armor) {
         if (!carried(armor)) return "No integral system";
         IntegralSystemDef system = armor.integralSystem();
         return system.familyName() + SEPARATOR + system.grade().displayName
@@ -60,12 +60,12 @@ final class IntegralSystemCopy {
      * flavour and useless for comparison — so the family and the grade lead,
      * and the authored name follows as the thing it is.
      */
-    static String flavorName(MarineArmorCatalogDef armor) {
+    public static String flavorName(MarineArmorCatalogDef armor) {
         return carried(armor) ? armor.integralSystem().displayName() : "";
     }
 
     /** The family icon, or null when the pattern carries nothing. */
-    static String iconPath(MarineArmorCatalogDef armor) {
+    public static String iconPath(MarineArmorCatalogDef armor) {
         return carried(armor) ? armor.integralSystem().effect().iconPath : null;
     }
 
@@ -75,7 +75,7 @@ final class IntegralSystemCopy {
      * is deliberately left out — it runs to a couple of hundred characters and
      * would clip rather than inform. That belongs in {@link #detail}.
      */
-    static String tile(MarineArmorCatalogDef armor) {
+    public static String tile(MarineArmorCatalogDef armor) {
         if (!carried(armor)) return summary(armor);
         String effect = effect(armor.integralSystem());
         return effect.isEmpty() ? summary(armor)
@@ -83,7 +83,7 @@ final class IntegralSystemCopy {
     }
 
     /** The hover copy: the authored description, then what it does and its clock. */
-    static String detail(MarineArmorCatalogDef armor) {
+    public static String detail(MarineArmorCatalogDef armor) {
         if (!carried(armor)) {
             return "This pattern carries no integral system. It fights on its plate, its"
                     + " balance, and whatever the billet is carrying.";
