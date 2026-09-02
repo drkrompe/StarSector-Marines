@@ -1,18 +1,16 @@
 # Map generation story board
 
-Status: ACTIVE — fifteen bounded precinct, station, city, economic, or cross-feature
-stories remain open.
+Status: ACTIVE — fourteen bounded precinct, station, city, economic, or
+cross-feature stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the landing-place story shipped; the landing zone is a
-precinct with a kind, holding the berths and the spawn, and a compound the
-marines start the battle holding, folded into `precincts.md` and
-`conquest-nouns.md`.
+Updated: 2026-09-02 — the lane-paths story shipped; a lane is a path its
+ladder stands on and a walkable route the map records, folded into
+`precincts.md` and `mapgen-nouns.md`.
 
 | Story | Status | Outcome |
 |---|---|---|
-| `lane-paths.md` | PLANNED | A lane is a path: places stand on its waypoints in order, the route between them is a road the map records, derived paths meander and refuse ground they cannot cross. Supersedes strip seeding. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |

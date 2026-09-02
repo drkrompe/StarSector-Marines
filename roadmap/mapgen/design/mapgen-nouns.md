@@ -40,7 +40,7 @@ or absent feature, and unordered iteration must never decide an outcome.
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,
 defense posts, landing pads, decorative placements, and the authored road,
-biome or front-depth data that battle consumers need. Recipe-internal analysis such as station
+biome, front-depth or lane-route data that battle consumers need. Recipe-internal analysis such as station
 graphs and tactical-region maps may remain in the context until an external
 consumer justifies result plumbing. Final validation protects connectivity,
 deployability, doors, and other cross-system assumptions. Decoration may
@@ -806,7 +806,9 @@ zero times; the labels that seemed to land on fields were the debug overlay
 drawing the district grid across the whole map.
 
 Where the settlement stands and how far it reaches is the precinct model's
-business — see `precincts.md`.
+business — see `precincts.md`, which also owns the **lane**: the path a
+Conquest's ladder of places stands on, and the walkable route between them that
+the map records for the command layer to read.
 
 ## Defense-post layouts
 

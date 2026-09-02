@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.FrontDepth;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -147,6 +148,18 @@ public final class MapResult {
      * depth zero from, which is the gate on installing that layer at all.
      */
     public final FrontDepth frontDepth;
+    /**
+     * Where each lane of resistance runs — its places from the beachhead to the
+     * objective, and the road route through them. Empty on every map that laid
+     * no lanes, which is every mission but Conquest, and never null.
+     *
+     * <p>The seam a commander's lane chain reads. Ownership along the chain is
+     * what a Conquest is measured in, and staging on the road to the next link
+     * needs a road somebody wrote down; re-deriving one at battle time would be
+     * a second answer to a question generation had already settled. See
+     * {@code precincts.md}.
+     */
+    public final List<LaneRoute> lanes;
 
     public MapResult(NavigationGrid grid, CellTopology topology,
                      int marineSpawnX, int marineSpawnY,
@@ -361,6 +374,31 @@ public final class MapResult {
                      List<Gantry> shelters,
                      VehicleCorridor vehicleCorridor,
                      FrontDepth frontDepth) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                landingPads, landingAreas, biomeMap, gantries, fixtureTasks, runways,
+                shelters, vehicleCorridor, frontDepth, Collections.emptyList());
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads,
+                     List<LandingArea> landingAreas,
+                     BiomeMap biomeMap,
+                     List<Gantry> gantries,
+                     List<FixtureTask> fixtureTasks,
+                     List<Runway> runways,
+                     List<Gantry> shelters,
+                     VehicleCorridor vehicleCorridor,
+                     FrontDepth frontDepth,
+                     List<LaneRoute> lanes) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -384,5 +422,6 @@ public final class MapResult {
                 ? Collections.emptyList() : List.copyOf(fixtureTasks);
         this.runways = runways == null ? Collections.emptyList() : List.copyOf(runways);
         this.shelters = shelters == null ? Collections.emptyList() : List.copyOf(shelters);
+        this.lanes = lanes == null ? Collections.emptyList() : List.copyOf(lanes);
     }
 }

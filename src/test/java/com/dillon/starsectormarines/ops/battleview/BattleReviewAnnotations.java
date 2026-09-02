@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -28,6 +29,10 @@ public final class BattleReviewAnnotations {
     public static ReviewAnnotations forBattle(BattleSimulation simulation) {
         if (simulation == null) return ReviewAnnotations.NONE;
         ReviewAnnotations.Builder marks = ReviewAnnotations.builder();
+        // Routes first, so the compound boxes and their words draw over them
+        // rather than under: a lane runs through the places it joins, and the
+        // reader is judging the places.
+        addLaneRoutes(marks, simulation);
         Ends ends = addCompounds(marks, simulation);
         // The landing place when the map has one, and the berths themselves
         // when it does not. A beachhead that is a compound is boxed by the
@@ -46,6 +51,37 @@ public final class BattleReviewAnnotations {
 
     /** The two ends of the approach, whichever of them the battle has. */
     private record Ends(TacticalNode keep, TacticalNode beachhead) { }
+
+    /**
+     * One line per lane, drawn through its numbered links.
+     *
+     * <p>A bend is the thing a lane path exists to be able to say, and it is
+     * invisible in every other mark on the frame — the compounds are boxes and
+     * the approach is one straight arrow from the beachhead to the keep. So the
+     * route is drawn as it actually runs, cell by cell, and each link carries
+     * its position along the lane, so a reader can see both that lane 2 goes
+     * round the reservoir and which of its places is next.
+     *
+     * <p>The objective is not numbered. Every lane ends there, three labels
+     * would land on the same pixels, and the keep already says what it is.
+     */
+    private static void addLaneRoutes(ReviewAnnotations.Builder marks,
+                                      BattleSimulation simulation) {
+        for (LaneRoute lane : simulation.getLaneRoutes()) {
+            List<ReviewAnnotation.Point> points = new ArrayList<>(lane.route().size());
+            for (LaneRoute.Cell cell : lane.route()) {
+                points.add(new ReviewAnnotation.Point(cell.x(), cell.y()));
+            }
+            marks.polyline(points, "lane " + (lane.lane() + 1), ReviewStyle.ROUTE);
+            int link = 0;
+            for (LaneRoute.Link at : lane.links()) {
+                if (at.band() == LaneRoute.OBJECTIVE_BAND) continue;
+                link++;
+                marks.label(at.x(), at.y(),
+                        (lane.lane() + 1) + "." + link, ReviewStyle.ROUTE);
+            }
+        }
+    }
 
     /**
      * One box per compound, labelled with what it is and who holds it.

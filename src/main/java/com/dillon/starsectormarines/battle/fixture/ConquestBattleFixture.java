@@ -6,12 +6,15 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LanePath;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Standoff;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,12 +33,18 @@ import java.util.Objects;
  *
  * <p>{@code lanes} is the third of them: how many lanes of resistance lie
  * between the beachhead and the objective, or {@code null} for one per command
- * track. A fixture states the count only; what stands on each lane steps down
- * from the objective's own fortification.
+ * track. What stands on each lane steps down from the objective's own
+ * fortification.
  *
  * <p>{@code landing} is the fourth: what the force comes down on, or
  * {@code null} for the kind the target world offers. A Conquest always lands on
  * a place; this says which kind of place it is.
+ *
+ * <p>{@code lanePaths} is the fifth, and the other half of the lane statement:
+ * where those lanes go — one route per lane in lane order, or {@code null} for
+ * lanes that derive their own. A fixture pins a zig-zag here when the evidence
+ * it exists for is about a bend; ordinary fixtures state none and take the
+ * derived meander.
  */
 public record ConquestBattleFixture(
         long seed,
@@ -50,11 +59,29 @@ public record ConquestBattleFixture(
         PrecinctPlan.Sprawl sprawl,
         Standoff standoff,
         Integer lanes,
-        LandingKind landing) implements BattleFixture {
+        LandingKind landing,
+        List<LanePath> lanePaths) implements BattleFixture {
 
     public static final String KIND = "CONQUEST";
 
+    /** A fixture stating a landing kind but leaving every lane route to derive. */
+    public ConquestBattleFixture(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
+            Standoff standoff, Integer lanes, LandingKind landing) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
+                standoff, lanes, landing, null);
+    }
+
     public ConquestBattleFixture {
+        // Not List.copyOf: a null entry is a lane that derives its own route.
+        lanePaths = lanePaths == null ? null
+                : Collections.unmodifiableList(new ArrayList<>(lanePaths));
         manifest = List.copyOf(Objects.requireNonNull(manifest, "manifest"));
         tier = Objects.requireNonNull(tier, "tier");
         risk = Objects.requireNonNull(risk, "risk");
@@ -76,7 +103,7 @@ public record ConquestBattleFixture(
             ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
                 marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
-                null, null, null);
+                null, null, null, null);
     }
 
     /** A fixture that states a sprawl and an approach but nothing about lanes. */
@@ -90,7 +117,7 @@ public record ConquestBattleFixture(
             Standoff standoff) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
                 marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
-                standoff, null, null);
+                standoff, null, null, null);
     }
 
     /** A fixture that states everything but what it comes down on. */
@@ -104,7 +131,7 @@ public record ConquestBattleFixture(
             Standoff standoff, Integer lanes) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
                 marineFighterSupport, enemyFighterSupport, arrivalPlan, sprawl,
-                standoff, lanes, null);
+                standoff, lanes, null, null);
     }
 
     /** A fixture that says nothing about sprawl; the market derives it. */
@@ -117,7 +144,7 @@ public record ConquestBattleFixture(
             ShuttleArrivalPlan arrivalPlan) {
         this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
                 marineFighterSupport, enemyFighterSupport, arrivalPlan, null,
-                null, null, null);
+                null, null, null, null);
     }
 
     /** V1 fixture compatibility: historical Conquest arrivals were independent. */
@@ -185,12 +212,25 @@ public record ConquestBattleFixture(
             FlybyRoster enemyFighterSupport,
             ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
             Standoff standoff, Integer lanes, LandingKind landing) {
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport,
+                arrivalPlan, sprawl, standoff, lanes, landing, null);
+    }
+
+    public static ConquestBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan, PrecinctPlan.Sprawl sprawl,
+            Standoff standoff, Integer lanes, LandingKind landing,
+            List<LanePath> lanePaths) {
         return new ConquestBattleFixture(seed,
                 manifest == null ? List.of() : List.copyOf(manifest),
                 enemyHasHeavyArmor, tier, risk, targetProfile,
                 FighterWingCommitment.captureRoster(marineFighterSupport),
                 FighterWingCommitment.captureRoster(enemyFighterSupport),
-                arrivalPlan, sprawl, standoff, lanes, landing);
+                arrivalPlan, sprawl, standoff, lanes, landing, lanePaths);
     }
 
     public static ConquestBattleFixture fromFactoryInputs(
@@ -214,6 +254,6 @@ public record ConquestBattleFixture(
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
                 FighterWingCommitment.toRoster(enemyFighterSupport), arrivalPlan,
-                sprawl, standoff, lanes, landing);
+                sprawl, standoff, lanes, landing, lanePaths);
     }
 }

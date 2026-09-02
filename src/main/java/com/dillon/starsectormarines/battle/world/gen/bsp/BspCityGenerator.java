@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LabelLeavesStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.LaneRouteStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.PedestrianFrameStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoadGraphStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.RoomCarveStage;
@@ -250,13 +251,13 @@ public final class BspCityGenerator implements MapGenerator {
                                         GenStage landingLinkStage, GenStage wardStage,
                                         GenStage defenceStage) {
         return buildLegacyRecipe(trunkStage, hinterlandStage, landingLinkStage,
-                wardStage, defenceStage, null, null);
+                wardStage, defenceStage, null, null, null);
     }
 
     private GenRecipe buildLegacyRecipe(GenStage trunkStage, GenStage hinterlandStage,
                                         GenStage landingLinkStage, GenStage wardStage,
                                         GenStage defenceStage, GenStage landingAreaStage,
-                                        GenStage frontStage) {
+                                        GenStage frontStage, GenStage laneRouteStage) {
         return new GenRecipe("LegacyUrban", compose(
                 new InitFloorStage(),                       // Step 0
                 trunkStage,                                 // Step 1a
@@ -280,6 +281,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new SpawnAnchorStage(),                     // spawn anchors
                 landingAreaStage,                           // precinct-only; null omits it
                 frontStage,                                 // precinct-only; null omits it
+                laneRouteStage,                             // precinct-only; the road each lane runs on
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
@@ -428,7 +430,7 @@ public final class BspCityGenerator implements MapGenerator {
         return buildLegacyRecipe(new PrecinctSkeletonStage(plan),
                 new HinterlandFillStage(), null, new PrecinctWardStage(),
                 new PrecinctDefenceStage(), new PrecinctLandingAreaStage(),
-                new FrontDepthStage());
+                new FrontDepthStage(), new LaneRouteStage());
     }
 
     private GenRecipe grownLegacyRecipe(GrownTrunkPlan.Profile profile) {
@@ -718,7 +720,7 @@ public final class BspCityGenerator implements MapGenerator {
                 ctx.landingPads, ctx.landingAreas,
                 biomeMap, ctx.gantries, ctx.fixtureTasks,
                 ctx.runways, ctx.shelters, ctx.get(BspKeys.VEHICLE_CORRIDOR),
-                ctx.get(BspKeys.FRONT_DEPTH));
+                ctx.get(BspKeys.FRONT_DEPTH), ctx.get(BspKeys.LANES));
 
         this.lastBiomeMap = biomeMap;
         this.lastDistrictMap = ctx.get(BspKeys.DISTRICT_MAP);
