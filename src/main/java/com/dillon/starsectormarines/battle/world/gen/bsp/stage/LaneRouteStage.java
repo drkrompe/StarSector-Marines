@@ -69,21 +69,60 @@ public final class LaneRouteStage implements GenStage {
         Precinct objective = plan.objective();
         if (objective == null) return;
 
+        int[][] bounds = claimBounds(claim, plan.precincts().size(),
+                ctx.width, ctx.height);
         List<LaneRoute> lanes = new ArrayList<>();
         for (int lane = 0; lane < plan.lanes().count(); lane++) {
-            lanes.add(route(ctx, plan, claim, road, objective, lane));
+            lanes.add(route(ctx, plan, claim, road, bounds, objective, lane));
         }
         ctx.put(BspKeys.LANES, List.copyOf(lanes));
     }
 
+    /**
+     * The extent of every precinct's claim, in one pass over the map.
+     *
+     * <p>A link records the ground its place holds so the commander can pair a
+     * compound with the place it stands in rather than with the nearest anchor.
+     * Measured here because this is the only layer that has the claim: it is
+     * generation scratch, and nothing downstream of {@code MapResult} sees it.
+     *
+     * @return {@code {left, top, right, bottom}} per precinct index, or a row
+     *         of {@code -1} for a precinct that claimed nothing
+     */
+    private static int[][] claimBounds(int[][] claim, int precincts,
+                                       int width, int height) {
+        int[][] bounds = new int[precincts][];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                int who = claim[x][y];
+                if (who < 0 || who >= precincts) continue;
+                int[] box = bounds[who];
+                if (box == null) {
+                    bounds[who] = new int[]{x, y, x, y};
+                    continue;
+                }
+                if (x < box[0]) box[0] = x;
+                if (y < box[1]) box[1] = y;
+                if (x > box[2]) box[2] = x;
+                if (y > box[3]) box[3] = y;
+            }
+        }
+        for (int i = 0; i < precincts; i++) {
+            if (bounds[i] == null) bounds[i] = new int[]{-1, -1, -1, -1};
+        }
+        return bounds;
+    }
+
     /** One lane's links and the polyline through them. */
     private static LaneRoute route(GenContext ctx, PrecinctPlan plan, int[][] claim,
-                                   int[][] road, Precinct objective, int lane) {
+                                   int[][] road, int[][] claimBounds,
+                                   Precinct objective, int lane) {
         List<LaneRoute.Link> links = new ArrayList<>();
         List<LaneRoute.Cell> polyline = new ArrayList<>();
         List<int[]> anchors = new ArrayList<>();
         List<String> names = new ArrayList<>();
         List<Integer> bands = new ArrayList<>();
+        List<int[]> grounds = new ArrayList<>();
 
         // Outermost rung first: a lane runs from the beachhead to the keep, and
         // the ladder counts the other way.
@@ -98,6 +137,7 @@ public final class LaneRouteStage implements GenStage {
             anchors.add(anchor);
             names.add(name);
             bands.add(band);
+            grounds.add(claimBounds[index]);
         }
         int objectiveIndex = plan.precincts().indexOf(objective);
         int[] end = anchor(ctx, claim, road, objectiveIndex, objective);
@@ -105,6 +145,7 @@ public final class LaneRouteStage implements GenStage {
             anchors.add(end);
             names.add(objective.name());
             bands.add(LaneRoute.OBJECTIVE_BAND);
+            grounds.add(claimBounds[objectiveIndex]);
         }
 
         for (int i = 0; i < anchors.size(); i++) {
@@ -123,8 +164,10 @@ public final class LaneRouteStage implements GenStage {
             } else {
                 polyline.add(new LaneRoute.Cell(at[0], at[1]));
             }
+            int[] ground = grounds.get(i);
             links.add(new LaneRoute.Link(names.get(i), bands.get(i), at[0], at[1],
-                    polyline.size() - 1));
+                    polyline.size() - 1, ground[0], ground[1], ground[2],
+                    ground[3]));
         }
         return new LaneRoute(lane, links, polyline);
     }
