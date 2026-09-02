@@ -58,7 +58,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
                     ScreenId.MISSION_SELECT,
                     ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
                     ScreenId.MECH_LAB, ScreenId.BOAT_DECK,
-                    ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING);
+                    ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING,
+                    ScreenId.POLITY_DOCTRINE);
 
     private final MarineOpsContext ctx;
     private final EnumMap<ScreenId, Screen> screens = new EnumMap<>(ScreenId.class);
@@ -95,6 +96,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.BRIEFING,       new BriefingScreen());
         screens.put(ScreenId.SQUAD_DEPLOYMENT, new SquadDeploymentScreen());
         screens.put(ScreenId.STATIONING,     new StationingScreen());
+        screens.put(ScreenId.POLITY_DOCTRINE, new PolityDoctrineScreen());
         screens.put(ScreenId.SHIP_VIEW,      new ShipViewScreen());
         screens.put(ScreenId.BATTLE,         new BattleScreen());
         screens.put(ScreenId.RESULTS,        new ResultsScreen());

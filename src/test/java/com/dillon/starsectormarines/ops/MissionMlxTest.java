@@ -184,6 +184,30 @@ class MissionMlxTest {
         }
     }
 
+    /**
+     * The polity's doctrine panel builds every element the screen requires, with
+     * its three steppers, the derived summary, and both release lists standing.
+     */
+    @Test
+    void polityDoctrineBuildsItsSteppersAndBothReleaseLists() throws Exception {
+        MarkupLoader loader = loader(PolityDoctrineScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(new Reactor(),
+                PolityDoctrineScreen.ROOT_COMPONENT,
+                PolityDoctrineScreen.previewProps(ModStrings.fromDisk()))) {
+            for (String id : new PolityDoctrineScreen().requiredElementIds()) {
+                instance.requireElement(id);
+            }
+            instance.requireElement("polity-axis-quality-minus");
+            instance.requireElement("polity-axis-heavy_support-plus");
+            instance.requireElement("polity-field-headcount-value");
+            instance.requireElement("polity-releasable-0-action");
+            instance.requireElement("polity-released-0-tag");
+            assertFalse(instance.requireElement("polity-doctrine-note").hasClass("hidden"),
+                    "the preview colony has the company's own detachment on it");
+        }
+    }
+
     @Test
     void tierSelectorOwnsTheDebugCompanyStage() {
         assertEquals(DebugCompanyStage.FIRST_CONTRACT,

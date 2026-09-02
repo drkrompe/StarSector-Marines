@@ -54,6 +54,13 @@ public final class GroundRosterProfile {
             totalWeight = total;
         }
 
+        /** Every value the table can roll, in the order it was authored or derived. */
+        List<T> values() {
+            List<T> out = new ArrayList<>(entries.size());
+            for (Entry<T> entry : entries) out.add(entry.value);
+            return List.copyOf(out);
+        }
+
         T pick(Random rng) {
             int roll = rng.nextInt(totalWeight);
             for (Entry<T> entry : entries) {
@@ -106,6 +113,21 @@ public final class GroundRosterProfile {
         }
         public SpecialEquipmentDef pickSpecialDef(RiskLevel risk, Random rng) {
             return specials.get(resolvedRisk(risk)).pick(rng);
+        }
+
+        /**
+         * Every grade this tier can be issued at {@code risk}. For a panel that
+         * has to say what a doctrine currently yields: sampling a table cannot
+         * answer "which grades are admitted at all" without rolling it to death,
+         * and re-deriving the answer beside the derivation is how the two drift.
+         */
+        public List<EquipmentGrade> grades(RiskLevel risk) {
+            return grades.get(resolvedRisk(risk)).values();
+        }
+
+        /** Every armour pattern this tier can be issued at {@code risk}. */
+        public List<MarineArmorCatalogDef> armorPatterns(RiskLevel risk) {
+            return armor.get(resolvedRisk(risk)).values();
         }
 
         private static <T> Map<RiskLevel, WeightedTable<T>> completeRiskMap(
