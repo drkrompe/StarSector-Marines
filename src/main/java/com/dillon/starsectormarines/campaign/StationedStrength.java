@@ -5,7 +5,12 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.campaign.systems.StationedStrengthSystem;
 import com.dillon.starsectormarines.marine.SquadExperienceStandard;
+import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.combat.MutableStat.StatMod;
+import com.fs.starfarer.api.combat.StatBonus;
+import com.fs.starfarer.api.impl.campaign.ids.Stats;
 
 /**
  * What a stationed Garrison detachment is worth to the place it holds
@@ -62,6 +67,58 @@ public final class StationedStrength {
             if (bound) return fromSquads;
         }
         return Math.max(0, state.contractMarinesCommitted[row]) * GREEN_SEAT_WORTH;
+    }
+
+    /**
+     * Everything the company is currently contributing to this market's ground
+     * defence, read back off vanilla's own stat rather than recomputed from
+     * campaign rows.
+     *
+     * <p>Reading the stat is what makes the number <em>exactly</em> what was
+     * added: {@link StationedStrengthSystem} writes one flat modifier per active
+     * Garrison contract under {@link StationedStrengthSystem#MODIFIER_ID_PREFIX},
+     * and this sums that same set. A contract that settled, a row that was
+     * compacted away, a modifier the daily sweep already removed — none of them
+     * are here, because none of them are on the market any more. Nothing has to
+     * agree with anything.
+     *
+     * <p><b>Why it has to be subtracted at all.</b> {@code MarketCMD.getDefenderStr}
+     * is {@code stat.computeEffective(0f)}, and {@code computeEffective} is
+     * {@code (base + percent + flat) * mult} — so a flat modifier written here is
+     * inside the defender strength the bridge carries. Counting it as the
+     * colony's own militia as well would field the company's stationed marines
+     * twice: once as themselves and once as somebody else's garrison.
+     *
+     * <p><b>The one inexactness, stated.</b> Because {@code computeEffective}
+     * multiplies the flat total by the industry and stability chain, the
+     * detachment's real effect on defender strength is this sum times
+     * {@code stat.getMult()} — at a stable colony with Heavy Batteries, roughly
+     * twice it. Summing the flats therefore subtracts a little less than the
+     * detachment added, which errs toward a larger allied garrison rather than a
+     * smaller one, and keeps this the plain inverse of what was written.
+     *
+     * @return the flat total, never negative; {@code 0} for a null market
+     */
+    public static float totalAt(MarketAPI market) {
+        if (market == null || market.getStats() == null
+                || market.getStats().getDynamic() == null) {
+            return 0f;
+        }
+        return totalIn(market.getStats().getDynamic().getMod(Stats.GROUND_DEFENSES_MOD));
+    }
+
+    /** The same sum over an already-resolved ground-defence stat. */
+    public static float totalIn(StatBonus groundDefence) {
+        if (groundDefence == null) return 0f;
+        float total = 0f;
+        for (StatMod mod : groundDefence.getFlatBonuses().values()) {
+            if (mod == null || mod.getSource() == null) continue;
+            if (!mod.getSource().startsWith(StationedStrengthSystem.MODIFIER_ID_PREFIX)) {
+                continue;
+            }
+            total += mod.getValue();
+        }
+        return Math.max(0f, total);
     }
 
     /** The defence value of one living seat deploying at this band. */
