@@ -97,11 +97,11 @@ vanilla-combat integration and its production-launch boundary live in
 
 Map generation composes tactical places from recipes and staged context, while
 tilesets and weapons separate data catalogs from the code that consumes them.
-Assault and Raid against a real market now generate their map as a plan of
-places — a settlement of the world's character and a garrison as hard as the
-world's rating and the mission's tier allow — while Conquest stays on the
-stock crossroad until the grown maps are judged; `precincts.md` owns that
-model. See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
+Conquest, Assault and Raid against a real market now generate their map as a
+plan of places — a settlement of the world's character and a garrison as hard
+as the world's rating and the mission's tier allow, Conquest at 560x336 — and
+a mission states whether its map is a lone fortress, a small city, or all
+sprawl; `precincts.md` owns that model. See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
 `moddable-weapons-nouns.md`.
 
 Faction identity has one enduring lore-reference catalog for use before authoring

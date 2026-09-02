@@ -30,7 +30,10 @@ Tier owns the base spatial and force commitment: map scale, expected lift,
 base defender count, and the mission's place in the campaign arc. A mission
 type may set a tier floor; a type below that floor is not a valid offer. This
 keeps a conquest a late-game operation while allowing other types to occur at
-more than one scale.
+more than one scale. Conquest's map scale is the one mission-owned exception:
+it is the authored siege, its three tracks and its fortress with a city around
+it were measured at 560x336, and it takes that scale at every tier it is
+offered at.
 
 Tier establishes the baseline rather than rubber-banding a battle. Once a
 mission is made, its map and base infantry force do not grow merely because the

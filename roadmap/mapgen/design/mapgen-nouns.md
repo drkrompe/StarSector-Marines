@@ -4,7 +4,10 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
+Updated: 2026-09-01 — the grown-settlement laws folded in from their story;
+a map result may carry a front depth.
+
+Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
 its berths, so being a working field is one decision rather than two that can
 disagree; a city's compound airfield is one and its block-sized pad is not. The
 lot owns the ground it repaves and is reserved against the stampers that follow
@@ -36,8 +39,8 @@ or absent feature, and unordered iteration must never decide an outcome.
 
 A **map result** is the finished tactical contract: terrain and movement
 topology, reachable spawns, points of interest, tactical nodes, buildings,
-defense posts, landing pads, decorative placements, and the authored road or
-biome data that battle consumers need. Recipe-internal analysis such as station
+defense posts, landing pads, decorative placements, and the authored road,
+biome or front-depth data that battle consumers need. Recipe-internal analysis such as station
 graphs and tactical-region maps may remain in the context until an external
 consumer justifies result plumbing. Final validation protects connectivity,
 deployability, doors, and other cross-system assumptions. Decoration may
@@ -771,6 +774,39 @@ bulkheads, and an assault gradient that runs along the axis from a breach point
 rather than inward from a perimeter. The layout-neutral topology tier is shared
 with stations; the ring, core, and port annotations are not. `ship-interiors-nouns.md`
 owns that family's model, its facility compartments, and its boundaries.
+
+## Grown settlements
+
+A grown settlement is a junction graph walked outward from a seed, and
+`GrownTrunkPlan.Profile.of(density)` derives every other parameter from that
+one number; `city()`, `town()` and `hamlet()` are named points on it. Three
+laws, each found by measuring rather than reasoning.
+
+**Density is one knob, and arm length must not scale with it.** A sparse
+profile with longer arms lays a thin ribbon of frontage across the whole map
+instead of making a smaller settlement, and measured denser than the profile
+above it. Fewer junctions at a fixed reach is what a smaller town is. Measured
+over 24 seeds, open-country share falls monotonically with density once that
+holds, and open-country share — not built share — is what density controls:
+at full density the non-built remainder is road, so adding junctions lowers
+built share and the ladder appears to reverse at the top.
+
+**The hinterland is dressed, and is deliberately not a parcel.**
+`HinterlandFillStage` hands each open-country region to the nature filler as
+grassland; it is included only in the grown recipes rather than run as a no-op,
+which is how the pipeline forks. A hinterland region is not a `BlockLeaf`: a
+leaf is a city parcel, so labelling would zone it, the size constraints would
+demote it, and a compound claim could try to build on it. Open country is the
+absence of a parcel, and the fill only ever adds walkable ground.
+
+**Zoning does not consult the hinterland**, and an earlier reading that said it
+must was wrong: sub-rects and hinterland are disjoint by construction, so no
+leaf can exist on hinterland ground. Measured across 144 maps they overlapped
+zero times; the labels that seemed to land on fields were the debug overlay
+drawing the district grid across the whole map.
+
+Where the settlement stands and how far it reaches is the precinct model's
+business — see `precincts.md`.
 
 ## Defense-post layouts
 
