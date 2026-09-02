@@ -59,14 +59,65 @@ public final class PrecinctArtery {
      */
     public static boolean ensure(int[][] claim, int[][] owner, int who,
                                  int seedX, int seedY, int width, int height) {
+        return ensure(claim, owner, who, seedX, seedY, width, height, null);
+    }
+
+    /**
+     * The same guarantee, with somewhere the way out ought to head for.
+     *
+     * <p>A lane place's next link is the one thing on the map its road has any
+     * business reaching: a lane is a route through its places, and a post whose
+     * only exit was carved out of the far side of it puts the road behind the
+     * thing the marines are walking toward. Told where the next link is, the ray
+     * leaves the claim on that side; told nothing, it takes the nearest way out
+     * exactly as before, so every other walled precinct on every map is
+     * untouched.
+     *
+     * <p>It still only fires when growth left no drivable gate. A place that
+     * already has one has a road, and the interconnect weld is what joins that
+     * road to the next link's.
+     *
+     * @param toward where the next link on this place's lane stands, or
+     *               {@code null} for a place with no lane
+     */
+    public static boolean ensure(int[][] claim, int[][] owner, int who,
+                                 int seedX, int seedY, int width, int height,
+                                 int[] toward) {
         List<PrecinctBoundary.Gate> gates =
                 PrecinctBoundary.gates(claim, owner, who, width, height);
         if (gates.stream().anyMatch(PrecinctBoundary.Gate::drivable)) return false;
 
         int[] centre = centroid(claim, who, width, height);
-        int[] target = nearestWayOut(claim, who, centre, width, height);
+        int[] target = toward != null
+                ? towardWayOut(claim, who, centre, toward, width, height)
+                : nearestWayOut(claim, who, centre, width, height);
         carve(owner, claim, who, centre, target, width, height);
         return true;
+    }
+
+    /**
+     * The first cell outside the claim on the way to where the road is headed,
+     * falling back to the nearest way out where that ray never leaves.
+     *
+     * <p>A claim that spans the map in the stated direction has no outside that
+     * way, and a ray that runs off the map inside its own claim makes no gate at
+     * all — silently, which is the one way this must not fail. So a heading is a
+     * preference, never a guarantee, and the undirected rule is what the
+     * guarantee rests on.
+     */
+    private static int[] towardWayOut(int[][] claim, int who, int[] centre, int[] toward,
+                                      int width, int height) {
+        int dx = toward[0] - centre[0];
+        int dy = toward[1] - centre[1];
+        int steps = Math.max(Math.abs(dx), Math.abs(dy));
+        if (steps == 0) return nearestWayOut(claim, who, centre, width, height);
+        for (int i = 1; i <= steps; i++) {
+            int x = centre[0] + (int) Math.round((double) dx * i / steps);
+            int y = centre[1] + (int) Math.round((double) dy * i / steps);
+            if (x < 0 || x >= width || y < 0 || y >= height) break;
+            if (claim[x][y] != who) return new int[]{x, y};
+        }
+        return nearestWayOut(claim, who, centre, width, height);
     }
 
     /** The middle of the claim, which is where a ray outward has to start. */

@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
@@ -357,6 +358,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final CompoundService compoundService = new CompoundService();
     /** Set once by {@code BattleSetup}; see {@link #getMarineLandingPads()}. Empty on a battle nobody told. */
     private List<LandingPad> marineLandingPads = List.of();
+    /** Set once by {@code BattleSetup}; see {@link #getLaneRoutes()}. Empty on a map with no lanes. */
+    private List<LaneRoute> laneRoutes = List.of();
     /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
     /** Per-hardstand berth state for a garrison airfield — what is parked, away, refitting, or burned. Empty on a battle with no authored field. */
@@ -1600,6 +1603,26 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Records the pads setup landed the marines on. {@code BattleSetup} owns the call. */
     public void setMarineLandingPads(List<LandingPad> pads) {
         this.marineLandingPads = pads == null ? List.of() : List.copyOf(pads);
+    }
+
+    /**
+     * The lanes this battle's map laid: each one's places from the beachhead to
+     * the objective, and the road route through them. Empty on a map with none.
+     *
+     * <p>Here for the same reason {@link #getMarineLandingPads()} is. Map
+     * geometry is consumed at setup and thrown away, so a review or a diagnostic
+     * asking which way a lane runs would otherwise have to re-derive the answer
+     * from the generator — a second answer that can disagree with the one the
+     * battle was built on. The commander's own lane chain will read this too;
+     * until then nothing in the tick loop consults it.
+     */
+    public List<LaneRoute> getLaneRoutes() {
+        return laneRoutes;
+    }
+
+    /** Records the lanes the map laid. {@code BattleSetup} owns the call. */
+    public void setLaneRoutes(List<LaneRoute> routes) {
+        this.laneRoutes = routes == null ? List.of() : List.copyOf(routes);
     }
 
     public void setGarrisonSystem(CompoundGarrisonSystem system) {

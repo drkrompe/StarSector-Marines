@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
+import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
@@ -158,6 +159,16 @@ public final class BspKeys {
      */
     public static final GenKey<List<String>> UNPLACED_LANE_PLACES =
             GenKey.of("unplacedLanePlaces");
+
+    /**
+     * Where each lane actually runs: its places in path order and the road
+     * between them, read back off the finished map.
+     *
+     * <p>Bound by the lane-route stage on a map with lanes, and flows into
+     * {@code MapResult.lanes}. Absent on every map that laid none, which is
+     * every mission but Conquest.
+     */
+    public static final GenKey<List<LaneRoute>> LANES = GenKey.of("lanes");
 
     /** BSP leaf partition over the trunk sub-rects. Produced by the partition stage, read by label / seed / claim / fill / pedestrian stages. */
     public static final GenKey<Bsp.Partition> PARTITION = GenKey.of("partition");
