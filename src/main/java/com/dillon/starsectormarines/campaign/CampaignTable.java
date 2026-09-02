@@ -21,5 +21,7 @@ public enum CampaignTable {
     MORAL_COMPASS,
     EVENTS,
     CONTRACTS,
-    PATRON_MEMORY
+    PATRON_MEMORY,
+    /** Equipment templates the company has released to its own polity, and the doctrine they are shaped by. */
+    RELEASED_KIT
 }

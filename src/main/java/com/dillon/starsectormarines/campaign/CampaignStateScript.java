@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem;
 import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
+import com.dillon.starsectormarines.campaign.systems.PolityRosterSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationedStrengthSystem;
@@ -116,6 +117,9 @@ public class CampaignStateScript implements EveryFrameScript {
                 new SilentColonySpawnSystem(),
                 new CivilWarParticipationOfferSystem(),
                 new ThreatInterventionOfferSystem(),
+                // Before the stationed-strength write, so the day's derived polity roster
+                // is standing by the time anything reads a ground defence off a market.
+                new PolityRosterSystem(),
                 // Last: the modifier must reflect the day's settled state, so every
                 // system that can end a term or move personnel has already run.
                 new StationedStrengthSystem()
