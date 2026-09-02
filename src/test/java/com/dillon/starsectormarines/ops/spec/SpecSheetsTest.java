@@ -110,7 +110,8 @@ class SpecSheetsTest {
         assertEquals(IntegralSystemCopy.summary(carrier), sheet.subtitle());
         assertEquals(IntegralSystemCopy.iconPath(carrier), sheet.crestPath());
         assertEquals(SpecSheets.ACCENT_SYSTEM, sheet.accent());
-        assertTrue(sheet.notes().contains(IntegralSystemCopy.detail(carrier)));
+        assertEquals(IntegralSystemCopy.detailParagraphs(carrier), sheet.notes());
+        assertTrue(sheet.notes().contains(carrier.integralSystem().description()));
 
         assertThrows(IllegalArgumentException.class,
                 () -> SpecSheets.integralSystem(patternWithoutSystem()),

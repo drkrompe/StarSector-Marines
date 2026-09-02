@@ -84,13 +84,22 @@ public final class IntegralSystemCopy {
 
     /** The hover copy: the authored description, then what it does and its clock. */
     public static String detail(MarineArmorCatalogDef armor) {
+        List<String> parts = new ArrayList<>(detailParagraphs(armor));
+        if (carried(armor)) parts.add(0, armor.integralSystem().displayName());
+        return String.join("  //  ", parts);
+    }
+
+    /**
+     * {@link #detail} as paragraphs, for a surface that names the system in its
+     * own heading and wants the note without the name repeated.
+     */
+    public static List<String> detailParagraphs(MarineArmorCatalogDef armor) {
         if (!carried(armor)) {
-            return "This pattern carries no integral system. It fights on its plate, its"
-                    + " balance, and whatever the billet is carrying.";
+            return List.of("This pattern carries no integral system. It fights on its plate, its"
+                    + " balance, and whatever the billet is carrying.");
         }
         IntegralSystemDef system = armor.integralSystem();
         List<String> parts = new ArrayList<>();
-        parts.add(system.displayName());
         parts.add(system.description());
         String effect = effectDetail(system);
         if (!effect.isEmpty()) {
@@ -103,7 +112,7 @@ public final class IntegralSystemCopy {
                     : effect + ".");
         }
         parts.add(availability(system));
-        return String.join("  //  ", parts);
+        return List.copyOf(parts);
     }
 
     /**
