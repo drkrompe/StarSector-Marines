@@ -10,7 +10,8 @@ Conquest at 560x336. What remains is the shape work below.
 Written: 2026-09-01
 
 Updated: 2026-09-01 — Conquest generates as places at 560x336; the front is a
-depth from the objective rather than a biome; a mission states its sprawl.
+depth from the objective rather than a biome; a mission states its sprawl and
+how far from the objective its force lands.
 
 ## The shift
 
@@ -509,6 +510,69 @@ the garrison is seeded inside the one and the plan carries the other, and the
 settlement and outlying places fall where the map wants them. That is how
 Conquest gets a fortress at the far end of its axis without authoring the rest
 of the map, and the six-argument derivation is unchanged to the cell.
+
+## And how far out its force lands
+
+A placement says roughly where the attacker arrives; a **standoff** says how far
+that is from the thing it came for. It is mission vocabulary, the shape `Sprawl`
+already has: `CLOSE` at 40 cells, `STANDARD` at 80, and `FAR`, which is the
+stated band unchanged and reproduces every map that existed before this to the
+cell. The distance is measured along the traversal axis, between the attacker
+region's objective-facing side and the objective precinct's claim boundary on
+the attacker-facing side — the ground the force actually has to cross.
+
+**Cells, not a fraction of the map.** A standoff is a walk, and a walk does not
+scale with the map: doubling the map should not double the minutes before first
+contact. `STANDARD` is roughly the approach the 280x168 map had — the attacker
+band's far side around x=93 against an objective claim edge near x=170 — which
+is the whole point of stating it in cells. The same walk on a bigger map.
+
+**Resolved after growth, not at derivation.** The objective's claim is only
+known once the places have grown, so `PrecinctPlan` carries the statement and
+`ApproachRegion` turns it into cells afterwards: the stated band, at its own
+depth and lateral extent, slid along the axis until its objective-facing side is
+the stated distance short of the claim, never past the edge it came from and
+never into the claim. The spawn anchor and the beachhead both read that one
+function, because they are the same arrival and two copies of the rule would be
+two answers the first time either moved. A map that cannot afford the standoff
+slides as far as it can and records what it managed under
+`BspKeys.APPROACH_STANDOFF`, on the same law as the unbuilt program.
+
+**The approach is carried, not inferred.** The landing stage used to read its
+approach off which map edge the region touched. A region slid inland touches
+none, and the nearest-edge fallback would hand a southern approach a side it
+never had, so the approach comes off the *stated* band and the berths are
+scanned inward from the region's side that faces it.
+
+Only Conquest consults one; everything else passes `FAR`. Measured on the two
+canonical Conquest fixtures at 560x336, same seed and same map, only the landing
+moved:
+
+| fixture | standoff | result | ticks | first contested | first held | captures | held | marine losses |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| reinforced-south | FAR | MARINE | 17640 | 6990 | 7920 | 12 | 11 | 122 |
+| reinforced-south | STANDARD | timeout | 18000 | 6000 | 6120 | 11 | 7 | 226 |
+| reinforced-south | CLOSE | MARINE | 13680 | 5610 | 5730 | 11 | 11 | 95 |
+| full-strength-west | FAR | timeout | 18000 | 14550 | never | 0 | 0 | 368 |
+| full-strength-west | STANDARD | timeout | 18000 | never | never | 0 | 0 | 279 |
+| full-strength-west | CLOSE | timeout | 18000 | 15570 | never | 0 | 0 | 265 |
+
+**A shorter walk is not the same as a better battle, and the middle setting is
+the worst of the three.** Landing closer does exactly what it was built to do —
+first contact moves in by a thousand ticks and the first compound falls eighteen
+hundred earlier — and on `STANDARD` the marines then take eleven compounds by
+tick 11850 and lose four of them again to the counterattack, ending the clock
+holding seven with twice the casualties. `CLOSE` lands closer still and wins
+four thousand ticks earlier than `FAR` with fewer losses on both sides. The
+reading is not that closer is better; it is that arriving faster than the force
+can consolidate is a different battle from arriving slowly, and the setting the
+default sits on is the one where that shows.
+
+`full-strength-west` is a timeout at every setting and captures nothing, so it
+separates the three only on cost: marine losses fall monotonically as the
+landing moves in (368 / 279 / 265), and the retarget churn that made it stand
+out — 1272 against reinforced-south's 554 — falls to 418 and 298. Eight
+battle-minutes of walking was most of what that fixture was measuring.
 
 ## Which battles are made of places
 
