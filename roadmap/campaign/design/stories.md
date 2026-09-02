@@ -1,10 +1,10 @@
 # Campaign story board
 
-Status: ACTIVE — 1 open story
+Status: ACTIVE — 2 open stories
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — contracted the first polity-boundary story.
+Updated: 2026-09-02 — contracted the stationed-defence pair.
 
 Read `campaign-nouns.md` and `meta-progression.md` before changing an
 umbrella story. Live feature work is owned by its feature board; broad
@@ -13,4 +13,5 @@ can be made a bounded vertical slice.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
-| `polity-defence-raid-hook.md` | Planned | Meet a vanilla fleet-group raid on a player-owned colony with the company's own detachment; a win aborts the raid group through vanilla's own abort. Reuses the Garrison stationing-response battle shape. The absent-player stat contribution and polity stationing are out of scope. |
+| `stationed-ground-defence.md` | Planned | A Garrison detachment counts toward the protected market's vanilla ground defences, a won vanilla-triggered defence sends the raid home, and an unanswered one settles from vanilla's own result. Adds the raid-intel reader beside the existing fleet-group trigger. First of the pair. |
+| `polity-defence-raid-hook.md` | Planned | Meet a vanilla raid on a player-owned colony on the ground, and post a detachment there for the days the player is elsewhere. Depends on the stationed-defence story for its readers, ending handle, and absent settlement. |

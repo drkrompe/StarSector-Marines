@@ -164,67 +164,84 @@ storage. The campaign tier's offer is to replace that number with a battle
 when the player is there to fight it, and to leave the number alone when they
 are not.
 
-The shape of a vanilla colony raid in 0.98a is a fleet group
-(`GenericRaidFGI`) with four actions: prepare at the source, travel, a
-**payload** action at the target system, and return. The payload is
-`FGRaidAction`: its fleets are ordered to the target markets and hold there
-for up to the payload duration, and each fleet that reaches a market performs
-the raid — a strength ratio against the market's ground defences that costs
-stability and, for some expeditions, disrupts an industry. If the player is
-out of spawn range the whole payload autoresolves on the same ratio. A raid
-against a market that is `RECENTLY_RAIDED` by the same faction, or that has
-already been raided its allotted times, is skipped.
+A vanilla raid in 0.98a comes in two shapes, and both resolve their ground
+half the same way: a strength ratio against the market's ground defences that
+costs stability and, for some expeditions, disrupts an industry.
 
-Two things make the ground option honest rather than a hack:
+- A **fleet group** (`GenericRaidFGI`) runs prepare, travel, a **payload**
+  action at the target system, and return. The payload is `FGRaidAction`: its
+  fleets hold at the target markets for up to the payload duration and each
+  one that reaches a market performs the raid. This is hostile activity
+  against the player's colonies and the faction expeditions, so it reaches a
+  patron market only when that market shares the player's colony system. It
+  goes home through `FleetGroupIntel.abort`, which gives every fleet a return
+  assignment and notifies the group's listener — for a pirate raid, the
+  hostile-activity factor whose abort handler grants the piracy respite.
+- A **raid intel** (`RaidIntel` with an action stage) is the older machinery
+  and still live: pirate-base raids pick a nearby system and weight its
+  markets by size, and punitive expeditions target one colony industry.
+  **This is the shape that actually reaches patron markets.** It goes home
+  through `RaidIntel.forceFail`.
 
-- **Going home is a supported outcome.** `FleetGroupIntel.abort` expires the
-  route, marks the current action finished, gives every fleet a return
-  assignment, and notifies the fleet group's listener. For a pirate raid that
-  listener is the hostile-activity factor, and its abort handler is what
-  grants the piracy respite. A ground defence that wins can therefore end the
-  invasion the same way a lost space battle would, and collect the same
-  consequence.
+If the player is out of spawn range either shape autoresolves on the same
+ratio. Two things make the seam honest rather than a hack:
+
+- **Going home is a supported outcome in both shapes**, so a ground defence
+  that wins ends the invasion the way a lost space battle would and collects
+  the same consequence. The mod already arms a Garrison defence from a
+  fleet-group raid; what it did not do was tell vanilla when the defence was
+  won, so the raid landed anyway. `stationed-ground-defence.md` closes that.
 - **The number is still there when the battle is not.** The
   `GROUND_DEFENSES_MOD` stat is how every vanilla defence industry contributes
-  to defender strength. A detachment stationed on the polity can contribute to
-  that stat for as long as it is stationed, so the autoresolve path and the
-  raid-in-absence still feel the company's presence. That is the Garrison
-  stationing model already in `contracts-nouns.md`, pointed at the polity.
+  to defender strength, and vanilla already counts cargo marines in a player
+  colony's storage toward it. A stationed detachment contributes to that stat
+  for exactly its term, sized by its living seats and experience standard, so
+  autoresolve, the raid's own intel forecast, and an unanswered defence all
+  feel the company's presence. That is **stationed strength** in
+  `contracts-nouns.md`, and it is what a Garrison retainer buys.
+
+Two vanilla pressures are answered rather than fought. A Hegemony inspection
+raids only when resisted and its confiscation already reads the stat, so
+stationed strength applies with no further work; a blockade has no ground
+half. A Pather cell is sabotage with no fleet, the mirror of the company's own
+Sabotage mission, and is a different seam.
 
 The player-facing shape is one option, offered where the raid fleets are:
-while the payload action is live and a raid fleet is at the market, the planet
-interaction can offer to meet the landing on the ground. A win aborts the
-fleet group. A loss lets vanilla's own raid resolution run. There is no third
-result and no partial credit; the ground battle settles only whether the raid
-lands.
+while the payload is live and a raid fleet is at the market, the planet
+interaction can offer to meet the landing on the ground. A win ends the raid.
+A loss lets vanilla's own raid resolution run. There is no third result and no
+partial credit; the ground battle settles only whether the raid lands. On the
+polity the detachment that holds the ground between visits is a **posting**:
+stationing without a patron, defined in `contracts-nouns.md`.
 
 Laws for this seam:
 
-- The campaign tier ends an invasion only through the fleet group's own abort
-  and applies a raid only through vanilla's own raid path. It never edits
-  market ownership, stability, or industries directly, and it never routes
-  through the T3 endgame consumer.
+- The campaign tier ends an invasion only through the raid's own abort or
+  fail path, applies a raid only through vanilla's own raid path, and reaches
+  vanilla's defence arithmetic only through one attributable modifier on the
+  ground-defence stat. It never edits market ownership, stability, or
+  industries directly, and it never routes through the T3 endgame consumer.
 - A polity defence earns no MRB credibility, no house relationship, no
   contract settlement, and no patron reward. Its only campaign consequences
-  are the personnel and recovery facts of the battle itself.
+  are the personnel and recovery facts of the battle itself, or of the
+  formula that stood in for it.
 - A polity defence is one operation in the ordinary battle pipeline: mission
   type, tier, and map come from `mission-tier-nouns.md` and `precincts.md`,
-  with the raid fleet's strength as the tier input rather than a patron's
+  with the raid's ground strength as the tier input rather than a patron's
   demand.
+- A Garrison on a patron's market and a posting on the polity answer a
+  vanilla raid through the same trigger, the same battle, the same ending
+  handle, and the same absent settlement. They differ only in who pays and
+  what Standing the settlement moves.
 
 Open questions:
 
-- Older raid shapes — `RaidIntel` and its stages, punitive expeditions,
-  Hegemony inspections — are separate machinery. Whether the first slice
-  covers only the fleet-group shape, or wraps both behind one seam, is
-  unsettled.
 - A fleet group holds a single listener slot and the hostile-activity factor
   occupies it. The abort path works without touching that slot; a design that
   needs to observe the raid rather than end it must find another hook.
-- Whether a Garrison detachment stationed on a **patron's** market answers a
-  vanilla raid through the same seam. It should: that is the stationing
-  response `contracts-nouns.md` already describes, and this seam would give
-  it a vanilla trigger.
+- Whether stationed strength should deter a raid before it launches. Neither
+  vanilla planner consults ground defences when choosing a target; deterrence
+  would be a new write and is not contracted.
 
 ## Boundaries
 
