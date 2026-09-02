@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-09-02
 
-Updated: 2026-09-02 — slice 2 (Numbers) shipped.
+Updated: 2026-09-02 — slices 1 (Derivation) and 2 (Numbers) shipped.
 
 Read `polity-ground-doctrine.md` (the model and its laws — this story is its
 implementation), `meta-progression.md` (the company-and-polity boundary),
