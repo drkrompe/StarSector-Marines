@@ -2029,6 +2029,39 @@ public class ConquestCommandTest {
     @Nested
     class ZoneTargetCap {
 
+        private boolean restore;
+
+        @BeforeEach
+        void capOn() {
+            restore = ConquestCommand.ZONE_TARGET_CAP_ENABLED;
+            ConquestCommand.ZONE_TARGET_CAP_ENABLED = true;
+        }
+
+        @AfterEach
+        void capBack() {
+            ConquestCommand.ZONE_TARGET_CAP_ENABLED = restore;
+        }
+
+        /** With the cap off the whole force ranks onto the nearest zone. */
+        @Test
+        public void theControlPutsEverybodyOnTheNearestZone() {
+            ConquestCommand.ZONE_TARGET_CAP_ENABLED = false;
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) squads.add(addMarineSquad(sim, 2f + i, 1f));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            for (Squad squad : squads) {
+                assertEquals(nearZone, clearZoneTarget(squad),
+                        "the control is the plain nearest-forward rule");
+            }
+        }
+
         @Test
         public void aZoneAtItsCapPassesTheSurplusToTheNextForwardZone() {
             BattleSimulation sim = stackedRoomsSim();
