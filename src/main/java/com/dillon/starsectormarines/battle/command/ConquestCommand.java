@@ -166,6 +166,29 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
 
+    /**
+     * How far outside a compound's own footprint a squad may stand and still
+     * count as having <em>arrived</em> at it — the bound on phase 2's "already
+     * there, commit the capture" gate.
+     *
+     * <p>That gate deliberately applies no track bound and no front-reach gate,
+     * because a squad standing in the building has not been sent anywhere. It
+     * read the squad's zone against the compound's garrison zones, and for an
+     * <b>open compound</b> those are the outdoors: an airfield has no walls, so
+     * its capture room resolves to the exterior flood and every squad in the
+     * open on the whole map answered the question yes. Measured on
+     * {@code full-strength-west}, squads held {@code SECURE_COMPOUND} on an
+     * airbase three hundred cells east for the whole battle without arriving —
+     * 16 of 45 secure-travel episodes ended in the squad's destruction and 24
+     * of 45 never reached the portal, against 6 of 33 on the southern fixture,
+     * which has no open compound in the way.
+     *
+     * <p>A few cells rather than none: a squad settling against the wall of the
+     * place it is taking has arrived, and the ring the geometry test already
+     * used is one cell wide.
+     */
+    public static final int ADJACENT_COMMIT_CELLS = 6;
+
     /** {@link #friendlyLeadForward} sentinel: no living friendly holds this track. */
     private static final int NO_FRIENDLY_LEAD = Integer.MIN_VALUE;
 
@@ -789,7 +812,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *       only way a fresh assignment enters a contested compound. No track
      *       bound applies here: a squad standing in the building has not been
      *       sent anywhere, and refusing it on a lateral coordinate would leave
-     *       an objective it is already inside of unassaulted.</li>
+     *       an objective it is already inside of unassaulted. What does apply
+     *       is {@link #ADJACENT_COMMIT_CELLS}, because "already there" is a
+     *       distance and an open compound's room is the whole outdoors.</li>
      *   <li><b>Uncontested distant fill.</b> Greedily assign nearest pairs up
      *       to the ordinary per-compound quotas, among compounds the front has
      *       reached or passed ({@link #frontHasReached}) and within
@@ -898,6 +923,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0) continue;
                     if (contested[i] && !unattended(i, slots)) continue;
+                    if (!eligibleForDistantCapture(compoundTargets.get(i))) continue;
                     if (!frontHasReached(compoundTargets.get(i))) continue;
                     if (!captureTrackAllowed(squad, i, homeTrackWork)) continue;
                     if (!reachableZone(squad, compoundTargets.get(i).captureZoneId,
@@ -937,9 +963,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     if (contested[i] && !unattended(i, slots)) continue;
                     CompoundTarget t = compoundTargets.get(i);
                     // Only a slot this squad could actually have filled counts
-                    // as deferred. A compound the front has not reached was
-                    // never on offer, and reporting it as withheld for front
-                    // resistance would misattribute the gate below.
+                    // as deferred. A compound the front has not reached, or one
+                    // no distant detachment may be sent to at all, was never on
+                    // offer, and reporting it as withheld for front resistance
+                    // would misattribute the gate below.
+                    if (!eligibleForDistantCapture(t)) continue;
                     if (!frontHasReached(t)) continue;
                     // Nor does a slot the track bound refused: that squad was
                     // not retained for front resistance, it was never offered
@@ -966,6 +994,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 if (slots[i] <= 0) continue;
                 if (contested[i] && !unattended(i, slots)) continue;
                 CompoundTarget t = compoundTargets.get(i);
+                if (!eligibleForDistantCapture(t)) continue;
                 if (!frontHasReached(t)) continue;
                 if (tracksFromHome(squad, t) < 2) continue;
                 if (!reachableZone(squad, t.captureZoneId, frame)) continue;
@@ -1200,16 +1229,51 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return false;
     }
 
-    /** True iff the squad currently stands in, or in a zone bordering, one of the compound's garrison rooms — the "already there, commit the capture" gate for contested compounds. */
+    /**
+     * True iff the squad currently stands in, or immediately against, one of
+     * the compound's garrison rooms — the "already there, commit the capture"
+     * gate for contested compounds.
+     *
+     * <p>Bounded by {@link #ADJACENT_COMMIT_CELLS} whichever way it answers.
+     * The zone test alone is a claim about being in the same <em>room</em>, and
+     * an open compound's room is the outdoors; adjacency has to be a claim
+     * about being in the same <em>place</em>, which is a distance.
+     */
     private boolean squadAdjacentToCompound(PlanningSquad squad, CompoundTarget t,
                                             ConquestCommandFrame frame) {
+        if (squad.anchorCellX < 0 || squad.anchorCellY < 0) return false;
+        int outside = cellsOutsideCompound(squad, t);
+        if (outside > ADJACENT_COMMIT_CELLS) return false;
         int cz = frame.topology().zoneIdAt(squad.anchorCellX, squad.anchorCellY);
-        if (cz < 0) return false;
-        if (containsZone(t.garrisonZones, cz)) return true;
-        return squad.anchorCellX >= t.node.compoundLeft() - 1
-                && squad.anchorCellX <= t.node.compoundRight() + 1
-                && squad.anchorCellY >= t.node.compoundTop() - 1
-                && squad.anchorCellY <= t.node.compoundBottom() + 1;
+        if (cz >= 0 && containsZone(t.garrisonZones, cz)) return true;
+        return outside <= 1;
+    }
+
+    /**
+     * Cells between the squad's anchor and the compound's authored footprint,
+     * zero when it stands inside. Chebyshev, because the footprint is a
+     * rectangle and a squad round its corner is as arrived as one at its wall.
+     */
+    private static int cellsOutsideCompound(PlanningSquad squad, CompoundTarget t) {
+        int dx = Math.max(0, Math.max(t.node.compoundLeft() - squad.anchorCellX,
+                squad.anchorCellX - t.node.compoundRight()));
+        int dy = Math.max(0, Math.max(t.node.compoundTop() - squad.anchorCellY,
+                squad.anchorCellY - t.node.compoundBottom()));
+        return Math.max(dx, dy);
+    }
+
+    /**
+     * Whether this compound may be handed to a squad that has to <em>walk</em>
+     * to it. An open compound's capture room is the exterior flood, so
+     * "converge on the capture zone" names ground the squad is already
+     * standing on and the order can be held for a whole battle without ever
+     * arriving. It remains capturable by a squad that actually reaches its
+     * footprint — see {@link #squadAdjacentToCompound} — which is what taking
+     * an airfield looks like anyway: the front arrives at it rather than
+     * somebody being detached across the map for it.
+     */
+    private boolean eligibleForDistantCapture(CompoundTarget t) {
+        return exteriorZoneId < 0 || t.captureZoneId != exteriorZoneId;
     }
 
     private int targetIndexForCaptureZone(int captureZoneId) {
