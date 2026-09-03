@@ -51,7 +51,19 @@ public final class FogOfWarService {
     private short[] revealCount;
     private boolean[] cellRevealed;
     private boolean[] clearAirRevealed;
+    private boolean[] clearAirNext;
     private boolean clearAirMaskActive;
+
+    /**
+     * Where the picture changed, for a consumer that keeps one derived from it.
+     *
+     * <p>Presentation reads this and nothing else does: fog remains the one
+     * authority on what the player can see, and this only says where that answer
+     * moved. It is written at every seam below that flips a cell's revealed
+     * state, and where the counterfactual clear-air mask moves, because the fog
+     * picture reads both.
+     */
+    private final RevealChangeLog changes = new RevealChangeLog();
 
     private byte[] unitVisibility;
     private float[] fadeAlpha;
@@ -111,6 +123,8 @@ public final class FogOfWarService {
         this.revealCount = new short[cells];
         this.cellRevealed = new boolean[cells];
         this.clearAirRevealed = new boolean[cells];
+        this.clearAirNext = new boolean[cells];
+        this.changes.init(gridWidth, gridHeight);
 
         this.unitCapacity = unitCapacity;
         this.unitVisibility = new byte[unitCapacity];
@@ -161,6 +175,16 @@ public final class FogOfWarService {
     /** Direct access to the revealed array for the renderer's per-cell fog pass. */
     public boolean[] cellRevealedArray() { return cellRevealed; }
 
+    /**
+     * Where the player's picture has changed, as a sequence of bounding
+     * rectangles a presentation consumer remembers its own place in.
+     *
+     * <p>Presentation only. Nothing about what the player can see is decided
+     * here; this reports where the answer moved, so a consumer holding a picture
+     * derived from it can redo the part that is stale instead of all of it.
+     */
+    public RevealChangeLog revealChanges() { return changes; }
+
     /** Visibility state for unit at the given dense index. */
     public byte getUnitVisibility(int denseIdx) {
         if (!initialized || denseIdx < 0 || denseIdx >= unitCapacity) return VIS_VISIBLE;
@@ -205,10 +229,9 @@ public final class FogOfWarService {
         entry.previousCellCount = count;
 
         for (int i = 0; i < count; i++) {
-            int idx = entry.previousCells[i];
-            revealCount[idx]++;
-            cellRevealed[idx] = true;
+            reveal(entry.previousCells[i]);
         }
+        changes.seal();
 
         smallest.contributors.add(entry);
     }
@@ -224,6 +247,7 @@ public final class FogOfWarService {
                 ContributorEntry e = cohort.contributors.get(i);
                 if (e.unitId == entityId) {
                     decrementFootprint(e);
+                    changes.seal();
                     cohort.contributors.remove(i);
                     return;
                 }
@@ -273,6 +297,9 @@ public final class FogOfWarService {
             if (!buildings.isEmpty()) {
                 BuildingVisibilityPass.update(buildings, cellRevealed, gridWidth, gridHeight);
             }
+            // One seal for the whole update, so a consumer never reads a picture
+            // half way through a cohort's recast.
+            changes.seal();
         }
     }
 
@@ -348,12 +375,7 @@ public final class FogOfWarService {
 
     private void tickEphemeralSources() {
         for (int i = 0; i < ephemeralPrevCount; i++) {
-            int idx = ephemeralPrevCells[i];
-            revealCount[idx]--;
-            if (revealCount[idx] <= 0) {
-                revealCount[idx] = 0;
-                cellRevealed[idx] = false;
-            }
+            conceal(ephemeralPrevCells[i]);
         }
 
         int total = castInto(projected, 0);
@@ -361,9 +383,35 @@ public final class FogOfWarService {
         ephemeralPrevCount = total;
 
         for (int i = 0; i < total; i++) {
-            int idx = ephemeralPrevCells[i];
-            revealCount[idx]++;
+            reveal(ephemeralPrevCells[i]);
+        }
+    }
+
+    /**
+     * Takes one reference on a cell, recording the flip if it is the first.
+     *
+     * <p>Every increment goes through here rather than setting the boolean
+     * directly, because the change log must see a cell become revealed exactly
+     * when it becomes revealed. A source arriving on a cell another source
+     * already holds open changes nothing the player can see, and a log that
+     * recorded it would send its reader over ground that has not moved.
+     */
+    private void reveal(int idx) {
+        if (revealCount[idx]++ == 0) {
             cellRevealed[idx] = true;
+            changes.note(idx);
+        }
+    }
+
+    /** Gives one reference back, recording the flip if it was the last. */
+    private void conceal(int idx) {
+        revealCount[idx]--;
+        if (revealCount[idx] <= 0) {
+            revealCount[idx] = 0;
+            if (cellRevealed[idx]) {
+                cellRevealed[idx] = false;
+                changes.note(idx);
+            }
         }
     }
 
@@ -415,9 +463,7 @@ public final class FogOfWarService {
             e.lastAirLosRadius = airLosRadius;
 
             for (int j = 0; j < count; j++) {
-                int idx = e.previousCells[j];
-                revealCount[idx]++;
-                cellRevealed[idx] = true;
+                reveal(e.previousCells[j]);
             }
         }
     }
@@ -444,12 +490,7 @@ public final class FogOfWarService {
 
     private void decrementFootprint(ContributorEntry e) {
         for (int j = 0; j < e.previousCellCount; j++) {
-            int idx = e.previousCells[j];
-            revealCount[idx]--;
-            if (revealCount[idx] <= 0) {
-                revealCount[idx] = 0;
-                cellRevealed[idx] = false;
-            }
+            conceal(e.previousCells[j]);
         }
     }
 
@@ -461,12 +502,15 @@ public final class FogOfWarService {
      */
     private void rebuildClearAirReveal(UnitRosterService roster) {
         if (!grid.hasTransientOpacity()) {
-            if (clearAirMaskActive) Arrays.fill(clearAirRevealed, false);
+            if (clearAirMaskActive) {
+                Arrays.fill(clearAirNext, false);
+                adoptClearAir();
+            }
             clearAirMaskActive = false;
             return;
         }
 
-        Arrays.fill(clearAirRevealed, false);
+        Arrays.fill(clearAirNext, false);
         clearAirMaskActive = true;
         for (FogCohort cohort : cohorts) {
             for (ContributorEntry entry : cohort.contributors) {
@@ -477,6 +521,25 @@ public final class FogOfWarService {
         }
         addClearAirFootprints(projected);
         addClearAirFootprints(carried);
+        adoptClearAir();
+    }
+
+    /**
+     * Swaps the freshly cast counterfactual in, recording where it differs.
+     *
+     * <p>The clear-air union is rebuilt whole rather than reference counted, so
+     * the only way to know which cells moved is to compare — one pass over the
+     * grid, and only while a cloud exists at all. The half-strength shadow it
+     * drives is part of the fog picture, so a consumer that missed this would
+     * hold a cell at full darkness after the smoke around it cleared.
+     */
+    private void adoptClearAir() {
+        for (int i = 0; i < clearAirNext.length; i++) {
+            if (clearAirNext[i] != clearAirRevealed[i]) changes.note(i);
+        }
+        boolean[] swap = clearAirRevealed;
+        clearAirRevealed = clearAirNext;
+        clearAirNext = swap;
     }
 
     private void addClearAirFootprints(TemporarySources sources) {
@@ -490,7 +553,7 @@ public final class FogOfWarService {
                                       int range, float airLosRadius) {
         int count = Shadowcast.castFromIgnoringTransientOpacity(
                 grid, cellX, cellY, range, airLosRadius, shadowScratch, 0);
-        for (int i = 0; i < count; i++) clearAirRevealed[shadowScratch[i]] = true;
+        for (int i = 0; i < count; i++) clearAirNext[shadowScratch[i]] = true;
     }
 
     private void sweepUnitVisibility(UnitRosterService roster) {
