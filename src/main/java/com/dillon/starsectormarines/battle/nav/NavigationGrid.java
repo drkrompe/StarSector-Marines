@@ -117,6 +117,20 @@ public class NavigationGrid {
     /** Monotonic structural revision for immutable derived-view invalidation. */
     private long topologyRevision;
     /**
+     * How many recent topology changes {@link #changedCellAt} remembers.
+     *
+     * <p>A reader further behind than this rebuilds from scratch instead, which
+     * is the right answer for it: the log exists to make the handful of cells a
+     * breach touches cheap, and a reader thousands of changes behind has been
+     * away long enough that sweeping the map again costs less than replaying
+     * them. Power of two so the cursor masks rather than divides.
+     */
+    private static final int TOPOLOGY_CHANGE_LOG_CAPACITY = 4096;
+    /** Ring of recently changed cell indices; see {@link #changedCellAt}. */
+    private final int[] topologyChangeLog = new int[TOPOLOGY_CHANGE_LOG_CAPACITY];
+    /** Changes recorded ever, and the cursor into {@link #topologyChangeLog}. */
+    private long topologyChangeCount;
+    /**
      * Per-cell, per-facing cover level in {@code [0..{@link #MAX_COVER}]}.
      * Indexed as {@code (y * width + x) * FACING_COUNT + facing}. Initially
      * baked by the map generator from the wall layout via {@link
@@ -198,13 +212,85 @@ public class NavigationGrid {
         long after = on ? before | tag.mask() : before & ~tag.mask();
         if (after == before) return;
         cellFlags[idx] = after;
-        topologyRevision++;
+        markTopologyChanged(idx);
     }
 
 
     public int getWidth()  { return width;  }
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
+
+    // ----- Topology change log -----
+
+    /**
+     * Topology changes recorded since this grid was made.
+     *
+     * <p>{@link #topologyRevision()} says only <em>that</em> the map moved, so
+     * every derivation of it — the vehicle clearance mask, its component
+     * labels, the greedy navigation mesh — answered a one-cell breach by
+     * sweeping all 188,160 cells of a 560x336 map again. This says <em>which</em>
+     * cells moved, so a derivation can recompute the neighbourhood of each and
+     * leave the rest of the map alone.
+     *
+     * <p>A consumer holds the value it last caught up to and asks again at the
+     * next topology boundary. When {@code changeCount() - caughtUp} exceeds
+     * {@link #changeLogCapacity()} the older entries have been overwritten and
+     * the consumer must rebuild whole; {@link #hasCaughtUpFrom} is that test.
+     *
+     * <p>What counts as a change is exactly what bumps
+     * {@link #topologyRevision()}: a cell's nav flags, an edge's passability, a
+     * wall breach. A whole-grid {@link #clear()} is recorded as more changes
+     * than the log can hold rather than as 188,160 entries, which is both
+     * cheaper and true.
+     */
+    public long changeCount() { return topologyChangeCount; }
+
+    /** How far behind {@link #changeCount()} a reader may be and still catch up cell by cell. */
+    public int changeLogCapacity() { return TOPOLOGY_CHANGE_LOG_CAPACITY; }
+
+    /**
+     * The cell index recorded as the {@code sequence}-th change.
+     *
+     * <p>Valid for {@code sequence} in
+     * {@code [changeCount() - changeLogCapacity(), changeCount())}; an older
+     * sequence has been overwritten and the caller must rebuild rather than
+     * catch up.
+     */
+    public int changedCellAt(long sequence) {
+        return topologyChangeLog[(int) (sequence & (TOPOLOGY_CHANGE_LOG_CAPACITY - 1))];
+    }
+
+    /**
+     * True when a reader that last caught up at {@code caughtUpCount} can still
+     * replay every change since, rather than having to rebuild.
+     */
+    public boolean hasCaughtUpFrom(long caughtUpCount) {
+        return caughtUpCount >= 0L
+                && topologyChangeCount - caughtUpCount <= TOPOLOGY_CHANGE_LOG_CAPACITY;
+    }
+
+    /**
+     * Records that {@code idx}'s topology moved, and bumps the revision with it.
+     *
+     * <p>Every write that changes what a derivation would compute goes through
+     * here, so the two facts can never drift: a revision that moved without a
+     * logged cell would send a catching-up reader past a change it never saw.
+     */
+    private void markTopologyChanged(int idx) {
+        topologyChangeLog[(int) (topologyChangeCount & (TOPOLOGY_CHANGE_LOG_CAPACITY - 1))] = idx;
+        topologyChangeCount++;
+        topologyRevision++;
+    }
+
+    /**
+     * Records a change too large to log — every cell at once. Advancing the
+     * count by the log's whole capacity is what puts every reader past
+     * {@link #hasCaughtUpFrom} and onto a full rebuild.
+     */
+    private void markWholeGridChanged() {
+        topologyChangeCount += TOPOLOGY_CHANGE_LOG_CAPACITY + 1L;
+        topologyRevision++;
+    }
 
     public boolean inBounds(int x, int y) {
         return x >= 0 && x < width && y >= 0 && y < height;
@@ -322,7 +408,7 @@ public class NavigationGrid {
                 : (byte) (before & ~(1 << dir.bit()));
         if (after == before) return;
         edgePassability[idx] = after;
-        topologyRevision++;
+        markTopologyChanged(idx);
     }
 
     public void openAllEdges(int x, int y) {
@@ -330,7 +416,7 @@ public class NavigationGrid {
         int idx = index(x, y);
         if (edgePassability[idx] == (byte) 0xFF) return;
         edgePassability[idx] = (byte) 0xFF;
-        topologyRevision++;
+        markTopologyChanged(idx);
     }
 
     /**
@@ -817,7 +903,7 @@ public class NavigationGrid {
         // visible from this class.
         cellFlags[idx] |= CellTag.WALKABLE.mask() | CellTag.DOORWAY.mask();
         edgePassability[idx] = (byte) 0xFF;
-        topologyRevision++;
+        markTopologyChanged(idx);
         recomputeCoverAt(x, y);
         recomputeCoverAt(x + 1, y);
         recomputeCoverAt(x - 1, y);
@@ -832,7 +918,7 @@ public class NavigationGrid {
     public byte[] getEdgePassabilityArray()  { return edgePassability; }
 
     public void clear() {
-        topologyRevision++;
+        markWholeGridChanged();
         Arrays.fill(cellFlags, 0L);
         Arrays.fill(edgePassability, (byte) 0);
         Arrays.fill(coverByFacing, (byte) 0);
