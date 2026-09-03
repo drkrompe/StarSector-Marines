@@ -433,7 +433,11 @@ class RenderBudgetEvidence {
                 .append("**, ground atlas **")
                 .append(GroundAtlas.enabled() ? "on" : "off")
                 .append("**, resident decoration **")
-                .append(GroundMesh.decorationEnabled() ? "on" : "off").append("**.\n\n");
+                .append(GroundMesh.decorationEnabled() ? "on" : "off")
+                .append("**, unit atlas **")
+                .append(UnitAtlas.enabled() ? "on" : "off")
+                .append("**, resident roofs **")
+                .append(RoofMesh.enabled() ? "on" : "off").append("**.\n\n");
 
         out.append("## Whole frames\n\n")
                 .append("Wall clock with the GPU waited on, against the sum of our own\n")
