@@ -160,9 +160,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * are 5–9 and fixed; adding force without dividing it adds casualties.
      *
      * <p>The cap is a preference and never a refusal. A strip whose every
-     * defender zone is at cap hands back the nearest one exactly as it did
-     * before — there is nowhere else to send anybody, and a squad with no
-     * target is worse than a crowded one.
+     * defender zone is at cap still hands one back — there is nowhere else to
+     * send anybody, and a squad with no target is worse than a crowded one —
+     * but it hands back the least crowded rather than the nearest, so a
+     * surplus larger than every cap in the strip put together still divides.
+     * Measured on {@code full-strength-west}, where three zones took three
+     * squads each and thirteen more fell back onto one of them.
      */
     public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
 
@@ -2175,7 +2178,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * {@link #ZONE_TARGET_OVERFLOW_SQUADS} is passed over for the next forward
      * zone in the strip, so a force larger than the front's useful slots
      * divides across the strip's depth instead of queueing behind one target.
-     * When the whole strip is at cap the nearest zone is returned anyway.
+     * A strip whose zones are all at cap still hands one back — a squad with no
+     * target is worse than a crowded one — but hands back the least crowded of
+     * them rather than the nearest, so the surplus divides too.
      *
      * <p>Forward bias matters because CONQUEST is a directional push. A
      * squad that's already moved past a flanking defender shouldn't be
@@ -2206,8 +2211,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *                     quota, so the next forward zone in the strip is
      *                     offered instead. The caller above runs this pass
      *                     first and repeats without it, which is what makes
-     *                     the cap a preference: a strip with nowhere else to
-     *                     send anybody answers exactly as it did before.
+     *                     the cap a preference rather than a refusal.
+     *                     <p>The repeat is not the old rule verbatim: it ranks
+     *                     a candidate by how many squads are already on it
+     *                     before it ranks it by distance. A strip whose zones
+     *                     are all at cap has a surplus to place either way, and
+     *                     putting all of it on the nearest zone is the queue
+     *                     the cap exists to break — measured on
+     *                     {@code full-strength-west}, where three zones took
+     *                     their three squads each and thirteen more squads fell
+     *                     back onto one of them.
      */
     private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
                                            ConquestCommandFrame frame,
@@ -2216,24 +2229,33 @@ public final class ConquestCommand implements ConquestFrontCommand,
         float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidY : squad.centroidX;
 
         int bestForwardZone = -1;
+        int bestForwardLoad = Integer.MAX_VALUE;
         float bestForwardDist = Float.MAX_VALUE;
         int bestBackwardZone = -1;
+        int bestBackwardLoad = Integer.MAX_VALUE;
         float bestBackwardDist = Float.MAX_VALUE;
         for (int zoneId : stripZones.get(stripIdx)) {
             if (zoneId == exteriorZoneId) continue;
             if (underCapOnly && zoneTargetIsFull(zoneId)) continue;
             if (!hasKnownHostileInZone(zoneId, frame)) continue;
             if (!reachableZone(squad, zoneId, frame)) continue;
+            // Under the cap every survivor is equally unburdened, so this is
+            // the plain nearest rule; over it, the load is what separates them.
+            int load = underCapOnly ? 0 : zoneTargetSquads[zoneId];
             float zoneForward = zoneForwardCoord[zoneId];
             float delta = zoneForward - squadForward;
             if (delta >= 0f) {
-                if (delta < bestForwardDist) {
+                if (load < bestForwardLoad
+                        || (load == bestForwardLoad && delta < bestForwardDist)) {
+                    bestForwardLoad = load;
                     bestForwardDist = delta;
                     bestForwardZone = zoneId;
                 }
             } else {
                 float absDelta = -delta;
-                if (absDelta < bestBackwardDist) {
+                if (load < bestBackwardLoad
+                        || (load == bestBackwardLoad && absDelta < bestBackwardDist)) {
+                    bestBackwardLoad = load;
                     bestBackwardDist = absDelta;
                     bestBackwardZone = zoneId;
                 }
