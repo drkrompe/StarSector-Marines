@@ -143,10 +143,21 @@ public final class OrbitalLift {
      *
      * <p>Separate from {@link #resolve} so the arithmetic can be asked directly
      * rather than through a run's own configuration.
+     *
+     * <p><b>Never fewer pairs than the ferry flies.</b> The arithmetic only
+     * exceeds {@link #FERRY_DROP_ZONES} above about four hundred seats, so a
+     * mission committing less than that was handed <em>less</em> lift by the
+     * switch that exists to add it — reinforced-south's 204 seats size to two
+     * pairs against the ferry's three, and its marines on the ground by tick
+     * 2,926 fell from 214 to 148. A derivation that can return less than the
+     * shape it replaces is not a sizing; it is a regression behind a switch.
+     * The floor is on the pairs rather than on the zones so a mission that
+     * states its own zone count still gets them, spread over the same craft.
      */
     public static ConquestArrivalConfig derivedShape(ConquestArrivalConfig config,
                                                      int committedSeats) {
-        int pairs = pairsFor(committedSeats, config.landingShare());
+        int pairs = Math.max(pairsFor(committedSeats, config.landingShare()),
+                FERRY_DROP_ZONES);
         int zones = config.dropZoneCount() != ConquestArrivalConfig.DERIVED
                 ? config.dropZoneCount() : pairs;
         int perZone = config.shuttlePairsPerZone() != ConquestArrivalConfig.DERIVED
