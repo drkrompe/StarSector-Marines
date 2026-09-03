@@ -105,27 +105,25 @@ The other two bullets held, and are worth keeping:
 
 ## What it found on the way
 
-**Two silent defects in lane seeding, on `main` today, unrelated to the fan.**
-Both should be fixed on their own:
+**Three silent defects in lane seeding, unrelated to the fan. All three are
+fixed**; the standing rules live in "And what stands between the two" in
+`precincts.md`, and both canonical fixtures now seat all nine rungs.
 
-- `LANE_SEED_SEPARATION` (32) never applies. A seated rung is appended to the
+- `LANE_SEED_SEPARATION` (32) never applied. A seated rung was appended to the
   plan's own `taken` list as well as to the ladder's, so the ordinary 60-cell
-  `MIN_SEED_SEPARATION` always finds it there first and dominates. The symptom
-  is a middle lane one rung short on both canonical fixtures — the middle lane
-  is the shortest, so it loses first. Holding the pre-lane seeds separate from
-  the lane seeds and testing each at its own separation seats all nine on both.
-- The lane seed's jitter window is clamped to the lane's own lateral third. A
-  rung whose fitted position leaves that third gets a window of a few cells and
-  is dropped for a reason that has nothing to do with the ground. Bounding it
-  with the map margin instead is the fix.
-
-**A waypoint's last leg does not point at the objective once the path bends.**
-`LanePath.fitted` slides a refused waypoint forward first. With a fan, the
-deepest rung's heading is the closing curve, so it slid 71 cells "forward" and
-came to rest 40 cells *behind* the fortress on one fixture and 108 cells past
-the objective on the other. The deepest waypoint should give way backward
-first. This is latent on `main` only because a straight lane's last leg happens
-to aim at the keep.
+  `MIN_SEED_SEPARATION` always found it there first and dominated. The symptom
+  was a middle lane one rung short on both canonical fixtures — the middle lane
+  is the shortest, so it lost first.
+- The lane seed's jitter window was clamped to the lane's own lateral third. A
+  rung whose fitted position left that third got a window of a few cells and was
+  dropped for a reason that had nothing to do with the ground. The map margin
+  bounds it now.
+- **A waypoint's last leg does not point at the objective once the path bends.**
+  `LanePath.fitted` slid a refused waypoint forward first. With a fan, the
+  deepest rung's heading is the closing curve, so it slid 71 cells "forward" and
+  came to rest 40 cells *behind* the fortress on one fixture and 108 cells past
+  the objective on the other. The deepest waypoint gives way backward only. This
+  was latent on a straight lane, whose last leg happens to aim at the keep.
 
 **A route-Voronoi fence must refuse shared ground.** Handing every cell of a
 shared trunk road to whichever route was read first gave `full-strength-west`'s
@@ -133,8 +131,9 @@ middle lane not one compound of its own. Marking multi-route cells as belonging
 to nobody and sweeping them like any other cell is what fixes it.
 
 **Route staging is measurable on `reinforced-south` once the lanes fan.**
-`lane-chain-tug-of-war.md` records the staging derivation as 6 squad-pulses of
-3,779 there and says not to tune it against that fixture. With the fan and the
+`conquest-command.md` records the staging derivation as single figures of
+nearly four thousand squad-pulses there and says not to tune it against that
+fixture. With the fan and the
 chain on it is **370 of 3,959 — nine per cent**. The dormancy is a consequence
 of where the lanes are, not a property of the fixture, so that claim is
 overturned even though the fan itself is not kept.
@@ -144,13 +143,16 @@ The lane chain fronts also moved on the south for the first time (+1/-1 on lane
 
 ## Where that leaves the chain
 
-`battle.conquest.laneChain` stays off. Hypothesis 1 of
-`lane-chain-tug-of-war.md`'s "What remains" — that the map should place a lane
-the force will actually use — has now been tried in its most direct form and
-measured, and it costs more than the misplacement it fixes. What is *not* ruled
-out is the second half of that same hypothesis: that the reading should admit a
-lane nobody is walking, which is a change to the commander and leaves the map
-alone. That is the cheaper thing to try next.
+The hypothesis that the map should place a lane the force will actually use has
+now been tried in its most direct form and measured, and it costs more than the
+misplacement it fixes.
+
+**What actually paid was the three seeding defects above.** The chain shipped on
+the strength of them — see `conquest-command.md`: with every lane seating the
+whole ladder it asks for,
+`battle.conquest.laneChain` takes more and holds at least as much as the
+fraction on both canonical fixtures, and it is on by default. The fan is still
+reverted, and this reading of it still stands.
 
 ## Acceptance
 

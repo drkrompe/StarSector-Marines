@@ -4,6 +4,10 @@ Status: ACTIVE — shared architecture and mission-specific migrations are track
 
 Written: 2026-08-27
 
+Updated: 2026-09-02 — the lane chain shipped on by default and its story is
+folded into `conquest-command.md`; what turned it on was a map defect rather
+than anything in the commander.
+
 Read `mission-command-nouns.md`, then the relevant mission design before an
 implementation story.
 
@@ -25,7 +29,6 @@ Design: `conquest-command.md`
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Live-accept tracks, cross-track support, front staging, and culminating convergence. |
 | `defender-track-mobilization.md` | IN PROGRESS | Live-accept belief-honest bounded patrol mobilization on the shared tracks. |
 | `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Live-accept rear-edge deployment and commander ownership of convoy relief squads. |
-| `lane-chain-tug-of-war.md` | IN PROGRESS | Off by default behind `battle.conquest.laneChain`; three shapes of opening the front gate measured and none paid, so the held compound is about which places the chain never reaches. Next: the south fixture lays two lanes across the advance rather than along it. |
 
 ## Sabotage
 
