@@ -635,14 +635,24 @@ public final class GroundMesh {
             dirtyCount = 0;
         }
 
+        /**
+         * Uploads the backing arrays whole, spare slots and all.
+         *
+         * <p>The spare capacity is not waste, it is what keeps a later patch
+         * inside the buffer. A cell that takes a slot past the count the last
+         * upload was sized to — a floor becoming rubble on an atlas it was not
+         * baked into — would sub-upload past the end, and
+         * {@code glBufferSubData} at that offset writes nothing at all and says
+         * so only through {@code glGetError}. Nothing past {@code used} is ever
+         * drawn, since the draw counts vertices.
+         */
         private void uploadWhole() {
-            int floats = used * 8;
-            FloatBuffer buffer = BufferUtils.createFloatBuffer(floats);
-            buffer.put(pos, 0, floats).flip();
+            FloatBuffer buffer = BufferUtils.createFloatBuffer(pos.length);
+            buffer.put(pos).flip();
             glBindBuffer(GL_ARRAY_BUFFER, posVbo);
             glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
             buffer.clear();
-            buffer.put(uv, 0, floats).flip();
+            buffer.put(uv).flip();
             glBindBuffer(GL_ARRAY_BUFFER, uvVbo);
             glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, 0);

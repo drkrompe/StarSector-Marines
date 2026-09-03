@@ -6,7 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-09-02 — a frame is measured through the shipping pipeline before
 it is spent, detail is withheld at framings it cannot be read at, and the static
-ground is resident on the GPU instead of resubmitted every frame.
+ground and the relief fields derived from it are resident on the GPU instead of
+resubmitted every frame.
 
 ## Vocabulary
 
@@ -170,6 +171,18 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     battle also draws it the ordinary way and the mesh serves from the next one.
     Any failure at all — no buffer objects, a failed allocation, a GL error —
     returns the layer to the per-cell stream with the same picture.
+21. What is derived per cell from resident data is resident too. The GROUND
+    redirect's height and normal fields are a quad per cell over the same grid
+    and change for the same reasons, so they are baked once per battle and
+    patched from this topology's change log rather than rasterised again every
+    frame. The consequence for the log is that it is **one list, not a list per
+    reader**: a caved-in roof and a wall aperture move no ground tile and are
+    recorded anyway, because the field that stands a cell at its roof is
+    resident, and a tag one reader needs costs the other a re-resolve of five
+    cells. `surface-relief-nouns.md` owns what those fields mean; what belongs
+    here is that residency is the pipeline's answer to per-cell work of any
+    kind, and that a resident consumer's invalidation is the topology's to
+    record.
 
 ## Boundaries and extension paths
 
@@ -179,4 +192,18 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a wrap the atlas cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
-`surface-relief-nouns.md` owns the next ceiling. With the ground resident, a whole-map Conquest frame's remaining cost is almost entirely its relief composite — the height and normal fields are rebuilt per frame as a quad per visible cell, twice, which is the same shape of cost the ground has just stopped paying. `relief-field-budget.md` holds that work.
+**The next ceiling is `FOG`.** With the ground and the relief fields both
+resident, a whole-map Conquest frame is 13 ms against the 148 ms the same frame
+costs with the fields rebuilt per frame, and FOG is 5.7 ms of the 12.5 that
+remain. It is collection-bound in the sharpest form the vocabulary above
+describes: a hundred and sixty-eight thousand commands that drain in one call.
+What is worth attacking there is how many are made, not how they are submitted —
+and the shape of the answer is unlikely to be residency, because what fog
+reports is exactly the thing that changes every frame.
+
+Framing-gating the relief composite (law 19) was the other candidate and was
+measured rather than argued: at whole-map the sun's terrain shading genuinely
+is not readable — a wall is a pixel wide and its shadow is lost in the tile
+noise — while at a lane's framing it plainly is. It is not shipped, because the
+resident fields alone put the frame five times under the budget the gate was
+proposed for, and a gate that buys nothing is a second picture to maintain.
