@@ -1,10 +1,11 @@
 {
   "construction": {
     "arrivalPlan": {
-      "dropZoneCount": 3,
+      "dropZoneCount": 0,
       "firstPlayerShuttle": 0,
+      "landingShare": 0.3,
       "policy": "PAIRED_HALF_SQUAD",
-      "shuttlePairsPerZone": 1,
+      "shuttlePairsPerZone": 0,
       "timingJitterSec": 1
     },
     "enemyFighterSupport": [],
@@ -16,32 +17,42 @@
     "seed": 4096,
     "shuttles": [
       {
-        "cycles": 12,
+        "cycles": 9,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 12,
+        "cycles": 9,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 11,
+        "cycles": 9,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 11,
+        "cycles": 9,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 11,
+        "cycles": 8,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 11,
+        "cycles": 8,
+        "seatsPerSortie": 6,
+        "type": "AEROSHUTTLE"
+      },
+      {
+        "cycles": 8,
+        "seatsPerSortie": 6,
+        "type": "AEROSHUTTLE"
+      },
+      {
+        "cycles": 8,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       }

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import com.dillon.starsectormarines.ops.LandingShare;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -24,8 +25,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConquestArrivalPlanTest {
 
+    /**
+     * Forty committed drops is 240 seats, which the lift sizes at two pairs —
+     * one to a drop zone — and lands inside the mission's landing share.
+     */
     @Test
-    void fortyCommittedDropsCycleThroughOneAeroshuttlePairPerDefaultLane() {
+    void theDerivedLiftCyclesOnePairPerDerivedDropZone() {
         List<ShuttleAssignment> manifest = new ArrayList<>();
         for (int i = 0; i < 40; i++) {
             manifest.add(new ShuttleAssignment(ShuttleType.VALKYRIE, 1, 6));
@@ -36,12 +41,13 @@ class ConquestArrivalPlanTest {
                 TargetProfile.NEUTRAL, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                 new ShuttleArrivalPlan(MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0))) {
             List<ShuttleMission> missions = missions(sim);
-            assertEquals(6, missions.size());
+            int pairs = OrbitalLift.pairsFor(40 * 6, LandingShare.DEFAULT);
+            assertEquals(2 * pairs, missions.size());
             for (long aircraft : sim.getAirEntityIds()) {
                 assertEquals(ShuttleType.AEROSHUTTLE,
                         sim.world().airframe(aircraft));
             }
-            assertEquals(List.of(7, 7, 7, 7, 6, 6), missions.stream()
+            assertEquals(List.of(10, 10, 10, 10), missions.stream()
                     .map(mission -> mission.totalCycles).toList());
             assertEquals(40 * 6, missions.stream()
                     .mapToInt(mission -> mission.totalCycles
@@ -50,7 +56,7 @@ class ConquestArrivalPlanTest {
 
             Map<Integer, List<ShuttleMission>> byArea = missions.stream()
                     .collect(Collectors.groupingBy(mission -> mission.landingAreaId));
-            assertEquals(3, byArea.size());
+            assertEquals(pairs, byArea.size());
             for (List<ShuttleMission> pair : byArea.values()) {
                 assertEquals(2, pair.size());
                 assertEquals(pair.get(0).arrivalGroupId,
@@ -73,8 +79,12 @@ class ConquestArrivalPlanTest {
         }
     }
 
+    /**
+     * A thousand marines is the case the fixed three pairs could not carry:
+     * the lift sizes itself up to the seats instead of stretching the cadence.
+     */
     @Test
-    void thousandMarineConquestBalancesEverySquadAcrossSixLaneShuttles() {
+    void thousandMarineConquestBalancesEverySquadAcrossTheLiftItNeeds() {
         ShuttleArrivalPlan plan = new ShuttleArrivalPlan(
                 MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0);
 
@@ -82,9 +92,12 @@ class ConquestArrivalPlanTest {
                 List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 168, 6)),
                 84 * 12);
 
-        assertEquals(6, resolved.assignments().size());
-        assertEquals(List.of(28, 28, 28, 28, 28, 28), resolved.assignments().stream()
-                .map(assignment -> assignment.cycles).toList());
+        int pairs = OrbitalLift.pairsFor(84 * 12, LandingShare.DEFAULT);
+        assertEquals(2 * pairs, resolved.assignments().size());
+        assertEquals(List.of(11, 11, 11, 11, 11, 11, 11, 11,
+                        10, 10, 10, 10, 10, 10, 10, 10),
+                resolved.assignments().stream()
+                        .map(assignment -> assignment.cycles).toList());
         assertEquals(84 * 12, resolved.assignments().stream()
                 .mapToInt(assignment -> assignment.cycles
                         * assignment.seatsPerSortie)
@@ -95,9 +108,11 @@ class ConquestArrivalPlanTest {
                 RiskLevel.LOW, TargetProfile.NEUTRAL, FlybyRoster.EMPTY,
                 FlybyRoster.EMPTY, plan)) {
             List<ShuttleMission> launched = missions(sim);
-            assertEquals(6, launched.size());
-            assertEquals(List.of(28, 28, 28, 28, 28, 28), launched.stream()
-                    .map(mission -> mission.totalCycles).toList());
+            assertEquals(2 * pairs, launched.size());
+            assertEquals(List.of(11, 11, 11, 11, 11, 11, 11, 11,
+                            10, 10, 10, 10, 10, 10, 10, 10),
+                    launched.stream()
+                            .map(mission -> mission.totalCycles).toList());
             assertEquals(84 * 12, launched.stream()
                     .mapToInt(mission -> mission.totalCycles
                             * mission.seatsPerSortie)
@@ -146,8 +161,8 @@ class ConquestArrivalPlanTest {
                     missions.get(2).arrivalGroupId);
             assertEquals(missions.get(2).arrivalGroupId,
                     missions.get(3).arrivalGroupId);
-            assertTrue(missions.subList(2, missions.size()).stream()
-                    .map(mission -> mission.landingAreaId).distinct().count() == 3L);
+            assertEquals(1L, missions.subList(2, missions.size()).stream()
+                    .map(mission -> mission.landingAreaId).distinct().count());
         }
     }
 
