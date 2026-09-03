@@ -2082,6 +2082,57 @@ public class ConquestCommandTest {
         }
     }
 
+    /**
+     * An airfield has no walls, so its capture room is the outdoors — the same
+     * zone every squad in the open is standing in. The bound on the "already
+     * there" gate, and the refusal to send anybody across the map at a place
+     * they can never converge on.
+     */
+    @Nested
+    class OpenCompoundAdjacency {
+
+        /** Open ground with an unwalled compound off to the east. */
+        private BattleSimulation apronSim() {
+            return openExteriorSim(60, 20);
+        }
+
+        private TacticalNode airbase(BattleSimulation sim) {
+            return registerCompound(sim, new TacticalNode(
+                    TacticalNode.Kind.AIRBASE, 50, 10, 46, 6, 54, 14,
+                    Faction.DEFENDER, 80, 4));
+        }
+
+        @Test
+        public void aSquadInTheOpenAcrossTheMapHasNotArrivedAtTheAirfield() {
+            BattleSimulation sim = apronSim();
+            TacticalNode node = airbase(sim);
+            Squad far = addMarineSquad(sim, 5f, 10f);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.WEST_TO_EAST);
+            tick(cmd, sim);
+
+            assertEquals(sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY),
+                    sim.getZoneGraph().zoneIdAt(5, 10),
+                    "the fixture only bites while the compound's room is the outdoors");
+            assertFalse(isSecureCompound(far),
+                    "standing outdoors forty cells away is not standing in the "
+                            + "airfield, and it is not somewhere to be sent either");
+        }
+
+        @Test
+        public void aSquadOnTheApronStillTakesIt() {
+            BattleSimulation sim = apronSim();
+            airbase(sim);
+            Squad onIt = addMarineSquad(sim, 50f, 10f);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.WEST_TO_EAST);
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(onIt),
+                    "a squad inside the footprint has genuinely arrived");
+        }
+    }
+
     private static void tick(ConquestCommand command, BattleSimulation sim) {
         CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE,
                 sim);
