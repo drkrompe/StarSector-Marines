@@ -6,10 +6,9 @@ on `reinforced-south`.
 
 Written: 2026-09-01
 
-Updated: 2026-09-02 — three shapes of "open the gate" measured at full length
-and none paid, so the gate is not what costs the south its held compound. The
-route staging is dormant on that fixture in both readings for a structural
-reason. Still off. See "What remains" at the end.
+Updated: 2026-09-02 — three shapes of "open the gate" measured and none paid, so
+the gate is not the cost; and the map-side hypothesis has now been tried too and
+costs more than it fixes (`lane-fan.md`). Still off. See "What remains".
 
 ## Where the tracks came from, and what changed under them
 
@@ -150,6 +149,17 @@ Three things to look at, in the order they are likely to matter:
    admit a lane nobody is walking — and that is a question for the map before
    it is one for the commander. This is the most likely place the held compound
    is hiding.
+
+   **The first half of that has been tried and does not pay.** `lane-fan.md`
+   gave every derived lane the same two ends — the landing place and the keep —
+   with a spread envelope in between, so all three ladders start where the force
+   stands. The geometry came out exactly as intended and the balance came out
+   worse: held falls to 14 on the south and 3 on the west, and an isolation run
+   against the same tree with the old lateral thirds restored still reads 12 and
+   4, so the fanned *map* carries the loss rather than any lane reading over it.
+   It was reverted; the matrix and what it turned up are in that story. What
+   remains untried is the second half — a reading that admits a lane nobody is
+   walking, which changes the commander and leaves the map alone.
 2. **The route staging cannot be measured on the south at all.** It is 6
    squad-pulses of 3,779 with the chain on and 4 of 3,607 with it off, because
    `laneStageChoice` is consulted only for a squad `targetChoice` gives no
@@ -158,6 +168,11 @@ Three things to look at, in the order they are likely to matter:
    secure-compound orders, 959 are clear-zone orders, and six reach the staging
    derivation. The staging half of the design lives on `full-strength-west`,
    where it is 230 advance-track pulses. Do not tune staging against the south.
+
+   **That is a property of where the lanes are, not of the fixture.** Under
+   `lane-fan.md`'s lanes the same fixture reaches the staging derivation on 370
+   pulses of 3,959 — nine per cent. Whatever eventually puts the south's lanes
+   where the force walks makes staging measurable there too.
 3. **"Nothing stays held" was overstated.** Only two distinct compounds on the
    south and two on the west ever changed hands back (5 and 7 losses against 20
    and 13 gains); the fronts return to rung 0 because those particular rung-0

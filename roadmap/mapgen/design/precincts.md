@@ -771,6 +771,20 @@ centreline and not merely clamped to the strip's edges: a random walk clamped
 only at the edges wanders to one side and stays there, which is a lane that has
 quietly become somebody else's.
 
+**The lanes do not share their ends, and that was measured rather than
+assumed.** Each derived lane begins in its own lateral third of the attacker
+region, so on a fixture whose beachhead is not centred two ladders in three
+start well to the side of the ground the force actually stands on — which looks
+like a defect and reads like one in the commanders' chain. Giving every lane the
+same two endpoints, the landing place and the keep, with a spread envelope
+opening in the middle and closing at both ends, produces exactly the picture the
+mission's name suggests: one base, three routes, one fortress. It also loses
+held compounds on both canonical fixtures, and an isolation run shows the fanned
+map carries the loss rather than any reading over it — the same force meets the
+same garrisons in a narrower space and trades worse. `lane-fan.md` holds the
+matrix. A lane's own third is a *space allowance* as much as a direction, and
+narrowing it is not free.
+
 **Its drift is drawn from a stream of its own, and that is not a detail.** The
 first version drew from the plan's rng, which shifted every settlement and
 outlying seed downstream of it and moved compounds out of the front band the

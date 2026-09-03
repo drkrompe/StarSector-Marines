@@ -4,9 +4,10 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — the chain's front gate is measured not to be what costs
-the held compound, and the route staging is unmeasurable on the south fixture
-by construction; the chain stays off.
+Updated: 2026-09-02 — neither the chain's front gate nor the map-side lane fan
+is what wins the held compound back; both were measured at full length and
+reverted, and the staging dormancy on the south turns out to be about where
+that fixture's lanes are. The chain stays off.
 
 Earlier 2026-09-02 — a lane can be read as a chain of places taken in order;
 built, measured both ways, and left off by default because it costs a held
@@ -139,6 +140,23 @@ believed defender zone for, and on that fixture there is nearly always one: six
 squad-pulses of 3,779 reach the staging derivation with the chain on and four
 of 3,607 with it off. Whatever staging does, that fixture cannot see it;
 `full-strength-west` is where it lives, at 230 advance-track pulses.
+
+That is a property of **where that fixture's lanes are**, though, not of the
+fixture. Two of its three lanes are laid across the advance rather than along
+it, so the front push always has believed ground in front of it and staging
+never has to derive anything. Lay the same fixture's lanes so all three leave
+the beachhead and the staging derivation fires on 370 pulses of 3,959.
+
+**The map-side answer to the held compound was tried, and costs more than it
+fixes.** If the south's outer lanes begin two hundred cells from the only
+ground the force stands on, the natural fix is to give every derived lane the
+same two ends — the landing place and the keep — and spread them only in
+between. `lane-fan.md` built exactly that, and the fanned map holds 14 on the
+south and 3 on the west with the chain on. An isolation run against the same
+tree, with lane membership handed back to the plain lateral thirds, still reads
+12 and 4 — so the loss belongs to the fanned map itself and no lane reading
+over it recovers it. The change was reverted; that story holds the full matrix
+and the two silent lane-seeding defects it uncovered on the way.
 
 `lane-chain-tug-of-war.md` holds what remains, including the measured table for
 the three openings so the next attempt does not re-derive them.
