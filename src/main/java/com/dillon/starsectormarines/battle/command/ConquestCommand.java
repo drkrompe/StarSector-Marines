@@ -137,6 +137,75 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     public static final int CAPTURE_FRONT_REACH_CELLS = 24;
 
+    /**
+     * How many squads beyond a zone's own capture quota may be ordered to clear
+     * it before the next forward zone in the strip is offered instead.
+     *
+     * <p>A zone's quota is what taking it is believed to want — one squad, or
+     * {@link #LARGE_COMPOUND_ROOMS two} for a compound of several rooms — and a
+     * zone that is not a compound's capture room is worth one. The overflow on
+     * top of it is the honest slack: a clear order is contested ground rather
+     * than a queue ticket, squads are lost on the way, and a cap set exactly at
+     * the quota would leave a place under-assaulted every time somebody died.
+     * Two is a squad in reserve behind each of a compound's own.
+     *
+     * <p><b>Without the cap the force does not divide at all.</b> The zone
+     * picker ranks by distance along the traversal axis and consults nothing
+     * about who is already going there, and {@link #TRACK_LINE_LEAD_CELLS}
+     * bounds staging, so the surplus queues in depth behind the same target:
+     * measured at 89–93% of the live force assigned to one {@code CLEAR_ZONE}
+     * target on {@code full-strength-west}, with a third more marines landed
+     * changing peak presence inside a capture zone from 46 to 48 and doubling
+     * the deaths in the one 40x40 block they were queued in. The useful slots
+     * are 5–9 and fixed; adding force without dividing it adds casualties.
+     *
+     * <p>The cap is a preference and never a refusal. A strip whose every
+     * defender zone is at cap still hands one back — there is nowhere else to
+     * send anybody, and a squad with no target is worse than a crowded one —
+     * but it hands back the least crowded rather than the nearest, so a
+     * surplus larger than every cap in the strip put together still divides.
+     * Measured on {@code full-strength-west}, where three zones took three
+     * squads each and thirteen more fell back onto one of them.
+     */
+    public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
+
+    /**
+     * {@code -Dbattle.conquest.zoneTargetCap=true} divides the front push
+     * across a strip's zones instead of ranking every squad onto the nearest
+     * one. <b>Off</b>, and the switch exists because the cap has to be
+     * measurable apart from everything else shipped beside it — a matrix run
+     * that moves two layers at once measures neither.
+     */
+    public static final String ZONE_TARGET_CAP_PROPERTY =
+            "battle.conquest.zoneTargetCap";
+
+    /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
+    static boolean ZONE_TARGET_CAP_ENABLED = Boolean.parseBoolean(
+            System.getProperty(ZONE_TARGET_CAP_PROPERTY, "false"));
+
+    /**
+     * How far outside a compound's own footprint a squad may stand and still
+     * count as having <em>arrived</em> at it — the bound on phase 2's "already
+     * there, commit the capture" gate.
+     *
+     * <p>That gate deliberately applies no track bound and no front-reach gate,
+     * because a squad standing in the building has not been sent anywhere. It
+     * read the squad's zone against the compound's garrison zones, and for an
+     * <b>open compound</b> those are the outdoors: an airfield has no walls, so
+     * its capture room resolves to the exterior flood and every squad in the
+     * open on the whole map answered the question yes. Measured on
+     * {@code full-strength-west}, squads held {@code SECURE_COMPOUND} on an
+     * airbase three hundred cells east for the whole battle without arriving —
+     * 16 of 45 secure-travel episodes ended in the squad's destruction and 24
+     * of 45 never reached the portal, against 6 of 33 on the southern fixture,
+     * which has no open compound in the way.
+     *
+     * <p>A few cells rather than none: a squad settling against the wall of the
+     * place it is taking has arrived, and the ring the geometry test already
+     * used is one cell wide.
+     */
+    public static final int ADJACENT_COMMIT_CELLS = 6;
+
     /** {@link #friendlyLeadForward} sentinel: no living friendly holds this track. */
     private static final int NO_FRIENDLY_LEAD = Integer.MIN_VALUE;
 
@@ -425,6 +494,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private final List<CompoundTarget> compoundTargets = new ArrayList<>();
 
+    /**
+     * Squads this pulse's front push has already pointed at each zone, indexed
+     * by zone id. Cleared at the top of the push and filled as it hands out
+     * targets, so {@link #ZONE_TARGET_OVERFLOW_SQUADS} is read against the
+     * plan being built rather than against last pulse's. Every uncommitted
+     * squad is retargeted every pulse, so a per-pulse tally is the whole
+     * picture.
+     */
+    private int[] zoneTargetSquads = new int[0];
+
     /** Once-per-command-tick explanation consumed by diagnostics and UI. */
     private volatile ConquestFrontSnapshot frontSnapshot;
 
@@ -618,10 +697,34 @@ public final class ConquestCommand implements ConquestFrontCommand,
             // Pass 2: preferred tracks remain sticky, but an idle track is a
             // coordination gap rather than an ownership fence. Borrow useful
             // work from one neighboring track without permanently re-homing.
+            // The per-zone tally is the plan being built, so it starts empty.
+            Arrays.fill(zoneTargetSquads, 0);
+            // A squad already clearing a zone keeps it, and is counted before
+            // anybody fresh chooses. Both halves matter: the cap's answer
+            // depends on who asked first, so without stickiness a squad third
+            // in line one pulse and fourth in the next is moved to another
+            // zone for a reason that exists nowhere on the map. Counting the
+            // standing squads first is what stops a fresh squad sizing its
+            // choice against a tally that is still filling up.
+            Int2IntOpenHashMap standingTargets = new Int2IntOpenHashMap();
+            standingTargets.defaultReturnValue(-1);
+            if (ZONE_TARGET_CAP_ENABLED && !finalCompoundConvergence) {
+                for (PlanningSquad squad : squads) {
+                    if (committed.contains(squad.id)) continue;
+                    int zone = standingZoneTarget(squad, frame);
+                    if (zone < 0) continue;
+                    standingTargets.put(squad.id, zone);
+                    noteZoneTarget(zone);
+                }
+            }
             for (PlanningSquad squad : squads) {
                 if (committed.contains(squad.id)) continue;
                 int preferredTrack = stripFor(squad);
-                TargetChoice choice = finalCompoundConvergence
+                int standing = standingTargets.get(squad.id);
+                TargetChoice choice = standing >= 0
+                        ? new TargetChoice(
+                                effectiveTrackFor(standing, preferredTrack), standing)
+                        : finalCompoundConvergence
                         ? finalCompoundSupportChoice(squad, soleRemaining, frame)
                         : targetChoice(squad, preferredTrack, frame);
                 if (choice.targetZoneId < 0) {
@@ -705,6 +808,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     planned = planned.withDistantCaptureDeferred();
                 }
                 directives.put(squad.id, planned);
+                if (standing < 0) noteZoneTarget(choice.targetZoneId);
             }
         }
 
@@ -747,7 +851,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *       only way a fresh assignment enters a contested compound. No track
      *       bound applies here: a squad standing in the building has not been
      *       sent anywhere, and refusing it on a lateral coordinate would leave
-     *       an objective it is already inside of unassaulted.</li>
+     *       an objective it is already inside of unassaulted. What does apply
+     *       is {@link #ADJACENT_COMMIT_CELLS}, because "already there" is a
+     *       distance and an open compound's room is the whole outdoors.</li>
      *   <li><b>Uncontested distant fill.</b> Greedily assign nearest pairs up
      *       to the ordinary per-compound quotas, among compounds the front has
      *       reached or passed ({@link #frontHasReached}) and within
@@ -856,6 +962,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0) continue;
                     if (contested[i] && !unattended(i, slots)) continue;
+                    if (!eligibleForDistantCapture(compoundTargets.get(i))) continue;
                     if (!frontHasReached(compoundTargets.get(i))) continue;
                     if (!captureTrackAllowed(squad, i, homeTrackWork)) continue;
                     if (!reachableZone(squad, compoundTargets.get(i).captureZoneId,
@@ -895,9 +1002,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     if (contested[i] && !unattended(i, slots)) continue;
                     CompoundTarget t = compoundTargets.get(i);
                     // Only a slot this squad could actually have filled counts
-                    // as deferred. A compound the front has not reached was
-                    // never on offer, and reporting it as withheld for front
-                    // resistance would misattribute the gate below.
+                    // as deferred. A compound the front has not reached, or one
+                    // no distant detachment may be sent to at all, was never on
+                    // offer, and reporting it as withheld for front resistance
+                    // would misattribute the gate below.
+                    if (!eligibleForDistantCapture(t)) continue;
                     if (!frontHasReached(t)) continue;
                     // Nor does a slot the track bound refused: that squad was
                     // not retained for front resistance, it was never offered
@@ -924,6 +1033,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 if (slots[i] <= 0) continue;
                 if (contested[i] && !unattended(i, slots)) continue;
                 CompoundTarget t = compoundTargets.get(i);
+                if (!eligibleForDistantCapture(t)) continue;
                 if (!frontHasReached(t)) continue;
                 if (tracksFromHome(squad, t) < 2) continue;
                 if (!reachableZone(squad, t.captureZoneId, frame)) continue;
@@ -1158,16 +1268,51 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return false;
     }
 
-    /** True iff the squad currently stands in, or in a zone bordering, one of the compound's garrison rooms — the "already there, commit the capture" gate for contested compounds. */
+    /**
+     * True iff the squad currently stands in, or immediately against, one of
+     * the compound's garrison rooms — the "already there, commit the capture"
+     * gate for contested compounds.
+     *
+     * <p>Bounded by {@link #ADJACENT_COMMIT_CELLS} whichever way it answers.
+     * The zone test alone is a claim about being in the same <em>room</em>, and
+     * an open compound's room is the outdoors; adjacency has to be a claim
+     * about being in the same <em>place</em>, which is a distance.
+     */
     private boolean squadAdjacentToCompound(PlanningSquad squad, CompoundTarget t,
                                             ConquestCommandFrame frame) {
+        if (squad.anchorCellX < 0 || squad.anchorCellY < 0) return false;
+        int outside = cellsOutsideCompound(squad, t);
+        if (outside > ADJACENT_COMMIT_CELLS) return false;
         int cz = frame.topology().zoneIdAt(squad.anchorCellX, squad.anchorCellY);
-        if (cz < 0) return false;
-        if (containsZone(t.garrisonZones, cz)) return true;
-        return squad.anchorCellX >= t.node.compoundLeft() - 1
-                && squad.anchorCellX <= t.node.compoundRight() + 1
-                && squad.anchorCellY >= t.node.compoundTop() - 1
-                && squad.anchorCellY <= t.node.compoundBottom() + 1;
+        if (cz >= 0 && containsZone(t.garrisonZones, cz)) return true;
+        return outside <= 1;
+    }
+
+    /**
+     * Cells between the squad's anchor and the compound's authored footprint,
+     * zero when it stands inside. Chebyshev, because the footprint is a
+     * rectangle and a squad round its corner is as arrived as one at its wall.
+     */
+    private static int cellsOutsideCompound(PlanningSquad squad, CompoundTarget t) {
+        int dx = Math.max(0, Math.max(t.node.compoundLeft() - squad.anchorCellX,
+                squad.anchorCellX - t.node.compoundRight()));
+        int dy = Math.max(0, Math.max(t.node.compoundTop() - squad.anchorCellY,
+                squad.anchorCellY - t.node.compoundBottom()));
+        return Math.max(dx, dy);
+    }
+
+    /**
+     * Whether this compound may be handed to a squad that has to <em>walk</em>
+     * to it. An open compound's capture room is the exterior flood, so
+     * "converge on the capture zone" names ground the squad is already
+     * standing on and the order can be held for a whole battle without ever
+     * arriving. It remains capturable by a squad that actually reaches its
+     * footprint — see {@link #squadAdjacentToCompound} — which is what taking
+     * an airfield looks like anyway: the front arrives at it rather than
+     * somebody being detached across the map for it.
+     */
+    private boolean eligibleForDistantCapture(CompoundTarget t) {
+        return exteriorZoneId < 0 || t.captureZoneId != exteriorZoneId;
     }
 
     private int targetIndexForCaptureZone(int captureZoneId) {
@@ -1342,6 +1487,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         zoneCentroidY = new float[topology.zones().size()];
         zoneMarkerX = new int[topology.zones().size()];
         zoneMarkerY = new int[topology.zones().size()];
+        zoneTargetSquads = new int[topology.zones().size()];
         Arrays.fill(zoneMarkerX, -1);
         Arrays.fill(zoneMarkerY, -1);
         Arrays.fill(zoneForwardCoord, 0f);
@@ -2064,6 +2210,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * positions exist, the forward one wins on ties (and is preferred
      * outright when forward positions exist).
      *
+     * <p>A zone this pulse has already filled to its own quota plus
+     * {@link #ZONE_TARGET_OVERFLOW_SQUADS} is passed over for the next forward
+     * zone in the strip, so a force larger than the front's useful slots
+     * divides across the strip's depth instead of queueing behind one target.
+     * A strip whose zones are all at cap still hands one back — a squad with no
+     * target is worse than a crowded one — but hands back the least crowded of
+     * them rather than the nearest, so the surplus divides too.
+     *
      * <p>Forward bias matters because CONQUEST is a directional push. A
      * squad that's already moved past a flanking defender shouldn't be
      * pulled back to clear them — the next strip-neighbor squad picks
@@ -2082,33 +2236,123 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
                                            ConquestCommandFrame frame) {
+        if (!ZONE_TARGET_CAP_ENABLED) {
+            return nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
+        }
+        int spare = nearestDefenderZoneInStrip(squad, stripIdx, frame, true);
+        return spare >= 0 ? spare
+                : nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
+    }
+
+    /**
+     * @param underCapOnly skip zones this pulse has already filled to
+     *                     {@link #ZONE_TARGET_OVERFLOW_SQUADS} over their
+     *                     quota, so the next forward zone in the strip is
+     *                     offered instead. The caller above runs this pass
+     *                     first and repeats without it, which is what makes
+     *                     the cap a preference rather than a refusal.
+     *                     <p>The repeat is not the old rule verbatim: it ranks
+     *                     a candidate by how many squads are already on it
+     *                     before it ranks it by distance. A strip whose zones
+     *                     are all at cap has a surplus to place either way, and
+     *                     putting all of it on the nearest zone is the queue
+     *                     the cap exists to break — measured on
+     *                     {@code full-strength-west}, where three zones took
+     *                     their three squads each and thirteen more squads fell
+     *                     back onto one of them.
+     */
+    private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
+                                           ConquestCommandFrame frame,
+                                           boolean underCapOnly) {
         if (stripIdx < 0 || stripIdx >= stripZones.size()) return -1;
         float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidY : squad.centroidX;
 
         int bestForwardZone = -1;
+        int bestForwardLoad = Integer.MAX_VALUE;
         float bestForwardDist = Float.MAX_VALUE;
         int bestBackwardZone = -1;
+        int bestBackwardLoad = Integer.MAX_VALUE;
         float bestBackwardDist = Float.MAX_VALUE;
         for (int zoneId : stripZones.get(stripIdx)) {
             if (zoneId == exteriorZoneId) continue;
+            if (underCapOnly && zoneTargetIsFull(zoneId)) continue;
             if (!hasKnownHostileInZone(zoneId, frame)) continue;
             if (!reachableZone(squad, zoneId, frame)) continue;
+            // Under the cap every survivor is equally unburdened, so this is
+            // the plain nearest rule; over it, the load is what separates them.
+            int load = underCapOnly || !ZONE_TARGET_CAP_ENABLED
+                    ? 0 : zoneTargetSquads[zoneId];
             float zoneForward = zoneForwardCoord[zoneId];
             float delta = zoneForward - squadForward;
             if (delta >= 0f) {
-                if (delta < bestForwardDist) {
+                if (load < bestForwardLoad
+                        || (load == bestForwardLoad && delta < bestForwardDist)) {
+                    bestForwardLoad = load;
                     bestForwardDist = delta;
                     bestForwardZone = zoneId;
                 }
             } else {
                 float absDelta = -delta;
-                if (absDelta < bestBackwardDist) {
+                if (load < bestBackwardLoad
+                        || (load == bestBackwardLoad && absDelta < bestBackwardDist)) {
+                    bestBackwardLoad = load;
                     bestBackwardDist = absDelta;
                     bestBackwardZone = zoneId;
                 }
             }
         }
         return bestForwardZone >= 0 ? bestForwardZone : bestBackwardZone;
+    }
+
+    /**
+     * Whether this pulse has already pointed a zone's full complement at it:
+     * its own capture quota plus {@link #ZONE_TARGET_OVERFLOW_SQUADS}. A zone
+     * that is no compound's capture room is worth one squad — there is no
+     * footprint to say otherwise, and a room is a room.
+     */
+    private boolean zoneTargetIsFull(int zoneId) {
+        if (!ZONE_TARGET_CAP_ENABLED) return false;
+        if (zoneId < 0 || zoneId >= zoneTargetSquads.length) return false;
+        int quota = 1;
+        int index = targetIndexForCaptureZone(zoneId);
+        if (index >= 0) quota = compoundTargets.get(index).desiredSquads;
+        return zoneTargetSquads[zoneId] >= quota + ZONE_TARGET_OVERFLOW_SQUADS;
+    }
+
+    /**
+     * The {@code CLEAR_ZONE} target this squad already holds, or {@code -1}
+     * when it holds none or the one it holds has stopped being worth holding:
+     * the belief has gone, the zone is unreachable, or the squad's home track
+     * has drifted more than a neighbour away from it. Those are the conditions
+     * {@link #nearestDefenderZoneInStrip} would apply to the zone as a fresh
+     * candidate, asked of the order the squad is already executing.
+     *
+     * <p>Only consulted under {@link #ZONE_TARGET_CAP_PROPERTY}. The plain
+     * nearest-forward rule is a pure function of the squad's own position and
+     * needs no stickiness; the capped rule depends on who chose first, so
+     * without this a reordering of the queue is a retarget.
+     */
+    private int standingZoneTarget(PlanningSquad squad, ConquestCommandFrame frame) {
+        ObjectiveAssignment held = squad.assignedObjective;
+        if (held == null || held.kind() != AssignmentKind.CLEAR_ZONE) return -1;
+        int zone = held.targetZoneId();
+        if (zone < 0 || zone == exteriorZoneId) return -1;
+        if (!hasKnownHostileInZone(zone, frame)) return -1;
+        if (!reachableZone(squad, zone, frame)) return -1;
+        int track = trackForZone(zone);
+        return track >= 0 && Math.abs(track - stripFor(squad)) > 1 ? -1 : zone;
+    }
+
+    /** The track a kept target is published under: its own, or the squad's. */
+    private int effectiveTrackFor(int zoneId, int preferredTrack) {
+        int track = trackForZone(zoneId);
+        return track >= 0 ? track : preferredTrack;
+    }
+
+    /** Records a front-push target so the zone's cap counts it. */
+    private void noteZoneTarget(int zoneId) {
+        if (zoneId < 0 || zoneId >= zoneTargetSquads.length) return;
+        zoneTargetSquads[zoneId]++;
     }
 
     private boolean hasKnownHostileInZone(int zoneId, ConquestCommandFrame frame) {

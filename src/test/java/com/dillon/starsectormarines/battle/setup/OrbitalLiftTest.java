@@ -77,6 +77,26 @@ class OrbitalLiftTest {
         }
     }
 
+    /**
+     * The assertion above is not enough on its own: "west &gt; south" was true
+     * while the south was being handed two pairs against the ferry's three, so
+     * the switch that sizes the lift up was sizing it down on the fixture that
+     * needed it least changed.
+     */
+    @Test
+    void aDerivedShapeIsNeverLessLiftThanTheFerry() {
+        for (int seats : new int[]{6, 12, 72, 204, 408, 1008}) {
+            ConquestArrivalConfig resolved = OrbitalLift.derivedShape(
+                    ConquestArrivalConfig.DEFAULT, seats);
+            assertTrue(resolved.playerShuttlePairCount()
+                            >= OrbitalLift.FERRY_DROP_ZONES,
+                    seats + " seats derive "
+                            + resolved.playerShuttlePairCount()
+                            + " pairs, under the ferry's "
+                            + OrbitalLift.FERRY_DROP_ZONES);
+        }
+    }
+
     /** A tighter share buys more craft for the same force. */
     @Test
     void aTighterShareBuysMoreLift() {
