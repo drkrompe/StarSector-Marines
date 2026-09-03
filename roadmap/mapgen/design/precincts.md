@@ -890,8 +890,8 @@ ground behind the marines. A rung placed there would stand at their backs, and
 on `full-strength-west` it is not even geometrically available in front of the
 landing. So the ladder is placed by fraction along its lane and the front band it
 turns out to occupy is a fact about the finished map: measured on the canonical
-fixtures, the nine rungs come out as five compounds in band 1 and ten in band 2
-on `reinforced-south`, and twelve to three on `full-strength-west`. That is
+fixtures, of `reinforced-south`'s 24 compounds eight stand in band 1 and eight
+in band 2, and of `full-strength-west`'s 25 it is thirteen to three. That is
 resistance in depth. Front band 3 holds nothing, and should not.
 
 **Placement follows the tracks, before growth.** Lane places are seeded after
