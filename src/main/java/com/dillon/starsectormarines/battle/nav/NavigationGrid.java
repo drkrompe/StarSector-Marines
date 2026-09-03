@@ -374,19 +374,33 @@ public class NavigationGrid {
      */
     public boolean canTraverseCellStep(int fromX, int fromY,
                                        int toX, int toY) {
-        if (!inBounds(fromX, fromY) || !inBounds(toX, toY)) return false;
-        if (!isWalkable(fromX, fromY) || !isWalkable(toX, toY)) return false;
         int dx = toX - fromX;
         int dy = toY - fromY;
-        if (dx == 0 && dy == 0) return true;
+        if (dx == 0 && dy == 0) {
+            return inBounds(fromX, fromY) && isWalkable(fromX, fromY);
+        }
         if (Math.abs(dx) > 1 || Math.abs(dy) > 1) return false;
         for (Direction direction : Direction.ALL) {
             if (direction.dx != dx || direction.dy != dy) continue;
-            return GridPathfinder.canStep(index(fromX, fromY), fromX, fromY,
-                    index(toX, toY), direction.ordinal(), width, height,
-                    cellFlags, edgePassability, null);
+            return canTraverseCellStep(fromX, fromY, direction);
         }
         return false;
+    }
+
+    /**
+     * {@link #canTraverseCellStep(int, int, int, int)} for a step already
+     * resolved to a {@link Direction} — the form for a caller sweeping every
+     * direction out of a cell, which would otherwise pay a linear scan of
+     * {@link Direction#ALL} per neighbour.
+     */
+    public boolean canTraverseCellStep(int fromX, int fromY, Direction direction) {
+        int toX = fromX + direction.dx;
+        int toY = fromY + direction.dy;
+        if (!inBounds(fromX, fromY) || !inBounds(toX, toY)) return false;
+        if (!isWalkable(fromX, fromY) || !isWalkable(toX, toY)) return false;
+        return GridPathfinder.canStep(index(fromX, fromY), fromX, fromY,
+                index(toX, toY), direction.ordinal(), width, height,
+                cellFlags, edgePassability, null);
     }
 
     /**
