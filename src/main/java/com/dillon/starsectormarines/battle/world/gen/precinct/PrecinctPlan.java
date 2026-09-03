@@ -540,7 +540,13 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         int mainIndex = -1;
         if (sprawl != Sprawl.REMOTE || !garrison) {
             GrownTrunkPlan.Profile main = GrownTrunkPlan.Profile.of(density, profile.link());
+            // One settlement always, because a battle happens somewhere: where
+            // the draw finds no room the town takes the emptiest cell there is,
+            // the same standing exemption the garrison has. Without it a map
+            // crowded enough to exhaust the sampler crashed generation outright
+            // rather than coming out as a tighter map.
             int[] seed = placeSeed(taken, margin, separation, width, height, rng);
+            if (seed == null) seed = emptiestSeed(taken, margin, width, height);
             mainIndex = out.size();
             out.add(Precinct.settlement("settlement", seed[0], seed[1], main));
         }
@@ -717,8 +723,17 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * says it has. Separation from everything that is <em>not</em> a lane place
      * is unchanged: a post is kept out of the fortress and the town the way any
      * other place is.
+     *
+     * <p><b>The two separations only stay distinct while the two lists do.</b>
+     * A seated rung belongs on the map's list of taken ground — the town and
+     * the hamlets are seeded after the ladders and must keep clear of it — but
+     * testing the <em>next</em> rung against that merged list finds it there at
+     * the ordinary sixty and this number never applies to anything. It was dead
+     * code for exactly that reason, and the symptom was a middle lane one rung
+     * short on both canonical fixtures: the middle lane is the shortest, so it
+     * is the one that loses a rung first.
      */
-    private static final int LANE_SEED_SEPARATION = 32;
+    public static final int LANE_SEED_SEPARATION = 32;
 
     /**
      * Where each rung stands, as a fraction of the way from the attacker's own
@@ -740,10 +755,10 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      *
      * <p>Enough that the ladder is not a ruled line and that a rung crowded out
      * by its neighbour has somewhere else to stand; not so much that a lane
-     * stops reading as a lane. It is the retry's whole search space — a rung
-     * that cannot find room inside its own lane is dropped rather than moved
-     * into the next one, because a place in the wrong lane is worse than a lane
-     * with a gap in it.
+     * stops reading as a lane. A quarter of a lane's width either side of the
+     * waypoint is the retry's whole search space, and it is centred on the
+     * waypoint rather than on the lane, so a rung stays beside the place it was
+     * told to stand rather than being moved across the strip.
      */
     private static final int LANE_JITTER_SHARE = 4;
 
@@ -799,7 +814,27 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         Random pathRng = new Random(objectivePlace.seedX() * 0x9E3779B97F4A7C15L
                 ^ objectivePlace.seedY() * 0xC2B2AE3D27D4EB4FL);
 
+        // The ground that was taken before any rung was: the fortress, the
+        // beachhead, and whatever a stated plan had already placed. Held
+        // separate from the rungs for the whole of the seeding, because the two
+        // lists are tested at different separations and a merged one is tested
+        // at the stricter of them — see LANE_SEED_SEPARATION. A seated rung
+        // still joins `taken`, so the town and the hamlets seeded afterwards
+        // keep the ordinary distance from it.
+        List<int[]> settlements = List.copyOf(taken);
         List<int[]> laneSeeds = new ArrayList<>();
+        // The lane separation is a relaxation of the ordinary one and must never
+        // become a tightening of it. On a skirmish map `separationFor` is already
+        // below thirty-two, and holding rungs further apart than settlements
+        // there would be the exact inversion of what this number is for.
+        int laneSeparation = Math.min(LANE_SEED_SEPARATION, separation);
+        // The jitter window is bounded by the map's own margin rather than by
+        // the lane's third. The third says where a lane is aimed; the margin is
+        // the only real wall, and a rung whose waypoint sits near the edge of
+        // its third was being handed a window of a few cells and refused for a
+        // reason that had nothing to do with the ground.
+        int lateralLow = margin;
+        int lateralHigh = lateralExtent - 1 - margin;
         for (int lane = 0; lane < lanes.count(); lane++) {
             LaneResistance ladder = lanes.ladderFor(lane, objectiveRung);
             int laneStart = Math.max(margin,
@@ -814,10 +849,11 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                     : LanePath.meandering(frame, RUNG_FRACTIONS, margin, pathRng);
             // Room measured against everything already placed — the fortress,
             // the earlier lanes' posts — which is what "inside another place's
-            // claim" means before any claim has been grown.
-            List<int[]> placed = List.copyOf(taken);
+            // claim" means before any claim has been grown. Each list at its
+            // own separation, for the reason the seeding tests them separately.
             LanePath.Fit fit = path.fitted(width, height,
-                    (x, y) -> shortfall(new int[]{x, y}, placed, separation) <= 0,
+                    (x, y) -> hasRoom(new int[]{x, y}, settlements, separation,
+                            laneSeeds, laneSeparation),
                     2 * separation);
             for (LanePath.Move move : fit.moved()) {
                 moved.add("lane-" + (lane + 1) + " waypoint " + (move.index() + 1)
@@ -843,8 +879,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                 int forward = forwardIsX ? waypoint[0] : waypoint[1];
                 int lateral = forwardIsX ? waypoint[1] : waypoint[0];
                 String name = "lane-" + (lane + 1) + "-band-" + step.band();
-                int[] seed = laneSeed(lateral, jitter, laneStart, laneEnd, forward,
-                        forwardIsX, taken, laneSeeds, separation, rng);
+                int[] seed = laneSeed(lateral, jitter, lateralLow, lateralHigh, forward,
+                        forwardIsX, settlements, laneSeeds, separation, laneSeparation, rng);
                 if (seed == null) {
                     unplaced.add(name);
                     continue;
@@ -866,20 +902,30 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      * <p>The jitter window is centred on the <em>waypoint's</em> lateral rather
      * than the lane's, because the waypoint is where the rung was told to stand.
      * It is still the retry's whole search space: a rung that cannot find room
-     * beside its own waypoint is dropped rather than moved into the next lane.
+     * beside its own waypoint is dropped rather than sent looking up the map.
+     *
+     * <p><b>What bounds that window is the map margin, not the lane.</b> A
+     * lane's third is where the ladder is aimed; the margin is the only edge a
+     * seed genuinely cannot cross. Clamped to the third, a rung whose waypoint
+     * sat near — or, on a bent path, outside — its own strip was handed a
+     * window of a few cells and refused for a reason that had nothing to do
+     * with whether there was room.
      *
      * <p>Two separations, because the two questions are different. Against the
-     * fortress, the town and the outlying places the ordinary
-     * {@code separation} applies: those claims run to fifty cells and a post
-     * inside one is a pocket rather than a place. Against the other rungs of the
-     * ladder {@link #LANE_SEED_SEPARATION} applies, because a lane whose rungs
-     * had to be sixty cells apart would have fewer of them than it claims to.
+     * fortress, the beachhead and the places seeded before the ladders the
+     * ordinary {@code separation} applies: those claims run to fifty cells and a
+     * post inside one is a pocket rather than a place. Against the other rungs
+     * of the ladder {@link #LANE_SEED_SEPARATION} applies, because a lane whose
+     * rungs had to be sixty cells apart would have fewer of them than it claims
+     * to. The two lists are therefore passed separately and never merged.
      */
-    private static int[] laneSeed(int waypointLateral, int jitter, int laneStart, int laneEnd,
-                                  int forward, boolean forwardIsX, List<int[]> taken,
-                                  List<int[]> laneSeeds, int separation, Random rng) {
-        int lo = Math.max(laneStart, waypointLateral - jitter);
-        int hi = Math.min(laneEnd, waypointLateral + jitter);
+    private static int[] laneSeed(int waypointLateral, int jitter,
+                                  int lateralLow, int lateralHigh,
+                                  int forward, boolean forwardIsX, List<int[]> settlements,
+                                  List<int[]> laneSeeds, int separation,
+                                  int laneSeparation, Random rng) {
+        int lo = Math.max(lateralLow, waypointLateral - jitter);
+        int hi = Math.min(lateralHigh, waypointLateral + jitter);
         if (hi < lo) return null;
         int[] best = null;
         long bestShortfall = Long.MAX_VALUE;
@@ -888,8 +934,8 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             int[] candidate = forwardIsX
                     ? new int[]{forward, lateral} : new int[]{lateral, forward};
             long shortfall = Math.max(
-                    shortfall(candidate, taken, separation),
-                    shortfall(candidate, laneSeeds, LANE_SEED_SEPARATION));
+                    shortfall(candidate, settlements, separation),
+                    shortfall(candidate, laneSeeds, laneSeparation));
             if (shortfall < bestShortfall) {
                 bestShortfall = shortfall;
                 best = candidate;
@@ -897,6 +943,16 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
             if (shortfall <= 0) break;
         }
         return bestShortfall <= 0 ? best : null;
+    }
+
+    /**
+     * Whether a cell is clear of the places seeded before the ladders and of the
+     * rungs already on them, each at its own separation.
+     */
+    private static boolean hasRoom(int[] candidate, List<int[]> settlements, int separation,
+                                   List<int[]> laneSeeds, int laneSeparation) {
+        return shortfall(candidate, settlements, separation) <= 0
+                && shortfall(candidate, laneSeeds, laneSeparation) <= 0;
     }
 
     /**

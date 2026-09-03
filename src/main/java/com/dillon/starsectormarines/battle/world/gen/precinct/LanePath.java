@@ -27,7 +27,8 @@ import java.util.Random;
  *
  * <p><b>A waypoint that cannot stand where it is slides along its own path.</b>
  * {@link #fitted} moves it forward, then backward, until it finds ground the
- * caller allows, and reports the move. What "allows" means is the caller's
+ * caller allows, and reports the move — the deepest waypoint backward only,
+ * because its path ends where it stands. What "allows" means is the caller's
  * business: {@link PrecinctPlan} asks whether the cell is clear of every place
  * already seeded, and a caller with a finished map to consult asks whether the
  * ground can be walked. Stating it as a predicate is what lets water and rock be
@@ -269,11 +270,18 @@ public record LanePath(List<Waypoint> waypoints) {
      *
      * <p>Forward first, because a lane runs toward the objective and a rung that
      * has to give way should give way to the front rather than back into the
-     * force behind it; backward second, because the deepest rung's forward
-     * ground is the objective's own claim and there is nowhere ahead of it to
-     * go. A waypoint that finds nothing either way keeps its place: the path
-     * still has the shape it was stated in, and the seeding drops the rung it
-     * cannot seat and names it.
+     * force behind it. A waypoint that finds nothing either way keeps its place:
+     * the path still has the shape it was stated in, and the seeding drops the
+     * rung it cannot seat and names it.
+     *
+     * <p><b>The deepest waypoint gives way backward, and only backward.</b> Its
+     * path ends where it stands, so "forward" for it is the last leg
+     * extrapolated past the end — a guess about ground nobody stated. That is
+     * only harmless while the last leg happens to aim at the objective, which is
+     * true of a straight lane and false of any lane that closes on its target:
+     * measured on a fan, the deepest waypoint slid seventy cells "forward" and
+     * came to rest a hundred cells <em>past</em> the fortress. Backward is the
+     * leg it actually came along.
      *
      * @param slide how many cells a waypoint may travel along its path
      */
@@ -288,7 +296,8 @@ public record LanePath(List<Waypoint> waypoints) {
                 continue;
             }
             int[] heading = heading(cells, i);
-            int[] found = slideAlong(at, heading, ground, slide, width, height);
+            int[] found = slideAlong(at, heading, ground, slide, width, height,
+                    i == cells.size() - 1);
             if (found == null) {
                 out.add(waypoints.get(i));
                 continue;
@@ -315,11 +324,15 @@ public record LanePath(List<Waypoint> waypoints) {
         return new int[]{Math.round(dx / length * 1000f), Math.round(dy / length * 1000f)};
     }
 
-    /** The first allowed cell along the heading, ahead of the waypoint then behind it. */
+    /**
+     * The first allowed cell along the heading, ahead of the waypoint then
+     * behind it — or behind it only, when the waypoint is the deepest one and
+     * has no path ahead of it to slide along.
+     */
     private static int[] slideAlong(int[] at, int[] heading, Ground ground, int slide,
-                                    int width, int height) {
+                                    int width, int height, boolean deepest) {
         if (heading == null || slide <= 0) return null;
-        for (int sign : new int[]{1, -1}) {
+        for (int sign : deepest ? new int[]{-1} : new int[]{1, -1}) {
             for (int step = 1; step <= slide; step++) {
                 int x = at[0] + Math.round(heading[0] * step * sign / 1000f);
                 int y = at[1] + Math.round(heading[1] * step * sign / 1000f);
