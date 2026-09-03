@@ -49,12 +49,16 @@ public final class SmokeRenderSystem implements RenderSystem {
         int framePxH = (int) (fieldSheet.getHeight() / recipe.rows());
         if (framePxW <= 0 || framePxH <= 0) return;
 
+        // Thinned rather than withheld at a pulled-back framing: smoke blocks
+        // sight and the player still needs to see where it is, but nine puffs
+        // inside a twenty-pixel field are one grey blob however they are drawn.
+        int puffs = ZoomDetail.smokeScatterVisible(camera) ? PUFF_COUNT : 1;
         for (SmokeFieldService.SmokeFieldView field : ctx.sim.smokeFields().activeFields()) {
             float elapsed = field.totalDuration() - field.remaining();
             float fadeIn = Math.min(1f, elapsed / 0.7f);
             float fadeOut = Math.min(1f, field.remaining() / 1.5f);
             float alpha = fadeIn * fadeOut * ctx.alphaMult;
-            for (int i = 0; i < PUFF_COUNT; i++) {
+            for (int i = 0; i < puffs; i++) {
                 float unit = hash01(field.id(), i);
                 float angle = unit * (float) (Math.PI * 2.0) + i * 2.3999632f;
                 float radial = i == 0 ? 0f : field.radius() * (0.20f + 0.42f * hash01(field.id() + 17, i));
