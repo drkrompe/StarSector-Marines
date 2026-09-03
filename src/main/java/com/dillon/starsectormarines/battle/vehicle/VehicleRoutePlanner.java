@@ -41,7 +41,7 @@ import java.util.List;
  */
 public final class VehicleRoutePlanner {
 
-    /** Alternate macro corridors tried after a statically valid bend fails minimum-radius refinement. */
+    /** Alternate macro corridors tried after a statically valid bend fails minimum-radius refinement — the default {@link RouteSearchBudget} for one endpoint pair, where the caller does not bring its own. */
     private static final int MAX_KINEMATIC_ROUTE_ATTEMPTS = 8;
     /** Disc placed on a failed bend before the next cost-field search. */
     private static final float FAILED_TURN_AVOID_RADIUS = 2f;
@@ -73,9 +73,28 @@ public final class VehicleRoutePlanner {
     public static float[][] routeDrivable(int startX, int startY, int goalX, int goalY,
                                           NavigationGrid grid, TerrainCostField costField,
                                           VehicleClearance clearance, VehicleType type) {
+        return routeDrivable(startX, startY, goalX, goalY, grid, costField,
+                clearance, type, new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS));
+    }
+
+    /**
+     * {@link #routeDrivable} charging its searches to a caller-owned
+     * {@link RouteSearchBudget} instead of taking a fresh
+     * {@link #MAX_KINEMATIC_ROUTE_ATTEMPTS} of its own.
+     *
+     * <p>For a caller that asks this question many times over to answer one
+     * larger one — the convoy route proof enumerates entries against junctions
+     * against exits — the per-pair bound says nothing about what the whole
+     * enumeration costs. Sharing one budget across every pair does, and an
+     * exhausted budget returns no route rather than searching anyway.
+     */
+    public static float[][] routeDrivable(int startX, int startY, int goalX, int goalY,
+                                          NavigationGrid grid, TerrainCostField costField,
+                                          VehicleClearance clearance, VehicleType type,
+                                          RouteSearchBudget budget) {
         return routeMaskedDrivable(startX, startY, goalX, goalY, grid, costField,
                 clearance.passableArray().clone(), clearance.passableArray(),
-                clearance.getWidth(), clearance.getHeight(), type);
+                clearance.getWidth(), clearance.getHeight(), type, budget);
     }
 
     /**
@@ -232,7 +251,17 @@ public final class VehicleRoutePlanner {
                                                   NavigationGrid grid, TerrainCostField costField,
                                                   boolean[] mask, boolean[] basePassable,
                                                   int w, int h, VehicleType type) {
-        for (int attempt = 0; attempt < MAX_KINEMATIC_ROUTE_ATTEMPTS; attempt++) {
+        return routeMaskedDrivable(startX, startY, goalX, goalY, grid, costField,
+                mask, basePassable, w, h, type,
+                new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS));
+    }
+
+    private static float[][] routeMaskedDrivable(int startX, int startY, int goalX, int goalY,
+                                                  NavigationGrid grid, TerrainCostField costField,
+                                                  boolean[] mask, boolean[] basePassable,
+                                                  int w, int h, VehicleType type,
+                                                  RouteSearchBudget budget) {
+        while (budget.claim()) {
             float[][] route = routeMasked(startX, startY, goalX, goalY,
                     grid, costField, mask, w, h);
             if (route == null) return null;

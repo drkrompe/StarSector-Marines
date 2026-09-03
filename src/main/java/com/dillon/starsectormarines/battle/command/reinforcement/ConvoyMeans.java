@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.vehicle.RouteSearchBudget;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
@@ -71,6 +72,61 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * still prepends/appends the actual off-map point.
      */
     private static final int PERIMETER_STAGING_INSET = 2;
+    /**
+     * Grid searches one dispatch may spend proving its journey.
+     *
+     * <p>The proof is an enumeration — entries against junctions against exits
+     * — and every pair of endpoints costs a cost-field A* over a 188,160-cell
+     * grid, up to eight of them where the turn refinement rejects a bend. That
+     * product is unbounded in the map rather than in the question, and on a
+     * production Conquest fixture it reached a thousand searches: three to five
+     * seconds of one tick, nine watchdog dumps deep, while the rest of the tick
+     * came to twenty milliseconds.
+     *
+     * <p><b>One budget for the whole enumeration replaces eight tries per
+     * pair, and that is a deliberate redistribution rather than only a
+     * ceiling.</b> On the fixture this was measured from, the best-ranked drop
+     * routed its inbound leg on the first search and then needed <em>eighteen
+     * more</em> before its outbound leg was drivable. Under a flat eight the
+     * dispatch abandoned it, and the next ninety-odd ranked drops in turn, at
+     * eight searches each — 745 of them — before settling on a drop three times
+     * further from the ground the request actually asked for. Ranking says the
+     * first candidate is the best one; spending the budget on it rather than
+     * rationing every candidate alike is both cheaper and a better delivery.
+     *
+     * <p>Thirty-two is that measured nineteen with room, and about a tenth of a
+     * second at the worst. A delivery that cannot be proven in that many
+     * searches, on a map whose reachability has already been settled without
+     * searching at all, is the bugged map the dispatcher's own diagnostic
+     * already names — and the request falls through to another means rather
+     * than being lost.
+     *
+     * <p><b>This is the only bound on searching, deliberately.</b> Drops and
+     * exits were capped by count as well, at six and three, which reads as
+     * generous and is a bar set in the dark: the canonical 240x160 rear-entry
+     * map proves its route at about the seventh ranked drop, and the count cap
+     * refused a delivery the budget would have paid for. Everything that
+     * reaches the router costs at least one search, so the budget already
+     * bounds how many candidates can be tried — and it bounds them in the
+     * currency the stall was measured in.
+     */
+    private static final int ROUTE_SEARCH_BUDGET = 32;
+    /**
+     * Perimeter entries a dispatch will actually route from, nearest the drop
+     * first.
+     *
+     * <p>The one bound that is not counted in searches, because what an entry
+     * costs before any search is a road-graph flood and a sort of every
+     * junction it reaches. Ranking is what makes it safe: the fifth-nearest
+     * gate is a worse delivery than the first, not a different one.
+     *
+     * <p>Nothing else is capped by count. Drops and exits are bounded by
+     * {@link #ROUTE_SEARCH_BUDGET} alone, since every one of them that gets as
+     * far as the router spends at least one search — and a cap by count is a
+     * bar set in the dark. Six drops per entry looked generous and refused a
+     * delivery the canonical 240x160 rear-entry map proves at its seventh.
+     */
+    private static final int MAX_ENTRIES_TRIED = 4;
 
     private final RoadGraph graph;
     private final TraversalAxis axis;
@@ -164,13 +220,18 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * now sitting in.
      *
      * <p><b>A necessary condition, not the proof.</b> The drive itself is
-     * still proven at commit, because proving it costs about seventy
-     * milliseconds against this probe's half of one — far too much for
-     * something asked of every means on every request, and asked again by the
-     * counterattack muster on its own cadence. What this closes is the failure
-     * that actually occurs: across twenty-two measured route plans on the
-     * canonical fixtures, every single failure was the entry, and none was the
-     * route or the destination.
+     * still proven at commit, because proving it is a bounded enumeration of
+     * grid searches against this probe's half of one millisecond — far too much
+     * for something asked of every means on every request, and asked again by
+     * the counterattack muster on its own cadence. The gap between the two is
+     * now bounded rather than open: the proof spends at most
+     * {@link #ROUTE_SEARCH_BUDGET} searches. It was not, and a 560x336 Conquest
+     * dispatch reached a thousand of them and stalled the game thread for five
+     * seconds; the figure of "about seventy milliseconds" that used to stand
+     * here was measured on a much smaller map and was out by fifty times. What
+     * this probe closes is the failure that actually occurs: across twenty-two
+     * measured route plans on the canonical fixtures, every single failure was
+     * the entry, and none was the route or the destination.
      */
     private RoadGraph.Node entryNode(BattleView sim, DeliveryDeployment deployment) {
         int width = sim.getGrid().getWidth();
@@ -203,12 +264,14 @@ public final class ConvoyMeans implements ReinforcementMeans {
         int ry = deployment.hintY();
         int gw = sim.getGrid().getWidth();
         int gh = sim.getGrid().getHeight();
-        RoutePlan route = routePlan(sim, deployment, rx, ry);
+        RouteSearchBudget budget = new RouteSearchBudget(ROUTE_SEARCH_BUDGET);
+        RoutePlan route = routePlan(sim, deployment, rx, ry, budget);
         if (route == null) {
             LOG.warn("ConvoyMeans: no complete HEAVY_APC route from "
                     + (deployment.strictDefenderRearEntry() ? "defender rear" : "eligible perimeter")
                     + " to hint=(" + rx + "," + ry + ") minForward="
-                    + deployment.minimumDefenderForward());
+                    + deployment.minimumDefenderForward()
+                    + " searches=" + budget.spent() + "/" + budget.total());
             return ReinforcementDispatchResult.REJECTED;
         }
         RoadGraph.Node entry = route.entry();
@@ -312,9 +375,13 @@ public final class ConvoyMeans implements ReinforcementMeans {
                              TerrainCostField cost,
                              VehicleClearance clearance) { }
 
-    /** Proves both travel legs before a world actor is created. */
+    /**
+     * Proves both travel legs before a world actor is created, inside
+     * {@code budget}. Exhausting the budget returns no plan — see
+     * {@link #ROUTE_SEARCH_BUDGET}.
+     */
     private RoutePlan routePlan(BattleControl sim, DeliveryDeployment deployment,
-                                int hintX, int hintY) {
+                                int hintX, int hintY, RouteSearchBudget budget) {
         int width = sim.getGrid().getWidth();
         int height = sim.getGrid().getHeight();
         List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
@@ -339,14 +406,18 @@ public final class ConvoyMeans implements ReinforcementMeans {
         ClearanceComponents components =
                 ClearanceComponents.of(sim.getGrid(), clearance);
 
+        int entriesTried = 0;
         for (RoadGraph.Node entry : entries) {
+            if (entriesTried >= MAX_ENTRIES_TRIED || budget.isExhausted()) break;
             int[] entryCell = perimeterRouteCell(clearance, entry,
                     width, height);
             if (entryCell == null) continue;
+            entriesTried++;
             List<RoadGraph.Node> destinations = interiorJunctionsWithin(
                     scorer, reachableFrom(entry), hintX, hintY, reserved,
                     deployment.minimumDefenderForward());
             for (RoadGraph.Node destination : destinations) {
+                if (budget.isExhausted()) break;
                 int[] destinationCell = VehicleRoutePlanner.snapToMask(clearance,
                         destination.cellX, destination.cellY, SNAP_RADIUS);
                 if (destinationCell == null
@@ -363,7 +434,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                         entryCell[0], entryCell[1],
                         destinationCell[0], destinationCell[1],
                         sim.getGrid(), cost, clearance,
-                        VehicleType.HEAVY_APC);
+                        VehicleType.HEAVY_APC, budget);
                 if (inbound == null) continue;
 
                 List<RoadGraph.Node> exits = deployment.strictDefenderRearEntry()
@@ -372,6 +443,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                         : List.of(ConvoyPlanner.pickExitNode(
                         graph, destination, entry));
                 for (RoadGraph.Node exit : exits) {
+                    if (budget.isExhausted()) break;
                     int[] exitCell = perimeterRouteCell(clearance, exit,
                             width, height);
                     if (exitCell == null) continue;
@@ -383,7 +455,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                             destinationCell[0], destinationCell[1],
                             exitCell[0], exitCell[1],
                             sim.getGrid(), cost, clearance,
-                            VehicleType.HEAVY_APC);
+                            VehicleType.HEAVY_APC, budget);
                     if (outbound == null) continue;
                     // The one bend on neither polyline: the turn from the way
                     // the truck arrives to the way it must leave. An LZ whose
