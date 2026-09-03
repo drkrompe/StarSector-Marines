@@ -14,6 +14,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * One-shot JSON dump of the live per-phase tick profile. Records per-phase
@@ -136,6 +139,27 @@ public final class TickProfileDumper {
                 innerArr.put(bo);
             }
             root.put("inner", innerArr);
+
+            // The assigned action behind ACTION_EXECUTE, per action class,
+            // costliest first — the bucket says how much the steps cost and
+            // this says which steps.
+            Map<String, long[]> actionSamples = innerSnap != null
+                    ? innerSnap.actions : liveInner.actions();
+            List<Map.Entry<String, long[]>> ordered = new ArrayList<>(actionSamples.entrySet());
+            ordered.sort((a, b) -> Long.compare(b.getValue()[0], a.getValue()[0]));
+            JSONArray actionsArr = new JSONArray();
+            for (Map.Entry<String, long[]> entry : ordered) {
+                long ns = entry.getValue()[0];
+                long cnt = entry.getValue()[1];
+                JSONObject ao = new JSONObject();
+                ao.put("name", entry.getKey());
+                ao.put("nanos", ns);
+                ao.put("us", ns / 1_000.0);
+                ao.put("count", cnt);
+                ao.put("avgUsPerCall", cnt > 0 ? (ns / 1_000.0) / cnt : 0.0);
+                actionsArr.put(ao);
+            }
+            root.put("actions", actionsArr);
 
             JSONArray phases = new JSONArray();
             for (TickProfile.Phase p : TickProfile.Phase.VALUES) {

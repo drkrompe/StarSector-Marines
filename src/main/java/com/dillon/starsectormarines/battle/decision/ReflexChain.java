@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision;
 
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 
@@ -26,9 +27,16 @@ public final class ReflexChain {
      */
     public static Reflex run(List<Reflex> chain, long unit, Squad squad,
                              ReflexContext context, BattleControl sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
         for (int i = 0, n = chain.size(); i < n; i++) {
             Reflex reflex = chain.get(i);
-            if (reflex.interrupt(unit, squad, context, sim)) {
+            long t0 = profile != null ? System.nanoTime() : 0L;
+            boolean fired = reflex.interrupt(unit, squad, context, sim);
+            if (profile != null) {
+                profile.record(TickInnerProfile.reflexBucket(reflex.name()),
+                        System.nanoTime() - t0);
+            }
+            if (fired) {
                 recordLastReflex(unit, reflex.name(), sim);
                 return reflex;
             }

@@ -192,6 +192,30 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
+    /**
+     * The most ticks one rendered frame may owe the simulation; see
+     * {@link #frameBudget}. 4x speed at 30 frames a second is four ticks a
+     * frame; twice that leaves room for an uneven frame without letting a
+     * slow tick compound.
+     */
+    public static final int MAX_CATCH_UP_TICKS = 8;
+
+    /**
+     * Bounds the sim time one rendered frame hands to {@link #advance}. A
+     * frame that took longer than the sim time it owes is a slow tick's
+     * doing, and passing the whole debt through asks the next frame for
+     * every tick the last one could not afford: a 460 ms tick became a
+     * 14-tick frame, then a 190-tick one. Capping the debt at
+     * {@link #MAX_CATCH_UP_TICKS} turns that spiral into slow motion, which
+     * is the honest presentation of a simulation running behind.
+     *
+     * <p>The cap lives at the frame seam rather than inside {@link #advance}
+     * because a harness advancing whole seconds of ship's time in one call is
+     * asking for every one of those ticks, and gets them.
+     */
+    public static float frameBudget(float frameDt) {
+        return Math.min(frameDt, MAX_CATCH_UP_TICKS * TICK_DT);
+    }
 
     /** Navigation slice: grid + topology + zone graph + occupancy map + spatial indices + vantage cache + LosCache lifecycle. {@link #grid} / {@link #topology} / {@link #zoneGraph} / {@link #occupancyMap} / {@link #unitIndex} / {@link #destIndex} below are alias fields that share the same instances. */
     private final NavigationService navigation;
