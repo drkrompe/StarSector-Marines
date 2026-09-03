@@ -74,6 +74,7 @@ public final class TickProfile {
         EQUIPMENT_DROPS,
         OBJECTIVES,
         ZONE_GRAPH,
+        NAV_FLUSH,
         WIN_CHECK,
         APPEARANCE;
 
