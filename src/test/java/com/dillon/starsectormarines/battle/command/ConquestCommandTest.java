@@ -1993,6 +1993,95 @@ public class ConquestCommandTest {
         }
     }
 
+    /**
+     * Strip 0 stacked into three zones along the traversal axis: a back room
+     * the squads stand in (y ≤ 3), then two forward rooms (y 5–8 and y 10–14),
+     * joined by doorways at x=2. Three is the fewest that can show a target
+     * being passed over — the squads' own zone, the near one, and somewhere
+     * else to go — and the two lateral walls keep the other strips out of it.
+     */
+    private static BattleSimulation stackedRoomsSim() {
+        int h = 15;
+        NavigationGrid grid = new NavigationGrid(W, h);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < W; x++) {
+                if (x == 10 || x == 20) continue;
+                if ((y == 4 || y == 9) && x != 2) continue;
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setDoorway(2, 4, true);
+        grid.setDoorway(2, 9, true);
+        return new BattleSimulation(grid, new CellTopology(W, h));
+    }
+
+    private static int clearZoneTarget(Squad squad) {
+        assertNotNull(squad.assignedObjective, "squad " + squad.id + " got no order");
+        assertEquals(AssignmentKind.CLEAR_ZONE, squad.assignedObjective.kind(),
+                "squad " + squad.id + " was not sent to clear a zone");
+        return squad.assignedObjective.targetZoneId();
+    }
+
+    /**
+     * The per-zone cap: a force larger than the front's useful slots divides
+     * across the strip's depth instead of queueing behind the nearest target.
+     */
+    @Nested
+    class ZoneTargetCap {
+
+        @Test
+        public void aZoneAtItsCapPassesTheSurplusToTheNextForwardZone() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                squads.add(addMarineSquad(sim, 2f + i, 1f));
+            }
+            long near = addDefender(sim, 2, 6);
+            long far = addDefender(sim, 2, 11);
+            establishMarineContact(sim, squads.get(0), near);
+            establishMarineContact(sim, squads.get(0), far);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            int farZone = sim.getZoneGraph().zoneIdAt(2, 11);
+            assertNotEquals(nearZone, farZone, "fixture must offer two targets");
+
+            int onNear = 0, onFar = 0;
+            for (Squad squad : squads) {
+                int target = clearZoneTarget(squad);
+                if (target == nearZone) onNear++;
+                else if (target == farZone) onFar++;
+            }
+            // One squad's own quota plus the stated overflow, and no more.
+            assertEquals(1 + ConquestCommand.ZONE_TARGET_OVERFLOW_SQUADS, onNear,
+                    "the nearest zone takes its quota and its overflow");
+            assertEquals(1, onFar,
+                    "and the surplus goes on up the strip rather than queueing");
+        }
+
+        @Test
+        public void aStripWithNowhereElseToSendAnybodyStillSendsThem() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                squads.add(addMarineSquad(sim, 2f + i, 1f));
+            }
+            long only = addDefender(sim, 2, 6);
+            establishMarineContact(sim, squads.get(0), only);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int onlyZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            for (Squad squad : squads) {
+                assertEquals(onlyZone, clearZoneTarget(squad),
+                        "the cap is a preference: with one target it is inert");
+            }
+        }
+    }
+
     private static void tick(ConquestCommand command, BattleSimulation sim) {
         CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE,
                 sim);
