@@ -102,6 +102,41 @@ public class VehicleClearanceTest {
     }
 
     @Test
+    public void refreshAroundMatchesAFreshErosionAfterAChange() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        carve(grid, 1, 1, 18, 18);
+        VehicleClearance mask = VehicleClearance.erode(grid, 1);
+
+        grid.setWalkable(10, 10, false);
+        mask.refreshAround(grid, 10, 10);
+
+        VehicleClearance oracle = VehicleClearance.erode(grid, 1);
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 20; x++) {
+                assertEquals(oracle.isPassable(x, y), mask.isPassable(x, y),
+                        "refreshAround diverged from a fresh erosion at (" + x + "," + y + ")");
+            }
+        }
+    }
+
+    @Test
+    public void copyOfIsIndependentOfItsSource() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        carve(grid, 1, 1, 18, 18);
+        VehicleClearance source = VehicleClearance.erode(grid, 1);
+        assertTrue(source.isPassable(10, 10));
+
+        VehicleClearance copy = VehicleClearance.copyOf(source);
+        grid.setWalkable(10, 10, false);
+        copy.refreshAround(grid, 10, 10);
+
+        // The clone reflects the patch...
+        assertFalse(copy.isPassable(10, 10));
+        // ...and the original a caller may already be holding does not.
+        assertTrue(source.isPassable(10, 10));
+    }
+
+    @Test
     public void radiusForWidthRoundsHalfWidth() {
         assertEquals(1, VehicleClearance.radiusForWidth(1.4f)); // HEAVY_APC width → round(0.7)=1
         assertEquals(0, VehicleClearance.radiusForWidth(0.8f)); // round(0.4)=0

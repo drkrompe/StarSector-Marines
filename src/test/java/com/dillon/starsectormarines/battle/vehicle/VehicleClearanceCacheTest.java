@@ -74,7 +74,14 @@ public class VehicleClearanceCacheTest {
         VehicleClearance after = cache.clearance(grid, grid.topologyRevision());
         assertNotSame(before, after);
         assertFalse(after.isPassable(7, 3));
-        assertEquals(2, cache.clearanceBuilds());
+        // A single logged change is caught up from the change log rather than
+        // re-eroding the whole grid — see VehicleClearanceCacheCatchUpTest for
+        // the neighbourhood-only accounting.
+        assertEquals(1, cache.clearanceBuilds());
+        assertEquals(1, cache.clearanceCatchUps());
+        // The snapshot already handed out (a route proof or a driving vehicle
+        // may be holding it) must not observe the later write.
+        assertTrue(before.isPassable(7, 3));
     }
 
     /**

@@ -108,6 +108,16 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * Per-battle terrain cost field, baked lazily on first dispatch. Ground kinds
      * are effectively static (rubble appears only on wall breach); a slightly
      * stale macro route is fine — the rolling local planner handles live terrain.
+     *
+     * <p>Deliberately never invalidated, and
+     * {@link com.dillon.starsectormarines.battle.nav.NavigationGrid}'s
+     * changed-cell log ({@code tiled-navigation-derivations.md}) is not the
+     * fact that would tell it to: {@link TerrainCostField#from} reads
+     * {@link com.dillon.starsectormarines.battle.world.model.CellTopology}'s
+     * {@code GroundKind} array, which the nav grid's own log knows nothing
+     * about, so this field has nothing to catch up from there —
+     * {@code CellTopology} keeps a change log of its own if that staleness is
+     * ever worth closing.
      */
     private TerrainCostField costField;
     /**
