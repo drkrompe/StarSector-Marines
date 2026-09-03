@@ -4,7 +4,11 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the marines descend from orbit onto their berths rather
+Updated: 2026-09-03 — the derived lift is floored at the ferry it replaces, so
+a force small enough for the ferry plays the same battle either way; an open
+compound is no longer somewhere a squad can be sent from across the map.
+
+Earlier 2026-09-02 — the marines descend from orbit onto their berths rather
 than crossing the map edge, so the sortie cadence no longer moves with the
 standoff; sizing the lift from the committed seats is built, measured and off,
 because more lift landed sooner takes fewer compounds.
@@ -167,6 +171,13 @@ costing.** The marines simply arrive faster at the place they were being
 destroyed, and the finding `conquest-560-contact.md` left open — that the cadence
 does not scale with the force — turns out to have been a true observation about a
 lever that is not the one holding the west back.
+
+**Whatever it derives, it never derives less than the ferry.** The arithmetic
+only exceeds three pairs above about four hundred seats, so `reinforced-south`'s
+204 asked for two and the switch that exists to add lift was removing a third of
+it — marines on the ground by tick 2,926 fell from 214 to 148. The ferry's shape
+is the derivation's floor, which also means a force the ferry already carries
+plays the identical battle either way.
 
 So a mission that says nothing flies the ferry's three pairs down the descent.
 Against the map-edge crossing that shape is better on both fixtures:
