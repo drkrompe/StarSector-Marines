@@ -4,7 +4,12 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — the lane chain is **on by default**. What was costing it
+Updated: 2026-09-03 — an open compound's capture zone is the outdoors, so
+"already at the objective" is now a distance and not a shared room, and such a
+compound is never a distant target. Measured at exactly baseline on both
+fixtures, having deleted a walk that never arrived.
+
+Earlier 2026-09-02 — the lane chain is **on by default**. What was costing it
 a held compound was neither the front gate nor the shape of the lanes but a map
 defect: every lane was silently a rung short. With the ladder whole, the same
 code takes more and holds at least as much as the fraction on both canonical
@@ -245,6 +250,32 @@ trade, and should not be re-derived.
 A squad refused by the bound and left with nothing else publishes its own
 assignment reason, because a far-track refusal and an empty map are otherwise
 the same sentence.
+
+**Standing in the open is not standing in the compound.** A squad that has
+physically reached an objective commits to it before any distant allocation
+runs, and that pass deliberately carries no track bound and no front-reach gate:
+a squad in the building has not been sent anywhere, and refusing it on a lateral
+coordinate would leave an objective it is already inside of unassaulted. It
+asked whether the squad shared a *zone* with one of the compound's garrison
+rooms — which is right for a walled compound and catastrophic for an open one,
+because an airfield's capture room resolves to the exterior flood. Every squad
+in the open on the whole map answered yes. Measured on `full-strength-west`,
+squads held `SECURE_COMPOUND` against an airbase three hundred cells east for
+the whole battle without arriving: 16 of 45 secure-travel episodes ended in the
+squad's destruction and 24 of 45 never reached the portal, against 6 of 33 on
+the southern fixture, which has no open compound in the way.
+
+So arrival is a **distance** as well as a room, and a compound whose capture
+zone is the exterior is refused as a *distant* target outright — converging on a
+zone the squad is already standing in is an order that can be held forever. It
+stays capturable by a squad that actually reaches its footprint, which is what
+taking an airfield looks like anyway: the front arrives at it rather than
+somebody being detached across the map for it. Measured at full length against
+the same tree, it takes and holds exactly what the unbounded version did on both
+fixtures — 22 and 19 on the south, 11 and 7 on the west — while cutting the
+west's secure-travel episodes from 45 to 33 and its never-at-portal exits from
+24 to 19. **What it buys is not ground; it is the deletion of a walk that was
+never going to arrive.**
 
 The two convergence phases are map-global for a reason no measurement can move:
 once the keep or one contested compound is the whole remaining objective, there

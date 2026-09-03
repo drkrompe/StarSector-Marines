@@ -4,7 +4,9 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — a marine arrival policy is not a means: the marines' lift is orbital and descends onto its berths, while defender delivery stays planetary.
+Updated: 2026-09-03 — a derived lift is floored at the shape it replaces, so sizing it can never hand back less than the standing ferry.
+
+Earlier 2026-09-02 — a marine arrival policy is not a means: the marines' lift is orbital and descends onto its berths, while defender delivery stays planetary.
 
 Earlier 2026-09-01 — the front is a `FrontDepth` band, zero at the objective, rather than a biome; see `precincts.md`.
 
@@ -102,6 +104,16 @@ built and switchable and is off by default, because the Conquest matrix found
 that landing the force sooner takes fewer compounds rather than more;
 `conquest-nouns.md` owns the arrival policy's shape and the measurement behind
 it.
+
+**A derived lift never comes out below the shape it replaces.** The arithmetic
+only asks for more craft than the standing ferry above a few hundred seats, so
+for every smaller force the derivation was quietly handing back *less* lift than
+the policy it was written to improve on — a switch that exists to add lift
+removing a third of it. A sizing that can return less than its own fallback is
+not a sizing, so the fallback is its floor. For a force under that threshold the
+two shapes are then the same shape, and turning the derivation on is a battle
+identical to leaving it off, which is the honest answer for a force the ferry
+already carries.
 
 The installed means set is defender-only: convoy, shuttle, and walk-in. Which one answers a given request is decided by arrival estimate, and each is honest about a different cost. A convoy owes its staging delay and a drive that bends round city blocks. A sortie flies three or four times a truck's speed but does not leave an authored field until a crew has walked out to the ramp, and counting that walk is what keeps air the answer to a call the trucks cannot reach in time rather than the answer to all of them. A walk-in owes the whole march on foot, which is why it reads as the floor without being placed there — it wins on merit only when the position needing force is close enough to the rear that walking is genuinely quickest, and otherwise arrives when nothing else can come at all.
 
