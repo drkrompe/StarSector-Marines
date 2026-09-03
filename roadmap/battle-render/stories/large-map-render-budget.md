@@ -1,9 +1,14 @@
 # A 560x336 frame has a budget, and it is measured before it is spent
 
-Status: PLANNED — owner direction on 2026-09-02 after playing the 560x336
-Conquest: "the massive maps have big problems with our renderer."
+Status: IN PROGRESS — the profile and the zoom gates have shipped; the resident
+ground mesh is the lever the profile named.
 
 Written: 2026-09-02
+
+Updated: 2026-09-02 — `renderEvidence` ran and the ground drain is the ceiling,
+so the ground lever is a resident mesh behind `battle.render.groundMesh`;
+greedy runs and baked ground tiles are recorded here as the rejected
+alternatives.
 
 ## What the owner saw
 
@@ -37,15 +42,33 @@ them; the gates live in the collectors, so a layer simply collects nothing
 rather than draining to nothing. Painter order and world ratios are untouched
 (laws 6 and 9 in `battle-render-nouns.md`).
 
-**Fewer quads for the same ground.** Along a visible row, cells that draw the
-same sheet tile at the same tint merge into one run drawn as one quad. A run
-cut from an atlas cannot use the driver's repeat wrap, so a merged run either
-draws through the ground composite shader with a per-run wrap of its own
-sub-rectangle, or is limited to tiles that own a whole texture. The story
-does not choose between that and the parked baked-tile layer: it measures the
-per-cell path first and then spends on whichever the profile names. If the
-ceiling is collection rather than drain, no amount of merging helps and the
-answer is the resident tiles; if it is draw calls, runs are the cheap win.
+**The ground is a mesh, not a stream of quads.** The profile named the lever:
+at whole-map on 560x336 the ground layer is 266 of the 276 ms our side of the
+frame costs, and 259 of that is the *drain* — 199,345 sheet quads leaving as
+49,514 draw calls and 49,461 texture binds, four quads a draw, because the
+sheet changes from one cell to the next and the batcher flushes every time.
+Collection is 7 ms. It is a submission ceiling.
+
+So the static ground is baked into vertex buffers once per battle: one buffer
+per ground sub-layer and sheet in painter order, every cell owning a fixed
+four-vertex slot carrying position, atlas UV and whatever per-quad inputs the
+composite reads today, each buffer drawn with one call per frame. A cell that
+changes — a breach, rubble, a caved roof — is an in-place `glBufferSubData`
+of that cell's slot and its autotile neighbours' slots, so there is no
+re-meshing and no wrap problem: every cell keeps its own atlas UVs. The
+composite shader sees the same UVs it does now. Chunk the buffers (32x32
+cells, say) only if the profile shows partial upload or culling matters.
+LWJGL 2 has two traps here: `gl*Pointer(FloatBuffer)` throws while a VBO is
+bound, so the offset overloads are the ones to use, and a per-frame `glGet*`
+stalls an async-renderer bridge.
+
+Two alternatives were considered and rejected. **Greedy runs** along a visible
+row re-split on every edit and need a repeat wrap an atlas cannot give, so a
+merged run would have to go back through the composite with a per-run wrap of
+its own sub-rectangle. **Baked ground tiles** — `dense-render-tiles.md`, the
+parked story — cost fill and VRAM per view and need residency, eviction and
+anti-thrash policy. A mesh is one upload and zero per-frame CPU for the
+ground.
 
 ## What it does not do
 
@@ -62,9 +85,9 @@ answer is the resident tiles; if it is draw calls, runs are the cheap win.
 - With the zoom gates on, the whole-map frame's drain time falls by a stated
   share against the same run's control, and a close framing is byte-identical
   to the ungated render in the snapshot suites.
-- Whichever ground lever the profile names is implemented behind a `battle.*`
-  toggle, measured on and off by the same task, and ships on only if the
-  whole-map frame is faster with the close framing unchanged.
+- The resident ground mesh is implemented behind `battle.render.groundMesh`,
+  measured on and off by the same task, and ships on only if the whole-map
+  frame is faster with the close framing unchanged.
 - `createSnapshots` suites unchanged at their authored zooms.
 
 ## Plan
@@ -73,5 +96,5 @@ answer is the resident tiles; if it is draw calls, runs are the cheap win.
    at the drain, the three framings, the report.
 2. Zoom gates in the shadow, effect and decal collectors, thresholds stated
    from the measurement.
-3. The ground lever the profile names — merged runs, or reviving
-   `dense-render-tiles.md` — behind a toggle, measured both ways.
+3. The resident ground mesh behind `battle.render.groundMesh`, measured both
+   ways by the same task.
