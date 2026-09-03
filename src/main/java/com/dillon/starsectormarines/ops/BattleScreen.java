@@ -554,6 +554,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // The composited ground atlas holds this session's sheets; a reattach
         // reloads them and composites again.
         renderer.getGroundAtlas().dispose();
+        // And the composited unit atlas, for the same reason.
+        renderer.getUnitAtlas().dispose();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();

@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.Arrays;
+import java.util.List;
+
 /** Complete modular texture set shared by the live mech family. */
 public final class LayeredMechAssets {
     public final LayeredSpriteCache chassis;
@@ -60,5 +63,18 @@ public final class LayeredMechAssets {
         this.quarryBreakerCannon = quarryBreakerCannon;
         this.pioneerRocketCradle = pioneerRocketCradle;
         this.muzzleFlash = muzzleFlash;
+    }
+
+    /**
+     * Every image this set can draw, for a consumer that has to see all of them
+     * rather than pick one — the {@link UnitAtlas}'s layout, which needs the
+     * whole set before any of it is drawn.
+     */
+    public List<LayeredSpriteCache> layers() {
+        return Arrays.asList(chassis, socketedChassis, houndChassis, siroccoChassis,
+                foot, thighBone, chaingunArm, linearCannon, heavyCannon, srmPod, lrmPod,
+                shoulderLaser, pulseLaserArm, bastionAutocannon, demolitionCannon,
+                thermalLance, musterAutogun, quarryBreakerCannon, pioneerRocketCradle,
+                muzzleFlash);
     }
 }
