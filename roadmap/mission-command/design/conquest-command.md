@@ -251,6 +251,37 @@ A squad refused by the bound and left with nothing else publishes its own
 assignment reason, because a far-track refusal and an empty map are otherwise
 the same sentence.
 
+**Dividing the front push across a strip's zones was built, measured, and is
+off.** `battle.conquest.zoneTargetCap=true`. The zone picker ranks every squad
+onto the nearest believed-defender zone and consults nothing about who is
+already going there, so a force larger than the front's five to nine useful
+slots queues in depth behind one target — 70% of the live force averaged over
+every command pulse on `full-strength-west`, and 91% at the pulses where it is
+worst. The cap gives each zone its own capture quota plus a stated overflow and
+sends the surplus to the next zone up the strip, falling back to the least
+crowded zone when the whole strip is full.
+
+**It divides the force and loses the ground.** Averaged over every pulse the
+concentration falls from 70% to 43% on the west and 72% to 43% on the south, and
+marines actually standing inside a *walled* compound's capture zone at three
+thousand ticks rise from one to eight on the west. At full length that buys
+nothing and costs two held compounds: 8 captures and 5 held against 11 and 7 on
+`full-strength-west`, and 21 and 19 against 22 and 19 on `reinforced-south`.
+**Concentration was the wrong thing to measure.** A crowd on one zone is what a
+front that has run out of places to be looks like; spreading it puts squads onto
+zones that were not worth taking, and the west's real constraint is upstream —
+`STRIP_COUNT` is three and `stripFor` reads the landing lateral, so effectively
+the whole force prefers one track and the strip it is capped within has three
+zones in it.
+
+What the attempt did establish is that **a capped rule owes stickiness**. Its
+answer depends on who chose first, so a squad third in the queue one pulse and
+fourth in the next was retargeted for a reason that exists nowhere on the map —
+measured at triple the retargets on both fixtures. A squad already clearing a
+zone now keeps it while it is still worth clearing, and standing squads are
+counted before anybody fresh chooses; retargets came back to at or below the
+control. Any future division of the front push inherits that obligation.
+
 **Standing in the open is not standing in the compound.** A squad that has
 physically reached an objective commits to it before any distant allocation
 runs, and that pass deliberately carries no track bound and no front-reach gate:
