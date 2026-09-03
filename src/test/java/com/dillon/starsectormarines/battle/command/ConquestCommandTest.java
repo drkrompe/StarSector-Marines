@@ -2126,6 +2126,37 @@ public class ConquestCommandTest {
             assertEquals(4, onFar, "the overflow divides too");
         }
 
+        /**
+         * The cap's answer depends on who chose first, so a squad whose place
+         * in the queue shifts must not be moved: a retarget is a squad
+         * dropping its path and walking somewhere else, and the first matrix
+         * run of the cap tripled them on both fixtures.
+         */
+        @Test
+        public void aSquadAlreadyClearingAZoneKeepsItAcrossPulses() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) squads.add(addMarineSquad(sim, 2f + i, 1f));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+            List<Integer> first = new ArrayList<>();
+            for (Squad squad : squads) first.add(clearZoneTarget(squad));
+
+            // A squad lost from the front of the queue reorders everybody
+            // behind it, which is exactly the case that used to retarget them.
+            squads.get(0).aliveMembers = 0;
+            tick(cmd, sim);
+
+            for (int i = 1; i < squads.size(); i++) {
+                assertEquals(first.get(i), clearZoneTarget(squads.get(i)),
+                        "squad " + squads.get(i).id + " was retargeted by a "
+                                + "change in queue order rather than by the map");
+            }
+        }
+
         @Test
         public void aStripWithNowhereElseToSendAnybodyStillSendsThem() {
             BattleSimulation sim = stackedRoomsSim();

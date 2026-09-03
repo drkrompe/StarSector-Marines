@@ -699,10 +699,32 @@ public final class ConquestCommand implements ConquestFrontCommand,
             // work from one neighboring track without permanently re-homing.
             // The per-zone tally is the plan being built, so it starts empty.
             Arrays.fill(zoneTargetSquads, 0);
+            // A squad already clearing a zone keeps it, and is counted before
+            // anybody fresh chooses. Both halves matter: the cap's answer
+            // depends on who asked first, so without stickiness a squad third
+            // in line one pulse and fourth in the next is moved to another
+            // zone for a reason that exists nowhere on the map. Counting the
+            // standing squads first is what stops a fresh squad sizing its
+            // choice against a tally that is still filling up.
+            Int2IntOpenHashMap standingTargets = new Int2IntOpenHashMap();
+            standingTargets.defaultReturnValue(-1);
+            if (ZONE_TARGET_CAP_ENABLED && !finalCompoundConvergence) {
+                for (PlanningSquad squad : squads) {
+                    if (committed.contains(squad.id)) continue;
+                    int zone = standingZoneTarget(squad, frame);
+                    if (zone < 0) continue;
+                    standingTargets.put(squad.id, zone);
+                    noteZoneTarget(zone);
+                }
+            }
             for (PlanningSquad squad : squads) {
                 if (committed.contains(squad.id)) continue;
                 int preferredTrack = stripFor(squad);
-                TargetChoice choice = finalCompoundConvergence
+                int standing = standingTargets.get(squad.id);
+                TargetChoice choice = standing >= 0
+                        ? new TargetChoice(
+                                effectiveTrackFor(standing, preferredTrack), standing)
+                        : finalCompoundConvergence
                         ? finalCompoundSupportChoice(squad, soleRemaining, frame)
                         : targetChoice(squad, preferredTrack, frame);
                 if (choice.targetZoneId < 0) {
@@ -786,7 +808,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     planned = planned.withDistantCaptureDeferred();
                 }
                 directives.put(squad.id, planned);
-                noteZoneTarget(choice.targetZoneId);
+                if (standing < 0) noteZoneTarget(choice.targetZoneId);
             }
         }
 
@@ -2295,6 +2317,36 @@ public final class ConquestCommand implements ConquestFrontCommand,
         int index = targetIndexForCaptureZone(zoneId);
         if (index >= 0) quota = compoundTargets.get(index).desiredSquads;
         return zoneTargetSquads[zoneId] >= quota + ZONE_TARGET_OVERFLOW_SQUADS;
+    }
+
+    /**
+     * The {@code CLEAR_ZONE} target this squad already holds, or {@code -1}
+     * when it holds none or the one it holds has stopped being worth holding:
+     * the belief has gone, the zone is unreachable, or the squad's home track
+     * has drifted more than a neighbour away from it. Those are the conditions
+     * {@link #nearestDefenderZoneInStrip} would apply to the zone as a fresh
+     * candidate, asked of the order the squad is already executing.
+     *
+     * <p>Only consulted under {@link #ZONE_TARGET_CAP_PROPERTY}. The plain
+     * nearest-forward rule is a pure function of the squad's own position and
+     * needs no stickiness; the capped rule depends on who chose first, so
+     * without this a reordering of the queue is a retarget.
+     */
+    private int standingZoneTarget(PlanningSquad squad, ConquestCommandFrame frame) {
+        ObjectiveAssignment held = squad.assignedObjective;
+        if (held == null || held.kind() != AssignmentKind.CLEAR_ZONE) return -1;
+        int zone = held.targetZoneId();
+        if (zone < 0 || zone == exteriorZoneId) return -1;
+        if (!hasKnownHostileInZone(zone, frame)) return -1;
+        if (!reachableZone(squad, zone, frame)) return -1;
+        int track = trackForZone(zone);
+        return track >= 0 && Math.abs(track - stripFor(squad)) > 1 ? -1 : zone;
+    }
+
+    /** The track a kept target is published under: its own, or the squad's. */
+    private int effectiveTrackFor(int zoneId, int preferredTrack) {
+        int track = trackForZone(zoneId);
+        return track >= 0 ? track : preferredTrack;
     }
 
     /** Records a front-push target so the zone's cap counts it. */
