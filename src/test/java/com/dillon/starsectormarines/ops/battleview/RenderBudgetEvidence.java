@@ -447,6 +447,7 @@ class RenderBudgetEvidence {
         root.put("surfaceHeight", SURFACE_H);
         root.put("ticks", ticks);
         root.put("frames", frames);
+        root.put("zoomGates", ZoomDetail.enabled());
         List<JSONObject> encoded = new ArrayList<>();
         for (Row row : rows) {
             JSONObject entry = new JSONObject();

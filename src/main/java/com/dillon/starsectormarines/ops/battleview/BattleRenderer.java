@@ -284,8 +284,11 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.SHOTS, (ctx, out) ->
                         beamFx.collect(ctx.camera, out, ctx.alphaMult)),
                 new ShotRenderService(sprites, impactFx),
-                RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) ->
-                        out.addCustom(RenderLayer.IMPACT_FX, () -> impactFx.render(ctx.camera, ctx.alphaMult))));
+                RenderSystem.of(RenderLayer.IMPACT_FX, (ctx, out) -> {
+                    if (!ZoomDetail.impactParticlesVisible(ctx.camera)) return;
+                    out.addCustom(RenderLayer.IMPACT_FX,
+                            () -> impactFx.render(ctx.camera, ctx.alphaMult));
+                }));
     }
 
     // ---- lifecycle -----------------------------------------------------------
