@@ -5,8 +5,8 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 Written: 2026-08-23
 
 Updated: 2026-09-03 — the tiled navigation derivations shipped and left the
-board; the navigation substrate's whole-map derivations now catch up from the
-grid's change log.
+board; the zone graph is the one whole-map derivation still standing, and its
+26 ms full rebuild on the cell-less dirty path is now a row.
 
 | Story | State | Intent |
 |---|---|---|
@@ -15,6 +15,7 @@ grid's change log.
 | `retire-mech-combatant-behavior.md` | DRAFT | Remove the obsolete mech behavior shell while preserving the shared mech firing contract under an honest name. |
 | `squad-range-quorum.md` | DRAFT | Make `IN_RANGE_OF_TARGET` a quorum instead of an any-member read, without the approach cost the first attempt measured. |
 | `clear-zone-vantage-probe.md` | DRAFT | Decide whether ClearZone should ask the vantage probe before dropping a target; measured as a one-fixture-each-way trade. |
+| `zone-graph-tiled-rebuild.md` | DRAFT | Scope `ZoneGraph.rebuild()` to the cells that changed; a 26 ms whole-map rebuild on the cell-less dirty path is the largest number left on a breach tick. |
 
 See `stories.md` in the Mission Command feature for foundation, evidence,
 Conquest, Sabotage, Assault, Raid, Extraction, intervention, and faction-command
