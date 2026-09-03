@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.FighterWingCommitment;
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -30,8 +31,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -145,6 +148,7 @@ class RenderBudgetEvidence {
 
     @Test
     void profilesTheRealPipelineAtThreeFramings() throws Exception {
+        requireSerialScheduler();
         try (HeadlessGl gl = HeadlessGl.createOrNull(SURFACE_W, SURFACE_H)) {
             if (gl == null) {
                 System.out.println("[render-evidence] SKIPPED: " + HeadlessGl.unavailableReason());
@@ -179,6 +183,7 @@ class RenderBudgetEvidence {
                         rows.addAll(profile(spec, sim, renderer, frames, frameCosts));
                     }
                 }
+                assertStandUpRepeats(renderer, rows, ticks);
                 System.out.println("[render-evidence] textures uploaded: "
                         + tokens.uploadedTextures());
             }
@@ -255,6 +260,84 @@ class RenderBudgetEvidence {
                     ? launch.construction() : parsed;
             return (ConquestBattleFixture) construction;
         }
+    }
+
+    // ---- the instrument's own two obligations --------------------------------
+
+    /**
+     * The world this profiles is whatever 600 ticks produced, so the playout has
+     * to land in the same place every run.
+     *
+     * <p>It did not. Under {@link UnitUpdateSystem}'s production scheduler the
+     * canonical Conquest collected 496, 567 and 537 {@code UNITS} commands on
+     * three runs of unchanged code — four hundred seats is well over the
+     * parallel-dispatch floor, so six hundred ticks of it is six hundred
+     * chances for two workers to resolve in a different order, and the battle
+     * that comes out is a different battle. The frame-to-frame assertion in
+     * {@link #profile} cannot see that: the harness does not advance the
+     * simulation between frames, so within one run the counts repeat perfectly
+     * while meaning something different from the last run's.
+     *
+     * <p>Forced serial the counts are a fact about the code, which is the whole
+     * point of an instrument a lever is judged against. This asserts rather than
+     * sets it, because {@code UnitUpdateSystem} reads the property when a
+     * battle's pool is constructed and a test that quietly set it here would
+     * disagree with the Gradle task about what was measured.
+     */
+    private static void requireSerialScheduler() {
+        int configured = UnitUpdateSystem.configuredMinimumParallelUnits();
+        assertEquals(Integer.MAX_VALUE, configured,
+                "render evidence must play its fixtures under the serial scheduler, or the "
+                        + "world it measures differs run to run: set -D"
+                        + UnitUpdateSystem.MINIMUM_PARALLEL_UNITS_PROPERTY + "="
+                        + Integer.MAX_VALUE + " (the renderEvidence task does)");
+    }
+
+    /**
+     * The same fixture, stood up a second time, collects the same commands.
+     *
+     * <p>This is the assertion the frame-to-frame one cannot make. It builds the
+     * canonical Conquest again from the same fixture, plays it the same number of
+     * ticks, profiles it at the same three framings, and compares every layer's
+     * command count against the first stand-up's. A scheduler that has gone
+     * non-deterministic again, or a collector that has acquired a dependency on
+     * something outside the world, fails here and nowhere else.
+     */
+    private static void assertStandUpRepeats(BattleRenderer renderer, List<Row> first, int ticks)
+            throws Exception {
+        MapSpec spec = new MapSpec("560x336 conquest", MapSpec::conquest);
+        List<Row> repeat;
+        try (BattleSimulation sim = spec.build()) {
+            play(sim, ticks);
+            repeat = profile(spec, sim, renderer, 1, new ArrayList<>());
+        }
+        // Keyed rather than positional, and only where something was collected:
+        // a layer that emitted nothing is kept or dropped from the report by a
+        // timing threshold, which is a measurement and is allowed to move.
+        Map<String, Integer> baseline = countsByLayer(first, spec.id());
+        Map<String, Integer> second = countsByLayer(repeat, spec.id());
+        for (String key : baseline.keySet()) {
+            assertEquals(baseline.get(key), second.get(key),
+                    "the same fixture stood up twice must collect the same commands: "
+                            + spec.id() + " / " + key);
+        }
+        for (String key : second.keySet()) {
+            assertEquals(baseline.get(key), second.get(key),
+                    "a second stand-up of " + spec.id() + " collected in a layer the first did "
+                            + "not: " + key);
+        }
+        System.out.println("[render-evidence] stand-up repeats: " + baseline.size()
+                + " layer rows identical across two stand-ups of " + spec.id());
+    }
+
+    private static Map<String, Integer> countsByLayer(List<Row> rows, String mapId) {
+        Map<String, Integer> out = new LinkedHashMap<>();
+        for (Row row : rows) {
+            if (!row.map().equals(mapId)) continue;
+            if (row.census().commands() == 0) continue;
+            out.put(row.framing() + " / " + row.layer(), row.census().commands());
+        }
+        return out;
     }
 
     private static void play(BattleSimulation sim, int ticks) {
