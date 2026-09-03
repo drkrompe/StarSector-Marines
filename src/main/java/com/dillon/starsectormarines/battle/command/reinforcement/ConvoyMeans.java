@@ -111,7 +111,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
      *
      * <p>Deliberately never invalidated, and
      * {@link com.dillon.starsectormarines.battle.nav.NavigationGrid}'s
-     * changed-cell log ({@code tiled-navigation-derivations.md}) is not the
+     * changed-cell log (see the {@code battle.nav} package charter) is not the
      * fact that would tell it to: {@link TerrainCostField#from} reads
      * {@link com.dillon.starsectormarines.battle.world.model.CellTopology}'s
      * {@code GroundKind} array, which the nav grid's own log knows nothing

@@ -40,3 +40,4 @@ Mission Command shipped ledger.
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
 | `squad-tactical-move-order.md` | 2026-08-31 | this change | `ai-nouns.md` |
 | `squad-contextual-capture-order.md` | 2026-08-31 | this change | `ai-nouns.md`, `conquest-nouns.md` |
+| `tiled-navigation-derivations.md` | 2026-09-03 | `b00ba1430`, `08bf8ea23`, `7629478f1`, `b2d9c6e01` | `battle.nav` package charter (`package-info.java`), `convoy-nouns.md` |
