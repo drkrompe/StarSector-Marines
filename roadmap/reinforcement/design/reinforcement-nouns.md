@@ -50,11 +50,21 @@ body, which is a fact about the delivery, and on a production fixture the
 difference was every single dispatch.
 
 Where proving the whole delivery is too expensive to ask on every request — the
-convoy's route proof costs about seventy milliseconds, against half of one for
-its probe, and the muster asks on its own cadence besides — the probe closes the
-failure that actually occurs and the remaining gap is named rather than left
-implicit. Measured across the canonical fixtures, no probe now says yes to a
-request its commit then rejects.
+convoy's route proof is a bounded enumeration of grid searches against half a
+millisecond for its probe, and the muster asks on its own cadence besides — the
+probe closes the failure that actually occurs and the remaining gap is named
+rather than left implicit. Measured across the canonical fixtures, no probe now
+says yes to a request its commit then rejects.
+
+**The gap between a probe and its proof must be bounded, or it is unbounded in
+the map.** That figure used to read "about seventy milliseconds", measured on a
+small map, and the proof it described had no bound at all: on a 560x336
+Conquest map one convoy dispatch cost 745 full-grid searches and stalled the
+game thread for three seconds inside a single tick. A probe cheap enough to ask
+of everything says nothing about what the commit behind it costs, so the commit
+owns that bound itself — see `convoy-nouns.md` on settling reachability before
+searching and on budgeting the search. What a probe may not do is let the
+difference grow without anybody stating it.
 
 **Feasibility is not selection.** A strict priority list makes everything below the top of it unreachable for exactly as long as the top is feasible, which is not a ladder of fallbacks but one means with two spares. The garrison airfield is the case that proved it: on a production Conquest map the convoy could deliver every request and so was asked every request, the aircraft never flew once in a whole battle, and burning them on their pads denied the defender nothing. Selection therefore asks a question the means can lose — when would you get there — and a means that is merely available no longer excludes a better one.
 

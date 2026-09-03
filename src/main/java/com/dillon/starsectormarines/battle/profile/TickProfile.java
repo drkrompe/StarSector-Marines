@@ -30,6 +30,15 @@ public final class TickProfile {
      * Order matches execution order so the panel's row order mirrors what
      * actually happens each tick — easier to reason about than alphabetic
      * or by-cost sorting (which would change frame-to-frame).
+     *
+     * <p>A phase that measures more than its name says is worse than no phase
+     * at all, because a reader stops looking there. {@code AIR_SYSTEM} once ran
+     * from the smoke plumes all the way to the air state machine — compound
+     * capture, the airfields, resource production, the recapture recompute, the
+     * counterattack muster and the whole reinforcement dispatch inside it — so
+     * a convoy route proof that stalled the game thread for five seconds a tick
+     * was charged to the air, and nine watchdog thread dumps found it before the
+     * profile did.
      */
     public enum Phase {
         VISION,
@@ -57,6 +66,8 @@ public final class TickProfile {
         DRONE_CRASHES,
         WRECKS,
         PLUMES,
+        COMPOUND_ECONOMY,
+        REINFORCEMENT,
         AIR_SYSTEM,
         GROUND_SYSTEM,
         SHOTS,

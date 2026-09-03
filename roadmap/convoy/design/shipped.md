@@ -16,3 +16,4 @@ Written: 2026-08-23
 | `slice-1-local-planner.md` | 2026-06-02 | `73359a06`, `d5f214cd` | `convoy-nouns.md` — rolling local planning |
 | `slice-2-live-tracking.md` | 2026-06-02 | `966df57d`, `56976d7d` | `convoy-nouns.md` — always-kinematic tracking and off-map departure |
 | `vehicle-damage.md` | 2026-08-27 | `fcc669d7` | `convoy-nouns.md` — shared armor/structure, combat targeting, once-only wrecks, passenger fate, and route obstruction |
+| `route-proof-budget.md` | 2026-09-03 | `18bee14f`, `9afd0354` | `convoy-nouns.md` — mask reachability settled before searching, and a route proof bounded in searches; `reinforcement-nouns.md` — the probe/proof gap must be bounded |

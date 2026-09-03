@@ -2054,6 +2054,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // tick's holder rather than last tick's, and before nothing in
         // particular: somebody walking on at the map edge has a long way to go.
         worksCrewSystem.tick(TICK_DT, this, worksCrews);
+        tickProfile.lap(TickProfile.Phase.COMPOUND_ECONOMY);
         // Recapture-target recompute must precede the reinforcement trigger
         // poll below so FrontLineReinforcementTrigger dispatches against this
         // tick's fresh contested/open state, not last tick's.
@@ -2067,6 +2068,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // dispatch via the first feasible means provider. Dispatch debits
         // resource tickets; insufficient balance defers the request.
         reinforcementSystem.tick(TICK_DT, this);
+        // The recapture recompute, the counterattack muster and the dispatch
+        // above are one cluster — each reads the tick's fresh state from the one
+        // before it — and all three can prove a convoy route, which is the
+        // expensive thing in this stretch of the tick. Lapped together, and
+        // apart from the air below, so a proof that blows up is charged where a
+        // reader would look for it. See TickProfile.Phase.
+        tickProfile.lap(TickProfile.Phase.REINFORCEMENT);
         // Air vehicles tick AFTER units so new deboarded marines aren't iterated
         // mid-loop. They'll be picked up by next tick's occupancy + target pass.
         // Internal air only — under AirProvider.EXTERNAL the host's real ships own the
