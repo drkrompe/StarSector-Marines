@@ -431,7 +431,9 @@ class RenderBudgetEvidence {
                 .append("**, resident fog field **")
                 .append(FogField.enabled() ? "on" : "off")
                 .append("**, ground atlas **")
-                .append(GroundAtlas.enabled() ? "on" : "off").append("**.\n\n");
+                .append(GroundAtlas.enabled() ? "on" : "off")
+                .append("**, resident decoration **")
+                .append(GroundMesh.decorationEnabled() ? "on" : "off").append("**.\n\n");
 
         out.append("## Whole frames\n\n")
                 .append("Wall clock with the GPU waited on, against the sum of our own\n")
@@ -514,6 +516,7 @@ class RenderBudgetEvidence {
         root.put("residentRelief", ReliefFieldMesh.enabled());
         root.put("fogField", FogField.enabled());
         root.put("groundAtlas", GroundAtlas.enabled());
+        root.put("residentDecoration", GroundMesh.decorationEnabled());
         List<JSONObject> costs = new ArrayList<>();
         for (FrameCost cost : frameCosts) {
             JSONObject entry = new JSONObject();
