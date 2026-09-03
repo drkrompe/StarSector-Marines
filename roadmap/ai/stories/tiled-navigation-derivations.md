@@ -47,10 +47,12 @@ recompute only the tiles a change touched.
    left alone: it derives from `CellTopology`'s `GroundKind`, which this log
    does not carry, and its own staleness is pre-existing and documented as
    deliberate.
-4. **Tile-local component labels with a boundary union-find.** Not started.
-   `VehicleClearanceCache.components` still calls `ClearanceComponents.of` —
-   a whole-map flood — every time the mask moves; this is why the AFTER-step-3
-   `clearance catch-up` column in Measurements has not dropped yet.
+4. **DONE.** Tile-local component labels with a boundary union-find.
+   `ClearanceComponents` labels each 32x32 tile on its own and unites the
+   local labels across every adjacency that crosses a tile seam; a catch-up
+   relabels only the tiles holding a cell within the chassis radius of a
+   change and re-runs the seam union. The whole-map flood survives as the
+   tests' oracle (`floodOf`).
 5. **Tile the greedy navigation mesh.** Not started.
 
 ## Measurements
@@ -170,6 +172,48 @@ Two design decisions worth recording here rather than only in code comments:
   for it to catch up from. `CellTopology` keeps a change log of its own
   (`CHANGE_LOG_CAPACITY`, same contract) if that staleness is ever worth
   closing — see the Javadoc on `ConvoyMeans.costField`.
+
+### AFTER step 4 (`ClearanceComponents` labelled in tiles, seams united)
+
+The whole-map flood is gone from the steady state. Each 32x32 tile is labelled
+on its own; a union-find over the adjacencies that cross tile seams joins the
+local labels into the map's components; a catch-up relabels only the tiles
+holding a cell within the chassis radius of a change and re-runs the seam
+union. On the 560x336 map: **198 tiles, 25,356 seam adjacencies, 392
+components.**
+
+| tick | rev delta | cell changes | zone | navFlush | clearance catch-up |
+|---|---|---|---|---|---|
+| 201 | 1 | 3 | 0.676 | 6.244 | 0.858 |
+| 270 | 8 | 12 | 0.700 | 4.840 | 0.659 |
+| 315 | 1 | 1 | 0.568 | 2.669 | 0.754 |
+| 501 | 1 | 5 | 0.734 | 2.955 | 2.448 |
+| 808 | 2 | 1 | 25.957 | 3.553 | 0.529 |
+| 901 | 1 | 3 | 0.589 | 2.630 | 0.532 |
+| 1401 | 1 | 3 | 0.608 | 2.649 | 0.546 |
+| 2001 | 1 | 3 | 0.614 | 2.607 | 0.495 |
+| 2209 | 1 | 3 | 0.560 | 2.514 | 0.490 |
+| **total** | | | **31.005** | **30.660** | **7.310** |
+
+`clearanceBuilds 1 componentBuilds 1` — cold only; every breach caught up.
+The catch-up column reads **0.49–0.86 ms** in the steady state against
+3.2–11.4 ms before. Where it goes, best of thirty on a three-cell change with
+the JIT warm: mask catch-up 0.011 ms, label catch-up 0.421 ms with one tile
+relabelled, against 2.714 ms for a warm full relabel (the 8–11 ms figures in
+the earlier tables were partly cold code). Cloning the map's label and mask
+arrays costs 0.045 ms; nearly all of the rest is the seam walk — some 200,000
+step checks to find the 25,356 adjacencies that unite.
+
+**Follow-up, not done here:** the seam adjacency list is a property of the
+mask along each seam segment and only changes where a dirty tile touches it,
+so it could be cached per segment and only the dirty segments re-derived,
+leaving a catch-up to run 25k unions with no grid checks — an estimated 0.4 ms
+to about 0.15. Left for after the mesh, which is the larger remaining number.
+
+**The tick-808 zone figure is the largest number in every table and is not
+this story's.** It is a full `ZoneGraph.rebuild()` on the cell-less dirty
+path (`zoneForceFullRebuild`); a 26 ms hitch on a breach tick belongs on the
+board in its own right.
 
 ## Acceptance
 

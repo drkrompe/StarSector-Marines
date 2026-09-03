@@ -107,7 +107,9 @@ public class VehicleClearanceCacheTest {
         ClearanceComponents joined = cache.components(grid, grid.topologyRevision());
         assertNotSame(split, joined);
         assertTrue(joined.connected(2, 2, 8, 2));
-        assertEquals(2, cache.componentBuilds());
+        // Caught up from the change log rather than relabelled whole.
+        assertEquals(1, cache.componentBuilds());
+        assertEquals(1, cache.componentCatchUps());
     }
 
     /**
