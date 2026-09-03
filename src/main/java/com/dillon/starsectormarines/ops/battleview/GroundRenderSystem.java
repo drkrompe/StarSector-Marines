@@ -187,8 +187,7 @@ public final class GroundRenderSystem implements RenderSystem {
             return;
         }
 
-        emitBaseTerrain(ctx, grid, topology, view);
-        emitDecorations(grid, topology, view);
+        emitTerrain(ctx, grid, topology, view);
         emitWindows(topology, view);
         emitEdgeBarriers(grid, view);
     }
@@ -257,17 +256,27 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     /**
-     * The base tile of every visible cell — from the resident mesh where there is
+     * Everything in this layer that is a function of the cell topology: the base
+     * tile, the fills that stand in for one, the crosswalk stripes, the nature
+     * scatter and the doorway decals — from the resident mesh where there is
      * one, and cell by cell where there is not.
      *
-     * <p>A battle's first frame always takes the second path: {@link GroundMesh}
+     * <p><b>Paint order is the same either way</b>, and that is what this method
+     * exists to keep true. For any one cell it is base tile or fill, then
+     * stripes, then scatter, then the door — and since no two cells' pieces
+     * overlap, sweeping all the stripes before all the scatter is the same
+     * picture as interleaving them cell by cell. That equivalence is what lets
+     * the mesh draw two of those sweeps as one buffer each: the base sub-layer
+     * before the fills and the stripes, the decoration sub-layers after them.
+     *
+     * <p>A battle's first frame always takes the streamed path: {@link GroundMesh}
      * is GL-free to ask and cannot have baked anything before its own custom pass
      * has run, so the frame that builds the mesh also draws the ordinary stream
      * and the mesh serves from the next one. That is one frame of the old cost
      * per battle, and it is what keeps the collector free of GL.
      */
-    private void emitBaseTerrain(RenderContext ctx, NavigationGrid grid,
-                                 CellTopology topology, VisibleCellRect view) {
+    private void emitTerrain(RenderContext ctx, NavigationGrid grid,
+                             CellTopology topology, VisibleCellRect view) {
         // The mesh bakes each cell's atlas sub-rectangle once and keeps it, so
         // it must not bake before the atlas exists — a mesh baked against the
         // per-sheet coordinates would draw from them for the rest of the battle
@@ -276,27 +285,50 @@ public final class GroundRenderSystem implements RenderSystem {
         boolean atlasReady = atlas == null || !GroundAtlas.enabled() || atlas.isServing();
         boolean resident = mesh != null && ctx.hostProfile.residentGroundAllowed()
                 && GroundMesh.enabled() && atlasReady;
-        if (resident && mesh.isServing(topology)) {
-            BaseTerrain terrain = new BaseTerrain(grid, topology);
+        boolean residentDecoration = resident && GroundMesh.decorationEnabled();
+
+        // Every sub-layer this system knows how to draw, always. Which of them
+        // the mesh is asked to hold is a separate question, and the ones it is
+        // not asked to hold are drawn from this same array cell by cell —
+        // building a shorter array for the mesh and then reading the stream off
+        // it is how the control run for this lever silently drew no decoration
+        // at all while reporting a perfectly plausible command count.
+        GroundMesh.CellResolver[] sublayers = {
+                new BaseTerrain(grid, topology),
+                new Scatter(topology),
+                new DoorDecals(grid, topology)};
+        int resident0 = residentDecoration ? sublayers.length : 1;
+        GroundMesh.CellResolver[] meshLayers = residentDecoration
+                ? sublayers : new GroundMesh.CellResolver[]{sublayers[0]};
+
+        if (resident && mesh.isServing(topology)
+                && mesh.sublayerCount() == resident0) {
             out.addCustom(RenderLayer.GROUND, () -> {
-                if (mesh.sync(topology, terrain)) mesh.draw(cam, alpha);
+                if (mesh.sync(topology, meshLayers)) mesh.draw(cam, alpha, 0, 1);
             });
             emitResidentFills(view);
+            emitCrosswalks(grid, topology, view);
+            if (residentDecoration) {
+                out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 1, resident0));
+            } else {
+                emitScatterAndDoors(sublayers, view);
+            }
             return;
         }
         if (resident) {
-            BaseTerrain terrain = new BaseTerrain(grid, topology);
             // Bakes during this frame's drain; draws nothing, because the stream
             // below is already this frame's ground.
-            out.addCustom(RenderLayer.GROUND, () -> mesh.sync(topology, terrain));
+            out.addCustom(RenderLayer.GROUND, () -> mesh.sync(topology, meshLayers));
         }
-        BaseTerrain terrain = new BaseTerrain(grid, topology);
+        GroundMesh.CellResolver terrain = sublayers[0];
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 commandSink.at(x, y);
                 terrain.resolve(x, y, commandSink);
             }
         }
+        emitCrosswalks(grid, topology, view);
+        emitScatterAndDoors(sublayers, view);
     }
 
     /** The cells the mesh holds no tile for, which still paint their block's colour. */
@@ -623,16 +655,15 @@ public final class GroundRenderSystem implements RenderSystem {
     // ---- decorations on a drawn cell ----------------------------------------
 
     /**
-     * What is laid over a cell once its ground is drawn: crosswalk stripes,
-     * nature scatter, and the decal that says an opening is a door.
+     * The painted stripes of a crosswalk.
      *
-     * <p>Its own pass rather than a tail on the floor dispatch, because the base
-     * terrain may not have been collected at all this frame — it may be resident
-     * on the GPU. Order within a cell is unchanged: stripes, then scatter, then
-     * the door.
+     * <p>Solid rectangles rather than art, which is the whole reason they stay
+     * in the command stream while the scatter and the door decals beside them
+     * became resident: the mesh holds textured quads, and a run of nine hundred
+     * fills over a whole map is not what the drain was spending its time on.
      */
-    private void emitDecorations(NavigationGrid grid, CellTopology topology, VisibleCellRect view) {
-        String doorOpenId = surfaceBlockId(SurfaceRole.DOOR_OPEN);
+    private void emitCrosswalks(NavigationGrid grid, CellTopology topology,
+                                VisibleCellRect view) {
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 if (topology.isWall(x, y)) continue;
@@ -641,19 +672,86 @@ public final class GroundRenderSystem implements RenderSystem {
                         && !GroundTileSelector.isSidewalkCell(grid, topology, x, y)) {
                     crosswalkStripes(x, y, topology.isCrosswalkStripesHorizontal(x, y));
                 }
-                int oi = topology.getNatureOverlayIndex(x, y);
-                if (oi >= 0 && tileReg != null) {
-                    commandSink.at(x, y);
-                    natureTile(tileReg.byIndex(oi), commandSink);
-                }
-                if (grid.isDoorway(x, y) && !topology.isRubble(x, y) && tileReg != null) {
-                    commandSink.at(x, y);
-                    TileManifest.TileFrame f = blockFrame(doorOpenId, false, false, false, false);
-                    if (urban != null && f != null) {
-                        emitCellPx(urban, TileManifest.TILE_SIZE, f.col, f.row, 0, commandSink);
-                    }
+            }
+        }
+    }
+
+    /**
+     * The decoration sub-layers, cell by cell, for a host or a frame the mesh is
+     * not serving them from.
+     *
+     * <p>Through the same resolvers the mesh bakes, for the reason the base
+     * terrain uses one: two copies of "what does this cell lay over its tile"
+     * would eventually disagree, and the disagreement would be a decoration that
+     * appears at one zoom and not another.
+     */
+    private void emitScatterAndDoors(GroundMesh.CellResolver[] sublayers,
+                                     VisibleCellRect view) {
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            for (int x = view.minX(); x <= view.maxX(); x++) {
+                commandSink.at(x, y);
+                for (int layer = 1; layer < sublayers.length; layer++) {
+                    sublayers[layer].resolve(x, y, commandSink);
                 }
             }
+        }
+    }
+
+    /**
+     * The nature overlay a cell carries over whatever tile it already drew.
+     *
+     * <p>A function of the topology and nothing else — the index is stamped at
+     * generation and every later change to it is recorded in the cell change log
+     * — which is what makes it resident rather than streamed.
+     */
+    private final class Scatter implements GroundMesh.CellResolver {
+
+        private final CellTopology topology;
+
+        Scatter(CellTopology topology) {
+            this.topology = topology;
+        }
+
+        @Override
+        public void resolve(int x, int y, GroundMesh.CellSink sink) {
+            if (tileReg == null || topology.isWall(x, y)) return;
+            int index = topology.getNatureOverlayIndex(x, y);
+            if (index < 0) return;
+            natureTile(tileReg.byIndex(index), sink);
+        }
+    }
+
+    /**
+     * The decal that says an opening is a door.
+     *
+     * <p>Resident with the scatter, on the same reasoning and one caveat worth
+     * writing down: the doorway tag itself lives on the navigation grid rather
+     * than on the topology, and nothing in a battle sets it — every caller of
+     * {@code setDoorway} is a map-generation stage. What <em>does</em> move is
+     * whether the cell has become rubble, and that is a topology change like any
+     * other, so the patch path sees the case that actually occurs.
+     */
+    private final class DoorDecals implements GroundMesh.CellResolver {
+
+        private final NavigationGrid grid;
+        private final CellTopology topology;
+        private final TileManifest.TileFrame frame;
+
+        DoorDecals(NavigationGrid grid, CellTopology topology) {
+            this.grid = grid;
+            this.topology = topology;
+            // Once per pass rather than per cell: the id resolves to one frame
+            // for the whole map, and building a TileFrame per doorway was an
+            // allocation in the densest loop on the layer.
+            this.frame = tileReg == null ? null
+                    : blockFrame(surfaceBlockId(SurfaceRole.DOOR_OPEN), false, false, false, false);
+        }
+
+        @Override
+        public void resolve(int x, int y, GroundMesh.CellSink sink) {
+            if (frame == null || urban == null || topology.isWall(x, y)) return;
+            if (!grid.isDoorway(x, y) || topology.isRubble(x, y)) return;
+            emitCellPx(urban, TileManifest.TILE_SIZE, frame.col, frame.row, 0, sink);
         }
     }
 

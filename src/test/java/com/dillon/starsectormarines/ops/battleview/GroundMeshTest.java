@@ -277,4 +277,95 @@ class GroundMeshTest {
         assertEquals(1, mesh.bucketCount());
         assertEquals(2, mesh.residentQuads());
     }
+
+    // ---- sub-layers ----------------------------------------------------------
+
+    /** A scatter tile over some of the cells a base sub-layer already tiled. */
+    private static final SpriteAPI SCATTER = sheet("scatter", 64f);
+
+    /**
+     * A cell owns a slot in each sub-layer it draws in, and the two are separate
+     * slots on separate buffers even where one cell draws in both.
+     */
+    @Test
+    void aCellCanOwnASlotInEverySublayerItDrawsIn() {
+        CellTopology topology = grid();
+        GroundMesh mesh = new GroundMesh();
+
+        assertTrue(mesh.catchUp(topology, new Terrain(topology),
+                (x, y, sink) -> {
+                    if (x == 2 && y == 2) sink.quad(SCATTER, 0, 0, 16, 16);
+                }));
+
+        assertEquals(2, mesh.sublayerCount());
+        assertEquals(3, mesh.bucketCount(), "two sheets below, one above");
+        assertEquals(16, mesh.residentQuads(), "fifteen tiles and one scatter");
+        assertNotNull(mesh.cellUv(0, cell(2, 2)), "the base tile is still there");
+        assertNotNull(mesh.cellUv(1, cell(2, 2)), "and the scatter is beside it");
+        assertNull(mesh.cellUv(1, cell(3, 2)), "a cell with no scatter holds no slot above");
+    }
+
+    /**
+     * A fill from a decoration sub-layer is not a fill.
+     *
+     * <p>A fill stands in for the cell's own tile. A decoration reporting one
+     * would paint a solid square over the terrain beneath it, which is the
+     * opposite of what "nothing to draw here" means — and it would do it in a
+     * colour the sub-layer chose, so it would look deliberate.
+     */
+    @Test
+    void onlyTheBaseSublayerCanPaintAFill() {
+        CellTopology topology = grid();
+        GroundMesh mesh = new GroundMesh();
+
+        mesh.catchUp(topology, new Terrain(topology), (x, y, sink) -> sink.fill(0xFF0000));
+
+        assertEquals(1, mesh.fillCellCount(),
+                "the one VOID cell, and not sixteen decoration fills");
+        assertEquals(0x123456, mesh.fillRgb(cell(1, 1)));
+    }
+
+    /** A decoration that goes away gives its slot back, and the next one takes it. */
+    @Test
+    void aClearedDecorationReleasesItsSlot() {
+        CellTopology topology = grid();
+        GroundMesh mesh = new GroundMesh();
+        boolean[] scattered = {true};
+        GroundMesh.CellResolver scatter = (x, y, sink) -> {
+            if (scattered[0] && x == 2 && y == 2) sink.quad(SCATTER, 0, 0, 16, 16);
+        };
+
+        mesh.catchUp(topology, new Terrain(topology), scatter);
+        int quads = mesh.residentQuads();
+
+        scattered[0] = false;
+        topology.setGroundKind(2, 2, CellTopology.GroundKind.RUBBLE);
+        mesh.catchUp(topology, new Terrain(topology), scatter);
+
+        assertNull(mesh.cellUv(1, cell(2, 2)), "the scatter stopped drawing");
+        assertEquals(1, mesh.freeSlotCount(), "and gave its slot back");
+        assertEquals(quads, mesh.residentQuads(),
+                "a released slot keeps its place; the buffer does not shrink");
+    }
+
+    /**
+     * Asking for a different number of sub-layers is a different mesh.
+     *
+     * <p>Not a patch of this one: the sub-layer a cell's slot belongs to is
+     * baked into the arrays, so a resolver arriving or leaving would leave every
+     * cell holding a slot in the wrong stratum.
+     */
+    @Test
+    void changingTheSublayerCountRebuilds() {
+        CellTopology topology = grid();
+        GroundMesh mesh = new GroundMesh();
+        GroundMesh.CellResolver scatter = (x, y, sink) -> sink.quad(SCATTER, 0, 0, 16, 16);
+
+        mesh.catchUp(topology, new Terrain(topology), scatter);
+        assertEquals(2, mesh.sublayerCount());
+
+        mesh.catchUp(topology, new Terrain(topology));
+        assertEquals(1, mesh.sublayerCount());
+        assertEquals(16, mesh.lastResolvedCells(), "a rebuild, not a patch of nothing");
+    }
 }

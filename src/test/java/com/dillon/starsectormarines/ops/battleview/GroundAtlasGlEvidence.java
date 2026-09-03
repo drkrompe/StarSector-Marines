@@ -185,8 +185,10 @@ class GroundAtlasGlEvidence {
                             BattleRenderHostProfile.STANDALONE_BATTLE);
                     assertTrue(renderer.getGroundMesh().residentQuads() > 0,
                             "the mesh has to have baked something to have baked it anywhere");
-                    assertEquals(1, renderer.getGroundMesh().bucketCount(),
-                            "a mesh baked against the atlas is one buffer, not one per sheet");
+                    assertEquals(renderer.getGroundMesh().sublayerCount(),
+                            renderer.getGroundMesh().bucketCount(),
+                            "a mesh baked against the atlas is one buffer per sub-layer, "
+                                    + "not one per sheet");
                 }
             } finally {
                 if (renderer != null) {

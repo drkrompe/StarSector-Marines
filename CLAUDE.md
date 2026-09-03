@@ -250,13 +250,16 @@ Do not run builds or leave generated task files there.
   cent run to run. Compare a lever against **its own run's control**
   (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
   `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
-  `-Dbattle.render.groundAtlas=false`), never against a number in a document.
-  Where it stands: a whole-map 560x336 Conquest frame is **3.5 ms** with every
-  lever on, of which 2.6 are ours, and `GROUND` is 1.5 of that — 0.9 collect
-  and 0.6 drain. The same frame with the ground atlas off is 4.6 ms of ours
-  with `GROUND` at 3.5, because the sparse work the resident mesh does not hold
-  then leaves as five hundred draws across five hundred texture binds instead
-  of four draws across one.
+  `-Dbattle.render.groundAtlas=false`,
+  `-Dbattle.render.residentDecoration=false`), never against a number in a
+  document.
+  Where it stands: a whole-map 560x336 Conquest frame costs **1.8 ms** of our
+  own with every lever on, against 5.5 with the ground atlas and the resident
+  decoration both off. `GROUND` is 0.57 ms of it — 929 commands, three draws and
+  **no texture binds at all**, because everything in that layer carrying a
+  texture is resident and everything left is a solid fill. The ceiling is now
+  `UNITS` at the close and mid framings: 250 bodies drawn as whole sprites,
+  253 draws across 250 binds, which cannot coalesce.
   **The harness does not advance the simulation between frames**, so a resident
   thing's patch cost is charged once, in the frame that catches it up, and every
   later frame in a framing reads as the steady state. That is the shape of the
