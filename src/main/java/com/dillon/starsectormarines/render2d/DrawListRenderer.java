@@ -44,6 +44,22 @@ public final class DrawListRenderer {
     public static void drain(DrawCommand[] buf, int count,
                              Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch,
                              LineBatch lineBatch, RibbonBatch ribbonBatch, BattleCamera camera) {
+        drain(buf, count, batchBySheet, solidBatch, lineBatch, ribbonBatch, camera, null);
+    }
+
+    /**
+     * As {@link #drain}, tallying what the replay did into {@code census}.
+     *
+     * <p>{@code null} for ordinary rendering, which is every caller but the
+     * render-budget evidence: the tally costs a null check per flush and
+     * nothing else, and a frame that is not being measured should not pay for
+     * counters nobody reads. See {@link DrawCensus} for why the counts are worth
+     * having at all.
+     */
+    public static void drain(DrawCommand[] buf, int count,
+                             Map<SpriteAPI, QuadBatch> batchBySheet, SolidQuadBatch solidBatch,
+                             LineBatch lineBatch, RibbonBatch ribbonBatch, BattleCamera camera,
+                             DrawCensus census) {
         GlStateBracket bracket = null;
         QuadBatch activeSheet = null;     // sheet batch with pending appends (else null)
         SpriteAPI activeSheetKey = null;
@@ -58,13 +74,14 @@ public final class DrawListRenderer {
 
         for (int i = 0; i < count; i++) {
             DrawCommand c = buf[i];
+            if (census != null) census.recordCommand(c.kind);
             switch (c.kind) {
                 case SHEET_QUAD: {
                     if (c.sprite != activeSheetKey) {
-                        if (activeSheet != null) activeSheet.flush();
-                        if (solidPending) { solidBatch.flush(); solidPending = false; }
-                        if (linePending) { lineBatch.flush(); linePending = false; }
-                        if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                        if (activeSheet != null) flushSheet(activeSheet, census);
+                        if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                        if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                        if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                         activeSheetKey = c.sprite;
                         activeSheet = batchBySheet.get(c.sprite);
                     }
@@ -85,9 +102,9 @@ public final class DrawListRenderer {
                     break;
                 }
                 case SOLID_RECT: {
-                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
-                    if (linePending) { lineBatch.flush(); linePending = false; }
-                    if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                    if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     solidBatch.appendRect(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1)
@@ -95,22 +112,22 @@ public final class DrawListRenderer {
                     break;
                 }
                 case LINE: {
-                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
-                    if (solidPending) { solidBatch.flush(); solidPending = false; }
-                    if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                    if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     // Line width is per-flush GL state — flush the run before it changes.
-                    if (linePending && c.angleDeg != lineBatch.width()) { lineBatch.flush(); }
+                    if (linePending && c.angleDeg != lineBatch.width()) { flushLines(lineBatch, census); }
                     lineBatch.setWidth(c.angleDeg);
                     lineBatch.append(c.cx, c.cy, c.w, c.h, c.r, c.g, c.b, c.a); // cx/cy=(x0,y0), w/h=(x1,y1), angleDeg=width
                     linePending = true;
                     break;
                 }
                 case RIBBON: {
-                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
-                    if (solidPending) { solidBatch.flush(); solidPending = false; }
-                    if (linePending) { lineBatch.flush(); linePending = false; }
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                    if (linePending) { flushLines(lineBatch, census); linePending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     // RibbonBatch expands cell→screen itself, so it needs the camera; a sub-2-sample
@@ -124,9 +141,9 @@ public final class DrawListRenderer {
                 case POLY: {
                     // Solid-fill geometry — shares solidBatch with SOLID_RECT so a
                     // mixed fill run (rect + arc + rect) coalesces into one flush.
-                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
-                    if (linePending) { lineBatch.flush(); linePending = false; }
-                    if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                    if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     if (c.poly != null) c.poly.appendTo(solidBatch);
@@ -134,21 +151,22 @@ public final class DrawListRenderer {
                     break;
                 }
                 case SPRITE: {
-                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
-                    if (solidPending) { solidBatch.flush(); solidPending = false; }
-                    if (linePending) { lineBatch.flush(); linePending = false; }
-                    if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                    if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                    if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     drawSprite(c);
+                    if (census != null) census.recordTexturedDraw();
                     spritePolluted = true;
                     break;
                 }
                 case CUSTOM:
                 default: {
-                    if (activeSheet != null) { activeSheet.flush(); activeSheet = null; activeSheetKey = null; }
-                    if (solidPending) { solidBatch.flush(); solidPending = false; }
-                    if (linePending) { lineBatch.flush(); linePending = false; }
-                    if (ribbonPending) { ribbonBatch.flush(); ribbonPending = false; }
+                    if (activeSheet != null) { flushSheet(activeSheet, census); activeSheet = null; activeSheetKey = null; }
+                    if (solidPending) { flushSolid(solidBatch, census); solidPending = false; }
+                    if (linePending) { flushLines(lineBatch, census); linePending = false; }
+                    if (ribbonPending) { flushRibbons(ribbonBatch, census); ribbonPending = false; }
                     if (bracket != null) { bracket.close(); bracket = null; }
                     c.custom.run();
                     break;
@@ -156,11 +174,42 @@ public final class DrawListRenderer {
             }
         }
 
-        if (activeSheet != null) activeSheet.flush();
-        if (solidPending) solidBatch.flush();
-        if (linePending) lineBatch.flush();
-        if (ribbonPending) ribbonBatch.flush();
+        if (activeSheet != null) flushSheet(activeSheet, census);
+        if (solidPending) flushSolid(solidBatch, census);
+        if (linePending) flushLines(lineBatch, census);
+        if (ribbonPending) flushRibbons(ribbonBatch, census);
         if (bracket != null) bracket.close();
+    }
+
+    /**
+     * Flushes a batch, recording the draw it made.
+     *
+     * <p>The tally is taken from whether the batch had anything pending, not
+     * from the call: every flush site here fires whether or not the batch is
+     * empty, and an empty flush returns without touching GL. Counting calls
+     * rather than draws would report a layer that drew nothing as a layer with
+     * a dozen draw calls in it.
+     */
+    private static void flushSheet(QuadBatch batch, DrawCensus census) {
+        if (batch == null) return;
+        if (census != null && !batch.isEmpty()) census.recordTexturedDraw();
+        batch.flush();
+    }
+
+    private static void flushSolid(SolidQuadBatch batch, DrawCensus census) {
+        if (census != null && !batch.isEmpty()) census.recordUntexturedDraw();
+        batch.flush();
+    }
+
+    private static void flushLines(LineBatch batch, DrawCensus census) {
+        if (census != null && !batch.isEmpty()) census.recordUntexturedDraw();
+        batch.flush();
+    }
+
+    /** Ribbons are untextured — {@link RibbonBatch#flush} disables texturing first. */
+    private static void flushRibbons(RibbonBatch batch, DrawCensus census) {
+        if (census != null && !batch.isEmpty()) census.recordUntexturedDraw();
+        batch.flush();
     }
 
     private static void drawSprite(DrawCommand q) {

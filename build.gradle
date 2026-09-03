@@ -142,7 +142,7 @@ test {
         excludeTags 'battle-profile', 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
-                'crew-liveliness', 'shader-evidence'
+                'crew-liveliness', 'shader-evidence', 'render-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -247,6 +247,39 @@ tasks.register('shaderEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    testLogging {
+        showStandardStreams = true
+    }
+}
+
+// What a frame costs, per render layer, at three framings on the map the owner
+// plays and on the one the renderer was built for. Like `shaderEvidence` it
+// runs on a real driver through HeadlessGl -- because the question is about the
+// shipping collect and the shipping drain, and the Java2D review renderer is a
+// re-implementation of the painting that could not report a texture bind if it
+// wanted to. Opt-in and excluded from `test` for the same reason: a suite that
+// requires a GPU fails on the machine that has none, so where no context can be
+// made this reports that it skipped.
+tasks.register('renderEvidence', Test) {
+    group = 'verification'
+    description = 'Profile the real render pipeline per layer at three framings; opt-in, excluded from test.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'render-evidence'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    if (project.hasProperty('renderMaxTicks')) {
+        systemProperty 'render.evidence.maxTicks', project.property('renderMaxTicks')
+    }
+    if (project.hasProperty('renderFrames')) {
+        systemProperty 'render.evidence.frames', project.property('renderFrames')
+    }
+    if (project.hasProperty('renderDir')) {
+        systemProperty 'render.evidence.outputDir', project.property('renderDir')
+    }
     testLogging {
         showStandardStreams = true
     }

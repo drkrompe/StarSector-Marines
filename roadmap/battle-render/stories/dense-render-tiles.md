@@ -4,21 +4,30 @@ Status: PARKED — contract only after a measured scale trigger.
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — the durable residency boundary now lives entirely in
-`battle-render-nouns.md`.
+Updated: 2026-09-02 — static ground is out of scope: it was measured against
+this answer and is a resident vertex mesh instead (`battle-render-nouns.md`, law
+20). What is left here is decal residency.
 
 Read `battle-render-nouns.md` before reviving this story.
 
 ## Current substrate
 
-Dense terrain already range-loops the camera's visible cell rectangle. It still
-emits one command per visible cell, while persistent decals use one world-sized
-FBO. The current canonical map does not justify replacing those paths yet.
+Persistent decals use one world-sized FBO, whose resolution already steps down
+against a pixel budget and the driver's maximum texture size. `renderEvidence`
+prices the whole DECALS layer at a hundredth of a millisecond a frame — one
+blit — so nothing about the current canonical map justifies replacing it.
+
+Static ground is no longer this story's business. It was the case that made the
+scale argument, and when the profile finally arrived it named a different
+answer: base terrain is one quad per cell and cells do not overlap, so it lives
+in vertex buffers keyed by sheet and is patched per changed cell. A tile costs
+fill and VRAM per view and needs residency, eviction and anti-thrash policy; the
+mesh is one upload and no per-frame CPU at all.
 
 ## Goal
 
-Add a view-resident render-tile layer that can bake static ground and retain
-persistent decals without changing the simulation's cell grid.
+Add a view-resident render-tile layer that can retain persistent decals without
+changing the simulation's cell grid.
 
 ## Decisions to settle
 
@@ -26,8 +35,8 @@ persistent decals without changing the simulation's cell grid.
 - Choose one FBO per tile versus a resident atlas.
 - Define camera margin, eviction, and anti-thrash policy.
 - Define the cell-change invalidation API, including autotile edge halos.
-- Keep ground and decal backing separate while sharing tile addressing and
-  residency.
+- Keep decal backing separate from the resident ground mesh, which owns its own
+  addressing and invalidation.
 
 ## Acceptance
 

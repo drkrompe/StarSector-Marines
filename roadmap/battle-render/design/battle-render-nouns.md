@@ -4,10 +4,10 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — headless evidence reads assets in game order, pixel-sized
-corrections stay bounded by their pieces, only smoke-caused observation loss
-receives a half-strength fog shadow, and a late-loaded smoke flipbook registers
-with the live sheet-quad drain before it can collect a field.
+Updated: 2026-09-02 — a frame is measured through the shipping pipeline before
+it is spent, detail is withheld at framings it cannot be read at, and the static
+ground and the relief fields derived from it are resident on the GPU instead of
+resubmitted every frame.
 
 ## Vocabulary
 
@@ -26,6 +26,27 @@ with the live sheet-quad drain before it can collect a field.
 - An **allegiance** is the presentation reading of a unit's simulation faction from the player's chair: player, ally, neutral, or enemy. Faction is the side a unit fights for; allegiance is how the person watching should read it. The number of ownership buckets a player can distinguish at a glance stays four however many factions the simulation fields.
 - A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability. It carries one **row** per capacity — structure below, armor above it, since armor is spent first — and each row fills against its own maximum, so a capacity at full reads as full whatever the other is doing. It is a per-frame read of current capacities, never a second durability authority.
 - A **notch** is one fixed quantity of a capacity marked off along its row. It is deliberately not called a cell: cells are the simulation's grid, and a notch measures durability, not space. The quantity is per capacity and identical for every entity in the battle, so notch count and density read magnitude directly: a marine is one notch, an emplacement a handful, a heavy mech a full comb. Notches measure the entity, not the bar — a longer bar shows the same notches further apart. Armor and structure take different quantities because the authored capacities differ in size; forcing one scale on both leaves the larger capacity illegible.
+- A **frame census** is what one frame submitted, per layer: commands
+  collected, quads, sprites and custom passes drained, draw calls, texture binds,
+  and the nanoseconds collection and submission each took. It is an instrument,
+  not a budget the renderer enforces — nothing in the pipeline reads it, and it
+  is null in the game.
+- A layer is **collection-bound** when its cost is building its command stream
+  and **submission-bound** when its cost is handing that stream to the driver.
+  The distinction decides which lever is worth pulling: a hundred thousand cheap
+  commands that coalesce into six draws are not helped by emitting fewer of them,
+  and four hundred sprites that cannot coalesce at all are not helped by
+  emitting them faster.
+- A **framing gate** withholds detail that could not be read at the current
+  framing. It is stated in screen pixels per cell rather than in camera zoom,
+  because zoom 1 is cover-fit and therefore means a different number of pixels on
+  every map size. It is never an occlusion or visibility decision: what it
+  withholds is decoration on something drawn anyway.
+- The **resident ground** is the battle's static base terrain, baked once into
+  vertex buffers and drawn from them. One buffer per sheet; every cell that draws
+  a base tile owns four vertices in it and keeps them, in cell coordinates, so the
+  camera is a modelview transform rather than a pass over the data. A cell that
+  changes is patched in place over its own slot.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
@@ -120,6 +141,48 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     a readable zoom tripled every piece of it on a whole-map frame and fused the
     tears shut.
 17. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying armor and structure wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
+18. A frame is measured through the shipping pipeline, not through a model of
+    it. `renderEvidence` collects and drains the real `BattleRenderer` into a
+    real OpenGL context and reports per layer and per framing; the Java2D
+    evidence renderer re-implements the painting and could not report a texture
+    bind if it wanted to. Counts are exact and must repeat frame to frame; times
+    are a measurement and do not. The report says which layer is the ceiling, and
+    a lever is judged against it rather than against an argument about it.
+19. Detail follows zoom. A framing gate may withhold decoration — a body's cast
+    shadow, a spent round's spark, a smoke field's scatter — once its subject is
+    too few pixels to read. Thresholds are stated as constants naming the
+    measurement that set them, they live in the collector so a gated layer
+    collects nothing rather than draining to nothing, and paint order and world
+    ratios are untouched (laws 1 and 9). A camera that cannot say how big a cell
+    is withholds nothing: the gates drop what cannot be read, and not knowing is
+    not that.
+20. Static ground is resident, not resubmitted. Base terrain is one quad per
+    cell and cells do not overlap, so it is baked into buffers rather than
+    streamed through the command path every frame, and a change to it is a patch
+    of the affected cell and its four neighbours rather than a re-mesh. Every
+    cell keeps its own atlas sub-rectangle, which is what makes this possible
+    where merging runs is not — a merged run wants a repeat wrap and an atlas has
+    none to give. What is resident is only the cell's own base tile: fills,
+    stripes, scatter, doorway decals, panes and shared-edge features are sparse,
+    several of them straddle two cells, and they stay in the command stream. A
+    collector stays GL-free by asking a pure predicate whether the mesh already
+    holds this battle's ground (law 2); the bake and every patch happen inside
+    the layer's own custom pass at drain time (law 3), so the frame that bakes a
+    battle also draws it the ordinary way and the mesh serves from the next one.
+    Any failure at all — no buffer objects, a failed allocation, a GL error —
+    returns the layer to the per-cell stream with the same picture.
+21. What is derived per cell from resident data is resident too. The GROUND
+    redirect's height and normal fields are a quad per cell over the same grid
+    and change for the same reasons, so they are baked once per battle and
+    patched from this topology's change log rather than rasterised again every
+    frame. The consequence for the log is that it is **one list, not a list per
+    reader**: a caved-in roof and a wall aperture move no ground tile and are
+    recorded anyway, because the field that stands a cell at its roof is
+    resident, and a tag one reader needs costs the other a re-resolve of five
+    cells. `surface-relief-nouns.md` owns what those fields mean; what belongs
+    here is that residency is the pipeline's answer to per-cell work of any
+    kind, and that a resident consumer's invalidation is the topology's to
+    record.
 
 ## Boundaries and extension paths
 
@@ -127,4 +190,20 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 
-The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. `dense-render-tiles.md` is the only future vehicle for static-ground baking and tiled decal residency; it supersedes the single-world FBO idea. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
+The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a wrap the atlas cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
+
+**The next ceiling is `FOG`.** With the ground and the relief fields both
+resident, a whole-map Conquest frame is 13 ms against the 148 ms the same frame
+costs with the fields rebuilt per frame, and FOG is 5.7 ms of the 12.5 that
+remain. It is collection-bound in the sharpest form the vocabulary above
+describes: a hundred and sixty-eight thousand commands that drain in one call.
+What is worth attacking there is how many are made, not how they are submitted —
+and the shape of the answer is unlikely to be residency, because what fog
+reports is exactly the thing that changes every frame.
+
+Framing-gating the relief composite (law 19) was the other candidate and was
+measured rather than argued: at whole-map the sun's terrain shading genuinely
+is not readable — a wall is a pixel wide and its shadow is lost in the tile
+noise — while at a lane's framing it plainly is. It is not shipped, because the
+resident fields alone put the frame five times under the budget the gate was
+proposed for, and a gate that buys nothing is a second picture to maintain.
