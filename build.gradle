@@ -271,6 +271,15 @@ tasks.register('renderEvidence', Test) {
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    // The profile plays 600 ticks before it draws anything, so the world it
+    // measures is whatever that playout produced. Under the production
+    // scheduler that is a different world every run -- the same fixture on
+    // unchanged code collected 496, 567 and 537 UNITS commands on three runs --
+    // and the existing frame-to-frame assertion cannot see it, because within
+    // one run the world is still. Forced serial, the way `commanderEvidence`
+    // and `simDeterminism` already are, for the same reason: a count that does
+    // not repeat run to run cannot be compared against a control.
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     if (project.hasProperty('renderMaxTicks')) {
         systemProperty 'render.evidence.maxTicks', project.property('renderMaxTicks')
     }
