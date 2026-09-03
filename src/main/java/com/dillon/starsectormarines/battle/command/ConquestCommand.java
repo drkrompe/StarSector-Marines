@@ -256,22 +256,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
             System.getProperty(LANE_CHAIN_PROPERTY, "false"));
 
     /**
-     * Whether lane membership is read off the recorded routes.
-     *
-     * <p>The control switch for {@link LaneFence}, and it is separate from the
-     * chain on purpose: the fan changed the map <em>and</em> the fence in one
-     * story, and the matrix cannot say which of them a difference belongs to
-     * unless one of them can be turned off against the same tree. False falls
-     * every lane question back to {@code ConquestTrackLayout}'s lateral thirds,
-     * which is what a map with no recorded routes gets anyway.
-     */
-    public static final String LANE_FENCE_PROPERTY = "battle.conquest.laneFence";
-
-    /** Read once from the property above. */
-    static boolean LANE_FENCE_ENABLED = Boolean.parseBoolean(
-            System.getProperty(LANE_FENCE_PROPERTY, "true"));
-
-    /**
      * Whether the chain reading is in force, for the defender's own layer.
      *
      * <p>Both sides of the duel read the same map the same way — the attacker
@@ -368,12 +352,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private List<List<Integer>> stripZones;
     /**
-     * The map's own answer to "whose lane is this", drawn from the recorded
-     * routes. Built with the partition and null on a map that recorded none, in
-     * which case every lane question falls back to the lateral thirds.
-     */
-    private LaneFence laneFence;
-    /**
      * Per-zone forward-axis centroid (y for SOUTH_TO_NORTH, x for WEST_TO_EAST),
      * cached at strip-build time. Indexed directly by zone id — zone ids are
      * dense (0..zoneCount-1) per the existing zone-graph contract.
@@ -384,12 +362,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private float[] zoneForwardCoord;
     /** Per-zone lateral centroid used for adjacent-track target distance. */
     private float[] zoneLateralCoord;
-    /**
-     * Per-zone lane, settled with the partition so the per-pulse hot loops read
-     * an array rather than re-asking the fence. {@code -1} for a zone with no
-     * cells, which is the only way the partition skips one.
-     */
-    private int[] zoneLane;
     private float[] zoneCentroidX;
     private float[] zoneCentroidY;
     /** Walkable representative cells for debug/action explanation markers. */
@@ -1111,7 +1083,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private void latchFrontReach(ConquestCommandFrame frame) {
         for (CompoundTarget t : compoundTargets) {
             if (frontReachedCaptureZones.contains(t.captureZoneId)) continue;
-            int track = laneForCell(t.captureCellX, t.captureCellY);
+            int track = trackLayout.trackForCell(t.captureCellX, t.captureCellY);
             if (track < 0 || track >= STRIP_COUNT) continue;
             int lead = NO_FRIENDLY_LEAD;
             for (int neighbour = track - 1; neighbour <= track + 1; neighbour++) {
@@ -1357,7 +1329,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         int gridW = topology.width();
         this.lateralExtent = trackLayout.lateralExtent();
-        laneFence = LaneFence.of(laneRoutes, topology.width(), topology.height());
 
         stripZones = new ArrayList<>(STRIP_COUNT);
         for (int i = 0; i < STRIP_COUNT; i++) stripZones.add(new ArrayList<>());
@@ -1367,8 +1338,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
         zoneCentroidY = new float[topology.zones().size()];
         zoneMarkerX = new int[topology.zones().size()];
         zoneMarkerY = new int[topology.zones().size()];
-        zoneLane = new int[topology.zones().size()];
-        Arrays.fill(zoneLane, -1);
         Arrays.fill(zoneMarkerX, -1);
         Arrays.fill(zoneMarkerY, -1);
         Arrays.fill(zoneForwardCoord, 0f);
@@ -1403,11 +1372,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 zoneMarkerY[zone.id()] = marker / gridW;
             }
 
-            int stripIdx = laneForCell(cx, cy);
+            int stripIdx = stripIndexForLateral(lateral);
             if (stripIdx < 0 || stripIdx >= STRIP_COUNT) continue;
-            if (zone.id() >= 0 && zone.id() < zoneLane.length) {
-                zoneLane[zone.id()] = stripIdx;
-            }
             stripZones.get(stripIdx).add(zone.id());
         }
 
@@ -1545,30 +1511,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * Equal-width buckets across the full lateral extent. The {@code Math.min}
      * clamp catches the right-edge boundary (a coord exactly at {@code lateralExtent}
      * would land in bucket {@code STRIP_COUNT}, which doesn't exist).
-     *
-     * <p>The fallback, not the rule: {@link #laneForCell} is what a caller with
-     * a cell in hand asks. A lateral alone is all some callers have.
      */
     private int stripIndexForLateral(float lateral) {
         return trackLayout.trackForLateral(lateral);
-    }
-
-    /**
-     * Which lane this cell belongs to: the recorded route nearest it where the
-     * map recorded routes, and the lateral third otherwise.
-     *
-     * <p>The thirds were the fence while a lane was a ribbon up one of them.
-     * Lanes fan from the beachhead now and stand in their own third only at
-     * their widest band, so a line across the axis puts every squad at the
-     * landing zone in the middle lane and leaves the outer two with fronts
-     * nobody walks to. See {@link LaneFence}.
-     */
-    private int laneForCell(float x, float y) {
-        if (LANE_FENCE_ENABLED && laneFence != null) {
-            int lane = laneFence.laneAt(x, y);
-            if (lane >= 0 && lane < STRIP_COUNT) return lane;
-        }
-        return stripIndexForLateral(trackLayout.lateralCoordinate(x, y));
     }
 
     /**
@@ -1581,7 +1526,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private int stripFor(PlanningSquad squad) {
         int cached = squadStripIdx.get(squad.id);
         if (cached >= 0) return cached;
-        int idx = laneForCell(squad.centroidX, squad.centroidY);
+        float lateral = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidX : squad.centroidY;
+        int idx = stripIndexForLateral(lateral);
         if (idx < 0) idx = 0;
         if (idx >= STRIP_COUNT) idx = STRIP_COUNT - 1;
         squadStripIdx.put(squad.id, idx);
@@ -1589,8 +1535,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     private int trackForZone(int zoneId) {
-        if (zoneId < 0 || zoneId >= zoneLane.length) return -1;
-        return zoneLane[zoneId];
+        if (zoneId < 0 || zoneId >= zoneLateralCoord.length) return -1;
+        return stripIndexForLateral(zoneLateralCoord[zoneId]);
     }
 
     private record TargetChoice(int trackIndex, int targetZoneId) { }
@@ -1841,7 +1787,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         for (CommandSquadState other : frame.squads()) {
             if (other.aliveMembers() <= 0 || other.role() == UnitRole.GARRISON) continue;
-            int lane = laneForCell(other.centroidX(), other.centroidY());
+            int lane = trackLayout.trackForLateral(trackLayout.lateralCoordinate(
+                    other.centroidX(), other.centroidY()));
             if (lane < 0 || lane >= lanes) continue;
             // Bounded to the road for the same reason a contact is: a squad
             // off in the fields is not part of the line on this lane, and
@@ -1854,7 +1801,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         CommanderInfluenceSnapshot influence = frame.influence();
         if (influence != null) {
             for (CommanderContact contact : influence.contacts()) {
-                int lane = laneForCell(contact.cellX(), contact.cellY());
+                int lane = trackLayout.trackForCell(contact.cellX(), contact.cellY());
                 if (lane < 0 || lane >= lanes) continue;
                 int index = laneChain.routeIndexWithin(lane, contact.cellX() + 0.5f,
                         contact.cellY() + 0.5f, TRACK_LINE_STANDOFF_LATERAL_CELLS);
@@ -1934,7 +1881,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         boolean believed = false;
         int nearest = Integer.MAX_VALUE;
         for (CommanderContact contact : influence.contacts()) {
-            if (laneForCell(contact.cellX(), contact.cellY()) != track) continue;
+            if (trackLayout.trackForCell(contact.cellX(), contact.cellY())
+                    != track) continue;
             believed = true;
             int contactLateral = Math.round(trackLayout.lateralCoordinate(
                     contact.cellX(), contact.cellY()));
@@ -1971,7 +1919,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         int lead = fallback;
         for (CommandSquadState other : frame.squads()) {
             if (other.aliveMembers() <= 0 || other.role() == UnitRole.GARRISON) continue;
-            int physicalTrack = laneForCell(other.centroidX(), other.centroidY());
+            int physicalTrack = trackLayout.trackForLateral(
+                    trackLayout.lateralCoordinate(other.centroidX(), other.centroidY()));
             if (physicalTrack != track) continue;
             lead = Math.max(lead, Math.round(trackLayout.forwardCoordinate(
                     other.centroidX(), other.centroidY())));
@@ -2042,7 +1991,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         int x = trackLayout.cellX(lateral, forward);
         int y = trackLayout.cellY(lateral, forward);
         if (!topology.inBounds(x, y) || !topology.isWalkable(x, y)
-                || laneForCell(x, y) != track) return null;
+                || trackLayout.trackForCell(x, y) != track) return null;
         boolean atTarget = squad.anchorCellX == x && squad.anchorCellY == y;
         if (!atTarget && !topology.reachable(
                 squad.anchorCellX, squad.anchorCellY, x, y)) return null;

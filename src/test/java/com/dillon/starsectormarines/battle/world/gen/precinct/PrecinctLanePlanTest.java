@@ -36,17 +36,10 @@ class PrecinctLanePlanTest {
 
     /**
      * The whole ladder stands up on the map the model was measured at, one rung
-     * per band on every lane, and it fans out and closes again.
-     *
-     * <p>The rungs used to be asserted inside their own lateral thirds, which is
-     * the law the fan replaced: a lane leaves the beachhead, opens to its own
-     * third at its widest band and closes on the keep, so it stands inside its
-     * third at band 2 and nearer the shared axis at bands 3 and 1. Asked as the
-     * spread across all three lanes at each band, which is the shape rather than
-     * one lane's arithmetic.
+     * per band on every lane, and every rung inside its own lane.
      */
     @Test
-    void theLadderFansOutAndClosesAgain() {
+    void everyRungStandsInItsOwnLane() {
         PrecinctPlan plan = conquestLike(PrecinctPlan.Lanes.derived(),
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height, 4096L);
         List<Precinct> lanes = lanePlaces(plan);
@@ -58,36 +51,14 @@ class PrecinctLanePlanTest {
         // Objective placement EAST against attacker WEST, so forward is x and
         // the lanes are cut across y.
         int extent = MapScale.CONQUEST.height;
-        for (int lane = 1; lane <= 3; lane++) {
-            Precinct widest = named(plan, "lane-" + lane + "-band-2");
+        for (Precinct place : lanes) {
+            int lane = laneOf(place);
             int start = LaneGeometry.startInclusive(lane - 1, 3, extent);
             int end = LaneGeometry.endInclusive(lane - 1, 3, extent);
-            assertTrue(widest.seedY() >= start && widest.seedY() <= end,
-                    widest.name() + " is the widest rung of its lane and stands at y="
-                            + widest.seedY() + ", outside its own third "
-                            + start + ".." + end);
+            assertTrue(place.seedY() >= start && place.seedY() <= end,
+                    place.name() + " seeded at y=" + place.seedY()
+                            + ", outside its own lane " + start + ".." + end);
         }
-        int atOuter = spreadAcrossLanes(plan, 3);
-        int atWidest = spreadAcrossLanes(plan, 2);
-        int atInner = spreadAcrossLanes(plan, 1);
-        assertTrue(atOuter < atWidest, "the ladder stands " + atOuter
-                + " cells across at the beachhead end against " + atWidest
-                + " at its widest, which is not a fan");
-        assertTrue(atInner < atWidest, "the ladder stands " + atInner
-                + " cells across at the keep end against " + atWidest
-                + " at its widest, which is not a fan closing on anything");
-    }
-
-    /** How far apart the three lanes' rungs of one band stand, laterally. */
-    private static int spreadAcrossLanes(PrecinctPlan plan, int band) {
-        int low = Integer.MAX_VALUE;
-        int high = Integer.MIN_VALUE;
-        for (int lane = 1; lane <= 3; lane++) {
-            int at = named(plan, "lane-" + lane + "-band-" + band).seedY();
-            low = Math.min(low, at);
-            high = Math.max(high, at);
-        }
-        return high - low;
     }
 
     /**
