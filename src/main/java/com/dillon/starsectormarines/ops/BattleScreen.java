@@ -448,7 +448,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
-        sim.advance(dt * speedMultiplier);
+        sim.advance(BattleSimulation.frameBudget(dt * speedMultiplier));
         // Wall-collapse dust. Queued by whatever brought the wall down and
         // drained once here, so a collapse looks the same however it happened.
         for (float[] dust : sim.getWallDustsThisFrame()) {

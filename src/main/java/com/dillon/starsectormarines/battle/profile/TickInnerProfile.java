@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.profile;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -79,7 +82,31 @@ public final class TickInnerProfile {
         SHARED_PATH_FIELD_EXTRACT,
         TARGET_PICK,
         FIRING_POSITION,
-        FALLBACK_POSITION;
+        FALLBACK_POSITION,
+        /**
+         * One bucket per entry of the infantry reflex chain, named after the
+         * reflex ({@code REFLEX_} + {@code Reflex.name()}), plus
+         * {@link #REFLEX_OTHER} for a reflex no bucket is named for. Recorded
+         * by {@code ReflexChain.run} for every reflex consulted, fired or
+         * not, so the chain's cost is attributable per link: a tick profile
+         * that read 3 ms per combatant with pathfinding accounting for a
+         * seventh of it could not say where the rest went.
+         */
+        REFLEX_COMMITTED_AIM,
+        REFLEX_COOLDOWNS,
+        REFLEX_FRIENDLY_CHARGE,
+        REFLEX_KNOWN_GRENADE,
+        REFLEX_REJOIN,
+        REFLEX_OPPORTUNITY_SPECIAL,
+        REFLEX_HARDENED_OPPORTUNITY,
+        REFLEX_ONSET_SCREEN,
+        REFLEX_BROKEN_FIRE_TEAM,
+        REFLEX_LANE_SIDESTEP,
+        REFLEX_OTHER,
+        /** The assigned GOAP step's {@code execute}; per action class under {@link #actions()}. */
+        ACTION_EXECUTE,
+        /** {@code InfantryUnitPrep.tryOpportunityPrimary}, whichever site called it. */
+        OPPORTUNITY_PRIMARY;
 
         public static final Bucket[] VALUES = values();
     }
@@ -99,6 +126,22 @@ public final class TickInnerProfile {
      * the merge sweep from double-counting the destination.
      */
     private static final List<TickInnerProfile> ALL_INSTANCES = new CopyOnWriteArrayList<>();
+
+    private static final String REFLEX_BUCKET_PREFIX = "REFLEX_";
+    private static final Map<String, Bucket> REFLEX_BUCKETS = new HashMap<>();
+    static {
+        for (Bucket bucket : Bucket.VALUES) {
+            if (bucket.name().startsWith(REFLEX_BUCKET_PREFIX)) {
+                REFLEX_BUCKETS.put(bucket.name().substring(REFLEX_BUCKET_PREFIX.length()), bucket);
+            }
+        }
+    }
+
+    /** The bucket a reflex of this {@code Reflex.name()} records into; {@link Bucket#REFLEX_OTHER} for one without its own. */
+    public static Bucket reflexBucket(String reflexName) {
+        Bucket bucket = REFLEX_BUCKETS.get(reflexName);
+        return bucket != null ? bucket : Bucket.REFLEX_OTHER;
+    }
     private static final ThreadLocal<TickInnerProfile> CURRENT = new ThreadLocal<>();
     private static final ThreadLocal<Boolean> AUTO_CREATED = new ThreadLocal<>();
 
@@ -172,6 +215,8 @@ public final class TickInnerProfile {
     private int pathfindRequestCount;
     private int occupancyPathfindRequestCount;
     private Bucket activeBehavior;
+    /** Per action-class {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}; keyed by simple class name. */
+    private final Map<String, long[]> actions = new HashMap<>();
 
     /** Zeros all counters. Call once per tick. */
     public void reset() {
@@ -180,6 +225,7 @@ public final class TickInnerProfile {
         pathfindRequestCount = 0;
         occupancyPathfindRequestCount = 0;
         activeBehavior = null;
+        actions.clear();
     }
 
     /**
@@ -208,6 +254,22 @@ public final class TickInnerProfile {
                 && activeBehavior == Bucket.BEHAVIOR_SWARM_PRESSURE) {
             add(Bucket.SWARM_PATHFIND, deltaNanos);
         }
+    }
+
+    /**
+     * Records one execution of the assigned GOAP step: into
+     * {@link Bucket#ACTION_EXECUTE} and under {@code actionName} so a profile
+     * can say which action a behavior's time went to.
+     */
+    public void recordAction(String actionName, long deltaNanos) {
+        add(Bucket.ACTION_EXECUTE, deltaNanos);
+        long[] sample = actions.get(actionName);
+        if (sample == null) {
+            sample = new long[2];
+            actions.put(actionName, sample);
+        }
+        sample[0] += deltaNanos;
+        sample[1]++;
     }
 
     private void add(Bucket bucket, long deltaNanos) {
@@ -256,10 +318,30 @@ public final class TickInnerProfile {
                 pathfindRequestCount, other.pathfindRequestCount);
         pathfindRequestCount += other.pathfindRequestCount;
         occupancyPathfindRequestCount += other.occupancyPathfindRequestCount;
+        for (Map.Entry<String, long[]> entry : other.actions.entrySet()) {
+            long[] sample = actions.get(entry.getKey());
+            if (sample == null) {
+                sample = new long[2];
+                actions.put(entry.getKey(), sample);
+            }
+            sample[0] += entry.getValue()[0];
+            sample[1] += entry.getValue()[1];
+        }
     }
 
     public long nanosOf(Bucket b)  { return nanos[b.ordinal()]; }
     public int countOf(Bucket b)   { return counts[b.ordinal()]; }
+
+    /** Per action-class {@code {nanos, count}} recorded through {@link #recordAction}; a copy. */
+    public Map<String, long[]> actions() { return copyActions(actions); }
+
+    private static Map<String, long[]> copyActions(Map<String, long[]> source) {
+        Map<String, long[]> copy = new HashMap<>(source.size() * 2);
+        for (Map.Entry<String, long[]> entry : source.entrySet()) {
+            copy.put(entry.getKey(), entry.getValue().clone());
+        }
+        return copy;
+    }
 
     public int pathfindRequestCount() { return pathfindRequestCount; }
 
@@ -317,16 +399,22 @@ public final class TickInnerProfile {
 
     /** Returns a frozen copy of the current bucket state. The caller owns the arrays — mutating them won't affect this profile or vice-versa. */
     public Snapshot snapshot() {
-        return new Snapshot(nanos.clone(), counts.clone());
+        return new Snapshot(nanos.clone(), counts.clone(), copyActions(actions));
     }
 
     /** Immutable frozen bucket state — what spike dumps carry forward past the next tick's reset. */
     public static final class Snapshot {
         public final long[] nanos;
         public final int[] counts;
+        /** Per action-class {@code {nanos, count}}, as {@link TickInnerProfile#actions()}. */
+        public final Map<String, long[]> actions;
         public Snapshot(long[] nanos, int[] counts) {
+            this(nanos, counts, Collections.emptyMap());
+        }
+        public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions) {
             this.nanos = nanos;
             this.counts = counts;
+            this.actions = actions;
         }
         public long nanosOf(Bucket b) { return nanos[b.ordinal()]; }
         public int countOf(Bucket b)  { return counts[b.ordinal()]; }

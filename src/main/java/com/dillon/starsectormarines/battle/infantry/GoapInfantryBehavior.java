@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.ReflexChain;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.decision.ReflexContext;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
@@ -190,7 +191,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // Replan pass (run from BattleSimulation.tick) will catch up next
             // tick at the latest. Keep the planner authoritative for movement,
             // but don't discard a legal consume-once shot while waiting.
-            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+            opportunityPrimary(unit, sim);
             return;
         }
 
@@ -198,13 +199,13 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // Null possible under parallel dispatch: a sibling worker advanced past
         // the end between the isComplete() check and here. Skip this tick.
         if (step == null || step.slotOf(unit) == null) {
-            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+            opportunityPrimary(unit, sim);
             return;
         }
 
-        ActionStatus status = step.action.execute(unit, squad, sim);
+        ActionStatus status = executeTimed(step, unit, squad, sim);
         if (step.action.permitsOpportunityFire()) {
-            InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+            opportunityPrimary(unit, sim);
         }
         switch (status) {
             // SUCCESS / FAILURE mutate squad-shared plan state. Two members
@@ -229,6 +230,30 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 }
             }
             case RUNNING -> { /* keep ticking the same step next frame */ }
+        }
+    }
+
+    /** The step's {@code execute}, attributed to its action class in the tick's inner profile. */
+    public static ActionStatus executeTimed(SquadPlan.Step step, long unit, Squad squad,
+                                            BattleSimulation sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile == null) return step.action.execute(unit, squad, sim);
+        long t0 = System.nanoTime();
+        try {
+            return step.action.execute(unit, squad, sim);
+        } finally {
+            profile.recordAction(step.action.getClass().getSimpleName(),
+                    System.nanoTime() - t0);
+        }
+    }
+
+    private static void opportunityPrimary(long unit, BattleSimulation sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long t0 = profile != null ? System.nanoTime() : 0L;
+        InfantryUnitPrep.tryOpportunityPrimary(unit, sim);
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.OPPORTUNITY_PRIMARY,
+                    System.nanoTime() - t0);
         }
     }
 
