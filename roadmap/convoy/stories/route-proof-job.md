@@ -1,8 +1,14 @@
 # Route Proof Job
 
-Status: IN PROGRESS
+Status: IN PROGRESS — both reductions landed and measured; the Conquest matrix
+comparison against `main` is the remaining acceptance.
 
 Written: 2026-09-03
+
+Updated: 2026-09-03 — measured on the fixture: worst `REINFORCEMENT` tick
+143.29 ms → 22.69 ms, drop cell unchanged at (263,218), commit five ticks later
+(2190 → 2195). A steady-state second dispatch in the same replay costs 4.5 ms
+and 3.0 ms across its two ticks.
 
 Read `convoy-nouns.md` and `reinforcement-nouns.md` before implementing this
 story.

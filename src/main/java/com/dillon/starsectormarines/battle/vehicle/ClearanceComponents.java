@@ -25,7 +25,7 @@ import java.util.Arrays;
  * prompted it, this filter skipped nothing: every ranked junction there was
  * genuinely reachable for the chassis, and the 745 searches that stalled the
  * game thread went on kinematic retries rather than on unreachable ground —
- * which is what {@code ConvoyMeans.ROUTE_SEARCH_BUDGET} bounds. The case this
+ * which is what {@code RouteProofJob.SEARCH_BUDGET} bounds. The case this
  * covers is the other one in the same log, where dispatch after dispatch
  * reported no complete route at the same price. A route proof that pays a
  * full-grid flood to learn something a labelling pass already knows is the

@@ -165,6 +165,93 @@ class ReinforcementSystemTest {
         assertEquals(List.of("only-option"), tried);
     }
 
+    /**
+     * A means whose proof finishes some ticks after the dispatch that started
+     * it — the convoy's shape, and the whole reason {@code advance} exists. The
+     * request would otherwise wait out the rest of the cadence second whatever
+     * moment the proof landed on.
+     */
+    @Test
+    void aMeansThatFinishesPreparingIsDispatchedOnThatTickRatherThanTheNextCadence() {
+        BattleSimulation sim = openSim();
+        ReinforcementService service = new ReinforcementService();
+        BattleResources resources = funded();
+        PreparingMeans convoy = new PreparingMeans(3);
+        service.addMeans(convoy);
+        service.post(request(false));
+        ReinforcementSystem system = new ReinforcementSystem(service, resources);
+
+        system.tick(1f, sim);
+        assertEquals(1, convoy.attempts, "the first ask starts the preparation");
+        assertFalse(service.isPendingEmpty());
+        assertEquals(2f, balance(resources), 0.0001f,
+                "a retryable attempt refunds its ticket");
+
+        system.tick(0.0166f, sim);
+        assertEquals(1, convoy.attempts, "an unfinished proof is not re-asked");
+        system.tick(0.0166f, sim);
+        assertEquals(1, convoy.attempts);
+
+        system.tick(0.0166f, sim);
+
+        assertEquals(2, convoy.attempts,
+                "the tick the proof finishes is the tick the request is offered again");
+        assertTrue(service.isPendingEmpty());
+        assertEquals(1f, balance(resources), 0.0001f);
+    }
+
+    /**
+     * The control for the case above: a means that prepares nothing must not
+     * acquire an off-cadence dispatch. The cadence is what keeps the trigger
+     * walk off the per-frame path, and only a means saying it just finished
+     * something may bypass it.
+     */
+    @Test
+    void aMeansThatIsMerelyRetryableIsStillOnlyRetriedOnTheCadence() {
+        BattleSimulation sim = openSim();
+        ReinforcementService service = new ReinforcementService();
+        StubMeans convoy = new StubMeans(ReinforcementDispatchResult.RETRYABLE);
+        service.addMeans(convoy);
+        service.post(request(false));
+        ReinforcementSystem system = new ReinforcementSystem(service, funded());
+
+        system.tick(1f, sim);
+        assertEquals(1, convoy.attempts);
+        for (int tick = 0; tick < 30; tick++) system.tick(0.0166f, sim);
+        assertEquals(1, convoy.attempts,
+                "nothing said it had finished, so nothing asked again");
+    }
+
+    /** Answers RETRYABLE until {@code advance} has been called enough times, then commits. */
+    private static final class PreparingMeans implements ReinforcementMeans {
+        private final int ticksToPrepare;
+        private int ticksPrepared;
+        int attempts;
+
+        PreparingMeans(int ticksToPrepare) { this.ticksToPrepare = ticksToPrepare; }
+
+        @Override
+        public boolean advance(float dt, BattleControl sim) {
+            if (attempts == 0 || ticksPrepared >= ticksToPrepare) return false;
+            return ++ticksPrepared == ticksToPrepare;
+        }
+
+        @Override
+        public boolean canFulfill(BattleView sim, ReinforcementRequest req) { return true; }
+
+        @Override
+        public float arrivalSeconds(BattleView sim, ReinforcementRequest req) { return 10f; }
+
+        @Override
+        public ReinforcementDispatchResult dispatch(
+                BattleControl sim, ReinforcementRequest req) {
+            attempts++;
+            return ticksPrepared >= ticksToPrepare
+                    ? ReinforcementDispatchResult.COMMITTED
+                    : ReinforcementDispatchResult.RETRYABLE;
+        }
+    }
+
     private static final class StubMeans implements ReinforcementMeans {
         ReinforcementDispatchResult result;
         /** What this stub claims it would take to arrive. Equal by default, so registration order decides. */

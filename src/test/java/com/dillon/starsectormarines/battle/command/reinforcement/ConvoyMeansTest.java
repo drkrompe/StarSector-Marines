@@ -31,6 +31,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,6 +40,37 @@ class ConvoyMeansTest {
 
     private static final int WIDTH = 40;
     private static final int HEIGHT = 40;
+    /**
+     * Ticks a proof may be stepped for before the test gives up. A proof is
+     * {@code RouteProofJob.SEARCH_BUDGET / ConvoyMeans.SEARCHES_PER_TICK} steps
+     * at the very worst, so anything past this is a job that is not converging.
+     */
+    private static final int PROOF_TICK_CAP = 32;
+
+    /**
+     * Dispatches the way {@link ReinforcementSystem} does — ask, step the means
+     * a tick, ask again — until the answer settles.
+     *
+     * <p>A convoy proves its journey across ticks rather than inside the tick
+     * that asked, so a single {@code dispatch} call now answers
+     * {@link ReinforcementDispatchResult#RETRYABLE} whenever the enumeration is
+     * still running. The production dispatcher refunds the ticket, re-posts the
+     * request, and offers it again once the means says it has finished; a test
+     * that asked once and read the first answer would be measuring the first
+     * four searches rather than the delivery.
+     */
+    private static ReinforcementDispatchResult prove(
+            ConvoyMeans means, BattleSimulation sim, ReinforcementRequest req) {
+        ReinforcementDispatchResult result = means.dispatch(sim, req);
+        for (int tick = 0; tick < PROOF_TICK_CAP
+                && result == ReinforcementDispatchResult.RETRYABLE; tick++) {
+            means.advance(BattleSimulation.TICK_DT, sim);
+            result = means.dispatch(sim, req);
+        }
+        assertNotEquals(ReinforcementDispatchResult.RETRYABLE, result,
+                "a route proof must settle inside its own search budget");
+        return result;
+    }
 
     @Test
     void southToNorthConquestEntersFromNorthAndDropsBehindMinimumFront() {
@@ -49,7 +81,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH,
                 northGraph(), 20);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(15, 10));
 
         assertEquals(ReinforcementDispatchResult.COMMITTED, result);
@@ -96,7 +128,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = means(TraversalAxis.WEST_TO_EAST,
                 eastGraph(), 20);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(10, 15));
 
         assertEquals(ReinforcementDispatchResult.COMMITTED, result);
@@ -112,7 +144,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH,
                 eastGraph(), 20);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(15, 10));
 
         assertEquals(ReinforcementDispatchResult.REJECTED, result);
@@ -126,7 +158,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH,
                 northGraph(), 20);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(15, 10));
 
         assertEquals(ReinforcementDispatchResult.REJECTED, result);
@@ -141,7 +173,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH,
                 northGraph(), 20);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(15, 28));
 
         assertEquals(ReinforcementDispatchResult.REJECTED, result);
@@ -160,7 +192,7 @@ class ConvoyMeansTest {
                 15, 28, 15, 10);
 
         assertEquals(ReinforcementDispatchResult.COMMITTED,
-                means.dispatch(sim, request));
+                prove(means, sim, request));
         VehicleMission mission = onlyMission(sim);
         assertNull(mission.assignNode);
         assertTrue(mission.assignZoneId >= 0);
@@ -199,7 +231,7 @@ class ConvoyMeansTest {
                 edge(4, good, goodBranch));
         ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH, graph, 20);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(15, HEIGHT - 1));
 
         assertEquals(ReinforcementDispatchResult.COMMITTED, result);
@@ -213,7 +245,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = new ConvoyMeans(
                 eastGraph(), TraversalAxis.SOUTH_TO_NORTH);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(28, 15));
 
         assertEquals(ReinforcementDispatchResult.COMMITTED, result);
@@ -268,7 +300,7 @@ class ConvoyMeansTest {
 
         assertFalse(means.canFulfill(sim, request(15, 10)));
         assertEquals(ReinforcementDispatchResult.REJECTED,
-                means.dispatch(sim, request(15, 10)),
+                prove(means, sim, request(15, 10)),
                 "and the commit still agrees with the probe");
     }
 
@@ -363,7 +395,7 @@ class ConvoyMeansTest {
         ConvoyMeans means = new ConvoyMeans(map.roadGraph, axis,
                 null, RiskLevel.LOW, policy);
 
-        ReinforcementDispatchResult result = means.dispatch(sim,
+        ReinforcementDispatchResult result = prove(means, sim,
                 request(map.defenderSpawnX, map.defenderSpawnY));
 
         assertEquals(ReinforcementDispatchResult.COMMITTED, result,

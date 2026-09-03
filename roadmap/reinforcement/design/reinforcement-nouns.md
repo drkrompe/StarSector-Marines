@@ -4,7 +4,9 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — a derived lift is floored at the shape it replaces, so sizing it can never hand back less than the standing ferry.
+Updated: 2026-09-03 — a means may prepare a delivery across ticks, answering retryable while it works, and the dispatcher drains on the tick it finishes rather than on the next cadence.
+
+Earlier 2026-09-03 — a derived lift is floored at the shape it replaces, so sizing it can never hand back less than the standing ferry.
 
 Earlier 2026-09-02 — a marine arrival policy is not a means: the marines' lift is orbital and descends onto its berths, while defender delivery stays planetary.
 
@@ -67,6 +69,30 @@ searching and on budgeting the search. What a probe may not do is let the
 difference grow without anybody stating it.
 
 **Feasibility is not selection.** A strict priority list makes everything below the top of it unreachable for exactly as long as the top is feasible, which is not a ladder of fallbacks but one means with two spares. The garrison airfield is the case that proved it: on a production Conquest map the convoy could deliver every request and so was asked every request, the aircraft never flew once in a whole battle, and burning them on their pads denied the defender nothing. Selection therefore asks a question the means can lose — when would you get there — and a means that is merely available no longer excludes a better one.
+
+**A means may take several ticks to prepare a delivery, and saying so is what
+`RETRYABLE` is for.** A convoy's route proof is a bounded enumeration of
+whole-grid searches; running all of it inside the tick that asked was a visible
+hitch for a delivery that then takes six seconds to appear. So a means is
+stepped every sim tick — not on the dispatcher's cadence, which is a second wide
+and far too coarse to advance anything on — and answers `RETRYABLE` while it is
+still working. The existing law holds unchanged and for a better reason than
+before: a retryable attempt refunds its ticket, requeues the request, and does
+*not* fall through to a slower means, because a means that is merely still
+thinking has not lost the selection it won on arrival estimate. Handing the
+request down the ladder would deliver later on purpose. The wait is bounded by
+whatever bounds the preparation — for the convoy, its search budget divided by
+what it spends per tick, which is eight ticks and then a commit or a rejection.
+
+**What the per-tick hook buys is that the wait is measured in ticks rather than
+in cadences.** A means reports when preparation it had in progress finished on
+this tick, and the dispatcher drains its queue then rather than waiting out the
+rest of the second — otherwise a proof that lands eight ticks after it began
+would still arrive a full cadence late, and the whole exercise would have traded
+one visible delay for another. Only a means saying it just finished may bypass
+the cadence; the cadence itself still exists to keep the trigger walk off the
+per-frame path, and a means that merely keeps answering `RETRYABLE` gets no
+extra attempts.
 
 Before ordinary dispatch, the system reserves one reinforcement ticket from the requesting side. A request that cannot yet pay remains pending for a later cadence. Each means reports `COMMITTED`, `REJECTED`, or `RETRYABLE`: only a committed actor or squad consumes the ordinary ticket, rejection falls through to the next provider, and retryable state refunds and requeues without trying a lower-priority means. If every means rejects, the ordinary ticket is refunded and the request is dropped as a map/supply diagnostic. Prepaid counterattack requests are different: their reserve was paid at muster, so dispatch neither spends again nor refunds an undeliverable launched request.
 
