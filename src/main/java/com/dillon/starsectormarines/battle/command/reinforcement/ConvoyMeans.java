@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
+import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
@@ -329,6 +330,14 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 VehicleType.HEAVY_APC.visualWidthCells);
         TerrainCostField cost = costFieldFor(sim);
         VehicleClearance clearance = clearanceFor(sim, radius);
+        // One labelling pass answers every (entry, destination, exit) triple
+        // below without a search. The enumeration filtered destinations on the
+        // road graph, which says nothing about whether the body fits: a junction
+        // the graph connects and the mask does not costs a full-grid flood to
+        // refuse, once per candidate. See ClearanceComponents, which is also
+        // honest about how little this particular fixture owed to it.
+        ClearanceComponents components =
+                ClearanceComponents.of(sim.getGrid(), clearance);
 
         for (RoadGraph.Node entry : entries) {
             int[] entryCell = perimeterRouteCell(clearance, entry,
@@ -343,6 +352,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 if (destinationCell == null
                         || entryCell[0] == destinationCell[0]
                         && entryCell[1] == destinationCell[1]
+                        || !components.connected(entryCell[0], entryCell[1],
+                        destinationCell[0], destinationCell[1])
                         || !scorer.isViable(destinationCell[0], destinationCell[1])
                         || !behindMinimum(destinationCell[0], destinationCell[1],
                         deployment.minimumDefenderForward())) {
@@ -364,6 +375,10 @@ public final class ConvoyMeans implements ReinforcementMeans {
                     int[] exitCell = perimeterRouteCell(clearance, exit,
                             width, height);
                     if (exitCell == null) continue;
+                    if (!components.connected(destinationCell[0], destinationCell[1],
+                            exitCell[0], exitCell[1])) {
+                        continue;
+                    }
                     float[][] outbound = VehicleRoutePlanner.routeDrivable(
                             destinationCell[0], destinationCell[1],
                             exitCell[0], exitCell[1],
