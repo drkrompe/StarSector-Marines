@@ -4,9 +4,8 @@ Status: IN PROGRESS
 
 Written: 2026-09-03
 
-Updated: 2026-09-03 — steps 2 (changed-cell log) and 3 (clearance-mask
-catch-up) shipped and merged to main; steps 4 (tiled component labels) and 5
-(tiled nav mesh) remain, scoped to a future session.
+Updated: 2026-09-03 — all five steps built; the tiled mesh awaits its
+determinism and Conquest evidence before the story folds.
 
 ## Why
 
@@ -53,7 +52,13 @@ recompute only the tiles a change touched.
    relabels only the tiles holding a cell within the chassis radius of a
    change and re-runs the seam union. The whole-map flood survives as the
    tests' oracle (`floodOf`).
-5. **Tile the greedy navigation mesh.** Not started.
+5. **DONE.** Tile the greedy navigation mesh. `GreedyNavigationMesh` keeps a
+   cover per 32x32 tile (regions never cross a tile edge) and the transitions
+   along each seam between two tiles; `rebuild()` re-covers only the tiles
+   holding a logged cell, re-derives the seams touching them, and assembles
+   the snapshot from every tile's retained cover. Adjacency and transition
+   indexes are counted into flat arrays rather than boxed lists, which was
+   most of the assembly.
 
 ## Measurements
 
@@ -214,6 +219,32 @@ to about 0.15. Left for after the mesh, which is the larger remaining number.
 this story's.** It is a full `ZoneGraph.rebuild()` on the cell-less dirty
 path (`zoneForceFullRebuild`); a 26 ms hitch on a breach tick belongs on the
 board in its own right.
+
+### AFTER step 5 (`GreedyNavigationMesh` covered in tiles, seams re-derived)
+
+Same probe. The battle diverges from the earlier tables past the first breach
+because the mesh's finer cover changes which corridor the hierarchical search
+accepts, so the breach ticks differ; compare the columns, not the rows.
+
+| tick | rev delta | cell changes | zone | navFlush | clearance catch-up |
+|---|---|---|---|---|---|
+| 201 | 1 | 3 | 0.928 | 7.602 | 1.302 |
+| 270 | 8 | 12 | 0.632 | 3.465 | 1.047 |
+| 377 | 2 | 3 | 0.593 | 0.984 | 0.768 |
+| 501 | 1 | 5 | 0.604 | 1.004 | 0.698 |
+| 802 | 8 | 12 | 0.614 | 1.049 | 0.623 |
+| 901 | 1 | 3 | 0.550 | 0.851 | 0.523 |
+| 1401 | 1 | 3 | 0.648 | 0.778 | 0.646 |
+| 1661 | 1 | 1 | 0.586 | 0.768 | 0.577 |
+| 2001 | 1 | 3 | 0.547 | 0.852 | 0.522 |
+| 2428 | 1 | 4 | 0.577 | 0.612 | 0.489 |
+| **total** | | | **6.277** | **17.964** | **7.195** |
+
+`navFlush` steady state **0.61–1.0 ms** against 2.5–3.1 before the mesh was
+tiled (and 2.3–3.1 at the story's start). What remains in it is the snapshot
+assembly — fresh dense region ids and their adjacency over every region on
+the map, a few thousand records — plus the vantage-point cache clear and the
+shared-goal field invalidation, neither of which is measured on its own here.
 
 ## Acceptance
 

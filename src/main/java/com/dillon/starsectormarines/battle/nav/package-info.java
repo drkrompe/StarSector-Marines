@@ -25,6 +25,22 @@
  *           queries use the {@code unit/} spatial indices, never a raw
  *           grid walk.
  *
+ * <p><b>Derivations of the grid are tiled and catch up from its change log.</b>
+ * {@code NavigationGrid} counts every write to a cell's flags or an edge's
+ * passability in {@code topologyRevision()} and names the cell in a ring log
+ * ({@code changeCount()} / {@code changedCellAt(seq)}). Anything derived from
+ * the grid over its whole area — the greedy mesh here, the vehicle clearance
+ * mask and its component labels in {@code vehicle/} — holds the count it last
+ * caught up to and, when the revision moves, recomputes only the tiles (or the
+ * radius neighbourhood) holding a logged cell, re-deriving whatever crosses a
+ * tile seam. A reader the log no longer reaches back to
+ * ({@code hasCaughtUpFrom} false, or a whole-grid {@code clear()}) rebuilds
+ * whole; that is the fallback, never the steady state. The rule exists
+ * because a one-cell wall breach on a 560x336 map used to cost every one of
+ * those derivations a sweep of 188,160 cells on the tick it happened, and the
+ * zone graph ({@code zone/ZoneGraph.applyCellsOpened}) was the only one that
+ * did not. A new whole-map derivation of the grid follows the same shape.
+ *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.nav;
