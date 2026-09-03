@@ -123,6 +123,34 @@ class LanePathTest {
         assertEquals(refusedFrom - 1, fit.path().cells(WIDTH, HEIGHT).get(2)[0]);
     }
 
+    /**
+     * The same rule when the last leg does not point at the objective.
+     *
+     * <p>The straight case above passes either way round: a straight lane's
+     * last leg aims at the fortress, so the forward run is refused for its whole
+     * length and the slide falls through to backward on its own. A lane that
+     * bends as it closes has open ground off the end of its path, and a slide
+     * that tries forward first takes it — measured, seventy cells "forward" to
+     * a rest a hundred cells past the objective. There is no path out there to
+     * slide along, so the deepest waypoint does not go looking.
+     */
+    @Test
+    @DisplayName("the deepest waypoint does not slide off the end of a bent path")
+    void theDeepestWaypointDoesNotSlidePastTheEndOfItsPath() {
+        LanePath path = LanePath.ofCells(WIDTH, HEIGHT, 200, 168, 300, 168, 340, 240);
+        // Only the last waypoint's own ground is refused, so both directions
+        // have somewhere to go and the choice of direction is what is measured.
+        LanePath.Fit fit = path.fitted(WIDTH, HEIGHT,
+                (x, y) -> Math.abs(x - 340) > 10 || Math.abs(y - 240) > 10, 120);
+
+        assertEquals(1, fit.moved().size(), "one waypoint moved, and only one");
+        assertEquals(2, fit.moved().get(0).index());
+        int[] deepest = fit.path().cells(WIDTH, HEIGHT).get(2);
+        assertTrue(deepest[0] < 340 && deepest[1] < 240,
+                "the deepest waypoint stands at " + deepest[0] + "," + deepest[1]
+                        + ", off the far end of its own path rather than back along it");
+    }
+
     @Test
     @DisplayName("a waypoint with nowhere at all to go keeps its place")
     void nowhereToGoKeepsItsPlace() {

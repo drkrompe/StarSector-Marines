@@ -205,6 +205,62 @@ class PrecinctLanePlanTest {
     }
 
     /**
+     * A rung may stand closer to its own ladder than to a settlement.
+     *
+     * <p>The two separations are different numbers for different questions, and
+     * they only stay different while the two lists of seeds do. A rung joins the
+     * map's list of taken ground the moment it is seated — the town and the
+     * hamlets are placed afterwards and must keep clear of it — and testing the
+     * next rung against that merged list finds it there at
+     * {@link PrecinctPlan#MIN_SEED_SEPARATION}, so
+     * {@link PrecinctPlan#LANE_SEED_SEPARATION} never applies to anything.
+     *
+     * <p>The path states its waypoints forty cells apart, which is a ladder in
+     * lane terms and two places on top of each other in settlement terms. All
+     * three rungs stand, no two of them are sixty cells apart, and every one of
+     * them is still sixty from the fortress and the town.
+     */
+    @Test
+    void aRungStandsCloserToItsLadderThanToASettlement() {
+        int width = MapScale.CONQUEST.width;
+        int height = MapScale.CONQUEST.height;
+        // Lane 1 of three, up its own strip's centreline, with the rungs closer
+        // together than two settlements are ever allowed to be.
+        LanePath tight = LanePath.ofCells(width, height, 200, 70, 240, 70, 280, 70);
+        PrecinctPlan plan = conquestLike(
+                new PrecinctPlan.Lanes(3, List.of(), List.of(tight)), width, height, 4096L);
+
+        List<Precinct> ladder = new ArrayList<>();
+        for (Precinct place : lanePlaces(plan)) {
+            if (laneOf(place) == 1) ladder.add(place);
+        }
+        assertEquals(3, ladder.size(), "the tight ladder dropped rungs: "
+                + plan.unplacedLanePlaces());
+
+        for (int i = 1; i < ladder.size(); i++) {
+            double gap = distance(ladder.get(i - 1), ladder.get(i));
+            assertTrue(gap < PrecinctPlan.MIN_SEED_SEPARATION,
+                    ladder.get(i).name() + " stands " + Math.round(gap) + " cells from "
+                            + ladder.get(i - 1).name() + ", which is no closer than two "
+                            + "settlements may stand — the lane separation did not apply");
+            assertTrue(gap >= PrecinctPlan.LANE_SEED_SEPARATION,
+                    ladder.get(i).name() + " stands " + Math.round(gap) + " cells from "
+                            + ladder.get(i - 1).name() + ", inside its own ladder's "
+                            + PrecinctPlan.LANE_SEED_SEPARATION);
+        }
+
+        for (Precinct place : plan.precincts()) {
+            if (place.name().startsWith("lane-")) continue;
+            for (Precinct rung : ladder) {
+                assertTrue(distance(place, rung) >= PrecinctPlan.MIN_SEED_SEPARATION,
+                        rung.name() + " stands " + Math.round(distance(place, rung))
+                                + " cells from " + place.name() + ", which is a pocket "
+                                + "inside it rather than a place on the way to it");
+            }
+        }
+    }
+
+    /**
      * A waypoint stated inside somewhere else slides along its own path, and the
      * plan says so.
      *
@@ -300,6 +356,13 @@ class PrecinctLanePlanTest {
             if (precinct.name().startsWith("lane-")) out.add(precinct);
         }
         return out;
+    }
+
+    /** Cells between two seeds. */
+    private static double distance(Precinct a, Precinct b) {
+        double dx = a.seedX() - b.seedX();
+        double dy = a.seedY() - b.seedY();
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     private static int laneOf(Precinct place) {

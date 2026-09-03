@@ -247,6 +247,17 @@ class ConquestOnPrecinctsTest {
         String unplaced = plan.unplacedLanePlaces().size() + " rungs unseated "
                 + plan.unplacedLanePlaces();
 
+        // Nine of nine, on both canonical fixtures. Both of these maps used to
+        // come out one rung short — the middle lane's, because it is the
+        // shortest and therefore the first to be crowded — and neither reason
+        // was about whether there was room: the lane separation was being tested
+        // against a merged list that always answered at the stricter number, and
+        // the jitter window was clamped to the lane's own third rather than to
+        // the map's margin. A rung that genuinely cannot be seated still reports
+        // itself by name; what this refuses is a lane silently coming up short.
+        assertTrue(plan.unplacedLanePlaces().isEmpty(),
+                "the ladders came out short of the nine rungs three lanes owe: " + unplaced);
+
         for (int band = 1; band <= 2; band++) {
             int lanes = 0;
             for (int lane = 0; lane < tracks.trackCount(); lane++) {
@@ -347,6 +358,14 @@ class ConquestOnPrecinctsTest {
      * and this would pass on a route that had never been checked. What it
      * actually catches is a route that stopped early — a link missing from the
      * chain, or a polyline that never reached the keep.
+     *
+     * <p><b>A parked machine on the road is not a route through a wall.</b> The
+     * grid read here is the one {@code BattleSetup} has since stamped its parked
+     * aircraft and vehicle doodads onto, and those cells were open ground when
+     * the route was read — a lane crossing an apron with a shuttle standing on
+     * it is something a squad walks round. They carry the topology's vehicle
+     * tag, which is the seam that separates them from terrain; the assertion is
+     * therefore "walkable, or something is parked on it".
      */
     private static void assertEveryLaneRouteIsWalkable(MapResult map) {
         assertFalse(map.lanes.isEmpty(), "a Conquest map with lanes recorded none");
@@ -358,9 +377,11 @@ class ConquestOnPrecinctsTest {
                     lane.links().get(lane.links().size() - 1).band(),
                     "lane " + (lane.lane() + 1) + " does not end at the objective");
             for (LaneRoute.Cell cell : lane.route()) {
-                assertTrue(map.grid.isWalkable(cell.x(), cell.y()),
+                assertTrue(map.grid.isWalkable(cell.x(), cell.y())
+                                || map.topology.isVehicle(cell.x(), cell.y()),
                         "lane " + (lane.lane() + 1) + " routes through "
-                                + cell.x() + "," + cell.y() + ", which is not walkable");
+                                + cell.x() + "," + cell.y() + ", which is not walkable "
+                                + "and has nothing parked on it");
             }
             // Cell by cell and in order: a polyline with a jump in it is two
             // routes, and a commander pacing along it would teleport.
