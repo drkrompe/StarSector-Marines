@@ -4,7 +4,9 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the front is a `FrontDepth` band, zero at the objective, rather than a biome; see `precincts.md`.
+Updated: 2026-09-02 — a marine arrival policy is not a means: the marines' lift is orbital and descends onto its berths, while defender delivery stays planetary.
+
+Earlier 2026-09-01 — the front is a `FrontDepth` band, zero at the objective, rather than a biome; see `precincts.md`.
 
 Earlier 2026-08-29 — a request goes to the means that would answer it soonest, and a means that says it could deliver has to be able to.
 
@@ -25,6 +27,8 @@ front; `precincts.md` owns it.
 - A **reinforcement ticket** is one unit of the `REINFORCEMENT` resource required for an ordinary dispatch. ARMORYs produce tickets while their side holds them. Tickets measure continuing field capacity, not a mission-scripted wave count.
 - A **recapture target** is a once-manned defender tactical position that has become open while its front band remains contested. It is a Conquest-specific answer to *where should the next defender response go*, not a general replacement for all reinforcement triggers.
 - A **counterattack** is a bounded defender reserve commitment. It earmarks tickets before the wave, telegraphs its intent, and then attempts a short burst of prepaid requests against a conceded front band. The earmark is a wager: delivery failure does not silently restore it after launch.
+- An **arrival policy** is how a force committed before the battle reaches the ground. It is not a means: nothing requests it, nothing selects it, and it owes no arrival estimate, because it does not answer a call — it delivers what the operation already brought. The marines' is orbital; `conquest-nouns.md` owns its shape.
+- A **landing share** is the fraction of a battle by which a committed force should be fully landed. It is what an arrival policy may size its lift against, and it is a statement about the operation rather than about the map.
 - A **side unit roster** is the small battle-side fallback used by player, story, and legacy payloads when no campaign target exists. It is not campaign-faction doctrine.
 - A **ground roster profile** is the immutable, data-authored defender doctrine resolved from `TargetProfile.factionId()` once during battle setup. It chooses bulk/elite compatibility shells, weighted primary families, risk-banded equipment grades, concrete armor patterns, special issue, and optional heavy-support identities. Unknown faction ids resolve to Independent.
 
@@ -67,6 +71,37 @@ The selected means creates normal battle actors rather than a reinforcement-spec
 For Conquest, recapture-target recomputation runs before reinforcement dispatch. The frontline trigger chooses the defender-rear-most contested front band with an open target, rotates through that slice's targets, gives the request a rear-shifted delivery hint, and assigns the target as its objective. At convoy dispatch, defender command may refine that hint into a safe band behind its latest known hostile front without changing the objective. The delivered convoy squad is minted under `conquest-defender` with a node hold or lost-zone clear assignment; a shuttle drop is minted the same way. Marking a target dispatched prevents duplicate waves while an answer is in flight. Terminal rejection releases that reservation immediately, while a later in-flight or assignment failure retains the bounded timeout recovery path.
 
 Zone loss remains a parallel trigger: when marines take a previously defender-held objective, it posts a defender request that uses the lost zone as both delivery hint and tactical objective. This fallback operates alongside either the Conquest frontline trigger or the non-Conquest garrison trigger.
+
+**A marine arrival policy is not a means, and the difference is where the force
+comes from.** A means answers a request posted during the battle and has to
+prove it can reach somewhere; a Conquest's marines are the operation itself,
+committed before the first tick, and what an arrival policy decides is only how
+that committed force reaches the ground. So it posts no request, is never
+selected against anything, and owes no arrival estimate — the same standing it
+shares with a vehicle bay that builds chassis on its own berths, and for the
+same reason. What it shares with a means is the law every producer of battle
+actors obeys: what comes down is an ordinary squad flown by an ordinary air
+sortie.
+
+The installed one is **orbital**. Marine transports are overhead rather than on
+the planet, so a marine arrival does not cross the map edge at all: it appears
+at a descent point a stated distance off its berth on the side away from the
+objective, at altitude, flies down, sets its half-squad on the pad and climbs
+back to the same point, where the next load is already waiting. The round trip
+is the descent, the turnaround and the climb, and nothing about the map is in
+it. Defender reinforcement is the opposite case and stays the opposite way
+round: a `ShuttleMeans` sortie is planetary, it comes from a field on this map
+or across this map's edge, and holding that field is what a marine can take away
+from it. Two lifts, two origins, one air layer — `air-nouns.md` owns the bodies
+both fly.
+
+How much lift the marines get may be sized from what they committed: the seats,
+the seats a sortie carries and that constant round trip give the pairs that land
+the whole force inside a mission-stated **landing share**. That derivation is
+built and switchable and is off by default, because the Conquest matrix found
+that landing the force sooner takes fewer compounds rather than more;
+`conquest-nouns.md` owns the arrival policy's shape and the measurement behind
+it.
 
 The installed means set is defender-only: convoy, shuttle, and walk-in. Which one answers a given request is decided by arrival estimate, and each is honest about a different cost. A convoy owes its staging delay and a drive that bends round city blocks. A sortie flies three or four times a truck's speed but does not leave an authored field until a crew has walked out to the ramp, and counting that walk is what keeps air the answer to a call the trucks cannot reach in time rather than the answer to all of them. A walk-in owes the whole march on foot, which is why it reads as the floor without being placed there — it wins on merit only when the position needing force is close enough to the rear that walking is genuinely quickest, and otherwise arrives when nothing else can come at all.
 

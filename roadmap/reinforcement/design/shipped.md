@@ -12,3 +12,4 @@ Written: 2026-08-23
 | `faction-unit-roster.md` | 2026-05-22 | `ef4cfebc` | Faction unit-tier authority in `reinforcement-nouns.md`. |
 | `compound-resource-tickets.md` | 2026-05-26 | `1315241a` | Compound-produced reinforcement capacity in `reinforcement-nouns.md`. |
 | `front-line-reinforcement.md` | 2026-08-13 | `28e512ab`, `c99cdecf` | Recapture-target flow and provisional dispatch recovery in `reinforcement-nouns.md`. |
+| `orbital-lift.md` | 2026-09-02 | `b5ca873`, `43c7352` | Marine orbital arrival policy and the landing share in `reinforcement-nouns.md`; the descent, the derived lift and the matrix that chose between them in `conquest-nouns.md`. |

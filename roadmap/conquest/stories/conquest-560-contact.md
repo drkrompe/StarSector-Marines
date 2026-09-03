@@ -110,9 +110,13 @@ evidence that the naive form of it is not the answer.
 
 ## Finding, not fixed: the arrival cadence does not scale with the force
 
-*Decided 2026-09-02: `orbital-lift.md` owns the fix — marine shuttles descend
-from orbit to a point off the berth, and the lift scales with seats to a stated
-landing share.*
+*Answered 2026-09-02, and only half the way this expected. The cadence half is
+fixed: marine shuttles descend from orbit onto a point off their own berth, so
+the round trip is a constant and does not move with the standoff — measured 537
+ticks at `CLOSE` and at `FAR` alike. The scaling half was built, measured and
+switched off: sizing the lift from the committed seats lands the whole western
+force early, ends the plateau below, and takes **fewer** compounds than the
+three-pair ferry does. `conquest-nouns.md` owns both and carries the table.*
 
 Squads land three at a time, one per drop zone, on a fixed cycle. Measured
 across five full runs, that cycle is
@@ -139,14 +143,16 @@ to 101 cells short of their target. That is the whole of why the larger force is
 the one that fails while reinforced-south wins on the same map: south finishes
 landing at 29% of the battle and west at 97%.
 
-`conquest-nouns.md` states the arrival policy as a mission-authored lever —
-`dropZoneCount`, `shuttlePairsPerZone`, the six-Aeroshuttle ferry — so the
-cadence is a campaign-side decision rather than a constant to correct here. What
-the measurement says about it: **Full Strength authors 34 squads through the
-same three pairs Reinforced uses for 17.** Pairs-per-zone or drop-zone count
-scaling with committed seats would land the same force in the same share of the
-battle whatever its size, and would also be what makes the standoff correction
-above affordable — the two are one change, not two.
+**Full Strength authors 34 squads through the same three pairs Reinforced uses
+for 17**, and the obvious reading of that — scale the pairs with the seats and
+the same force lands in the same share of the battle whatever its size — was
+implemented and is wrong. It delivers precisely what it promises: the plateau
+above is gone, 356 live marines assemble instead of ~130, and the west takes 10
+compounds and holds 4 where the ferry flying the same descent takes 11 and holds
+7. The penny packets were never the reason the west fails; the approach is, and
+a force delivered into it faster is destroyed in it faster. `conquest-nouns.md`
+owns the arrival policy, the descent that did help, and the derivation that is
+kept switchable for the next attempt at that approach.
 
 ## Finding, not fixed: a compound whose capture zone is the outdoors is a
 ## different victory condition from the other ten

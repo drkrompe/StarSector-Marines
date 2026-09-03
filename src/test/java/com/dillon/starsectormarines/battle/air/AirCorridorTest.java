@@ -78,4 +78,54 @@ class AirCorridorTest {
         assertNull(AirCorridor.acrossNearestEdge("w", 0, H, 1f, 1f, 2f, 2f));
         assertNull(AirCorridor.acrossNearestEdge("w", W, 0, 1f, 1f, 2f, 2f));
     }
+
+    /** A descent is one point: there is nowhere else for the craft to be. */
+    @Test
+    void descentEntersAndLeavesAtOnePoint() {
+        AirCorridor c = AirCorridor.descent("orbit", 20f, 30f, 50f, 30f, 18f);
+        assertNotNull(c);
+        assertEquals(c.entryX, c.exitX, 0.001f);
+        assertEquals(c.entryY, c.exitY, 0.001f);
+    }
+
+    /** Off the berth on the side away from what it has its back to. */
+    @Test
+    void descentSitsTheStatedDistanceAwayFromTheObjective() {
+        AirCorridor west = AirCorridor.descent("orbit", 20f, 30f, 50f, 30f, 18f);
+        assertEquals(2f, west.entryX, 0.001f);
+        assertEquals(30f, west.entryY, 0.001f);
+
+        AirCorridor south = AirCorridor.descent("orbit", 20f, 30f, 20f, 90f, 12f);
+        assertEquals(20f, south.entryX, 0.001f);
+        assertEquals(18f, south.entryY, 0.001f);
+
+        // Diagonal: still exactly the stated distance out, along the bearing.
+        AirCorridor diagonal = AirCorridor.descent("orbit", 10f, 10f, 40f, 50f, 10f);
+        float dx = diagonal.entryX - 10f;
+        float dy = diagonal.entryY - 10f;
+        assertEquals(10f, (float) Math.sqrt(dx * dx + dy * dy), 0.001f);
+        assertTrue(dx < 0f && dy < 0f,
+                "the descent point is on the far side of the berth from the objective");
+    }
+
+    /**
+     * The distance is in cells of descent and nothing else — the same berth
+     * against an objective twice as far away answers the same point.
+     */
+    @Test
+    void descentDoesNotMoveWithHowFarAwayTheObjectiveIs() {
+        AirCorridor near = AirCorridor.descent("orbit", 20f, 30f, 60f, 30f, 18f);
+        AirCorridor far = AirCorridor.descent("orbit", 20f, 30f, 520f, 30f, 18f);
+        assertEquals(near.entryX, far.entryX, 0.001f);
+        assertEquals(near.entryY, far.entryY, 0.001f);
+    }
+
+    /** No direction to be away from, or no length to fly: a decline, not a guess. */
+    @Test
+    void descentDeclinesWithoutABearingOrALength() {
+        assertNull(AirCorridor.descent("orbit", 20f, 30f, 20f, 30f, 18f));
+        assertNull(AirCorridor.descent("orbit", 20f, 30f, 50f, 30f, 0f));
+        assertNull(AirCorridor.descent("orbit", 20f, 30f, 50f, 30f, -4f));
+        assertNull(AirCorridor.descent("orbit", 20f, 30f, 50f, 30f, Float.NaN));
+    }
 }

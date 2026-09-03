@@ -475,6 +475,27 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
                                       MapPlacement objective, MapPlacement attackerFrom,
                                       Lanes lanes, Standoff standoff, LandingKind landing,
                                       int width, int height, Random rng) {
+        return derive(profile, sprawl, demand, objective, attackerFrom, lanes,
+                standoff, landing, LandingKind.AREAS_THE_APRON_SEATS,
+                width, height, rng);
+    }
+
+    /**
+     * The same derivation told how many arrival areas the lift needs berthing
+     * room for.
+     *
+     * @param arrivalAreas berthing pairs the landing place's apron has to seat.
+     *                     Below what the shipped apron already buys this changes
+     *                     nothing; above it the beachhead claims proportionally
+     *                     more ground, because a lift that outgrows its berths
+     *                     has nowhere to put the craft it was sized for.
+     */
+    public static PrecinctPlan derive(TargetProfile profile, Sprawl sprawl,
+                                      Fortification.Demand demand,
+                                      MapPlacement objective, MapPlacement attackerFrom,
+                                      Lanes lanes, Standoff standoff, LandingKind landing,
+                                      int arrivalAreas,
+                                      int width, int height, Random rng) {
         List<Precinct> out = new ArrayList<>();
         List<int[]> taken = new ArrayList<>();
         int margin = marginFor(width, height);
@@ -516,7 +537,7 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
         Precinct landingPlace = null;
         if (landing != null && attackerFrom != null) {
             landingPlace = seedLanding(landing, standoff, objectivePlace, attackerFrom,
-                    taken, margin, width, height);
+                    taken, margin, arrivalAreas, width, height);
         }
 
         // The ladders take what the objective and the beachhead have left.
@@ -639,10 +660,10 @@ public record PrecinctPlan(List<Precinct> precincts, MapPlacement attackerFrom,
      */
     private static Precinct seedLanding(LandingKind kind, Standoff standoff,
                                         Precinct objectivePlace, MapPlacement attackerFrom,
-                                        List<int[]> taken, int margin,
+                                        List<int[]> taken, int margin, int arrivalAreas,
                                         int width, int height) {
         int budget = Math.round(LANDING_FIT * width * height);
-        FortressProgram program = kind.program();
+        FortressProgram program = kind.program(arrivalAreas);
         if (program.apron() > budget) program = program.withApron(budget);
         program = program.fittedTo(budget);
 

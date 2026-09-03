@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
 import com.dillon.starsectormarines.battle.air.AirArmament;
+import com.dillon.starsectormarines.battle.air.AirCorridor;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
@@ -130,6 +131,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -820,6 +822,22 @@ public final class BattleSetup {
                                         PrecinctPlan.Sprawl sprawl, Standoff standoff,
                                         PrecinctPlan.Lanes lanes, LandingKind landing,
                                         TraversalAxis axis, long seed) {
+        return conquestPlanFor(tier, risk, profile, sprawl, standoff, lanes, landing,
+                LandingKind.AREAS_THE_APRON_SEATS, axis, seed);
+    }
+
+    /**
+     * As above, told how many arrival areas the lift needs berthing room for.
+     *
+     * @param arrivalAreas berthing pairs the beachhead's apron has to seat; see
+     *                     {@link OrbitalLift}
+     */
+    static PrecinctPlan conquestPlanFor(OperationTier tier, RiskLevel risk,
+                                        TargetProfile profile,
+                                        PrecinctPlan.Sprawl sprawl, Standoff standoff,
+                                        PrecinctPlan.Lanes lanes, LandingKind landing,
+                                        int arrivalAreas,
+                                        TraversalAxis axis, long seed) {
         if (profile == null || profile.marketSize() <= 0) return null;
         if (profile.defenseLevel() <= 0) return null;
         PrecinctPlan.Sprawl resolved = sprawl != null
@@ -836,7 +854,7 @@ public final class BattleSetup {
         return PrecinctPlan.derive(profile, resolved,
                 MissionFortification.demand(tier, risk),
                 objective, attackerFrom,
-                lanes, resolvedStandoff, resolvedLanding,
+                lanes, resolvedStandoff, resolvedLanding, arrivalAreas,
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height,
                 new Random(seed ^ PRECINCT_SEED_SALT));
     }
@@ -1622,19 +1640,35 @@ public final class BattleSetup {
         // The target world's profile (planetary defenses, …) rides in so the
         // overwatch line reflects how fortified the planet is, and so the places
         // the map is made of are derived from the world it is on.
+        // The lift is sized before the map is generated, because the pairs it
+        // flies are also the berthing areas the landing place has to seat: the
+        // map is told what the force needs rather than the force being cut to
+        // what three drop zones can carry. See {@link OrbitalLift}.
+        ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
+                ? arrivalPlan : ShuttleArrivalPlan.legacy();
+        List<ShuttleAssignment> committedManifest = resolveManifest(manifest);
+        ConquestArrivalConfig sizedArrivalConfig =
+                requestedArrivalPlan.sizedConfigFor(committedManifest);
         ConquestMap generated = conquestMap(gridW, gridH, seed, axis, profile,
-                tier, risk, sprawl, standoff, laneCount, landing, lanePaths);
+                tier, risk, sprawl, standoff, laneCount, landing, lanePaths,
+                sizedArrivalConfig.dropZoneCount());
         MapResult map = generated.map();
 
         List<Doodad> vehiclePlacements = stampVehicles(map, rng);
-        ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
-                ? arrivalPlan : ShuttleArrivalPlan.legacy();
+        // What the finished map actually seated may be fewer areas than the
+        // estimate the landing claim was seeded on asked for; a derived shape
+        // folds onto them keeping every pair, a stated one is left to fail.
+        ConquestArrivalConfig liftArrivalConfig = OrbitalLift.foldOntoAvailableAreas(
+                sizedArrivalConfig, requestedArrivalPlan.arrivalConfig(),
+                map.landingAreas.size());
+        ShuttleArrivalPlan liftedArrivalPlan =
+                requestedArrivalPlan.withArrivalConfig(liftArrivalConfig);
         ShuttleArrivalPlan.ResolvedManifest resolvedManifest =
-                requestedArrivalPlan.resolveManifest(resolveManifest(manifest));
+                liftedArrivalPlan.resolveManifest(committedManifest);
         List<ShuttleAssignment> assignments = resolvedManifest.assignments();
         ShuttleArrivalPlan resolvedArrivalPlan = new ShuttleArrivalPlan(
-                requestedArrivalPlan.policy(), resolvedManifest.firstPlayerShuttle(),
-                requestedArrivalPlan.arrivalConfig());
+                liftedArrivalPlan.policy(), resolvedManifest.firstPlayerShuttle(),
+                liftArrivalConfig);
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
@@ -1680,7 +1714,8 @@ public final class BattleSetup {
             ConquestArrivalSlot slot = arrivalSlots.get(i);
             float lzCenterX = slot.pad().centerX + 0.5f;
             float lzCenterY = slot.pad().centerY + 0.5f;
-            float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
+            float[] entry = marineArrivalEntry(lzCenterX, lzCenterY, map,
+                    gridW, gridH, axis);
             long shuttleId = sim.spawnShuttle(
                     resolvedArrivalPlan.deliveryCraft(a.type),
                     deliveryFrame(resolvedArrivalPlan, a), Faction.MARINE,
@@ -1749,6 +1784,32 @@ public final class BattleSetup {
     private static Airframe deliveryFrame(ShuttleArrivalPlan plan, ShuttleAssignment a) {
         ShuttleType delivery = plan.deliveryCraft(a.type);
         return delivery == a.type ? a.airframe : delivery;
+    }
+
+    /**
+     * Where a Conquest marine arrival comes from and goes back to.
+     *
+     * <p>Off orbit by default: one point {@link OrbitalLift#DESCENT_CELLS} off
+     * the berth on the side away from the objective, entered and left at the
+     * same place, so the leg is the descent and the round trip is a constant.
+     * With {@code -Dbattle.conquest.orbitalLift=false} — or on a map that gives
+     * no bearing to be away from — it is the old crossing of the map edge
+     * nearest the force, whose cadence grew with every cell the beachhead was
+     * slid inland.
+     */
+    private static float[] marineArrivalEntry(float lzCenterX, float lzCenterY,
+                                              MapResult map, int gridW, int gridH,
+                                              TraversalAxis axis) {
+        if (OrbitalLift.enabled()) {
+            AirCorridor descent = AirCorridor.descent("orbit", lzCenterX, lzCenterY,
+                    map.defenderSpawnX + 0.5f, map.defenderSpawnY + 0.5f,
+                    OrbitalLift.DESCENT_CELLS);
+            if (descent != null) {
+                return new float[]{descent.entryX, descent.entryY,
+                        descent.exitX, descent.exitY};
+            }
+        }
+        return shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
     }
 
     private record ConquestArrivalSlot(
@@ -2250,6 +2311,23 @@ public final class BattleSetup {
                                            Standoff standoff, Integer laneCount,
                                            LandingKind landing,
                                            List<LanePath> lanePaths) {
+        return conquestMap(gridW, gridH, seed, axis, profile, tier, risk, sprawl,
+                standoff, laneCount, landing, lanePaths,
+                LandingKind.AREAS_THE_APRON_SEATS);
+    }
+
+    /**
+     * The Conquest map, told how many arrival areas the lift needs berthing
+     * room for. See {@link OrbitalLift}.
+     */
+    private static ConquestMap conquestMap(int gridW, int gridH, long seed,
+                                           TraversalAxis axis, TargetProfile profile,
+                                           OperationTier tier, RiskLevel risk,
+                                           PrecinctPlan.Sprawl sprawl,
+                                           Standoff standoff, Integer laneCount,
+                                           LandingKind landing,
+                                           List<LanePath> lanePaths,
+                                           int arrivalAreas) {
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
         PrecinctPlan.Lanes lanes = lanesFor(laneCount, lanePaths);
         for (int attempt = 0; attempt < CONQUEST_MAP_ATTEMPTS; attempt++) {
@@ -2258,7 +2336,7 @@ public final class BattleSetup {
             // what the seed decides: a re-roll that kept the same places would
             // be the same map filled differently, which is not another map.
             PrecinctPlan plan = conquestPlanFor(tier, risk, profile, sprawl, standoff,
-                    lanes, landing, axis, mapSeed);
+                    lanes, landing, arrivalAreas, axis, mapSeed);
             // A plan and an axis are two different maps and the generator
             // refuses both, so the axis rides in only when there is no plan —
             // a marketless or undefended Conquest keeps the stock crossroad.

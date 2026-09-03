@@ -27,6 +27,14 @@ package com.dillon.starsectormarines.battle.air;
  * "ours". Along that edge the entry sits abeam the target, so the run-in is
  * roughly straight at what the aircraft was sent for, and the exit sits abeam
  * home, so it leaves back over its own force rather than across the enemy's.
+ *
+ * <p><b>A corridor need not be a crossing.</b> {@link #descent} makes the other
+ * kind: one point in the air a stated distance off a berth, entered and left at
+ * the same place, so the whole leg is the descent onto that berth and the climb
+ * back off it. What is off the map there is the <em>altitude</em> rather than
+ * the position — the transports are in orbit and only the last leg is flown —
+ * and the class-level rule still holds, because that point is stated by the
+ * caller from the berth it belongs to rather than discovered on the ground.
  */
 public final class AirCorridor {
 
@@ -86,6 +94,43 @@ public final class AirCorridor {
         }
         float y = (nearest == toSouth) ? -OFF_MAP_MARGIN_CELLS : h + OFF_MAP_MARGIN_CELLS;
         return new AirCorridor(source, clamp(targetX, w), y, clamp(homeX, w), y);
+    }
+
+    /**
+     * A corridor that is one point at altitude, {@code distanceCells} off
+     * {@code (berthX, berthY)} on the side away from {@code (awayFromX,
+     * awayFromY)}.
+     *
+     * <p>Entry and exit are the same point on purpose: a craft that comes down
+     * from orbit has no crossing to make, so its leg in is the descent and its
+     * leg out is the climb back to where the next load is already waiting. That
+     * is what makes the round trip a constant — it is measured in cells of
+     * descent, and neither the size of the map nor how far inland the beachhead
+     * sits enters it.
+     *
+     * <p>The point is deliberately <em>not</em> clamped to the map. It is a
+     * place in the air over the berth's own side of the field, and a berth close
+     * to the boundary simply puts it a little beyond one; nothing lands there.
+     *
+     * @param awayFromX the objective, or whatever the descent should keep its
+     *                  back to, so the leg comes in over the force's own ground
+     * @return the corridor, or {@code null} when there is no direction to be
+     *         away from ({@code (berth) == (awayFrom)}) or the distance is not a
+     *         positive length — a decline, for the same reason
+     *         {@link #acrossNearestEdge} declines: a caller that cannot state a
+     *         corridor must not invent one.
+     */
+    public static AirCorridor descent(String source, float berthX, float berthY,
+                                      float awayFromX, float awayFromY,
+                                      float distanceCells) {
+        if (!(distanceCells > 0f) || !Float.isFinite(distanceCells)) return null;
+        float dx = berthX - awayFromX;
+        float dy = berthY - awayFromY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (!(length > 1e-4f) || !Float.isFinite(length)) return null;
+        float x = berthX + dx / length * distanceCells;
+        float y = berthY + dy / length * distanceCells;
+        return new AirCorridor(source, x, y, x, y);
     }
 
     /** Keeps the along-edge coordinate on the map's own span, so a corridor never runs off a corner. */
