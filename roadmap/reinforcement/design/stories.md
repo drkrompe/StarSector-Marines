@@ -8,6 +8,7 @@ Updated: 2026-08-25 — moved target-faction ground rosters into content/live-ac
 
 | Story | State | Intent |
 |---|---|---|
+| `orbital-lift.md` | PLANNED | Marine shuttles descend from a point off the berth instead of crossing the map edge, so the round trip is a constant; the lift scales with committed seats to a stated landing share, waves overlapping. The lever `conquest-560-contact.md` measured and left to the mission. |
 | `marine-side-reinforcement.md` | PLANNED | Define and implement marine-side triggers, supply gates, and delivery eligibility without treating the current defender ladder as implicitly symmetric. |
 | `reinforcement-strength-scaling.md` | PLANNED | Make SMALL/MEDIUM/LARGE a coherent force and pacing contract across walk-in, convoy, and shuttle delivery. |
 | `reinforcement-status-readout.md` | PLANNED | Surface player-side reinforcement tickets and inbound commitments from the simulation's authoritative resource and delivery state. |
