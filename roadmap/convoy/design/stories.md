@@ -9,7 +9,6 @@ implementation subtracks of this one noun, not separate domains.
 
 | Story | State and dependency |
 | --- | --- |
-| `route-proof-budget.md` | **In progress.** One convoy dispatch on the 560x336 Conquest map costs hundreds of full-grid searches and stalls the game thread for seconds. Settle reachability on the clearance mask before searching, bound the enumeration in searches, and give reinforcement its own profile phase. |
 | `route-and-motion-acceptance.md` | **READY — manual acceptance.** Exercise cost-field routing, continuous cornering, docking, recovery, and off-map departure in one eyes-on convoy run. |
 | `slice-3-retire-roadgraph.md` | **Ready for a bounded audit/cleanup.** `RoadGraph` remains live generator and drop-off-selection data, but the old `ConvoyPlanner` route expansion and dead debug-spawn path are concrete retirement candidates. Preserve graph consumers that serve map generation, reservation, validation, preview/debug, or selection; do not delete the graph merely because routing no longer follows it. |
 | `slice-3-recovery-ladder.md` | **Partially shipped.** Reverse recovery, proactive impossible-turn detection, turn-aware route rejection, cumulative avoidance re-routing, and safe on-grid planner failure are live. Decide and implement only the terminal no-route policy. Depends on the route playtest. |

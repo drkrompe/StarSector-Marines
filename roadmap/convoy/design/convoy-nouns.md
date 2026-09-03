@@ -328,6 +328,40 @@ it planned before.
 - Route construction proves ordinary forward bends. Live motion remains the
   final kinematic authority, and any changed-grid failure stops and recovers
   instead of degrading to raw polyline pursuit.
+- **Reachability is settled on the clearance mask before anything is
+  searched.** The mask's connected components are labelled once per dispatch,
+  under the pathfinder's own step rule, and an entry, a drop and an exit that do
+  not share a component are never offered to the router. The road graph cannot
+  answer this question and must not be asked it: it describes the streets, not
+  what fits down them, so a junction the graph joins and the body cannot reach
+  costs a full-grid flood to refuse — and the proof asks about many junctions.
+  The labelling must use the router's own step rule rather than the mask alone,
+  because a closed edge is a wall the mask cannot see.
+- **A route proof is bounded in searches, not in the map.** The proof is an
+  enumeration — entries against junctions against exits — so a limit of eight
+  retries per endpoint pair bounds nothing a player is waiting on. One budget,
+  counted in grid searches, spans the whole enumeration. Exhausting it is not
+  an error: the dispatch reports no route, which is what it would have reported
+  more slowly, and the request falls through to another means.
+- **Bound it in the currency the cost is in.** Searching is bounded by the
+  search budget and by nothing else; only the perimeter entries are capped by
+  count, because what an entry costs before any search is a road-graph flood
+  and a sort rather than a search. Capping drops and exits by count as well
+  looked harmless at six and three and was a bar set in the dark: the canonical
+  240x160 rear-entry map proves its route at about the seventh ranked drop, and
+  the cap refused a delivery the budget would have paid for. A cap by count
+  cannot know what a candidate costs; the budget is charged for exactly what it
+  is trying to limit.
+- **One budget for the enumeration is a redistribution, not only a ceiling, and
+  the redistribution is the part that pays.** Measured on a 560x336 Conquest
+  map: the best-ranked drop routed its inbound leg on the first search and
+  needed eighteen more before its outbound leg was drivable. Rationed to eight
+  the dispatch abandoned it, and the next ninety-odd ranked drops in turn at
+  eight searches each — 745 searches, three seconds of one tick whose other work
+  came to twenty milliseconds — and then committed to a drop three times further
+  from the ground the request asked for. Spending the budget on the candidate
+  the ranking already called best cost nineteen searches and delivered nearer.
+  Where the retries go matters more than how many there are.
 - It also proves the one bend that lies on neither polyline: the turn from the
   heading a vehicle arrives on to the heading its exit demands — asked with no
   run-up, from the drop point itself. The docking maneuver would often rescue
