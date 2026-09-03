@@ -13,7 +13,9 @@ Updated: 2026-09-02 — the landing zone is a precinct with a kind, claimed
 before the town grows and held as a compound the marines can lose; each Conquest
 command track carries a lane with a ladder of garrison places on it, so the
 ground between the beachhead and the fortress holds compounds a track has to
-take.
+take; the ladder's own separation is a real relaxation rather than dead code,
+its rungs are bounded by the map margin rather than by their lane, and the
+deepest waypoint no longer slides off the end of its own path.
 
 Earlier 2026-09-01 — Conquest generates as places at 560x336; the front is a
 depth from the objective rather than a biome; a mission states its sprawl and
@@ -805,6 +807,17 @@ map without this rule being rewritten. A stated waypoint that has to move
 reports the move by name and distance, the way an unplaced rung reports itself;
 what could not be honoured is evidence, never a crash.
 
+**The deepest waypoint gives way backward, and only backward.** Its path ends
+where it stands, so "forward" for it is the last leg extrapolated past the end —
+a guess about ground nobody stated, and one the caller's predicate will happily
+allow once it is clear of the objective's own separation. That is harmless only
+while the last leg happens to aim at the objective, which is true of a straight
+lane and false of any lane that closes on its target: measured on a fanned
+derivation, the deepest waypoint slid seventy cells "forward" and came to rest a
+hundred cells *past* the fortress it was supposed to abut. A path is the only
+statement there is about where a lane goes, so a waypoint does not slide off the
+end of one.
+
 **The route is a road, and the map records it.** Each lane place's artery aims
 at the *next link on its path* rather than at the objective's centroid, so
 interconnect's flood-walk weld bends around whatever stands between. After
@@ -893,11 +906,36 @@ plan's margin and its separation from the fortress and the town are respected;
 against the plan's 60 at this scale — because consecutive rungs are fifty to
 ninety cells apart and a rung's claim is a dozen cells across. The plan's figure
 is about keeping whole districts off each other, and applied within a lane it
-would refuse the ladder it was asked for. A rung that finds no room after its
-bounded attempts is dropped and named under `BspKeys.UNPLACED_LANE_PLACES`, on
-the same law as the unbuilt program and the unplaced defences: what could not be
-placed is evidence, never a crash. At 560x336 nothing is dropped; at
-`MapScale.SMALL` most of the ladder is, and the plan says which rungs.
+would refuse the ladder it was asked for. It is a *relaxation* and never a
+tightening: on a map small enough that the plan's own separation has already
+shrunk below it, the ladder takes the smaller of the two.
+
+**The two separations only stay distinct while the two lists do**, and that is
+the law rather than an implementation note. A seated rung belongs on the map's
+list of taken ground — the town and the hamlets are seeded after the ladders and
+must keep clear of it — but a merged list is tested at the stricter of the two
+numbers, so the lane separation applies to nothing at all. It was dead code for
+exactly that reason, and the symptom was silent and looked like geometry: both
+canonical fixtures came out one rung short, always the middle lane's, because
+that lane is the shortest and is therefore crowded first. The places seeded
+before the ladders and the rungs on them are held apart for the whole of the
+seeding and each candidate is tested against both.
+
+**A rung's jitter window is bounded by the map margin, not by its own lane.** A
+third is where a ladder is *aimed*; the margin is the only edge a seed genuinely
+cannot cross. Clamped to the third, a rung whose waypoint sat near the edge of
+its strip — or outside it, which a bent path can produce — was handed a window
+of a few cells and refused for a reason that had nothing to do with whether
+there was room. The jitter's *magnitude* is still a share of the lane's width,
+so a rung stays beside the waypoint it was told to stand on; what changed is
+what stops it.
+
+A rung that finds no room after its bounded attempts is dropped and named under
+`BspKeys.UNPLACED_LANE_PLACES`, on the same law as the unbuilt program and the
+unplaced defences: what could not be placed is evidence, never a crash. At
+560x336 both canonical fixtures seat all nine, which `ConquestOnPrecinctsTest`
+asserts; at `MapScale.SMALL` most of the ladder is dropped, and the plan says
+which rungs.
 
 **The thirds arithmetic is duplicated, deliberately.** `LaneGeometry` computes a
 lane's lateral span the way `ConquestTrackLayout` computes a track's, and
@@ -1071,10 +1109,12 @@ seat a second seed on 112x64 — the seedable span is 52x4 — so both scale wit
 the map: the margin is a quarter of the short side and the separation a quarter
 of the long side, each capped at its large-map value so nothing changes at
 560x336. A map seats what it can seat: an outlying place that finds no room is
-not placed. **The garrison is the exception.** A defended world never loses its
-objective to a small map; where the draw finds no room, the garrison is seeded
-at the in-margin cell furthest from every seed already placed — deterministic,
-no draw.
+not placed. **The garrison and the main settlement are the exceptions.** A
+defended world never loses its objective to a small map, and a battle happens
+somewhere, so where the draw finds no room either of them is seeded at the
+in-margin cell furthest from every seed already placed — deterministic, no draw.
+The town needs that as much as the fortress does: a crowded map that exhausted
+the sampler used to end generation on a null seed rather than come out tighter.
 
 **The program is trimmed to the map before ground is asked for.**
 `FortressProgram.fittedTo` takes a ground budget — a fixed share of the map,

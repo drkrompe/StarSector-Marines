@@ -37,6 +37,13 @@ class PrecinctLanePlanTest {
     /**
      * The whole ladder stands up on the map the model was measured at, one rung
      * per band on every lane, and every rung inside its own lane.
+     *
+     * <p>The second half is measured rather than enforced. What bounds a rung is
+     * the map margin, not its lane's third — a rung refused for leaving a strip
+     * is refused for a reason that is not about the ground. What keeps a derived
+     * ladder inside its own lane anyway is the arithmetic: the meander clamps a
+     * waypoint to a sixth of the strip either side of its centreline and the
+     * jitter is a quarter of it, so the two together do not reach the edge.
      */
     @Test
     void everyRungStandsInItsOwnLane() {

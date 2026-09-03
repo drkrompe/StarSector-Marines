@@ -4,10 +4,16 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — neither the chain's front gate nor the map-side lane fan
+Updated: 2026-09-02 — the lane chain is **on by default**. What was costing it
+a held compound was neither the front gate nor the shape of the lanes but a map
+defect: every lane was silently a rung short. With the ladder whole, the same
+code takes more and holds at least as much as the fraction on both canonical
+fixtures.
+
+Earlier 2026-09-02 — neither the chain's front gate nor the map-side lane fan
 is what wins the held compound back; both were measured at full length and
 reverted, and the staging dormancy on the south turns out to be about where
-that fixture's lanes are. The chain stays off.
+that fixture's lanes are.
 
 Earlier 2026-09-02 — a lane can be read as a chain of places taken in order;
 built, measured both ways, and left off by default because it costs a held
@@ -40,11 +46,9 @@ compounds to take on the way (see `precincts.md`).
 
 ## The chain is the front; the track is the fence
 
-**Off by default: `battle.conquest.laneChain=true` turns it on.** Everything in
-this section describes what that switch buys and what it costs. It is built,
-tested and measured; it is not the shipped default, because measured both ways
-on one tree it costs `reinforced-south` a held compound. The numbers are at the
-end of the section.
+**On by default: `battle.conquest.laneChain=false` puts the fraction back.**
+The switch is kept as the control a balance run needs, not as a hedge. The
+numbers are at the end of the section.
 
 **A lane's state is ownership along its chain.** A lane is its ordered places
 from the beachhead to the keep — the recorded links of `MapResult.lanes`, each
@@ -93,73 +97,105 @@ derivation, and the defender's reinforcement layer buckets by front band. The
 chain is map geometry and compound ownership — neutral referee facts either
 side may read — so a shared switch is not shared belief.
 
-**What it measures, and why it is off.** The canonical matrix, both ways from
+**What it measures, and why it is on.** The canonical matrix, both ways from
 one tree at 18,000 ticks:
 
 | fixture | reading | captures | held | marine losses | defender losses | retargets |
 |---|---|---:|---:|---:|---:|---:|
-| reinforced-south | chain | 20 | 16 | 212 | 388 | 253 |
-| reinforced-south | fraction | 25 | 17 | 234 | 442 | 144 |
-| full-strength-west | chain | 13 | 7 | 382 | 446 | 288 |
-| full-strength-west | fraction | 12 | 7 | 334 | 448 | 418 |
+| reinforced-south | chain | 22 | 17 | 151 | 385 | 396 |
+| reinforced-south | fraction | 20 | 17 | 189 | 346 | 277 |
+| full-strength-west | chain | 12 | 6 | 300 | 430 | 315 |
+| full-strength-west | fraction | 7 | 5 | 258 | 423 | 240 |
 
-Held compounds is the outcome a Conquest is decided on, and the chain gives one
-back on `reinforced-south` while tying on `full-strength-west`. That is the
-whole reason it is off; everything else in the table is a trade somebody could
-argue either way — twenty-two fewer marines lost on the south, a capture and
-forty-eight more losses on the west, and churn that halves on one fixture while
-nearly doubling on the other.
+Held compounds is the outcome a Conquest is decided on, and the chain ties the
+fraction on `reinforced-south` and gives one back on `full-strength-west` while
+taking more on both — two more captures on the south for thirty-eight fewer
+marines lost, five more on the west for forty-two more. That is what turned it
+on.
 
-The reading itself works: the trace records fronts advancing and coming back —
-`+2/-2` on the south's third lane — and the report names the places the work
-went to. What it does not yet do is convert that into ground held.
+**The bar did not move; the map did.** Read against the maps this project had a
+day earlier, the same code cost `reinforced-south` a held compound of seventeen
+and five captures of twenty-five, and three separate attempts to win that back
+inside the commander all failed. None of them was the cause. Both canonical
+fixtures were silently a rung short of the nine their three lanes owe — always
+the middle lane's, because it is the shortest and is crowded first — for two
+seeding reasons that had nothing to do with whether there was room, and a third
+that only a bent path could show. `precincts.md` holds the rules; the point
+here is the method:
 
-**The front gate is not what costs the south its held compound.** That was the
-obvious suspect: on `reinforced-south` the advance-track order is 5 pulses of
-3,779, so the route staging almost never fires there and the whole difference
-is carried by the gate refusing everything but the front place. Refusing a
-takeable compound because it is behind a standing outpost looks like the cost,
-and it is not — measured, held stays at 16 whatever the gate offers. Letting a
-lane open a rung whenever the allocation can pair nobody *lowers* the south to
-17 captures and takes the west to 8 and 5, because opening by chain position
-alone hands the allocation the fortress: a thousand secure squad-pulses went
-into the keep out of order on each fixture, and the west's front push fell from
-a third of its orders to a twenty-fifth. Never opening the objective, and only
-for a squad with no front work, restores 20 and 16 on the south and still costs
-the west; adding the depth latch on top — a rung behind the front opens only
-where the friendly line has come level with it — returns the west to 12 and 7
-and makes the whole opening inert on the south, where every uncommitted squad
-has front work and the trigger never fires. **Held compounds is a question
-about which places the chain never reaches, not about how many it is willing to
-offer at once.** The chain keeps a higher share of what it takes than the
-fraction does — 16 of 20 against 17 of 25 — and takes less.
+| fixture | map | reading | captures | held |
+|---|---|---|---:|---:|
+| reinforced-south | 8 of 9 rungs | chain | 20 | 16 |
+| reinforced-south | 8 of 9 rungs | fraction | 25 | 17 |
+| reinforced-south | 9 of 9 rungs | chain | 22 | **17** |
+| reinforced-south | 9 of 9 rungs | fraction | 20 | 17 |
+| full-strength-west | 8 of 9 rungs | chain | 13 | 7 |
+| full-strength-west | 8 of 9 rungs | fraction | 12 | 7 |
+| full-strength-west | 9 of 9 rungs | chain | 12 | **6** |
+| full-strength-west | 9 of 9 rungs | fraction | 7 | 5 |
 
-**The staging half cannot be measured on `reinforced-south`, by construction.**
-An advance-track order is derived only for a squad the front push has no
-believed defender zone for, and on that fixture there is nearly always one: six
-squad-pulses of 3,779 reach the staging derivation with the chain on and four
-of 3,607 with it off. Whatever staging does, that fixture cannot see it;
-`full-strength-west` is where it lives, at 230 advance-track pulses.
+**A reading that walks a ladder cannot be judged against a ladder with a rung
+missing.** The whole ladder puts one more walled compound on each map —
+`reinforced-south` goes from 23 to 24 and `full-strength-west` from 24 to 25 —
+and both readings take fewer of them and lose fewer marines doing it. The
+fraction falls hardest, from 25 captures to 20 on the south and from 12 to 7 on
+the west, while the chain rises on the south and holds on the west. That is the
+shape of a reading that walks the chain in order meeting a chain that is now
+complete. The
+absolute held figure on the west is one lower than the best number this project
+ever recorded there, and it is the wrong comparison: it was measured on a
+different map, and a commit-to-commit reading measures every other difference
+between the two trees at the same time. The decision is chain against fraction
+on one tree, and on that reading the chain is ahead or level everywhere.
 
-That is a property of **where that fixture's lanes are**, though, not of the
-fixture. Two of its three lanes are laid across the advance rather than along
-it, so the front push always has believed ground in front of it and staging
-never has to derive anything. Lay the same fixture's lanes so all three leave
-the beachhead and the staging derivation fires on 370 pulses of 3,959.
+**Three attempts on the capture gate, all measured, none of them the cause.**
+Recorded so the next attempt does not re-derive them. The obvious reading of the
+first measurement was that the gate refuses compounds standing behind an
+un-taken outpost and that opening it would give the held compound back:
 
-**The map-side answer to the held compound was tried, and costs more than it
-fixes.** If the south's outer lanes begin two hundred cells from the only
-ground the force stands on, the natural fix is to give every derived lane the
-same two ends — the landing place and the keep — and spread them only in
-between. `lane-fan.md` built exactly that, and the fanned map holds 14 on the
-south and 3 on the west with the chain on. An isolation run against the same
-tree, with lane membership handed back to the plain lateral thirds, still reads
-12 and 4 — so the loss belongs to the fanned map itself and no lane reading
-over it recovers it. The change was reverted; that story holds the full matrix
-and the two silent lane-seeding defects it uncovered on the way.
+| opening | south captures / held | west captures / held |
+|---|---|---|
+| none — the chain as it stands | 20 / 16 | 13 / 7 |
+| a lane opens a rung whenever the allocation can pair nobody | 17 / 16 | 8 / 5 |
+| the same, never opening the objective, and only for a squad with no front work | 20 / 16 | 9 / 6 |
+| the same, and only onto rungs the depth latch has also reached | 20 / 16 | 12 / 7 |
 
-`lane-chain-tug-of-war.md` holds what remains, including the measured table for
-the three openings so the next attempt does not re-derive them.
+Held never moved off 16 on the south whatever was offered. Offering the whole
+ladder *lowers* captures, because opening by chain position alone hands the
+allocation the fortress — a thousand secure squad-pulses went into the keep out
+of order on each fixture, and the west's front push fell from a third of its
+orders to a twenty-fifth. Bounding that back to rungs the friendly line has come
+level with recovers the west exactly to its unopened numbers and makes the
+opening inert on the south, where every uncommitted squad has front work and the
+"nobody left over" trigger never fires. **Held compounds is a question about
+which places the chain never reaches, not about how many it is willing to offer
+at once** — and the place it was never reaching was the rung the map had not
+seated.
+
+**The map-side answer was tried too, and it is not the one either.** If a
+fixture's outer lanes begin two hundred cells from the only ground the force
+stands on, the natural fix is to give every derived lane the same two ends — the
+landing place and the keep — and spread them only in between. `lane-fan.md`
+built exactly that, and the fanned map holds 14 on the south and 3 on the west
+with the chain on; an isolation run against the same tree with lane membership
+handed back to the plain lateral thirds still reads 12 and 4, so the fanned map
+carried the loss and no lane reading over it recovered any of it. It was
+reverted. What it was worth was the three seeding defects it turned up on the
+way, which are what actually paid.
+
+**Route staging is still where it was.** An advance-track order is derived only
+for a squad the front push has no believed defender zone for, and on
+`reinforced-south` there is nearly always one: single-figure squad-pulses of
+nearly four thousand reach the staging derivation there, against hundreds on
+`full-strength-west`. That is a property of where that fixture's lanes are —
+two of its three run across the advance rather than along it — rather than of
+the fixture. Do not tune staging against the south.
+
+**"Nothing stays held" was overstated.** Only two distinct compounds on the
+south and two on the west ever changed hands back; a lane's front returns to
+rung 0 because those particular rung-0 places flip, not because the map does. It
+is a genuine tug-of-war over a couple of outposts rather than a failure to hold
+ground.
 
 ## Marine command
 

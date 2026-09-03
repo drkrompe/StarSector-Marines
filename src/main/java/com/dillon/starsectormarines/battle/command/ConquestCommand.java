@@ -221,24 +221,28 @@ public final class ConquestCommand implements ConquestFrontCommand,
             System.getProperty(HOME_TRACK_CAPTURES_PROPERTY, "true"));
 
     /**
-     * {@code -Dbattle.conquest.laneChain=true} reads a lane as a chain of
-     * places: the only one worth assaulting is the first the marines do not
-     * hold, and a staging order is derived along the road the map recorded
-     * between two of them.
+     * {@code -Dbattle.conquest.laneChain=false} puts the reading back to a
+     * forward fraction of the map. On by default: a lane is a chain of places,
+     * the only one worth assaulting is the first the marines do not hold, and a
+     * staging order is derived along the road the map recorded between two of
+     * them.
      *
-     * <p><b>Off by default, because the matrix says so.</b> The reading it
-     * replaces is a forward fraction of the map — a compound becomes assignable
-     * once the track's friendly lead is within
-     * {@link #CAPTURE_FRONT_REACH_CELLS} of its depth, and staging runs along
-     * the traversal axis — and that fraction is close to meaningless on a map
-     * grown from places: a track reads 0.8 advanced with its strongpoint still
-     * the defenders', and cannot record a place retaken at all. The chain reads
-     * the battle better and does not yet win it. Measured both ways on one
-     * tree, the chain costs {@code reinforced-south} one held compound of
-     * seventeen and five captures of twenty-five, for twenty-two fewer marines
-     * lost; it gains {@code full-strength-west} a capture at even held and
-     * forty-eight more marines lost. Held compounds is what a Conquest is
-     * decided on, so it stays behind the switch until it pays.
+     * <p>The reading it replaces is close to meaningless on a map grown from
+     * places — a compound becomes assignable once the track's friendly lead is
+     * within {@link #CAPTURE_FRONT_REACH_CELLS} of its depth, so a track reads
+     * 0.8 advanced with its strongpoint still the defenders', and it cannot
+     * record a place retaken at all.
+     *
+     * <p><b>It was off for a year of measurement, and what turned it on was a
+     * map defect rather than anything in this class.</b> Read against a map
+     * whose middle lane was silently one rung short, the chain cost
+     * {@code reinforced-south} a held compound of seventeen and five captures
+     * of twenty-five. Once every lane seated the whole ladder it asks for — see
+     * "And what stands between the two" in {@code precincts.md} — the same code
+     * measured on the same tree takes more and holds at least as much on both
+     * canonical fixtures: 22 captures and 17 held on the south against the
+     * fraction's 20 and 17, and 12 and 6 on the west against 7 and 5. A reading
+     * that walks a ladder cannot be judged against a ladder with a rung missing.
      *
      * <p>The switch governs the whole reading rather than one side of it, so
      * either state is a whole battle. It is a switch rather than an older
@@ -253,7 +257,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
     static boolean LANE_CHAIN_ENABLED = Boolean.parseBoolean(
-            System.getProperty(LANE_CHAIN_PROPERTY, "false"));
+            System.getProperty(LANE_CHAIN_PROPERTY, "true"));
 
     /**
      * Whether the chain reading is in force, for the defender's own layer.

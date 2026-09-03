@@ -1,17 +1,17 @@
 # Map generation story board
 
-Status: ACTIVE — fifteen bounded precinct, station, city, economic, or
+Status: ACTIVE — fourteen bounded precinct, station, city, economic, or
 cross-feature stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the lane fan was built, measured and reverted; two lane
-seeding defects it uncovered are open as `lane-seed-separation.md`.
+Updated: 2026-09-02 — the lane fan was built, measured and reverted, and the
+three lane-seeding defects it uncovered are fixed and folded into
+`precincts.md`; both canonical fixtures now seat all nine rungs.
 
 | Story | Status | Outcome |
 |---|---|---|
-| `lane-fan.md` | MEASURED AND REVERTED | Sharing both ends of every derived lane was built and measured both ways at full length; it loses held compounds on both canonical fixtures and the fanned map carries the loss, not the commander. Reverted, reading kept. Two silent lane-seeding defects it uncovered are still open. |
-| `lane-seed-separation.md` | PLANNED | A lane rung may stand closer to its own ladder than to a settlement, and its jitter window is bounded by the map rather than by its third. Both canonical fixtures drop their middle lane's rung today for neither reason. |
+| `lane-fan.md` | MEASURED AND REVERTED | Sharing both ends of every derived lane was built and measured both ways at full length; it loses held compounds on both canonical fixtures and the fanned map carries the loss, not the commander. Reverted, reading kept. The lane-seeding defects it uncovered have since shipped. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |
