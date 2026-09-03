@@ -331,17 +331,45 @@ public final class GroundRenderSystem implements RenderSystem {
         emitScatterAndDoors(sublayers, view);
     }
 
-    /** The cells the mesh holds no tile for, which still paint their block's colour. */
+    /**
+     * The cells the mesh holds no tile for, which still paint their block's
+     * colour.
+     *
+     * <p>Row by row rather than over the whole list. This was the one walk left
+     * in the layer that visited the whole map at every framing: the fill list is
+     * every fill cell in the battle, and a compound framing rejected all but a
+     * handful of them one at a time, having read each one's index and divided it
+     * out into a coordinate first. The list is built in ascending cell index and
+     * a cell index is {@code y * width + x}, so each visible row is a contiguous
+     * run inside it and binary search finds the run's ends. What is skipped is
+     * skipped without being looked at.
+     */
     private void emitResidentFills(VisibleCellRect view) {
+        if (view.isEmpty()) return;
         int width = mesh.gridWidth();
         int[] cells = mesh.fillCells();
-        for (int i = 0, n = mesh.fillCellCount(); i < n; i++) {
-            int cell = cells[i];
-            int x = cell % width;
-            int y = cell / width;
-            if (!view.contains(x, y)) continue;
-            fillCellRgb(x, y, mesh.fillRgb(cell));
+        int count = mesh.fillCellCount();
+        for (int y = view.minY(); y <= view.maxY(); y++) {
+            int rowStart = y * width;
+            int from = lowerBound(cells, count, rowStart + view.minX());
+            int to = lowerBound(cells, count, rowStart + view.maxX() + 1);
+            for (int i = from; i < to; i++) {
+                int cell = cells[i];
+                fillCellRgb(cell - rowStart, y, mesh.fillRgb(cell));
+            }
         }
+    }
+
+    /** First index in the ascending prefix {@code [0, count)} whose value is {@code >= key}. */
+    private static int lowerBound(int[] values, int count, int key) {
+        int low = 0;
+        int high = count;
+        while (low < high) {
+            int mid = (low + high) >>> 1;
+            if (values[mid] < key) low = mid + 1;
+            else high = mid;
+        }
+        return low;
     }
 
     // ---- base terrain resolution --------------------------------------------

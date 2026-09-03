@@ -38,6 +38,7 @@ public final class ParkedAircraftRenderSystem implements RenderSystem {
         if (aircraft.isEmpty()) return;
 
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
 
@@ -47,6 +48,11 @@ public final class ParkedAircraftRenderSystem implements RenderSystem {
 
             float hullLenCells = HullFootprintResolver.visualLengthCells(
                     parked.type.renderHullId());
+            // The hull's long axis, taken on both because it is parked at a
+            // facing, plus the pivot that moves the drawn centre off the cell.
+            if (!view.visible(parked.centerX + 0.5f, parked.centerY + 0.5f,
+                    hullLenCells * AirAppearance.GROUND_SCALE
+                            * Math.max(1f, cache.aspect) * 1.6f)) continue;
             float pxLen = hullLenCells * cellPx * AirAppearance.GROUND_SCALE;
             float[] pivot = HullPivotResolver.pivotOffset(parked.type.renderHullId());
             float pvx = pivot[0] * AirAppearance.GROUND_SCALE;

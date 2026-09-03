@@ -194,6 +194,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     private void collectGroundBodies(RenderContext ctx, DrawList out, SpriteAPI blob) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
         UnitRosterService roster = ctx.sim.getRoster();
         FogOfWarService vis = ctx.sim.getFogOfWar();
         float cellPx = cam.cellPxSize();
@@ -228,6 +229,14 @@ public final class UnitShadowRenderSystem implements RenderSystem {
                 float shadowX = rx[r] - sun.dirX() * anchor;
                 float shadowY = ry[r] - sun.dirY() * anchor;
 
+                // Culled on the shadow rather than on the body it belongs to,
+                // which is the only test that is exactly right: a low sun lays
+                // an ellipse several cells down-sun of a body, so a shadow can
+                // be on screen with its caster off it and the other way round.
+                // The length is the ellipse's own, already computed here, so
+                // there is no margin to guess at.
+                if (!view.visible(shadowX, shadowY, lengthCells)) continue;
+
                 emit(out, blob, cam, shadowX, shadowY,
                         lengthCells * cellPx, widthCells * cellPx,
                         shadowAngleDegrees(), alpha * SHADOW_ALPHA * sun.shadowStrength());
@@ -247,6 +256,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
 
         World world = ctx.sim.world();
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
 
         for (long id : airIds) {
@@ -295,6 +305,12 @@ public final class UnitShadowRenderSystem implements RenderSystem {
             float pvy = pivot[1] * AirAppearance.GROUND_SCALE;
             float shadowX = body.x + (pvx * pc - pvy * psn) - sun.dirX() * reach;
             float shadowY = body.y + (pvx * psn + pvy * pc) - sun.dirY() * reach;
+
+            // The silhouette's own span, taken on the long axis for both
+            // because it turns with the aircraft.
+            float spanCells = hullLengthCells * AirAppearance.GROUND_SCALE
+                    * Math.max(1f, cache.aspect);
+            if (!view.visible(shadowX, shadowY, spanCells)) continue;
 
             // pxW/pxH exactly as ShuttleRenderSystem computes them for the
             // hull, so the silhouette is the same rectangle at the same facing.

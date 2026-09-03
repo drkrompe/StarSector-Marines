@@ -245,25 +245,52 @@ Do not run builds or leave generated task files there.
   it reports that it skipped where no context can be made.
   **Counts must repeat and times must not be read as one.** The task asserts
   that the same world at the same framing collects the identical command count
-  every frame, which is what makes a counts regression a failure rather than
-  noise; the times are medians of nine frames after warm-up and move a few per
-  cent run to run. Compare a lever against **its own run's control**
+  every frame, and that **the same fixture stood up twice collects the same
+  counts as well**; the times are medians of nine frames after a thirty-frame
+  warm-up and carry about 0.06 ms of run-to-run spread per layer. Compare a
+  lever against **its own run's control**
   (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
   `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
   `-Dbattle.render.groundAtlas=false`,
   `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
-  `-Dbattle.render.residentRoofs=false`), never against a number in a
-  document.
-  Where it stands: **nothing is submission-bound any more.** `UNITS` is five
-  draws across two binds at every framing on either map, `ROOFS` is one custom
-  pass and one command, and `GROUND` is three draws and **no texture binds at
-  all** — everything in those layers carrying a texture is resident or atlased,
-  and what is left is solid fill. A whole-map 280x168 frame costs **0.92 ms** of
-  our own against 1.79 with the roofs streamed. Every remaining ceiling is a
-  collector rather than a driver: `UNITS` 0.36 ms of collection against 0.25 of
-  drain at 280x168 close, `GROUND` 0.38 against 0.18 at mid. The next lever is
-  therefore about visiting fewer bodies and fewer cells, not about submitting in
-  fewer calls.
+  `-Dbattle.render.residentRoofs=false`,
+  `-Dbattle.render.collectCulling=false`), never against a number in a
+  document — and never against a delta smaller than that spread.
+  **The world it profiles has to be the same world every run**, which it was
+  not: the harness plays 600 ticks before it draws, and under the production
+  scheduler that landed somewhere different every time — the same fixture on
+  unchanged code collected 496, 567 and 537 `UNITS` commands on three runs. The
+  frame-to-frame assertion could not see it, because the harness does not
+  advance the simulation between frames and so a single run's counts repeat
+  perfectly while meaning something else than the last run's. The task forces
+  the serial scheduler the way `commanderEvidence` and `simDeterminism` do, and
+  the harness asserts that rather than setting it.
+  **Thirty warm-up frames, because three was measuring the JIT.** Three covers
+  the texture uploads and the batch growth and nothing of compilation: at three,
+  the 280x168 control reported `GROUND` at 0.36 ms of collection at a lane
+  framing against 0.14 at the whole map — four times the cells through the same
+  loop for a third of the cost. At thirty the same framing reads 0.08 and the
+  ordering comes right; every figure early in a run fell by more than half.
+  Anything measured here before 2026-09-03 was reading that gradient.
+  **A lever that can drop something is accepted on pixels, not on counts.** A
+  body wrongly culled is silent — the frame is simply missing it and looks
+  ordinary — so the run reads back each framing culled and unculled and asserts
+  they are identical, and walks a chosen marine out through the viewport edge in
+  half-cell steps to put a straddling body there on purpose. Those readbacks run
+  after every timed frame on a map rather than between them: eight megabytes off
+  the card landed in the next framing's median as noise several times the effect
+  being measured.
+  Where it stands: **nothing is submission-bound, and nothing collects more than
+  the camera shows.** `UNITS` is five draws across two binds at every framing on
+  either map, `ROOFS` is one custom pass and one command, and `GROUND` is three
+  draws and **no texture binds at all**. Collectors now visit what is in view:
+  at a compound framing on the 560x336 map `UNITS` collects 160 commands where
+  it used to collect 527 at every framing alike, `COMPOUND` 6 against 98,
+  `UNIT_SHADOWS` 18 against 54 — 0.35 ms of our own against the control's 0.47,
+  and `UNITS` there is 0.05 ms of collection against 0.12 of drain, so it is not
+  collection-bound any more. What is left is `GROUND` at the whole map, 0.27 ms
+  over 929 commands that are all genuinely on screen; culling cannot reach that
+  and the next lever there is a framing gate or cheaper per-cell resolution.
   **The harness does not advance the simulation between frames**, so a resident
   thing's patch cost is charged once, in the frame that catches it up, and every
   later frame in a framing reads as the steady state. That is the shape of the

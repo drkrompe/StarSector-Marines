@@ -4,9 +4,10 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — the ground layer's sheets are one texture and everything
-in it that is a function of the topology is resident, so a whole-map frame's
-`GROUND` costs three draws and no texture binds; the ceiling moves to `UNITS`.
+Updated: 2026-09-03 — collectors visit what the camera can see (law 26), so a
+compound framing collects a compound's worth of bodies rather than the whole
+map's; the frame is bounded by the view at every framing and the remaining
+ceiling is `GROUND`'s per-visible-cell work at the whole map.
 
 ## Vocabulary
 
@@ -64,6 +65,14 @@ in it that is a function of the topology is resident, so a whole-map frame's
   are the second and third. Sub-layer order is the whole of the painter contract
   between them, because within one sub-layer no cell's quad overlaps another's.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
+- A **view cull** is the same idea for things that are not cells: the camera's
+  viewport in cell space, asked whether a body's own drawn extent can land in
+  it. It is not visibility and not a framing gate — fog decides who may be seen
+  and a gate decides what is too small to read, while this decides only whether
+  the drain was going to keep the pixels. What a caller passes it is the extent
+  of the thing it is about to draw, never a shared margin: a marine is a cell
+  across and a parked transport is twelve, so one number is either wrong for the
+  transport or useless for the marine.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
   but it does not acquire the standalone battle's HUD, input, audio, or update loop.
@@ -287,6 +296,45 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     that span's vertex colours. The stream's own rule that a roof under a
     threshold is not drawn survives as an alpha of zero, or a resident quad
     would put a roof over an interior the streamed path leaves clear.
+26. A collector visits what the camera can see, and pays for the visit once.
+    Culling is the standing answer to a collector's cost the way residency is to
+    a submitter's: a body whose drawn extent cannot land in the viewport is not
+    composed, not looked up and not emitted, and a cell-backed pass is bounded
+    by the visible rectangle. The extent is the drawn one and is passed by the
+    caller that knows it — a mount's authored `visualCells`, a hull's resolved
+    visual length, a shadow ellipse's own computed length — because a shared
+    margin is a number that has to be kept in step with authored art and fails
+    silently when it is not. A camera that cannot describe a viewport withholds
+    nothing, exactly as a framing gate does.
+
+    **The acceptance is pixel equality, because the failure is silent.** A
+    command count says how much was collected and a timing says how long it
+    took; neither can see a body that stopped being drawn, and a frame missing
+    one looks like an ordinary frame. So a culled frame is compared against an
+    unculled one through the shipping pipeline at every framing, with a body
+    walked out through the viewport edge in half-cell steps so the step where a
+    margin was a fraction too small is the step that fails.
+
+    **Culling reaches the emit and not the walk, and the walk is usually the
+    cost.** Culling `UNITS` cut what it collected at a close framing by seventy
+    per cent and its collection time by a tenth of that, because five of its
+    sweeps each walked the entire live roster asking every body on the field
+    what type it was so as to skip the ones that were not their business. That
+    is two thousand identity probes to emit a few dozen footprints, and it
+    happens whether or not anything is emitted. Resolving the type **once**, in
+    one pass that sorts the roster into the strata that want it, was two thirds
+    of the layer's collection cost — a larger win than the culling it was
+    supposed to be an accessory to. The general form: before culling a
+    collector, ask what it does per body that culling cannot reach.
+
+    **A spatial index is the wrong instrument for this particular walk**, and
+    the reason is paint order rather than performance. Submission order is paint
+    order (law 1), so a stratum must be filled in roster order; the index
+    returns bucket order, and it returns ids where fog needs dense roster slots.
+    Recovering both costs a lookup per body, which is what the walk it replaces
+    already pays. It remains the right instrument for a proximity question,
+    which this is not: this asks a fixed rectangle about every body, not a body
+    about its neighbours.
 
 ## Boundaries and extension paths
 
@@ -296,30 +344,48 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a repeat wrap that a tile cut from a packed sheet cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
-**Nothing is submission-bound any more, and what `renderEvidence` names next is
-collection.** With units atlased and roofs resident, no layer at any framing on
-either map spends its time in the driver: `UNITS` is five draws across two binds
-whether it is drawing 186 bodies or 230, `ROOFS` is one custom pass and one
-command, `GROUND` is three draws and no binds at all. Every remaining ceiling is
-a collector walking bodies or cells — `UNITS` at 0.36 ms of collection against
-0.25 of drain at 280x168 close, `GROUND` at 0.38 against 0.18 at mid — and the
-whole-map 280x168 frame is 0.92 ms of our own against 1.79 with the roofs
-streamed. That is a different kind of question from the last three levers: not
-how to submit the same picture in fewer calls, but whether a collector has to
-visit every body and every cell to produce it at all, which is culling and
-framing gates (law 19) rather than batching or residency.
+**The frame is bounded by the view at every framing, and what `renderEvidence`
+names next is per-cell work.** Culling closed the gap between what a framing
+shows and what the collectors visited: `UNITS` collected 527 commands at a
+compound framing and at the whole map alike, and now collects 160 at the
+compound; `COMPOUND` went from 98 to 6, `UNIT_SHADOWS` from 54 to 18. On the
+560x336 map at a compound framing that is 0.47 ms of our own against 0.35, and
+the layer that was the ceiling there is no longer collection-bound at all —
+`UNITS` reads 0.05 ms of collection against 0.12 of drain. What remains is
+`GROUND` at the whole map: 0.27 ms of collection over 929 commands, every one of
+them a cell that genuinely is on screen. Culling cannot reach that by
+construction, so the next lever is either a framing gate (law 19) over
+decoration nobody can read at three pixels a cell, or cheaper per-cell
+resolution — and the gate was already measured once, for the relief composite,
+and shelved because the frame was under budget without it.
 
-**The pair that got there was right about the shape and wrong about the size,
-in opposite directions.** `UNITS` was named as submission-bound and the atlas
-as its answer, and the atlas did what was predicted — 253 draws across 250 binds
-became five across two — while the layer's own cost barely moved, from 0.59 ms
-to 0.49 at 560x336 close, because on this driver a bind is cheap and compositing
-six or seven authored images per body is not. `ROOFS` was named as
-collection-bound and wanting fewer commands, and residency gave it exactly that
-and rather more than expected: 6,035 commands became one, and 0.83 ms became
-0.02. A lever aimed at the driver bought a tenth of a millisecond; a lever aimed
-at the collector bought eight tenths. That is the reading that points the next
-one at collection.
+**The instrument was measuring its own warm-up, and finding that mattered more
+than the lever.** At three discarded frames the 280x168 control reported
+`GROUND` costing 0.36 ms of collection at a lane framing and 0.14 at the whole
+map — four times the visible cells for a third of the cost, through the same
+loop. Thirty discarded frames put it at 0.08 and the ordering came right, and
+every figure early in a run fell by more than half. Two of the three
+"regressions" this lever appeared to cause were that gradient, and so was a
+`GROUND` cost that had been read as evidence for weeks. A control run is only
+worth what the instrument's own spread allows: it is now about 0.06 ms per
+layer, which is most of what separates a culled frame from an unculled one at
+the framings where culling rejects nothing.
+
+**Culling reaches the emit, and the walk is where the cost was.** Rejecting
+seventy per cent of what `UNITS` collected moved its collection time by a
+tenth of that, because five of its sweeps each walked the whole live roster
+asking every body what type it was — two thousand identity probes to emit a few
+dozen footprints, paid whether or not anything was emitted. Resolving the type
+once, in one pass, was two thirds of the layer's collection cost. Both halves
+ship, and the accessory turned out larger than the lever; the general lesson is
+law 26's.
+
+**And a guard can cost more than what it guards.** The cull in the live-sprite
+sweep is four float comparisons, and as a method call inside that sweep's very
+large composition loop it cost a quarter of a microsecond per body — thirty
+times what the comparisons can amount to — at the one framing where it rejects
+almost nothing and therefore always runs to completion. Hoisted to primitive
+locals it disappears. A test cheap in isolation is not cheap in every loop.
 
 The guess this replaced is worth keeping for what it got wrong. It named
 merging as the lever, which was right, and then predicted the win would be in

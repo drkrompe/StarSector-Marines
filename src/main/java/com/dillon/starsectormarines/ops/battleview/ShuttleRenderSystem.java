@@ -49,6 +49,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
 
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
 
@@ -65,6 +66,16 @@ public final class ShuttleRenderSystem implements RenderSystem {
             float altitudeT = world.altitudeT(id);
             float scaleMult = AirAppearance.scaleMult(altitudeT, world.flightPhase(id));
             float altOffset = AirAppearance.visualAltitudeOffsetCells(altitudeT);
+
+            // A hull, its engine plume, its turrets and its altitude offset, as
+            // one span on the long axis -- it turns, and the offset walks the
+            // whole composition north of the body it belongs to. Ahead of the
+            // engine-FX custom pass, which is a whole GL bracket of its own per
+            // aircraft.
+            float spanCells = HullFootprintResolver.visualLengthCells(frame.renderHullId())
+                    * Math.max(1f, scaleMult) * Math.max(1f, cache.aspect)
+                    + 2f * Math.abs(altOffset);
+            if (!view.visible(body.x, body.y, spanCells * 1.5f)) continue;
             float engineFxIntensity = AirAppearance.thrusterPlume(mission.state, altitudeT);
             float[] thrusterGlow = ctx.sim.getThrusterGlow(id);
 
