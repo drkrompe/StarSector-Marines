@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
-import com.dillon.starsectormarines.battle.command.LaneFence;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -113,10 +112,9 @@ class ConquestOnPrecinctsTest {
             assertTheForceLandsAtItsStandoff(fixture.seed(), map);
             assertTheBeachheadIsAPlaceTheMarinesHold(map, sim);
             assertNothingElseStandsInTheBeachhead(map);
-            assertEveryLaneRouteIsWalkable(map);
-            assertEveryLaneFansFromTheBeachhead(map);
             assertThereIsResistanceInDepth(fixture, map);
             assertEveryCompoundCanBeWalkedTo(map);
+            assertEveryLaneRouteIsWalkable(map);
         }
     }
 
@@ -215,34 +213,26 @@ class ConquestOnPrecinctsTest {
      * every compound in band 0 inside one wall, and all three tracks arrived at
      * it with nothing to take on the way.
      *
-     * <p><b>Breadth is read off the recorded routes, not off the thirds.</b> A
-     * lane fans now — it leaves the beachhead, opens to its own third at its
-     * widest band and closes on the keep — so the strip a compound stands in
-     * says less about which lane it belongs to than which route passes nearest
-     * it does. {@code LaneFence} is the answer the commanders themselves read.
-     *
-     * <p><b>Band 1 alone, and that is a measurement rather than a concession.</b>
-     * A front band is a ring around the objective, cut into three equal rings
-     * out to the map's furthest cell; a lane is a route along the axis. Once the
-     * ladder stands between the beachhead and the keep rather than between the
-     * attacker's region and the keep, there is no rung behind the landing zone
-     * at all — which is what {@code precincts.md} always said the outer bands
-     * were. On {@code full-strength-west} front band 2 now holds exactly one
-     * compound, the beachhead itself, and band 3 holds nothing. The layering
-     * the ladder exists for is along the chain, which
-     * {@link #assertEveryLaneFansFromTheBeachhead} and the route walk pin.
+     * <p><b>Bands 1 and 2, not 1 to 3, and that is a measurement rather than a
+     * concession.</b> A front band is a ring around the objective, cut into
+     * three equal rings out to the map's furthest cell; a lane is a ribbon along
+     * the axis. On both canonical fixtures band 3 is the ground <em>behind</em>
+     * the beachhead: at {@code CLOSE} the force lands about two hundred cells
+     * short of the claim, which is band 2, so a rung placed in band 3 would
+     * stand at the marines' backs. On {@code full-strength-west} it is
+     * impossible rather than merely undesirable — the lateral extent is 336
+     * cells against a ring width of 139, so no cell in front of the beachhead is
+     * far enough from the claim to be band 3 at all. The ladder still has three
+     * rungs; the outer one shares band 2 with the middle one.
      */
     private static void assertThereIsResistanceInDepth(ConquestBattleFixture fixture,
                                                        MapResult map) {
         ConquestTrackLayout tracks = new ConquestTrackLayout(rolledAxis(fixture.seed()),
                 MapScale.CONQUEST.width, MapScale.CONQUEST.height);
-        LaneFence fence = LaneFence.of(map.lanes,
-                MapScale.CONQUEST.width, MapScale.CONQUEST.height);
-        assertNotNull(fence, "a Conquest map with lanes draws no fence");
         int[][] byBandAndLane = new int[map.frontDepth.bands()][tracks.trackCount()];
         for (TacticalNode node : map.tacticalMap.all()) {
             if (!CompoundService.isCompound(node.kind)) continue;
-            int lane = fence.laneAt(node.anchorX, node.anchorY);
+            int lane = tracks.trackForCell(node.anchorX, node.anchorY);
             if (lane < 0) continue;
             byBandAndLane[map.frontDepth.bandAt(node.anchorX, node.anchorY)][lane]++;
         }
@@ -257,13 +247,15 @@ class ConquestOnPrecinctsTest {
         String unplaced = plan.unplacedLanePlaces().size() + " rungs unseated "
                 + plan.unplacedLanePlaces();
 
-        int inBandOne = 0;
-        for (int lane = 0; lane < tracks.trackCount(); lane++) {
-            if (byBandAndLane[1][lane] > 0) inBandOne++;
+        for (int band = 1; band <= 2; band++) {
+            int lanes = 0;
+            for (int lane = 0; lane < tracks.trackCount(); lane++) {
+                if (byBandAndLane[band][lane] > 0) lanes++;
+            }
+            assertTrue(lanes >= 2, "front band " + band + " holds compounds in "
+                    + lanes + " of " + tracks.trackCount() + " lanes; " + tally
+                    + "; " + unplaced);
         }
-        assertTrue(inBandOne >= 2, "front band 1 holds compounds in "
-                + inBandOne + " of " + tracks.trackCount() + " lanes; " + tally
-                + "; " + unplaced);
         for (int lane = 0; lane < tracks.trackCount(); lane++) {
             int ahead = 0;
             for (int band = 1; band < map.frontDepth.bands(); band++) {
@@ -384,82 +376,6 @@ class ConquestOnPrecinctsTest {
                 assertEquals(link.y(), at.y(), link.place() + " is not on its own route");
             }
         }
-    }
-
-    /**
-     * How far the outermost rung of a lane may stand from the beachhead.
-     *
-     * <p>The fan's own acceptance, and it is a measurement rather than a
-     * judgement. On the two canonical fixtures the six outermost rungs come out
-     * between 63 and 130 cells of the middle of the ground the marines land on;
-     * the figure here is that with room for the jitter, the meander and a
-     * re-rolled seed to move one. Before lanes fanned, a lane began in the
-     * middle of its own lateral third of the attacker's region — on
-     * {@code reinforced-south} that put the outer two lanes' first rungs a
-     * hundred and fifty cells <em>sideways</em> from the beachhead and level
-     * with it, and their fronts never moved in eighteen thousand ticks.
-     *
-     * <p>Measured to the link's own cell rather than to the precinct seed: the
-     * link is the walkable cell the recorded route actually reaches, which is
-     * what a squad walks to.
-     */
-    private static final int LANDING_REACH_CELLS = 150;
-
-    /**
-     * How far the innermost rung of a lane may stand from the objective's own
-     * link at the end of it.
-     *
-     * <p>The other end of the same law: a lane closes on the fortress. Measured
-     * the same way on the same fixtures, where the six deepest rungs come out
-     * between 60 and 74 cells of the keep's own link. Before the fan the widest
-     * was over two hundred — a deepest rung out on the flank of a keep its lane
-     * never arrived at.
-     */
-    private static final int KEEP_REACH_CELLS = 100;
-
-    /**
-     * Every lane leaves the one beachhead and arrives at the one keep.
-     *
-     * <p>A lane used to begin in the middle of its own lateral third of the
-     * attacker's region — three parallel ladders, each with its own start — so
-     * two of the three began two hundred cells sideways from the only ground the
-     * force stands on. This is the shape that replaced it, asked of the finished
-     * map's own record rather than of the plan: the outermost rung of each lane
-     * stands within reach of the beachhead and the innermost within reach of the
-     * fortress, with the middle band free to stand as wide as its own third.
-     */
-    private static void assertEveryLaneFansFromTheBeachhead(MapResult map) {
-        TacticalNode beachhead = map.tacticalMap.all().stream()
-                .filter(node -> node.kind == TacticalNode.Kind.BEACHHEAD)
-                .findFirst().orElseThrow();
-        for (LaneRoute lane : map.lanes) {
-            LaneRoute.Link outermost = lane.links().get(0);
-            LaneRoute.Link keep = lane.links().get(lane.links().size() - 1);
-            LaneRoute.Link innermost = lane.links().get(lane.links().size() - 2);
-            // The middle of the ground the marines hold, not its anchor: a
-            // tactical node's anchor is a cell of the place rather than its
-            // centre, and on a seventy-cell beachhead that is thirty cells of
-            // noise in a measurement about where lanes begin.
-            int landingX = (beachhead.left + beachhead.right) / 2;
-            int landingY = (beachhead.top + beachhead.bottom) / 2;
-            int fromLanding = distance(outermost.x(), outermost.y(),
-                    landingX, landingY);
-            int fromKeep = distance(innermost.x(), innermost.y(), keep.x(), keep.y());
-            assertTrue(fromLanding <= LANDING_REACH_CELLS,
-                    "lane " + (lane.lane() + 1) + " begins at " + outermost.place()
-                            + ", " + fromLanding + " cells from the beachhead at "
-                            + landingX + "," + landingY
-                            + " — further than " + LANDING_REACH_CELLS);
-            assertTrue(fromKeep <= KEEP_REACH_CELLS,
-                    "lane " + (lane.lane() + 1) + " ends at " + innermost.place()
-                            + ", " + fromKeep + " cells from the keep at "
-                            + keep.x() + "," + keep.y()
-                            + " — further than " + KEEP_REACH_CELLS);
-        }
-    }
-
-    private static int distance(int x0, int y0, int x1, int y1) {
-        return (int) Math.round(Math.hypot(x0 - x1, y0 - y1));
     }
 
     /**
