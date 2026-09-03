@@ -183,11 +183,11 @@ public record LanePath(List<Waypoint> waypoints) {
          * <p><b>An offset rather than a destination, so the fan is symmetric
          * about the ground the force is on.</b> Pushing each lane out to the
          * absolute middle of its own third instead makes the fan lopsided
-         * whenever the beachhead is not itself in the middle of the map — one
-         * canonical fixture lands fifty cells west of centre, which put its
-         * outermost rungs fifty-five and a hundred and fifty-seven cells from
-         * the beachhead. Three routes out of one beachhead should leave it in
-         * three directions, not two and a half.
+         * whenever the beachhead is not itself in the middle of the map, and it
+         * usually is not: a landing place is resolved against the approach
+         * region and the standoff, not against the lateral midpoint. Three
+         * routes out of one beachhead should leave it in three directions, not
+         * two and a half.
          */
         public int laneOffset() {
             return lateralCentre() - (lateralExtent() - 1) / 2;
@@ -235,7 +235,7 @@ public record LanePath(List<Waypoint> waypoints) {
 
     /**
      * How wide the fan stands at a fraction along the path, as a share of the
-     * whole offset between the shared axis and the lane's own centreline.
+     * lane's own {@linkplain Frame#laneOffset offset} from the shared axis.
      *
      * <p>Zero at the beachhead, one at {@code peak}, zero again at the keep,
      * straight between. The two ends are the law — every lane leaves the same

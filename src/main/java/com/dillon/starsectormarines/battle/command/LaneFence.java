@@ -2,9 +2,7 @@ package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
 import java.util.List;
 
 /**
@@ -42,6 +40,9 @@ public final class LaneFence {
     /** A cell no route reached: only possible on a map with no routes at all. */
     public static final int NO_LANE = -1;
 
+    /** A cell more than one route runs through: it seeds nothing. */
+    private static final int SHARED = -2;
+
     private final int width;
     private final int height;
     private final int[] lane;
@@ -56,9 +57,6 @@ public final class LaneFence {
      * The fence these routes draw, or {@code null} when none of them recorded a
      * cell — there is nothing to partition the map between.
      */
-    /** A cell more than one route runs through: it seeds nothing. */
-    private static final int SHARED = -2;
-
     public static LaneFence of(List<LaneRoute> routes, int width, int height) {
         if (routes == null || routes.isEmpty() || width <= 0 || height <= 0) return null;
         int[] lane = new int[width * height];
@@ -79,31 +77,34 @@ public final class LaneFence {
         // own — its route runs down the same streets as its neighbour's for
         // most of its length, and only the stretches near its own rungs are
         // actually its.
-        Deque<Integer> queue = new ArrayDeque<>();
+        // An int queue rather than a Deque<Integer>: the sweep visits every cell
+        // of the map once, which on a Conquest map is a hundred and eighty
+        // thousand boxed Integers for an answer that is three small numbers.
+        int[] queue = new int[lane.length];
+        int tail = 0;
         for (int at = 0; at < lane.length; at++) {
             if (lane[at] == SHARED) lane[at] = NO_LANE;
-            else if (lane[at] != NO_LANE) queue.add(at);
+            else if (lane[at] != NO_LANE) queue[tail++] = at;
         }
-        if (queue.isEmpty()) return null;
-        while (!queue.isEmpty()) {
-            int at = queue.poll();
+        if (tail == 0) return null;
+        for (int head = 0; head < tail; head++) {
+            int at = queue[head];
             int x = at % width;
             int y = at / width;
-            spread(lane, queue, width, height, x - 1, y, lane[at]);
-            spread(lane, queue, width, height, x + 1, y, lane[at]);
-            spread(lane, queue, width, height, x, y - 1, lane[at]);
-            spread(lane, queue, width, height, x, y + 1, lane[at]);
+            int from = lane[at];
+            if (x > 0) tail = spread(lane, queue, tail, at - 1, from);
+            if (x < width - 1) tail = spread(lane, queue, tail, at + 1, from);
+            if (y > 0) tail = spread(lane, queue, tail, at - width, from);
+            if (y < height - 1) tail = spread(lane, queue, tail, at + width, from);
         }
         return new LaneFence(width, height, lane);
     }
 
-    private static void spread(int[] lane, Deque<Integer> queue, int width, int height,
-                               int x, int y, int from) {
-        if (x < 0 || y < 0 || x >= width || y >= height) return;
-        int at = y * width + x;
-        if (lane[at] != NO_LANE) return;
+    private static int spread(int[] lane, int[] queue, int tail, int at, int from) {
+        if (lane[at] != NO_LANE) return tail;
         lane[at] = from;
-        queue.add(at);
+        queue[tail] = at;
+        return tail + 1;
     }
 
     /** Which lane this cell belongs to, or {@link #NO_LANE} off the map. */

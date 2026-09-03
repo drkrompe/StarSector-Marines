@@ -256,6 +256,22 @@ public final class ConquestCommand implements ConquestFrontCommand,
             System.getProperty(LANE_CHAIN_PROPERTY, "false"));
 
     /**
+     * Whether lane membership is read off the recorded routes.
+     *
+     * <p>The control switch for {@link LaneFence}, and it is separate from the
+     * chain on purpose: the fan changed the map <em>and</em> the fence in one
+     * story, and the matrix cannot say which of them a difference belongs to
+     * unless one of them can be turned off against the same tree. False falls
+     * every lane question back to {@code ConquestTrackLayout}'s lateral thirds,
+     * which is what a map with no recorded routes gets anyway.
+     */
+    public static final String LANE_FENCE_PROPERTY = "battle.conquest.laneFence";
+
+    /** Read once from the property above. */
+    static boolean LANE_FENCE_ENABLED = Boolean.parseBoolean(
+            System.getProperty(LANE_FENCE_PROPERTY, "true"));
+
+    /**
      * Whether the chain reading is in force, for the defender's own layer.
      *
      * <p>Both sides of the duel read the same map the same way — the attacker
@@ -1548,7 +1564,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * nobody walks to. See {@link LaneFence}.
      */
     private int laneForCell(float x, float y) {
-        if (laneFence != null) {
+        if (LANE_FENCE_ENABLED && laneFence != null) {
             int lane = laneFence.laneAt(x, y);
             if (lane >= 0 && lane < STRIP_COUNT) return lane;
         }
