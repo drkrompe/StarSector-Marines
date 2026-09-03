@@ -249,10 +249,20 @@ Do not run builds or leave generated task files there.
   noise; the times are medians of nine frames after warm-up and move a few per
   cent run to run. Compare a lever against **its own run's control**
   (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
-  `-Dbattle.render.residentRelief=false`), never against a number in a document.
-  Where it stands: a whole-map 560x336 Conquest frame is **13 ms** with every
-  lever on and 148 ms with resident relief off, and the ceiling there is now
-  `FOG` at 5.7 ms of the 12.5 that are ours.
+  `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`),
+  never against a number in a document.
+  Where it stands: a whole-map 560x336 Conquest frame is **8 ms** with every
+  lever on, 13 ms with the fog field off and 148 ms with resident relief off,
+  and the ceiling there is now `GROUND` at 5.4 ms of the 7.5 that are ours —
+  1.7 collect and 3.7 drain, which is the sparse work the resident mesh does
+  not hold leaving as five hundred draws across five hundred texture binds.
+  **The harness does not advance the simulation between frames**, so a resident
+  thing's patch cost is charged once, in the frame that catches it up, and every
+  later frame in a framing reads as the steady state. That is the shape of the
+  instrument rather than a flattering choice — the counts assertion requires a
+  still world — but it is why a delta-patched layer reads at a hundredth of a
+  millisecond here and should be expected to cost more on the frames a live
+  battle actually changes something in.
   **A headless run has no `Display`, and that used to size the composite 1x1.**
   `GroundParallaxPipeline` scales its targets by the framebuffer over the
   reported screen, and off a pbuffer the framebuffer is zero -- so every relief

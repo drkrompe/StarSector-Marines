@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — bounded the half-strength smoke shadow to cells current player observation would reveal in clear air.
+Updated: 2026-09-02 — the service reports where its reveal moved, so a presentation consumer holding a picture derived from it can redo the part that is stale.
 
 Read `stories.md` for open work.
 
@@ -46,6 +46,17 @@ position, and shots remain visible through fog.
 - A **roof reveal** is a building presentation state derived from its interior
   cells in the reveal bitmap. It is neither a separate line-of-sight algorithm
   nor a building gameplay state.
+- The **changed extent** is where the reveal bitmap moved, recorded as one
+  bounding rectangle per update on a monotonic log a reader remembers its own
+  place in. It exists for a presentation consumer that keeps a picture derived
+  from the bitmap and would otherwise have to redo all of it — the render
+  tier's resident fog field is the one it was built for. It reports where the
+  answer moved and never what the answer is: a reader that trusted it instead
+  of the bitmap would be a second visibility authority, which law 3 forbids.
+  It records only genuine flips, so a source arriving on a cell another source
+  already holds open leaves it silent, and it records the counterfactual
+  clear-air mask alongside the reveal, because the half-strength smoke shadow
+  is part of the same picture.
 
 `FogOfWarService` is the one owner of player reveal composition and visual
 unit state. The map owns opacity; `VisionService` owns mutable sight inputs;
@@ -100,6 +111,13 @@ simulation continues to own reveal and visibility transitions.
 8. Current observation is not memory. Last-known ghosts, projectile gating,
    and ambient lighting are separate extensions and must state their own
    authority rather than changing the current-observation meaning of revealed.
+9. Every write to the reveal bitmap goes through the seam that records it. A
+   change the extent did not see is a consumer holding a stale picture with no
+   way to discover it, and the failure is silent — a patch of the right size in
+   the wrong place looks exactly like a patch. New sources, new channels and new
+   invalidation paths take the same reference-counted flip, and a wholesale
+   rebuild that cannot be reference counted compares against what it replaces
+   rather than announcing nothing.
 
 ## Observation and lifecycle boundaries
 

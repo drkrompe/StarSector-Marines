@@ -27,3 +27,4 @@ Written: 2026-08-23
 | `geometry-markers-command-model.md` | 2026-06-02 | `87ab4325`, `0be86c1e`, `c5cb8c3b`, `3a18d7cb` | Polygon/line geometry and marker presentation in `battle-render-nouns.md`. |
 | `geometry-highlights-command-model.md` | 2026-06-02 | `a6e0db3c`, `f9b419d7`, `2ffc2312` | Selection-derived highlight presentation in `battle-render-nouns.md`. |
 | `camera-view-cull.md` | 2026-08-19 | `59c4b327` | Visible-cell culling and cell-truth boundary in `battle-render-nouns.md`. |
+| `fog-field.md` | 2026-09-02 | `acd2687d7` | Fog residency and the quantised shadow scale (laws 22-23), the fog-field noun and the replaced ceiling paragraph, in `battle-render-nouns.md`; the changed-extent seam and its write law in `fog-of-war-nouns.md`. |
