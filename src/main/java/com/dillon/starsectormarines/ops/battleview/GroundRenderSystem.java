@@ -92,6 +92,13 @@ public final class GroundRenderSystem implements RenderSystem {
      */
     private final GroundMesh mesh;
 
+    /**
+     * The layer's sheets as one texture, or null for a renderer that does not
+     * keep one. Shared with the owning {@link BattleRenderer}, which disposes
+     * it.
+     */
+    private final GroundAtlas atlas;
+
     // Per-collect scratch (single-threaded; overwritten each frame).
     private DrawList out;
     private BattleCamera cam;
@@ -101,16 +108,28 @@ public final class GroundRenderSystem implements RenderSystem {
     private TileRegistry tileReg;
     private GenMappingRegistry genMapping;
 
+    /**
+     * The atlas this collect addresses, or null while it is not serving.
+     *
+     * <p>Held beside the six sheet handles, with their origins packed the same
+     * way, so remapping a resolved quad is six reference compares and a shift
+     * rather than a map probe on each of twenty thousand quads.
+     */
+    private SpriteAPI atlasSheet;
+    private int urbanOrigin, roadOrigin, floorsOrigin,
+            waterOrigin, urbanTile3Origin, natureOrigin;
+
     /** Appends this frame's commands; the counterpart of the mesh's own sink. */
     private final CommandSink commandSink = new CommandSink();
 
     public GroundRenderSystem(BattleSprites sprites) {
-        this(sprites, null);
+        this(sprites, null, null);
     }
 
-    public GroundRenderSystem(BattleSprites sprites, GroundMesh mesh) {
+    public GroundRenderSystem(BattleSprites sprites, GroundMesh mesh, GroundAtlas atlas) {
         this.sprites = sprites;
         this.mesh = mesh;
+        this.atlas = atlas;
     }
 
     @Override
@@ -133,6 +152,7 @@ public final class GroundRenderSystem implements RenderSystem {
         this.natureFrames = sprites.natureFrames();
         this.tileReg = TileRegistry.installed();
         this.genMapping = GenMappingRegistry.installed();
+        bindAtlas(ctx);
 
         NavigationGrid grid = ctx.sim.getGrid();
         CellTopology topology = ctx.sim.getTopology();
@@ -174,6 +194,69 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     /**
+     * Points this collect's quads at the atlas, or leaves them on their own
+     * sheets and asks for the atlas to be built.
+     *
+     * <p>The build is a custom pass rather than something the collector does,
+     * because a collector performs no GL (law 2) and the atlas is a texture.
+     * So the frame that builds it still collects the per-sheet stream, exactly
+     * as the frame that bakes the resident mesh still draws the ordinary one.
+     */
+    private void bindAtlas(RenderContext ctx) {
+        atlasSheet = null;
+        if (atlas == null || !GroundAtlas.enabled()) return;
+        if (!atlas.isServing()) {
+            // Planning belongs to whoever built the batch that draws the atlas
+            // (BattleRenderer.buildTileBatches). A host that never did has no
+            // batch for it, and quads pointed at a sheet with no batch drain to
+            // nothing at all — which is a missing picture rather than a slower
+            // one, so an unplanned atlas is simply never used.
+            if (atlas.isPlanned()) out.addCustom(RenderLayer.GROUND, atlas::sync);
+            return;
+        }
+        atlasSheet = atlas.sheet();
+        urbanOrigin = atlas.origin(urban);
+        roadOrigin = atlas.origin(road);
+        floorsOrigin = atlas.origin(floors);
+        waterOrigin = atlas.origin(water);
+        urbanTile3Origin = atlas.origin(urbanTile3);
+        natureOrigin = atlas.origin(nature);
+    }
+
+    /**
+     * Reports one resolved quad to {@code sink}, through the atlas where there
+     * is one.
+     *
+     * <p>The single place a sheet and a source rectangle become a quad, so the
+     * resident mesh and the command stream address the same texture at the same
+     * coordinates without either of them knowing an atlas exists. A sheet the
+     * atlas does not hold — a block on some sheet this system was not given —
+     * passes through unchanged.
+     */
+    private void sinkQuad(GroundMesh.CellSink sink, SpriteAPI sheet,
+                          int srcX, int srcY, int srcW, int srcH) {
+        if (atlasSheet != null) {
+            int origin = atlasOrigin(sheet);
+            if (origin >= 0) {
+                sink.quad(atlasSheet, srcX + (origin >>> 16), srcY + (origin & 0xFFFF),
+                        srcW, srcH);
+                return;
+            }
+        }
+        sink.quad(sheet, srcX, srcY, srcW, srcH);
+    }
+
+    private int atlasOrigin(SpriteAPI sheet) {
+        if (sheet == urban) return urbanOrigin;
+        if (sheet == road) return roadOrigin;
+        if (sheet == floors) return floorsOrigin;
+        if (sheet == water) return waterOrigin;
+        if (sheet == urbanTile3) return urbanTile3Origin;
+        if (sheet == nature) return natureOrigin;
+        return -1;
+    }
+
+    /**
      * The base tile of every visible cell — from the resident mesh where there is
      * one, and cell by cell where there is not.
      *
@@ -185,8 +268,14 @@ public final class GroundRenderSystem implements RenderSystem {
      */
     private void emitBaseTerrain(RenderContext ctx, NavigationGrid grid,
                                  CellTopology topology, VisibleCellRect view) {
+        // The mesh bakes each cell's atlas sub-rectangle once and keeps it, so
+        // it must not bake before the atlas exists — a mesh baked against the
+        // per-sheet coordinates would draw from them for the rest of the battle
+        // and the atlas would serve nothing. One extra warm-up frame per
+        // battle, on top of the one the bake already costs.
+        boolean atlasReady = atlas == null || !GroundAtlas.enabled() || atlas.isServing();
         boolean resident = mesh != null && ctx.hostProfile.residentGroundAllowed()
-                && GroundMesh.enabled();
+                && GroundMesh.enabled() && atlasReady;
         if (resident && mesh.isServing(topology)) {
             BaseTerrain terrain = new BaseTerrain(grid, topology);
             out.addCustom(RenderLayer.GROUND, () -> {
@@ -470,7 +559,7 @@ public final class GroundRenderSystem implements RenderSystem {
         int srcY = row * cellPx + inset;
         int srcW = cellPx - 2 * inset;
         int srcH = cellPx - 2 * inset;
-        sink.quad(sheet, srcX, srcY, srcW, srcH);
+        sinkQuad(sink, sheet, srcX, srcY, srcW, srcH);
     }
 
     private void urbanTile3Frame(TileDef frame, GroundMesh.CellSink sink) {
@@ -495,7 +584,7 @@ public final class GroundRenderSystem implements RenderSystem {
         int srcY = f.y + inset;
         int srcW = Math.max(1, f.w - 2 * inset);
         int srcH = Math.max(1, f.h - 2 * inset);
-        sink.quad(sheet, srcX, srcY, srcW, srcH);
+        sinkQuad(sink, sheet, srcX, srcY, srcW, srcH);
     }
 
     /**
