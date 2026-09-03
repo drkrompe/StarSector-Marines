@@ -170,6 +170,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
 
     /**
+     * {@code -Dbattle.conquest.zoneTargetCap=true} divides the front push
+     * across a strip's zones instead of ranking every squad onto the nearest
+     * one. <b>Off</b>, and the switch exists because the cap has to be
+     * measurable apart from everything else shipped beside it — a matrix run
+     * that moves two layers at once measures neither.
+     */
+    public static final String ZONE_TARGET_CAP_PROPERTY =
+            "battle.conquest.zoneTargetCap";
+
+    /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
+    static boolean ZONE_TARGET_CAP_ENABLED = Boolean.parseBoolean(
+            System.getProperty(ZONE_TARGET_CAP_PROPERTY, "false"));
+
+    /**
      * How far outside a compound's own footprint a squad may stand and still
      * count as having <em>arrived</em> at it — the bound on phase 2's "already
      * there, commit the capture" gate.
@@ -2200,6 +2214,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
                                            ConquestCommandFrame frame) {
+        if (!ZONE_TARGET_CAP_ENABLED) {
+            return nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
+        }
         int spare = nearestDefenderZoneInStrip(squad, stripIdx, frame, true);
         return spare >= 0 ? spare
                 : nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
@@ -2241,7 +2258,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             if (!reachableZone(squad, zoneId, frame)) continue;
             // Under the cap every survivor is equally unburdened, so this is
             // the plain nearest rule; over it, the load is what separates them.
-            int load = underCapOnly ? 0 : zoneTargetSquads[zoneId];
+            int load = underCapOnly || !ZONE_TARGET_CAP_ENABLED
+                    ? 0 : zoneTargetSquads[zoneId];
             float zoneForward = zoneForwardCoord[zoneId];
             float delta = zoneForward - squadForward;
             if (delta >= 0f) {
@@ -2271,6 +2289,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * footprint to say otherwise, and a room is a room.
      */
     private boolean zoneTargetIsFull(int zoneId) {
+        if (!ZONE_TARGET_CAP_ENABLED) return false;
         if (zoneId < 0 || zoneId >= zoneTargetSquads.length) return false;
         int quota = 1;
         int index = targetIndexForCaptureZone(zoneId);
