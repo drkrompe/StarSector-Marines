@@ -549,6 +549,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // The resident ground's vertex buffers belong to this battle's map; the
         // next battle is a different grid and bakes its own.
         renderer.getGroundMesh().dispose();
+        // The resident roofs belong to this battle's buildings.
+        renderer.getRoofMesh().dispose();
         // The resident fog texture is this battle's grid too.
         renderer.getFogField().dispose();
         // The composited ground atlas holds this session's sheets; a reattach

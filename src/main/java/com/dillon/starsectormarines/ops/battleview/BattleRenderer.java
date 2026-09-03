@@ -213,6 +213,13 @@ public class BattleRenderer {
     private final UnitAtlas unitAtlas = new UnitAtlas();
 
     /**
+     * The battle's roofs, baked once and patched from the same change log the
+     * ground reads. Held here because it owns GL buffers and the host releases
+     * it with the rest of the renderer's GPU state.
+     */
+    private final RoofMesh roofMesh = new RoofMesh();
+
+    /**
      * The battle's fog, resident as one map-sized alpha texture and patched from
      * the vision service's own changed-extent log. Held here because it owns a
      * GL texture and the host releases it with the rest of the renderer's GPU
@@ -489,6 +496,9 @@ public class BattleRenderer {
     /** Accessor for {@code BattleScreen.detach()} — release the composited unit atlas. */
     public UnitAtlas getUnitAtlas() { return unitAtlas; }
 
+    /** Accessor for {@code BattleScreen.detach()} — release the resident roof buffers. */
+    public RoofMesh getRoofMesh() { return roofMesh; }
+
     /** Accessor for {@code BattleScreen.detach()} — release the resident fog texture. */
     public FogField getFogField() { return fogField; }
 
@@ -613,6 +623,16 @@ public class BattleRenderer {
                 FogField.levelFor(revealed, darkNeighbors, clearAirRevealed));
     }
 
+    /**
+     * The roof layer, from the resident mesh where there is one and cell by cell
+     * where there is not.
+     *
+     * <p>A battle's first frame always takes the streamed path: {@link RoofMesh}
+     * is GL-free to ask and cannot have baked anything before its own custom
+     * pass has run, so the frame that builds the mesh also draws the ordinary
+     * stream and the mesh serves from the next one. That is one frame of the old
+     * cost per battle, and it is what keeps the collector free of GL (law 2).
+     */
     private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {
         Buildings buildings = sim.getBuildings();
         if (buildings == null || buildings.isEmpty()) return;
@@ -626,6 +646,30 @@ public class BattleRenderer {
         if (brick == null) return;
 
         CellTopology topology = sim.getTopology();
+        if (RoofMesh.enabled() && rc.hostProfile.residentGroundAllowed()) {
+            RoofMesh.RoofResolver resolver = (x, y, sink) -> {
+                int[] cell = brick.resolve(false, false, false, false, x, y);
+                int inset = GROUND_SMALL_TILE_EDGE_INSET_PX;
+                sink.quad(cell[0] * TileManifest.FLOORS_TILE_SIZE + inset,
+                        cell[1] * TileManifest.FLOORS_TILE_SIZE + inset,
+                        TileManifest.FLOORS_TILE_SIZE - 2 * inset,
+                        TileManifest.FLOORS_TILE_SIZE - 2 * inset);
+            };
+            boolean serving = roofMesh.isServing(topology, buildings);
+            out.addCustom(RenderLayer.ROOFS, () -> {
+                boolean drawable = roofMesh.sync(topology, buildings, sprites.floorsSheet(),
+                        sprites.floorsSheetPxW(), sprites.floorsSheetPxH(), resolver, alphaMult);
+                if (drawable && serving) roofMesh.draw(rc.camera);
+            });
+            if (serving) return;
+        }
+        streamRoofs(sim, out, alphaMult, brick, topology);
+    }
+
+    /** Every visible roof cell as its own command — the path residency replaces. */
+    private void streamRoofs(BattleSimulation sim, DrawList out, float alphaMult,
+                             GridBlockDef brick, CellTopology topology) {
+        Buildings buildings = sim.getBuildings();
         VisibleCellRect view = rc.camera.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 sim.getGrid().getWidth(), sim.getGrid().getHeight());
