@@ -4,7 +4,12 @@ Status: ACTIVE — Conquest objective and territorial work remains here; its pai
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — `conquest-lanes.md` shipped and was folded into
+Updated: 2026-09-03 — `lift-conversion.md` shipped: the derived lift is floored
+at the ferry and an open compound is no longer a distant secure target. The zone
+cap it also built is off and measured; what it points at is the lane-preference
+row below.
+
+Earlier 2026-09-02 — `conquest-lanes.md` shipped and was folded into
 `precincts.md` and `conquest-nouns.md`; the beachhead is now a marine-held
 compound and the open question below is what losing it costs.
 
@@ -19,8 +24,7 @@ feature:
 | Story | State | Intent |
 |---|---|---|
 | `conquest-560-contact.md` | PROPOSED | Three decisions the 560x336 matrix surfaced: the standoff is measured from the wrong side of the beachhead and correcting it alone measures worse, arrival lift does not scale with committed seats, and an open compound's capture zone is the outdoors. |
-| `lift-conversion.md` | IN PROGRESS | The seat-sized lift lands the force early and converts none of it: a derivation that can return less lift than the ferry, one zone target absorbing 89% of the live force, and an adjacency claim that reaches the whole outdoors. |
-| *(lane preference)* | PROPOSED | `STRIP_COUNT = 3` and `stripFor` reading the landing lateral put 100% of full-strength-west's squads on track 1, so two of the three lanes are advanced by nobody. |
+| *(lane preference)* | PROPOSED | `STRIP_COUNT = 3` and `stripFor` reading the landing lateral put effectively all of full-strength-west's squads on track 1, so two of the three lanes are advanced by nobody — and the zone cap measured in `conquest-command.md` says a front push cannot be divided usefully until they are. |
 | *(open question)* | UNDECIDED | The beachhead is now a compound the marines hold and can lose, and losing it currently costs nothing but the marker. What it should cost — the shuttle cycle, the rejoin lift, the victory law, or nothing at all — wants deciding before a rule is written for it. |
 | `progressive-reinforcement.md` | PARKED | Manually verify defender frontline response, safe delivery, and supply degradation across a Conquest push. |
 | `biome-counterattack.md` | PARKED | Manually tune and verify the telegraphed defender counterattack as a territorial swing. |
