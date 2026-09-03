@@ -172,6 +172,14 @@ destroyed, and the finding `conquest-560-contact.md` left open — that the cade
 does not scale with the force — turns out to have been a true observation about a
 lever that is not the one holding the west back.
 
+**Re-measured with that floor in place, it is still off, and the reading is
+cleaner than it was.** `reinforced-south` is now bit-identical either way — its
+204 seats derive the ferry's own three pairs — so the whole question is the
+west, and there the seat-sized lift takes 14 compounds and holds 3 against the
+ferry's 11 and 7 for eight more marines lost. It takes more and keeps less,
+which is the same finding the first measurement made and no longer confounded
+by a fixture that was quietly being given less lift.
+
 **Whatever it derives, it never derives less than the ferry.** The arithmetic
 only exceeds three pairs above about four hundred seats, so `reinforced-south`'s
 204 asked for two and the switch that exists to add lift was removing a third of
