@@ -518,13 +518,15 @@ public class BriefingScreen implements Screen {
                             && mission.lanes >= DEBUG_MAX_RESISTANCE_LANES,
                     () -> adjustDebugLanes(-1), () -> adjustDebugLanes(1)));
             controls.add(conquestControl("debug-drop-zones", "Drop zones",
-                    Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
-                    debugConquestArrivalConfig.dropZoneCount() <= 1,
+                    arrivalCountLabel(debugConquestArrivalConfig.dropZoneCount()),
+                    debugConquestArrivalConfig.dropZoneCount()
+                            <= ConquestArrivalConfig.DERIVED,
                     debugConquestArrivalConfig.dropZoneCount() >= DEBUG_MAX_CONQUEST_DROP_ZONES,
                     () -> adjustDebugConquestDropZones(-1), () -> adjustDebugConquestDropZones(1)));
             controls.add(conquestControl("debug-pairs-zone", "Pairs / zone",
-                    Integer.toString(debugConquestArrivalConfig.shuttlePairsPerZone()),
-                    debugConquestArrivalConfig.shuttlePairsPerZone() <= 1,
+                    arrivalCountLabel(debugConquestArrivalConfig.shuttlePairsPerZone()),
+                    debugConquestArrivalConfig.shuttlePairsPerZone()
+                            <= ConquestArrivalConfig.DERIVED,
                     debugConquestArrivalConfig.shuttlePairsPerZone() >= DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE,
                     () -> adjustDebugConquestPairsPerZone(-1), () -> adjustDebugConquestPairsPerZone(1)));
             controls.add(conquestControl("debug-arrival-jitter", "Timing jitter",
@@ -1787,16 +1789,18 @@ public class BriefingScreen implements Screen {
                 "CONQUEST ARRIVALS", x, y, HEADER_COLOR));
         y -= ROW_GAP;
         y = buildDebugArrivalStepper("Drop zones",
-                Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
-                debugConquestArrivalConfig.dropZoneCount() > 1
+                arrivalCountLabel(debugConquestArrivalConfig.dropZoneCount()),
+                debugConquestArrivalConfig.dropZoneCount()
+                        > ConquestArrivalConfig.DERIVED
                         ? () -> adjustDebugConquestDropZones(-1) : null,
                 debugConquestArrivalConfig.dropZoneCount()
                         < DEBUG_MAX_CONQUEST_DROP_ZONES
                         ? () -> adjustDebugConquestDropZones(1) : null,
                 x, y, rowW, floor);
         y = buildDebugArrivalStepper("Pairs / zone",
-                Integer.toString(debugConquestArrivalConfig.shuttlePairsPerZone()),
-                debugConquestArrivalConfig.shuttlePairsPerZone() > 1
+                arrivalCountLabel(debugConquestArrivalConfig.shuttlePairsPerZone()),
+                debugConquestArrivalConfig.shuttlePairsPerZone()
+                        > ConquestArrivalConfig.DERIVED
                         ? () -> adjustDebugConquestPairsPerZone(-1) : null,
                 debugConquestArrivalConfig.shuttlePairsPerZone()
                         < DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE
@@ -1834,17 +1838,27 @@ public class BriefingScreen implements Screen {
         return y - ROW_GAP;
     }
 
+    /** A count the mission left to the lift reads as derived rather than as zero. */
+    private static String arrivalCountLabel(int count) {
+        return count == ConquestArrivalConfig.DERIVED
+                ? "derived" : Integer.toString(count);
+    }
+
     private void adjustDebugConquestDropZones(int delta) {
-        int next = Math.max(1, Math.min(DEBUG_MAX_CONQUEST_DROP_ZONES,
-                debugConquestArrivalConfig.dropZoneCount() + delta));
+        // Steps down past one to DERIVED, the way the sprawl and landing dials
+        // carry "derived": below one drop zone is the lift's own answer.
+        int next = Math.max(ConquestArrivalConfig.DERIVED,
+                Math.min(DEBUG_MAX_CONQUEST_DROP_ZONES,
+                        debugConquestArrivalConfig.dropZoneCount() + delta));
         debugConquestArrivalConfig =
                 debugConquestArrivalConfig.withDropZoneCount(next);
         rebuild();
     }
 
     private void adjustDebugConquestPairsPerZone(int delta) {
-        int next = Math.max(1, Math.min(DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE,
-                debugConquestArrivalConfig.shuttlePairsPerZone() + delta));
+        int next = Math.max(ConquestArrivalConfig.DERIVED,
+                Math.min(DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE,
+                        debugConquestArrivalConfig.shuttlePairsPerZone() + delta));
         debugConquestArrivalConfig =
                 debugConquestArrivalConfig.withShuttlePairsPerZone(next);
         rebuild();

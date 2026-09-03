@@ -4,7 +4,12 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — a lane's compounds stand in a recorded order, and the
+Updated: 2026-09-02 — the marines descend from orbit onto their berths rather
+than crossing the map edge, so the sortie cadence no longer moves with the
+standoff; sizing the lift from the committed seats is built, measured and off,
+because more lift landed sooner takes fewer compounds.
+
+Earlier 2026-09-02 — a lane's compounds stand in a recorded order, and the
 reading that takes them in it exists behind a switch that is off by default.
 
 Earlier 2026-09-02 — the ground the marines came ashore on is a place with a
@@ -110,21 +115,68 @@ those authored commitments honestly.
 Conquest owns a mission-configurable paired arrival policy. Committed campaign
 transports supply the operation's lift, while dedicated six-seat Aeroshuttles
 make the final descent. A mission authors how many BEACH arrival areas are
-active, how many reusable Aeroshuttle pairs serve each area, and the maximum
-per-craft timing variance. Normal Conquest uses its three tactical lanes as
-three drop zones with one dedicated pair per zone. Each pair approaches the
-area's two distinct berths, leaves after every drop, re-arms off-map, and
-reuses those berths for later squads. Initial launch and re-arm variance are
-seeded construction facts, so craft do not fly in lockstep while fixture
-replays remain deterministic. Full Strength authors 168 six-seat half-squad
-sorties, balanced as twenty-eight cycles on each of the six Aeroshuttles, so all
-1,008 named marines enter the one battle. The authored drop demand is a minimum
+active, how many reusable Aeroshuttle pairs serve each area, the maximum
+per-craft timing variance, and the **landing share** — the fraction of the
+battle by which the whole committed force should be on the ground. Normal
+Conquest uses its three tactical lanes as three drop zones with one dedicated
+pair per zone. Each pair approaches the area's two distinct berths, leaves after
+every drop, and reuses those berths for later squads. Initial launch and re-arm
+variance are seeded construction facts, so craft do not fly in lockstep while
+fixture replays remain deterministic. Full Strength authors 168 six-seat
+half-squad sorties, balanced as twenty-eight cycles on each of the six
+Aeroshuttles, so all 1,008 named marines enter the one battle. The authored drop demand is a minimum
 commitment, not a ceiling: every selected campaign or debug squad is added to
 the cycle plan instead of remaining in an implicit orbital reserve.
 Their passengers join one twelve-marine ground squad, form up before executing
 the commander's advance, and later cycles create new squads rather than
 silently enlarging the first. Employer and player craft never share an arrival
 group or reusable pair across the ownership boundary.
+
+**The marines come down from orbit, and only the last leg is flown.** A marine
+arrival does not cross the map edge. It appears at a **descent point** a stated
+distance off its berth on the side away from the objective, at altitude, flies
+down, sets its half-squad on the pad, and climbs back to the same point, where
+the next load is already waiting. A round trip is therefore the descent, the
+turnaround on the pad and the climb — a constant measured in cells of descent,
+never in the size of the map and never in how far inland the standoff put the
+beachhead. What it replaces was a cadence of **~460 ticks plus ~5.3 ticks per
+cell of slide**, so a beachhead 226 cells in cost 1,450 ticks a sortie and the
+transports paid the standoff twice on every trip. Measured on reinforced-south
+at `CLOSE` and again at `FAR` — beachheads 98 cells apart — the round trip is
+537 ticks either way, to the tick.
+
+This is a **marine arrival policy** and not a change to the air corridor.
+Defender shuttle reinforcement is planetary and keeps crossing its own edge,
+aircraft sorties keep their strips, and `AirCorridor` merely learned one more
+way to be made. `reinforcement-nouns.md` owns the marine policy itself; only how
+many craft fly, and onto which berths, is Conquest's.
+
+**How much lift flies is a decision the matrix has taken away from arithmetic.**
+The drop-zone and pairs-per-zone counts may be left unstated, in which case they
+are the lift's to size: from the committed seats, the six seats a sortie carries
+and that constant round trip, the pairs that land the whole force inside the
+landing share follow directly, and the pairs are also the berthing areas the
+landing precinct's apron is asked to seat. That derivation is built, unit-tested
+and **off by default**, because sizing it that way is measurably worse. It does
+what it was written to do — full-strength-west assembles 356 live marines
+against the ferry's ~130 and the alive-squad plateau that ran from tick 6,000 to
+the end is gone — and it takes *fewer* compounds: 10 captured and 4 held against
+the ferry-with-descent's 11 and 7, while reinforced-south falls from 22 and 19 to
+16 and 16. **More lift landed sooner is not what the western approach was
+costing.** The marines simply arrive faster at the place they were being
+destroyed, and the finding `conquest-560-contact.md` left open — that the cadence
+does not scale with the force — turns out to have been a true observation about a
+lever that is not the one holding the west back.
+
+So a mission that says nothing flies the ferry's three pairs down the descent.
+Against the map-edge crossing that shape is better on both fixtures:
+reinforced-south holds 19 compounds against 17 for 5 fewer losses on the same 22
+captures, and full-strength-west holds 7 against 6, its force finally on the map
+— 333 live marines at peak — at a cost of 430 losses against 300. The whole
+policy is switchable: `battle.conquest.orbitalLift=false` restores the edge
+crossing, and `battle.conquest.derivedLift=true` restores the seat-sized lift,
+so the next attempt at the western approach can move either dial beside whatever
+it is really testing.
 
 **How far out the force lands is stated, not the map edge.** A Conquest states
 a standoff alongside its sprawl and its arrival config — how many cells of

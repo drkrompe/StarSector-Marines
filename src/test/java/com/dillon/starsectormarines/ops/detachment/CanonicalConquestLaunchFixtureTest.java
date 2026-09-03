@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import com.dillon.starsectormarines.ops.LandingShare;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -74,9 +76,15 @@ class CanonicalConquestLaunchFixtureTest {
                 ConquestBattleFixture.class, fixture.construction());
         assertEquals(MarineArrivalPolicy.PAIRED_HALF_SQUAD,
                 construction.arrivalPlan().policy());
-        assertEquals(3, construction.arrivalPlan().arrivalConfig().dropZoneCount());
-        assertEquals(1,
+        // The fixture leaves the shape to the lift, which by default flies the
+        // ferry's three pairs — see `OrbitalLift.DERIVED_LIFT_PROPERTY` for
+        // what the matrix said about sizing it from the seats instead.
+        assertEquals(ConquestArrivalConfig.DERIVED,
+                construction.arrivalPlan().arrivalConfig().dropZoneCount());
+        assertEquals(ConquestArrivalConfig.DERIVED,
                 construction.arrivalPlan().arrivalConfig().shuttlePairsPerZone());
+        assertEquals(LandingShare.DEFAULT,
+                construction.arrivalPlan().arrivalConfig().landingShare());
         assertEquals(expectedCycles, construction.manifest().stream()
                 .map(shuttle -> shuttle.cycles).toList());
         assertTrue(construction.manifest().stream().allMatch(shuttle ->

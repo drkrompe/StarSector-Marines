@@ -62,6 +62,16 @@ public enum LandingKind {
     }
 
     /**
+     * How many arrival areas the shipped apron already seats.
+     *
+     * <p>Measured at 560x336 on both canonical Conquest fixtures: five, against
+     * the three the mission asked for. It is the baseline a lift's berth demand
+     * is compared against, so a lift wanting four pairs asks the program for
+     * nothing at all.
+     */
+    public static final int AREAS_THE_APRON_SEATS = 5;
+
+    /**
      * The buildings and the open ground this kind owes, before the map is asked
      * whether it can afford them.
      *
@@ -71,10 +81,30 @@ public enum LandingKind {
      * what "builds nothing" means: it still claims its ground.
      */
     public FortressProgram program() {
-        return switch (this) {
+        return program(AREAS_THE_APRON_SEATS);
+    }
+
+    /**
+     * The same program with an apron wide enough for {@code arrivalAreas}
+     * berthing pairs.
+     *
+     * <p>The apron is the frontage the arrival areas are stepped along, so a
+     * lift sized to land a larger force needs a wider one — the berths are
+     * where the lift stops being arithmetic and starts needing ground. It grows
+     * in proportion to the demand and <b>never shrinks below what the shipped
+     * apron already buys</b>: a smaller lift does not want a smaller beachhead,
+     * because the apron is also the ground the beachhead compound is made of.
+     */
+    public FortressProgram program(int arrivalAreas) {
+        FortressProgram base = switch (this) {
             case SPACEPORT -> FortressProgram.spaceport();
             case STRIP -> FortressProgram.landingStrip();
             case FIELD -> FortressProgram.landingField();
         };
+        if (arrivalAreas <= AREAS_THE_APRON_SEATS) return base;
+        // Frontage scales with the areas and the claim is roughly square, so
+        // the ground goes as the square of the ratio.
+        float ratio = arrivalAreas / (float) AREAS_THE_APRON_SEATS;
+        return base.withApron(Math.round(base.apron() * ratio * ratio));
     }
 }

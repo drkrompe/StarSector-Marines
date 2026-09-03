@@ -1,10 +1,11 @@
 {
   "construction": {
     "arrivalPlan": {
-      "dropZoneCount": 3,
+      "dropZoneCount": 0,
       "firstPlayerShuttle": 0,
+      "landingShare": 0.3,
       "policy": "PAIRED_HALF_SQUAD",
-      "shuttlePairsPerZone": 1,
+      "shuttlePairsPerZone": 0,
       "timingJitterSec": 1
     },
     "enemyFighterSupport": [],
