@@ -206,6 +206,13 @@ public class BattleRenderer {
     private final GroundAtlas groundAtlas = new GroundAtlas();
 
     /**
+     * Every image a unit's body is composed from, as one texture. Held here for
+     * the ground atlas's reason: it owns a GL texture, and the host releases it
+     * with the rest of the renderer's GPU state.
+     */
+    private final UnitAtlas unitAtlas = new UnitAtlas();
+
+    /**
      * The battle's fog, resident as one map-sized alpha texture and patched from
      * the vision service's own changed-extent log. Held here because it owns a
      * GL texture and the host releases it with the rest of the renderer's GPU
@@ -265,6 +272,17 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
+                // The unit atlas is built inside the layer it serves, the way
+                // the ground atlas is, and only until it is built: once it
+                // serves there is no custom pass here at all, so a settled frame
+                // does not close and reopen the drain's state bracket for a
+                // no-op. The bodies collected below still draw as whole sprites
+                // in the frame that bakes it.
+                RenderSystem.of(RenderLayer.UNITS, (ctx, out) -> {
+                    if (unitAtlas.isPlanned() && !unitAtlas.isServing()) {
+                        out.addCustom(RenderLayer.UNITS, unitAtlas::sync);
+                    }
+                }),
                 new UnitRenderService(sprites),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
@@ -352,6 +370,16 @@ public class BattleRenderer {
         if (groundAtlas.plan(sprites)) {
             registerBatch(groundAtlas.sheet(), new QuadBatch(groundAtlas.sheet(),
                     groundAtlas.width(), groundAtlas.height(), 16384));
+        }
+
+        // The unit layer's composed bodies as one texture. Same seam and same
+        // reason as the ground atlas above: the layout is GL-free arithmetic and
+        // its batch has to be registered where every other sheet's is. The
+        // DrawList is what re-addresses a whole-image draw onto it.
+        if (unitAtlas.plan(sprites)) {
+            registerBatch(unitAtlas.sheet(), new QuadBatch(unitAtlas.sheet(),
+                    unitAtlas.width(), unitAtlas.height(), 2048));
+            drawList.setSpriteAtlas(unitAtlas);
         }
 
         // Register the per-sheet batches so drainLayer can resolve a SheetQuad's
@@ -457,6 +485,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.detach()} — release the composited ground atlas. */
     public GroundAtlas getGroundAtlas() { return groundAtlas; }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the composited unit atlas. */
+    public UnitAtlas getUnitAtlas() { return unitAtlas; }
 
     /** Accessor for {@code BattleScreen.detach()} — release the resident fog texture. */
     public FogField getFogField() { return fogField; }

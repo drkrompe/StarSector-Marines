@@ -3,8 +3,11 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /** Loaded modular armor family and shared equipment layers for one unit type. */
@@ -69,6 +72,22 @@ public final class LayeredUnitAssets {
 
     public LayeredSpriteCache specialEquipment(String equipmentId) {
         return specialEquipment.get(equipmentId);
+    }
+
+    /**
+     * Every image this family can draw, for a consumer that has to see all of
+     * them rather than pick one — the {@link UnitAtlas}'s layout, which needs
+     * the whole set before any of it is drawn.
+     */
+    public List<LayeredSpriteCache> layers() {
+        List<LayeredSpriteCache> all = new ArrayList<>(List.of());
+        Collections.addAll(all, body, head, foot, foreClaw, rifle, laserGun, smg, dmr,
+                rocketLauncher, antiMaterielRifle, muzzleFlash);
+        for (EnumMap<EquipmentGrade, LayeredSpriteCache> variants : gradeWeapons.values()) {
+            all.addAll(variants.values());
+        }
+        all.addAll(specialEquipment.values());
+        return all;
     }
 
     private void registerGrade(LayeredWeaponFamily family, EquipmentGrade grade,
