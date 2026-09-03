@@ -110,6 +110,10 @@ evidence that the naive form of it is not the answer.
 
 ## Finding, not fixed: the arrival cadence does not scale with the force
 
+*Decided 2026-09-02: `orbital-lift.md` owns the fix — marine shuttles descend
+from orbit to a point off the berth, and the lift scales with seats to a stated
+landing share.*
+
 Squads land three at a time, one per drop zone, on a fixed cycle. Measured
 across five full runs, that cycle is
 **~460 ticks plus ~5.3 ticks per cell the beachhead has been slid inland** —
