@@ -17,3 +17,4 @@ Written: 2026-08-23
 | `slice-2-live-tracking.md` | 2026-06-02 | `966df57d`, `56976d7d` | `convoy-nouns.md` — always-kinematic tracking and off-map departure |
 | `vehicle-damage.md` | 2026-08-27 | `fcc669d7` | `convoy-nouns.md` — shared armor/structure, combat targeting, once-only wrecks, passenger fate, and route obstruction |
 | `route-proof-budget.md` | 2026-09-03 | `18bee14f`, `9afd0354` | `convoy-nouns.md` — mask reachability settled before searching, and a route proof bounded in searches; `reinforcement-nouns.md` — the probe/proof gap must be bounded |
+| `route-proof-job.md` | 2026-09-03 | `0571ae4d`, `21fcedbe` | `convoy-nouns.md` — the mask and its labels held against the grid's own revision, and a route proof spread across ticks as a resumable job; `reinforcement-nouns.md` — a means may prepare across ticks, and the dispatcher drains on the tick preparation finishes |
