@@ -2061,6 +2061,38 @@ public class ConquestCommandTest {
                     "and the surplus goes on up the strip rather than queueing");
         }
 
+        /**
+         * The surplus is the whole point: a force big enough to fill every cap
+         * in the strip has to keep dividing, or the cap merely delays the queue
+         * by three squads. Eight squads over two zones of three come out four
+         * and four; ranking the overflow by distance alone would put five on
+         * the near one.
+         */
+        @Test
+        public void aSurplusPastEveryCapDividesRatherThanQueueing() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 8; i++) {
+                squads.add(addMarineSquad(sim, 1f + i, 1f));
+            }
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            int farZone = sim.getZoneGraph().zoneIdAt(2, 11);
+            int onNear = 0, onFar = 0;
+            for (Squad squad : squads) {
+                int target = clearZoneTarget(squad);
+                if (target == nearZone) onNear++;
+                else if (target == farZone) onFar++;
+            }
+            assertEquals(4, onNear, "the overflow divides too");
+            assertEquals(4, onFar, "the overflow divides too");
+        }
+
         @Test
         public void aStripWithNowhereElseToSendAnybodyStillSendsThem() {
             BattleSimulation sim = stackedRoomsSim();
