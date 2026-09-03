@@ -4,9 +4,10 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — the clearance mask and its component labels are held
-against the navigation grid's own revision rather than rebuilt per dispatch,
-and the route proof is a resumable job stepped a few searches per tick.
+Updated: 2026-09-03 — the clearance mask and its component labels catch up
+from the navigation grid's changed-cell log in tiles rather than being rebuilt
+per dispatch, and the route proof is a resumable job stepped a few searches
+per tick.
 
 Updated: 2026-08-30 — map generation now guarantees a drivable corridor from
 the defender's rear edge to the city, so the strict rear entry admits a hull.
@@ -355,7 +356,13 @@ it planned before.
   a vehicle wreck writes nothing to the navigation grid, and destruction
   otherwise only makes the map more permissive. The revision covers all three
   without knowing which is which, and there is nothing for a caller to remember
-  to invalidate.
+  to invalidate. When the revision has moved, neither is rebuilt whole: the
+  grid's changed-cell log names the cells, the mask re-evaluates only the
+  chassis-radius neighbourhood of each, and the labels relabel only the tiles
+  those cells fall in before re-uniting the tile seams — the tiled-derivation
+  law the navigation substrate states in its own charter
+  (`battle.nav` package charter). A reader the log no longer reaches back to
+  rebuilds whole, which is the old answer and never a wrong one.
 - **A route proof is bounded in searches, not in the map.** The proof is an
   enumeration — entries against junctions against exits — so a limit of eight
   retries per endpoint pair bounds nothing a player is waiting on. One budget,
