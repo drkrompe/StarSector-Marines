@@ -30,6 +30,8 @@ public final class VehicleClearance {
     private final int height;
     private final int radiusCells;
     private final boolean[] passable;
+    /** Footprint tests run since construction. Evidence for the catch-up tests, not behavior. */
+    private long fitEvaluations;
 
     private VehicleClearance(int width, int height, int radiusCells, boolean[] passable) {
         this.width = width;
@@ -47,14 +49,62 @@ public final class VehicleClearance {
         int r = Math.max(0, radiusCells);
         int w = grid.getWidth();
         int h = grid.getHeight();
-        boolean[] passable = new boolean[w * h];
+        VehicleClearance mask =
+                new VehicleClearance(w, h, r, new boolean[w * h]);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                passable[y * w + x] = fits(grid, x, y, r);
+                mask.passable[y * w + x] = mask.fits(grid, x, y, r);
             }
         }
-        return new VehicleClearance(w, h, r, passable);
+        return mask;
     }
+
+    /**
+     * A fresh, independent copy of {@code source}'s mask.
+     *
+     * <p>A {@link RoutePlan}/{@code VehicleMission} may hold onto a returned
+     * {@code VehicleClearance} for the whole of a vehicle's drive, as "the mask
+     * this route was proved against" — see {@code RoutePlan}'s header. Patching
+     * a changed neighbourhood therefore must not mutate an instance a caller has
+     * already been handed; it patches this clone instead, which costs one
+     * {@code boolean[]} copy (a few hundred KB, well under the erosion this
+     * exists to avoid) and leaves every earlier snapshot exactly as it was.
+     */
+    static VehicleClearance copyOf(VehicleClearance source) {
+        return new VehicleClearance(source.width, source.height,
+                source.radiusCells, source.passable.clone());
+    }
+
+    /**
+     * Re-evaluates the mask around one cell whose walkability or edges moved.
+     *
+     * <p>A cell's mask value depends only on the {@code (2r+1)} block centred on
+     * it, so the cells a single change can flip are exactly those within
+     * Chebyshev {@code r} of it — 9 cells for the radius-1 chassis this project
+     * drives, against the 188,160 a re-erosion touches. Mutates this instance in
+     * place; call it on a {@link #copyOf} clone, never on an instance a caller
+     * may already be holding.
+     *
+     * @return how many cells actually flipped
+     */
+    int refreshAround(NavigationGrid grid, int cellX, int cellY) {
+        int flipped = 0;
+        for (int y = Math.max(0, cellY - radiusCells);
+             y <= Math.min(height - 1, cellY + radiusCells); y++) {
+            for (int x = Math.max(0, cellX - radiusCells);
+                 x <= Math.min(width - 1, cellX + radiusCells); x++) {
+                int idx = y * width + x;
+                boolean now = fits(grid, x, y, radiusCells);
+                if (passable[idx] == now) continue;
+                passable[idx] = now;
+                flipped++;
+            }
+        }
+        return flipped;
+    }
+
+    /** Footprint tests run on this mask since it was eroded. Evidence, not behavior. */
+    long fitEvaluations() { return fitEvaluations; }
 
     /**
      * Footprint radius (cells) for a vehicle of the given visual width — the
@@ -65,7 +115,8 @@ public final class VehicleClearance {
         return Math.max(0, Math.round(visualWidthCells * 0.5f));
     }
 
-    private static boolean fits(NavigationGrid grid, int cx, int cy, int r) {
+    private boolean fits(NavigationGrid grid, int cx, int cy, int r) {
+        fitEvaluations++;
         for (int dy = -r; dy <= r; dy++) {
             for (int dx = -r; dx <= r; dx++) {
                 if (!grid.isWalkable(cx + dx, cy + dy)) return false;
