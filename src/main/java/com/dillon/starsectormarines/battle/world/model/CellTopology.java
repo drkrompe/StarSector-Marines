@@ -118,17 +118,27 @@ public class CellTopology {
         public long mask() { return 1L << ordinal(); }
 
         /**
-         * Whether flipping this tag can change what the ground pass draws for
-         * the cell, and therefore whether setting it enters the change log.
+         * Whether flipping this tag can change what a <em>resident</em> render
+         * consumer holds for the cell, and therefore whether setting it enters
+         * the change log.
          *
-         * <p>{@link #WALL} decides which of the two ground passes a cell is in
-         * at all; the crosswalk pair paints stripes over a street. The rest are
-         * read by other layers — a roof by the roof pass, a window by the
-         * aperture pass, a fixture and a parked vehicle by navigation and by
-         * their own props — and none of them moves a ground tile.
+         * <p>There are two such consumers and they read different tags.
+         * {@link #WALL} decides which of the two ground passes a cell is in at
+         * all and the crosswalk pair paints stripes over a street, which is what
+         * the resident ground mesh needs. {@link #ROOF_DESTROYED} and
+         * {@link #WINDOW} are what the relief composite's height field stands a
+         * cell at — a caved-in roof drops back to its floor and an aperture
+         * stands at its sill — and that field is resident too, so a cave-in the
+         * log did not record would leave a building shadowing ground it no
+         * longer covers. The rest are read by navigation and by their own props
+         * and move nothing that is held across frames.
+         *
+         * <p>A tag one consumer reads costs the other a re-resolve of five
+         * cells, which is why this is one list rather than a list per reader.
          */
         public boolean drawn() {
-            return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ;
+            return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ
+                    || this == ROOF_DESTROYED || this == WINDOW;
         }
     }
 
@@ -284,8 +294,9 @@ public class CellTopology {
      *
      * <p>What counts as a change is what a consumer could <em>draw</em>
      * differently: ground kind, wall tag, crosswalk tags, wall-direction mask,
-     * nature overlay, and authored surface. Not building ids or room purposes,
-     * which nothing paints from.
+     * nature overlay, authored surface, and — because the relief composite's
+     * height field is resident too — a caved-in roof and a wall aperture. Not
+     * building ids or room purposes, which nothing paints from.
      */
     public long changeCount() {
         return changeCount;

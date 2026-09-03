@@ -4,7 +4,7 @@ Status: ACTIVE — semantic terrain relief, a directional sun, and presentation-
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — macro relief is metres, a directional sun casts from it, and roofs and window apertures carry their own heights.
+Updated: 2026-09-02 — the height and normal fields are resident and patched from the cell change log instead of rebuilt every frame.
 
 ## Purpose
 
@@ -62,6 +62,13 @@ physical model of the map.
 - A **material signal** carries macro relief, micro relief, water identity,
   and shore proximity separately. Keeping the signals distinct leaves
   structural depth, surface texture, and water motion independently tunable.
+- A **relief field** is one of the two per-cell inputs the composite samples:
+  the material/height target and the normal target. Both are a quad per cell —
+  the cell's own material signal, over the cell's own rectangle of its derived
+  atlas — and both are **resident**, baked once per battle into vertex buffers
+  in cell coordinates and drawn from them, so the camera is a modelview
+  transform rather than a pass over the map. A field is not the composite: the
+  composite is a fullscreen pass that reads them.
 - A **normal map** expresses local surface direction for light response. It is
   a presentation asset; unsupported or absent art has a flat normal rather
   than an invented shape.
@@ -137,9 +144,29 @@ alter map data or simulation.
 - Zero shadow strength is not merely an unlit composite. It also collapses the
   material target's margin back to the ordinary geometry halo, so the whole
   feature costs neither fill nor memory when it is dialled off.
+- A relief field is invalidated, never rebuilt. What a per-frame rebuild bought
+  was the right answer after a roof caved in, and it bought it by redrawing the
+  whole map twice a frame — which at whole-map framing on the canonical Conquest
+  was the entire remaining cost of the frame once the ground itself had gone
+  resident. The cells that can change are already recorded one by one, so a
+  field is baked once per battle and patched over the changed cell and its four
+  neighbours, the neighbours because a derived atlas rectangle is chosen from
+  what stands beside the cell. It follows that **a field can only read what the
+  change log carries**: a caved-in roof and a wall aperture move no ground tile
+  and are recorded anyway, because the thing that stands a cell at its roof or
+  its sill is resident too. A field that read some other authority would go
+  stale silently, and a stale height field is a building shadowing ground it no
+  longer covers.
+- A field carries its material signal at the target's own precision. The
+  targets are RGBA8, so the signal is eight bits per channel wherever it is
+  held; storing it wider only moves where the rounding happens, and it costs
+  four times the buffer to do so. The one visible consequence is that a
+  mid-channel value quantises once rather than twice, which moved the shipped
+  composite by at most 2 of 255 on a few per cent of its pixels.
 - Shader, texture, or framebuffer failure must fail soft to the unmodified
-  ground drain. A visual enhancement may disappear, but it may not suppress or
-  double-draw ground.
+  ground drain — and so must residency: any failure at all returns the field to
+  the per-cell rasterisation with the same picture. A visual enhancement may
+  disappear, but it may not suppress or double-draw ground.
 - Parallax belongs only to the ground plane. Future unit lighting must rotate
   sprite-space normals with the unit and use its own render path.
 

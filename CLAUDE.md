@@ -248,8 +248,18 @@ Do not run builds or leave generated task files there.
   every frame, which is what makes a counts regression a failure rather than
   noise; the times are medians of nine frames after warm-up and move a few per
   cent run to run. Compare a lever against **its own run's control**
-  (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`), never
-  against a number in a document.
+  (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
+  `-Dbattle.render.residentRelief=false`), never against a number in a document.
+  Where it stands: a whole-map 560x336 Conquest frame is **13 ms** with every
+  lever on and 148 ms with resident relief off, and the ceiling there is now
+  `FOG` at 5.7 ms of the 12.5 that are ours.
+  **A headless run has no `Display`, and that used to size the composite 1x1.**
+  `GroundParallaxPipeline` scales its targets by the framebuffer over the
+  reported screen, and off a pbuffer the framebuffer is zero -- so every relief
+  target was one pixel, blitted over the viewport as a flat colour. The
+  per-layer CPU numbers were honest; the composite's own fill was not measured
+  at all, and any picture read back was an average of the frame. A zero display
+  now means a scale of one.
   **Our share is not the frame.** The per-layer times are CPU: building the
   stream and handing it over. The whole-frame column exists because a lever can
   trade our cost for the driver's — a resident mesh draws the whole map however

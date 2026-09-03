@@ -425,7 +425,9 @@ class RenderBudgetEvidence {
         out.append("Levers this run: zoom gates **")
                 .append(ZoomDetail.enabled() ? "on" : "off")
                 .append("**, resident ground mesh **")
-                .append(GroundMesh.enabled() ? "on" : "off").append("**.\n\n");
+                .append(GroundMesh.enabled() ? "on" : "off")
+                .append("**, resident relief fields **")
+                .append(ReliefFieldMesh.enabled() ? "on" : "off").append("**.\n\n");
 
         out.append("## Whole frames\n\n")
                 .append("Wall clock with the GPU waited on, against the sum of our own\n")
@@ -505,6 +507,7 @@ class RenderBudgetEvidence {
         root.put("frames", frames);
         root.put("zoomGates", ZoomDetail.enabled());
         root.put("groundMesh", GroundMesh.enabled());
+        root.put("residentRelief", ReliefFieldMesh.enabled());
         List<JSONObject> costs = new ArrayList<>();
         for (FrameCost cost : frameCosts) {
             JSONObject entry = new JSONObject();

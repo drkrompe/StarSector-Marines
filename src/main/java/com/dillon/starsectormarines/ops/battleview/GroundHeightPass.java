@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -28,6 +29,17 @@ import static org.lwjgl.opengl.GL13.glActiveTexture;
  * and water motion independently instead of baking them into one ambiguous
  * scalar. A missing sheet or shader failure degrades micro height to neutral
  * while retaining the semantic channels.
+ *
+ * <h2>The field is resident</h2>
+ * <p>Baked once per battle into {@link ReliefFieldMesh} and patched from the
+ * topology's change log, rather than rasterised again every frame. The loop in
+ * {@code render} is what a bake resolves through and what the pass falls back
+ * to when residency is off or has failed — one resolution and two sinks, so the
+ * two cannot disagree about what a cell stands at. The macro relief and the
+ * shore distances are built alongside a bake or a patch for the same reason:
+ * they are derived from the same cells and nothing else reads them, so gathering
+ * roofs off the building registry once per change rather than once per frame is
+ * the whole difference.
  *
  * <h2>Macro height is metres</h2>
  * <p>Macro height is authored in metres above a ground datum — one cell is one
@@ -93,24 +105,37 @@ final class GroundHeightPass {
     private int[] shoreQueue = new int[0];
     private float[] shoreFactors = new float[0];
 
+    /** The same field, resident; see {@link ReliefFieldMesh}. */
+    private final ReliefFieldMesh mesh = new ReliefFieldMesh("height");
+    private final ResidentCells residentCells = new ResidentCells();
+    private boolean meshTextured;
+    private boolean meshTexturedKnown;
+
     GroundHeightPass(GroundMicroHeightSampler resolver) {
         this.resolver = resolver;
     }
 
     /**
-     * @param relief      what stands on each cell, in metres — walls, intact
-     *                    roofs, and the sills windows lower them to. See
-     *                    {@link MacroReliefField}; the pass writes the channel
-     *                    but does not decide what goes in it.
+     * @param buildings   who owns which cells, which is where intact roofs come
+     *                    from. The pass builds its own {@link MacroReliefField}
+     *                    rather than being handed one, so a resident field pays
+     *                    for that gather only when something has actually
+     *                    changed.
      * @param marginCells cells to emit beyond the viewport on every side. Larger
      *                    than the other ground passes' halo because this target
      *                    is also the sun-shadow occluder field: a wall standing
      *                    just off the sun-ward edge has to be in the texture, or
-     *                    its shadow pops into the view as the camera pans.
+     *                    its shadow pops into the view as the camera pans. The
+     *                    resident field has no margin to choose: it holds the
+     *                    whole map and the projection clips it.
      */
     void render(BattleCamera cam, NavigationGrid grid, CellTopology topology,
-                GenMappingRegistry mapping, MacroReliefField relief, int marginCells) {
+                Buildings buildings, GenMappingRegistry mapping, int marginCells) {
         boolean textured = shader.ensure();
+        if (mesh.isUsable() && renderResident(cam, grid, topology, buildings, mapping, textured)) {
+            return;
+        }
+        MacroReliefField relief = new MacroReliefField(topology, grid, buildings, mapping);
         float cellPx = cam.cellPxSize();
         float[] currentShoreFactors = waterShoreFactors(topology);
         VisibleCellRect view = cam.visibleCells(marginCells, grid.getWidth(), grid.getHeight());
@@ -153,6 +178,92 @@ final class GroundHeightPass {
     void dispose() {
         shader.dispose();
         atlases.clear();
+        mesh.dispose();
+        meshTexturedKnown = false;
+    }
+
+    /**
+     * Draws the field from its resident buffers, re-resolving only what the
+     * topology says has moved.
+     *
+     * <p>The macro relief and the shore distances are rebuilt alongside, because
+     * both are derived from the same cells and neither is read anywhere else:
+     * gathering roofs off the building registry and running a bounded distance
+     * transform once per <em>change</em> is the whole difference from doing it
+     * once per frame.
+     *
+     * @return whether the field was drawn; false hands the frame back to the
+     *         per-cell path with the same picture
+     */
+    private boolean renderResident(BattleCamera cam, NavigationGrid grid, CellTopology topology,
+                                   Buildings buildings, GenMappingRegistry mapping, boolean textured) {
+        if (meshTexturedKnown && textured != meshTextured) {
+            // The compose shader arriving or going away changes every cell at
+            // once, and that is a rebuild rather than anything the change log
+            // could describe.
+            mesh.dispose();
+            meshTexturedKnown = false;
+        }
+        if (mesh.isBehind(topology)) {
+            residentCells.bind(grid, topology, textured,
+                    new MacroReliefField(topology, grid, buildings, mapping),
+                    waterShoreFactors(topology));
+        }
+        if (!mesh.sync(topology, residentCells)) return false;
+        meshTextured = textured;
+        meshTexturedKnown = true;
+        ShaderProgram.useNone();
+        mesh.draw(cam, this::bindComposeShader, ShaderProgram::useNone);
+        return true;
+    }
+
+    private void bindComposeShader() {
+        glActiveTexture(GL_TEXTURE0);
+        shader.use();
+        shader.set1i("heightSheet", 0);
+    }
+
+    /**
+     * One cell of the resident field, resolved the same way the per-frame loop
+     * resolves it.
+     *
+     * <p>Deliberately the same three reads in the same order rather than a
+     * second derivation: a resident field that disagreed with the one it
+     * replaced would be a wrong picture that runs fast.
+     */
+    private final class ResidentCells implements ReliefFieldMesh.CellResolver {
+
+        private NavigationGrid grid;
+        private CellTopology topology;
+        private boolean textured;
+        private MacroReliefField relief;
+        private float[] shore;
+
+        void bind(NavigationGrid grid, CellTopology topology, boolean textured,
+                  MacroReliefField relief, float[] shore) {
+            this.grid = grid;
+            this.topology = topology;
+            this.textured = textured;
+            this.relief = relief;
+            this.shore = shore;
+        }
+
+        @Override
+        public void resolve(int gridX, int gridY, ReliefFieldMesh.CellSink sink) {
+            float macro = encodeMacroMeters(relief.metersAt(gridX, gridY));
+            float water = isWaterSurface(topology, gridX, gridY) ? 1f : 0f;
+            float shoreFactor = shore[topology.index(gridX, gridY)];
+            GroundMicroHeightSampler.Sample sample =
+                    textured ? resolver.resolve(grid, topology, gridX, gridY) : null;
+            AtlasBatch atlas = sample == null ? null : atlas(sample.heightSheetPath);
+            if (atlas == null || !atlas.ensureLoaded()) {
+                sink.solid(macro, 0.5f, water, shoreFactor);
+                return;
+            }
+            sink.quad(atlas.texture.sprite(), atlas.texture.pxW(), atlas.texture.pxH(),
+                    sample.srcX, sample.srcY, sample.srcW, sample.srcH,
+                    macro, water, shoreFactor, 1f);
+        }
     }
 
     static float microRelief(float micro) {
