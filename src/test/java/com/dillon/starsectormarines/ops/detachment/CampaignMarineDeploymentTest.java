@@ -54,16 +54,20 @@ class CampaignMarineDeploymentTest {
                     .map(commitment -> commitment.campaignSoldierId())
                     .toList();
 
-            assertEquals(6, missions.size());
-            for (int mission = 0; mission < missions.size(); mission++) {
-                int firstSeat = mission * 6;
-                assertEquals(expected.subList(firstSeat, firstSeat + 6),
-                        soldierIds(missions.get(mission), 0));
+            // Two craft flying four sorties each: the lift the derivation
+            // sizes for 48 seats. What is pinned here is the loading order —
+            // every craft in a wave is filled before the next wave starts —
+            // rather than how many craft the wave happens to be.
+            assertEquals(2, missions.size());
+            assertEquals(List.of(4, 4), missions.stream()
+                    .map(mission -> mission.totalCycles).toList());
+            for (int cycle = 0; cycle < 4; cycle++) {
+                for (int mission = 0; mission < missions.size(); mission++) {
+                    int firstSeat = (cycle * missions.size() + mission) * 6;
+                    assertEquals(expected.subList(firstSeat, firstSeat + 6),
+                            soldierIds(missions.get(mission), cycle));
+                }
             }
-            assertEquals(expected.subList(36, 42),
-                    soldierIds(missions.get(0), 1));
-            assertEquals(expected.subList(42, 48),
-                    soldierIds(missions.get(1), 1));
         }
     }
 

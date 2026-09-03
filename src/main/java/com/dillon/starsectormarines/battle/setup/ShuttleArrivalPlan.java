@@ -42,6 +42,28 @@ public record ShuttleArrivalPlan(
         return policy == MarineArrivalPolicy.PAIRED_HALF_SQUAD;
     }
 
+    public ShuttleArrivalPlan withArrivalConfig(ConquestArrivalConfig config) {
+        return new ShuttleArrivalPlan(policy, firstPlayerShuttle, config);
+    }
+
+    /**
+     * The arrival shape with whatever the mission left to the lift filled in
+     * from the seats this manifest commits.
+     *
+     * <p>Asked before the map is generated, because the count of pairs is also
+     * the count of berthing areas the landing place has to seat; the map is then
+     * told what the lift wants rather than the lift being told what three drop
+     * zones can carry. Where the mission stated a shape this returns it
+     * unchanged.
+     */
+    public ConquestArrivalConfig sizedConfigFor(List<ShuttleAssignment> manifest) {
+        if (!paired()) return arrivalConfig;
+        List<ShuttleAssignment> source = manifest != null ? manifest : List.of();
+        int employerEnd = Math.min(firstPlayerShuttle, source.size());
+        return OrbitalLift.resolve(arrivalConfig,
+                seatCapacity(source, employerEnd, source.size()));
+    }
+
     public ShuttleType deliveryCraft(ShuttleType committedLift) {
         return policy.deliveryCraft(committedLift);
     }
@@ -73,8 +95,12 @@ public record ShuttleArrivalPlan(
         int playerSeats = selectedPlayerSeats >= 0
                 ? Math.max(authoredPlayerSeats, selectedPlayerSeats)
                 : authoredPlayerSeats;
+        // Sized here as well as at the setup site, so a plan whose shape the
+        // mission left derived cannot collapse to one pair merely because a
+        // caller resolved its manifest without asking the lift first.
         collapseSegment(source, employerEnd, source.size(), playerSeats,
-                arrivalConfig.playerShuttlePairCount(), resolved);
+                OrbitalLift.resolve(arrivalConfig, playerSeats)
+                        .playerShuttlePairCount(), resolved);
         return new ResolvedManifest(resolved, resolvedEmployer);
     }
 

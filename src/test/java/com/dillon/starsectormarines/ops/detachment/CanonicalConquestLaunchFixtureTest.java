@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import com.dillon.starsectormarines.ops.LandingShare;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -43,11 +45,11 @@ class CanonicalConquestLaunchFixtureTest {
         assertCanonical("conquest-reinforced-south-v3.json",
                 reinforcedSouth(), DebugCompanyStage.REINFORCED,
                 17,
-                List.of(6, 6, 6, 6, 5, 5));
+                List.of(9, 9, 8, 8));
         assertCanonical("conquest-full-strength-west-v3.json",
                 fullStrengthWest(), DebugCompanyStage.FULL_STRENGTH,
                 34,
-                List.of(12, 12, 11, 11, 11, 11));
+                List.of(9, 9, 9, 9, 8, 8, 8, 8));
     }
 
     private static void assertCanonical(
@@ -74,9 +76,15 @@ class CanonicalConquestLaunchFixtureTest {
                 ConquestBattleFixture.class, fixture.construction());
         assertEquals(MarineArrivalPolicy.PAIRED_HALF_SQUAD,
                 construction.arrivalPlan().policy());
-        assertEquals(3, construction.arrivalPlan().arrivalConfig().dropZoneCount());
-        assertEquals(1,
+        // The shape is the lift's, not the mission's: a fixture that stated
+        // three pairs would put a larger force through a smaller lift, which is
+        // the fault `OrbitalLift` exists to correct.
+        assertEquals(ConquestArrivalConfig.DERIVED,
+                construction.arrivalPlan().arrivalConfig().dropZoneCount());
+        assertEquals(ConquestArrivalConfig.DERIVED,
                 construction.arrivalPlan().arrivalConfig().shuttlePairsPerZone());
+        assertEquals(LandingShare.DEFAULT,
+                construction.arrivalPlan().arrivalConfig().landingShare());
         assertEquals(expectedCycles, construction.manifest().stream()
                 .map(shuttle -> shuttle.cycles).toList());
         assertTrue(construction.manifest().stream().allMatch(shuttle ->

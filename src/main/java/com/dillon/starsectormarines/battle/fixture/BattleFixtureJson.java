@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import com.dillon.starsectormarines.ops.LandingShare;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
@@ -394,6 +395,8 @@ public final class BattleFixtureJson {
                 plan.arrivalConfig().shuttlePairsPerZone());
         encoded.put("timingJitterSec",
                 plan.arrivalConfig().timingJitterSec());
+        encoded.put("landingShare",
+                plan.arrivalConfig().landingShare().fraction());
         return encoded;
     }
 
@@ -410,7 +413,10 @@ public final class BattleFixtureJson {
                         : defaults.shuttlePairsPerZone(),
                 encoded.has("timingJitterSec")
                         ? (float) encoded.getDouble("timingJitterSec")
-                        : defaults.timingJitterSec());
+                        : defaults.timingJitterSec(),
+                encoded.has("landingShare")
+                        ? new LandingShare((float) encoded.getDouble("landingShare"))
+                        : defaults.landingShare());
         return new ShuttleArrivalPlan(
                 policy, encoded.getInt("firstPlayerShuttle"), config);
     }
