@@ -4,10 +4,14 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the allied faction shipped and left the board.
+Updated: 2026-09-03 — the navigation substrate's derivations are being tiled so
+a one-cell breach stops costing a whole-map sweep.
+
+Earlier 2026-09-02 — the allied faction shipped and left the board.
 
 | Story | State | Intent |
 |---|---|---|
+| `tiled-navigation-derivations.md` | IN PROGRESS | Tile the clearance mask, its component labels, and the greedy mesh so a breach recomputes the tiles it touched instead of all 188,160 cells. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
 | `commander-field-analysis.md` | DRAFT | Add optional read-only frontline/bulge diagnostics over faction-local snapshots without granting assignment authority. |
 | `retire-mech-combatant-behavior.md` | DRAFT | Remove the obsolete mech behavior shell while preserving the shared mech firing contract under an honest name. |

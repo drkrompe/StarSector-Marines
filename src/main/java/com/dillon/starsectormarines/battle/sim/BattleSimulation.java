@@ -2110,12 +2110,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmReinforcements.tick(TICK_DT, this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
-        // Single zone-graph rebuild for the whole tick — drains any wall
-        // breaches or turret demolishes that happened this tick + clears the
-        // vantage-point cache in lockstep. Multiple breaches in one tick
-        // (e.g., a rocket shredding a wall section) collapse into one rebuild.
-        navigation.flushNavigationTopologyIfDirty();
+        // Single navigation-topology drain for the whole tick — takes any wall
+        // breaches or turret demolishes that happened this tick, rebuilds the
+        // zone graph, then the mesh and the caches that hang off it. Multiple
+        // breaches in one tick (e.g., a rocket shredding a wall section)
+        // collapse into one rebuild. Lapped in two because the zone graph is
+        // incremental and the derived layer beside it was not, and one lap over
+        // both charged the cheap half for the dear one.
+        boolean navigationTopologyFlushed = navigation.flushZoneTopologyIfDirty();
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
+        if (navigationTopologyFlushed) navigation.rebuildDerivedNavigation();
+        tickProfile.lap(TickProfile.Phase.NAV_FLUSH);
         if (missionCompletionEnabled) {
             WinCheckSystem.WinResult result =
                     winCheck.tick(objectivesService.getObjectives());

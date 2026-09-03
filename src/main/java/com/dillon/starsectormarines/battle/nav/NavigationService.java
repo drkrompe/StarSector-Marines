@@ -212,18 +212,42 @@ public final class NavigationService {
      * DevConfig#ZONE_INCREMENTAL_REBUILD} is on; otherwise a full {@link ZoneGraph#rebuild()}.
      */
     public void flushNavigationTopologyIfDirty() {
-        if (!navigationTopologyDirty) return;
+        if (flushZoneTopologyIfDirty()) rebuildDerivedNavigation();
+    }
+
+    /**
+     * The zone-graph half of the flush, and the drain of the dirty state that
+     * drove it. Returns {@code true} exactly when it did work — which is
+     * exactly when the caller owes a {@link #rebuildDerivedNavigation()}.
+     *
+     * <p>Split from the second half so the tick profile can charge them
+     * separately. The zone graph is the one derivation here that is already
+     * incremental; the mesh rebuild beside it is a full row-major sweep of the
+     * grid, and folding the two into one lap left the expensive one invisible.
+     */
+    public boolean flushZoneTopologyIfDirty() {
+        if (!navigationTopologyDirty) return false;
         if (DevConfig.ZONE_INCREMENTAL_REBUILD && !zoneForceFullRebuild && openedCount > 0) {
             zoneGraph.applyCellsOpened(Arrays.copyOf(openedCells, openedCount));
         } else {
             zoneGraph.rebuild();
         }
-        navigationMesh.rebuild();
-        vantagePointsByTargetCell.clear();
-        sharedGoalPathfinder.invalidateAll();
         navigationTopologyDirty = false;
         zoneForceFullRebuild = false;
         openedCount = 0;
+        return true;
+    }
+
+    /**
+     * The derived-navigation half: the greedy mesh, the vantage-point cache and
+     * every retained shared-goal field. Paired with a {@code true} from
+     * {@link #flushZoneTopologyIfDirty()}; calling it unpaired is merely
+     * wasteful rather than wrong.
+     */
+    public void rebuildDerivedNavigation() {
+        navigationMesh.rebuild();
+        vantagePointsByTargetCell.clear();
+        sharedGoalPathfinder.invalidateAll();
     }
 
     /** Compatibility name; prefer {@link #flushNavigationTopologyIfDirty()}. */
