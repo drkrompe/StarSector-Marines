@@ -45,11 +45,11 @@ class CanonicalConquestLaunchFixtureTest {
         assertCanonical("conquest-reinforced-south-v3.json",
                 reinforcedSouth(), DebugCompanyStage.REINFORCED,
                 17,
-                List.of(9, 9, 8, 8));
+                List.of(6, 6, 6, 6, 5, 5));
         assertCanonical("conquest-full-strength-west-v3.json",
                 fullStrengthWest(), DebugCompanyStage.FULL_STRENGTH,
                 34,
-                List.of(9, 9, 9, 9, 8, 8, 8, 8));
+                List.of(12, 12, 11, 11, 11, 11));
     }
 
     private static void assertCanonical(
@@ -76,9 +76,9 @@ class CanonicalConquestLaunchFixtureTest {
                 ConquestBattleFixture.class, fixture.construction());
         assertEquals(MarineArrivalPolicy.PAIRED_HALF_SQUAD,
                 construction.arrivalPlan().policy());
-        // The shape is the lift's, not the mission's: a fixture that stated
-        // three pairs would put a larger force through a smaller lift, which is
-        // the fault `OrbitalLift` exists to correct.
+        // The fixture leaves the shape to the lift, which by default flies the
+        // ferry's three pairs — see `OrbitalLift.DERIVED_LIFT_PROPERTY` for
+        // what the matrix said about sizing it from the seats instead.
         assertEquals(ConquestArrivalConfig.DERIVED,
                 construction.arrivalPlan().arrivalConfig().dropZoneCount());
         assertEquals(ConquestArrivalConfig.DERIVED,

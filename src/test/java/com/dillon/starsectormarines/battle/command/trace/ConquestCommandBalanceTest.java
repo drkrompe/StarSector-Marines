@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -274,18 +275,21 @@ class ConquestCommandBalanceTest {
                     "Canonical Conquest evidence requires paired arrivals: "
                             + spec.id);
         }
+        // How many craft fly is the lift's answer to the seats, so the count
+        // is not pinned here; what is pinned is that the fixture left it to the
+        // lift and that every craft is a six-seat Aeroshuttle descent.
         if (construction.arrivalPlan().firstPlayerShuttle() != 0
-                || construction.arrivalPlan().arrivalConfig().dropZoneCount() != 3
+                || construction.arrivalPlan().arrivalConfig().dropZoneCount()
+                != ConquestArrivalConfig.DERIVED
                 || construction.arrivalPlan().arrivalConfig()
-                .shuttlePairsPerZone() != 1
-                || construction.manifest().size() != 6
+                .shuttlePairsPerZone() != ConquestArrivalConfig.DERIVED
+                || construction.manifest().isEmpty()
                 || construction.manifest().stream().anyMatch(shuttle ->
                 shuttle.type != ShuttleType.AEROSHUTTLE
                         || shuttle.seatsPerSortie != 6)) {
             throw new IllegalArgumentException(
-                    "Canonical Conquest evidence requires the default three paired "
-                            + "landing areas and six-seat descent shuttles: "
-                            + spec.id);
+                    "Canonical Conquest evidence requires a derived paired lift "
+                            + "of six-seat descent shuttles: " + spec.id);
         }
         if (launchSeats != spec.expectedLaunchSeats
                 || launchSquads != spec.expectedLaunchSquads
