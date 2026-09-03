@@ -6,6 +6,7 @@ Written: 2026-08-23
 
 | Story | Shipped | Commit ref(s) | Fold destination |
 |---|---:|---|---|
+| `large-map-render-budget.md` | 2026-09-02 | `a07d46d9`, `8b127d28`, `be93ddb7` | Frame census, framing gates, and resident ground as laws 18-20 in `battle-render-nouns.md`; the rejected run-merging and baked-tile alternatives in its boundaries. |
 | `story-a-extract-assets.md` | 2026-05-28 | `6fc91e94` | Render-side asset lifecycle in `battle-render-nouns.md`. |
 | `story-b-battlerenderer.md` | 2026-05-28 | `9084ed49` | Screen/renderer ownership boundary in `battle-render-nouns.md`. |
 | `story-c-drawlist-model.md` | 2026-05-29 | `1d391cf1` | Render layers, commands, and deferred drain in `battle-render-nouns.md`. |

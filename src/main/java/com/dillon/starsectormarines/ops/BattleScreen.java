@@ -546,6 +546,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         renderer.getDecalAccumulator().dispose();
         // Same leak concern as the decal accumulator, for the S2/S3 ground FBO set.
         renderer.getGroundParallax().dispose();
+        // The resident ground's vertex buffers belong to this battle's map; the
+        // next battle is a different grid and bakes its own.
+        renderer.getGroundMesh().dispose();
         renderer.getGroundLights().clear();
         if (retainedOverlay != null) retainedOverlay.detach();
         if (retainedSquadOverlay != null) retainedSquadOverlay.detach();

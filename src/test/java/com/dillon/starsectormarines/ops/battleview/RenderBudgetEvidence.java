@@ -130,6 +130,19 @@ class RenderBudgetEvidence {
     private record Row(String map, String framing, String layer,
                        DrawCensus census, double collectMs, double drainMs) { }
 
+    /**
+     * A whole frame, wall clock, with the GPU waited on.
+     *
+     * <p>The per-layer times are our CPU share and cannot see the other half of
+     * a lever's bill. A resident ground draws the whole map every frame however
+     * close the camera is, so it trades a submission cost we measure for a fill
+     * cost we do not, and a change that halved our side while doubling the
+     * driver's would read as a win in every other column here. This is the
+     * column that refuses that.
+     */
+    private record FrameCost(String map, String framing, double frameMs, double ourMs,
+                             int residentQuads, int meshBuffers) { }
+
     @Test
     void profilesTheRealPipelineAtThreeFramings() throws Exception {
         try (HeadlessGl gl = HeadlessGl.createOrNull(SURFACE_W, SURFACE_H)) {
@@ -151,6 +164,7 @@ class RenderBudgetEvidence {
 
             Path modRoot = Path.of("mod").toAbsolutePath().normalize();
             List<Row> rows = new ArrayList<>();
+            List<FrameCost> frameCosts = new ArrayList<>();
             try (GlSpriteTokens tokens = new GlSpriteTokens()) {
                 HeadlessBattleSprites sprites = new HeadlessBattleSprites(modRoot, tokens);
                 sprites.ensureUnitSheets();
@@ -162,17 +176,17 @@ class RenderBudgetEvidence {
                 for (MapSpec spec : MapSpec.MATRIX) {
                     try (BattleSimulation sim = spec.build()) {
                         play(sim, ticks);
-                        rows.addAll(profile(spec, sim, renderer, frames));
+                        rows.addAll(profile(spec, sim, renderer, frames, frameCosts));
                     }
                 }
                 System.out.println("[render-evidence] textures uploaded: "
                         + tokens.uploadedTextures());
             }
 
-            String markdown = markdown(rows, ticks, frames);
+            String markdown = markdown(rows, frameCosts, ticks, frames);
             Files.writeString(output.resolve("summary.md"), markdown, StandardCharsets.UTF_8);
-            Files.writeString(output.resolve("summary.json"), json(rows, ticks, frames),
-                    StandardCharsets.UTF_8);
+            Files.writeString(output.resolve("summary.json"),
+                    json(rows, frameCosts, ticks, frames), StandardCharsets.UTF_8);
             System.out.println(markdown);
             System.out.println("[render-evidence] wrote " + output.resolve("summary.md"));
             } finally {
@@ -256,7 +270,8 @@ class RenderBudgetEvidence {
     // ---- the measurement -----------------------------------------------------
 
     private static List<Row> profile(MapSpec spec, BattleSimulation sim,
-                                     BattleRenderer renderer, int frames) {
+                                     BattleRenderer renderer, int frames,
+                                     List<FrameCost> frameCosts) {
         int gridW = sim.getGrid().getWidth();
         int gridH = sim.getGrid().getHeight();
         String mapId = spec.id();
@@ -279,11 +294,14 @@ class RenderBudgetEvidence {
             FrameCensus census = new FrameCensus();
             long[][] collect = new long[frames][];
             long[][] drain = new long[frames][];
+            long[] wall = new long[frames];
             DrawCensus[] counts = new DrawCensus[RenderLayer.values().length];
             int firstTotal = -1;
             for (int frame = 0; frame < frames; frame++) {
                 census.reset();
+                long started = System.nanoTime();
                 drawFrame(renderer, rc, census);
+                wall[frame] = System.nanoTime() - started;
                 collect[frame] = perLayer(census, true);
                 drain[frame] = perLayer(census, false);
                 int total = census.total().commands();
@@ -306,12 +324,23 @@ class RenderBudgetEvidence {
                 double collectMs = medianMs(collect, layer.ordinal());
                 double drainMs = medianMs(drain, layer.ordinal());
                 if (layerCounts.commands() == 0 && collectMs < 0.005 && drainMs < 0.005) continue;
-                rows.add(new Row(mapId, framing.id() + " (" + framing.what() + ", "
-                        + String.format(Locale.ROOT, "%.1f", camera.cellPxSize()) + " px/cell)",
+                rows.add(new Row(mapId, framingId(framing, camera),
                         layer.name(), layerCounts, collectMs, drainMs));
             }
+            double ours = 0;
+            for (RenderLayer layer : RenderLayer.values()) {
+                ours += medianMs(collect, layer.ordinal()) + medianMs(drain, layer.ordinal());
+            }
+            GroundMesh mesh = renderer.getGroundMesh();
+            frameCosts.add(new FrameCost(mapId, framingId(framing, camera),
+                    median(wall), ours, mesh.residentQuads(), mesh.bucketCount()));
         }
         return rows;
+    }
+
+    private static String framingId(Framing framing, BattleCamera camera) {
+        return framing.id() + " (" + framing.what() + ", "
+                + String.format(Locale.ROOT, "%.1f", camera.cellPxSize()) + " px/cell)";
     }
 
     private static void drawFrame(BattleRenderer renderer, RenderContext rc, FrameCensus census) {
@@ -365,6 +394,12 @@ class RenderBudgetEvidence {
         return out;
     }
 
+    private static double median(long[] nanos) {
+        long[] values = nanos.clone();
+        Arrays.sort(values);
+        return values[values.length / 2] / 1_000_000.0;
+    }
+
     private static double medianMs(long[][] samples, int layer) {
         long[] values = new long[samples.length];
         for (int i = 0; i < samples.length; i++) values[i] = samples[i][layer];
@@ -374,7 +409,8 @@ class RenderBudgetEvidence {
 
     // ---- the report ----------------------------------------------------------
 
-    private static String markdown(List<Row> rows, int ticks, int frames) {
+    private static String markdown(List<Row> rows, List<FrameCost> frameCosts,
+                                   int ticks, int frames) {
         StringBuilder out = new StringBuilder();
         out.append("# Render budget\n\n");
         out.append("Collected and drained through the shipping `BattleRenderer` on a real\n")
@@ -386,6 +422,25 @@ class RenderBudgetEvidence {
                 .append("frame around ours are not in these numbers.\n\n");
         out.append("A `CUSTOM` pass owns its GL, so its draws and binds are its own and are\n")
                 .append("not counted in the draw-call column; its time is.\n\n");
+        out.append("Levers this run: zoom gates **")
+                .append(ZoomDetail.enabled() ? "on" : "off")
+                .append("**, resident ground mesh **")
+                .append(GroundMesh.enabled() ? "on" : "off").append("**.\n\n");
+
+        out.append("## Whole frames\n\n")
+                .append("Wall clock with the GPU waited on, against the sum of our own\n")
+                .append("per-layer time. The gap is the driver and the card.\n\n")
+                .append("| map | framing | frame ms | our ms | resident quads | ground buffers |\n")
+                .append("|---|---|--:|--:|--:|--:|\n");
+        for (FrameCost cost : frameCosts) {
+            out.append("| ").append(cost.map())
+                    .append(" | ").append(cost.framing())
+                    .append(" | ").append(String.format(Locale.ROOT, "%.2f", cost.frameMs()))
+                    .append(" | ").append(String.format(Locale.ROOT, "%.2f", cost.ourMs()))
+                    .append(" | ").append(cost.residentQuads())
+                    .append(" | ").append(cost.meshBuffers())
+                    .append(" |\n");
+        }
 
         String map = null;
         String framing = null;
@@ -441,13 +496,27 @@ class RenderBudgetEvidence {
         return out.toString();
     }
 
-    private static String json(List<Row> rows, int ticks, int frames) throws Exception {
+    private static String json(List<Row> rows, List<FrameCost> frameCosts,
+                               int ticks, int frames) throws Exception {
         JSONObject root = new JSONObject();
         root.put("surfaceWidth", SURFACE_W);
         root.put("surfaceHeight", SURFACE_H);
         root.put("ticks", ticks);
         root.put("frames", frames);
         root.put("zoomGates", ZoomDetail.enabled());
+        root.put("groundMesh", GroundMesh.enabled());
+        List<JSONObject> costs = new ArrayList<>();
+        for (FrameCost cost : frameCosts) {
+            JSONObject entry = new JSONObject();
+            entry.put("map", cost.map());
+            entry.put("framing", cost.framing());
+            entry.put("frameMs", cost.frameMs());
+            entry.put("ourMs", cost.ourMs());
+            entry.put("residentQuads", cost.residentQuads());
+            entry.put("groundBuffers", cost.meshBuffers());
+            costs.add(entry);
+        }
+        root.put("frames_measured", costs);
         List<JSONObject> encoded = new ArrayList<>();
         for (Row row : rows) {
             JSONObject entry = new JSONObject();

@@ -44,6 +44,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
 
 import java.awt.Color;
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -193,6 +194,13 @@ public class BattleRenderer {
     private final DecalAccumulator decalAccumulator =
             new DecalAccumulator(DevConfig.DECAL_FBO_PX_PER_CELL);
 
+    /**
+     * The battle's resident ground, baked once and patched per changed cell.
+     * Held here because it owns GL buffers and the host releases it with the
+     * rest of the renderer's GPU state.
+     */
+    private final GroundMesh groundMesh = new GroundMesh();
+
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
 
@@ -229,7 +237,7 @@ public class BattleRenderer {
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         this.worldSystems = List.of(
-                new GroundRenderSystem(sprites),
+                new GroundRenderSystem(sprites, groundMesh),
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)
@@ -421,6 +429,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.detach()} — release FBO resources. */
     public DecalAccumulator getDecalAccumulator() { return decalAccumulator; }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the resident ground buffers. */
+    public GroundMesh getGroundMesh() { return groundMesh; }
 
     /** Accessor for {@code BattleScreen.detach()} — release the S2/S3 ground FBO set. */
     public GroundParallaxPipeline getGroundParallax() { return groundParallax; }
@@ -928,7 +939,7 @@ public class BattleRenderer {
      * {@link RenderLayer} javadoc — do not re-derive it here.
      */
     public void renderWorld(RenderContext rc) {
-        renderWorld(rc, java.util.EnumSet.allOf(RenderLayer.class));
+        renderWorld(rc, EnumSet.allOf(RenderLayer.class));
     }
 
     /**
@@ -943,7 +954,7 @@ public class BattleRenderer {
      * collect emits world-unit coords, drain brackets its own GL, so the same
      * pipeline serves the standalone screen view and the combat layer unchanged.
      */
-    public void renderWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
+    public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers) {
         renderWorld(rc, layers, null);
     }
 
@@ -956,7 +967,7 @@ public class BattleRenderer {
      * from the shipping collect-and-drain rather than from a copy of it. See
      * {@link FrameCensus}.
      */
-    public void renderWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers,
+    public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                             FrameCensus census) {
         collectWorld(rc, layers, census);
         boolean parallax = rc.hostProfile.surfaceReliefEnabled()
@@ -984,7 +995,7 @@ public class BattleRenderer {
      * collects another frame. Live rendering drains it immediately; headless
      * evidence replays the same commands through its raster backend.
      */
-    public DrawList collectWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
+    public DrawList collectWorld(RenderContext rc, EnumSet<RenderLayer> layers) {
         return collectWorld(rc, layers, null);
     }
 
@@ -997,7 +1008,7 @@ public class BattleRenderer {
      * shared-layer sum is the honest reading of "what does GROUND cost", and
      * timing the whole loop once would attribute all of it to nothing.
      */
-    public DrawList collectWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers,
+    public DrawList collectWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                                  FrameCensus census) {
         if (rc == null || layers == null) {
             throw new IllegalArgumentException("render context and layers are required");
