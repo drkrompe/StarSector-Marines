@@ -249,13 +249,14 @@ Do not run builds or leave generated task files there.
   noise; the times are medians of nine frames after warm-up and move a few per
   cent run to run. Compare a lever against **its own run's control**
   (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
-  `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`),
-  never against a number in a document.
-  Where it stands: a whole-map 560x336 Conquest frame is **8 ms** with every
-  lever on, 13 ms with the fog field off and 148 ms with resident relief off,
-  and the ceiling there is now `GROUND` at 5.4 ms of the 7.5 that are ours —
-  1.7 collect and 3.7 drain, which is the sparse work the resident mesh does
-  not hold leaving as five hundred draws across five hundred texture binds.
+  `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
+  `-Dbattle.render.groundAtlas=false`), never against a number in a document.
+  Where it stands: a whole-map 560x336 Conquest frame is **3.5 ms** with every
+  lever on, of which 2.6 are ours, and `GROUND` is 1.5 of that — 0.9 collect
+  and 0.6 drain. The same frame with the ground atlas off is 4.6 ms of ours
+  with `GROUND` at 3.5, because the sparse work the resident mesh does not hold
+  then leaves as five hundred draws across five hundred texture binds instead
+  of four draws across one.
   **The harness does not advance the simulation between frames**, so a resident
   thing's patch cost is charged once, in the frame that catches it up, and every
   later frame in a framing reads as the steady state. That is the shape of the

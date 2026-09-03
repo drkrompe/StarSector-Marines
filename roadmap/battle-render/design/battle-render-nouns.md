@@ -48,6 +48,12 @@ the GPU instead of resubmitted every frame.
   is the vision service's **changed extent** (`fog-of-war-nouns.md`), not the
   cell topology's change log — a cell's terrain and who can see it move for
   entirely different reasons.
+- A **ground atlas** is every sheet the `GROUND` layer can draw from, composited
+  into one GL texture at battle load, with each sheet keeping an origin inside
+  it. A ground quad — resident or sparse — addresses that texture at its own
+  sheet's origin plus its own source rectangle, so the layer is one texture
+  rather than six. It is a change of address and not of picture: the same quads
+  in the same order over the same rectangles.
 - The **resident ground** is the battle's static base terrain, baked once into
   vertex buffers and drawn from them. One buffer per sheet; every cell that draws
   a base tile owns four vertices in it and keeps them, in cell coordinates, so the
@@ -210,6 +216,27 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     rounds apart. This is not a general licence to round: it applies where one
     picture has two producers, and the failure it prevents is a seam that
     appears only at the values whose product sits on a rounding boundary.
+24. A layer that cannot stop submitting can stop rebinding. Where residency is
+    the answer to submitting the same thing again, a **ground atlas** is the
+    answer to submitting different things that differ only by which sheet they
+    came from: a run of quads coalesces exactly as far as its texture stays the
+    same, so six sheets in painter order is five hundred flushes and one sheet
+    is one. Both halves of the layer address it — what is resident bakes the
+    atlas coordinate into its buffer, what is sparse carries it on the command —
+    and the resolution stays single, so the two cannot disagree about where a
+    cell's art lives. Paint order, destination rectangles and blend state are
+    untouched, and a slot carries a gutter because bilinear reaches one texel
+    and the sheet next door is a neighbour no sheet had before. Law 20's failure
+    clause carries over: any failure at all returns every quad to its own sheet
+    with the same picture. What this is not is a licence to merge sheets a
+    *reader* distinguishes — an atlas is a submission fact, and the catalog that
+    says which block is on which sheet (`moddable-tilesets-nouns.md`) is
+    untouched by it. Which coordinate frame the two meet in is the whole risk
+    and is not visible in the code: a source rectangle counts rows down from a
+    sheet's top and GL counts them up from a texture's bottom, and a slot placed
+    in the wrong one draws every tile as a real tile belonging to some other
+    sheet. Nothing but a picture catches that, which is why the acceptance is
+    pixel equality against the per-sheet path on a real driver.
 
 ## Boundaries and extension paths
 
@@ -217,7 +244,7 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 
-The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a wrap the atlas cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
+The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a repeat wrap that a tile cut from a packed sheet cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
 **The next ceiling is `GROUND` again, and it is the drain this time.** With the
 ground, the relief fields and the fog all resident, a whole-map 560x336 Conquest

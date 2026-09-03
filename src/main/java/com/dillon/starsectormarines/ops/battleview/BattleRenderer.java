@@ -199,6 +199,13 @@ public class BattleRenderer {
     private final GroundMesh groundMesh = new GroundMesh();
 
     /**
+     * Every sheet the ground layer draws from, as one texture. Held here
+     * because it owns a GL texture and the host releases it with the rest of
+     * the renderer's GPU state.
+     */
+    private final GroundAtlas groundAtlas = new GroundAtlas();
+
+    /**
      * The battle's fog, resident as one map-sized alpha texture and patched from
      * the vision service's own changed-extent log. Held here because it owns a
      * GL texture and the host releases it with the rest of the renderer's GPU
@@ -242,7 +249,7 @@ public class BattleRenderer {
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         this.worldSystems = List.of(
-                new GroundRenderSystem(sprites, groundMesh),
+                new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)
@@ -335,6 +342,17 @@ public class BattleRenderer {
         if (parkedVehicleBatch == null && sprites.parkedVehicleSheet() != null)
             parkedVehicleBatch = new QuadBatch(sprites.parkedVehicleSheet(),
                     sprites.parkedVehicleSheetPxW(), sprites.parkedVehicleSheetPxH(), 256);
+
+        // The ground layer's sheets as one texture. Planned here rather than at
+        // first collect because the layout is GL-free arithmetic and its batch
+        // has to be registered at the same seam as every other sheet's — the
+        // drain resolves a sheet quad through this map and has nowhere else to
+        // look. The texture itself is built later, inside the ground layer's
+        // own custom pass.
+        if (groundAtlas.plan(sprites)) {
+            registerBatch(groundAtlas.sheet(), new QuadBatch(groundAtlas.sheet(),
+                    groundAtlas.width(), groundAtlas.height(), 16384));
+        }
 
         // Register the per-sheet batches so drainLayer can resolve a SheetQuad's
         // sheet to its batch. Same instances the inline tile passes use.
@@ -436,6 +454,9 @@ public class BattleRenderer {
 
     /** Accessor for {@code BattleScreen.detach()} — release the resident ground buffers. */
     public GroundMesh getGroundMesh() { return groundMesh; }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the composited ground atlas. */
+    public GroundAtlas getGroundAtlas() { return groundAtlas; }
 
     /** Accessor for {@code BattleScreen.detach()} — release the resident fog texture. */
     public FogField getFogField() { return fogField; }
