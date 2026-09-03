@@ -175,8 +175,8 @@ seated.
 **The map-side answer was tried too, and it is not the one either.** If a
 fixture's outer lanes begin two hundred cells from the only ground the force
 stands on, the natural fix is to give every derived lane the same two ends — the
-landing place and the keep — and spread them only in between. `lane-fan.md`
-built exactly that, and the fanned map holds 14 on the south and 3 on the west
+landing place and the keep — and spread them only in between. That was built
+and measured (the table is in `precincts.md`, "And what stands between the two"), and the fanned map holds 14 on the south and 3 on the west
 with the chain on; an isolation run against the same tree with lane membership
 handed back to the plain lateral thirds still reads 12 and 4, so the fanned map
 carried the loss and no lane reading over it recovered any of it. It was

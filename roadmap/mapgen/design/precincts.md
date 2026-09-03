@@ -783,9 +783,25 @@ opening in the middle and closing at both ends, produces exactly the picture the
 mission's name suggests: one base, three routes, one fortress. It also loses
 held compounds on both canonical fixtures, and an isolation run shows the fanned
 map carries the loss rather than any reading over it — the same force meets the
-same garrisons in a narrower space and trades worse. `lane-fan.md` holds the
-matrix. A lane's own third is a *space allowance* as much as a direction, and
-narrowing it is not free.
+same garrisons in a narrower space and trades worse. A lane's own third is a
+*space allowance* as much as a direction, and narrowing it is not free. The
+matrix, at 18,000 ticks, all timeouts, captures / held, where `fence` is the
+rule that decides a squad's lane:
+
+| fixture | tree | fence | chain | captures | held |
+|---|---|---|---|---:|---:|
+| reinforced-south | main | thirds | on | 20 | 16 |
+| reinforced-south | main | thirds | off | 25 | **17** |
+| reinforced-south | fan | routes | on | 24 | 14 |
+| reinforced-south | fan | routes | off | 19 | 15 |
+| reinforced-south | fan | thirds | on | 20 | 10 |
+| reinforced-south | fan | thirds | off | 18 | 12 |
+| full-strength-west | main | thirds | on | 13 | **7** |
+| full-strength-west | main | thirds | off | 12 | **7** |
+| full-strength-west | fan | routes | on | 8 | 3 |
+| full-strength-west | fan | routes | off | 10 | 3 |
+| full-strength-west | fan | thirds | on | 11 | 4 |
+| full-strength-west | fan | thirds | off | 14 | 4 |
 
 **Its drift is drawn from a stream of its own, and that is not a detail.** The
 first version drew from the plan's rng, which shifted every settlement and
