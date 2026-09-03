@@ -47,7 +47,8 @@ import static org.lwjgl.opengl.GL15.glDeleteBuffers;
 import static org.lwjgl.opengl.GL15.glGenBuffers;
 
 /**
- * The battle's static ground, resident on the GPU as vertex buffers.
+ * The battle's ground that is a function of its topology, resident on the GPU
+ * as vertex buffers.
  *
  * <p><b>Why this and not fewer commands.</b> {@code renderEvidence} measured the
  * whole-map frame on the canonical 560x336 Conquest: the ground layer is 266 of
@@ -58,14 +59,14 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  * Collection was 7 ms. Nothing about that is fixed by collecting less; it is
  * fixed by not submitting the ground again every frame.
  *
- * <p><b>A cell owns a slot.</b> Every cell that draws a base terrain tile gets
- * four vertices in the buffer for its sheet, and keeps them. Position is in
- * <em>cell space</em>, so panning and zooming are a modelview transform and
- * change nothing on the GPU: the camera contributes one translate and one scale
- * for the whole map. UVs are the cell's own sub-rectangle of its atlas, which is
- * what makes this work where a merged run does not — a run of identical cells
- * would want the driver's repeat wrap, and a sheet cut from an atlas has no wrap
- * to give.
+ * <p><b>A cell owns a slot.</b> Every cell that draws a tile gets four vertices
+ * in the buffer for its sheet, and keeps them. Position is in <em>cell
+ * space</em>, so panning and zooming are a modelview transform and change
+ * nothing on the GPU: the camera contributes one translate and one scale for
+ * the whole map. UVs are the cell's own sub-rectangle of its sheet — or of the
+ * {@link GroundAtlas}, when there is one — which is what makes this work where
+ * a merged run does not: a run of identical cells would want the driver's
+ * repeat wrap, and a tile cut from a packed sheet has no wrap to give.
  *
  * <p><b>A change is a patch, not a rebuild.</b> A breach, rubble or a new
  * bulkhead moves a handful of cells; {@link CellTopology#changeCount} says which,
@@ -74,32 +75,52 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  * over its own slot. Only a reader that has fallen further behind than the
  * topology's log remembers rebuilds from scratch.
  *
- * <p><b>One bucket per sheet, not per sub-layer.</b> The base terrain is at most
- * one quad per cell and cells do not overlap, so floors and walls can share a
- * buffer without any question of which paints over which. A later sub-layer that
- * genuinely overlapped its neighbours would need its own buckets drawn in order;
- * this one does not, and pretending otherwise would double the buffers for
- * nothing.
+ * <p><b>Sub-layers, in painter order.</b> The mesh holds one resolver per
+ * sub-layer and draws them in the order they were given: the cell's base tile,
+ * then the scatter laid over it, then the decal that says an opening is a door.
+ * Each sub-layer is at most one quad per cell and its cells do not overlap, so
+ * within a sub-layer floors and walls, or one scatter tile and the next, may
+ * share a buffer without any question of which paints over which. Between
+ * sub-layers there very much is such a question, and the answer is the order
+ * the resolvers arrived in.
  *
- * <p><b>What it does not hold.</b> Anything that is not the cell's own base tile:
- * solid fills (reported separately, because a cell with no tile still paints its
- * block's colour), crosswalk stripes, nature overlays, doorway decals, window
- * panes and shared-edge barriers. Those are sparse, they are already one batch
- * each, and several of them overlap two cells.
+ * <p><b>What it does not hold.</b> Anything that is not a function of the cell
+ * topology, and anything that is not a textured quad: solid fills (reported
+ * separately, because a cell with no tile still paints its block's colour),
+ * crosswalk stripes, window panes, and the shared-edge barriers, which are a
+ * live list a battle adds to and destroys from rather than a property of the
+ * grid. Those stay in the command stream, where a change to them costs nothing
+ * to notice.
  *
  * <p><b>It fails soft.</b> A driver without buffer objects, a failed allocation,
  * any GL error at all — {@code sync} answers false and the caller emits the
  * ordinary per-cell command stream, with the same paint order and the same
  * picture. Turn it off for a control run with
- * {@code -Dbattle.render.groundMesh=false}.
+ * {@code -Dbattle.render.groundMesh=false}, or leave the base terrain resident
+ * and the decoration in the stream with
+ * {@code -Dbattle.render.residentDecoration=false}.
  */
 public final class GroundMesh {
 
     /** Control-run switch; see the class note. On by default. */
     public static final String PROPERTY = "battle.render.groundMesh";
 
+    /**
+     * Control-run switch for the decoration sub-layers alone.
+     *
+     * <p>Separate from {@link #PROPERTY} because they are separate questions
+     * with separate answers: whether a static base terrain should be resident
+     * was settled by one measurement, and whether the scatter and door decals
+     * laid over it should join it is another. A run with this off keeps the
+     * base resident and puts the decoration back in the stream.
+     */
+    public static final String DECORATION_PROPERTY = "battle.render.residentDecoration";
+
     private static final boolean ENABLED =
             Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
+
+    private static final boolean DECORATION_ENABLED =
+            Boolean.parseBoolean(System.getProperty(DECORATION_PROPERTY, "true"));
 
     /**
      * Slots past the baked count each bucket keeps spare.
@@ -124,8 +145,13 @@ public final class GroundMesh {
         return ENABLED;
     }
 
+    /** Whether the decoration sub-layers are armed — for the same reason. */
+    public static boolean decorationEnabled() {
+        return ENABLED && DECORATION_ENABLED;
+    }
+
     /**
-     * Where a resolved base-terrain cell goes.
+     * Where a resolved cell goes.
      *
      * <p>The same interface the ordinary command path implements, so the mesh and
      * the per-cell stream cannot disagree about what a cell looks like: there is
@@ -139,7 +165,7 @@ public final class GroundMesh {
         void fill(int rgb);
     }
 
-    /** Resolves one cell's single base quad, or nothing at all. */
+    /** Resolves one cell's single quad in one sub-layer, or nothing at all. */
     public interface CellResolver {
         void resolve(int gridX, int gridY, CellSink sink);
     }
@@ -150,14 +176,15 @@ public final class GroundMesh {
     private long caughtUpTo;
     private boolean broken;
 
-    private final List<Bucket> buckets = new ArrayList<>();
-    private final Map<SpriteAPI, Bucket> bucketBySheet = new IdentityHashMap<>();
+    /** One per sub-layer, drawn in order. Sub-layer zero is the base terrain. */
+    private Sublayer[] sublayers = new Sublayer[0];
 
-    /** Which bucket holds each cell's slot, by bucket index; {@code -1} for none. */
-    private short[] bucketOf;
-    private int[] slotOf;
-
-    /** {@code 0xFF000000 | rgb} for a cell that paints a solid fill, else 0. */
+    /**
+     * {@code 0xFF000000 | rgb} for a cell that paints a solid fill, else 0.
+     *
+     * <p>Only the base sub-layer can report one: a fill stands in for the cell's
+     * own tile, and a decoration that has nothing to draw simply draws nothing.
+     */
     private int[] fillArgb;
     private int[] fillCells = new int[0];
     private int fillCellCount;
@@ -171,17 +198,21 @@ public final class GroundMesh {
     private long[] touchedStamp;
     private long syncStamp;
 
+    /** Cells re-resolved by the last catch-up; see {@link #lastResolvedCells()}. */
+    private int lastResolvedCells;
+
     /**
      * Catches the mesh up to {@code topology}, building it if this is a new
      * battle.
      *
+     * @param resolvers one per sub-layer, in paint order
      * @return whether the mesh can draw this frame; false means the caller owns
      *         the ground and must emit it cell by cell
      */
-    public boolean sync(CellTopology topology, CellResolver resolver) {
-        if (!catchUp(topology, resolver)) return false;
+    public boolean sync(CellTopology topology, CellResolver... resolvers) {
+        if (!catchUp(topology, resolvers)) return false;
         try {
-            for (Bucket bucket : buckets) bucket.upload();
+            for (Sublayer sublayer : sublayers) sublayer.upload();
             return !broken;
         } catch (RuntimeException failure) {
             broken = true;
@@ -198,17 +229,20 @@ public final class GroundMesh {
      * slot is reused, when the log has been outrun) is arithmetic, and a test
      * that needed a GPU to ask about arithmetic would not be run.
      */
-    boolean catchUp(CellTopology topology, CellResolver resolver) {
-        if (!ENABLED || broken || topology == null) return false;
+    boolean catchUp(CellTopology topology, CellResolver... resolvers) {
+        if (!ENABLED || broken || topology == null || resolvers.length == 0) return false;
         try {
-            if (topology != bound) {
-                build(topology, resolver);
+            // A caller that has changed how many sub-layers it has — the
+            // decoration switched off, an embedded host asking for the base
+            // alone — is asking for a different mesh, not a patch of this one.
+            if (topology != bound || sublayers.length != resolvers.length) {
+                build(topology, resolvers);
                 return true;
             }
             long now = topology.changeCount();
             if (now == caughtUpTo) return true;
-            if (now - caughtUpTo > topology.changeLogCapacity()) build(topology, resolver);
-            else patch(topology, resolver, now);
+            if (now - caughtUpTo > topology.changeLogCapacity()) build(topology, resolvers);
+            else patch(topology, resolvers, now);
             return true;
         } catch (RuntimeException failure) {
             broken = true;
@@ -228,6 +262,23 @@ public final class GroundMesh {
      */
     public boolean isServing(CellTopology topology) {
         return ENABLED && !broken && topology != null && topology == bound;
+    }
+
+    /** How many sub-layers the mesh currently holds; zero before its first bake. */
+    public int sublayerCount() {
+        return sublayers.length;
+    }
+
+    /**
+     * Cells re-resolved by the last catch-up; the whole grid for a bake.
+     *
+     * <p>An instrument rather than state anything reads: evidence comparing a
+     * patched mesh against a fresh bake of the same world has to know it was
+     * comparing a patch, since the two are trivially equal when the "patch"
+     * quietly rebuilt everything.
+     */
+    public int lastResolvedCells() {
+        return lastResolvedCells;
     }
 
     /** Cell indices painting a solid fill; valid to {@link #fillCellCount()}. */
@@ -250,43 +301,62 @@ public final class GroundMesh {
 
     /**
      * Visible for tests: the four screen-space corners, in cell units, that
-     * {@code cellIndex} occupies, or null when it holds no slot.
+     * {@code cellIndex} occupies in the base sub-layer, or null when it holds no
+     * slot.
      */
     float[] cellPos(int cellIndex) {
-        return slotFloats(cellIndex, true);
+        return cellPos(0, cellIndex);
+    }
+
+    float[] cellPos(int sublayer, int cellIndex) {
+        return slotFloats(sublayer, cellIndex, true);
     }
 
     /** Visible for tests: the four texture coordinates {@code cellIndex} holds. */
     float[] cellUv(int cellIndex) {
-        return slotFloats(cellIndex, false);
+        return cellUv(0, cellIndex);
+    }
+
+    float[] cellUv(int sublayer, int cellIndex) {
+        return slotFloats(sublayer, cellIndex, false);
     }
 
     /** Visible for tests: slots given back and available for the next cell that needs one. */
     int freeSlotCount() {
         int total = 0;
-        for (Bucket bucket : buckets) total += bucket.freeCount;
+        for (Sublayer sublayer : sublayers) {
+            for (Bucket bucket : sublayer.buckets) total += bucket.freeCount;
+        }
         return total;
     }
 
-    private float[] slotFloats(int cellIndex, boolean position) {
-        if (bucketOf == null || cellIndex < 0 || cellIndex >= bucketOf.length) return null;
-        short bucketIndex = bucketOf[cellIndex];
+    private float[] slotFloats(int sublayerIndex, int cellIndex, boolean position) {
+        if (sublayerIndex < 0 || sublayerIndex >= sublayers.length) return null;
+        Sublayer sublayer = sublayers[sublayerIndex];
+        if (sublayer.bucketOf == null
+                || cellIndex < 0 || cellIndex >= sublayer.bucketOf.length) return null;
+        short bucketIndex = sublayer.bucketOf[cellIndex];
         if (bucketIndex < 0) return null;
-        Bucket bucket = buckets.get(bucketIndex);
+        Bucket bucket = sublayer.buckets.get(bucketIndex);
         float[] source = position ? bucket.pos : bucket.uv;
-        return Arrays.copyOfRange(source, slotOf[cellIndex] * 8, slotOf[cellIndex] * 8 + 8);
+        int at = sublayer.slotOf[cellIndex] * 8;
+        return Arrays.copyOfRange(source, at, at + 8);
     }
 
     /** Quads currently resident — what one frame no longer has to submit. */
     public int residentQuads() {
         int total = 0;
-        for (Bucket bucket : buckets) total += bucket.used;
+        for (Sublayer sublayer : sublayers) {
+            for (Bucket bucket : sublayer.buckets) total += bucket.used;
+        }
         return total;
     }
 
     /** Buffers drawn per frame: the whole ground layer's draw calls and texture binds. */
     public int bucketCount() {
-        return buckets.size();
+        int total = 0;
+        for (Sublayer sublayer : sublayers) total += sublayer.buckets.size();
+        return total;
     }
 
     /**
@@ -304,7 +374,23 @@ public final class GroundMesh {
      * nothing.
      */
     public void draw(BattleCamera camera, float alphaMult) {
-        if (broken || buckets.isEmpty() || camera == null) return;
+        draw(camera, alphaMult, 0, sublayers.length);
+    }
+
+    /**
+     * Draws sub-layers {@code [from, to)} only.
+     *
+     * <p>Two passes rather than one, because something that is <em>not</em>
+     * resident paints between them: the solid fills that stand in for a missing
+     * tile and the crosswalk stripes both sit above the base terrain and below
+     * the scatter, and they are fills rather than art. Splitting the draw is how
+     * residency keeps painter order instead of asking for an exception to it.
+     */
+    public void draw(BattleCamera camera, float alphaMult, int from, int to) {
+        if (broken || sublayers.length == 0 || camera == null) return;
+        int first = Math.max(0, from);
+        int last = Math.min(sublayers.length, to);
+        if (first >= last) return;
         GlStateBracket bracket = GlStateBracket.textured2D();
         try {
             glColor4f(1f, 1f, 1f, alphaMult);
@@ -325,7 +411,11 @@ public final class GroundMesh {
                 // left over from the previous batch would override it.
                 glDisableClientState(GL_COLOR_ARRAY);
                 glEnable(GL_TEXTURE_2D);
-                for (Bucket bucket : buckets) bucket.draw();
+                // Sub-layer order is paint order; within one, buckets do not
+                // overlap and may go in any order at all.
+                for (int i = first; i < last; i++) {
+                    for (Bucket bucket : sublayers[i].buckets) bucket.draw();
+                }
                 // Back to the client-array default the rest of the drain runs
                 // under. The attrib bracket does not cover the buffer binding.
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -343,9 +433,8 @@ public final class GroundMesh {
 
     /** Releases the buffers. The context that made them must still be current. */
     public void dispose() {
-        for (Bucket bucket : buckets) bucket.dispose();
-        buckets.clear();
-        bucketBySheet.clear();
+        for (Sublayer sublayer : sublayers) sublayer.dispose();
+        sublayers = new Sublayer[0];
         bound = null;
         caughtUpTo = 0L;
         fillCellCount = 0;
@@ -353,30 +442,30 @@ public final class GroundMesh {
 
     // ---- build and patch -----------------------------------------------------
 
-    private void build(CellTopology topology, CellResolver resolver) {
-        for (Bucket bucket : buckets) bucket.dispose();
-        buckets.clear();
-        bucketBySheet.clear();
+    private void build(CellTopology topology, CellResolver[] resolvers) {
+        for (Sublayer sublayer : sublayers) sublayer.dispose();
 
         bound = topology;
         gridW = topology.getWidth();
         gridH = topology.getHeight();
         int cells = gridW * gridH;
-        bucketOf = new short[cells];
-        slotOf = new int[cells];
         fillArgb = new int[cells];
         touchedStamp = new long[cells];
-        Arrays.fill(bucketOf, (short) -1);
 
-        Placement placement = new Placement();
+        sublayers = new Sublayer[resolvers.length];
+        for (int i = 0; i < resolvers.length; i++) sublayers[i] = new Sublayer(i, cells);
+
         for (int y = 0; y < gridH; y++) {
             for (int x = 0; x < gridW; x++) {
-                placement.begin(y * gridW + x, x, y);
-                resolver.resolve(x, y, placement);
-                placement.commit();
+                int cell = y * gridW + x;
+                fillArgb[cell] = 0;
+                for (int i = 0; i < resolvers.length; i++) {
+                    sublayers[i].resolveCell(resolvers[i], cell, x, y);
+                }
             }
         }
         rebuildFillList();
+        lastResolvedCells = cells;
         caughtUpTo = topology.changeCount();
     }
 
@@ -388,12 +477,12 @@ public final class GroundMesh {
      * the wall-mask of the cells around it, so knocking a hole in a wall changes
      * the picture of everything it touched.
      */
-    private void patch(CellTopology topology, CellResolver resolver, long now) {
+    private void patch(CellTopology topology, CellResolver[] resolvers, long now) {
         syncStamp++;
         touchedCount = 0;
         for (long sequence = caughtUpTo; sequence < now; sequence++) {
             int cell = topology.changedCellAt(sequence);
-            if (cell < 0 || cell >= bucketOf.length) continue;
+            if (cell < 0 || cell >= fillArgb.length) continue;
             int x = cell % gridW;
             int y = cell / gridW;
             touch(x, y);
@@ -404,19 +493,20 @@ public final class GroundMesh {
         }
         caughtUpTo = now;
 
-        Placement placement = new Placement();
         boolean fillsMoved = false;
         for (int i = 0; i < touchedCount; i++) {
             int cell = touched[i];
             int x = cell % gridW;
             int y = cell / gridW;
             int before = fillArgb[cell];
-            placement.begin(cell, x, y);
-            resolver.resolve(x, y, placement);
-            placement.commit();
+            fillArgb[cell] = 0;
+            for (int layer = 0; layer < resolvers.length; layer++) {
+                sublayers[layer].resolveCell(resolvers[layer], cell, x, y);
+            }
             if (fillArgb[cell] != before) fillsMoved = true;
         }
         if (fillsMoved) rebuildFillList();
+        lastResolvedCells = touchedCount;
     }
 
     private void touch(int x, int y) {
@@ -441,30 +531,55 @@ public final class GroundMesh {
         fillCellCount = count;
     }
 
+    // ---- one sub-layer -------------------------------------------------------
+
     /**
-     * One cell's resolution, applied.
+     * One stratum of the mesh: at most one quad per cell, from any number of
+     * sheets.
      *
-     * <p>A resolver may emit a quad, a fill, or nothing, and this is what turns
-     * whichever it was into a slot in a bucket — reusing the cell's existing slot
-     * when the sheet has not moved, which is the case a bullet hole in a wall
-     * actually takes.
+     * <p>Its own buckets and its own per-cell slot map, because a cell may draw
+     * a floor in one sub-layer and a scatter tile in another and the two are
+     * different quads from possibly different sheets. What it does not have is
+     * its own idea of order: the mesh draws sub-layers in the order it was
+     * given them, and that is the whole of the painter contract between them.
      */
-    private final class Placement implements CellSink {
+    private final class Sublayer implements CellSink {
+
+        private final int index;
+        private final List<Bucket> buckets = new ArrayList<>();
+        private final Map<SpriteAPI, Bucket> bucketBySheet = new IdentityHashMap<>();
+
+        /** Which bucket holds each cell's slot, by bucket index; {@code -1} for none. */
+        private final short[] bucketOf;
+        private final int[] slotOf;
+
+        // Scratch for the cell currently being resolved.
         private int cell;
         private int gx;
         private int gy;
         private boolean placed;
 
-        void begin(int cell, int gx, int gy) {
+        Sublayer(int index, int cells) {
+            this.index = index;
+            this.bucketOf = new short[cells];
+            this.slotOf = new int[cells];
+            Arrays.fill(bucketOf, (short) -1);
+        }
+
+        /**
+         * Applies one cell's resolution.
+         *
+         * <p>Reuses the cell's existing slot when the sheet has not moved, which
+         * is the case a bullet hole in a wall actually takes; anything the
+         * resolver did not claim gives up whatever slot it held, so a scatter
+         * tile that is cleared stops drawing rather than freezing.
+         */
+        void resolveCell(CellResolver resolver, int cell, int gx, int gy) {
             this.cell = cell;
             this.gx = gx;
             this.gy = gy;
             this.placed = false;
-            fillArgb[cell] = 0;
-        }
-
-        /** Anything the resolver did not claim gives up whatever slot it held. */
-        void commit() {
+            resolver.resolve(gx, gy, this);
             if (!placed) release(cell);
         }
 
@@ -494,32 +609,46 @@ public final class GroundMesh {
             if (placed) return;
             placed = true;
             release(cell);
-            fillArgb[cell] = 0xFF000000 | (rgb & 0xFFFFFF);
+            // A fill stands in for the cell's own tile. A decoration sub-layer
+            // that reported one would be painting a solid square over the
+            // terrain underneath it, which is never what "nothing to draw here"
+            // means.
+            if (index == 0) fillArgb[cell] = 0xFF000000 | (rgb & 0xFFFFFF);
         }
-    }
 
-    private void release(int cell) {
-        short bucketIndex = bucketOf[cell];
-        if (bucketIndex < 0) return;
-        buckets.get(bucketIndex).give(slotOf[cell]);
-        bucketOf[cell] = -1;
-    }
+        private void release(int cell) {
+            short bucketIndex = bucketOf[cell];
+            if (bucketIndex < 0) return;
+            buckets.get(bucketIndex).give(slotOf[cell]);
+            bucketOf[cell] = -1;
+        }
 
-    private Bucket bucketFor(SpriteAPI sheet) {
-        Bucket existing = bucketBySheet.get(sheet);
-        if (existing != null) return existing;
-        int pxW = Math.max(1, Math.round(sheet.getWidth()));
-        int pxH = Math.max(1, Math.round(sheet.getHeight()));
-        Bucket bucket = new Bucket(buckets.size(), sheet, pxW, pxH);
-        buckets.add(bucket);
-        bucketBySheet.put(sheet, bucket);
-        return bucket;
+        private Bucket bucketFor(SpriteAPI sheet) {
+            Bucket existing = bucketBySheet.get(sheet);
+            if (existing != null) return existing;
+            int pxW = Math.max(1, Math.round(sheet.getWidth()));
+            int pxH = Math.max(1, Math.round(sheet.getHeight()));
+            Bucket bucket = new Bucket(buckets.size(), sheet, pxW, pxH);
+            buckets.add(bucket);
+            bucketBySheet.put(sheet, bucket);
+            return bucket;
+        }
+
+        void upload() {
+            for (Bucket bucket : buckets) bucket.upload();
+        }
+
+        void dispose() {
+            for (Bucket bucket : buckets) bucket.dispose();
+            buckets.clear();
+            bucketBySheet.clear();
+        }
     }
 
     // ---- one sheet's buffer --------------------------------------------------
 
     /**
-     * Every cell drawing from one sheet, as two buffers.
+     * Every cell drawing from one sheet in one sub-layer, as two buffers.
      *
      * <p>Position and texture coordinates live in <em>separate</em> buffers
      * rather than interleaved in one. That is not a preference: a co-loaded

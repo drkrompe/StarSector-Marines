@@ -64,14 +64,22 @@ public final class GlErrors {
     /**
      * Drain and log every flag latched since the preceding {@link #clear()},
      * attributing them to {@code label}. Logs nothing when the call was clean.
+     *
+     * @return whether the guarded call latched anything, so a caller that can
+     *         fail soft — a one-time allocation, a texture build — can take
+     *         that path instead of carrying on with a resource the driver has
+     *         already refused. Most callers only want the log and ignore it.
      */
-    public static void check(String label) {
+    public static boolean check(String label) {
+        boolean failed = false;
         for (int i = 0; i < MAX_DRAIN; i++) {
             int err = glGetError();
-            if (err == GL_NO_ERROR) return;
+            if (err == GL_NO_ERROR) return failed;
+            failed = true;
             LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
         }
         LOG.error("GL error at " + label + ": still reporting errors after "
                 + MAX_DRAIN + " drains -- context may be lost");
+        return true;
     }
 }

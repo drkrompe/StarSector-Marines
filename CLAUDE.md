@@ -249,10 +249,24 @@ Do not run builds or leave generated task files there.
   noise; the times are medians of nine frames after warm-up and move a few per
   cent run to run. Compare a lever against **its own run's control**
   (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
-  `-Dbattle.render.residentRelief=false`), never against a number in a document.
-  Where it stands: a whole-map 560x336 Conquest frame is **13 ms** with every
-  lever on and 148 ms with resident relief off, and the ceiling there is now
-  `FOG` at 5.7 ms of the 12.5 that are ours.
+  `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
+  `-Dbattle.render.groundAtlas=false`,
+  `-Dbattle.render.residentDecoration=false`), never against a number in a
+  document.
+  Where it stands: a whole-map 560x336 Conquest frame costs **1.8 ms** of our
+  own with every lever on, against 5.5 with the ground atlas and the resident
+  decoration both off. `GROUND` is 0.57 ms of it — 929 commands, three draws and
+  **no texture binds at all**, because everything in that layer carrying a
+  texture is resident and everything left is a solid fill. The ceiling is now
+  `UNITS` at the close and mid framings: 250 bodies drawn as whole sprites,
+  253 draws across 250 binds, which cannot coalesce.
+  **The harness does not advance the simulation between frames**, so a resident
+  thing's patch cost is charged once, in the frame that catches it up, and every
+  later frame in a framing reads as the steady state. That is the shape of the
+  instrument rather than a flattering choice — the counts assertion requires a
+  still world — but it is why a delta-patched layer reads at a hundredth of a
+  millisecond here and should be expected to cost more on the frames a live
+  battle actually changes something in.
   **A headless run has no `Display`, and that used to size the composite 1x1.**
   `GroundParallaxPipeline` scales its targets by the framebuffer over the
   reported screen, and off a pbuffer the framebuffer is zero -- so every relief

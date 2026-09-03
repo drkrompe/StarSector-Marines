@@ -187,6 +187,18 @@ public class BattleSprites {
     public java.util.EnumMap<UnitType, UnitSpriteCache> unitDeadSprites()      { return unitDeadSprites; }
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
+
+    /**
+     * Every faction livery that loaded completely.
+     *
+     * <p>Exposed for a consumer that needs the whole set rather than the one a
+     * side is wearing — {@link UnitAtlas}'s layout, which is settled once and
+     * must hold whichever livery a later screen attachment selects.
+     */
+    public Map<MechLivery, LayeredMechAssets> layeredMechLiveries() {
+        return layeredMechLiveries;
+    }
+
     /** Complete livery selected for one tactical side, with the base set as fail-safe. */
     public LayeredMechAssets layeredMechSprites(Faction side) {
         MechLivery livery = mechLiveryBySide.getOrDefault(side, MechLivery.BASE);

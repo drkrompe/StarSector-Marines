@@ -37,8 +37,11 @@ import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glGenTextures;
 import static org.lwjgl.opengl.GL11.glTexCoord2f;
 import static org.lwjgl.opengl.GL11.glTexImage2D;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T;
 import static org.lwjgl.opengl.GL11.glTexParameteri;
 import static org.lwjgl.opengl.GL11.glVertex2f;
+import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 /**
  * Sprite tokens backed by real OpenGL textures.
@@ -123,6 +126,14 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
         glBindTexture(GL_TEXTURE_2D, name);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        // Clamped rather than left at the default repeat. A bilinear tap at the
+        // outermost half-texel reaches past the image, and under repeat it comes
+        // back with the pixel from the opposite edge — a body's left shoulder
+        // sampled into its right. The game's own sprites sit inside a padded
+        // texture and never do that, so a token that did would be measuring an
+        // artefact of the test harness.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
         return name;
     }

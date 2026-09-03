@@ -45,6 +45,22 @@ public enum BattleRenderHostProfile {
         return residentGroundAllowed;
     }
 
+    /**
+     * Whether this host's fog may live in a {@link FogField} instead of being
+     * submitted cell by cell.
+     *
+     * <p>Reads the same election, and deliberately not a second flag: both
+     * answers turn on the same two facts about a host — whether it can run a
+     * custom pass owning its own GL at all, and whether it has enough cells for
+     * residency to be worth the buffers. A host that keeps a resident ground
+     * keeps a resident fog, and one that cannot do the first cannot do the
+     * second. A flag per resident thing would be a list to keep in step for no
+     * decision anyone actually makes separately.
+     */
+    public boolean residentFogAllowed() {
+        return residentGroundAllowed;
+    }
+
     /** Whether the world paints a solid quad under its whole grid. */
     public boolean worldBackingPainted() {
         return worldBackingPainted;
