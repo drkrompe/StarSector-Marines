@@ -4,7 +4,12 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — the lane chain is **on by default**. What was costing it
+Updated: 2026-09-03 — an open compound's capture zone is the outdoors, so
+"already at the objective" is now a distance and not a shared room, and such a
+compound is never a distant target. Measured at exactly baseline on both
+fixtures, having deleted a walk that never arrived.
+
+Earlier 2026-09-02 — the lane chain is **on by default**. What was costing it
 a held compound was neither the front gate nor the shape of the lanes but a map
 defect: every lane was silently a rung short. With the ladder whole, the same
 code takes more and holds at least as much as the fraction on both canonical
@@ -245,6 +250,63 @@ trade, and should not be re-derived.
 A squad refused by the bound and left with nothing else publishes its own
 assignment reason, because a far-track refusal and an empty map are otherwise
 the same sentence.
+
+**Dividing the front push across a strip's zones was built, measured, and is
+off.** `battle.conquest.zoneTargetCap=true`. The zone picker ranks every squad
+onto the nearest believed-defender zone and consults nothing about who is
+already going there, so a force larger than the front's five to nine useful
+slots queues in depth behind one target — 70% of the live force averaged over
+every command pulse on `full-strength-west`, and 91% at the pulses where it is
+worst. The cap gives each zone its own capture quota plus a stated overflow and
+sends the surplus to the next zone up the strip, falling back to the least
+crowded zone when the whole strip is full.
+
+**It divides the force and loses the ground.** Averaged over every pulse the
+concentration falls from 70% to 43% on the west and 72% to 43% on the south, and
+marines actually standing inside a *walled* compound's capture zone at three
+thousand ticks rise from one to eight on the west. At full length that buys
+nothing and costs two held compounds: 8 captures and 5 held against 11 and 7 on
+`full-strength-west`, and 21 and 19 against 22 and 19 on `reinforced-south`.
+**Concentration was the wrong thing to measure.** A crowd on one zone is what a
+front that has run out of places to be looks like; spreading it puts squads onto
+zones that were not worth taking, and the west's real constraint is upstream —
+`STRIP_COUNT` is three and `stripFor` reads the landing lateral, so effectively
+the whole force prefers one track and the strip it is capped within has three
+zones in it.
+
+What the attempt did establish is that **a capped rule owes stickiness**. Its
+answer depends on who chose first, so a squad third in the queue one pulse and
+fourth in the next was retargeted for a reason that exists nowhere on the map —
+measured at triple the retargets on both fixtures. A squad already clearing a
+zone now keeps it while it is still worth clearing, and standing squads are
+counted before anybody fresh chooses; retargets came back to at or below the
+control. Any future division of the front push inherits that obligation.
+
+**Standing in the open is not standing in the compound.** A squad that has
+physically reached an objective commits to it before any distant allocation
+runs, and that pass deliberately carries no track bound and no front-reach gate:
+a squad in the building has not been sent anywhere, and refusing it on a lateral
+coordinate would leave an objective it is already inside of unassaulted. It
+asked whether the squad shared a *zone* with one of the compound's garrison
+rooms — which is right for a walled compound and catastrophic for an open one,
+because an airfield's capture room resolves to the exterior flood. Every squad
+in the open on the whole map answered yes. Measured on `full-strength-west`,
+squads held `SECURE_COMPOUND` against an airbase three hundred cells east for
+the whole battle without arriving: 16 of 45 secure-travel episodes ended in the
+squad's destruction and 24 of 45 never reached the portal, against 6 of 33 on
+the southern fixture, which has no open compound in the way.
+
+So arrival is a **distance** as well as a room, and a compound whose capture
+zone is the exterior is refused as a *distant* target outright — converging on a
+zone the squad is already standing in is an order that can be held forever. It
+stays capturable by a squad that actually reaches its footprint, which is what
+taking an airfield looks like anyway: the front arrives at it rather than
+somebody being detached across the map for it. Measured at full length against
+the same tree, it takes and holds exactly what the unbounded version did on both
+fixtures — 22 and 19 on the south, 11 and 7 on the west — while cutting the
+west's secure-travel episodes from 45 to 33 and its never-at-portal exits from
+24 to 19. **What it buys is not ground; it is the deletion of a walk that was
+never going to arrive.**
 
 The two convergence phases are map-global for a reason no measurement can move:
 once the keep or one contested compound is the whole remaining objective, there

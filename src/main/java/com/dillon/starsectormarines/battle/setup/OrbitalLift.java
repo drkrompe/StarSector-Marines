@@ -52,6 +52,13 @@ public final class OrbitalLift {
      * committed seats and the landing share instead of flying the ferry's
      * three.
      *
+     * <p><b>Off, re-measured with the ferry floor in place.</b>
+     * {@code reinforced-south} is bit-identical either way now — its 204 seats
+     * derive the ferry's own three pairs — so the question is the west alone,
+     * and there the seat-sized lift takes 14 compounds and holds 3 against the
+     * ferry's 11 and 7 for eight more marines lost. It takes more and keeps
+     * less.
+     *
      * <p>Off because the matrix says so, which was not the expected answer.
      * Landing the whole force early works — full-strength-west assembles 356
      * live marines against the ferry's ~130 and the alive-squad plateau is gone
@@ -143,10 +150,21 @@ public final class OrbitalLift {
      *
      * <p>Separate from {@link #resolve} so the arithmetic can be asked directly
      * rather than through a run's own configuration.
+     *
+     * <p><b>Never fewer pairs than the ferry flies.</b> The arithmetic only
+     * exceeds {@link #FERRY_DROP_ZONES} above about four hundred seats, so a
+     * mission committing less than that was handed <em>less</em> lift by the
+     * switch that exists to add it — reinforced-south's 204 seats size to two
+     * pairs against the ferry's three, and its marines on the ground by tick
+     * 2,926 fell from 214 to 148. A derivation that can return less than the
+     * shape it replaces is not a sizing; it is a regression behind a switch.
+     * The floor is on the pairs rather than on the zones so a mission that
+     * states its own zone count still gets them, spread over the same craft.
      */
     public static ConquestArrivalConfig derivedShape(ConquestArrivalConfig config,
                                                      int committedSeats) {
-        int pairs = pairsFor(committedSeats, config.landingShare());
+        int pairs = Math.max(pairsFor(committedSeats, config.landingShare()),
+                FERRY_DROP_ZONES);
         int zones = config.dropZoneCount() != ConquestArrivalConfig.DERIVED
                 ? config.dropZoneCount() : pairs;
         int perZone = config.shuttlePairsPerZone() != ConquestArrivalConfig.DERIVED

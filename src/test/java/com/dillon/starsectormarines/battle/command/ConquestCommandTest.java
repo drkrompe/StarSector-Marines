@@ -1993,6 +1993,242 @@ public class ConquestCommandTest {
         }
     }
 
+    /**
+     * Strip 0 stacked into three zones along the traversal axis: a back room
+     * the squads stand in (y ≤ 3), then two forward rooms (y 5–8 and y 10–14),
+     * joined by doorways at x=2. Three is the fewest that can show a target
+     * being passed over — the squads' own zone, the near one, and somewhere
+     * else to go — and the two lateral walls keep the other strips out of it.
+     */
+    private static BattleSimulation stackedRoomsSim() {
+        int h = 15;
+        NavigationGrid grid = new NavigationGrid(W, h);
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < W; x++) {
+                if (x == 10 || x == 20) continue;
+                if ((y == 4 || y == 9) && x != 2) continue;
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setDoorway(2, 4, true);
+        grid.setDoorway(2, 9, true);
+        return new BattleSimulation(grid, new CellTopology(W, h));
+    }
+
+    private static int clearZoneTarget(Squad squad) {
+        assertNotNull(squad.assignedObjective, "squad " + squad.id + " got no order");
+        assertEquals(AssignmentKind.CLEAR_ZONE, squad.assignedObjective.kind(),
+                "squad " + squad.id + " was not sent to clear a zone");
+        return squad.assignedObjective.targetZoneId();
+    }
+
+    /**
+     * The per-zone cap: a force larger than the front's useful slots divides
+     * across the strip's depth instead of queueing behind the nearest target.
+     */
+    @Nested
+    class ZoneTargetCap {
+
+        private boolean restore;
+
+        @BeforeEach
+        void capOn() {
+            restore = ConquestCommand.ZONE_TARGET_CAP_ENABLED;
+            ConquestCommand.ZONE_TARGET_CAP_ENABLED = true;
+        }
+
+        @AfterEach
+        void capBack() {
+            ConquestCommand.ZONE_TARGET_CAP_ENABLED = restore;
+        }
+
+        /** With the cap off the whole force ranks onto the nearest zone. */
+        @Test
+        public void theControlPutsEverybodyOnTheNearestZone() {
+            ConquestCommand.ZONE_TARGET_CAP_ENABLED = false;
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) squads.add(addMarineSquad(sim, 2f + i, 1f));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            for (Squad squad : squads) {
+                assertEquals(nearZone, clearZoneTarget(squad),
+                        "the control is the plain nearest-forward rule");
+            }
+        }
+
+        @Test
+        public void aZoneAtItsCapPassesTheSurplusToTheNextForwardZone() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                squads.add(addMarineSquad(sim, 2f + i, 1f));
+            }
+            long near = addDefender(sim, 2, 6);
+            long far = addDefender(sim, 2, 11);
+            establishMarineContact(sim, squads.get(0), near);
+            establishMarineContact(sim, squads.get(0), far);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            int farZone = sim.getZoneGraph().zoneIdAt(2, 11);
+            assertNotEquals(nearZone, farZone, "fixture must offer two targets");
+
+            int onNear = 0, onFar = 0;
+            for (Squad squad : squads) {
+                int target = clearZoneTarget(squad);
+                if (target == nearZone) onNear++;
+                else if (target == farZone) onFar++;
+            }
+            // One squad's own quota plus the stated overflow, and no more.
+            assertEquals(1 + ConquestCommand.ZONE_TARGET_OVERFLOW_SQUADS, onNear,
+                    "the nearest zone takes its quota and its overflow");
+            assertEquals(1, onFar,
+                    "and the surplus goes on up the strip rather than queueing");
+        }
+
+        /**
+         * The surplus is the whole point: a force big enough to fill every cap
+         * in the strip has to keep dividing, or the cap merely delays the queue
+         * by three squads. Eight squads over two zones of three come out four
+         * and four; ranking the overflow by distance alone would put five on
+         * the near one.
+         */
+        @Test
+        public void aSurplusPastEveryCapDividesRatherThanQueueing() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 8; i++) {
+                squads.add(addMarineSquad(sim, 1f + i, 1f));
+            }
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int nearZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            int farZone = sim.getZoneGraph().zoneIdAt(2, 11);
+            int onNear = 0, onFar = 0;
+            for (Squad squad : squads) {
+                int target = clearZoneTarget(squad);
+                if (target == nearZone) onNear++;
+                else if (target == farZone) onFar++;
+            }
+            assertEquals(4, onNear, "the overflow divides too");
+            assertEquals(4, onFar, "the overflow divides too");
+        }
+
+        /**
+         * The cap's answer depends on who chose first, so a squad whose place
+         * in the queue shifts must not be moved: a retarget is a squad
+         * dropping its path and walking somewhere else, and the first matrix
+         * run of the cap tripled them on both fixtures.
+         */
+        @Test
+        public void aSquadAlreadyClearingAZoneKeepsItAcrossPulses() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) squads.add(addMarineSquad(sim, 2f + i, 1f));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 6));
+            establishMarineContact(sim, squads.get(0), addDefender(sim, 2, 11));
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+            List<Integer> first = new ArrayList<>();
+            for (Squad squad : squads) first.add(clearZoneTarget(squad));
+
+            // A squad lost from the front of the queue reorders everybody
+            // behind it, which is exactly the case that used to retarget them.
+            squads.get(0).aliveMembers = 0;
+            tick(cmd, sim);
+
+            for (int i = 1; i < squads.size(); i++) {
+                assertEquals(first.get(i), clearZoneTarget(squads.get(i)),
+                        "squad " + squads.get(i).id + " was retargeted by a "
+                                + "change in queue order rather than by the map");
+            }
+        }
+
+        @Test
+        public void aStripWithNowhereElseToSendAnybodyStillSendsThem() {
+            BattleSimulation sim = stackedRoomsSim();
+            List<Squad> squads = new ArrayList<>();
+            for (int i = 0; i < 4; i++) {
+                squads.add(addMarineSquad(sim, 2f + i, 1f));
+            }
+            long only = addDefender(sim, 2, 6);
+            establishMarineContact(sim, squads.get(0), only);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+            tick(cmd, sim);
+
+            int onlyZone = sim.getZoneGraph().zoneIdAt(2, 6);
+            for (Squad squad : squads) {
+                assertEquals(onlyZone, clearZoneTarget(squad),
+                        "the cap is a preference: with one target it is inert");
+            }
+        }
+    }
+
+    /**
+     * An airfield has no walls, so its capture room is the outdoors — the same
+     * zone every squad in the open is standing in. The bound on the "already
+     * there" gate, and the refusal to send anybody across the map at a place
+     * they can never converge on.
+     */
+    @Nested
+    class OpenCompoundAdjacency {
+
+        /** Open ground with an unwalled compound off to the east. */
+        private BattleSimulation apronSim() {
+            return openExteriorSim(60, 20);
+        }
+
+        private TacticalNode airbase(BattleSimulation sim) {
+            return registerCompound(sim, new TacticalNode(
+                    TacticalNode.Kind.AIRBASE, 50, 10, 46, 6, 54, 14,
+                    Faction.DEFENDER, 80, 4));
+        }
+
+        @Test
+        public void aSquadInTheOpenAcrossTheMapHasNotArrivedAtTheAirfield() {
+            BattleSimulation sim = apronSim();
+            TacticalNode node = airbase(sim);
+            Squad far = addMarineSquad(sim, 5f, 10f);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.WEST_TO_EAST);
+            tick(cmd, sim);
+
+            assertEquals(sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY),
+                    sim.getZoneGraph().zoneIdAt(5, 10),
+                    "the fixture only bites while the compound's room is the outdoors");
+            assertFalse(isSecureCompound(far),
+                    "standing outdoors forty cells away is not standing in the "
+                            + "airfield, and it is not somewhere to be sent either");
+        }
+
+        @Test
+        public void aSquadOnTheApronStillTakesIt() {
+            BattleSimulation sim = apronSim();
+            airbase(sim);
+            Squad onIt = addMarineSquad(sim, 50f, 10f);
+
+            ConquestCommand cmd = new ConquestCommand(TraversalAxis.WEST_TO_EAST);
+            tick(cmd, sim);
+
+            assertTrue(isSecureCompound(onIt),
+                    "a squad inside the footprint has genuinely arrived");
+        }
+    }
+
     private static void tick(ConquestCommand command, BattleSimulation sim) {
         CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE,
                 sim);
