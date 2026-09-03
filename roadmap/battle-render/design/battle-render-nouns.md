@@ -6,8 +6,8 @@ Written: 2026-08-23
 
 Updated: 2026-09-02 — a frame is measured through the shipping pipeline before
 it is spent, detail is withheld at framings it cannot be read at, and the static
-ground and the relief fields derived from it are resident on the GPU instead of
-resubmitted every frame.
+ground, the relief fields derived from it, and the player's fog are resident on
+the GPU instead of resubmitted every frame.
 
 ## Vocabulary
 
@@ -42,6 +42,12 @@ resubmitted every frame.
   because zoom 1 is cover-fit and therefore means a different number of pixels on
   every map size. It is never an occlusion or visibility decision: what it
   withholds is decoration on something drawn anyway.
+- The **fog field** is the player's fog, resident as one map-sized
+  single-channel texture: one texel per cell holding the alpha that cell's
+  shadow draws at, sampled by one quad over the map rectangle. Its invalidation
+  is the vision service's **changed extent** (`fog-of-war-nouns.md`), not the
+  cell topology's change log — a cell's terrain and who can see it move for
+  entirely different reasons.
 - The **resident ground** is the battle's static base terrain, baked once into
   vertex buffers and drawn from them. One buffer per sheet; every cell that draws
   a base tile owns four vertices in it and keeps them, in cell coordinates, so the
@@ -183,6 +189,27 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     here is that residency is the pipeline's answer to per-cell work of any
     kind, and that a resident consumer's invalidation is the topology's to
     record.
+22. Residency is not only for what is static. A **fog field** is one map-sized
+    single-channel texture, a texel per cell holding that cell's shadow, drawn
+    as one quad over the map — because what fog reports is a scalar per cell,
+    and a scalar per cell is a texture whether or not it changes. The rest of
+    law 20 carries over unaltered: a host that declines residency or any GL
+    failure at all returns the layer to the per-cell stream with the same
+    picture, the collector stays GL-free by asking a pure predicate, and the
+    bake and every patch happen inside the layer's own custom pass at drain
+    time. What is new is where the invalidation comes from — the fog service's
+    own record of where its reveal moved, since the topology has no opinion
+    about who can see. A patch is that extent **grown by one cell**, because a
+    revealed cell's shadow is feathered by how many of its four neighbours are
+    dark and a cell going dark therefore changes the picture of cells whose own
+    state never moved.
+23. A scale two paths draw is quantised to the channel it lands in. Fog is
+    painted into an eight-bit alpha channel whichever path paints it, so its
+    levels have always been discrete; naming them is what lets a texel and a
+    vertex colour land on the same byte instead of on two floats the driver
+    rounds apart. This is not a general licence to round: it applies where one
+    picture has two producers, and the failure it prevents is a seam that
+    appears only at the values whose product sits on a rounding boundary.
 
 ## Boundaries and extension paths
 
@@ -192,14 +219,26 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a wrap the atlas cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
-**The next ceiling is `FOG`.** With the ground and the relief fields both
-resident, a whole-map Conquest frame is 13 ms against the 148 ms the same frame
-costs with the fields rebuilt per frame, and FOG is 5.7 ms of the 12.5 that
-remain. It is collection-bound in the sharpest form the vocabulary above
-describes: a hundred and sixty-eight thousand commands that drain in one call.
-What is worth attacking there is how many are made, not how they are submitted —
-and the shape of the answer is unlikely to be residency, because what fog
-reports is exactly the thing that changes every frame.
+**The next ceiling is `GROUND` again, and it is the drain this time.** With the
+ground, the relief fields and the fog all resident, a whole-map 560x336 Conquest
+frame is 7.5 ms of our own against the 12.4 the same frame costs with the fog
+field off, and GROUND is 5.4 ms of it — 1.7 collect and 3.7 drain. That is a
+different shape from the collection-bound layers residency has answered so far:
+what remains in GROUND is the sparse work the resident mesh deliberately does
+not hold — the fills, the stripes, the scatter, the doorway decals, the panes
+and the shared-edge features — twenty-two thousand commands leaving as five
+hundred draws across five hundred texture binds, because the sheet changes from
+one piece to the next. Merging is the lever the vocabulary points at, not
+residency.
+
+The guess this replaced is worth keeping, because it was wrong in an instructive
+way. The doc said residency was unlikely to be fog's answer, since what fog
+reports is exactly the thing that changes every frame. What that missed is that
+*changing* and *being rebuilt* are different: the reveal bitmap changes on the
+vision cadence, roughly a third of the render frames, and it changes in one
+bounded region rather than everywhere. Residency is about not resubmitting, and
+the question to ask of a layer is how often its data actually moves and how much
+of it moves at once — not whether it is static.
 
 Framing-gating the relief composite (law 19) was the other candidate and was
 measured rather than argued: at whole-map the sun's terrain shading genuinely
