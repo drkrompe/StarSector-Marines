@@ -176,6 +176,10 @@ public final class UnitShadowRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (!sun.casts()) return;
+        // A shadow is decoration on a body that is drawn either way, so at a
+        // framing where it is three pixels of smudge it is withheld entirely
+        // rather than collected and drawn too small to see. See ZoomDetail.
+        if (!ZoomDetail.bodyShadowsVisible(ctx.camera)) return;
         sprites.ensureShadowSprite();
         SpriteAPI blob = sprites.shadowBlobSprite();
         if (blob != null) collectGroundBodies(ctx, out, blob);

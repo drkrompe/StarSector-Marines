@@ -523,13 +523,6 @@ public final class GroundParallaxPipeline {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         GenMappingRegistry mapping = GenMappingRegistry.installed();
-        // Rebuilt per frame rather than cached: a roof caves in and a wall is
-        // breached mid-battle, and a field held across frames would keep
-        // shadowing a building that is no longer there. It gathers from the
-        // building registry and the barrier list, so the cost is the number of
-        // roofed cells rather than the size of the map.
-        MacroReliefField relief =
-                new MacroReliefField(topology, grid, sim.getBuildings(), mapping);
         int margin = heightPadCells;
         // Clears to the ground datum, not to mid-channel: off-grid texels have
         // to read as flat ground or the margin would ring the map in a 16 m
@@ -538,7 +531,7 @@ public final class GroundParallaxPipeline {
             glColorMask(true, true, true, true);
             glClearColor(GroundHeightPass.MACRO_DATUM, 0.5f, 0f, 0f);
             glClear(GL_COLOR_BUFFER_BIT);
-            heightPass.render(rc.camera, grid, topology, mapping, relief, margin);
+            heightPass.render(rc.camera, grid, topology, sim.getBuildings(), mapping, margin);
         });
     }
 
@@ -695,8 +688,14 @@ public final class GroundParallaxPipeline {
     private static final int MAX_FBO_DIM = 8192;
 
     private void ensureFbo() {
-        float sx = Display.getWidth() / Math.max(1f, Global.getSettings().getScreenWidth());
-        float sy = Display.getHeight() / Math.max(1f, Global.getSettings().getScreenHeight());
+        // A display of zero is not a scale, it is the absence of one: headless
+        // GL evidence makes a pbuffer and never creates a Display, and
+        // `0 / screenWidth` sized every target here 1x1 — which the composite
+        // then blitted over the whole viewport as a single flat colour, so the
+        // one instrument able to look at the shipping composite was looking at
+        // an average of it. UI space is the honest fallback.
+        float sx = displayScale(Display.getWidth(), Global.getSettings().getScreenWidth());
+        float sy = displayScale(Display.getHeight(), Global.getSettings().getScreenHeight());
         int wantW = Math.max(1, Math.round(vpW * sx));
         int wantH = Math.max(1, Math.round(vpH * sy));
         // Only the height target pads. Padding colour and normal too would
@@ -758,6 +757,12 @@ public final class GroundParallaxPipeline {
                 + normalFbo + ") complete at " + fboPxW + "x" + fboPxH
                 + " (height " + heightPxW + "x" + heightPxH
                 + ", " + heightPadCells + "-cell sun margin)");
+    }
+
+    /** Framebuffer pixels per UI unit, or 1 when there is no display to ask. */
+    private static float displayScale(int displayPx, float uiExtent) {
+        if (displayPx <= 0 || uiExtent <= 0f) return 1f;
+        return displayPx / uiExtent;
     }
 
     /** Builds one RGBA8 FBO + color-attachment texture at {@code pxW}x{@code pxH}. {@code {fbo, tex}}. */

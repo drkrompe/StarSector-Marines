@@ -231,6 +231,39 @@ Do not run builds or leave generated task files there.
   **What it still cannot do** is discover a hostile value nobody wrote down in
   it. A fixture encodes what we believe arrives; that residue is the part that
   still wants a live pass.
+- `gradlew.bat renderEvidence` → what a frame costs, per layer, on the map the
+  owner actually plays. It generates the canonical 560x336 Conquest and a
+  280x168 control, plays them until units, decals, shadows and effects exist,
+  and then runs the shipping `BattleRenderer` — the real collect and the real
+  drain — into a `HeadlessGl` context at three framings: a compound, a lane, and
+  the whole map. Per layer it reports commands collected, quads, sprites and
+  custom passes drained, draw calls, texture binds, and the milliseconds
+  collection and submission each took, plus a whole-frame wall clock with the
+  GPU waited on. `build/reports/render/summary.md` and `summary.json`;
+  `-PrenderMaxTicks`, `-PrenderFrames`, `-PrenderDir`. Opt-in and excluded from
+  `test`, for `shaderEvidence`'s reasons — it needs an accelerated driver, and
+  it reports that it skipped where no context can be made.
+  **Counts must repeat and times must not be read as one.** The task asserts
+  that the same world at the same framing collects the identical command count
+  every frame, which is what makes a counts regression a failure rather than
+  noise; the times are medians of nine frames after warm-up and move a few per
+  cent run to run. Compare a lever against **its own run's control**
+  (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
+  `-Dbattle.render.residentRelief=false`), never against a number in a document.
+  Where it stands: a whole-map 560x336 Conquest frame is **13 ms** with every
+  lever on and 148 ms with resident relief off, and the ceiling there is now
+  `FOG` at 5.7 ms of the 12.5 that are ours.
+  **A headless run has no `Display`, and that used to size the composite 1x1.**
+  `GroundParallaxPipeline` scales its targets by the framebuffer over the
+  reported screen, and off a pbuffer the framebuffer is zero -- so every relief
+  target was one pixel, blitted over the viewport as a flat colour. The
+  per-layer CPU numbers were honest; the composite's own fill was not measured
+  at all, and any picture read back was an average of the frame. A zero display
+  now means a scale of one.
+  **Our share is not the frame.** The per-layer times are CPU: building the
+  stream and handing it over. The whole-frame column exists because a lever can
+  trade our cost for the driver's — a resident mesh draws the whole map however
+  close the camera is — and every other column here would call that a win.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context.
   It reads art from `mod/` first and the installed game second — the game's own

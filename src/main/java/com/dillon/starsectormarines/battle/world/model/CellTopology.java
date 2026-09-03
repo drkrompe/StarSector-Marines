@@ -116,6 +116,30 @@ public class CellTopology {
         WINDOW;
 
         public long mask() { return 1L << ordinal(); }
+
+        /**
+         * Whether flipping this tag can change what a <em>resident</em> render
+         * consumer holds for the cell, and therefore whether setting it enters
+         * the change log.
+         *
+         * <p>There are two such consumers and they read different tags.
+         * {@link #WALL} decides which of the two ground passes a cell is in at
+         * all and the crosswalk pair paints stripes over a street, which is what
+         * the resident ground mesh needs. {@link #ROOF_DESTROYED} and
+         * {@link #WINDOW} are what the relief composite's height field stands a
+         * cell at — a caved-in roof drops back to its floor and an aperture
+         * stands at its sill — and that field is resident too, so a cave-in the
+         * log did not record would leave a building shadowing ground it no
+         * longer covers. The rest are read by navigation and by their own props
+         * and move nothing that is held across frames.
+         *
+         * <p>A tag one consumer reads costs the other a re-resolve of five
+         * cells, which is why this is one list rather than a list per reader.
+         */
+        public boolean drawn() {
+            return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ
+                    || this == ROOF_DESTROYED || this == WINDOW;
+        }
     }
 
     private static final GroundKind[] GROUND_KINDS = GroundKind.values();
@@ -208,6 +232,28 @@ public class CellTopology {
      */
     private final List<String> surfaces = new ArrayList<>();
 
+    /**
+     * How many recent cell changes the log below remembers.
+     *
+     * <p>A reader that has fallen further behind than this is told to rebuild
+     * from scratch instead, which is the right answer for it: the whole point of
+     * the log is to make the handful of cells a breach touches cheap, and a
+     * reader thousands of changes behind has been away long enough that walking
+     * the map again costs less than replaying them.
+     */
+    private static final int CHANGE_LOG_CAPACITY = 4096;
+
+    /** Ring of recently changed cell indices; see {@link #changedCellAt}. */
+    private final int[] changeLog = new int[CHANGE_LOG_CAPACITY];
+
+    /**
+     * Cell changes recorded ever, and the cursor into {@link #changeLog}.
+     *
+     * <p>Monotonic and never reset, so a reader holds one {@code long} and can
+     * always tell how far behind it is — including "further than the log goes".
+     */
+    private long changeCount;
+
     public CellTopology(int width, int height) {
         this.width = width;
         this.height = height;
@@ -235,6 +281,57 @@ public class CellTopology {
         return y * width + x;
     }
 
+    // ----- Change log -----
+
+    /**
+     * Cell changes recorded since this topology was made.
+     *
+     * <p>A consumer that keeps a derived copy of the map — a resident render
+     * mesh, most of all — holds the value it last caught up to and asks again
+     * next frame. It exists because the alternative is rescanning every cell to
+     * find the two that a breach moved, which on a 560x336 map is most of the
+     * cost the derived copy was built to avoid.
+     *
+     * <p>What counts as a change is what a consumer could <em>draw</em>
+     * differently: ground kind, wall tag, crosswalk tags, wall-direction mask,
+     * nature overlay, authored surface, and — because the relief composite's
+     * height field is resident too — a caved-in roof and a wall aperture. Not
+     * building ids or room purposes, which nothing paints from.
+     */
+    public long changeCount() {
+        return changeCount;
+    }
+
+    /** How far behind {@link #changeCount} a reader may be and still catch up cell by cell. */
+    public int changeLogCapacity() {
+        return CHANGE_LOG_CAPACITY;
+    }
+
+    /**
+     * The cell index recorded as the {@code sequence}-th change.
+     *
+     * <p>Valid for {@code sequence} in
+     * {@code [changeCount() - changeLogCapacity(), changeCount())}; an older
+     * sequence has been overwritten and the caller must rebuild rather than
+     * catch up.
+     */
+    public int changedCellAt(long sequence) {
+        return changeLog[(int) (sequence & (CHANGE_LOG_CAPACITY - 1))];
+    }
+
+    /**
+     * Records that {@code idx} may now draw differently.
+     *
+     * <p>Unconditional rather than compare-and-record: generation writes these
+     * arrays millions of times and a read-back to see whether the value actually
+     * moved costs more than the two writes here. A duplicate entry makes a
+     * consumer re-resolve one cell, which is cheap and correct.
+     */
+    private void markChanged(int idx) {
+        changeLog[(int) (changeCount & (CHANGE_LOG_CAPACITY - 1))] = idx;
+        changeCount++;
+    }
+
     // ----- GroundKind -----
 
     public GroundKind getGroundKind(int x, int y) {
@@ -244,7 +341,9 @@ public class CellTopology {
 
     public void setGroundKind(int x, int y, GroundKind kind) {
         if (!inBounds(x, y)) return;
-        ground[index(x, y)] = (byte) kind.ordinal();
+        int idx = index(x, y);
+        ground[idx] = (byte) kind.ordinal();
+        markChanged(idx);
     }
 
     /** Predicate sugar so the migrated call sites read the same as before. */
@@ -268,6 +367,7 @@ public class CellTopology {
         int idx = index(x, y);
         if (on) flags[idx] |=  tag.mask();
         else    flags[idx] &= ~tag.mask();
+        if (tag.drawn()) markChanged(idx);
     }
 
     // Typed wrappers — one-liner getter/setter per flag.
@@ -303,7 +403,9 @@ public class CellTopology {
     /** Replaces the wall-direction mask for this cell. Callers should pass a combination of {@link #WALL_DIR_N}/S/E/W. */
     public void setWallDirMask(int x, int y, int mask) {
         if (!inBounds(x, y)) return;
-        wallDir[index(x, y)] = (byte) (mask & 0xFF);
+        int idx = index(x, y);
+        wallDir[idx] = (byte) (mask & 0xFF);
+        markChanged(idx);
     }
 
     /** Adds bits to this cell's wall-direction mask without disturbing existing bits. */
@@ -311,6 +413,7 @@ public class CellTopology {
         if (!inBounds(x, y)) return;
         int idx = index(x, y);
         wallDir[idx] = (byte) ((wallDir[idx] | bits) & 0xFF);
+        markChanged(idx);
     }
 
     // ----- Building id -----
@@ -381,7 +484,9 @@ public class CellTopology {
      */
     public void setNatureOverlayIndex(int x, int y, int tileIndex) {
         if (!inBounds(x, y)) return;
-        natureOverlay[index(x, y)] = (short) (tileIndex < 0 ? 0 : tileIndex + 1);
+        int idx = index(x, y);
+        natureOverlay[idx] = (short) (tileIndex < 0 ? 0 : tileIndex + 1);
+        markChanged(idx);
     }
 
     // ----- Room purpose -----
@@ -487,6 +592,8 @@ public class CellTopology {
      */
     public void setSurface(int x, int y, int index) {
         if (!inBounds(x, y)) return;
-        surface[index(x, y)] = (byte) index;
+        int idx = index(x, y);
+        surface[idx] = (byte) index;
+        markChanged(idx);
     }
 }
