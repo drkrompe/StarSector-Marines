@@ -899,8 +899,14 @@ public class BattleRenderer {
      * per tile pass, now driven by {@link GroundRenderSystem}.
      */
     private void drainLayer(RenderLayer layer) {
+        drainLayer(layer, null);
+    }
+
+    /** As {@link #drainLayer(RenderLayer)}, tallying into {@code census} when one is supplied. */
+    private void drainLayer(RenderLayer layer, FrameCensus census) {
         DrawListRenderer.drain(drawList.buffer(layer), drawList.count(layer), batchBySheet, solidBatch,
-                lineBatch, contrailBatch, rc.camera);
+                lineBatch, contrailBatch, rc.camera,
+                census == null ? null : census.drain(layer));
     }
 
     // ---- main entry point ----------------------------------------------------
@@ -935,21 +941,37 @@ public class BattleRenderer {
      * pipeline serves the standalone screen view and the combat layer unchanged.
      */
     public void renderWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
-        collectWorld(rc, layers);
+        renderWorld(rc, layers, null);
+    }
+
+    /**
+     * As {@link #renderWorld(RenderContext, java.util.EnumSet)}, recording what
+     * the frame cost per layer into {@code census}.
+     *
+     * <p>{@code null} for every host: this is the seam the render-budget
+     * evidence measures the real pipeline through, so that the profile is taken
+     * from the shipping collect-and-drain rather than from a copy of it. See
+     * {@link FrameCensus}.
+     */
+    public void renderWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers,
+                            FrameCensus census) {
+        collectWorld(rc, layers, census);
         boolean parallax = rc.hostProfile.surfaceReliefEnabled()
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
+            long started = census == null ? 0L : System.nanoTime();
             if (layer == RenderLayer.GROUND && parallax) {
                 // S2/S3: redirect GROUND through the relief FBOs + composite instead
                 // of draining straight to the backbuffer. groundParallax falls back to
                 // drainLayer(GROUND) itself (a plain Runnable) on any failure, so this
                 // call always ends up painting the layer exactly once.
-                groundParallax.renderGround(rc, () -> drainLayer(RenderLayer.GROUND));
+                groundParallax.renderGround(rc, () -> drainLayer(RenderLayer.GROUND, census));
             } else {
-                drainLayer(layer);
+                drainLayer(layer, census);
             }
+            if (census != null) census.addDrainNanos(layer, System.nanoTime() - started);
         }
     }
 
@@ -960,13 +982,34 @@ public class BattleRenderer {
      * evidence replays the same commands through its raster backend.
      */
     public DrawList collectWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
+        return collectWorld(rc, layers, null);
+    }
+
+    /**
+     * As {@link #collectWorld(RenderContext, java.util.EnumSet)}, attributing
+     * each producer's wall-clock cost to the layer it feeds.
+     *
+     * <p>Per producer rather than per layer, then summed into the layer, because
+     * several producers share a layer and the census reports the layer: a
+     * shared-layer sum is the honest reading of "what does GROUND cost", and
+     * timing the whole loop once would attribute all of it to nothing.
+     */
+    public DrawList collectWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers,
+                                 FrameCensus census) {
         if (rc == null || layers == null) {
             throw new IllegalArgumentException("render context and layers are required");
         }
         this.rc = rc;
         drawList.clear();
         for (RenderSystem system : worldSystems) {
-            if (layers.contains(system.layer())) system.collect(rc, drawList);
+            if (!layers.contains(system.layer())) continue;
+            if (census == null) {
+                system.collect(rc, drawList);
+            } else {
+                long started = System.nanoTime();
+                system.collect(rc, drawList);
+                census.addCollectNanos(system.layer(), System.nanoTime() - started);
+            }
         }
         return drawList;
     }
