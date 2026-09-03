@@ -77,9 +77,6 @@ public class BattleRenderer {
 
     /** Sim-seconds shots live for — must match {@code BattleSimulation.SHOT_LIFETIME}. Used to fade tracer alpha. */
     private static final float SHOT_LIFETIME_REF = 0.15f;
-    private static final float UNREVEALED_FOG_ALPHA = 0.85f;
-    private static final float SMOKE_FOG_ALPHA = UNREVEALED_FOG_ALPHA * 0.5f;
-
     /** Base unit-sprite size as a fraction of the cell (sprite fills the cell).
      *  Package-visible: the base size is shared across UNITS strata — the
      *  {@link UnitRenderService} dead sweep multiplies it by {@code renderScale}
@@ -201,6 +198,28 @@ public class BattleRenderer {
      */
     private final GroundMesh groundMesh = new GroundMesh();
 
+    /**
+     * Every sheet the ground layer draws from, as one texture. Held here
+     * because it owns a GL texture and the host releases it with the rest of
+     * the renderer's GPU state.
+     */
+    private final GroundAtlas groundAtlas = new GroundAtlas();
+
+    /**
+     * Every image a unit's body is composed from, as one texture. Held here for
+     * the ground atlas's reason: it owns a GL texture, and the host releases it
+     * with the rest of the renderer's GPU state.
+     */
+    private final UnitAtlas unitAtlas = new UnitAtlas();
+
+    /**
+     * The battle's fog, resident as one map-sized alpha texture and patched from
+     * the vision service's own changed-extent log. Held here because it owns a
+     * GL texture and the host releases it with the rest of the renderer's GPU
+     * state.
+     */
+    private final FogField fogField = new FogField();
+
     /** S3 render-side event lights consumed by the surface-relief composite. */
     private final GroundLightService groundLights = new GroundLightService();
 
@@ -237,7 +256,7 @@ public class BattleRenderer {
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
         this.worldSystems = List.of(
-                new GroundRenderSystem(sprites, groundMesh),
+                new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
                 RenderSystem.of(RenderLayer.GROUND, (ctx, out) -> {
                     if (ctx.debugZonesVisible)
@@ -252,8 +271,18 @@ public class BattleRenderer {
                 new UnitShadowRenderSystem(sprites, sun),
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
-                RenderSystem.of(RenderLayer.FOG, (ctx, out) ->
-                        collectFogOverlay(ctx.sim, out, ctx.alphaMult)),
+                RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
+                // The unit atlas is built inside the layer it serves, the way
+                // the ground atlas is, and only until it is built: once it
+                // serves there is no custom pass here at all, so a settled frame
+                // does not close and reopen the drain's state bracket for a
+                // no-op. The bodies collected below still draw as whole sprites
+                // in the frame that bakes it.
+                RenderSystem.of(RenderLayer.UNITS, (ctx, out) -> {
+                    if (unitAtlas.isPlanned() && !unitAtlas.isServing()) {
+                        out.addCustom(RenderLayer.UNITS, unitAtlas::sync);
+                    }
+                }),
                 new UnitRenderService(sprites),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
@@ -331,6 +360,27 @@ public class BattleRenderer {
         if (parkedVehicleBatch == null && sprites.parkedVehicleSheet() != null)
             parkedVehicleBatch = new QuadBatch(sprites.parkedVehicleSheet(),
                     sprites.parkedVehicleSheetPxW(), sprites.parkedVehicleSheetPxH(), 256);
+
+        // The ground layer's sheets as one texture. Planned here rather than at
+        // first collect because the layout is GL-free arithmetic and its batch
+        // has to be registered at the same seam as every other sheet's — the
+        // drain resolves a sheet quad through this map and has nowhere else to
+        // look. The texture itself is built later, inside the ground layer's
+        // own custom pass.
+        if (groundAtlas.plan(sprites)) {
+            registerBatch(groundAtlas.sheet(), new QuadBatch(groundAtlas.sheet(),
+                    groundAtlas.width(), groundAtlas.height(), 16384));
+        }
+
+        // The unit layer's composed bodies as one texture. Same seam and same
+        // reason as the ground atlas above: the layout is GL-free arithmetic and
+        // its batch has to be registered where every other sheet's is. The
+        // DrawList is what re-addresses a whole-image draw onto it.
+        if (unitAtlas.plan(sprites)) {
+            registerBatch(unitAtlas.sheet(), new QuadBatch(unitAtlas.sheet(),
+                    unitAtlas.width(), unitAtlas.height(), 2048));
+            drawList.setSpriteAtlas(unitAtlas);
+        }
 
         // Register the per-sheet batches so drainLayer can resolve a SheetQuad's
         // sheet to its batch. Same instances the inline tile passes use.
@@ -433,6 +483,15 @@ public class BattleRenderer {
     /** Accessor for {@code BattleScreen.detach()} — release the resident ground buffers. */
     public GroundMesh getGroundMesh() { return groundMesh; }
 
+    /** Accessor for {@code BattleScreen.detach()} — release the composited ground atlas. */
+    public GroundAtlas getGroundAtlas() { return groundAtlas; }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the composited unit atlas. */
+    public UnitAtlas getUnitAtlas() { return unitAtlas; }
+
+    /** Accessor for {@code BattleScreen.detach()} — release the resident fog texture. */
+    public FogField getFogField() { return fogField; }
+
     /** Accessor for {@code BattleScreen.detach()} — release the S2/S3 ground FBO set. */
     public GroundParallaxPipeline getGroundParallax() { return groundParallax; }
 
@@ -482,10 +541,38 @@ public class BattleRenderer {
                 alphaMult);
     }
 
-    private void collectFogOverlay(BattleSimulation sim, DrawList out, float alphaMult) {
-        FogOfWarService vis = sim.getFogOfWar();
+    /**
+     * The player's fog — from the resident field where there is one, and cell by
+     * cell where there is not.
+     *
+     * <p>A battle's first frame always takes the second path: {@link FogField}
+     * is GL-free to ask and cannot have baked anything before its own custom
+     * pass has run, so the frame that builds the field also draws the ordinary
+     * stream and the field serves from the next one. That is one frame of the
+     * old cost per battle, and it is what keeps the collector free of GL.
+     */
+    private void collectFogOverlay(RenderContext ctx, DrawList out) {
+        FogOfWarService vis = ctx.sim.getFogOfWar();
         if (!vis.isInitialized()) return;
 
+        boolean resident = ctx.hostProfile.residentFogAllowed() && FogField.enabled();
+        if (resident && fogField.isServing(vis)) {
+            float alpha = ctx.alphaMult;
+            out.addCustom(RenderLayer.FOG, () -> {
+                if (fogField.sync(vis)) fogField.draw(rc.camera, alpha);
+            });
+            return;
+        }
+        if (resident) {
+            // Bakes during this frame's drain; draws nothing, because the stream
+            // below is already this frame's fog.
+            out.addCustom(RenderLayer.FOG, () -> fogField.sync(vis));
+        }
+        collectFogCells(ctx.sim, out, ctx.alphaMult);
+    }
+
+    private void collectFogCells(BattleSimulation sim, DrawList out, float alphaMult) {
+        FogOfWarService vis = sim.getFogOfWar();
         boolean[] revealed = vis.cellRevealedArray();
         int gw = vis.gridWidth();
         int gh = vis.gridHeight();
@@ -516,15 +603,14 @@ public class BattleRenderer {
     }
 
     /**
-     * A cell hidden only by smoke remains unrevealed, but uses half the
-     * ordinary fog shadow so the terrain silhouette and cloud explain the
-     * blocked sight together. Naturally unseen cells and revealed-edge
-     * feathering remain unchanged.
+     * The shadow one cell draws. {@link FogField#levelFor} owns the scale; this
+     * is the per-cell stream's view of the same answer, so the resident field
+     * and the commands cannot disagree about the picture.
      */
     static float fogAlphaForCell(boolean revealed, int darkNeighbors,
                                  boolean clearAirRevealed) {
-        if (!revealed) return clearAirRevealed ? SMOKE_FOG_ALPHA : UNREVEALED_FOG_ALPHA;
-        return 0.15f * Math.max(0, darkNeighbors);
+        return FogField.alphaForLevel(
+                FogField.levelFor(revealed, darkNeighbors, clearAirRevealed));
     }
 
     private void collectRoofs(BattleSimulation sim, DrawList out, float alphaMult) {

@@ -4,10 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — a frame is measured through the shipping pipeline before
-it is spent, detail is withheld at framings it cannot be read at, and the static
-ground and the relief fields derived from it are resident on the GPU instead of
-resubmitted every frame.
+Updated: 2026-09-03 — the ground layer's sheets are one texture and everything
+in it that is a function of the topology is resident, so a whole-map frame's
+`GROUND` costs three draws and no texture binds; the ceiling moves to `UNITS`.
 
 ## Vocabulary
 
@@ -42,11 +41,28 @@ resubmitted every frame.
   because zoom 1 is cover-fit and therefore means a different number of pixels on
   every map size. It is never an occlusion or visibility decision: what it
   withholds is decoration on something drawn anyway.
-- The **resident ground** is the battle's static base terrain, baked once into
-  vertex buffers and drawn from them. One buffer per sheet; every cell that draws
-  a base tile owns four vertices in it and keeps them, in cell coordinates, so the
-  camera is a modelview transform rather than a pass over the data. A cell that
-  changes is patched in place over its own slot.
+- The **fog field** is the player's fog, resident as one map-sized
+  single-channel texture: one texel per cell holding the alpha that cell's
+  shadow draws at, sampled by one quad over the map rectangle. Its invalidation
+  is the vision service's **changed extent** (`fog-of-war-nouns.md`), not the
+  cell topology's change log — a cell's terrain and who can see it move for
+  entirely different reasons.
+- A **ground atlas** is every sheet the `GROUND` layer can draw from, composited
+  into one GL texture at battle load, with each sheet keeping an origin inside
+  it. A ground quad — resident or sparse — addresses that texture at its own
+  sheet's origin plus its own source rectangle, so the layer is one texture
+  rather than six. It is a change of address and not of picture: the same quads
+  in the same order over the same rectangles.
+- The **resident ground** is the ground that is a function of the battle's cell
+  topology, baked once into vertex buffers and drawn from them. Every cell that
+  draws a tile owns four vertices in it and keeps them, in cell coordinates, so
+  the camera is a modelview transform rather than a pass over the data. A cell
+  that changes is patched in place over its own slot.
+- A **sub-layer** is one stratum of the resident ground: at most one quad per
+  cell, its own buffers, and a fixed place in paint order. The base terrain is
+  the first; the nature scatter laid over it and the doorway decals over that
+  are the second and third. Sub-layer order is the whole of the painter contract
+  between them, because within one sub-layer no cell's quad overlaps another's.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
@@ -156,21 +172,38 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     ratios are untouched (laws 1 and 9). A camera that cannot say how big a cell
     is withholds nothing: the gates drop what cannot be read, and not knowing is
     not that.
-20. Static ground is resident, not resubmitted. Base terrain is one quad per
-    cell and cells do not overlap, so it is baked into buffers rather than
-    streamed through the command path every frame, and a change to it is a patch
-    of the affected cell and its four neighbours rather than a re-mesh. Every
-    cell keeps its own atlas sub-rectangle, which is what makes this possible
-    where merging runs is not — a merged run wants a repeat wrap and an atlas has
-    none to give. What is resident is only the cell's own base tile: fills,
-    stripes, scatter, doorway decals, panes and shared-edge features are sparse,
-    several of them straddle two cells, and they stay in the command stream. A
-    collector stays GL-free by asking a pure predicate whether the mesh already
-    holds this battle's ground (law 2); the bake and every patch happen inside
-    the layer's own custom pass at drain time (law 3), so the frame that bakes a
-    battle also draws it the ordinary way and the mesh serves from the next one.
-    Any failure at all — no buffer objects, a failed allocation, a GL error —
-    returns the layer to the per-cell stream with the same picture.
+20. Ground that is a function of the topology is resident, not resubmitted. Base
+    terrain is one quad per cell and cells do not overlap, so it is baked into
+    buffers rather than streamed through the command path every frame, and a
+    change to it is a patch of the affected cell and its four neighbours rather
+    than a re-mesh. Every cell keeps its own sub-rectangle of the sheet it draws
+    from, which is what makes this possible where merging runs is not — a merged
+    run wants a repeat wrap and a tile cut from a packed sheet has none to give.
+    A collector stays GL-free by asking a pure predicate whether the mesh
+    already holds this battle's ground (law 2); the bake and every patch happen
+    inside the layer's own custom pass at drain time (law 3), so the frame that
+    bakes a battle also draws it the ordinary way and the mesh serves from the
+    next one. Any failure at all — no buffer objects, a failed allocation, a GL
+    error — returns the layer to the per-cell stream with the same picture.
+
+    **The test is what a piece depends on, not whether it is a base tile.** The
+    scatter laid over a cell and the decal that marks a doorway are as much a
+    function of the topology as the tile beneath them, and they join the mesh as
+    further **sub-layers**, patched from the same change log. What stays in the
+    stream is what the mesh cannot express or cannot invalidate: solid fills and
+    crosswalk stripes and window panes are colour rather than art, and
+    shared-edge features are a live list a battle adds to and destroys from
+    rather than a property of the grid.
+
+    A sub-layer is a stratum of the mesh, at most one quad per cell, and
+    sub-layer order is paint order — which is the whole of the contract between
+    them, since within one a cell's quad cannot overlap its neighbour's. Where
+    something that is *not* resident paints between two of them, the draw is
+    split rather than the order bent: the fills and the stripes sit above the
+    base terrain and below the scatter, so the mesh draws its base sub-layer,
+    they are streamed, and the decoration sub-layers draw after. That works
+    because no two cells' pieces overlap, so sweeping all the stripes before all
+    the scatter is the same picture as interleaving them cell by cell.
 21. What is derived per cell from resident data is resident too. The GROUND
     redirect's height and normal fields are a quad per cell over the same grid
     and change for the same reasons, so they are baked once per battle and
@@ -183,6 +216,48 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     here is that residency is the pipeline's answer to per-cell work of any
     kind, and that a resident consumer's invalidation is the topology's to
     record.
+22. Residency is not only for what is static. A **fog field** is one map-sized
+    single-channel texture, a texel per cell holding that cell's shadow, drawn
+    as one quad over the map — because what fog reports is a scalar per cell,
+    and a scalar per cell is a texture whether or not it changes. The rest of
+    law 20 carries over unaltered: a host that declines residency or any GL
+    failure at all returns the layer to the per-cell stream with the same
+    picture, the collector stays GL-free by asking a pure predicate, and the
+    bake and every patch happen inside the layer's own custom pass at drain
+    time. What is new is where the invalidation comes from — the fog service's
+    own record of where its reveal moved, since the topology has no opinion
+    about who can see. A patch is that extent **grown by one cell**, because a
+    revealed cell's shadow is feathered by how many of its four neighbours are
+    dark and a cell going dark therefore changes the picture of cells whose own
+    state never moved.
+23. A scale two paths draw is quantised to the channel it lands in. Fog is
+    painted into an eight-bit alpha channel whichever path paints it, so its
+    levels have always been discrete; naming them is what lets a texel and a
+    vertex colour land on the same byte instead of on two floats the driver
+    rounds apart. This is not a general licence to round: it applies where one
+    picture has two producers, and the failure it prevents is a seam that
+    appears only at the values whose product sits on a rounding boundary.
+24. A layer that cannot stop submitting can stop rebinding. Where residency is
+    the answer to submitting the same thing again, a **ground atlas** is the
+    answer to submitting different things that differ only by which sheet they
+    came from: a run of quads coalesces exactly as far as its texture stays the
+    same, so six sheets in painter order is five hundred flushes and one sheet
+    is one. Both halves of the layer address it — what is resident bakes the
+    atlas coordinate into its buffer, what is sparse carries it on the command —
+    and the resolution stays single, so the two cannot disagree about where a
+    cell's art lives. Paint order, destination rectangles and blend state are
+    untouched, and a slot carries a gutter because bilinear reaches one texel
+    and the sheet next door is a neighbour no sheet had before. Law 20's failure
+    clause carries over: any failure at all returns every quad to its own sheet
+    with the same picture. What this is not is a licence to merge sheets a
+    *reader* distinguishes — an atlas is a submission fact, and the catalog that
+    says which block is on which sheet (`moddable-tilesets-nouns.md`) is
+    untouched by it. Which coordinate frame the two meet in is the whole risk
+    and is not visible in the code: a source rectangle counts rows down from a
+    sheet's top and GL counts them up from a texture's bottom, and a slot placed
+    in the wrong one draws every tile as a real tile belonging to some other
+    sheet. Nothing but a picture catches that, which is why the acceptance is
+    pixel equality against the per-sheet path on a real driver.
 
 ## Boundaries and extension paths
 
@@ -190,16 +265,44 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 
-The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a wrap the atlas cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
+The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a repeat wrap that a tile cut from a packed sheet cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
-**The next ceiling is `FOG`.** With the ground and the relief fields both
-resident, a whole-map Conquest frame is 13 ms against the 148 ms the same frame
-costs with the fields rebuilt per frame, and FOG is 5.7 ms of the 12.5 that
-remain. It is collection-bound in the sharpest form the vocabulary above
-describes: a hundred and sixty-eight thousand commands that drain in one call.
-What is worth attacking there is how many are made, not how they are submitted —
-and the shape of the answer is unlikely to be residency, because what fog
-reports is exactly the thing that changes every frame.
+**`GROUND` is no longer the ceiling anywhere, and what `renderEvidence` names
+next is `UNITS`.** A whole-map 560x336 Conquest frame is 1.8 ms of our own
+against the 5.5 the same frame costs with the atlas and the decoration
+sub-layers switched off, and GROUND is 0.57 ms of it — 929 commands, three
+draws, and **no texture binds at all**, because everything in that layer with a
+texture on it is now resident and everything left is a solid fill. At the close
+and mid framings the largest layer is `UNITS`, and its shape is the one the
+atlas was the answer to at a different scale: two hundred and fifty bodies drawn
+as whole sprites through the host's own sprite call, which is 253 draws across
+250 binds and cannot coalesce at all. It is submission-bound, and merging is the
+lever the vocabulary points at — a sprite is a whole texture rendered through the
+host API and a sheet quad is a sub-rectangle batched from a shared sheet, so the
+question is whether a unit's art can become the second thing. `ROOFS` is the
+other one worth naming: eight thousand quads in a single draw at 280x168
+whole-map, which is collection-bound and would want fewer commands rather than
+fewer binds.
+
+The guess this replaced is worth keeping for what it got wrong. It named
+merging as the lever, which was right, and then predicted the win would be in
+the drain, which was only half of it: the atlas took the drain from 2.70 ms to
+0.66 and left collection untouched at 1.5, and it was residency — the thing the
+paragraph explicitly ruled out for sparse decoration — that took the collection
+away too. The two levers are very nearly redundant on this measurement, and both
+ship anyway: with the decoration resident the atlas saves almost nothing at
+whole-map framing, and it is still what makes the bake frame, every host that
+declines residency, and the whole fail-soft path cheap. A lever that is
+subsumed at one framing is not a lever that does nothing.
+
+The guess this replaced is worth keeping, because it was wrong in an instructive
+way. The doc said residency was unlikely to be fog's answer, since what fog
+reports is exactly the thing that changes every frame. What that missed is that
+*changing* and *being rebuilt* are different: the reveal bitmap changes on the
+vision cadence, roughly a third of the render frames, and it changes in one
+bounded region rather than everywhere. Residency is about not resubmitting, and
+the question to ask of a layer is how often its data actually moves and how much
+of it moves at once — not whether it is static.
 
 Framing-gating the relief composite (law 19) was the other candidate and was
 measured rather than argued: at whole-map the sun's terrain shading genuinely

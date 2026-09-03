@@ -30,6 +30,9 @@ public final class DrawList {
     private final DrawCommand[][] byLayer = new DrawCommand[RenderLayer.values().length][];
     private final int[] counts = new int[RenderLayer.values().length];
 
+    /** Where a whole-image draw is re-addressed, or null for the sprite path. */
+    private SpriteAtlas spriteAtlas;
+
     public DrawList() {
         for (int i = 0; i < byLayer.length; i++) {
             byLayer[i] = new DrawCommand[INITIAL_CAP];
@@ -86,10 +89,43 @@ public final class DrawList {
                 cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
+    /**
+     * A whole image drawn centred on {@code (cx, cy)}.
+     *
+     * <p><b>Where the atlas redirect lives.</b> An image the {@link UnitAtlas}
+     * holds is emitted as a rotated sheet quad over its own slot instead of as a
+     * foreign sprite call, so a run of them coalesces. It is done here rather
+     * than in the composers because there are a dozen emit sites and one of them
+     * disagreeing with the others would be a body drawn out of order; here there
+     * is one rule, applied to every caller alike, and the command's layer,
+     * position and order are untouched. A caller that genuinely wants the sprite
+     * path — an additive draw, whose blend a batched quad cannot carry — has its
+     * own method and never reaches this one.
+     */
     public void addSprite(RenderLayer layer, SpriteAPI sprite,
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {
+        if (spriteAtlas != null && spriteAtlas.isServing()) {
+            SpriteAtlas.Placement at = spriteAtlas.placement(sprite);
+            if (at != null) {
+                slot(layer).setSheetQuad(spriteAtlas.sheet(),
+                        at.x(), at.y(), at.width(), at.height(),
+                        cx, cy, w, h, angleDeg, r, g, b, a);
+                return;
+            }
+        }
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a);
+    }
+
+    /**
+     * Points whole-image draws at {@code atlas} for any image it holds.
+     *
+     * <p>Null — the default — leaves every sprite on the host's own sprite call,
+     * which is what a host with no GL context of its own (the headless evidence
+     * drains) and a host that never built one both get.
+     */
+    public void setSpriteAtlas(SpriteAtlas atlas) {
+        this.spriteAtlas = atlas;
     }
 
     /** As {@link #addSprite}, but the sprite adds light instead of compositing over what is beneath it. */
