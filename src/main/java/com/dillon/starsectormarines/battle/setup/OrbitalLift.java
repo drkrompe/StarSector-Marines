@@ -52,6 +52,13 @@ public final class OrbitalLift {
      * committed seats and the landing share instead of flying the ferry's
      * three.
      *
+     * <p><b>Off, re-measured with the ferry floor in place.</b>
+     * {@code reinforced-south} is bit-identical either way now — its 204 seats
+     * derive the ferry's own three pairs — so the question is the west alone,
+     * and there the seat-sized lift takes 14 compounds and holds 3 against the
+     * ferry's 11 and 7 for eight more marines lost. It takes more and keeps
+     * less.
+     *
      * <p>Off because the matrix says so, which was not the expected answer.
      * Landing the whole force early works — full-strength-west assembles 356
      * live marines against the ferry's ~130 and the alive-squad plateau is gone
