@@ -137,6 +137,35 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     public static final int CAPTURE_FRONT_REACH_CELLS = 24;
 
+    /**
+     * How many squads beyond a zone's own capture quota may be ordered to clear
+     * it before the next forward zone in the strip is offered instead.
+     *
+     * <p>A zone's quota is what taking it is believed to want — one squad, or
+     * {@link #LARGE_COMPOUND_ROOMS two} for a compound of several rooms — and a
+     * zone that is not a compound's capture room is worth one. The overflow on
+     * top of it is the honest slack: a clear order is contested ground rather
+     * than a queue ticket, squads are lost on the way, and a cap set exactly at
+     * the quota would leave a place under-assaulted every time somebody died.
+     * Two is a squad in reserve behind each of a compound's own.
+     *
+     * <p><b>Without the cap the force does not divide at all.</b> The zone
+     * picker ranks by distance along the traversal axis and consults nothing
+     * about who is already going there, and {@link #TRACK_LINE_LEAD_CELLS}
+     * bounds staging, so the surplus queues in depth behind the same target:
+     * measured at 89–93% of the live force assigned to one {@code CLEAR_ZONE}
+     * target on {@code full-strength-west}, with a third more marines landed
+     * changing peak presence inside a capture zone from 46 to 48 and doubling
+     * the deaths in the one 40x40 block they were queued in. The useful slots
+     * are 5–9 and fixed; adding force without dividing it adds casualties.
+     *
+     * <p>The cap is a preference and never a refusal. A strip whose every
+     * defender zone is at cap hands back the nearest one exactly as it did
+     * before — there is nowhere else to send anybody, and a squad with no
+     * target is worse than a crowded one.
+     */
+    public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
+
     /** {@link #friendlyLeadForward} sentinel: no living friendly holds this track. */
     private static final int NO_FRIENDLY_LEAD = Integer.MIN_VALUE;
 
@@ -425,6 +454,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private final List<CompoundTarget> compoundTargets = new ArrayList<>();
 
+    /**
+     * Squads this pulse's front push has already pointed at each zone, indexed
+     * by zone id. Cleared at the top of the push and filled as it hands out
+     * targets, so {@link #ZONE_TARGET_OVERFLOW_SQUADS} is read against the
+     * plan being built rather than against last pulse's. Every uncommitted
+     * squad is retargeted every pulse, so a per-pulse tally is the whole
+     * picture.
+     */
+    private int[] zoneTargetSquads = new int[0];
+
     /** Once-per-command-tick explanation consumed by diagnostics and UI. */
     private volatile ConquestFrontSnapshot frontSnapshot;
 
@@ -618,6 +657,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             // Pass 2: preferred tracks remain sticky, but an idle track is a
             // coordination gap rather than an ownership fence. Borrow useful
             // work from one neighboring track without permanently re-homing.
+            // The per-zone tally is the plan being built, so it starts empty.
+            Arrays.fill(zoneTargetSquads, 0);
             for (PlanningSquad squad : squads) {
                 if (committed.contains(squad.id)) continue;
                 int preferredTrack = stripFor(squad);
@@ -705,6 +746,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     planned = planned.withDistantCaptureDeferred();
                 }
                 directives.put(squad.id, planned);
+                noteZoneTarget(choice.targetZoneId);
             }
         }
 
@@ -1342,6 +1384,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         zoneCentroidY = new float[topology.zones().size()];
         zoneMarkerX = new int[topology.zones().size()];
         zoneMarkerY = new int[topology.zones().size()];
+        zoneTargetSquads = new int[topology.zones().size()];
         Arrays.fill(zoneMarkerX, -1);
         Arrays.fill(zoneMarkerY, -1);
         Arrays.fill(zoneForwardCoord, 0f);
@@ -2064,6 +2107,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * positions exist, the forward one wins on ties (and is preferred
      * outright when forward positions exist).
      *
+     * <p>A zone this pulse has already filled to its own quota plus
+     * {@link #ZONE_TARGET_OVERFLOW_SQUADS} is passed over for the next forward
+     * zone in the strip, so a force larger than the front's useful slots
+     * divides across the strip's depth instead of queueing behind one target.
+     * When the whole strip is at cap the nearest zone is returned anyway.
+     *
      * <p>Forward bias matters because CONQUEST is a directional push. A
      * squad that's already moved past a flanking defender shouldn't be
      * pulled back to clear them — the next strip-neighbor squad picks
@@ -2082,6 +2131,23 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
                                            ConquestCommandFrame frame) {
+        int spare = nearestDefenderZoneInStrip(squad, stripIdx, frame, true);
+        return spare >= 0 ? spare
+                : nearestDefenderZoneInStrip(squad, stripIdx, frame, false);
+    }
+
+    /**
+     * @param underCapOnly skip zones this pulse has already filled to
+     *                     {@link #ZONE_TARGET_OVERFLOW_SQUADS} over their
+     *                     quota, so the next forward zone in the strip is
+     *                     offered instead. The caller above runs this pass
+     *                     first and repeats without it, which is what makes
+     *                     the cap a preference: a strip with nowhere else to
+     *                     send anybody answers exactly as it did before.
+     */
+    private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
+                                           ConquestCommandFrame frame,
+                                           boolean underCapOnly) {
         if (stripIdx < 0 || stripIdx >= stripZones.size()) return -1;
         float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidY : squad.centroidX;
 
@@ -2091,6 +2157,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         float bestBackwardDist = Float.MAX_VALUE;
         for (int zoneId : stripZones.get(stripIdx)) {
             if (zoneId == exteriorZoneId) continue;
+            if (underCapOnly && zoneTargetIsFull(zoneId)) continue;
             if (!hasKnownHostileInZone(zoneId, frame)) continue;
             if (!reachableZone(squad, zoneId, frame)) continue;
             float zoneForward = zoneForwardCoord[zoneId];
@@ -2109,6 +2176,26 @@ public final class ConquestCommand implements ConquestFrontCommand,
             }
         }
         return bestForwardZone >= 0 ? bestForwardZone : bestBackwardZone;
+    }
+
+    /**
+     * Whether this pulse has already pointed a zone's full complement at it:
+     * its own capture quota plus {@link #ZONE_TARGET_OVERFLOW_SQUADS}. A zone
+     * that is no compound's capture room is worth one squad — there is no
+     * footprint to say otherwise, and a room is a room.
+     */
+    private boolean zoneTargetIsFull(int zoneId) {
+        if (zoneId < 0 || zoneId >= zoneTargetSquads.length) return false;
+        int quota = 1;
+        int index = targetIndexForCaptureZone(zoneId);
+        if (index >= 0) quota = compoundTargets.get(index).desiredSquads;
+        return zoneTargetSquads[zoneId] >= quota + ZONE_TARGET_OVERFLOW_SQUADS;
+    }
+
+    /** Records a front-push target so the zone's cap counts it. */
+    private void noteZoneTarget(int zoneId) {
+        if (zoneId < 0 || zoneId >= zoneTargetSquads.length) return;
+        zoneTargetSquads[zoneId]++;
     }
 
     private boolean hasKnownHostileInZone(int zoneId, ConquestCommandFrame frame) {
