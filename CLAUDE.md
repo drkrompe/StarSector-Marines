@@ -251,15 +251,19 @@ Do not run builds or leave generated task files there.
   (`-Dbattle.render.zoomGates=false`, `-Dbattle.render.groundMesh=false`,
   `-Dbattle.render.residentRelief=false`, `-Dbattle.render.fogField=false`,
   `-Dbattle.render.groundAtlas=false`,
-  `-Dbattle.render.residentDecoration=false`), never against a number in a
+  `-Dbattle.render.residentDecoration=false`, `-Dbattle.render.unitAtlas=false`,
+  `-Dbattle.render.residentRoofs=false`), never against a number in a
   document.
-  Where it stands: a whole-map 560x336 Conquest frame costs **1.8 ms** of our
-  own with every lever on, against 5.5 with the ground atlas and the resident
-  decoration both off. `GROUND` is 0.57 ms of it — 929 commands, three draws and
-  **no texture binds at all**, because everything in that layer carrying a
-  texture is resident and everything left is a solid fill. The ceiling is now
-  `UNITS` at the close and mid framings: 250 bodies drawn as whole sprites,
-  253 draws across 250 binds, which cannot coalesce.
+  Where it stands: **nothing is submission-bound any more.** `UNITS` is five
+  draws across two binds at every framing on either map, `ROOFS` is one custom
+  pass and one command, and `GROUND` is three draws and **no texture binds at
+  all** — everything in those layers carrying a texture is resident or atlased,
+  and what is left is solid fill. A whole-map 280x168 frame costs **0.92 ms** of
+  our own against 1.79 with the roofs streamed. Every remaining ceiling is a
+  collector rather than a driver: `UNITS` 0.36 ms of collection against 0.25 of
+  drain at 280x168 close, `GROUND` 0.38 against 0.18 at mid. The next lever is
+  therefore about visiting fewer bodies and fewer cells, not about submitting in
+  fewer calls.
   **The harness does not advance the simulation between frames**, so a resident
   thing's patch cost is charged once, in the frame that catches it up, and every
   later frame in a framing reads as the steady state. That is the shape of the

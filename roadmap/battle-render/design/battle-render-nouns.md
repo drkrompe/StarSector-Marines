@@ -259,6 +259,35 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     sheet. Nothing but a picture catches that, which is why the acceptance is
     pixel equality against the per-sheet path on a real driver.
 
+    **An atlas is a mechanism, not a ground fact.** The same pack applies
+    wherever a layer's pictures are many, small, and on screen together — a
+    body's authored composition is feet, body, weapon, head and muzzle flash
+    from separate images, so a field of infantry is several images per body and
+    a bind for each. Atlased, a whole-sprite call becomes a rotated sheet quad
+    over its own slot and the layer coalesces like any other run. **The redirect
+    belongs at one seam**, where a command is recorded rather than in each
+    composer: a dozen emit sites that each had to remember the atlas is a dozen
+    chances for one of them to disagree, and none of them should know it exists.
+    Per-unit tint and fade ride the batch's vertex colour, which is where they
+    already were; an additive draw is left on the sprite path, because its blend
+    state is its own. And the set is **bounded by what an image is for** rather
+    than by what will fit: an atlas pays where many of its images are on screen
+    at once, which a composed body is and a vanilla aircraft hull is not, so an
+    image past a stated size keeps drawing as a whole sprite.
+25. Residency is not only for the ground. A **roof** is a function of the
+    topology and of which building owns the cell, and it paints *above* units —
+    so the mesh is a resident layer in its own painter slot rather than another
+    sub-layer of GROUND, and law 20 carries over whole. What is new is the
+    invalidation's two shapes. A cave-in is geometry and comes from the same
+    `CellTopology` change log, and it re-resolves **exactly the cell that
+    caved**: a roof tile is picked by hashing its own coordinates, so unlike a
+    ground autotile it has no neighbour to disturb. A building fading as the
+    player walks inside it is not geometry at all — it is that building's alpha
+    — so its cells are baked as one contiguous span and a fade is a patch of
+    that span's vertex colours. The stream's own rule that a roof under a
+    threshold is not drawn survives as an alpha of zero, or a resident quad
+    would put a roof over an interior the streamed path leaves clear.
+
 ## Boundaries and extension paths
 
 `combat-durability-nouns.md` owns armor and structure, what depletes them, and in which order; the bar only reports that model and must not invent a third capacity or a different drain order. Combat telemetry is the recorded-fact source a withheld bar consults. Allegiance is resolved render-side from simulation faction; the simulation never gains a presentation ownership field. The player's side is `MARINE` by standing convention across missions, so `MARINE` reads as player, `ALLY` as ally, `CIVILIAN` as neutral, and anything else as enemy. The ally reading gained its producer with the allied faction (`ai-nouns.md`, Sides); every colour site that used to key on `== MARINE` reads `Allegiance.friendly()` instead, so a fourth faction can never draw in the enemy hue by default.
@@ -267,22 +296,30 @@ perimeters whose aperture genuinely occupies a thick structural cell.
 
 The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. Static ground residency is settled by law 20 and is a mesh; `dense-render-tiles.md` remains parked for tiled **decal** residency only, and its baked-tile answer was measured against and rejected for ground — a tile costs fill and VRAM per view and needs residency, eviction and anti-thrash policy, where a mesh is one upload and no per-frame CPU at all. Merging identical cells into runs was rejected for the same measurement: a run re-splits on every edit and needs a repeat wrap that a tile cut from a packed sheet cannot give. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
 
-**`GROUND` is no longer the ceiling anywhere, and what `renderEvidence` names
-next is `UNITS`.** A whole-map 560x336 Conquest frame is 1.8 ms of our own
-against the 5.5 the same frame costs with the atlas and the decoration
-sub-layers switched off, and GROUND is 0.57 ms of it — 929 commands, three
-draws, and **no texture binds at all**, because everything in that layer with a
-texture on it is now resident and everything left is a solid fill. At the close
-and mid framings the largest layer is `UNITS`, and its shape is the one the
-atlas was the answer to at a different scale: two hundred and fifty bodies drawn
-as whole sprites through the host's own sprite call, which is 253 draws across
-250 binds and cannot coalesce at all. It is submission-bound, and merging is the
-lever the vocabulary points at — a sprite is a whole texture rendered through the
-host API and a sheet quad is a sub-rectangle batched from a shared sheet, so the
-question is whether a unit's art can become the second thing. `ROOFS` is the
-other one worth naming: eight thousand quads in a single draw at 280x168
-whole-map, which is collection-bound and would want fewer commands rather than
-fewer binds.
+**Nothing is submission-bound any more, and what `renderEvidence` names next is
+collection.** With units atlased and roofs resident, no layer at any framing on
+either map spends its time in the driver: `UNITS` is five draws across two binds
+whether it is drawing 186 bodies or 230, `ROOFS` is one custom pass and one
+command, `GROUND` is three draws and no binds at all. Every remaining ceiling is
+a collector walking bodies or cells — `UNITS` at 0.36 ms of collection against
+0.25 of drain at 280x168 close, `GROUND` at 0.38 against 0.18 at mid — and the
+whole-map 280x168 frame is 0.92 ms of our own against 1.79 with the roofs
+streamed. That is a different kind of question from the last three levers: not
+how to submit the same picture in fewer calls, but whether a collector has to
+visit every body and every cell to produce it at all, which is culling and
+framing gates (law 19) rather than batching or residency.
+
+**The pair that got there was right about the shape and wrong about the size,
+in opposite directions.** `UNITS` was named as submission-bound and the atlas
+as its answer, and the atlas did what was predicted — 253 draws across 250 binds
+became five across two — while the layer's own cost barely moved, from 0.59 ms
+to 0.49 at 560x336 close, because on this driver a bind is cheap and compositing
+six or seven authored images per body is not. `ROOFS` was named as
+collection-bound and wanting fewer commands, and residency gave it exactly that
+and rather more than expected: 6,035 commands became one, and 0.83 ms became
+0.02. A lever aimed at the driver bought a tenth of a millisecond; a lever aimed
+at the collector bought eight tenths. That is the reading that points the next
+one at collection.
 
 The guess this replaced is worth keeping for what it got wrong. It named
 merging as the lever, which was right, and then predicted the win would be in
