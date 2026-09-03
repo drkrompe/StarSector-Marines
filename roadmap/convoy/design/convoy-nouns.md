@@ -4,6 +4,9 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
+Updated: 2026-09-03 — the clearance mask and its component labels are held
+against the navigation grid's own revision rather than rebuilt per dispatch.
+
 Updated: 2026-08-30 — map generation now guarantees a drivable corridor from
 the defender's rear edge to the city, so the strict rear entry admits a hull.
 
@@ -337,6 +340,21 @@ it planned before.
   costs a full-grid flood to refuse — and the proof asks about many junctions.
   The labelling must use the router's own step rule rather than the mask alone,
   because a closed edge is a wall the mask cannot see.
+- **The mask and its labels are held against the grid's own revision, not
+  rebuilt per ask.** Both are pure derivations of the navigation grid, and the
+  grid already counts every write that could change either — cell flags and edge
+  passability — so a revision that has not moved is a proof that rebuilding
+  would produce the same arrays. They used to be rebuilt on every dispatch
+  *and* on every feasibility probe, out of a correct worry that stated the wrong
+  remedy: a wreck can close ground under a proved route, so the mask was thrown
+  away every time rather than when that happened. On a 560x336 map that is
+  twelve milliseconds to erode and twelve to label, charged to a game-thread
+  tick, for arrays that are almost always identical to the last ones. What
+  actually closes ground during a battle is an **aircraft** settling onto it;
+  a vehicle wreck writes nothing to the navigation grid, and destruction
+  otherwise only makes the map more permissive. The revision covers all three
+  without knowing which is which, and there is nothing for a caller to remember
+  to invalidate.
 - **A route proof is bounded in searches, not in the map.** The proof is an
   enumeration — entries against junctions against exits — so a limit of eight
   retries per endpoint pair bounds nothing a player is waiting on. One budget,

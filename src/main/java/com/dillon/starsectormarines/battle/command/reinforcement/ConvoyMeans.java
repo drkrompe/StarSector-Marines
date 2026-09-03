@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearanceCache;
 import com.dillon.starsectormarines.battle.vehicle.VehicleController;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -139,6 +140,15 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * stale macro route is fine — the rolling local planner handles live terrain.
      */
     private TerrainCostField costField;
+    /**
+     * Per-battle clearance mask and component labels for the one chassis this
+     * means drives, rebuilt only when the grid's passability changes. See
+     * {@link VehicleClearanceCache} for why the topology revision is the whole
+     * of the invalidation.
+     */
+    private final VehicleClearanceCache clearanceCache = new VehicleClearanceCache(
+            VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
         this(graph, axis, null, RiskLevel.LOW, null);
     }
@@ -214,10 +224,10 @@ public final class ConvoyMeans implements ReinforcementMeans {
      *
      * <p>Shared by the feasibility probe and the arrival estimate so the entry
      * that decides whether this means can deliver is the same entry it quotes
-     * a time from. Rebuilds the clearance mask per call for the reason
-     * {@link #clearanceFor} gives: wrecks close cells during a battle, and a
-     * retained mask would keep promising an entry that a burnt-out truck is
-     * now sitting in.
+     * a time from. It reads the retained clearance mask rather than eroding
+     * one: a probe asked of every request on every reinforcement tick cannot
+     * afford a full-grid sweep, and the mask is only stale when the grid says
+     * so. See {@link #clearanceFor}.
      *
      * <p><b>A necessary condition, not the proof.</b> The drive itself is
      * still proven at commit, because proving it is a bounded enumeration of
@@ -240,8 +250,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 ? defenderRearPerimeter(graph.perimeterNodes(), width, height)
                 : defenderSidePerimeter(graph.perimeterNodes(), width, height);
         if (perimeter.isEmpty()) return null;
-        VehicleClearance clearance = clearanceFor(sim,
-                VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+        VehicleClearance clearance = clearanceFor(sim);
         for (RoadGraph.Node node : sortedByDistance(perimeter,
                 deployment.hintX(), deployment.hintY())) {
             if (perimeterRouteCell(clearance, node, width, height) != null) return node;
@@ -393,18 +402,18 @@ public final class ConvoyMeans implements ReinforcementMeans {
         List<int[]> reserved = activeConvoyDestinations(sim);
         LandingZoneScorer scorer = new LandingZoneScorer(
                 sim.getGrid(), sim.getTopology());
-        int radius = VehicleClearance.radiusForWidth(
-                VehicleType.HEAVY_APC.visualWidthCells);
         TerrainCostField cost = costFieldFor(sim);
-        VehicleClearance clearance = clearanceFor(sim, radius);
+        VehicleClearance clearance = clearanceFor(sim);
         // One labelling pass answers every (entry, destination, exit) triple
         // below without a search. The enumeration filtered destinations on the
         // road graph, which says nothing about whether the body fits: a junction
         // the graph connects and the mask does not costs a full-grid flood to
         // refuse, once per candidate. See ClearanceComponents, which is also
-        // honest about how little this particular fixture owed to it.
-        ClearanceComponents components =
-                ClearanceComponents.of(sim.getGrid(), clearance);
+        // honest about how little this particular fixture owed to it. Held
+        // across dispatches beside the mask it labels, and thrown away with it
+        // the moment the grid's passability moves.
+        ClearanceComponents components = clearanceCache.components(
+                sim.getGrid(), sim.getNavigationGridRevision());
 
         int entriesTried = 0;
         for (RoadGraph.Node entry : entries) {
@@ -501,12 +510,20 @@ public final class ConvoyMeans implements ReinforcementMeans {
     }
 
     /**
-     * Builds a fresh clearance snapshot for each dispatch. Wrecks can close
-     * cells during the battle, so retaining the original mask would let later
-     * reinforcements prove routes through destroyed vehicles.
+     * The clearance snapshot for this battle's current passability.
+     *
+     * <p>Held across dispatches rather than eroded per call. It used to be
+     * rebuilt every time because the map can close ground under a proved route
+     * — an aircraft settling onto a road is the live case — but "the map might
+     * have changed" is a question the grid answers exactly, and answering it by
+     * sweeping 188,160 cells cost about twelve milliseconds a time — paid by
+     * the dispatch, paid again by the labelling beside it, and paid again by
+     * every feasibility probe that never dispatches. See
+     * {@link VehicleClearanceCache}.
      */
-    private VehicleClearance clearanceFor(BattleView sim, int radius) {
-        return VehicleClearance.erode(sim.getGrid(), radius);
+    private VehicleClearance clearanceFor(BattleView sim) {
+        return clearanceCache.clearance(sim.getGrid(),
+                sim.getNavigationGridRevision());
     }
 
     /**
