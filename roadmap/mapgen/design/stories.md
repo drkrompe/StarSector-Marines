@@ -1,17 +1,17 @@
 # Map generation story board
 
-Status: ACTIVE — fourteen bounded precinct, station, city, economic, or
+Status: ACTIVE — fifteen bounded precinct, station, city, economic, or
 cross-feature stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the lane-paths story shipped; a lane is a path its
-ladder stands on and a walkable route the map records, folded into
-`precincts.md` and `mapgen-nouns.md`.
+Updated: 2026-09-02 — the lane fan was built, measured and reverted; two lane
+seeding defects it uncovered are open as `lane-seed-separation.md`.
 
 | Story | Status | Outcome |
 |---|---|---|
-| `lane-fan.md` | PLANNED | Derived lanes share both ends — the beachhead and the keep — and spread only in the middle, so every ladder starts where the force stands. The map-side answer to the chain's lost held compound. |
+| `lane-fan.md` | MEASURED AND REVERTED | Sharing both ends of every derived lane was built and measured both ways at full length; it loses held compounds on both canonical fixtures and the fanned map carries the loss, not the commander. Reverted, reading kept. Two silent lane-seeding defects it uncovered are still open. |
+| `lane-seed-separation.md` | PLANNED | A lane rung may stand closer to its own ladder than to a settlement, and its jitter window is bounded by the map rather than by its third. Both canonical fixtures drop their middle lane's rung today for neither reason. |
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |
