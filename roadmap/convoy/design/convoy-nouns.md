@@ -5,7 +5,8 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 Written: 2026-08-23
 
 Updated: 2026-09-03 — the clearance mask and its component labels are held
-against the navigation grid's own revision rather than rebuilt per dispatch.
+against the navigation grid's own revision rather than rebuilt per dispatch,
+and the route proof is a resumable job stepped a few searches per tick.
 
 Updated: 2026-08-30 — map generation now guarantees a drivable corridor from
 the defender's rear edge to the city, so the strict rear entry admits a hull.
@@ -380,6 +381,34 @@ it planned before.
   from the ground the request asked for. Spending the budget on the candidate
   the ranking already called best cost nineteen searches and delivered nearer.
   Where the retries go matters more than how many there are.
+- **A proof is spread across ticks, because a bound in total is not a bound in
+  a frame.** The search budget says what one dispatch may spend; it says nothing
+  about how much of that lands in the tick that asked, and the answer was all of
+  it — 118 ms of one game thread on the 560x336 map, which is a visible hitch on
+  hardware weaker than the one it was measured on. Nothing about the question
+  requires an answer this frame: the delivery it authorises takes six seconds to
+  appear and most of a minute to arrive. So the enumeration is a resumable
+  object stepped a few searches per sim tick, and the dispatch that started it
+  reads a finished result a handful of ticks later.
+- **Every cursor in that enumeration is state a restart would destroy**, which
+  is why it is an object and not a smaller budget passed in again. The
+  accumulating avoidance mask inside one endpoint pair's retry loop is the
+  obvious one — that mask *is* the eighteen retries — but so is which entry is
+  being tried and how many drops beneath it have already been refused. Beginning
+  again each tick would spend the whole budget on the first candidate forever.
+- **A proof belongs to the world it was proved against.** It holds the mask, the
+  labels, the cost field and several half-finished searches, all of them true of
+  one grid revision. A revision that moves under a running proof invalidates all
+  of it at once, and the honest response is to start over rather than to finish
+  an argument about a map that no longer exists. A proof nobody has asked after
+  for two dispatch cadences is abandoned: the request was dropped or served
+  elsewhere, and nothing tells a means it lost.
+- **Standing a proof up is itself a tick's work, and on the first dispatch of a
+  battle it is the expensive part.** The terrain cost field and the clearance
+  component labels are each a sweep of the whole map, and building both came to
+  thirteen milliseconds before a single search was spent. A freshly created
+  proof therefore does not also search on the tick that created it; that would
+  be the same mistake one tick smaller.
 - It also proves the one bend that lies on neither polyline: the turn from the
   heading a vehicle arrives on to the heading its exit demands — asked with no
   run-up, from the drop point itself. The docking maneuver would often rescue

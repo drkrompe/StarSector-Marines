@@ -50,13 +50,20 @@ public final class ReinforcementSystem {
      * no pool can pay for are re-queued for the next tick.
      */
     public void tick(float dt, BattleControl sim) {
+        // Every tick, ahead of the cadence gate: a means preparing a delivery
+        // over several ticks is advanced on the sim's clock rather than on the
+        // dispatcher's, which is a second wide. A means that prepares nothing
+        // does nothing here.
+        boolean readyEarly = advanceMeans(dt, sim);
         if (service.triggers().isEmpty() && service.isPendingEmpty()) return;
         accumulator += dt;
-        if (accumulator < ReinforcementService.REINFORCEMENT_TICK_PERIOD) return;
-        accumulator -= ReinforcementService.REINFORCEMENT_TICK_PERIOD;
-
-        for (ReinforcementTrigger trigger : service.triggers()) {
-            trigger.check(sim, service::post);
+        boolean cadence = accumulator >= ReinforcementService.REINFORCEMENT_TICK_PERIOD;
+        if (!cadence && !readyEarly) return;
+        if (cadence) {
+            accumulator -= ReinforcementService.REINFORCEMENT_TICK_PERIOD;
+            for (ReinforcementTrigger trigger : service.triggers()) {
+                trigger.check(sim, service::post);
+            }
         }
         // Snapshot-drain in FIFO order: a request no pool can pay for is
         // re-posted (to the now-empty queue) and so retried next tick, not this
@@ -64,6 +71,25 @@ public final class ReinforcementSystem {
         for (ReinforcementRequest req : service.drainPending()) {
             if (!dispatch(sim, req)) service.post(req);
         }
+    }
+
+    /**
+     * Advances every means' in-progress preparation and reports whether any of
+     * it finished on this tick.
+     *
+     * <p>A means that answers {@link ReinforcementDispatchResult#RETRYABLE}
+     * while it prepares is otherwise retried only on the next cadence, so a
+     * proof that finishes eight ticks after it began would still wait out the
+     * rest of the second. Draining on the tick it finishes is what keeps the
+     * cost of spreading the work across ticks measured in ticks.
+     */
+    private boolean advanceMeans(float dt, BattleControl sim) {
+        boolean ready = false;
+        List<ReinforcementMeans> all = service.means();
+        for (int i = 0; i < all.size(); i++) {
+            if (all.get(i).advance(dt, sim)) ready = true;
+        }
+        return ready;
     }
 
     /**

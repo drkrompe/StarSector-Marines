@@ -44,7 +44,7 @@ public final class VehicleRoutePlanner {
     /** Alternate macro corridors tried after a statically valid bend fails minimum-radius refinement — the default {@link RouteSearchBudget} for one endpoint pair, where the caller does not bring its own. */
     private static final int MAX_KINEMATIC_ROUTE_ATTEMPTS = 8;
     /** Disc placed on a failed bend before the next cost-field search. */
-    private static final float FAILED_TURN_AVOID_RADIUS = 2f;
+    static final float FAILED_TURN_AVOID_RADIUS = 2f;
 
     /** A rescue route plus the forced first-step direction it consumed. */
     static record RescueRoute(float[][] points, int firstStepDirectionBit) {}
@@ -235,7 +235,7 @@ public final class VehicleRoutePlanner {
         return mask;
     }
 
-    private static float[][] routeMasked(int startX, int startY, int goalX, int goalY,
+    static float[][] routeMasked(int startX, int startY, int goalX, int goalY,
                                          NavigationGrid grid, TerrainCostField costField,
                                          boolean[] passable, int w, int h) {
         int[] cells = GridPathfinder.findPath(grid, startX, startY, goalX, goalY,
@@ -256,32 +256,24 @@ public final class VehicleRoutePlanner {
                 new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS));
     }
 
+    /**
+     * Runs one {@link DrivableRouteSearch} to completion, or until {@code budget}
+     * is gone. The retry loop and its accumulating avoidance mask live there, so
+     * a caller that wants the same search spread over several ticks holds the
+     * object instead of calling this.
+     */
     private static float[][] routeMaskedDrivable(int startX, int startY, int goalX, int goalY,
                                                   NavigationGrid grid, TerrainCostField costField,
                                                   boolean[] mask, boolean[] basePassable,
                                                   int w, int h, VehicleType type,
                                                   RouteSearchBudget budget) {
-        while (budget.claim()) {
-            float[][] route = routeMasked(startX, startY, goalX, goalY,
-                    grid, costField, mask, w, h);
-            if (route == null) return null;
-            TurnAwareCorridor.Result refined = TurnAwareCorridor.refine(route, type, grid);
-            if (refined.points() != null) return refined.points();
-
-            int failedX = (int) Math.floor(refined.failedX());
-            int failedY = (int) Math.floor(refined.failedY());
-            if ((failedX == startX && failedY == startY)
-                    || (failedX == goalX && failedY == goalY)) {
-                return null;
-            }
-            blockDisc(mask, w, h, failedX, failedY, FAILED_TURN_AVOID_RADIUS);
-            restoreEndpoint(mask, basePassable, w, h, startX, startY);
-            restoreEndpoint(mask, basePassable, w, h, goalX, goalY);
-        }
-        return null;
+        DrivableRouteSearch search = new DrivableRouteSearch(startX, startY, goalX, goalY,
+                grid, costField, mask, basePassable, w, h, type);
+        search.advance(budget, Integer.MAX_VALUE);
+        return search.route();
     }
 
-    private static void blockDisc(boolean[] mask, int w, int h,
+    static void blockDisc(boolean[] mask, int w, int h,
                                   int centerX, int centerY, float radius) {
         int r = (int) Math.ceil(radius);
         float radiusSq = radius * radius;
@@ -294,7 +286,7 @@ public final class VehicleRoutePlanner {
         }
     }
 
-    private static void restoreEndpoint(boolean[] mask, boolean[] basePassable,
+    static void restoreEndpoint(boolean[] mask, boolean[] basePassable,
                                         int w, int h, int x, int y) {
         if (x >= 0 && x < w && y >= 0 && y < h) mask[y * w + x] = basePassable[y * w + x];
     }

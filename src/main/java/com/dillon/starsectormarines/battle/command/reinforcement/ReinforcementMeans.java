@@ -44,6 +44,29 @@ public interface ReinforcementMeans {
     float arrivalSeconds(BattleView sim, ReinforcementRequest req);
 
     /**
+     * Per-tick hook for a means that prepares a delivery over several ticks
+     * rather than inside the one that asked. Called every sim tick, not on the
+     * dispatcher's cadence, because a second is far too coarse to advance
+     * anything on.
+     *
+     * <p>Return {@code true} when preparation that was in progress <em>finished
+     * on this tick</em>, which asks the dispatcher to drain its queue now rather
+     * than at the next cadence. That is the difference between a delivery
+     * arriving a handful of ticks later than it used to and a whole second
+     * later, and the whole point of the hook: a means that answers
+     * {@link ReinforcementDispatchResult#RETRYABLE} while it works is otherwise
+     * retried only once a second, whatever it finishes.
+     *
+     * <p>Most means prepare nothing and do nothing here. Convoy is the one that
+     * does: proving a drivable journey across a city is a bounded enumeration of
+     * whole-grid searches, and landing all of it in one frame is a visible hitch
+     * for a delivery that then takes six seconds to appear.
+     */
+    default boolean advance(float dt, BattleControl sim) {
+        return false;
+    }
+
+    /**
      * Attempt to spawn ordinary vehicle, air, or squad actors through their
      * native battle lifecycle. Called only after {@link #canFulfill} returns
      * {@code true}. {@link ReinforcementDispatchResult#COMMITTED} is legal only
