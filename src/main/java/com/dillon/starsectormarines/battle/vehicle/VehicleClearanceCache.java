@@ -14,10 +14,12 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * for arrays that are very nearly always identical to the last ones. Measured
  * on the production Conquest fixture the convoy stall was traced from, holding
  * them takes twenty-five milliseconds off the dispatch tick and empties the
- * probe ticks entirely. The mask no longer even pays the full sweep on a
- * change — see {@link #clearance} — though {@link ClearanceComponents} still
- * relabels the whole map each time the mask moves; tiling that flood is future
- * work, not this cache's.
+ * probe ticks entirely. Neither pays the full sweep on a change any more: the
+ * mask re-evaluates the neighbourhood of each changed cell (see
+ * {@link #clearance}) and the labels relabel only the tiles those cells fall
+ * in before re-uniting the tile seams (see {@link #components}); both fall
+ * back to the whole sweep only when the grid's change log no longer reaches
+ * back to the last catch-up.
  *
  * <p><b>The key is {@link NavigationGrid#topologyRevision()}, which is exactly
  * the fact this derivation depends on.</b> It counts every change to a cell's
@@ -59,10 +61,13 @@ public final class VehicleClearanceCache {
     private NavigationGrid componentsGrid;
     private ClearanceComponents components;
     private long componentsRevision = UNBUILT;
+    /** {@link NavigationGrid#changeCount()} the held labels have been replayed up to; tracked apart from the mask's because the labels are asked for less often. */
+    private long componentsCaughtUp = UNBUILT;
 
     private int clearanceBuilds;
     private int clearanceCatchUps;
     private int componentBuilds;
+    private int componentCatchUps;
 
     /** A cache for the mask a chassis of this footprint radius erodes. */
     public VehicleClearanceCache(int radiusCells) {
@@ -120,13 +125,28 @@ public final class VehicleClearanceCache {
      */
     public ClearanceComponents components(NavigationGrid grid, long topologyRevision) {
         VehicleClearance mask = clearance(grid, topologyRevision);
-        if (components == null || componentsGrid != grid
-                || componentsRevision != topologyRevision) {
+        if (components == null || componentsGrid != grid) {
             components = ClearanceComponents.of(grid, mask);
             componentsGrid = grid;
             componentsRevision = topologyRevision;
+            componentsCaughtUp = grid.changeCount();
+            componentBuilds++;
+            return components;
+        }
+        if (componentsRevision == topologyRevision) {
+            return components;
+        }
+        long changeCount = grid.changeCount();
+        if (grid.hasCaughtUpFrom(componentsCaughtUp)) {
+            components = components.catchUp(grid, mask, componentsCaughtUp,
+                    changeCount, radiusCells);
+            componentCatchUps++;
+        } else {
+            components = ClearanceComponents.of(grid, mask);
             componentBuilds++;
         }
+        componentsRevision = topologyRevision;
+        componentsCaughtUp = changeCount;
         return components;
     }
 
@@ -136,6 +156,9 @@ public final class VehicleClearanceCache {
     /** How many times the mask has caught up from the changed-cell log instead. Evidence, not behavior. */
     public int clearanceCatchUps() { return clearanceCatchUps; }
 
-    /** How many times the labels have actually been rebuilt. Evidence, not behavior. */
+    /** How many times the labels have been rebuilt over every tile. Evidence, not behavior. */
     public int componentBuilds() { return componentBuilds; }
+
+    /** How many times the labels have caught up by relabelling only the tiles that moved. Evidence, not behavior. */
+    public int componentCatchUps() { return componentCatchUps; }
 }
