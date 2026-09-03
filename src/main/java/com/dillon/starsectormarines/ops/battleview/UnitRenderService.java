@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.Layer
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
+import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
@@ -80,6 +81,37 @@ public final class UnitRenderService implements RenderSystem {
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
     /** Composition-wide scale relative to the original layered infantry sizing. */
     static final float LAYERED_INFANTRY_SCALE = 0.60f;
+
+    /**
+     * How much wider than its nominal cell size a body's drawn silhouette may
+     * be, for {@link ViewCull}.
+     *
+     * <p>The widest authored body is a heavy mech: render scale 1.6, and
+     * {@code LayeredMechAppearance.hullWidthCells} makes that a chassis 1.84
+     * cells across, with arms, shoulders, a muzzle flash and the system halo all
+     * reaching past the chassis. Four cells — two either side of the centre —
+     * clears that with room, and every infantry body is a third of it.
+     *
+     * <p>Deliberately generous, because the two ways of being wrong are not
+     * symmetric. A cull that rejects a body wrongly is silent and shows up as a
+     * marine popping into existence at the screen edge; a cull that is too
+     * loose costs only the bodies in a thin band outside the view. At the
+     * framings this matters at, the view is dozens of cells across and two
+     * cells of slack per side is a few per cent of the area.
+     */
+    private static final float BODY_SILHOUETTE_CELLS = 4f;
+
+    /**
+     * Slack on a structure or hull whose extent is authored, for
+     * {@link ViewCull}.
+     *
+     * <p>These already state their size in cells — a mount's {@code
+     * visualCells}, a hull's resolved visual length — so this only has to cover
+     * what moves that size around: recoil displacement, a rotated hull's
+     * diagonal, a wreck's pieces shifted where they lie, the durability bar
+     * standing above the body.
+     */
+    private static final float AUTHORED_EXTENT_SLACK = 1.6f;
     /** Shared physical sizing authority for battle and shipboard room projections. */
     static float layeredMechHullWidth(float cellPx, float renderScale) {
         return cellPx * BattleRenderer.UNIT_FRAC
@@ -114,6 +146,7 @@ public final class UnitRenderService implements RenderSystem {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
+        classifyRoster(ctx);
         sweepFootprints(ctx, out);
         sweepTurretBodies(ctx, out);
         sweepHubBodies(ctx, out);
@@ -122,6 +155,98 @@ public final class UnitRenderService implements RenderSystem {
         sweepLiveSprites(ctx, out);
         sweepDurabilityBars(ctx, out);
     }
+
+    /**
+     * One walk over the roster, sorting it into the strata that want it.
+     *
+     * <p>Five of this class's sweeps used to walk the whole live roster
+     * themselves, each asking every unit on the field what type it was so it
+     * could skip the ones that were not its business. On the canonical Conquest
+     * that is five passes over four hundred bodies and two thousand identity
+     * lookups to emit a few dozen footprints and a few hundred bars — and it was
+     * two thirds of the whole layer's collection cost, measured by taking the
+     * sweeps out one group at a time. Culling did not touch it, because the walk
+     * happens whether or not anything is emitted.
+     *
+     * <p>So the type is resolved once, here, and each sweep is handed the ids
+     * that concern it. Paint order is untouched: the sweeps still run in the
+     * same order and each still emits in roster order, because this fills its
+     * lists in roster order.
+     *
+     * <p>Grow-and-stay scratch, reused every frame — a collector allocating five
+     * lists per frame is the thing this was meant to stop doing.
+     */
+    private void classifyRoster(RenderContext ctx) {
+        footprints.reset();
+        turrets.reset();
+        hubs.reset();
+        basedAircraft.reset();
+        bars.reset();
+        boolean wantsBars = ctx.hostProfile.unitDecorationsVisible();
+        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
+            long u = ctx.sim.liveUnitAt(i);
+            UnitType type = ctx.sim.identity().type(u);
+            RenderAppearance appearance = RenderAppearance.of(type);
+            if (appearance.drawsFootprint) footprints.add(u, i, type);
+            if (type.isTurret()) turrets.add(u, i, type);
+            else if (type.isDroneHub()) hubs.add(u, i, type);
+            else if (type.isBasedAircraft()) basedAircraft.add(u, i, type);
+            if (wantsBars && appearance.drawsDurabilityBar) bars.add(u, i, type);
+        }
+    }
+
+    /**
+     * One stratum's share of the roster: the unit ids, and the dense roster slot
+     * each came from.
+     *
+     * <p>The slot is carried because fog keys on it — {@code getUnitVisibility}
+     * takes a dense index, not an id — and recovering it later would put back
+     * the per-unit lookup this pass exists to remove.
+     */
+    private static final class Stratum {
+        private long[] ids = new long[64];
+        private int[] slots = new int[64];
+        private UnitType[] types = new UnitType[64];
+        private int size;
+
+        void reset() {
+            size = 0;
+        }
+
+        void add(long id, int slot, UnitType type) {
+            if (size == ids.length) {
+                ids = Arrays.copyOf(ids, size * 2);
+                slots = Arrays.copyOf(slots, size * 2);
+                types = Arrays.copyOf(types, size * 2);
+            }
+            ids[size] = id;
+            slots[size] = slot;
+            types[size] = type;
+            size++;
+        }
+
+        int size() {
+            return size;
+        }
+
+        long id(int i) {
+            return ids[i];
+        }
+
+        int slot(int i) {
+            return slots[i];
+        }
+
+        UnitType type(int i) {
+            return types[i];
+        }
+    }
+
+    private final Stratum footprints = new Stratum();
+    private final Stratum turrets = new Stratum();
+    private final Stratum hubs = new Stratum();
+    private final Stratum basedAircraft = new Stratum();
+    private final Stratum bars = new Stratum();
 
     /**
      * Ground pads under every live map turret + drone hub, emitted first so they
@@ -133,13 +258,18 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepFootprints(RenderContext ctx, DrawList out) {
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            long u = ctx.sim.liveUnitAt(i);
-            if (!RenderAppearance.of(ctx.sim.identity().type(u)).drawsFootprint) continue;
-            float x0 = cam.cellToScreenX(world.cellX(u));
-            float y0 = cam.cellToScreenY(world.cellY(u));
+        for (int i = 0, n = footprints.size(); i < n; i++) {
+            long u = footprints.id(i);
+            int cx = world.cellX(u);
+            int cy = world.cellY(u);
+            // Exactly one cell, drawn from the cell's corner, so its centre is
+            // half a cell up and right of the coordinate.
+            if (!view.visible(cx + 0.5f, cy + 0.5f, 1f)) continue;
+            float x0 = cam.cellToScreenX(cx);
+            float y0 = cam.cellToScreenY(cy);
             GroundFootprint.emit(out, RenderLayer.UNITS, x0, y0, cellPx, alphaMult);
         }
     }
@@ -157,13 +287,14 @@ public final class UnitRenderService implements RenderSystem {
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
         TurretStateService turretState = ctx.sim.turretState();
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            long u = ctx.sim.liveUnitAt(i);
-            if (!ctx.sim.identity().type(u).isTurret()) continue;
-            long id = u;
+        for (int i = 0, n = turrets.size(); i < n; i++) {
+            long id = turrets.id(i);
             StructureDef structure = turretState.structure(id);
+            if (!view.visible(world.renderX(id), world.renderY(id),
+                    structure.mount.visualCells * AUTHORED_EXTENT_SLACK)) continue;
             float facingDegrees = turretState.facingDegrees(id);
             float cx = cam.cellToScreenX(world.renderX(id));
             float cy = cam.cellToScreenY(world.renderY(id));
@@ -201,11 +332,13 @@ public final class UnitRenderService implements RenderSystem {
         if (hub == null) return;
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
-        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            long u = ctx.sim.liveUnitAt(i);
-            if (!ctx.sim.identity().type(u).isDroneHub()) continue;
+        for (int i = 0, n = hubs.size(); i < n; i++) {
+            long u = hubs.id(i);
+            if (!view.visible(world.renderX(u), world.renderY(u),
+                    DroneHub.VISUAL_CELLS * AUTHORED_EXTENT_SLACK)) continue;
             float cx = cam.cellToScreenX(world.renderX(u));
             float cy = cam.cellToScreenY(world.renderY(u));
             emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS * cellPx,
@@ -244,23 +377,28 @@ public final class UnitRenderService implements RenderSystem {
         AirfieldService airfield = ctx.sim.getAirfieldService();
         if (airfield.berths().isEmpty() && airfield.groundWrecks().isEmpty()) return;
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         World world = ctx.sim.world();
-        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            long u = ctx.sim.liveUnitAt(i);
-            if (!ctx.sim.identity().type(u).isBasedAircraft()) continue;
+        for (int i = 0, n = basedAircraft.size(); i < n; i++) {
+            long u = basedAircraft.id(i);
             AirfieldService.Berth berth = airfield.berthOf(u);
             if (berth == null) continue;
+            if (!view.visible(world.renderX(u), world.renderY(u), hullExtentCells(berth.airframe)))
+                continue;
             emitHull(out, cam, berth.airframe, berth.facingDegrees, world.renderX(u), world.renderY(u),
                     cellPx, 1f, 1f, 1f, alphaMult);
         }
         for (AirfieldService.Berth berth : airfield.berths()) {
             if (!berth.wreckOnPad) continue;
+            if (!view.visible(berth.centerX + 0.5f, berth.centerY + 0.5f,
+                    hullExtentCells(berth.airframe))) continue;
             emitWreck(out, cam, berth, berth.centerX + 0.5f, berth.centerY + 0.5f, berth.facingDegrees,
                     berth.airframe, berth.centerX, berth.centerY, cellPx, alphaMult);
         }
         for (GroundWreck wreck : airfield.groundWrecks()) {
+            if (!view.visible(wreck.x, wreck.y, hullExtentCells(wreck.airframe))) continue;
             emitWreck(out, cam, wreck, wreck.x, wreck.y, wreck.facingDegrees,
                     wreck.airframe, wreck.cellX(), wreck.cellY(), cellPx, alphaMult);
         }
@@ -454,6 +592,20 @@ public final class UnitRenderService implements RenderSystem {
      * scales its own: it is a vector in the hull's own drawn frame, so an
      * unscaled pivot on a scaled hull anchors the sprite off its pad.
      */
+    /**
+     * A parked hull's drawn span in cells, for {@link ViewCull}.
+     *
+     * <p>The long axis, from the same resolver {@link #emitHull} sizes with, at
+     * the same ground scale, and taken as the extent on both axes because the
+     * hull turns and a facing is not known to be cheap to reason about here. A
+     * pivot offset moves the drawn centre off the unit's position by a fraction
+     * of that span, which the slack covers.
+     */
+    private static float hullExtentCells(Airframe airframe) {
+        return HullFootprintResolver.visualLengthCells(airframe.renderHullId())
+                * AirAppearance.GROUND_SCALE * AUTHORED_EXTENT_SLACK;
+    }
+
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,
                           float r, float g, float b, float alphaMult) {
@@ -519,6 +671,11 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepDeadSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
+        float cullMinX = view.cullMinX(BODY_SILHOUETTE_CELLS);
+        float cullMaxX = view.cullMaxX(BODY_SILHOUETTE_CELLS);
+        float cullMinY = view.cullMinY(BODY_SILHOUETTE_CELLS);
+        float cullMaxY = view.cullMaxY(BODY_SILHOUETTE_CELLS);
         // Base cell-sprite size shared across UNITS strata; renderScale applied below.
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
@@ -530,6 +687,8 @@ public final class UnitRenderService implements RenderSystem {
             float[] ry = t.floats(c.POSITION, BattleComponents.POSITION_Y).array();
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 if (poseIdx[r] < 0) continue;
+                if (rx[r] < cullMinX || rx[r] > cullMaxX
+                        || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
                 UnitType type = (UnitType) types[r];
                 RenderAppearance app = RenderAppearance.of(type);
                 if (!app.hasDeathPose) continue;
@@ -619,6 +778,12 @@ public final class UnitRenderService implements RenderSystem {
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
+        // Hoisted into locals rather than asked per row: see ViewCull.cullMinX.
+        float cullMinX = view.cullMinX(BODY_SILHOUETTE_CELLS);
+        float cullMaxX = view.cullMaxX(BODY_SILHOUETTE_CELLS);
+        float cullMinY = view.cullMinY(BODY_SILHOUETTE_CELLS);
+        float cullMaxY = view.cullMaxY(BODY_SILHOUETTE_CELLS);
         UnitRosterService roster = ctx.sim.getRoster();
         SystemFxService systemFx = roster.systemFx();
         FogOfWarService vis = ctx.sim.getFogOfWar();
@@ -693,6 +858,14 @@ public final class UnitRenderService implements RenderSystem {
                 // above) — the visibility gate can never filter these, so this
                 // check is load-bearing wherever it sits.
                 if (hp[r] <= 0f) continue;
+
+                // Off screen: four float compares against hoisted locals,
+                // ahead of the roster lookup the visibility gate needs and of
+                // the six or seven authored images a layered body composes
+                // from. This is where most of the layer's collection cost was
+                // going at a close framing.
+                if (rx[r] < cullMinX || rx[r] > cullMaxX
+                        || ry[r] < cullMinY || ry[r] > cullMaxY) continue;
 
                 // Gate 2: visibility, keyed by this row's dense roster slot.
                 int denseIdx = roster.indexOf(entityId);
@@ -969,29 +1142,48 @@ public final class UnitRenderService implements RenderSystem {
      * as scenery until the moment it starts taking hits.
      */
     private void sweepDurabilityBars(RenderContext ctx, DrawList out) {
-        if (!ctx.hostProfile.unitDecorationsVisible()) return;
+        // The host profile is read in classifyRoster, which leaves this empty
+        // when decorations are suppressed rather than checking it twice.
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
         TurretStateService turretState = ctx.sim.turretState();
+        ViewCull view = ViewCull.of(cam);
+        float barMinX = view.cullMinX(BODY_SILHOUETTE_CELLS);
+        float barMaxX = view.cullMaxX(BODY_SILHOUETTE_CELLS);
+        float barMinY = view.cullMinY(BODY_SILHOUETTE_CELLS);
+        float barMaxY = view.cullMaxY(BODY_SILHOUETTE_CELLS);
         float cellPx = cam.cellPxSize();
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
         float alphaMult = ctx.alphaMult;
         FogOfWarService vis = ctx.sim.getFogOfWar();
 
         CombatTelemetryService telemetry = ctx.sim.telemetry();
-        for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
-            long u = ctx.sim.liveUnitAt(i);
-            UnitType type = ctx.sim.identity().type(u);
+        for (int i = 0, n = bars.size(); i < n; i++) {
+            long u = bars.id(i);
+            int slot = bars.slot(i);
+            UnitType type = bars.type(i);
             RenderAppearance appearance = RenderAppearance.of(type);
-            if (!appearance.drawsDurabilityBar) continue;
             if (appearance.barsOnlyWhenUnderFire && !hasTakenFire(telemetry, u)) continue;
-            byte uv = vis.getUnitVisibility(i);
+            byte uv = vis.getUnitVisibility(slot);
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
+            // After the gates rather than before them, and on positions this
+            // loop was going to read anyway. Ahead of it, the cull was two
+            // extra component probes for every body the gates were about to
+            // drop, and on a map where it rejects almost nothing that cost more
+            // than it saved -- measured, at the 280x168 control's mid framing.
+            float bodyX = world.renderX(u);
+            float bodyY = world.renderY(u);
+            // The hoisted body bounds cover every ordinary body; a structure or
+            // a parked hull is bigger than one and asks for its own, which is a
+            // handful of bodies rather than every one of them.
+            if (bodyX < barMinX || bodyX > barMaxX || bodyY < barMinY || bodyY > barMaxY) {
+                if (!view.visible(bodyX, bodyY, barExtentCells(ctx, u, type))) continue;
+            }
             float barAlpha = alphaMult;
-            if (uv == FogOfWarService.VIS_FADING) barAlpha *= vis.getFadeAlpha(i);
+            if (uv == FogOfWarService.VIS_FADING) barAlpha *= vis.getFadeAlpha(slot);
 
-            float cx = cam.cellToScreenX(world.renderX(u));
-            float cy = cam.cellToScreenY(world.renderY(u));
+            float cx = cam.cellToScreenX(bodyX);
+            float cy = cam.cellToScreenY(bodyY);
             // The bar spans the drawn body, so its extent doubles as the gap offset.
             float bodyPx;
             if (type.isTurret()) {
@@ -1018,6 +1210,27 @@ public final class UnitRenderService implements RenderSystem {
                         world.hp(u), world.maxHp(u), barAlpha);
             }
         }
+    }
+
+    /**
+     * The span a durability bar and the body under it occupy, in cells, for
+     * {@link ViewCull}.
+     *
+     * <p>The same four cases the bar itself is sized by, in the same order, so
+     * the cull cannot disagree with the emit about how big the thing is.
+     */
+    private static float barExtentCells(RenderContext ctx, long u, UnitType type) {
+        if (type.isTurret()) {
+            return ctx.sim.turretState().mount(u).visualCells * AUTHORED_EXTENT_SLACK;
+        }
+        if (type.isDroneHub()) {
+            return DroneHub.VISUAL_CELLS * AUTHORED_EXTENT_SLACK;
+        }
+        if (type.isBasedAircraft()) {
+            AirfieldService.Berth berth = ctx.sim.getAirfieldService().berthOf(u);
+            return berth != null ? hullExtentCells(berth.airframe) : BODY_SILHOUETTE_CELLS;
+        }
+        return BODY_SILHOUETTE_CELLS;
     }
 
     /**

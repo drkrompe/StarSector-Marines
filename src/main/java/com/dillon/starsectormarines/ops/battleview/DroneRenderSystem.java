@@ -52,9 +52,13 @@ public final class DroneRenderSystem implements RenderSystem {
         FogOfWarService vis = ctx.sim.getFogOfWar();
         World world = ctx.sim.world();
         BattleCamera cam = ctx.camera;
+        ViewCull view = ViewCull.of(cam);
         float cellPx = cam.cellPxSize();
         float alphaMult = ctx.alphaMult;
         float pxH = Drone.VISUAL_CELLS * cellPx;
+        // A drone is 0.9 cells across and its bar stands just above it; two
+        // cells bounds both whichever way the sprite has turned.
+        float extentCells = Drone.VISUAL_CELLS * 2f;
         float pxW = pxH * cache.aspect;
         float barW = cellPx * 0.9f;
 
@@ -72,6 +76,7 @@ public final class DroneRenderSystem implements RenderSystem {
                 CrashingComponent crash = (CrashingComponent) states[r];
                 AirBody body = crash.body;
                 float fade = Math.max(0f, Math.min(1f, crash.timer / Drone.CRASH_DURATION_SEC));
+                if (!view.visible(body.x, body.y, extentCells)) continue;
                 float drawAlpha = alphaMult * fade;
                 float cx = cam.cellToScreenX(body.x);
                 float cy = cam.cellToScreenY(body.y);
@@ -90,6 +95,7 @@ public final class DroneRenderSystem implements RenderSystem {
 
             // The drone's body is a world KINEMATICS component now (read by id).
             AirBody body = world.kinematics(u);
+            if (!view.visible(body.x, body.y, extentCells)) continue;
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
             float drawAlpha = alphaMult;

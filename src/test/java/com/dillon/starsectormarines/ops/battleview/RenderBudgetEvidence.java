@@ -20,10 +20,12 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.json.JSONObject;
+import org.lwjgl.BufferUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -36,8 +38,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
+import static org.lwjgl.opengl.GL11.GL_RGBA;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE;
+import static org.lwjgl.opengl.GL11.glReadPixels;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
 import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 import static org.lwjgl.opengl.GL11.glClear;
@@ -110,8 +117,21 @@ class RenderBudgetEvidence {
      * every batch's backing array to its high-water mark, and it is tens of
      * times the cost of the second. Reported, it would say the ground layer
      * costs half a second.
+     *
+     * <p><b>Thirty rather than three, because three was measuring the JIT.</b>
+     * Three covers the uploads and the array growth and does not come close to
+     * covering compilation: at three, the 280x168 control's mid framing
+     * reported {@code GROUND} at 0.36 ms of collection while its whole-map
+     * framing — four times the visible cells, through the same loop — reported
+     * 0.14, which is not a thing a renderer can do. Played thirty-one times the
+     * same framing reads 0.08 and the ordering comes right. Everything early in
+     * the run was inflated, and by enough to invent a regression and hide a
+     * win: a lever measured against a control at three frames was being credited
+     * or blamed for where its code happened to sit in C2's queue. Six framings
+     * of thirty discarded frames costs a couple of seconds and is the difference
+     * between an instrument and a random number.
      */
-    private static final int WARMUP_FRAMES = 3;
+    private static final int WARMUP_FRAMES = 30;
 
     private static final EnumSet<RenderLayer> ALL_LAYERS = EnumSet.allOf(RenderLayer.class);
 
@@ -180,7 +200,22 @@ class RenderBudgetEvidence {
                 for (MapSpec spec : MapSpec.MATRIX) {
                     try (BattleSimulation sim = spec.build()) {
                         play(sim, ticks);
-                        rows.addAll(profile(spec, sim, renderer, frames, frameCosts));
+                        List<EqualityCheck> checks = new ArrayList<>();
+                        rows.addAll(profile(spec, sim, renderer, frames, frameCosts, checks));
+                        // After every timed frame on this map, never between
+                        // them: a readback is eight megabytes off the card and
+                        // an allocation to match, and interleaved it landed in
+                        // the next framing's measurement as noise several times
+                        // the effect being measured.
+                        for (EqualityCheck check : checks) {
+                            assertCulledFrameIsIdentical(renderer, check.context(),
+                                    check.map(), check.framing());
+                        }
+                        assertStraddlingBodiesSurvive(sim, renderer,
+                                new BattleLayout(position(), sim.getGrid().getWidth(),
+                                        sim.getGrid().getHeight()),
+                                sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                                spec.id());
                     }
                 }
                 assertStandUpRepeats(renderer, rows, ticks);
@@ -309,7 +344,7 @@ class RenderBudgetEvidence {
         List<Row> repeat;
         try (BattleSimulation sim = spec.build()) {
             play(sim, ticks);
-            repeat = profile(spec, sim, renderer, 1, new ArrayList<>());
+            repeat = profile(spec, sim, renderer, 1, new ArrayList<>(), new ArrayList<>());
         }
         // Keyed rather than positional, and only where something was collected:
         // a layer that emitted nothing is kept or dropped from the report by a
@@ -354,7 +389,8 @@ class RenderBudgetEvidence {
 
     private static List<Row> profile(MapSpec spec, BattleSimulation sim,
                                      BattleRenderer renderer, int frames,
-                                     List<FrameCost> frameCosts) {
+                                     List<FrameCost> frameCosts,
+                                     List<EqualityCheck> equalityChecks) {
         int gridW = sim.getGrid().getWidth();
         int gridH = sim.getGrid().getHeight();
         String mapId = spec.id();
@@ -417,8 +453,120 @@ class RenderBudgetEvidence {
             GroundMesh mesh = renderer.getGroundMesh();
             frameCosts.add(new FrameCost(mapId, framingId(framing, camera),
                     median(wall), ours, mesh.residentQuads(), mesh.bucketCount()));
+            equalityChecks.add(new EqualityCheck(mapId, framingId(framing, camera), rc));
         }
         return rows;
+    }
+
+    /** One framing to compare culled against unculled, once the timing is done with. */
+    private record EqualityCheck(String map, String framing, RenderContext context) { }
+
+    // ---- what culling is not allowed to change -------------------------------
+
+    /**
+     * The culled frame and the unculled one are the same picture.
+     *
+     * <p>This is the whole acceptance for collect culling, and nothing else can
+     * stand in for it. A command count says how much was collected and a timing
+     * says how long it took; neither can see a body that stopped being drawn,
+     * and a body wrongly rejected is silent by construction — the frame is
+     * simply missing something, and it looks like a perfectly ordinary frame.
+     *
+     * <p>Both pictures come out of the shipping renderer at the same framing on
+     * the same still world, one after the other in the same context, so the only
+     * difference between them is whether the collectors rejected anything.
+     */
+    private static void assertCulledFrameIsIdentical(BattleRenderer renderer, RenderContext rc,
+                                                     String mapId, String framing) {
+        String previous = System.getProperty(ViewCull.PROPERTY);
+        try {
+            System.setProperty(ViewCull.PROPERTY, "true");
+            FrameCensus culledCensus = new FrameCensus();
+            readBack(renderer, rc, culledCensus, CULLED);
+
+            System.setProperty(ViewCull.PROPERTY, "false");
+            FrameCensus wholeCensus = new FrameCensus();
+            readBack(renderer, rc, wholeCensus, WHOLE);
+
+            // A control against measuring nothing: at a framing where culling
+            // rejects nothing, an equal picture proves only that two identical
+            // runs are identical. The whole-map framings genuinely reject
+            // almost nothing, so this is asserted only where it can be.
+            int culledCommands = culledCensus.total().commands();
+            int wholeCommands = wholeCensus.total().commands();
+            assertTrue(culledCommands <= wholeCommands,
+                    "culling must never collect more than the control: " + mapId + " / "
+                            + framing + " (" + culledCommands + " vs " + wholeCommands + ")");
+
+            assertArrayEquals(WHOLE, CULLED,
+                    "a culled frame must be pixel-identical to an unculled one: "
+                            + mapId + " / " + framing + " (collected " + culledCommands
+                            + " of " + wholeCommands + " commands)");
+        } finally {
+            if (previous == null) System.clearProperty(ViewCull.PROPERTY);
+            else System.setProperty(ViewCull.PROPERTY, previous);
+        }
+    }
+
+    /**
+     * A body whose centre is off screen and whose sprite is not.
+     *
+     * <p>The framings above cut through a field of bodies and so contain plenty
+     * of these by accident, which is worth something and is not the same as
+     * asking the question. This puts one there on purpose: the camera is placed
+     * so a chosen marine's centre sits exactly on the right edge of the viewport
+     * and then walked out past it in half-cell steps, which sweeps the body from
+     * wholly inside to wholly outside and takes in every partial overlap on the
+     * way. Each step is compared against its own unculled control, so the step
+     * where a margin was a fraction of a cell too small is the step that fails.
+     */
+    private static void assertStraddlingBodiesSurvive(BattleSimulation sim, BattleRenderer renderer,
+                                                      BattleLayout layout, int gridW, int gridH,
+                                                      String mapId) {
+        long[] marines = sim.getRoster().factionDenseArray(Faction.MARINE);
+        World world = sim.world();
+        long chosen = 0;
+        for (long id : marines) {
+            if (world.isAlive(id)) { chosen = id; break; }
+        }
+        if (chosen == 0) return;
+
+        BattleCamera camera = new BattleCamera(gridW, gridH);
+        camera.setViewport(layout.gridX, layout.gridY, layout.gridW, layout.gridH,
+                layout.cellSize);
+        zoomTo(camera, BattleCamera.MAX_ZOOM);
+        float bodyX = (float) world.x(chosen);
+        float bodyY = (float) world.y(chosen);
+        // Half the viewport to the left of the body puts the body on the right
+        // edge; each further step walks the camera left, taking the body out.
+        float halfViewCells = (camera.vpW() * 0.5f) / camera.cellPxSize();
+        for (int step = 0; step <= 8; step++) {
+            camera.centerOn(bodyX - halfViewCells - step * 0.5f, bodyY);
+            RenderContext rc = new RenderContext(sim, camera, layout, 1f, 0f, false,
+                    null, null, BattleRenderHostProfile.STANDALONE_BATTLE);
+            drawFrame(renderer, rc, null);
+            assertCulledFrameIsIdentical(renderer, rc, mapId,
+                    "straddle +" + (step * 0.5f) + " cells past the right edge");
+        }
+    }
+
+    /**
+     * One surface's worth of pixels, read into a buffer this class keeps.
+     *
+     * <p>Held rather than allocated per call: a frame is eight megabytes, and
+     * the comparison wants two of them at once for every framing on both maps.
+     */
+    private static final ByteBuffer READ_BUFFER =
+            BufferUtils.createByteBuffer(SURFACE_W * SURFACE_H * 4);
+    private static final byte[] CULLED = new byte[SURFACE_W * SURFACE_H * 4];
+    private static final byte[] WHOLE = new byte[SURFACE_W * SURFACE_H * 4];
+
+    private static void readBack(BattleRenderer renderer, RenderContext rc,
+                                 FrameCensus census, byte[] into) {
+        drawFrame(renderer, rc, census);
+        READ_BUFFER.clear();
+        glReadPixels(0, 0, SURFACE_W, SURFACE_H, GL_RGBA, GL_UNSIGNED_BYTE, READ_BUFFER);
+        READ_BUFFER.get(into);
     }
 
     private static String framingId(Framing framing, BattleCamera camera) {
@@ -520,7 +668,9 @@ class RenderBudgetEvidence {
                 .append("**, unit atlas **")
                 .append(UnitAtlas.enabled() ? "on" : "off")
                 .append("**, resident roofs **")
-                .append(RoofMesh.enabled() ? "on" : "off").append("**.\n\n");
+                .append(RoofMesh.enabled() ? "on" : "off")
+                .append("**, collect culling **")
+                .append(ViewCull.enabled() ? "on" : "off").append("**.\n\n");
 
         out.append("## Whole frames\n\n")
                 .append("Wall clock with the GPU waited on, against the sum of our own\n")
@@ -604,6 +754,9 @@ class RenderBudgetEvidence {
         root.put("fogField", FogField.enabled());
         root.put("groundAtlas", GroundAtlas.enabled());
         root.put("residentDecoration", GroundMesh.decorationEnabled());
+        root.put("unitAtlas", UnitAtlas.enabled());
+        root.put("residentRoofs", RoofMesh.enabled());
+        root.put("collectCulling", ViewCull.enabled());
         List<JSONObject> costs = new ArrayList<>();
         for (FrameCost cost : frameCosts) {
             JSONObject entry = new JSONObject();

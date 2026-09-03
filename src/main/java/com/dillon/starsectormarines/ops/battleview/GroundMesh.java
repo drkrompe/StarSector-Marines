@@ -281,7 +281,17 @@ public final class GroundMesh {
         return lastResolvedCells;
     }
 
-    /** Cell indices painting a solid fill; valid to {@link #fillCellCount()}. */
+    /**
+     * Cell indices painting a solid fill; valid to {@link #fillCellCount()}.
+     *
+     * <p><b>Ascending, and a consumer depends on it.</b> A cell index is
+     * {@code y * width + x}, so ascending order makes each row a contiguous run
+     * and lets {@code GroundRenderSystem} binary-search the visible rows instead
+     * of walking every fill cell in the battle at every framing.
+     * {@link #rebuildFillList} is the only writer and produces that order by
+     * construction; anything that appends to this list out of order turns a
+     * bounded walk into a silently incomplete one.
+     */
     public int[] fillCells() {
         return fillCells;
     }

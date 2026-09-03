@@ -25,6 +25,16 @@ public final class CompoundMarkerRenderer {
     private static final float ARC_GAP_PX = 2.5f;
     private static final float ARC_THICKNESS_PX = 3f;
     private static final float TICK_LENGTH_PX = 4f;
+    /**
+     * How far past the ring a marker's own text and ticks reach, for
+     * {@link ViewCull}.
+     *
+     * <p>The status line sits three pixels above the ring at Orbitron 12 and a
+     * status word is a few dozen pixels wide; forty covers both ends of it and
+     * the ticks, and a marker rejected by mistake here loses a whole objective
+     * label rather than a pixel of one.
+     */
+    private static final float LABEL_REACH_PX = 40f;
     private static final int ARC_SEGMENTS = 32;
     private static final int RING_SEGMENTS = 40;
     private static final Color CORE = new Color(0x08, 0x10, 0x16);
@@ -45,11 +55,24 @@ public final class CompoundMarkerRenderer {
                 || service.getRecords().isEmpty()) return;
 
         float cellPx = camera.cellPxSize();
+        ViewCull view = ViewCull.of(camera);
+        // The ring, its status line above it and its code inside it, as one
+        // screen-space span. A marker's radius is clamped in pixels, so its
+        // size in cells is a different number at every framing and the
+        // screen-space test is the one that means anything here.
+        float markerPx = (BattlefieldMarkerPresentation.objectiveRadius(cellPx)
+                + LABEL_REACH_PX) * 2f;
         fillMesh.reset();
         Map<TacticalNode.Kind, Integer> ordinals =
                 new EnumMap<>(TacticalNode.Kind.class);
         for (CompoundService.Record record : service.getRecords()) {
+            // The ordinal is what names a marker -- KEEP 1, KEEP 2 -- so it is
+            // counted for every record on the field whether or not this one is
+            // on screen. A cull that changed the numbering would rename half
+            // the objectives every time the camera moved.
             int ordinal = ordinals.merge(record.node.kind, 1, Integer::sum);
+            if (!view.visibleScreen(centerX(camera, record), centerY(camera, record),
+                    markerPx)) continue;
             BattlefieldMarkerPresentation.ObjectiveMarker marker =
                     BattlefieldMarkerPresentation.capture(record.node.kind, ordinal,
                             record.state, record.captureProgress);
@@ -80,6 +103,8 @@ public final class CompoundMarkerRenderer {
         ordinals.clear();
         for (CompoundService.Record record : service.getRecords()) {
             int ordinal = ordinals.merge(record.node.kind, 1, Integer::sum);
+            if (!view.visibleScreen(centerX(camera, record), centerY(camera, record),
+                    markerPx)) continue;
             BattlefieldMarkerPresentation.ObjectiveMarker marker =
                     BattlefieldMarkerPresentation.capture(record.node.kind, ordinal,
                             record.state, record.captureProgress);
@@ -94,11 +119,12 @@ public final class CompoundMarkerRenderer {
                     new EnumMap<>(TacticalNode.Kind.class);
             for (CompoundService.Record record : service.getRecords()) {
                 int ordinal = labelOrdinals.merge(record.node.kind, 1, Integer::sum);
+                float cx = centerX(camera, record);
+                float cy = centerY(camera, record);
+                if (!view.visibleScreen(cx, cy, markerPx)) continue;
                 BattlefieldMarkerPresentation.ObjectiveMarker marker =
                         BattlefieldMarkerPresentation.capture(record.node.kind, ordinal,
                                 record.state, record.captureProgress);
-                float cx = centerX(camera, record);
-                float cy = centerY(camera, record);
                 drawCentered(marker.code(), cx,
                         cy + font.getLineHeight() * 0.42f,
                         BattlefieldMarkerPresentation.LABEL, 1f, alphaMult);
