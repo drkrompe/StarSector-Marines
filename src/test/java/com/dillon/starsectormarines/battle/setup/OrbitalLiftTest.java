@@ -85,11 +85,20 @@ class OrbitalLiftTest {
                 "halving the share at least doubles nothing quietly");
     }
 
+    /** A mission that says nothing flies the ferry: three zones, a pair each. */
+    @Test
+    void anUnstatedShapeFliesTheFerryUnlessTheLiftIsSwitchedOn() {
+        ConquestArrivalConfig resolved =
+                OrbitalLift.resolve(ConquestArrivalConfig.DEFAULT, 408);
+        assertEquals(OrbitalLift.FERRY_DROP_ZONES, resolved.dropZoneCount());
+        assertEquals(1, resolved.shuttlePairsPerZone());
+    }
+
     /** One pair to a zone, and the map is asked for exactly that many. */
     @Test
     void aDerivedShapeSpreadsOnePairToAZone() {
         ConquestArrivalConfig resolved =
-                OrbitalLift.resolve(ConquestArrivalConfig.DEFAULT, 408);
+                OrbitalLift.derivedShape(ConquestArrivalConfig.DEFAULT, 408);
         assertEquals(OrbitalLift.pairsFor(408, SHARE), resolved.dropZoneCount());
         assertEquals(1, resolved.shuttlePairsPerZone());
         assertEquals(OrbitalLift.pairsFor(408, SHARE),
@@ -101,10 +110,11 @@ class OrbitalLiftTest {
     void aStatedShapeIsNeverDerivedOver() {
         ConquestArrivalConfig stated = new ConquestArrivalConfig(3, 1, 1f);
         assertSame(stated, OrbitalLift.resolve(stated, 100_000));
+        assertEquals(stated, OrbitalLift.derivedShape(stated, 100_000));
 
         ConquestArrivalConfig halfStated =
                 ConquestArrivalConfig.DEFAULT.withDropZoneCount(2);
-        ConquestArrivalConfig resolved = OrbitalLift.resolve(halfStated, 408);
+        ConquestArrivalConfig resolved = OrbitalLift.derivedShape(halfStated, 408);
         assertEquals(2, resolved.dropZoneCount());
         assertEquals(Math.max(1, (int) Math.ceil(
                         OrbitalLift.pairsFor(408, SHARE) / 2.0)),
@@ -115,7 +125,7 @@ class OrbitalLiftTest {
     @Test
     void foldingOntoFewerAreasKeepsThePairCount() {
         ConquestArrivalConfig resolved =
-                OrbitalLift.resolve(ConquestArrivalConfig.DEFAULT, 1008);
+                OrbitalLift.derivedShape(ConquestArrivalConfig.DEFAULT, 1008);
         int pairs = resolved.playerShuttlePairCount();
         ConquestArrivalConfig folded = OrbitalLift.foldOntoAvailableAreas(
                 resolved, ConquestArrivalConfig.DEFAULT, 3);

@@ -23,22 +23,32 @@
     "seed": 1,
     "shuttles": [
       {
-        "cycles": 9,
+        "cycles": 6,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 9,
+        "cycles": 6,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 8,
+        "cycles": 6,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       },
       {
-        "cycles": 8,
+        "cycles": 6,
+        "seatsPerSortie": 6,
+        "type": "AEROSHUTTLE"
+      },
+      {
+        "cycles": 5,
+        "seatsPerSortie": 6,
+        "type": "AEROSHUTTLE"
+      },
+      {
+        "cycles": 5,
         "seatsPerSortie": 6,
         "type": "AEROSHUTTLE"
       }

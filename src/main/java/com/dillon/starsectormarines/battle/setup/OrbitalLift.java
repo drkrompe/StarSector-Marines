@@ -39,15 +39,37 @@ import com.dillon.starsectormarines.ops.LandingShare;
 public final class OrbitalLift {
 
     /**
-     * Turns the orbital lift off for a control run:
-     * {@code -Dbattle.conquest.orbitalLift=false}. Off restores the map-edge
-     * arrival and the fixed three pairs, which is the baseline the matrix in
-     * {@code conquest-nouns.md} was measured against.
+     * The descent, on by default:
+     * {@code -Dbattle.conquest.orbitalLift=false} restores the crossing of the
+     * map edge nearest the force. On because it is measured better on both
+     * canonical fixtures against that crossing — see {@code conquest-nouns.md}.
      */
     public static final String PROPERTY = "battle.conquest.orbitalLift";
 
+    /**
+     * The seat-sized lift, <b>off</b> by default:
+     * {@code -Dbattle.conquest.derivedLift=true} sizes the pairs from the
+     * committed seats and the landing share instead of flying the ferry's
+     * three.
+     *
+     * <p>Off because the matrix says so, which was not the expected answer.
+     * Landing the whole force early works — full-strength-west assembles 356
+     * live marines against the ferry's ~130 and the alive-squad plateau is gone
+     * — and it takes <em>fewer</em> compounds: 10 captures and 4 held against
+     * the ferry-with-descent's 11 and 7, while reinforced-south drops from 22
+     * and 19 to 16 and 16. More lift landed sooner is not what the western
+     * approach was costing; the marines simply arrive faster at the place they
+     * were being destroyed. The derivation is kept, measured and switchable
+     * because the next attempt at that approach will want to move this dial
+     * with something else.
+     */
+    public static final String DERIVED_LIFT_PROPERTY = "battle.conquest.derivedLift";
+
     private static final boolean ENABLED =
             Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
+
+    private static final boolean DERIVED_LIFT =
+            Boolean.parseBoolean(System.getProperty(DERIVED_LIFT_PROPERTY, "false"));
 
     /**
      * How far off its berth a marine lift appears, in cells.
@@ -71,6 +93,16 @@ public final class OrbitalLift {
      */
     public static final int AREAS_THE_SHIPPED_APRON_SEATS = 5;
 
+    /**
+     * The drop zones the ferry flies: three, one pair to each of a Conquest's
+     * three lanes, whatever the force.
+     *
+     * <p>The shape {@link #derivedShape} was written to replace and, on the
+     * measurement, the one that still wins. It is what a mission that says
+     * nothing gets.
+     */
+    public static final int FERRY_DROP_ZONES = 3;
+
     private OrbitalLift() {}
 
     /** Whether marine arrivals descend from orbit on this run. */
@@ -82,10 +114,12 @@ public final class OrbitalLift {
      * Fills in whatever the mission left to the lift.
      *
      * <p>A stated count wins outright and is returned untouched, because a
-     * mission that authors one beachhead means one. Where both are
-     * {@link ConquestArrivalConfig#DERIVED} the pairs are sized from the seats
-     * and spread one to a drop zone, so the count of zones the map is asked for
-     * is the count of pairs that will fly.
+     * mission that authors one beachhead means one. What a
+     * {@link ConquestArrivalConfig#DERIVED} count gets is the run's own answer:
+     * the {@link #ferryShape} by default, and {@link #derivedShape} — pairs
+     * sized from the seats and spread one to a drop zone, so the zones the map
+     * is asked for are the pairs that will fly — under
+     * {@link #DERIVED_LIFT_PROPERTY}.
      *
      * @param committedSeats the player segment's seats — the segment these
      *                       counts govern. The employer's own pair is authored
@@ -94,6 +128,24 @@ public final class OrbitalLift {
     public static ConquestArrivalConfig resolve(ConquestArrivalConfig config,
                                                 int committedSeats) {
         if (config == null || !config.derivesItsShape()) return config;
+        return DERIVED_LIFT
+                ? derivedShape(config, committedSeats) : ferryShape(config);
+    }
+
+    /** Three drop zones with a pair on each, whatever the force. */
+    public static ConquestArrivalConfig ferryShape(ConquestArrivalConfig config) {
+        return config.withDropZoneCount(FERRY_DROP_ZONES)
+                .withShuttlePairsPerZone(1);
+    }
+
+    /**
+     * The lift the seats and the share ask for, whatever the switch says.
+     *
+     * <p>Separate from {@link #resolve} so the arithmetic can be asked directly
+     * rather than through a run's own configuration.
+     */
+    public static ConquestArrivalConfig derivedShape(ConquestArrivalConfig config,
+                                                     int committedSeats) {
         int pairs = pairsFor(committedSeats, config.landingShare());
         int zones = config.dropZoneCount() != ConquestArrivalConfig.DERIVED
                 ? config.dropZoneCount() : pairs;
