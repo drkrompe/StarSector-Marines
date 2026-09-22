@@ -30,8 +30,11 @@ class GridPathfinderComponentsTest {
                 for (int ax = 0; ax < W; ax++) {
                     for (int by = 0; by < H; by++) {
                         for (int bx = 0; bx < W; bx++) {
-                            boolean viaSearch =
-                                    GridPathfinder.findPath(grid, ax, ay, bx, by).length > 0;
+                            boolean viaSearch = GridPathfinder
+                                    .findPathWithoutComponentCheck(grid,
+                                            ax, ay, bx, by,
+                                            GridPathfinder.USE_CARDINAL_NAVIGATION)
+                                    .length > 0;
                             int from = component[ay * W + ax];
                             boolean viaComponents =
                                     from >= 0 && from == component[by * W + bx];
@@ -77,6 +80,45 @@ class GridPathfinderComponentsTest {
         assertFalse(left == right, "a full-height wall must separate the halves");
         assertEquals(0, GridPathfinder.findPath(grid, 4, 0, 6, 0).length,
                 "the search must agree that the halves do not connect");
+    }
+
+    @Test
+    void cachedConnectivityInvalidatesWhenTopologyOpensAPath() {
+        NavigationGrid grid = new NavigationGrid(5, 1);
+        for (int x = 0; x < 5; x++) grid.setWalkableFloor(x, 0);
+        grid.setWalkable(2, 0, false);
+
+        assertEquals(0, GridPathfinder.findPath(grid, 0, 0, 4, 0).length);
+
+        grid.setWalkableFloor(2, 0);
+
+        int[] opened = GridPathfinder.findPath(grid, 0, 0, 4, 0);
+        assertEquals(4, Paths.destX(opened));
+        assertEquals(0, Paths.destY(opened));
+    }
+
+    @Test
+    void cachesCardinalAndDiagonalConnectivitySeparately() {
+        NavigationGrid grid = new NavigationGrid(2, 2);
+        for (int y = 0; y < 2; y++) {
+            for (int x = 0; x < 2; x++) {
+                grid.setWalkable(x, y, true);
+                for (Direction direction : Direction.ALL) {
+                    grid.setEdgePassable(x, y, direction, true);
+                }
+            }
+        }
+        // Prevent both cardinal routes from (0,0) to (1,1), while leaving the
+        // endpoints' diagonal and cardinal edge bits open for the direct step.
+        grid.setEdgePassable(1, 0, Direction.W, false);
+        grid.setEdgePassable(0, 1, Direction.S, false);
+
+        assertTrue(grid.arePathConnected(0, 0, 1, 1, false));
+        assertFalse(grid.arePathConnected(0, 0, 1, 1, true));
+        assertTrue(GridPathfinder.findPathWithoutComponentCheck(
+                grid, 0, 0, 1, 1, false).length > 0);
+        assertEquals(0, GridPathfinder.findPathWithoutComponentCheck(
+                grid, 0, 0, 1, 1, true).length);
     }
 
     /**

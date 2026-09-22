@@ -115,7 +115,11 @@ public class NavigationGrid {
     private final long[] cellFlags;
     private final byte[] edgePassability;
     /** Monotonic structural revision for immutable derived-view invalidation. */
-    private long topologyRevision;
+    private volatile long topologyRevision;
+    /** Immutable connectivity labels, published separately for each movement rule. */
+    private volatile PathComponents diagonalPathComponents = PathComponents.EMPTY;
+    private volatile PathComponents cardinalPathComponents = PathComponents.EMPTY;
+    private final Object pathComponentsLock = new Object();
     /**
      * How many recent topology changes {@link #changedCellAt} remembers.
      *
@@ -219,6 +223,52 @@ public class NavigationGrid {
     public int getWidth()  { return width;  }
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
+
+    /**
+     * Whether two cells share a structural walkable component under the same
+     * step rule as A*. Occupancy and traversal costs can bend a route but
+     * cannot connect two components, so a negative answer is exact.
+     *
+     * <p>Labels are immutable and published through a volatile snapshot for
+     * parallel pathfinding. A topology revision retires them; the first query
+     * after a revision rebuilds once under the publication lock.
+     */
+    boolean arePathConnected(int startX, int startY, int goalX, int goalY,
+                             boolean cardinalOnly) {
+        if (!inBounds(startX, startY) || !inBounds(goalX, goalY)) return false;
+        int[] labels = pathComponents(cardinalOnly);
+        int start = labels[index(startX, startY)];
+        return start >= 0 && start == labels[index(goalX, goalY)];
+    }
+
+    /** Serial warm-up used by the navigation owner before worker dispatch. */
+    void preparePathComponents(boolean cardinalOnly) {
+        pathComponents(cardinalOnly);
+    }
+
+    private int[] pathComponents(boolean cardinalOnly) {
+        PathComponents current = cardinalOnly
+                ? cardinalPathComponents : diagonalPathComponents;
+        long revision = topologyRevision;
+        if (current.revision == revision) return current.labels;
+        synchronized (pathComponentsLock) {
+            current = cardinalOnly
+                    ? cardinalPathComponents : diagonalPathComponents;
+            revision = topologyRevision;
+            if (current.revision == revision) return current.labels;
+            int[] labels = GridPathfinder.labelConnectedComponents(
+                    this, cardinalOnly);
+            PathComponents rebuilt = new PathComponents(revision, labels);
+            if (cardinalOnly) cardinalPathComponents = rebuilt;
+            else diagonalPathComponents = rebuilt;
+            return labels;
+        }
+    }
+
+    private record PathComponents(long revision, int[] labels) {
+        private static final PathComponents EMPTY =
+                new PathComponents(Long.MIN_VALUE, new int[0]);
+    }
 
     // ----- Topology change log -----
 

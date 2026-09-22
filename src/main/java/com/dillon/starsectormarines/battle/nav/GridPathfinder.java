@@ -235,6 +235,11 @@ public final class GridPathfinder {
      * reflected.
      */
     public static int[] labelConnectedComponents(NavigationGrid grid) {
+        return labelConnectedComponents(grid, USE_CARDINAL_NAVIGATION);
+    }
+
+    static int[] labelConnectedComponents(NavigationGrid grid,
+                                          boolean cardinalOnly) {
         int w = grid.getWidth();
         int h = grid.getHeight();
         int totalCells = w * h;
@@ -244,7 +249,7 @@ public final class GridPathfinder {
 
         long[] cellFlags = grid.getCellFlagsArray();
         byte[] edgePass  = grid.getEdgePassabilityArray();
-        int dirCount = USE_CARDINAL_NAVIGATION ? 4 : 8;
+        int dirCount = cardinalOnly ? 4 : 8;
 
         int[] stack = new int[totalCells];
         int nextComponent = 0;
@@ -335,7 +340,8 @@ public final class GridPathfinder {
                                   boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
         long _profT0 = System.nanoTime();
         try {
-            return findPathInner(grid, startX, startY, goalX, goalY, cardinalOnly, occupancy, costField, passable);
+            return findPathInner(grid, startX, startY, goalX, goalY,
+                    cardinalOnly, occupancy, costField, passable, true);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) {
@@ -360,12 +366,26 @@ public final class GridPathfinder {
                                     boolean cardinalOnly, byte[] occupancy,
                                     float[] costField, boolean[] passable) {
         return findPathInner(grid, startX, startY, goalX, goalY,
-                cardinalOnly, occupancy, costField, passable);
+                cardinalOnly, occupancy, costField, passable, true);
+    }
+
+    /** Full A* seam for validating the connectivity rejection independently. */
+    static int[] findPathWithoutComponentCheck(
+            NavigationGrid grid, int startX, int startY,
+            int goalX, int goalY, boolean cardinalOnly) {
+        return findPathInner(grid, startX, startY, goalX, goalY,
+                cardinalOnly, null, null, null, false);
     }
 
     private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
-                                        boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
+                                        boolean cardinalOnly, byte[] occupancy,
+                                        float[] costField, boolean[] passable,
+                                        boolean checkComponents) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
+            return EMPTY_PATH;
+        }
+        if (checkComponents && !grid.arePathConnected(startX, startY, goalX, goalY,
+                cardinalOnly)) {
             return EMPTY_PATH;
         }
 
