@@ -119,6 +119,7 @@ public final class NavigationService {
         this.zoneGraph = new ZoneGraph(grid);
         this.zoneGraph.rebuild();
         this.navigationMesh = new GreedyNavigationMesh(grid);
+        this.grid.preparePathComponents(GridPathfinder.USE_CARDINAL_NAVIGATION);
         this.hierarchicalPathfinder = new HierarchicalPathfinder(grid,
                 navigationMesh);
         this.sharedGoalPathfinder = new SharedGoalPathfinder(grid,
@@ -261,6 +262,7 @@ public final class NavigationService {
      */
     public void rebuildDerivedNavigation() {
         navigationMesh.rebuild();
+        grid.preparePathComponents(GridPathfinder.USE_CARDINAL_NAVIGATION);
         vantagePointsByTargetCell.clear();
         sharedGoalPathfinder.invalidateAll();
         preparedSquadRoutes = Map.of();
