@@ -119,6 +119,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
+import com.dillon.starsectormarines.battle.nav.SquadRouteRequest;
 import com.dillon.starsectormarines.battle.squad.SquadRoutePreparationSystem;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -1885,14 +1886,24 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.COMMANDER);
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
+        long goapStageStart = System.nanoTime();
         squadReplan.tick(this);
+        tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_SQUAD_REPLAN,
+                System.nanoTime() - goapStageStart);
         // Capture assigned starts and build route fields while every member is
         // still at its tick-start position. Workers only read the published
         // fields; a step advanced during dispatch falls back until next tick.
-        navigation.prepareSquadRoutes(
+        goapStageStart = System.nanoTime();
+        List<SquadRouteRequest> routeRequests =
                 SharedGoalPolicy.usesSquadRouteCorridors(liveUnitCount())
                         ? SquadRoutePreparationSystem.collect(this)
-                        : List.of());
+                        : List.of();
+        tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_COLLECTION,
+                System.nanoTime() - goapStageStart);
+        goapStageStart = System.nanoTime();
+        navigation.prepareSquadRoutes(routeRequests);
+        tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION,
+                System.nanoTime() - goapStageStart);
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.

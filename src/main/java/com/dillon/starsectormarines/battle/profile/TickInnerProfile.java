@@ -25,7 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *       fired from inside a GOAP infantry behavior counts toward both
  *       {@code BEHAVIOR_COMBATANT} and {@code PATHFIND}. Different lenses,
  *       different questions.</li>
- *   <li><b>Commander buckets</b> — main-thread wall time for pulse stages.
+ *   <li><b>Commander and GOAP buckets</b> — main-thread wall time for stages.
  *       Influence refresh buckets are cross-cutting: they may run inside
  *       commander frame freeze or tactical GOAP reads, and overlap whichever
  *       enclosing phase triggered them.</li>
@@ -75,6 +75,10 @@ public final class TickInnerProfile {
         INFLUENCE_TOPOLOGY_REBUILD,
         INFLUENCE_SOURCES,
         INFLUENCE_PROPAGATE,
+        // ---- GOAP phase stages — synchronous main-thread wall time. ----
+        GOAP_SQUAD_REPLAN,
+        GOAP_ROUTE_COLLECTION,
+        GOAP_ROUTE_PREPARATION,
         // ---- Per-primitive buckets — heavy ops counted wherever they fire. ----
         PATHFIND,
         SWARM_PATHFIND,
