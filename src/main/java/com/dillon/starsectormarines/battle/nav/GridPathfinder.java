@@ -148,6 +148,7 @@ public final class GridPathfinder {
 
         int[] touchedIndices = new int[0];
         int touchedCount = 0;
+        int expandedNodes;
 
         void ensureCapacity(int totalCells) {
             if (gCost.length < totalCells) {
@@ -339,14 +340,21 @@ public final class GridPathfinder {
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                   boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
         long _profT0 = System.nanoTime();
+        Workspace profileWorkspace = WORKSPACE.get();
+        profileWorkspace.expandedNodes = 0;
+        int[] result = EMPTY_PATH;
         try {
-            return findPathInner(grid, startX, startY, goalX, goalY,
+            result = findPathInner(grid, startX, startY, goalX, goalY,
                     cardinalOnly, occupancy, costField, passable, true);
+            return result;
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) {
-                p.record(TickInnerProfile.Bucket.PATHFIND,
-                        System.nanoTime() - _profT0);
+                long durationNanos = System.nanoTime() - _profT0;
+                p.record(TickInnerProfile.Bucket.PATHFIND, durationNanos);
+                p.recordPathSearch(durationNanos, startX, startY, goalX, goalY,
+                        occupancy != null, result.length / 2,
+                        profileWorkspace.expandedNodes);
                 if (PROFILE_PATH_REQUESTS) {
                     p.recordPathfindRequest(startX, startY, goalX, goalY,
                             occupancy != null);
@@ -441,6 +449,7 @@ public final class GridPathfinder {
 
             if (heapPos[currentIdx] == CLOSED) continue;
             heapPos[currentIdx] = CLOSED;
+            ws.expandedNodes++;
 
             if (currentIdx == goalIdx) {
                 return reconstructPath(parentIdx, w, totalCells,

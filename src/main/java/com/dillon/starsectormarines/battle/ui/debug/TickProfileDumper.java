@@ -42,8 +42,8 @@ import java.util.ArrayList;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — v9 adds GOAP subphase rows. */
-    private static final int SCHEMA_VERSION = 9;
+    /** v10 adds bounded individual A* timings and expanded-node counts. */
+    private static final int SCHEMA_VERSION = 10;
     /**
      * SettingsAPI rejects any common-folder text write longer than this many
      * characters. It throws from its own writer thread when routed through
@@ -161,6 +161,14 @@ public final class TickProfileDumper {
             }
             root.put("actions", actionsArr);
 
+            // These are individual searches, not sums across workers. In a
+            // parallel unit phase, their total PATHFIND nanos can exceed the
+            // phase's wall time; the top eight are ranked by own duration.
+            putPathSearches(root, innerSnap != null
+                    ? innerSnap.pathfindExpandedNodes : liveInner.pathfindExpandedNodes(),
+                    innerSnap != null
+                            ? innerSnap.slowPathSearches : liveInner.slowPathSearches());
+
             JSONArray phases = new JSONArray();
             for (TickProfile.Phase p : TickProfile.Phase.VALUES) {
                 long avgNs = profile.avgNanos(p);
@@ -185,6 +193,30 @@ public final class TickProfileDumper {
             LOG.warn("TickProfileDumper: dump failed", ex);
             return null;
         }
+    }
+
+    static void putPathSearches(JSONObject root, long totalExpandedNodes,
+                                List<TickInnerProfile.PathSearch> searches)
+            throws JSONException {
+        root.put("flatPathfindExpandedNodes", totalExpandedNodes);
+        root.put("pathSearchTimingSemantics",
+                "entries and expanded-node total cover public flat GridPathfinder searches only, not nested hierarchical refinements; each entry is ranked by elapsed wall duration, which can include safepoint or thread scheduling waits; PATHFIND bucket nanos sum parallel workers and may overlap phase wall time");
+        JSONArray samples = new JSONArray();
+        for (TickInnerProfile.PathSearch search : searches) {
+            JSONObject item = new JSONObject();
+            item.put("nanos", search.nanos());
+            item.put("us", search.nanos() / 1_000.0);
+            item.put("startX", search.startX());
+            item.put("startY", search.startY());
+            item.put("goalX", search.goalX());
+            item.put("goalY", search.goalY());
+            item.put("usesOccupancy", search.usesOccupancy());
+            item.put("found", search.found());
+            item.put("pathCells", search.pathCells());
+            item.put("expandedNodes", search.expandedNodes());
+            samples.put(item);
+        }
+        root.put("slowFlatPathSearches", samples);
     }
 
     /**
