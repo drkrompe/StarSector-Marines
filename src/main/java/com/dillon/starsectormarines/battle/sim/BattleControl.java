@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 
 /**
  * Read + mutate window onto the battle, for code that runs during the
@@ -27,6 +28,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * {@code BattleControl}. See {@code ecs-nouns.md}.
  */
 public interface BattleControl extends BattleView, SquadDirectiveControl {
+
+    /** Optional battle-owned async routing service; null for the synchronous control. */
+    default AsyncDefendTrackRoutes asyncDefendTrackRoutes() { return null; }
 
     /** Resolve an externally delivered blast through the shared AoE/structure pipeline. */
     void detonateNow(PendingDetonation detonation);

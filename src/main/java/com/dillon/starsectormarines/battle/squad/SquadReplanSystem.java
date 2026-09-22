@@ -39,12 +39,26 @@ public final class SquadReplanSystem {
      */
     public void tick(BattleSimulation sim) {
         for (Squad squad : rosterService.getSquads()) {
+            long previousRoutingEpoch = squad.routingEpoch;
+            SquadPlan previousPlan = squad.currentPlan;
             if (squad.isDroneSquad()) {
                 GoapDroneBehavior.replanIfNeeded(squad, sim);
             } else if (squad.isMechSquad()) {
                 GoapMechBehavior.replanIfNeeded(squad, sim);
             } else {
                 GoapInfantryBehavior.replanIfNeeded(squad, sim);
+            }
+            // An old DefendTrack action may never execute again after a
+            // squad replan (or wipe), so its worker request cannot rely on
+            // that action's early-exit cancellation. Retire it before the
+            // unit-update phase consumes any results.
+            if (sim.asyncDefendTrackRoutes() != null
+                    && (squad.routingEpoch != previousRoutingEpoch
+                    || (previousPlan != null && squad.currentPlan == null))) {
+                for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+                    sim.asyncDefendTrackRoutes().cancel(
+                            sim.squadMemberAt(squad.id, i));
+                }
             }
         }
     }

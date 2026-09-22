@@ -345,7 +345,7 @@ public final class GridPathfinder {
         int[] result = EMPTY_PATH;
         try {
             result = findPathInner(grid, startX, startY, goalX, goalY,
-                    cardinalOnly, occupancy, costField, passable, true);
+                    cardinalOnly, occupancy, costField, passable, true, false);
             return result;
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
@@ -374,7 +374,16 @@ public final class GridPathfinder {
                                     boolean cardinalOnly, byte[] occupancy,
                                     float[] costField, boolean[] passable) {
         return findPathInner(grid, startX, startY, goalX, goalY,
-                cardinalOnly, occupancy, costField, passable, true);
+                cardinalOnly, occupancy, costField, passable, true, false);
+    }
+
+    /** Cancelable unprofiled search used only by the battle-owned async worker. */
+    static int[] findPathAsyncUnprofiled(NavigationGrid grid,
+                                         int startX, int startY,
+                                         int goalX, int goalY,
+                                         boolean cardinalOnly, byte[] occupancy) {
+        return findPathInner(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, null, null, true, true);
     }
 
     /** Full A* seam for validating the connectivity rejection independently. */
@@ -382,13 +391,14 @@ public final class GridPathfinder {
             NavigationGrid grid, int startX, int startY,
             int goalX, int goalY, boolean cardinalOnly) {
         return findPathInner(grid, startX, startY, goalX, goalY,
-                cardinalOnly, null, null, null, false);
+                cardinalOnly, null, null, null, false, false);
     }
 
     private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                         boolean cardinalOnly, byte[] occupancy,
                                         float[] costField, boolean[] passable,
-                                        boolean checkComponents) {
+                                        boolean checkComponents,
+                                        boolean cancelable) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
             return EMPTY_PATH;
         }
@@ -450,6 +460,10 @@ public final class GridPathfinder {
             if (heapPos[currentIdx] == CLOSED) continue;
             heapPos[currentIdx] = CLOSED;
             ws.expandedNodes++;
+            // Only the async overload observes cancellation. Existing
+            // synchronous searches keep their original semantics.
+            if (cancelable && (ws.expandedNodes & 1023) == 0
+                    && Thread.currentThread().isInterrupted()) return EMPTY_PATH;
 
             if (currentIdx == goalIdx) {
                 return reconstructPath(parentIdx, w, totalCells,

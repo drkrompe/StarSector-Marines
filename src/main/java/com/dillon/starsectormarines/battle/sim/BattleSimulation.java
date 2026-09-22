@@ -114,6 +114,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -222,6 +223,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Navigation slice: grid + topology + zone graph + occupancy map + spatial indices + vantage cache + LosCache lifecycle. {@link #grid} / {@link #topology} / {@link #zoneGraph} / {@link #occupancyMap} / {@link #unitIndex} / {@link #destIndex} below are alias fields that share the same instances. */
     private final NavigationService navigation;
+    /** Production-on; tests and deterministic debugging can opt into synchronous routing. */
+    private final AsyncDefendTrackRoutes asyncDefendTrackRoutes =
+            Boolean.parseBoolean(System.getProperty(
+                    AsyncDefendTrackRoutes.ENABLED_PROPERTY, "true"))
+                    ? new AsyncDefendTrackRoutes() : null;
     /** Alias of {@link NavigationService#getGrid()}. Same instance — kept as a field so the sim's 80+ {@code grid.*} reads don't pay a per-call accessor hop. */
     private final NavigationGrid grid;
     /** Temporary faction-neutral visual opacity and grenade-flight lifecycle. */
@@ -761,6 +767,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     public NavigationGrid getGrid() { return grid; }
+    @Override public AsyncDefendTrackRoutes asyncDefendTrackRoutes() {
+        return asyncDefendTrackRoutes;
+    }
     @Override public long getNavigationGridRevision() {
         return grid.topologyRevision();
     }
@@ -1739,6 +1748,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Releases battle-owned worker resources after the simulation leaves service. */
     @Override
     public void close() {
+        if (asyncDefendTrackRoutes != null) asyncDefendTrackRoutes.close();
         unitUpdate.close();
         // The host thread participates in profiling/LoS work outside the
         // parallel dispatch, so release its slots at the same ownership edge.
@@ -1905,6 +1915,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION,
                 System.nanoTime() - goapStageStart);
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
+        if (asyncDefendTrackRoutes != null) {
+            asyncDefendTrackRoutes.beginTick(simTickIndex);
+        }
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
         // Ahead of the per-unit dispatch so an activation this tick is already
