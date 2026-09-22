@@ -503,6 +503,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * picture.
      */
     private int[] zoneTargetSquads = new int[0];
+    /** Presence only: rebuild once per plan instead of scanning contacts for every zone query. */
+    private boolean[] hostileContactByZone = new boolean[0];
+    private boolean hasUnzonedHostileContact;
 
     /** Once-per-command-tick explanation consumed by diagnostics and UI. */
     private volatile ConquestFrontSnapshot frontSnapshot;
@@ -624,6 +627,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
         refreshCompoundTargets(frame);
         prepareRouteFrame(frame);
+        indexHostileContactZones(frame);
 
         // Candidate squads for assignment: alive marines, minus any born-holding
         // garrison squad. Compound garrisons are NOT assigned here — the dedicated
@@ -2356,14 +2360,26 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     private boolean hasKnownHostileInZone(int zoneId, ConquestCommandFrame frame) {
-        CommanderInfluenceSnapshot influence = frame.influence();
-        if (influence == null) return false;
-        for (CommanderContact contact : influence.contacts()) {
-            if (frame.topology().zoneIdAt(contact.cellX(), contact.cellY()) == zoneId) {
-                return true;
-            }
+        return zoneId == -1 ? hasUnzonedHostileContact
+                : zoneId >= 0 && zoneId < hostileContactByZone.length
+                && hostileContactByZone[zoneId];
+    }
+
+    private void indexHostileContactZones(ConquestCommandFrame frame) {
+        int zoneCount = frame.topology().zones().size();
+        if (hostileContactByZone.length != zoneCount) {
+            hostileContactByZone = new boolean[zoneCount];
+        } else {
+            Arrays.fill(hostileContactByZone, false);
         }
-        return false;
+        hasUnzonedHostileContact = false;
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return;
+        for (CommanderContact contact : influence.contacts()) {
+            int zone = frame.topology().zoneIdAt(contact.cellX(), contact.cellY());
+            if (zone >= 0 && zone < zoneCount) hostileContactByZone[zone] = true;
+            else if (zone == -1) hasUnzonedHostileContact = true;
+        }
     }
 
     private boolean reachableZone(PlanningSquad squad, int zoneId,

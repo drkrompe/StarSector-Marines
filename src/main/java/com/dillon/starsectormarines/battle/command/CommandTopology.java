@@ -7,10 +7,8 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
 import java.util.ArrayList;
-import java.util.ArrayDeque;
-import java.util.HashSet;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 /** Frozen public topology with no live-simulation or mutation surface. */
 public final class CommandTopology {
@@ -36,6 +34,8 @@ public final class CommandTopology {
      * see {@link #reachable}.
      */
     private final int[] componentByCell;
+    /** Zone-portal components on this frozen topology. Portals join both ends. */
+    private final int[] componentByZone;
 
     private CommandTopology(NavigationGrid grid, int[] zoneByCell,
                             List<Zone> zones, int[] componentByCell) {
@@ -43,6 +43,7 @@ public final class CommandTopology {
         this.zoneByCell = zoneByCell;
         this.zones = List.copyOf(zones);
         this.componentByCell = componentByCell;
+        this.componentByZone = labelZoneComponents(this.zones);
     }
 
     public static CommandTopology freeze(BattleView sim) {
@@ -82,19 +83,33 @@ public final class CommandTopology {
     public boolean areZonesConnected(int startZone, int targetZone) {
         if (startZone < 0 || targetZone < 0) return false;
         if (startZone == targetZone) return true;
-        ArrayDeque<Integer> queue = new ArrayDeque<>();
-        Set<Integer> visited = new HashSet<>();
-        queue.add(startZone);
-        visited.add(startZone);
-        while (!queue.isEmpty()) {
-            Zone zone = zone(queue.removeFirst());
-            if (zone == null) continue;
-            for (int adjacent : zone.adjacentZones()) {
-                if (adjacent == targetZone) return true;
-                if (visited.add(adjacent)) queue.addLast(adjacent);
+        return startZone < componentByZone.length
+                && targetZone < componentByZone.length
+                && componentByZone[startZone] == componentByZone[targetZone];
+    }
+
+    private static int[] labelZoneComponents(List<Zone> zones) {
+        int[] labels = new int[zones.size()];
+        Arrays.fill(labels, -1);
+        int[] queue = new int[zones.size()];
+        int nextLabel = 0;
+        for (int start = 0; start < zones.size(); start++) {
+            if (labels[start] >= 0) continue;
+            int head = 0;
+            int tail = 0;
+            labels[start] = nextLabel;
+            queue[tail++] = start;
+            while (head < tail) {
+                for (int adjacent : zones.get(queue[head++]).adjacentZones()) {
+                    if (adjacent < 0 || adjacent >= labels.length
+                            || labels[adjacent] >= 0) continue;
+                    labels[adjacent] = nextLabel;
+                    queue[tail++] = adjacent;
+                }
             }
+            nextLabel++;
         }
-        return false;
+        return labels;
     }
 
     /**
