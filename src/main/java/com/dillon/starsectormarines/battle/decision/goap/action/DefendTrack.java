@@ -78,12 +78,22 @@ public final class DefendTrack implements Action {
         moveY = formationCell[1];
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
-        if (!Paths.isEmpty(path) && (Paths.destX(path) != moveX || Paths.destY(path) != moveY)) {
+        boolean anchorFallback = !Paths.isEmpty(path)
+                && (moveX != anchorX || moveY != anchorY)
+                && Paths.destX(path) == anchorX && Paths.destY(path) == anchorY
+                && !sim.getGrid().arePathConnected(
+                        sim.world().cellX(member), sim.world().cellY(member),
+                        moveX, moveY, GridPathfinder.USE_CARDINAL_NAVIGATION);
+        if (!Paths.isEmpty(path) && !anchorFallback
+                && (Paths.destX(path) != moveX || Paths.destY(path) != moveY)) {
             sim.clearPath(member);
             path = sim.world().path(member);
             pathIdx = sim.world().pathIdx(member);
         }
-        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
+        int destinationX = anchorFallback ? anchorX : moveX;
+        int destinationY = anchorFallback ? anchorY : moveY;
+        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)
+                && !sim.movement().atCell(member, destinationX, destinationY)) {
             int[] next = GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member),
                     moveX, moveY, sim.getOccupancyMap());

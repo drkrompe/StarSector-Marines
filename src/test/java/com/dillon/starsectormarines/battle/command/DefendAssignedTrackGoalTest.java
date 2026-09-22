@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.DefendTrack;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.mech.GoapMechBehavior;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -21,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DefendAssignedTrackGoalTest {
@@ -73,6 +75,39 @@ class DefendAssignedTrackGoalTest {
 
         assertEquals(members.length, destinations.size(),
                 "fireteams should establish a footprint instead of one occupied rally cell");
+    }
+
+    @Test
+    void isolatedFormationSlotKeepsAnchorRouteUntilTopologyOpens() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        sim.spawn(new EntitySpec("first-seat", Faction.DEFENDER,
+                UnitType.MILITIA, 2, 1).squad(squadId));
+        long member = sim.spawn(new EntitySpec("second-seat", Faction.DEFENDER,
+                UnitType.MILITIA, 2, 2).squad(squadId));
+        Squad squad = sim.getSquad(squadId);
+        squad.assignedObjective = ObjectiveAssignment.defendTrack(squadId, 16, 7);
+
+        // Seat one is (15,8). Its cell remains walkable but has no passable
+        // cardinal edge, so the unit must use the reachable (16,7) anchor.
+        NavigationGrid grid = sim.getGrid();
+        for (Direction direction : Direction.CARDINALS) {
+            grid.blockEdge(15, 8, direction);
+        }
+        DefendTrack action = new DefendTrack(16, 7);
+        assertEquals(ActionStatus.RUNNING, action.execute(member, squad, sim));
+        int[] fallback = sim.world().path(member);
+        assertEquals(16, Paths.destX(fallback));
+        assertEquals(7, Paths.destY(fallback));
+
+        assertEquals(ActionStatus.RUNNING, action.execute(member, squad, sim));
+        assertSame(fallback, sim.world().path(member),
+                "the active fallback must not be discarded and re-found each tick");
+
+        grid.openEdge(15, 8, Direction.E);
+        assertEquals(ActionStatus.RUNNING, action.execute(member, squad, sim));
+        assertEquals(15, Paths.destX(sim.world().path(member)));
+        assertEquals(8, Paths.destY(sim.world().path(member)));
     }
 
     @Test
