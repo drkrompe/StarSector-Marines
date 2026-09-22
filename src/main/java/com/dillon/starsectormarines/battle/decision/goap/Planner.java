@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
@@ -40,6 +41,19 @@ public final class Planner {
      * so it lives framework-side rather than duplicated per actor.
      */
     public static final float REPLAN_PERIOD = 2.0f;
+
+    /**
+     * Spread periodic refreshes after a common replan event (notably a command
+     * pulse) without delaying any tactical interrupt. The 15 residue classes
+     * distribute sequential squad ids over a half-second window, centered on
+     * the usual two-second cadence. This is an accumulator offset, not elapsed
+     * time: callers still force an immediate replan by setting the timer to
+     * {@link #REPLAN_PERIOD}.
+     */
+    public static float periodicTimerAfterReplan(int squadId) {
+        int slot = Math.floorMod(squadId, 15) * 7 % 15;
+        return (slot - 7) * BattleSimulation.TICK_DT;
+    }
 
     /** Sentinel cost used by the priority queue's f-cost ordering when h = 0 and g = 0 — exists so the comparator stays straightforward. */
     private static final float EPS = 1e-6f;

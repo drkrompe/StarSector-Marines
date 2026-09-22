@@ -120,7 +120,7 @@ public final class GoapDroneBehavior implements UnitBehavior {
         if (goal == null) {
             squad.currentPlan = null;
             squad.currentGoal = null;
-            squad.timeSinceReplan = 0f;
+            squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             return;
         }
@@ -149,7 +149,7 @@ public final class GoapDroneBehavior implements UnitBehavior {
         }
         squad.currentPlan = plan;
         squad.currentGoal = goal;
-        squad.timeSinceReplan = 0f;
+        squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
     }
 }

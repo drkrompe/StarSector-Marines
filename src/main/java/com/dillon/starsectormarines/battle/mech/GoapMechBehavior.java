@@ -235,7 +235,7 @@ public final class GoapMechBehavior implements UnitBehavior {
         if (goal == null) {
             squad.currentPlan = null;
             squad.currentGoal = null;
-            squad.timeSinceReplan = 0f;
+            squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             squad.assignedObjectiveAtLastPlan = executableAssignment;
             return;
@@ -254,7 +254,7 @@ public final class GoapMechBehavior implements UnitBehavior {
         }
         squad.currentPlan = plan;
         squad.currentGoal = goal;
-        squad.timeSinceReplan = 0f;
+        squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
         squad.assignedObjectiveAtLastPlan = executableAssignment;
     }

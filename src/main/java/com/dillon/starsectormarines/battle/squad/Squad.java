@@ -595,7 +595,7 @@ public final class Squad {
     public ObjectiveAssignment assignedObjectiveAtLastPlan;
     /** Goal the planner chose at the last replan. Null when the squad has no relevant goal. Diagnostic — consumed by the GOAP debug HUD; not load-bearing for execution. */
     public Goal currentGoal = null;
-    /** Sim-seconds since the last replan. Drives the periodic-replan trigger; resets to zero on every replan. */
+    /** Periodic replan accumulator, offset by squad id after each replan to avoid synchronized refresh spikes. */
     public float timeSinceReplan = 0f;
     /** {@link #aliveMembers} value at the moment the current plan was built. Diff vs. live {@link #aliveMembers} drives death-triggered replan: any change forces a refresh next tick. */
     public int aliveMembersAtLastPlan = 0;

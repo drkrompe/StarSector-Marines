@@ -4,7 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the simulation has a third side that fights: an allied
+Updated: 2026-09-22 — periodic squad refreshes are spread after common replan
+events; tactical interrupts still replan immediately.
+
+Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
 command, sight, ledger, and reading; the three player-faction fakes stand on
 it, and a defended market's own garrison is its first producer.
@@ -254,6 +257,11 @@ descent is reached by a goal proving unworkable, never by one scoring poorly.
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
 support that extension, but parallel behavior is not implied by their shape.
+Periodic refreshes use a stable per-squad offset after each plan so squads
+that just replanned together do not all refresh on the same later tick. The
+ordinary interval is about two seconds, with a maximum of about 2.27 seconds;
+contact, assignment, casualty, completion, and other tactical interrupts remain
+immediate.
 
 An **ambient task assignment** is low-stakes authored world work for an existing
 battle actor: resting at a berth, inspecting a console, maintaining machinery,
@@ -1591,7 +1599,7 @@ it must never itself be the reason a wall stands empty.
 
 Because posts are chosen at replan time and belief moves continuously, a side
 that becomes threatened is uncovered until its garrison next replans. The
-guarantee is that the gap closes within a replan period, not that it never
+guarantee is that the gap closes within about 2.27 simulated seconds, not that it never
 opens; a defense that re-aimed every tick would be reading the map rather than
 its own reports. Ranking apertures by pressure alone is right for one approach and wrong
 for two — the field ranks a whole wall above another, so a squad filling from
