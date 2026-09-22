@@ -143,7 +143,7 @@ void forwardBattleSwitches(task) {
 
 test {
     useJUnitPlatform {
-        excludeTags 'battle-profile', 'commander-balance',
+        excludeTags 'battle-profile', 'battle-tail-profile', 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence'
@@ -448,6 +448,48 @@ tasks.register('profileBattleFixture', Test) {
     testLogging {
         showStandardStreams = true
     }
+}
+
+// A production-scheduler Conquest tail pass. Unlike the JFR drill-down above,
+// this plays one continuous battle age and retains the complete diagnostic
+// context of its slowest individual ticks. Timing is evidence, not a portable
+// pass/fail budget.
+tasks.register('profileConquestTail', Test) {
+    group = 'verification'
+    description = 'Replay a large Conquest headlessly and report worst-tick diagnostics.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'battle-tail-profile' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.fixture.path', System.getProperty('battle.fixture.path',
+            file('src/test/resources/battle-fixtures/conquest-full-strength-west-v3.json').absolutePath)
+    systemProperty 'battle.pathfinding.asyncDefendTrack',
+            System.getProperty('battle.pathfinding.asyncDefendTrack', 'true')
+    systemProperty 'battle.unitUpdate.minimumParallelUnits',
+            System.getProperty('battle.unitUpdate.minimumParallelUnits', '48')
+    systemProperty 'battle.tail.outputDir', System.getProperty('battle.tail.outputDir',
+            layout.buildDirectory.dir('reports/performance/conquest-tail').get().asFile.absolutePath)
+    // Prefer the game's own Java 17 runtime when present. The build can use a
+    // newer JDK, but tail timing is more useful when the test fork matches the
+    // runtime that ships the battle. Explicit override supports other installs.
+    def requestedJava = System.getProperty('battle.tail.javaExecutable', '').trim()
+    def gameJava = requestedJava ? file(requestedJava) : [
+            new File(starsectorDir, 'Contents/Home/bin/java'),
+            new File(starsectorDir, 'jre/bin/java.exe'),
+            file('/Applications/Starsector.app/Contents/Home/bin/java')
+    ].find { it.isFile() }
+    if (gameJava != null) {
+        if (!gameJava.isFile()) throw new GradleException("Missing battle tail Java: ${gameJava}")
+        executable = gameJava.absolutePath
+    }
+    ['battle.tail.totalTicks', 'battle.tail.warmupTicks',
+     'battle.tail.paceMillis', 'battle.tail.topTicks'].each { propertyName ->
+        def propertyValue = System.getProperty(propertyName, '')
+        if (!propertyValue.isBlank()) systemProperty propertyName, propertyValue
+    }
+    testLogging { showStandardStreams = true }
 }
 
 tasks.register('createSnapshots', JavaExec) {

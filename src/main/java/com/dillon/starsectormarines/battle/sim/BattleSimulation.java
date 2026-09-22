@@ -122,6 +122,7 @@ import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SquadRouteRequest;
 import com.dillon.starsectormarines.battle.squad.SquadRoutePreparationSystem;
+import com.dillon.starsectormarines.battle.squad.SquadReplanSystem;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
@@ -1194,6 +1195,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public TickProfile getTickProfile() { return tickProfile; }
     /** Per-tick sub-step profile (per-behavior + per-primitive nanos). Reset every tick; snapshotted onto the spike record when one fires. Read by the JSON dumper. */
     public TickInnerProfile getTickInnerProfile() { return tickInnerProfile; }
+    /** Opt-in detail for the serial squad-replan pass. */
+    public SquadReplanSystem getSquadReplanSystem() { return squadReplan; }
+    /** Opt-in detail for the parallel unit-update dispatch. */
+    public UnitUpdateSystem getUnitUpdateSystem() { return unitUpdate; }
     /** Shared scoring service — target selection, firing-position, fallback, cover queries. Thread-safe for reads (constructor-injected immutable service refs). */
     public com.dillon.starsectormarines.battle.decision.TacticalScoring getTacticalScoring() { return tacticalScoring; }
     /** Per-hit response logic — fallback rolls + target-reprioritization rolls. */
