@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -57,13 +58,17 @@ public final class DefendTrack implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        AsyncDefendTrackRoutes async = assignmentKind == AssignmentKind.DEFEND_TRACK
+                ? sim.asyncDefendTrackRoutes() : null;
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != assignmentKind
                 || assignment.targetCellX() != targetX || assignment.targetCellY() != targetY) {
+            if (async != null) async.cancel(member);
             sim.clearPath(member);
             return ActionStatus.FAILURE;
         }
         if (WorldStateBuilder.hasActionableContact(squad, sim)) {
+            if (async != null) async.cancel(member);
             sim.clearPath(member);
             return ActionStatus.FAILURE;
         }
@@ -71,6 +76,9 @@ public final class DefendTrack implements Action {
         int moveY = targetY;
         AudibleBearing bearing = squad.audibleBearing();
         if (bearing != null) { moveX = bearing.cellX(); moveY = bearing.cellY(); }
+        // A local sound bearing is a tactical interrupt, not slow strategic
+        // rally travel; it keeps the existing immediate route behavior.
+        if (bearing != null && async != null) async.cancel(member);
         int anchorX = moveX;
         int anchorY = moveY;
         int[] formationCell = formationCell(member, squad, moveX, moveY, sim);
@@ -94,17 +102,40 @@ public final class DefendTrack implements Action {
         int destinationY = anchorFallback ? anchorY : moveY;
         if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)
                 && !sim.movement().atCell(member, destinationX, destinationY)) {
-            int[] next = GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    moveX, moveY, sim.getOccupancyMap());
-            if (Paths.isEmpty(next) && (moveX != anchorX || moveY != anchorY)) {
+            int[] next;
+            if (async != null && bearing == null) {
+                AsyncDefendTrackRoutes.Request request =
+                        new AsyncDefendTrackRoutes.Request(member, squad.id,
+                                squad.routingEpoch, this, targetX, targetY,
+                                sim.world().cellX(member), sim.world().cellY(member),
+                                moveX, moveY, anchorX, anchorY,
+                                GridPathfinder.USE_CARDINAL_NAVIGATION);
+                AsyncDefendTrackRoutes.Result result = async.pollOrSubmit(request,
+                        sim.getSimTickIndex(), sim.getGrid(), sim.getOccupancyMap());
+                if (!result.ready()) {
+                    // The mover's velocity was zeroed at tick start. An
+                    // exhausted old path needs one clear, not a setPath write
+                    // on every waiting tick.
+                    if (!Paths.isEmpty(path)) sim.clearPath(member);
+                    return ActionStatus.RUNNING;
+                }
+                next = result.path();
+            } else {
                 next = GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member),
-                        anchorX, anchorY, sim.getOccupancyMap());
+                        moveX, moveY, sim.getOccupancyMap());
+                if (Paths.isEmpty(next) && (moveX != anchorX || moveY != anchorY)) {
+                    next = GridPathfinder.findPath(sim.getGrid(),
+                            sim.world().cellX(member), sim.world().cellY(member),
+                            anchorX, anchorY, sim.getOccupancyMap());
+                }
             }
             sim.setPath(member, next);
             path = sim.world().path(member);
             pathIdx = sim.world().pathIdx(member);
+        } else if (async != null) {
+            // An external path or an arrival made an outstanding search moot.
+            async.cancel(member);
         }
         if (pathIdx < Paths.cellCount(path)) sim.advanceMovement(member);
         else PatrolMotion.hold(member, sim);

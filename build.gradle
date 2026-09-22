@@ -120,6 +120,10 @@ tasks.withType(Test).configureEach {
     // every scene, the policy tests would be asserting nothing, and evidence
     // runs would report a battle nobody can play.
     systemProperty 'marines.debug.screenTrigger', 'off'
+    // Keep evidence and ordinary tests deterministic even though live battles
+    // use async rally routes. Profile A/B can opt in with -D...=true.
+    systemProperty 'battle.pathfinding.asyncDefendTrack',
+            System.getProperty('battle.pathfinding.asyncDefendTrack', 'false')
     forwardBattleSwitches(delegate)
 }
 
