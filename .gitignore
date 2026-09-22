@@ -23,12 +23,7 @@ asset-pipeline/src/tool/resources/audio/mw4mercs/
 .api/
 
 ### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-.idea/vcs.xml
-.idea/gradle.xml
+.idea/
 *.iws
 *.iml
 *.ipr
