@@ -157,6 +157,13 @@ public interface BattleView {
     int[] findSharedPathToGoal(int startX, int startY, int goalX, int goalY,
                                RouteCostField cost);
 
+    /** Prepared squad route; an unprepared token or uncovered start falls back to ordinary pathfinding. */
+    default int[] findSquadPathToGoal(int squadId, long routingEpoch, Object routeToken,
+                                     int startX, int startY, int goalX, int goalY,
+                                     RouteCostField cost) {
+        return findSharedPathToGoal(startX, startY, goalX, goalY, cost);
+    }
+
     /**
      * What this faction's own recent losses make ground cost to cross, or
      * {@code null} while it has lost nobody worth routing around. Published on

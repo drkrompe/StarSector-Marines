@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -41,7 +43,12 @@ import java.util.Map;
  * {@link com.dillon.starsectormarines.battle.infantry.SecureObjectiveZone}'s
  * custom plan.
  */
-public final class EnterZone extends AbstractZoneAction {
+public final class EnterZone extends AbstractZoneAction implements SquadRouteGoalProvider {
+
+    @Override
+    public Goal squadRouteGoal(Squad squad, BattleView sim) {
+        return new Goal(destX, destY);
+    }
 
 
     /** Destination cell inside the target zone — chosen at construction so all members aim at the same spot and the pathfinder routes them through the portal naturally. */

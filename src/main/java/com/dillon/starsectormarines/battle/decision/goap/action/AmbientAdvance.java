@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -39,7 +41,12 @@ import java.util.Map;
  * context for the same reason {@link AttackMove}'s is — arrival is reaching a
  * cell rather than crossing a portal.
  */
-public final class AmbientAdvance extends AbstractZoneAction {
+public final class AmbientAdvance extends AbstractZoneAction implements SquadRouteGoalProvider {
+
+    @Override
+    public Goal squadRouteGoal(Squad squad, BattleView sim) {
+        return new Goal(destX, destY);
+    }
 
     /** Cells from the cue within which the squad has arrived and the step is done. */
     public static final float ARRIVAL_RADIUS = 2f;

@@ -135,6 +135,15 @@ class BattleFixtureJfrProfileTest {
             boundary.sharedFieldExtractions = measured.sharedFieldExtractions();
             boundary.sharedFieldExtractionNanos =
                     measured.sharedFieldExtractionNanos();
+            boundary.squadFieldBuilds = measured.squadFieldBuilds();
+            boundary.squadFieldBuildNanos = measured.squadFieldBuildNanos();
+            boundary.squadFieldExtractions = measured.squadFieldExtractions();
+            boundary.squadFieldExtractionNanos =
+                    measured.squadFieldExtractionNanos();
+            boundary.squadFieldFallbacks = measured.squadFieldFallbacks();
+            boundary.squadFieldFallbackNanos = measured.squadFieldFallbackNanos();
+            boundary.squadFieldCorridorCells = measured.squadFieldCorridorCells();
+            boundary.squadFieldSettledCells = measured.squadFieldSettledCells();
             boundary.occupancyPathfindCalls = measured.occupancyPathfindCalls();
             boundary.uniquePathfindGoals = measured.uniquePathfindGoals();
             boundary.uniquePathfindRequests = measured.uniquePathfindRequests();
@@ -182,6 +191,9 @@ class BattleFixtureJfrProfileTest {
                 + measured.pathfindCallsPerTick() + " pathfinds/tick; "
                 + measured.uniquePathfindGoalsPerTick() + " unique goals/tick; "
                 + measured.sharedFieldBuildsPerTick() + " shared fields/tick; "
+                + measured.squadFieldBuildsPerTick() + " squad fields/tick; "
+                + measured.squadFieldFallbacksPerTick() + " squad fallbacks/tick; "
+                + measured.averageSquadSettledCells() + " settled cells/squad field; "
                 + measured.maximumGoalFanIn() + " max same-goal fan-in; "
                 + measured.commanderPulseCount() + " commander pulses; "
                 + measured.commanderAverageMillis() + " ms avg / "
@@ -303,6 +315,14 @@ class BattleFixtureJfrProfileTest {
         long sharedFieldBuildNanos = 0L;
         long sharedFieldExtractions = 0L;
         long sharedFieldExtractionNanos = 0L;
+        long squadFieldBuilds = 0L;
+        long squadFieldBuildNanos = 0L;
+        long squadFieldExtractions = 0L;
+        long squadFieldExtractionNanos = 0L;
+        long squadFieldFallbacks = 0L;
+        long squadFieldFallbackNanos = 0L;
+        long squadFieldCorridorCells = 0L;
+        long squadFieldSettledCells = 0L;
         long occupancyPathfindCalls = 0L;
         long uniquePathfindGoals = 0L;
         long uniquePathfindRequests = 0L;
@@ -360,6 +380,20 @@ class BattleFixtureJfrProfileTest {
                             TickInnerProfile.Bucket.SHARED_PATH_FIELD_EXTRACT);
                     sharedFieldExtractionNanos += innerProfile.nanosOf(
                             TickInnerProfile.Bucket.SHARED_PATH_FIELD_EXTRACT);
+                    squadFieldBuilds += innerProfile.countOf(
+                            TickInnerProfile.Bucket.SQUAD_PATH_FIELD_BUILD);
+                    squadFieldBuildNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.SQUAD_PATH_FIELD_BUILD);
+                    squadFieldExtractions += innerProfile.countOf(
+                            TickInnerProfile.Bucket.SQUAD_PATH_FIELD_EXTRACT);
+                    squadFieldExtractionNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.SQUAD_PATH_FIELD_EXTRACT);
+                    squadFieldFallbacks += innerProfile.countOf(
+                            TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK);
+                    squadFieldFallbackNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK);
+                    squadFieldCorridorCells += innerProfile.squadRouteCorridorCells();
+                    squadFieldSettledCells += innerProfile.squadRouteSettledCells();
                     occupancyPathfindCalls +=
                             innerProfile.occupancyPathfindRequestCount();
                     uniquePathfindGoals +=
@@ -437,6 +471,10 @@ class BattleFixtureJfrProfileTest {
                 swarmPathfindCalls, swarmPathfindNanos,
                 sharedFieldBuilds, sharedFieldBuildNanos,
                 sharedFieldExtractions, sharedFieldExtractionNanos,
+                squadFieldBuilds, squadFieldBuildNanos,
+                squadFieldExtractions, squadFieldExtractionNanos,
+                squadFieldFallbacks, squadFieldFallbackNanos,
+                squadFieldCorridorCells, squadFieldSettledCells,
                 occupancyPathfindCalls, uniquePathfindGoals,
                 uniquePathfindRequests, maximumGoalFanIn,
                 commanderPulseCount, commanderNanos, maximumCommanderNanos,
@@ -467,6 +505,10 @@ class BattleFixtureJfrProfileTest {
             long swarmPathfindCalls, long swarmPathfindNanos,
             long sharedFieldBuilds, long sharedFieldBuildNanos,
             long sharedFieldExtractions, long sharedFieldExtractionNanos,
+            long squadFieldBuilds, long squadFieldBuildNanos,
+            long squadFieldExtractions, long squadFieldExtractionNanos,
+            long squadFieldFallbacks, long squadFieldFallbackNanos,
+            long squadFieldCorridorCells, long squadFieldSettledCells,
             long occupancyPathfindCalls, long uniquePathfindGoals,
             long uniquePathfindRequests, int maximumGoalFanIn,
             long commanderPulseCount, long commanderNanos,
@@ -495,6 +537,20 @@ class BattleFixtureJfrProfileTest {
 
         double sharedFieldBuildsPerTick() {
             return Math.round(sharedFieldBuilds * 100.0 / ticks) / 100.0;
+        }
+
+        double squadFieldBuildsPerTick() {
+            return Math.round(squadFieldBuilds * 100.0 / ticks) / 100.0;
+        }
+
+        double squadFieldFallbacksPerTick() {
+            return Math.round(squadFieldFallbacks * 100.0 / ticks) / 100.0;
+        }
+
+        long averageSquadSettledCells() {
+            return squadFieldBuilds == 0L
+                    ? 0L : Math.round((double) squadFieldSettledCells
+                    / squadFieldBuilds);
         }
 
         double commanderAverageMillis() {
@@ -571,6 +627,22 @@ class BattleFixtureJfrProfileTest {
         long sharedFieldExtractions;
         @Label("Shared reverse-field extraction nanoseconds")
         long sharedFieldExtractionNanos;
+        @Label("Squad corridor-field builds")
+        long squadFieldBuilds;
+        @Label("Squad corridor-field build nanoseconds")
+        long squadFieldBuildNanos;
+        @Label("Squad corridor-field extractions")
+        long squadFieldExtractions;
+        @Label("Squad corridor-field extraction nanoseconds")
+        long squadFieldExtractionNanos;
+        @Label("Squad corridor-field fallbacks")
+        long squadFieldFallbacks;
+        @Label("Squad corridor-field fallback nanoseconds")
+        long squadFieldFallbackNanos;
+        @Label("Squad corridor cells considered")
+        long squadFieldCorridorCells;
+        @Label("Squad corridor cells settled")
+        long squadFieldSettledCells;
         @Label("Occupancy-aware pathfind calls")
         long occupancyPathfindCalls;
         @Label("Sum of per-tick unique pathfind goals")

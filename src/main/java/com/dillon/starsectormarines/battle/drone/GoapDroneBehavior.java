@@ -113,6 +113,8 @@ public final class GoapDroneBehavior implements UnitBehavior {
             return;
         }
 
+        squad.routingEpoch++;
+
         WorldState current = WorldState.EMPTY;
         Goal goal = Goal.pickMostRelevant(DRONE_GOALS, current, squad, sim);
         if (goal == null) {

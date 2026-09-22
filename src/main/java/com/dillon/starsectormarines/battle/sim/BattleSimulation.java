@@ -118,6 +118,8 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
+import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
+import com.dillon.starsectormarines.battle.squad.SquadRoutePreparationSystem;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
@@ -1884,6 +1886,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
         squadReplan.tick(this);
+        // Capture assigned starts and build route fields while every member is
+        // still at its tick-start position. Workers only read the published
+        // fields; a step advanced during dispatch falls back until next tick.
+        navigation.prepareSquadRoutes(
+                SharedGoalPolicy.usesSquadRouteCorridors(liveUnitCount())
+                        ? SquadRoutePreparationSystem.collect(this)
+                        : List.of());
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
@@ -2262,6 +2271,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public RouteCostField getRouteCostField(Faction faction) {
         return commanderInfluence.casualties().routeCost(faction);
+    }
+
+    @Override
+    public int[] findSquadPathToGoal(int squadId, long routingEpoch, Object routeToken,
+                                     int startX, int startY, int goalX, int goalY,
+                                     RouteCostField cost) {
+        return navigation.findSquadPathToGoal(squadId, routingEpoch, routeToken,
+                startX, startY, goalX, goalY, cost);
     }
 
     /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */

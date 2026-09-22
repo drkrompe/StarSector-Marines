@@ -80,6 +80,9 @@ public final class TickInnerProfile {
         SWARM_PATHFIND,
         SHARED_PATH_FIELD_BUILD,
         SHARED_PATH_FIELD_EXTRACT,
+        SQUAD_PATH_FIELD_BUILD,
+        SQUAD_PATH_FIELD_EXTRACT,
+        SQUAD_PATH_FIELD_FALLBACK,
         TARGET_PICK,
         FIRING_POSITION,
         FALLBACK_POSITION,
@@ -214,6 +217,8 @@ public final class TickInnerProfile {
     private long[] pathfindRequests = new long[0];
     private int pathfindRequestCount;
     private int occupancyPathfindRequestCount;
+    private long squadRouteCorridorCells;
+    private long squadRouteSettledCells;
     private Bucket activeBehavior;
     /** Per action-class {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}; keyed by simple class name. */
     private final Map<String, long[]> actions = new HashMap<>();
@@ -224,6 +229,8 @@ public final class TickInnerProfile {
         Arrays.fill(counts, 0);
         pathfindRequestCount = 0;
         occupancyPathfindRequestCount = 0;
+        squadRouteCorridorCells = 0L;
+        squadRouteSettledCells = 0L;
         activeBehavior = null;
         actions.clear();
     }
@@ -292,6 +299,13 @@ public final class TickInnerProfile {
         if (usesOccupancy) occupancyPathfindRequestCount++;
     }
 
+    /** Cell-volume evidence for each compact squad field built this tick. */
+    public void recordSquadRouteFieldShape(int corridorCells,
+                                           int settledCells) {
+        squadRouteCorridorCells += corridorCells;
+        squadRouteSettledCells += settledCells;
+    }
+
     private void ensurePathfindRequestCapacity(int required) {
         if (pathfindRequests.length >= required) return;
         pathfindRequests = Arrays.copyOf(pathfindRequests,
@@ -318,6 +332,8 @@ public final class TickInnerProfile {
                 pathfindRequestCount, other.pathfindRequestCount);
         pathfindRequestCount += other.pathfindRequestCount;
         occupancyPathfindRequestCount += other.occupancyPathfindRequestCount;
+        squadRouteCorridorCells += other.squadRouteCorridorCells;
+        squadRouteSettledCells += other.squadRouteSettledCells;
         for (Map.Entry<String, long[]> entry : other.actions.entrySet()) {
             long[] sample = actions.get(entry.getKey());
             if (sample == null) {
@@ -348,6 +364,9 @@ public final class TickInnerProfile {
     public int occupancyPathfindRequestCount() {
         return occupancyPathfindRequestCount;
     }
+
+    public long squadRouteCorridorCells() { return squadRouteCorridorCells; }
+    public long squadRouteSettledCells() { return squadRouteSettledCells; }
 
     /** Exact distinct start+goal pairs requested in this tick. */
     public int uniquePathfindRequestCount() {
@@ -399,7 +418,8 @@ public final class TickInnerProfile {
 
     /** Returns a frozen copy of the current bucket state. The caller owns the arrays — mutating them won't affect this profile or vice-versa. */
     public Snapshot snapshot() {
-        return new Snapshot(nanos.clone(), counts.clone(), copyActions(actions));
+        return new Snapshot(nanos.clone(), counts.clone(), copyActions(actions),
+                squadRouteCorridorCells, squadRouteSettledCells);
     }
 
     /** Immutable frozen bucket state — what spike dumps carry forward past the next tick's reset. */
@@ -408,13 +428,22 @@ public final class TickInnerProfile {
         public final int[] counts;
         /** Per action-class {@code {nanos, count}}, as {@link TickInnerProfile#actions()}. */
         public final Map<String, long[]> actions;
+        public final long squadRouteCorridorCells;
+        public final long squadRouteSettledCells;
         public Snapshot(long[] nanos, int[] counts) {
-            this(nanos, counts, Collections.emptyMap());
+            this(nanos, counts, Collections.emptyMap(), 0L, 0L);
         }
         public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions) {
+            this(nanos, counts, actions, 0L, 0L);
+        }
+        public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions,
+                        long squadRouteCorridorCells,
+                        long squadRouteSettledCells) {
             this.nanos = nanos;
             this.counts = counts;
             this.actions = actions;
+            this.squadRouteCorridorCells = squadRouteCorridorCells;
+            this.squadRouteSettledCells = squadRouteSettledCells;
         }
         public long nanosOf(Bucket b) { return nanos[b.ordinal()]; }
         public int countOf(Bucket b)  { return counts[b.ordinal()]; }
