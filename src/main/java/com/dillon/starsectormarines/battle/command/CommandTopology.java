@@ -1,9 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -49,19 +47,7 @@ public final class CommandTopology {
 
     public static CommandTopology freeze(BattleView sim) {
         NavigationGrid live = sim.getGrid();
-        NavigationGrid copy = new NavigationGrid(live.getWidth(), live.getHeight());
-        CellTag[] tags = CellTag.values();
-        for (int y = 0; y < live.getHeight(); y++) {
-            for (int x = 0; x < live.getWidth(); x++) {
-                for (CellTag tag : tags) {
-                    copy.setTag(x, y, tag, live.hasTag(x, y, tag));
-                }
-                for (Direction direction : Direction.ALL) {
-                    copy.setEdgePassable(x, y, direction,
-                            live.isEdgePassable(x, y, direction));
-                }
-            }
-        }
+        NavigationGrid copy = live.copyNavigationTopology();
 
         ZoneGraph graph = sim.getZoneGraph();
         int[] zoneByCell = new int[live.getWidth() * live.getHeight()];
