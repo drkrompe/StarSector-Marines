@@ -153,6 +153,12 @@ class BattleFixtureJfrProfileTest {
             boundary.maximumCommanderNanos = measured.maximumCommanderNanos();
             boundary.goapReplanNanos = measured.goapReplanNanos();
             boundary.maximumGoapReplanNanos = measured.maximumGoapReplanNanos();
+            boundary.goapSquadReplanNanos = measured.goapSquadReplanNanos();
+            boundary.maximumGoapSquadReplanNanos = measured.maximumGoapSquadReplanNanos();
+            boundary.goapRouteCollectionNanos = measured.goapRouteCollectionNanos();
+            boundary.maximumGoapRouteCollectionNanos = measured.maximumGoapRouteCollectionNanos();
+            boundary.goapRoutePreparationNanos = measured.goapRoutePreparationNanos();
+            boundary.maximumGoapRoutePreparationNanos = measured.maximumGoapRoutePreparationNanos();
             boundary.commanderSyncNanos = measured.commanderSyncNanos();
             boundary.commanderTopologyLookupNanos = measured.commanderTopologyLookupNanos();
             boundary.commanderTopologyRebuildCount =
@@ -199,7 +205,11 @@ class BattleFixtureJfrProfileTest {
                 + measured.commanderAverageMillis() + " ms avg / "
                 + measured.commanderMaximumMillis() + " ms max commander; "
                 + measured.influenceAverageMillis() + " ms/influence refresh; "
-                + measured.goapMaximumMillis() + " ms max GOAP)");
+                + measured.goapMaximumMillis() + " ms max GOAP; "
+                + "independent GOAP-stage maxima: "
+                + measured.goapSquadReplanMaximumMillis() + " ms replan, "
+                + measured.goapRouteCollectionMaximumMillis() + " ms collect, "
+                + measured.goapRoutePreparationMaximumMillis() + " ms prepare)");
     }
 
     private static void verifyRecording(
@@ -238,6 +248,14 @@ class BattleFixtureJfrProfileTest {
             assertTrue(boundary.getLong("influenceRefreshCount") > 0L,
                     "commander fixtures should retain normalized influence evidence");
         }
+        assertTrue(boundary.getLong("goapSquadReplanNanos") > 0L);
+        assertTrue(boundary.getLong("goapRouteCollectionNanos") > 0L);
+        assertTrue(boundary.getLong("goapRoutePreparationNanos") > 0L);
+        assertTrue(boundary.getLong("goapSquadReplanNanos")
+                        + boundary.getLong("goapRouteCollectionNanos")
+                        + boundary.getLong("goapRoutePreparationNanos")
+                        <= boundary.getLong("goapReplanNanos"),
+                "GOAP stages must fit inside GOAP phase wall time");
         // Event duration includes slice reconstruction and pre-roll orchestration;
         // activeTickNanos above is the measured-work denominator.
         assertTrue(boundary.getDuration().toMillis() >= minimumMillis);
@@ -332,6 +350,12 @@ class BattleFixtureJfrProfileTest {
         long maximumCommanderNanos = 0L;
         long goapReplanNanos = 0L;
         long maximumGoapReplanNanos = 0L;
+        long goapSquadReplanNanos = 0L;
+        long maximumGoapSquadReplanNanos = 0L;
+        long goapRouteCollectionNanos = 0L;
+        long maximumGoapRouteCollectionNanos = 0L;
+        long goapRoutePreparationNanos = 0L;
+        long maximumGoapRoutePreparationNanos = 0L;
         long commanderSyncNanos = 0L;
         long commanderTopologyLookupNanos = 0L;
         long commanderTopologyRebuildCount = 0L;
@@ -417,6 +441,21 @@ class BattleFixtureJfrProfileTest {
                     goapReplanNanos += goapTickNanos;
                     maximumGoapReplanNanos = Math.max(
                             maximumGoapReplanNanos, goapTickNanos);
+                    long squadReplanTickNanos = innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.GOAP_SQUAD_REPLAN);
+                    goapSquadReplanNanos += squadReplanTickNanos;
+                    maximumGoapSquadReplanNanos = Math.max(
+                            maximumGoapSquadReplanNanos, squadReplanTickNanos);
+                    long routeCollectionTickNanos = innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.GOAP_ROUTE_COLLECTION);
+                    goapRouteCollectionNanos += routeCollectionTickNanos;
+                    maximumGoapRouteCollectionNanos = Math.max(
+                            maximumGoapRouteCollectionNanos, routeCollectionTickNanos);
+                    long routePreparationTickNanos = innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION);
+                    goapRoutePreparationNanos += routePreparationTickNanos;
+                    maximumGoapRoutePreparationNanos = Math.max(
+                            maximumGoapRoutePreparationNanos, routePreparationTickNanos);
                     commanderSyncNanos += innerProfile.nanosOf(
                             TickInnerProfile.Bucket.COMMANDER_SYNC);
                     commanderTopologyLookupNanos += innerProfile.nanosOf(
@@ -479,6 +518,9 @@ class BattleFixtureJfrProfileTest {
                 uniquePathfindRequests, maximumGoalFanIn,
                 commanderPulseCount, commanderNanos, maximumCommanderNanos,
                 goapReplanNanos, maximumGoapReplanNanos,
+                goapSquadReplanNanos, maximumGoapSquadReplanNanos,
+                goapRouteCollectionNanos, maximumGoapRouteCollectionNanos,
+                goapRoutePreparationNanos, maximumGoapRoutePreparationNanos,
                 commanderSyncNanos, commanderTopologyLookupNanos,
                 commanderTopologyRebuildCount, commanderTopologyRebuildNanos,
                 commanderFrameNanos, commanderPlanNanos,
@@ -513,7 +555,11 @@ class BattleFixtureJfrProfileTest {
             long uniquePathfindRequests, int maximumGoalFanIn,
             long commanderPulseCount, long commanderNanos,
             long maximumCommanderNanos, long goapReplanNanos,
-            long maximumGoapReplanNanos, long commanderSyncNanos,
+            long maximumGoapReplanNanos,
+            long goapSquadReplanNanos, long maximumGoapSquadReplanNanos,
+            long goapRouteCollectionNanos, long maximumGoapRouteCollectionNanos,
+            long goapRoutePreparationNanos, long maximumGoapRoutePreparationNanos,
+            long commanderSyncNanos,
             long commanderTopologyLookupNanos,
             long commanderTopologyRebuildCount,
             long commanderTopologyRebuildNanos, long commanderFrameNanos,
@@ -572,6 +618,18 @@ class BattleFixtureJfrProfileTest {
 
         double goapMaximumMillis() {
             return Math.round(maximumGoapReplanNanos / 10_000.0) / 100.0;
+        }
+
+        double goapSquadReplanMaximumMillis() {
+            return Math.round(maximumGoapSquadReplanNanos / 10_000.0) / 100.0;
+        }
+
+        double goapRouteCollectionMaximumMillis() {
+            return Math.round(maximumGoapRouteCollectionNanos / 10_000.0) / 100.0;
+        }
+
+        double goapRoutePreparationMaximumMillis() {
+            return Math.round(maximumGoapRoutePreparationNanos / 10_000.0) / 100.0;
         }
     }
 
@@ -661,6 +719,18 @@ class BattleFixtureJfrProfileTest {
         long goapReplanNanos;
         @Label("Maximum GOAP replan tick nanoseconds")
         long maximumGoapReplanNanos;
+        @Label("Accumulated squad replan nanoseconds")
+        long goapSquadReplanNanos;
+        @Label("Maximum squad replan tick nanoseconds")
+        long maximumGoapSquadReplanNanos;
+        @Label("Accumulated squad route collection nanoseconds")
+        long goapRouteCollectionNanos;
+        @Label("Maximum squad route collection tick nanoseconds")
+        long maximumGoapRouteCollectionNanos;
+        @Label("Accumulated squad route preparation nanoseconds")
+        long goapRoutePreparationNanos;
+        @Label("Maximum squad route preparation tick nanoseconds")
+        long maximumGoapRoutePreparationNanos;
         @Label("Commander assignment synchronization nanoseconds")
         long commanderSyncNanos;
         @Label("Commander topology lookup nanoseconds")

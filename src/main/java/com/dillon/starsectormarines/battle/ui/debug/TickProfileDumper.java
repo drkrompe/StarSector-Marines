@@ -42,8 +42,8 @@ import java.util.ArrayList;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — v8 adds commander and influence subphase rows. */
-    private static final int SCHEMA_VERSION = 8;
+    /** Bumped when the dump shape changes — v9 adds GOAP subphase rows. */
+    private static final int SCHEMA_VERSION = 9;
     /**
      * SettingsAPI rejects any common-folder text write longer than this many
      * characters. It throws from its own writer thread when routed through
@@ -117,7 +117,7 @@ public final class TickProfileDumper {
             // counters directly. Either way the JSON shape is identical.
             JSONArray innerArr = new JSONArray();
             root.put("innerTimingSemantics",
-                    "aggregate worker time; nested primitive and influence buckets overlap enclosing behavior and commander buckets");
+                    "behavior buckets aggregate worker time; commander and GOAP stage buckets are main-thread wall time; primitive and influence buckets can overlap enclosing stages and behaviors");
             TickInnerProfile.Snapshot innerSnap = (spike != null) ? spike.innerSnapshot : null;
             TickInnerProfile liveInner = sim.getTickInnerProfile();
             for (TickInnerProfile.Bucket b : TickInnerProfile.Bucket.VALUES) {
