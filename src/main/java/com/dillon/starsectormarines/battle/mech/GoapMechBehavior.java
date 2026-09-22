@@ -191,6 +191,8 @@ public final class GoapMechBehavior implements UnitBehavior {
             return;
         }
 
+        squad.routingEpoch++;
+
         WorldState current = WorldStateBuilder.build(squad, sim);
         // The ladder descends past a goal that cannot be planned, as it does
         // for infantry: committing a null plan tells a member to stand still

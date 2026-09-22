@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -15,7 +16,11 @@ import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Owns the spatial state slice that {@code BattleSimulation} previously held
@@ -50,6 +55,15 @@ public final class NavigationService {
     /** Per-cell unit count (current cell + path destination), rebuilt at the top of each tick and incrementally updated via {@link #applyOccupancyDeltaInline}. Read by the pathfinder so units route around ally-held cells. Saturates at 255. */
     private final byte[] occupancyMap;
     private final SharedGoalPathfinder sharedGoalPathfinder;
+    /** Serial builder scratch; prepared fields retain only their settled corridor cells. */
+    private final SquadRouteField.Builder squadRouteBuilder;
+    /** Immutable batch published immediately before the parallel unit-update window. */
+    private volatile Map<Integer, PreparedSquadRoute> preparedSquadRoutes = Map.of();
+    private int lastSquadRouteBuilds;
+    private int lastSquadRouteReuses;
+    private int lastSquadRouteDeferred;
+    private int lastSquadRouteCorridorCells;
+    private int lastSquadRouteSettledCells;
 
     /** Bucketed spatial index over alive units. Rebuilt once per tick by {@link #rebuildSpatialIndices}. */
     private final UnitSpatialIndex unitIndex;
@@ -109,6 +123,7 @@ public final class NavigationService {
                 navigationMesh);
         this.sharedGoalPathfinder = new SharedGoalPathfinder(grid,
                 occupancyMap, hierarchicalPathfinder);
+        this.squadRouteBuilder = new SquadRouteField.Builder(grid);
     }
 
     /** Injects the dense entity store once it's built (see {@link #roster}). Called once at sim construction. */
@@ -248,6 +263,7 @@ public final class NavigationService {
         navigationMesh.rebuild();
         vantagePointsByTargetCell.clear();
         sharedGoalPathfinder.invalidateAll();
+        preparedSquadRoutes = Map.of();
     }
 
     /** Compatibility name; prefer {@link #flushNavigationTopologyIfDirty()}. */
@@ -372,6 +388,289 @@ public final class NavigationService {
         return sharedGoalPathfinder.findPath(startX, startY, goalX, goalY,
                 GridPathfinder.USE_CARDINAL_NAVIGATION, cost);
     }
+
+    /**
+     * Builds or retains one immutable local reverse field per requested squad
+     * route. This method is serial-only and must run before UPDATE_UNITS. The
+     * route seed is an exact, cost-aware cell path; its greedy-mesh regions
+     * plus one neighboring region ring form the corridor. Compact fields are
+     * then published as one immutable map for worker reads.
+     */
+    public void prepareSquadRoutes(List<SquadRouteRequest> requests) {
+        Map<Integer, PreparedSquadRoute> previous = preparedSquadRoutes;
+        Map<Integer, PreparedSquadRoute> next = new HashMap<>();
+        GreedyNavigationMesh.Snapshot mesh = navigationMesh.snapshot();
+        lastSquadRouteBuilds = 0;
+        lastSquadRouteReuses = 0;
+        lastSquadRouteDeferred = 0;
+        lastSquadRouteCorridorCells = 0;
+        lastSquadRouteSettledCells = 0;
+        List<RouteCandidate> pending = new ArrayList<>();
+        for (SquadRouteRequest request : requests) {
+            PreparedSquadRoute retained = previous.get(request.squadId());
+            if (retained != null && retained.isFresh(request, mesh.revision(),
+                    grid.getWidth())) {
+                next.put(request.squadId(), retained);
+                lastSquadRouteReuses++;
+                continue;
+            }
+            boolean compatible = retained != null
+                    && retained.isCompatible(request, mesh.revision(),
+                    grid.getWidth());
+            pending.add(new RouteCandidate(request, retained, compatible));
+        }
+        int buildBudget = SharedGoalPolicy.maximumSquadRouteBuildsPerTick();
+        // New/uncovered intents go first. Compatible older fields can serve
+        // safely for another tick while their casualty-cost snapshot refreshes.
+        for (int pass = 0; pass < 2; pass++) {
+            boolean compatiblePass = pass == 1;
+            for (RouteCandidate candidate : pending) {
+                if (candidate.compatible != compatiblePass) continue;
+                PreparedSquadRoute built = null;
+                boolean attempted = false;
+                if (buildBudget > 0) {
+                    attempted = true;
+                    long started = System.nanoTime();
+                    built = buildSquadRoute(candidate.request, mesh);
+                    TickInnerProfile profile = TickInnerProfile.currentIfBound();
+                    if (profile != null) {
+                        profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_BUILD,
+                                System.nanoTime() - started);
+                    }
+                    buildBudget--;
+                }
+                if (built != null) {
+                    next.put(candidate.request.squadId(), built);
+                    lastSquadRouteBuilds++;
+                    lastSquadRouteCorridorCells += built.field.corridorCellCount();
+                    lastSquadRouteSettledCells += built.field.settledCellCount();
+                    TickInnerProfile profile = TickInnerProfile.currentIfBound();
+                    if (profile != null) {
+                        profile.recordSquadRouteFieldShape(
+                                built.field.corridorCellCount(),
+                                built.field.settledCellCount());
+                    }
+                } else if (candidate.compatible) {
+                    next.put(candidate.request.squadId(),
+                            candidate.retained.adopt(candidate.request));
+                    lastSquadRouteDeferred++;
+                } else if (attempted) {
+                    // Remember the miss for this exact intent. Otherwise four
+                    // permanently unreachable low-id squads would consume the
+                    // whole budget on every tick and starve every later one.
+                    next.put(candidate.request.squadId(),
+                            PreparedSquadRoute.failure(candidate.request,
+                                    mesh.revision(), grid.getWidth()));
+                }
+            }
+        }
+        preparedSquadRoutes = Map.copyOf(next);
+    }
+
+    private PreparedSquadRoute buildSquadRoute(
+            SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh) {
+        if (!grid.inBounds(request.goalX(), request.goalY())
+                || !grid.isWalkable(request.goalX(), request.goalY())) {
+            return null;
+        }
+        int[] starts = request.startCells();
+        if (starts.length == 0 || mesh.regions().isEmpty()) return null;
+        int goal = grid.index(request.goalX(), request.goalY());
+        int goalRegion = mesh.regionIdAt(request.goalX(), request.goalY());
+        if (goalRegion < 0) return null;
+        boolean[] routeRegions = new boolean[mesh.regions().size()];
+        boolean[] selectedRegions = new boolean[mesh.regions().size()];
+        float[] costs = request.cost() == null ? null : request.cost().cells();
+        boolean hasRoute = false;
+        for (int start : starts) {
+            if (start < 0 || start >= grid.getWidth() * grid.getHeight()) continue;
+            int startX = start % grid.getWidth();
+            int startY = start / grid.getWidth();
+            int startRegion = mesh.regionIdAt(startX, startY);
+            if (startRegion < 0) continue;
+            if (hasRoute) {
+                padRouteRegions(mesh, routeRegions, selectedRegions);
+                if (selectedRegions[startRegion]) continue;
+            }
+            int[] seed = GridPathfinder.findPathUnprofiled(grid,
+                    startX, startY, request.goalX(), request.goalY(),
+                    GridPathfinder.USE_CARDINAL_NAVIGATION, null, costs, null);
+            if (Paths.isEmpty(seed)) continue;
+            for (int cell = 0; cell < Paths.cellCount(seed); cell++) {
+                int region = mesh.regionIdAt(Paths.cellX(seed, cell),
+                        Paths.cellY(seed, cell));
+                if (region >= 0) routeRegions[region] = true;
+            }
+            hasRoute = true;
+        }
+        if (!hasRoute) return null;
+        routeRegions[goalRegion] = true;
+        padRouteRegions(mesh, routeRegions, selectedRegions);
+        int corridorCount = 0;
+        for (GreedyNavigationMesh.Region region : mesh.regions()) {
+            if (selectedRegions[region.id()]) corridorCount += region.cellCount();
+        }
+        int[] corridor = new int[corridorCount];
+        int offset = 0;
+        int width = grid.getWidth();
+        for (GreedyNavigationMesh.Region region : mesh.regions()) {
+            if (!selectedRegions[region.id()]) continue;
+            for (int y = region.y(); y < region.maxYExclusive(); y++) {
+                for (int x = region.x(); x < region.maxXExclusive(); x++) {
+                    corridor[offset++] = y * width + x;
+                }
+            }
+        }
+        Arrays.sort(corridor);
+        SquadRouteField field = squadRouteBuilder.build(corridor, costs, goal,
+                starts, GridPathfinder.USE_CARDINAL_NAVIGATION);
+        return new PreparedSquadRoute(request.routingEpoch(),
+                request.routeToken(), goal, mesh.revision(), request.cost(), field);
+    }
+
+    private static void padRouteRegions(
+            GreedyNavigationMesh.Snapshot mesh, boolean[] routeRegions,
+            boolean[] selectedRegions) {
+        System.arraycopy(routeRegions, 0, selectedRegions, 0,
+                routeRegions.length);
+        for (GreedyNavigationMesh.Transition transition : mesh.transitions()) {
+            if (routeRegions[transition.regionA()]) {
+                selectedRegions[transition.regionB()] = true;
+            }
+            if (routeRegions[transition.regionB()]) {
+                selectedRegions[transition.regionA()] = true;
+            }
+        }
+    }
+
+    /**
+     * Reads a serially prepared squad field. A missing/mismatched intent or an
+     * uncovered start is a cache miss, never an unreachable verdict: exact A*
+     * remains the correctness fallback. Occupancy is intentionally excluded
+     * from retained fields so ordinary crowd motion cannot invalidate them.
+     */
+    public int[] findSquadPathToGoal(
+            int squadId, long routingEpoch, Object routeToken,
+            int startX, int startY, int goalX, int goalY,
+            RouteCostField currentCost) {
+        if (!SharedGoalPolicy.squadRouteCorridorsEnabled()) {
+            return findSharedPathToGoal(startX, startY, goalX, goalY,
+                    currentCost);
+        }
+        long started = System.nanoTime();
+        boolean extracted = false;
+        try {
+            PreparedSquadRoute prepared = preparedSquadRoutes.get(squadId);
+            boolean matches = prepared != null
+                    && prepared.routingEpoch == routingEpoch
+                    && prepared.routeToken == routeToken
+                    && grid.inBounds(goalX, goalY)
+                    && prepared.goal == grid.index(goalX, goalY);
+            if (matches && prepared.field != null) {
+                int[] path = prepared.field.extract(startX, startY);
+                if (!Paths.isEmpty(path)) {
+                    extracted = true;
+                    return path;
+                }
+            }
+            RouteCostField fallbackCost = matches ? prepared.cost : currentCost;
+            float[] costs = fallbackCost == null ? null : fallbackCost.cells();
+            return GridPathfinder.findPathUnprofiled(grid, startX, startY,
+                    goalX, goalY, GridPathfinder.USE_CARDINAL_NAVIGATION,
+                    occupancyMap, costs, null);
+        } finally {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            if (profile != null) {
+                long elapsed = System.nanoTime() - started;
+                profile.record(TickInnerProfile.Bucket.PATHFIND, elapsed);
+                profile.record(extracted
+                                ? TickInnerProfile.Bucket.SQUAD_PATH_FIELD_EXTRACT
+                                : TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK,
+                        elapsed);
+                if (GridPathfinder.profilePathRequests()) {
+                    profile.recordPathfindRequest(startX, startY,
+                            goalX, goalY, !extracted);
+                }
+            }
+        }
+    }
+
+    public int preparedSquadRouteCount() { return preparedSquadRoutes.size(); }
+    public int lastSquadRouteBuilds() { return lastSquadRouteBuilds; }
+    public int lastSquadRouteReuses() { return lastSquadRouteReuses; }
+    public int lastSquadRouteDeferred() { return lastSquadRouteDeferred; }
+    public int lastSquadRouteCorridorCells() { return lastSquadRouteCorridorCells; }
+    public int lastSquadRouteSettledCells() { return lastSquadRouteSettledCells; }
+
+    private static final class PreparedSquadRoute {
+        private final long routingEpoch;
+        private final long builtEpoch;
+        private final Object routeToken;
+        private final int goal;
+        private final long meshRevision;
+        private final RouteCostField cost;
+        private final SquadRouteField field;
+
+        private PreparedSquadRoute(long routingEpoch, Object routeToken,
+                                   int goal, long meshRevision,
+                                   RouteCostField cost, SquadRouteField field) {
+            this.routingEpoch = routingEpoch;
+            this.builtEpoch = routingEpoch;
+            this.routeToken = routeToken;
+            this.goal = goal;
+            this.meshRevision = meshRevision;
+            this.cost = cost;
+            this.field = field;
+        }
+
+        private static PreparedSquadRoute failure(
+                SquadRouteRequest request, long meshRevision, int width) {
+            return new PreparedSquadRoute(request.routingEpoch(),
+                    request.routeToken(), request.goalY() * width
+                    + request.goalX(), meshRevision, request.cost(), null);
+        }
+
+        private PreparedSquadRoute(long routingEpoch, long builtEpoch,
+                                   Object routeToken, int goal,
+                                   long meshRevision, RouteCostField cost,
+                                   SquadRouteField field) {
+            this.routingEpoch = routingEpoch;
+            this.builtEpoch = builtEpoch;
+            this.routeToken = routeToken;
+            this.goal = goal;
+            this.meshRevision = meshRevision;
+            this.cost = cost;
+            this.field = field;
+        }
+
+        private boolean isFresh(SquadRouteRequest request, long revision,
+                                int width) {
+            return routingEpoch == request.routingEpoch()
+                    && builtEpoch == request.routingEpoch()
+                    && routeToken == request.routeToken()
+                    && goal == request.goalY() * width + request.goalX()
+                    && meshRevision == revision;
+        }
+
+        private boolean isCompatible(SquadRouteRequest request, long revision,
+                                     int width) {
+            if (goal != request.goalY() * width + request.goalX()
+                    || meshRevision != revision || field == null) return false;
+            for (int start : request.startCells()) {
+                if (!field.covers(start)) return false;
+            }
+            return true;
+        }
+
+        private PreparedSquadRoute adopt(SquadRouteRequest request) {
+            return new PreparedSquadRoute(request.routingEpoch(), builtEpoch,
+                    request.routeToken(), goal, meshRevision, cost, field);
+        }
+    }
+
+    private record RouteCandidate(SquadRouteRequest request,
+                                  PreparedSquadRoute retained,
+                                  boolean compatible) { }
 
     public void beginSharedGoalPathSnapshot() {
         sharedGoalPathfinder.beginSnapshot();

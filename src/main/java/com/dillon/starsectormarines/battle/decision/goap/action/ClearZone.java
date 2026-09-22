@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -35,7 +37,13 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * custom plan. Empty preconditions/effects: not used by the backward-chaining
  * planner.
  */
-public final class ClearZone extends AbstractZoneAction {
+public final class ClearZone extends AbstractZoneAction implements SquadRouteGoalProvider {
+
+    @Override
+    public Goal squadRouteGoal(Squad squad, BattleView sim) {
+        int[] interior = interiorCellOf(targetZoneId, sim);
+        return interior == null ? null : new Goal(interior[0], interior[1]);
+    }
 
     public ClearZone(int targetZoneId) {
         super(targetZoneId);

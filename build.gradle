@@ -432,7 +432,10 @@ tasks.register('profileBattleFixture', Test) {
      'battle.profile.sliceTicks', 'battle.profile.minimumMillis',
      'battle.unitUpdate.minimumParallelUnits',
      'battle.pathfinding.sharedGoalFields',
-     'battle.pathfinding.minimumSharedGoalUnits'].each { propertyName ->
+     'battle.pathfinding.minimumSharedGoalUnits',
+     'battle.pathfinding.squadRouteCorridors',
+     'battle.pathfinding.maxSquadRouteBuildsPerTick',
+     'battle.pathfinding.casualtyRouteCost'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) {
             systemProperty propertyName, propertyValue

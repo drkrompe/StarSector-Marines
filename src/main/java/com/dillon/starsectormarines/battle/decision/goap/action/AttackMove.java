@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
 import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -48,7 +49,14 @@ import java.util.Map;
  * morale, a lost fire team, or a fresh assignment still pull it off the role
  * the ordinary way.
  */
-public final class AttackMove extends AbstractZoneAction {
+public final class AttackMove extends AbstractZoneAction implements SquadRouteGoalProvider {
+
+    @Override
+    public Goal squadRouteGoal(Squad squad, BattleView sim) {
+        return squad.assaultPicture.isManeuvering()
+                ? null
+                : new Goal(destX, destY);
+    }
 
     /** Cells from the destination within which the attack move is done. */
     public static final float ARRIVAL_RADIUS = 2f;

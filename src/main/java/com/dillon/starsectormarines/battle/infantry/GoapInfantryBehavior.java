@@ -332,6 +332,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             return;
         }
 
+        squad.routingEpoch++;
+
         // A live-member change invalidates both the role partition and any
         // in-flight bound authored from it. Sticky mission plans may return
         // the same SquadPlan instance below, so matching target geometry is

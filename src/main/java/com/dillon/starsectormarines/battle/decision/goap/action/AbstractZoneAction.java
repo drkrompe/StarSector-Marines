@@ -523,8 +523,16 @@ abstract class AbstractZoneAction implements Action {
             // biasing that would move somebody off cover for a reason having
             // nothing to do with the shot in front of them.
             RouteCostField losses = sim.getRouteCostField(squad.faction);
+            SquadPlan plan = squad.currentPlan;
+            SquadPlan.Step step = plan == null ? null : plan.currentStep();
+            // Another member can advance the shared plan during execution.
+            // Only a matching prepared step may serve this action's route.
+            Object routeToken = step != null && step.action == this ? step : null;
             sim.setPath(member,
-                    SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
+                    SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount())
+                            ? sim.findSquadPathToGoal(squad.id, squad.routingEpoch,
+                                    routeToken, memberX, memberY, destX, destY, losses)
+                            : SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
                             ? sim.findSharedPathToGoal(memberX, memberY,
                                     destX, destY, losses)
                             : GridPathfinder.findPath(sim.getGrid(),

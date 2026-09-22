@@ -589,6 +589,8 @@ public final class Squad {
 
     /** Squad's currently-executing plan, or null when the planner has nothing to do (no relevant goal / no reachable plan). */
     public SquadPlan currentPlan = null;
+    /** Advances on every actual replan, including retention of a sticky plan instance. */
+    public long routingEpoch = 0L;
     /** Strategic assignment snapshot consumed by the last replan. */
     public ObjectiveAssignment assignedObjectiveAtLastPlan;
     /** Goal the planner chose at the last replan. Null when the squad has no relevant goal. Diagnostic — consumed by the GOAP debug HUD; not load-bearing for execution. */
