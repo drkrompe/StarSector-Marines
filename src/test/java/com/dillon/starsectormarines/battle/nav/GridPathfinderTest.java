@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -7,8 +8,28 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GridPathfinderTest {
+
+    @Test
+    void reportsActualExpandedNodesAndPathLength() {
+        NavigationGrid grid = new NavigationGrid(3, 1);
+        for (int x = 0; x < 3; x++) grid.setWalkableFloor(x, 0);
+        TickInnerProfile profile = new TickInnerProfile();
+        TickInnerProfile.setCurrent(profile);
+        try {
+            assertArrayEquals(new int[]{0, 0, 1, 0, 2, 0},
+                    GridPathfinder.findPath(grid, 0, 0, 2, 0));
+            TickInnerProfile.PathSearch search = profile.slowPathSearches().get(0);
+            assertEquals(3, search.pathCells());
+            assertEquals(3, search.expandedNodes());
+            assertEquals(3L, profile.pathfindExpandedNodes());
+            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
+        } finally {
+            TickInnerProfile.releaseCurrentThread();
+        }
+    }
 
     @Test
     void reconstructsValidParentChain() {

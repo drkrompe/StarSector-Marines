@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -75,6 +77,57 @@ class TickInnerProfileTest {
         assertEquals(2, aggregate.pathfindRequestCount());
         assertEquals(1, aggregate.uniquePathfindGoalCount());
         assertEquals(2, aggregate.maximumPathfindGoalFanIn());
+    }
+
+    @Test
+    void slowSearchesMergeByIndividualDurationAndFreezeAcrossReset() {
+        TickInnerProfile aggregate = new TickInnerProfile();
+        TickInnerProfile worker = new TickInnerProfile();
+        for (int i = 0; i < 10; i++) {
+            aggregate.recordPathSearch(i + 1L, i, 1, 20, 2,
+                    false, i + 1, i + 2);
+        }
+        worker.recordPathSearch(20L, 50, 3, 80, 4, true, 0, 150);
+        worker.recordPathSearch(5L, 51, 3, 81, 4, false, 12, 8);
+
+        aggregate.addFrom(worker);
+        TickInnerProfile.Snapshot frozen = aggregate.snapshot();
+        List<TickInnerProfile.PathSearch> top = frozen.slowPathSearches;
+
+        assertEquals(8, top.size());
+        assertEquals(20L, top.get(0).nanos());
+        assertEquals(50, top.get(0).startX());
+        assertTrue(top.get(0).usesOccupancy());
+        assertEquals(0, top.get(0).pathCells());
+        assertEquals(10L, top.get(1).nanos());
+        assertEquals(5L, top.get(7).nanos());
+        assertEquals(223L, frozen.pathfindExpandedNodes);
+
+        aggregate.reset();
+        worker.reset();
+        assertTrue(aggregate.slowPathSearches().isEmpty());
+        assertEquals(0L, aggregate.pathfindExpandedNodes());
+        assertEquals(20L, frozen.slowPathSearches.get(0).nanos());
+        assertEquals(223L, frozen.pathfindExpandedNodes);
+    }
+
+    @Test
+    void workerMergeTransfersSearchSamplesAndResetsWorkerStorage() {
+        TickInnerProfile.releaseCurrentThread();
+        TickInnerProfile destination = new TickInnerProfile();
+        TickInnerProfile worker = TickInnerProfile.current();
+        try {
+            worker.recordPathSearch(600L, 2, 3, 10, 11,
+                    true, 9, 40);
+            TickInnerProfile.mergeAllInto(destination);
+
+            assertEquals(40L, destination.pathfindExpandedNodes());
+            assertEquals(600L, destination.slowPathSearches().get(0).nanos());
+            assertEquals(0L, worker.pathfindExpandedNodes());
+            assertTrue(worker.slowPathSearches().isEmpty());
+        } finally {
+            TickInnerProfile.releaseCurrentThread();
+        }
     }
 
     @Test

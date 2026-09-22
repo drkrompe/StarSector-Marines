@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.profile;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,12 +46,42 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * reference and shouldn't have to. The thread-local slot keeps parallel unit
  * workers isolated until their counters are merged after dispatch.
  *
- * <p>Cost: each {@link #record} call is one nanoTime delta plus a long+int
- * array increment — ~5ns. At ~5 record sites per unit × ~400 units = ~10µs
- * overhead per tick, well under 1% of the steady-state 4-7ms tick budget;
- * commander records occur only on their slow cadences.
+ * <p>Ordinary bucket recording is array-based; flat A* searches additionally
+ * update a fixed-size slowest-search sample. Frozen copies allocate only for
+ * spike snapshots or manual dumps, not once per search.
  */
 public final class TickInnerProfile {
+
+    /** Bounded per-tick diagnostic sample, ranked by individual search duration. */
+    public static final int SLOW_PATH_SEARCH_LIMIT = 8;
+
+    public record PathSearch(long nanos, int startX, int startY,
+                             int goalX, int goalY, boolean usesOccupancy,
+                             boolean found, int pathCells, int expandedNodes) {}
+
+    private static final class MutablePathSearch {
+        long nanos;
+        int startX, startY, goalX, goalY, pathCells, expandedNodes;
+        boolean usesOccupancy, found;
+
+        void set(long nanos, int startX, int startY, int goalX, int goalY,
+                 boolean usesOccupancy, int pathCells, int expandedNodes) {
+            this.nanos = nanos;
+            this.startX = startX;
+            this.startY = startY;
+            this.goalX = goalX;
+            this.goalY = goalY;
+            this.usesOccupancy = usesOccupancy;
+            this.found = pathCells > 0;
+            this.pathCells = pathCells;
+            this.expandedNodes = expandedNodes;
+        }
+
+        PathSearch freeze() {
+            return new PathSearch(nanos, startX, startY, goalX, goalY,
+                    usesOccupancy, found, pathCells, expandedNodes);
+        }
+    }
 
     public enum Bucket {
         // ---- Per-behavior buckets — what updateUnit's dispatch went into. ----
@@ -223,9 +254,18 @@ public final class TickInnerProfile {
     private int occupancyPathfindRequestCount;
     private long squadRouteCorridorCells;
     private long squadRouteSettledCells;
+    private long pathfindExpandedNodes;
+    private final MutablePathSearch[] slowPathSearches = new MutablePathSearch[SLOW_PATH_SEARCH_LIMIT];
+    private int slowPathSearchCount;
     private Bucket activeBehavior;
     /** Per action-class {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}; keyed by simple class name. */
     private final Map<String, long[]> actions = new HashMap<>();
+
+    public TickInnerProfile() {
+        for (int i = 0; i < slowPathSearches.length; i++) {
+            slowPathSearches[i] = new MutablePathSearch();
+        }
+    }
 
     /** Zeros all counters. Call once per tick. */
     public void reset() {
@@ -235,6 +275,8 @@ public final class TickInnerProfile {
         occupancyPathfindRequestCount = 0;
         squadRouteCorridorCells = 0L;
         squadRouteSettledCells = 0L;
+        pathfindExpandedNodes = 0L;
+        slowPathSearchCount = 0;
         activeBehavior = null;
         actions.clear();
     }
@@ -303,6 +345,35 @@ public final class TickInnerProfile {
         if (usesOccupancy) occupancyPathfindRequestCount++;
     }
 
+    /** One timed public A* search. Storage is fixed and reused across ticks. */
+    public void recordPathSearch(long durationNanos,
+                                 int startX, int startY, int goalX, int goalY,
+                                 boolean usesOccupancy, int pathCells,
+                                 int expandedNodes) {
+        pathfindExpandedNodes += expandedNodes;
+        retainSlowPathSearch(durationNanos, startX, startY, goalX, goalY,
+                usesOccupancy, pathCells, expandedNodes);
+    }
+
+    private void retainSlowPathSearch(long durationNanos,
+                                      int startX, int startY, int goalX, int goalY,
+                                      boolean usesOccupancy, int pathCells,
+                                      int expandedNodes) {
+        int index = 0;
+        while (index < slowPathSearchCount
+                && slowPathSearches[index].nanos >= durationNanos) index++;
+        if (index == SLOW_PATH_SEARCH_LIMIT) return;
+        int moveFrom = Math.min(slowPathSearchCount, SLOW_PATH_SEARCH_LIMIT - 1);
+        MutablePathSearch slot = slowPathSearches[moveFrom];
+        for (int i = moveFrom; i > index; i--) {
+            slowPathSearches[i] = slowPathSearches[i - 1];
+        }
+        slowPathSearches[index] = slot;
+        slot.set(durationNanos, startX, startY, goalX, goalY,
+                usesOccupancy, pathCells, expandedNodes);
+        if (slowPathSearchCount < SLOW_PATH_SEARCH_LIMIT) slowPathSearchCount++;
+    }
+
     /** Cell-volume evidence for each compact squad field built this tick. */
     public void recordSquadRouteFieldShape(int corridorCells,
                                            int settledCells) {
@@ -338,6 +409,13 @@ public final class TickInnerProfile {
         occupancyPathfindRequestCount += other.occupancyPathfindRequestCount;
         squadRouteCorridorCells += other.squadRouteCorridorCells;
         squadRouteSettledCells += other.squadRouteSettledCells;
+        pathfindExpandedNodes += other.pathfindExpandedNodes;
+        for (int i = 0; i < other.slowPathSearchCount; i++) {
+            MutablePathSearch sample = other.slowPathSearches[i];
+            retainSlowPathSearch(sample.nanos, sample.startX, sample.startY,
+                    sample.goalX, sample.goalY, sample.usesOccupancy,
+                    sample.pathCells, sample.expandedNodes);
+        }
         for (Map.Entry<String, long[]> entry : other.actions.entrySet()) {
             long[] sample = actions.get(entry.getKey());
             if (sample == null) {
@@ -371,6 +449,16 @@ public final class TickInnerProfile {
 
     public long squadRouteCorridorCells() { return squadRouteCorridorCells; }
     public long squadRouteSettledCells() { return squadRouteSettledCells; }
+    public long pathfindExpandedNodes() { return pathfindExpandedNodes; }
+
+    /** Frozen samples for manual dumps; the spike latch freezes these at endTick. */
+    public List<PathSearch> slowPathSearches() {
+        List<PathSearch> result = new ArrayList<>(slowPathSearchCount);
+        for (int i = 0; i < slowPathSearchCount; i++) {
+            result.add(slowPathSearches[i].freeze());
+        }
+        return List.copyOf(result);
+    }
 
     /** Exact distinct start+goal pairs requested in this tick. */
     public int uniquePathfindRequestCount() {
@@ -423,7 +511,8 @@ public final class TickInnerProfile {
     /** Returns a frozen copy of the current bucket state. The caller owns the arrays — mutating them won't affect this profile or vice-versa. */
     public Snapshot snapshot() {
         return new Snapshot(nanos.clone(), counts.clone(), copyActions(actions),
-                squadRouteCorridorCells, squadRouteSettledCells);
+                squadRouteCorridorCells, squadRouteSettledCells,
+                pathfindExpandedNodes, slowPathSearches());
     }
 
     /** Immutable frozen bucket state — what spike dumps carry forward past the next tick's reset. */
@@ -434,6 +523,8 @@ public final class TickInnerProfile {
         public final Map<String, long[]> actions;
         public final long squadRouteCorridorCells;
         public final long squadRouteSettledCells;
+        public final long pathfindExpandedNodes;
+        public final List<PathSearch> slowPathSearches;
         public Snapshot(long[] nanos, int[] counts) {
             this(nanos, counts, Collections.emptyMap(), 0L, 0L);
         }
@@ -443,11 +534,20 @@ public final class TickInnerProfile {
         public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions,
                         long squadRouteCorridorCells,
                         long squadRouteSettledCells) {
+            this(nanos, counts, actions, squadRouteCorridorCells,
+                    squadRouteSettledCells, 0L, List.of());
+        }
+        public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions,
+                        long squadRouteCorridorCells,
+                        long squadRouteSettledCells, long pathfindExpandedNodes,
+                        List<PathSearch> slowPathSearches) {
             this.nanos = nanos;
             this.counts = counts;
             this.actions = actions;
             this.squadRouteCorridorCells = squadRouteCorridorCells;
             this.squadRouteSettledCells = squadRouteSettledCells;
+            this.pathfindExpandedNodes = pathfindExpandedNodes;
+            this.slowPathSearches = List.copyOf(slowPathSearches);
         }
         public long nanosOf(Bucket b) { return nanos[b.ordinal()]; }
         public int countOf(Bucket b)  { return counts[b.ordinal()]; }

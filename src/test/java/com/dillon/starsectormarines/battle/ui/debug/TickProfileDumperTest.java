@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import org.json.JSONObject;
@@ -26,6 +27,43 @@ class TickProfileDumperTest {
     private static final String FIXTURE_PATH =
             "starsector_marines/debug/tick_profile_1.fixture.json";
     private static final int CAP = TickProfileDumper.MAX_COMMON_FILE_CHARS;
+
+    @Test
+    void serializesBoundedSearchSamplesAndWorkerTimeWarning() throws Exception {
+        TickInnerProfile profile = new TickInnerProfile();
+        profile.recordPathSearch(1_250_000L, 4, 5, 60, 70,
+                true, 0, 231);
+        profile.recordPathSearch(750_000L, 6, 7, 8, 9,
+                false, 12, 28);
+        JSONObject root = new JSONObject();
+
+        TickProfileDumper.putPathSearches(root,
+                profile.snapshot().pathfindExpandedNodes,
+                profile.snapshot().slowPathSearches);
+        JSONObject parsed = new JSONObject(root.toString());
+
+        assertEquals(259L, parsed.getLong("flatPathfindExpandedNodes"));
+        assertTrue(parsed.getString("pathSearchTimingSemantics")
+                .contains("parallel workers"));
+        assertTrue(parsed.getString("pathSearchTimingSemantics")
+                .contains("public flat GridPathfinder"));
+        assertEquals(2, parsed.getJSONArray("slowFlatPathSearches").length());
+        JSONObject first = parsed.getJSONArray("slowFlatPathSearches").getJSONObject(0);
+        assertEquals(1_250_000L, first.getLong("nanos"));
+        assertEquals(1250.0, first.getDouble("us"));
+        assertEquals(4, first.getInt("startX"));
+        assertEquals(5, first.getInt("startY"));
+        assertEquals(60, first.getInt("goalX"));
+        assertEquals(70, first.getInt("goalY"));
+        assertTrue(first.getBoolean("usesOccupancy"));
+        assertFalse(first.getBoolean("found"));
+        assertEquals(0, first.getInt("pathCells"));
+        assertEquals(231, first.getInt("expandedNodes"));
+        assertTrue(parsed.getJSONArray("slowFlatPathSearches").getJSONObject(1)
+                .getBoolean("found"));
+        assertTrue(root.toString().length() < 2_000,
+                "bounded top-search detail must stay small beside an embedded fixture");
+    }
 
     @Test
     void smallFixtureStaysEmbedded() throws Exception {
