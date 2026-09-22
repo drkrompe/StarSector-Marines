@@ -186,6 +186,26 @@ Do not run builds or leave generated task files there.
   compounds and its garrison allocated against them. It is composed from locals
   now; the `last*` fields remain as the single-threaded preview seam the render
   tests read. Nothing serial ever saw it, and nothing serial ever will.
+- `gradlew.bat profileConquestTail` → opt-in 30 Hz-paced, continuous Conquest
+  tail pass through the production async-route and parallel-unit scheduler.
+  It runs the checked-in full-strength fixture for 1200 ticks by default,
+  excludes the first 300 from timing, and writes
+  `build/reports/performance/conquest-tail/summary.json`. Each retained worst
+  tick includes phase wall times, inner behavior/action/search counters, squad
+  replan triggers and slowest squads, unit-worker timings and slowest units,
+  plus async-route queue/activity deltas;
+  the report also retains the worst tick for each phase. Use
+  `-Dbattle.fixture.path=<absolute path>` to replay construction inputs from a
+  live `tick_profile_spike_*.json.data` or its `.fixture.json.data` sibling,
+  and `-Dbattle.tail.totalTicks=N`, `-Dbattle.tail.warmupTicks=N`,
+  `-Dbattle.tail.paceMillis=N`, or `-Dbattle.tail.outputDir=<absolute path>`
+  for targeted runs. The test fork prefers the game's bundled Java 17 when
+  present; `-Dbattle.tail.javaExecutable=<absolute path>` overrides it. The
+  live dump is a tick-zero construction fixture, not
+  an in-flight state snapshot, so replay need not reproduce the exact spike.
+  Timings are machine-local diagnostic evidence, never a portable test gate.
+  This focused tail pass does not replace the proposed fixture performance
+  matrix and its cross-run compatibility checks.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

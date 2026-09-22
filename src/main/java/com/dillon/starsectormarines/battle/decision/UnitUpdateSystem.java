@@ -13,8 +13,14 @@ import com.dillon.starsectormarines.battle.nav.LosCaches;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
@@ -89,6 +95,42 @@ public final class UnitUpdateSystem implements AutoCloseable {
     private final int minimumParallelUnits;
     /** The navigation grid's line-of-sight caches, so a terminating worker drops its own slot on the grid it ticked rather than on whichever grid happens to be current. */
     private final LosCaches losCaches;
+    private final ConcurrentLinkedQueue<WorkerDiagnostics> diagnosticThreads =
+            new ConcurrentLinkedQueue<>();
+    private final ThreadLocal<WorkerDiagnostics> currentDiagnostics =
+            ThreadLocal.withInitial(() -> {
+                WorkerDiagnostics diagnostics = new WorkerDiagnostics();
+                diagnosticThreads.add(diagnostics);
+                return diagnostics;
+            });
+    private volatile boolean diagnosticsEnabled;
+    private volatile TickDiagnostics lastTickDiagnostics;
+
+    /** Individual unit wall time is the existing behavior-bucket timer, including role dispatch. */
+    public record UnitSample(long entityId, UnitRole role, long durationNanos) {}
+
+    /**
+     * Optional UPDATE_UNITS evidence for the most recently completed tick.
+     * Await time includes worker execution and is not additive with sampled
+     * unit time. Sampled unit time is summed across threads, so it can exceed
+     * dispatch wall time when work overlaps. Skipped riders/ambient actors do
+     * not enter the behavior timer.
+     */
+    public record TickDiagnostics(boolean parallel, int liveCount, int poolParallelism,
+                                  long dispatchNanos, long awaitWorkersNanos,
+                                  int activeThreads, int sampledUnitCount,
+                                  long sampledUnitNanos, long maxThreadUnitNanos,
+                                  List<UnitSample> slowestUnits) {}
+
+    /** Enable only for dedicated profiling runs; the normal dispatch allocates no samples. */
+    public void setDiagnosticsEnabled(boolean enabled) {
+        diagnosticsEnabled = enabled;
+        lastTickDiagnostics = null;
+    }
+
+    public TickDiagnostics lastTickDiagnostics() {
+        return lastTickDiagnostics;
+    }
 
     public UnitUpdateSystem(UnitRosterService roster,
                             DamageService damageService,
@@ -123,28 +165,43 @@ public final class UnitUpdateSystem implements AutoCloseable {
     public void tick(BattleSimulation sim) {
         long[] snapshot = roster.denseArray();
         int liveCount = roster.liveCount();
+        boolean captureDiagnostics = diagnosticsEnabled;
+        if (captureDiagnostics) {
+            for (WorkerDiagnostics thread : diagnosticThreads) thread.reset();
+        }
+        boolean parallel = shouldDispatchInParallel(
+                liveCount, minimumParallelUnits, pool.getParallelism());
+        long dispatchStart = captureDiagnostics ? System.nanoTime() : 0L;
+        long awaitWorkersNanos = 0L;
         damageService.enterParallel();
         try {
-            if (shouldDispatchInParallel(
-                    liveCount, minimumParallelUnits, pool.getParallelism())) {
-                dispatchParallel(snapshot, liveCount, sim);
+            if (parallel) {
+                awaitWorkersNanos = dispatchParallel(
+                        snapshot, liveCount, sim, captureDiagnostics);
             } else {
                 for (int i = 0; i < liveCount; i++) {
-                    updateUnit(snapshot[i], sim);
+                    updateUnit(snapshot[i], sim, captureDiagnostics);
                 }
             }
         } finally {
             damageService.exitParallel();
         }
+        long dispatchNanos = captureDiagnostics ? System.nanoTime() - dispatchStart : 0L;
         TickInnerProfile.mergeAllInto(tickInnerProfile);
+        if (captureDiagnostics) {
+            lastTickDiagnostics = collectDiagnostics(
+                    parallel, liveCount, dispatchNanos, awaitWorkersNanos);
+        }
     }
 
-    private void dispatchParallel(
-            long[] snapshot, int liveCount, BattleSimulation sim) {
+    private long dispatchParallel(long[] snapshot, int liveCount, BattleSimulation sim,
+                                  boolean captureDiagnostics) {
         try {
-            pool.submit(() -> IntStream.range(0, liveCount).parallel()
-                            .forEach(i -> updateUnit(snapshot[i], sim)))
-                    .get();
+            ForkJoinTask<?> task = pool.submit(() -> IntStream.range(0, liveCount).parallel()
+                    .forEach(i -> updateUnit(snapshot[i], sim, captureDiagnostics)));
+            long awaitStart = captureDiagnostics ? System.nanoTime() : 0L;
+            task.get();
+            return captureDiagnostics ? System.nanoTime() - awaitStart : 0L;
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("UPDATE_UNITS dispatch interrupted", ie);
@@ -152,6 +209,80 @@ public final class UnitUpdateSystem implements AutoCloseable {
             Throwable cause = ee.getCause();
             if (cause instanceof RuntimeException re) throw re;
             throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
+        }
+    }
+
+    private TickDiagnostics collectDiagnostics(boolean parallel, int liveCount,
+                                               long dispatchNanos, long awaitWorkersNanos) {
+        SlowUnitCollector slowest = new SlowUnitCollector();
+        int activeThreads = 0;
+        int sampledUnitCount = 0;
+        long sampledUnitNanos = 0L;
+        long maxThreadUnitNanos = 0L;
+        for (WorkerDiagnostics thread : diagnosticThreads) {
+            if (thread.sampledUnitCount == 0) continue;
+            activeThreads++;
+            sampledUnitCount += thread.sampledUnitCount;
+            sampledUnitNanos += thread.sampledUnitNanos;
+            maxThreadUnitNanos = Math.max(maxThreadUnitNanos, thread.sampledUnitNanos);
+            for (UnitSample sample : thread.slowest.samples()) slowest.offer(sample);
+        }
+        return new TickDiagnostics(parallel, liveCount, pool.getParallelism(),
+                dispatchNanos, awaitWorkersNanos, activeThreads, sampledUnitCount,
+                sampledUnitNanos, maxThreadUnitNanos, slowest.samples());
+    }
+
+    private final class WorkerDiagnostics {
+        private final SlowUnitCollector slowest = new SlowUnitCollector();
+        private int sampledUnitCount;
+        private long sampledUnitNanos;
+
+        private void reset() {
+            sampledUnitCount = 0;
+            sampledUnitNanos = 0L;
+            slowest.clear();
+        }
+
+        private void record(long entityId, long durationNanos, BattleSimulation sim) {
+            sampledUnitCount++;
+            sampledUnitNanos += durationNanos;
+            if (slowest.accepts(entityId, durationNanos)) {
+                slowest.offer(new UnitSample(
+                        entityId, sim.role().role(entityId), durationNanos));
+            }
+        }
+    }
+
+    /** Per-thread bounded collector; the dispatch never contends on its hot path. */
+    static final class SlowUnitCollector {
+        static final int LIMIT = 8;
+        private static final Comparator<UnitSample> ASCENDING =
+                Comparator.comparingLong(UnitSample::durationNanos)
+                        .thenComparingLong(UnitSample::entityId);
+        private final PriorityQueue<UnitSample> samples = new PriorityQueue<>(ASCENDING);
+
+        boolean accepts(long entityId, long durationNanos) {
+            if (samples.size() < LIMIT) return true;
+            UnitSample smallest = samples.peek();
+            return durationNanos > smallest.durationNanos()
+                    || (durationNanos == smallest.durationNanos()
+                    && entityId > smallest.entityId());
+        }
+
+        void offer(UnitSample sample) {
+            if (!accepts(sample.entityId(), sample.durationNanos())) return;
+            if (samples.size() == LIMIT) samples.remove();
+            samples.add(sample);
+        }
+
+        List<UnitSample> samples() {
+            ArrayList<UnitSample> result = new ArrayList<>(samples);
+            result.sort(ASCENDING.reversed());
+            return List.copyOf(result);
+        }
+
+        void clear() {
+            samples.clear();
         }
     }
 
@@ -184,6 +315,8 @@ public final class UnitUpdateSystem implements AutoCloseable {
         } catch (InterruptedException ex) {
             pool.shutdownNow();
             Thread.currentThread().interrupt();
+        } finally {
+            currentDiagnostics.remove();
         }
     }
 
@@ -221,7 +354,7 @@ public final class UnitUpdateSystem implements AutoCloseable {
      * classes hold no per-system instance state — they're invoked through their
      * static {@code INSTANCE} singletons.
      */
-    private void updateUnit(long u, BattleSimulation sim) {
+    private void updateUnit(long u, BattleSimulation sim, boolean captureDiagnostics) {
         // Ambient work is exclusive while active. The battle-owned service
         // releases interrupted actors before this phase, so their existing
         // role resumes here without a role swap or a second actor model.
@@ -248,7 +381,9 @@ public final class UnitUpdateSystem implements AutoCloseable {
             behavior.update(u, sim);
         } finally {
             profile.exitBehavior();
-            profile.record(bucket, System.nanoTime() - t0);
+            long elapsed = System.nanoTime() - t0;
+            profile.record(bucket, elapsed);
+            if (captureDiagnostics) currentDiagnostics.get().record(u, elapsed, sim);
         }
         // Route through TickInnerProfile.current() so workers in the parallel
         // dispatch write to their per-thread profile (ThreadLocal auto-init),
