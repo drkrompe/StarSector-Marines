@@ -383,7 +383,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             // No relevant goal — sit idle until something changes.
             squad.currentPlan = null;
             squad.currentGoal = null;
-            squad.timeSinceReplan = 0f;
+            squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
             squad.assignedObjectiveAtLastPlan = executableAssignment;
             squad.clearMechScreen();
@@ -436,7 +436,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         else squad.clearMechScreen();
         squad.currentPlan = plan;
         squad.currentGoal = goal;
-        squad.timeSinceReplan = 0f;
+        squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
         squad.assignedObjectiveAtLastPlan = executableAssignment;
     }

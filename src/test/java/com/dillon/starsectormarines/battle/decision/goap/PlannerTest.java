@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines.battle.decision.goap;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,6 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * to exercise one planner property.
  */
 public class PlannerTest {
+
+    @Test
+    public void periodicReplansAfterCommonResetAreSpreadAcrossSquads() {
+        Map<Integer, Integer> dueAtTick = new HashMap<>();
+        for (int squadId = 0; squadId < 150; squadId++) {
+            float timer = Planner.periodicTimerAfterReplan(squadId);
+            int tick = 0;
+            while (timer < Planner.REPLAN_PERIOD) {
+                timer += BattleSimulation.TICK_DT;
+                tick++;
+            }
+            dueAtTick.merge(tick, 1, Integer::sum);
+        }
+
+        assertEquals(15, dueAtTick.size());
+        assertTrue(dueAtTick.values().stream().allMatch(count -> count == 10));
+        assertTrue(dueAtTick.keySet().stream().allMatch(tick -> tick >= 53 && tick <= 68));
+    }
 
     @Test
     public void emptyPlanWhenGoalAlreadySatisfied() {
