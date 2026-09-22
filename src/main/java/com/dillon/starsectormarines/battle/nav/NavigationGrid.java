@@ -242,8 +242,8 @@ public class NavigationGrid {
      * parallel pathfinding. A topology revision retires them; the first query
      * after a revision rebuilds once under the publication lock.
      */
-    boolean arePathConnected(int startX, int startY, int goalX, int goalY,
-                             boolean cardinalOnly) {
+    public boolean arePathConnected(int startX, int startY, int goalX, int goalY,
+                                    boolean cardinalOnly) {
         if (!inBounds(startX, startY) || !inBounds(goalX, goalY)) return false;
         int[] labels = pathComponents(cardinalOnly);
         int start = labels[index(startX, startY)];
