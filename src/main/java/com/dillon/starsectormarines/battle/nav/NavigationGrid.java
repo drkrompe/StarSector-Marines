@@ -224,6 +224,15 @@ public class NavigationGrid {
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
 
+    /** Independent public-navigation snapshot for commander planning. */
+    public NavigationGrid copyNavigationTopology() {
+        NavigationGrid copy = new NavigationGrid(width, height);
+        System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
+        System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
+                edgePassability.length);
+        return copy;
+    }
+
     /**
      * Whether two cells share a structural walkable component under the same
      * step rule as A*. Occupancy and traversal costs can bend a route but
