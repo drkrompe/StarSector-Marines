@@ -65,11 +65,19 @@ class BattleFixtureTailProfileTest {
                               long gridChanges, long gridChangesConsumedByMesh,
                               boolean meshRefreshed,
                               int meshTilesCovered, int meshSeamsDerived,
+                              long meshCoverNanos, long meshSeamNanos,
+                              long meshAssemblyNanos, long meshRebuildNanos,
                               int meshRegions, int meshTransitions,
                               int meshTileCount,
                               int units, int squads) { }
 
     private record GcCounters(long collections, long collectionMillis) { }
+
+    private record MeshRefresh(int tick, long gridChangesConsumed,
+                               int tilesCovered, int seamsDerived,
+                               long coverNanos, long seamNanos,
+                               long assemblyNanos, long rebuildNanos,
+                               long navFlushNanos) { }
 
     @Name("com.dillon.starsectormarines.ConquestTailTick")
     @Label("Conquest tail tick")
@@ -116,6 +124,12 @@ class BattleFixtureTailProfileTest {
         int commanderPulses = 0;
         int meshRefreshes = 0;
         long meshTilesCovered = 0L;
+        long meshCoverNanos = 0L;
+        long meshSeamNanos = 0L;
+        long meshAssemblyNanos = 0L;
+        long meshRebuildNanos = 0L;
+        long setupPendingMeshChanges;
+        List<MeshRefresh> meshRefreshSamples = new ArrayList<>();
         int maximumUnits = 0;
         int minimumUnits = Integer.MAX_VALUE;
         long totalReplans = 0;
@@ -136,6 +150,7 @@ class BattleFixtureTailProfileTest {
                 recording.enable(TailTickEvent.class);
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
+            setupPendingMeshChanges = sim.getNavigationMesh().pendingGridChanges();
             sim.getSquadReplanSystem().setDiagnosticsEnabled(true);
             sim.getUnitUpdateSystem().setDiagnosticsEnabled(true);
             assertTrue(UnitUpdateSystem.configuredMinimumParallelUnits()
@@ -187,6 +202,10 @@ class BattleFixtureTailProfileTest {
                     if (meshRefreshed) {
                         meshRefreshes++;
                         meshTilesCovered += mesh.lastTilesCovered();
+                        meshCoverNanos += mesh.lastCoverNanos();
+                        meshSeamNanos += mesh.lastSeamNanos();
+                        meshAssemblyNanos += mesh.lastAssemblyNanos();
+                        meshRebuildNanos += mesh.lastRebuildNanos();
                     }
                     int sampleIndex = sim.simTickIndex - warmupTicks - 1;
                     durations[sampleIndex] = duration;
@@ -215,6 +234,14 @@ class BattleFixtureTailProfileTest {
                             phaseRecord = true;
                         }
                     }
+                    if (meshRefreshed) {
+                        meshRefreshSamples.add(new MeshRefresh(sim.simTickIndex,
+                                gridChangesConsumedByMesh,
+                                mesh.lastTilesCovered(), mesh.lastSeamsDerived(),
+                                mesh.lastCoverNanos(), mesh.lastSeamNanos(),
+                                mesh.lastAssemblyNanos(), mesh.lastRebuildNanos(),
+                                phases[TickProfile.Phase.NAV_FLUSH.ordinal()]));
+                    }
                     if (phaseRecord || worst.size() < topLimit
                             || duration > worst.peek().totalNanos()) {
                         TickSample sample = new TickSample(sim.simTickIndex, duration,
@@ -228,6 +255,10 @@ class BattleFixtureTailProfileTest {
                                 meshRefreshed,
                                 meshRefreshed ? mesh.lastTilesCovered() : 0,
                                 meshRefreshed ? mesh.lastSeamsDerived() : 0,
+                                meshRefreshed ? mesh.lastCoverNanos() : 0L,
+                                meshRefreshed ? mesh.lastSeamNanos() : 0L,
+                                meshRefreshed ? mesh.lastAssemblyNanos() : 0L,
+                                meshRefreshed ? mesh.lastRebuildNanos() : 0L,
                                 mesh.snapshot().regions().size(),
                                 mesh.snapshot().transitions().size(),
                                 mesh.tileCount(), units,
@@ -266,7 +297,9 @@ class BattleFixtureTailProfileTest {
         JSONObject report = report(fixturePath, fixtureBytes, totalTicks,
                 warmupTicks, paceMillis, durations, phaseTotals, innerTotals,
                 innerCounts, worst, worstByPhase, commanderPulses,
-                meshRefreshes, meshTilesCovered, totalReplans,
+                meshRefreshes, meshTilesCovered, setupPendingMeshChanges,
+                meshCoverNanos, meshSeamNanos, meshAssemblyNanos,
+                meshRebuildNanos, meshRefreshSamples, totalReplans,
                 minimumUnits, maximumUnits, firstRoutes,
                 finalRoutes, jfrPath);
         assertEquals(Math.min(topLimit, durations.length),
@@ -297,7 +330,12 @@ class BattleFixtureTailProfileTest {
                                      PriorityQueue<TickSample> worst,
                                      TickSample[] worstByPhase,
                                      int commanderPulses, int meshRefreshes,
-                                     long meshTilesCovered, long totalReplans,
+                                     long meshTilesCovered,
+                                     long setupPendingMeshChanges,
+                                     long meshCoverNanos, long meshSeamNanos,
+                                     long meshAssemblyNanos, long meshRebuildNanos,
+                                     List<MeshRefresh> meshRefreshSamples,
+                                     long totalReplans,
                                      int minimumUnits, int maximumUnits,
                                      AsyncDefendTrackRoutes.Metrics firstRoutes,
                                      AsyncDefendTrackRoutes.Metrics finalRoutes,
@@ -319,7 +357,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 2);
+        report.put("schemaVersion", 3);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -343,6 +381,25 @@ class BattleFixtureTailProfileTest {
         report.put("commanderPulses", commanderPulses);
         report.put("navigationMeshRefreshes", meshRefreshes);
         report.put("navigationMeshTilesCovered", meshTilesCovered);
+        report.put("setupPendingMeshChanges", setupPendingMeshChanges);
+        report.put("navigationMeshCoverTotalMs", millis(meshCoverNanos));
+        report.put("navigationMeshSeamTotalMs", millis(meshSeamNanos));
+        report.put("navigationMeshAssemblyTotalMs", millis(meshAssemblyNanos));
+        report.put("navigationMeshRebuildTotalMs", millis(meshRebuildNanos));
+        JSONArray refreshes = new JSONArray();
+        for (MeshRefresh refresh : meshRefreshSamples) {
+            refreshes.put(new JSONObject()
+                    .put("tick", refresh.tick())
+                    .put("gridChangesConsumed", refresh.gridChangesConsumed())
+                    .put("tilesCovered", refresh.tilesCovered())
+                    .put("seamsDerived", refresh.seamsDerived())
+                    .put("coverMs", millis(refresh.coverNanos()))
+                    .put("seamMs", millis(refresh.seamNanos()))
+                    .put("assemblyMs", millis(refresh.assemblyNanos()))
+                    .put("rebuildMs", millis(refresh.rebuildNanos()))
+                    .put("navFlushMs", millis(refresh.navFlushNanos())));
+        }
+        report.put("navigationMeshRefreshSamples", refreshes);
         report.put("replannedSquads", totalReplans);
         report.put("medianMs", millis(percentile(sorted, 0.50)));
         report.put("p95Ms", millis(percentile(sorted, 0.95)));
@@ -463,6 +520,10 @@ class BattleFixtureTailProfileTest {
                 .put("refreshed", sample.meshRefreshed())
                 .put("tilesCovered", sample.meshTilesCovered())
                 .put("seamsDerived", sample.meshSeamsDerived())
+                .put("coverMs", millis(sample.meshCoverNanos()))
+                .put("seamMs", millis(sample.meshSeamNanos()))
+                .put("assemblyMs", millis(sample.meshAssemblyNanos()))
+                .put("rebuildMs", millis(sample.meshRebuildNanos()))
                 .put("tileCount", sample.meshTileCount())
                 .put("regions", sample.meshRegions())
                 .put("transitions", sample.meshTransitions()));

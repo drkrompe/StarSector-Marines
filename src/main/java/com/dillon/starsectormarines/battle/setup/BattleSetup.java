@@ -287,6 +287,13 @@ public final class BattleSetup {
         for (Doodad d : map.doodads) sim.addDoodad(d);
         for (Doodad d : parkedVehicles) sim.addDoodad(d);
         LongList structures = spawnDefensePostTurrets(sim, defensePosts);
+        // The mesh is constructed with the simulation, before turret mounts
+        // are made transparent for projectile interception. Consume those
+        // setup-time grid writes here so the first live breach does not also
+        // re-cover every tile that happened to contain a defense post.
+        if (sim.getNavigationMesh().pendingGridChanges() > 0L) {
+            sim.getNavigationMesh().rebuild();
+        }
         return new MapBuild(sim, map, structures);
     }
 
