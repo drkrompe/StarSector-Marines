@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.infantry.EliminateEnemiesGoal;
 import org.junit.jupiter.api.Test;
 
@@ -99,6 +100,56 @@ public class GoalTest {
         assertSame(sibling, Goal.pickMostRelevant(
                 List.of(preferred, sibling), WorldState.EMPTY, null, null, Set.of(preferred)),
                 "declining the bucket winner promotes the runner-up, not the next bucket");
+    }
+
+    @Test
+    public void fallbackReusesGoalEvaluationsWithinOneReplan() {
+        int[] evaluations = {0};
+        Goal expensive = new Goal() {
+            @Override public String name() { return "expensive"; }
+            @Override public Priority priority() { return Priority.MISSION; }
+            @Override public float relevance(WorldState s, Squad sq, BattleView sim) {
+                evaluations[0]++;
+                return 1f;
+            }
+            @Override public WorldState desiredState(Squad sq, BattleView sim) {
+                return WorldState.EMPTY;
+            }
+        };
+        Goal fallback = stubGoal("fallback", Goal.Priority.ENGAGEMENT, 1f);
+        Goal.EvaluationContext context = new Goal.EvaluationContext(
+                WorldState.EMPTY, null, null, null);
+        assertSame(expensive, Goal.pickMostRelevantPrepared(
+                List.of(expensive, fallback), context, Set.of()).goal());
+        assertSame(fallback, Goal.pickMostRelevantPrepared(
+                List.of(expensive, fallback), context, Set.of(expensive)).goal());
+        assertEquals(1, evaluations[0]);
+    }
+
+    @Test
+    public void preparedPlanIsPublishedWithoutRunningCustomPlanAgain() {
+        SquadPlan prepared = new SquadPlan(List.of());
+        Goal goal = new Goal() {
+            @Override public String name() { return "prepared"; }
+            @Override public float relevance(WorldState s, Squad sq, BattleView sim) {
+                return 1f;
+            }
+            @Override public Evaluation evaluate(WorldState s, Squad sq,
+                                                 BattleView sim, EvaluationContext context) {
+                return new Evaluation(1f, prepared);
+            }
+            @Override public SquadPlan customPlan(Squad sq, BattleView sim) {
+                throw new AssertionError("prepared plan must be reused");
+            }
+            @Override public WorldState desiredState(Squad sq, BattleView sim) {
+                return WorldState.EMPTY;
+            }
+        };
+        Goal.EvaluationContext context = new Goal.EvaluationContext(
+                WorldState.EMPTY, null, null, null);
+        Goal.Choice choice = Goal.pickMostRelevantPrepared(
+                List.of(goal), context, Set.of());
+        assertSame(prepared, goal.customPlan(choice.evaluation(), null, null));
     }
 
     // --- stubs -----------------------------------------------------------

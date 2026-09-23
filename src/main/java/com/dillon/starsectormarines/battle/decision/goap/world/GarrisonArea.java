@@ -23,7 +23,7 @@ import java.util.List;
  *
  * <p>Two entry points: {@link #isGarrisonZone} tests one zone against an
  * explicit box (used where the caller already has a box — e.g. a per-building
- * bbox), and {@link #garrisonZones} enumerates the whole graph against a node's
+ * bbox), and {@link #garrisonZones} discovers local candidates against a node's
  * footprint expanded by a margin (used by the garrison behaviors that patrol a
  * multi-building compound).
  */
@@ -77,8 +77,27 @@ public final class GarrisonArea {
         if (sim == null) return List.of();
         ZoneGraph graph = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
-        List<Integer> out = new ArrayList<>();
-        for (NavigationZone zone : graph.getZones()) {
+        List<NavigationZone> zones = graph.getZones();
+        boolean[] visited = new boolean[zones.size()];
+        List<NavigationZone> candidates = new ArrayList<>();
+        int left = Math.max(0, boxL);
+        int top = Math.max(0, boxT);
+        int right = Math.min(grid.getWidth() - 1, boxR);
+        int bottom = Math.min(grid.getHeight() - 1, boxB);
+        // A qualifying zone has at least half its cells in this box, so it
+        // must own a cell here. Discover those candidates locally rather than
+        // visiting every zone (and its cell array) on a large Conquest map.
+        for (int y = top; y <= bottom; y++) {
+            for (int x = left; x <= right; x++) {
+                int id = graph.zoneIdAt(x, y);
+                if (id < 0 || id >= zones.size() || visited[id]) continue;
+                visited[id] = true;
+                NavigationZone zone = zones.get(id);
+                if (zone != null) candidates.add(zone);
+            }
+        }
+        List<Integer> out = new ArrayList<>(candidates.size());
+        for (NavigationZone zone : candidates) {
             // Skip 1-cell doorway micro-zones — they're portals between rooms,
             // not rooms to patrol, and would otherwise inflate the room count
             // (and so the multi-building check) of a single-building footprint.
@@ -87,8 +106,11 @@ public final class GarrisonArea {
                 out.add(zone.getZoneId());
             }
         }
-        out.sort((a, b) -> Integer.compare(
-                graph.zoneById(b).getCellCount(), graph.zoneById(a).getCellCount()));
+        out.sort((a, b) -> {
+            int bySize = Integer.compare(graph.zoneById(b).getCellCount(),
+                    graph.zoneById(a).getCellCount());
+            return bySize != 0 ? bySize : Integer.compare(a, b);
+        });
         return out;
     }
 
@@ -110,6 +132,7 @@ public final class GarrisonArea {
                                          int boxL, int boxT, int boxR, int boxB,
                                          NavigationGrid grid) {
         if (zone == null) return false;
+        if (zone.getCellCount() == 0) return false;
         long boxArea = (long) (boxR - boxL + 1) * (boxB - boxT + 1);
         if (zone.getCellCount() > MAX_GARRISON_AREA_RATIO * boxArea) return false;
 

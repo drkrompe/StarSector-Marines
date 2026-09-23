@@ -63,6 +63,18 @@ public final class GuardPost implements Goal {
     }
 
     @Override
+    public Evaluation evaluate(WorldState state, Squad squad, BattleView sim,
+                               EvaluationContext context) {
+        if (state.get(Predicate.MORALE_BROKEN)
+                || !squad.holdsFireUntilKillZone
+                || GarrisonCompound.defenderAreaPatrol(squad, sim)
+                || context.evaluate(FrontageDefense.INSTANCE).relevance() > 0f) {
+            return new Evaluation(0f, null);
+        }
+        return new Evaluation(1.0f, null);
+    }
+
+    @Override
     public WorldState desiredState(Squad squad, BattleView sim) {
         return WorldState.EMPTY;
     }

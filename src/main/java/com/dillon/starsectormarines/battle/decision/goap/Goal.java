@@ -3,7 +3,9 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -18,9 +20,9 @@ import java.util.Set;
  *       within the search limit.</li>
  * </ol>
  *
- * <p>Stateless singletons, same thread-safety contract as {@link Action}:
- * {@link #relevance}, {@link #priority}, and {@link #desiredState} run
- * during the parallel replan window and take a read-only {@link BattleView}.
+ * <p>Stateless singletons, same read-only {@link BattleView} contract as
+ * {@link Action}. Squad replanning currently runs serially because some
+ * goals coordinate against sibling squads' published plans.
  */
 public interface Goal {
 
@@ -55,6 +57,42 @@ public interface Goal {
      * Zero or negative values disable the goal for this squad-tick.
      */
     float relevance(WorldState state, Squad squad, BattleView sim);
+
+    /** Relevance plus an optional plan derived while computing it. */
+    record Evaluation(float relevance, SquadPlan preparedPlan) {}
+
+    /** One squad's replan inputs and memoized goal evaluations. */
+    final class EvaluationContext {
+        private final WorldState state;
+        private final Squad squad;
+        private final BattleView sim;
+        private final RelevanceProbe probe;
+        private final Map<Goal, Evaluation> cache = new IdentityHashMap<>();
+
+        public EvaluationContext(WorldState state, Squad squad, BattleView sim,
+                                 RelevanceProbe probe) {
+            this.state = state;
+            this.squad = squad;
+            this.sim = sim;
+            this.probe = probe;
+        }
+
+        public Evaluation evaluate(Goal goal) {
+            Evaluation cached = cache.get(goal);
+            if (cached != null) return cached;
+            long started = probe == null ? 0L : System.nanoTime();
+            Evaluation value = goal.evaluate(state, squad, sim, this);
+            cache.put(goal, value);
+            if (probe != null) probe.record(goal, System.nanoTime() - started);
+            return value;
+        }
+    }
+
+    /** Override when relevance can pass a costly derivation to customPlan. */
+    default Evaluation evaluate(WorldState state, Squad squad, BattleView sim,
+                                EvaluationContext context) {
+        return new Evaluation(relevance(state, squad, sim), null);
+    }
 
     /**
      * Which {@link Priority} bucket this goal lives in. Defaults to
@@ -94,6 +132,35 @@ public interface Goal {
         return null;
     }
 
+    default SquadPlan customPlan(Evaluation evaluation, Squad squad, BattleView sim) {
+        return evaluation.preparedPlan() != null
+                ? evaluation.preparedPlan() : customPlan(squad, sim);
+    }
+
+    record Choice(Goal goal, Evaluation evaluation) {}
+
+    static Choice pickMostRelevantPrepared(List<Goal> goals,
+                                           EvaluationContext context,
+                                           Set<Goal> declined) {
+        Priority[] buckets = Priority.values();
+        Choice[] best = new Choice[buckets.length];
+        for (Goal goal : goals) {
+            if (declined.contains(goal)) continue;
+            Evaluation evaluation = context.evaluate(goal);
+            float relevance = evaluation.relevance();
+            if (relevance <= 0f) continue;
+            int bucket = goal.priority().ordinal();
+            if (best[bucket] == null
+                    || relevance > best[bucket].evaluation().relevance()) {
+                best[bucket] = new Choice(goal, evaluation);
+            }
+        }
+        for (Choice choice : best) {
+            if (choice != null) return choice;
+        }
+        return null;
+    }
+
     /**
      * Picks the highest-relevance goal in the highest-occupied
      * {@link Priority} bucket. Goals with {@code relevance <= 0} are
@@ -109,9 +176,8 @@ public interface Goal {
      *       (lowest ordinal) that has any entry.</li>
      * </ol>
      *
-     * <p>Ties within a bucket resolve to the <em>last</em> goal seen
-     * (strictly-greater comparison means earlier equal-relevance entries
-     * are kept; in practice deterministic given the input list order).
+     * <p>Ties within a bucket keep the first goal seen (strictly-greater
+     * comparison leaves earlier equal-relevance entries in place).
      */
     static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad, BattleView sim) {
         return pickMostRelevant(goals, state, squad, sim, Set.of());
@@ -131,22 +197,13 @@ public interface Goal {
      */
     static Goal pickMostRelevant(List<Goal> goals, WorldState state, Squad squad,
                                  BattleView sim, Set<Goal> declined) {
-        Priority[] buckets = Priority.values();
-        Goal[] bucketBest = new Goal[buckets.length];
-        float[] bucketBestRelevance = new float[buckets.length];
-        for (Goal g : goals) {
-            if (declined.contains(g)) continue;
-            float r = g.relevance(state, squad, sim);
-            if (r <= 0f) continue;
-            int idx = g.priority().ordinal();
-            if (bucketBest[idx] == null || r > bucketBestRelevance[idx]) {
-                bucketBest[idx] = g;
-                bucketBestRelevance[idx] = r;
-            }
-        }
-        for (int i = 0; i < bucketBest.length; i++) {
-            if (bucketBest[i] != null) return bucketBest[i];
-        }
-        return null;
+        Choice choice = pickMostRelevantPrepared(goals,
+                new EvaluationContext(state, squad, sim, null), declined);
+        return choice == null ? null : choice.goal();
+    }
+
+    @FunctionalInterface
+    interface RelevanceProbe {
+        void record(Goal goal, long nanos);
     }
 }

@@ -120,6 +120,16 @@ public final class FrontageDefense implements Goal {
     }
 
     @Override
+    public Evaluation evaluate(WorldState state, Squad squad, BattleView sim,
+                               EvaluationContext context) {
+        if (state.get(Predicate.MORALE_BROKEN)) return new Evaluation(0f, null);
+        Held held = plan(squad, sim);
+        if (held == null) return new Evaluation(0f, null);
+        return new Evaluation(RELEVANCE,
+                new SquadPlan(List.of(new SquadPlan.Step(held.hold))));
+    }
+
+    @Override
     public WorldState desiredState(Squad squad, BattleView sim) {
         return WorldState.EMPTY;
     }
@@ -176,8 +186,9 @@ public final class FrontageDefense implements Goal {
         List<Integer> zones = zonesFor(node, layer, sim);
         if (zones.isEmpty() || breached(zones, squad, sim)) return null;
 
-        List<Aperture> threatened = byThreat(DefenseFrontage.derive(
-                box[0], box[1], box[2], box[3], DefenseFrontage.COMPOUND_MARGIN, sim),
+        List<Aperture> threatened = byThreat(DefenseFrontage.deriveWithInsideZones(
+                box[0], box[1], box[2], box[3], DefenseFrontage.COMPOUND_MARGIN,
+                new HashSet<>(zones), sim),
                 squad.faction, sim);
         if (threatened.isEmpty()) return null;
 

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import org.junit.jupiter.api.Test;
+import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 
 import java.util.List;
 
@@ -41,6 +42,7 @@ class SquadReplanDiagnosticsTest {
                                                         boolean replanned) {
         return new SquadReplanSystem.SquadSample(id,
                 SquadReplanSystem.SquadKind.INFANTRY, nanos, replanned,
-                false, false, false, false, false, false, false, false);
+                false, false, false, false, false, false, false, false,
+                GoapInfantryBehavior.ReplanBreakdown.EMPTY);
     }
 }
