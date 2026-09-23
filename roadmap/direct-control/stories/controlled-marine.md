@@ -4,6 +4,8 @@ Status: PLANNED
 
 Written: 2026-09-23
 
+Updated: 2026-09-23 — made terrain sweep, sliding, and topology changes explicit acceptance.
+
 Read `direct-control-nouns.md`, `ai-nouns.md`, and `ui-nouns.md` first.
 Depends on `point-aim-direct-fire.md`.
 
@@ -23,7 +25,12 @@ or a new campaign unlock is defined.
    picking/orders/camera keys, while respecting retained UI input ownership.
    Follow the body with the battle camera and constrain active play to 1x.
 3. Add an infantry direct-movement entry that preserves speed, normalized
-   diagonal motion, walkability, body interaction, velocity, and animation.
+   diagonal motion, body interaction, velocity, and animation. Sweep each
+   proposed move across every crossed navigation edge, using
+   `NavigationGrid.canTraverseCellStep` for reciprocal closed edges and
+   diagonal corners; test the Marine's terrain clearance at sub-cell
+   positions. Clamp at first contact and try only legal wall-tangent sliding.
+   Apply actual displacement to the mover's velocity and gait.
    Manual execution must not skip cooldown or equipment housekeeping.
 4. Feed primary fire through point-aim direct fire. Temporarily remove the
    controlled member from AI-assigned execution roles and replan the fire
@@ -38,6 +45,17 @@ or a new campaign unlock is defined.
   mission. The controlled member cannot walk through structure or fire faster
   than the equipped weapon allows. Another AI path or reflex never moves or
   fires the same member a second time in one tick.
+- Direct motion stops at map bounds, solid cells, and a closed doorway or thin
+  edge barrier between two walkable cells; it slides along a free wall side
+  without cutting a blocked diagonal corner. Opening or destroying that
+  barrier permits crossing on the next tick. Repeated held input and a frame
+  containing multiple fixed ticks do not tunnel through it or leave stored
+  movement to apply later. Terrain and body separation never push the Marine
+  through a closed edge.
+- Focused collision tests ask the movement rule directly about a wall, a
+  closed shared edge, a blocked diagonal, a legal slide, changed topology,
+  and a displacement long enough to cross more than one cell. A walkable
+  cover feature stays traversable.
 - Pause produces no movement or shots. Enter, exit, pointer-over-chrome,
   lost focus, death, boarding, withdrawal, battle completion, and detach all
   neutralize held input; normal camera pan, selection, orders, and AI resume.
