@@ -67,6 +67,8 @@ public final class VehicleMission {
      */
     public TerrainCostField routeCostField;
     public VehicleClearance routeClearance;
+    /** Frozen, on-demand route inputs for convoy proofs and later recovery. */
+    public ProgressiveVehicleField routeFields;
 
     /**
      * Per-deboard loadouts for this delivery. {@code marineLoadout[i]} is the spec

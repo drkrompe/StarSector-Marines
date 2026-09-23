@@ -196,6 +196,8 @@ Do not run builds or leave generated task files there.
   plus async-route queue/activity deltas;
   the report also retains the worst tick for each phase. It includes summed
   tick wall time, per-phase totals, overlapping inner-operation totals, and
+  progressive convoy clearance/cost cell evaluations, node expansions, and
+  searches started per retained tick and summed across the run, plus
   navigation-mesh refresh shape, setup-pending changes, and per-refresh
   cover/seam/whole-snapshot assembly times so cumulative cost and rare topology
   spikes can be read together. Add `-Dbattle.tail.jfr=true` for a JFR
@@ -203,9 +205,9 @@ Do not run builds or leave generated task files there.
   JFR adds overhead, so use the ordinary run for timing magnitude and the
   recording for code-path attribution. Add
   `-Dbattle.tail.convoyUncachedStages=true` to measure isolated terrain-cost,
-  APC-clearance, and connectivity-label construction on the same grid after
-  the timed replay; this does not depend on a convoy winning dispatch and does
-  not change measured ticks. Use
+  APC-clearance, connectivity-label construction, and a frozen progressive
+  route-input snapshot on the same grid after the timed replay; this does not
+  depend on a convoy winning dispatch and does not change measured ticks. Use
   `-Dbattle.fixture.path=<absolute path>` to replay construction inputs from a
   live `tick_profile_spike_*.json.data` or its `.fixture.json.data` sibling,
   and `-Dbattle.tail.totalTicks=N`, `-Dbattle.tail.warmupTicks=N`,
@@ -217,6 +219,14 @@ Do not run builds or leave generated task files there.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   This focused tail pass does not replace the proposed fixture performance
   matrix and its cross-run compatibility checks.
+- `gradlew.bat profileConvoyRoute` → isolated full-size Conquest route-proof
+  evidence on both traversal axes, independent of whether the timed battle
+  selects convoy as its reinforcement means. It reports first-dispatch snapshot
+  time, total and worst proof-step time, search attempts and node expansions,
+  and how many clearance and terrain-cost cells were actually derived out of
+  the 560x336 map under `build/reports/performance/convoy-route/summary.json`.
+  Use `-Dbattle.convoyRoute.outputDir=<absolute path>` to redirect the report.
+  Its timings are diagnostic, not a cross-host gate.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

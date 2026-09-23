@@ -2,12 +2,10 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.DrivableRouteSearch;
+import com.dillon.starsectormarines.battle.vehicle.ProgressiveVehicleField;
 import com.dillon.starsectormarines.battle.vehicle.RouteSearchBudget;
-import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
-import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleController;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -37,9 +35,9 @@ import java.util.Set;
  * game-thread frame, which is a visible hitch on hardware weaker than the one it
  * was measured on. Nothing about the question requires an answer this frame —
  * the delivery it authorises takes six seconds to appear and a minute to arrive.
- * So the enumeration is a resumable object: {@link #step} does at most
- * {@link ConvoyMeans#SEARCHES_PER_TICK} searches and puts it down, and the
- * dispatch that started it reads a finished result some ticks later.
+ * So the enumeration is a resumable object: {@link #step} limits new searches
+ * and expanded A* nodes, then puts down an unfinished frontier for a later
+ * tick. The dispatch that started it reads a finished result later.
  *
  * <p><b>Every cursor here is state a restart would destroy.</b> The mask a
  * {@link DrivableRouteSearch} accumulates is the obvious one, but so is which
@@ -48,7 +46,7 @@ import java.util.Set;
  * forever. Progress is why the object exists.
  *
  * <p>Bound to the grid revision it was built against. A world that closes ground
- * under a half-proved route has invalidated the mask, the labels and every
+ * under a half-proved route has invalidated its frozen routing view and every
  * partial search at once, and the honest response is to start over rather than
  * to finish a proof about a map that no longer exists.
  */
@@ -65,7 +63,7 @@ final class RouteProofJob {
     }
 
     /**
-     * Grid searches one dispatch may spend proving its journey.
+     * New grid searches one dispatch may spend proving its journey.
      *
      * <p>The proof is an enumeration — entries against junctions against exits
      * — and every pair of endpoints costs a cost-field A* over a 188,160-cell
@@ -92,8 +90,9 @@ final class RouteProofJob {
      * own diagnostic already names — and the request falls through to another
      * means rather than being lost.
      *
-     * <p><b>This is the only bound on searching, deliberately.</b> Drops and
-     * exits were capped by count as well, at six and three, which reads as
+     * <p><b>This is the only total-attempt bound, deliberately.</b> Per-tick
+     * node expansion has a separate ceiling. Drops and exits were capped by
+     * count as well, at six and three, which reads as
      * generous and is a bar set in the dark: the canonical 240x160 rear-entry
      * map proves its route at about the seventh ranked drop, and the count cap
      * refused a delivery the budget would have paid for. Everything that
@@ -102,6 +101,14 @@ final class RouteProofJob {
      * currency the stall was measured in.
      */
     static final int SEARCH_BUDGET = 32;
+
+    /**
+     * A* nodes one proof may expand in a simulation tick. The full-size
+     * south-to-north fixture requires about 120,000 expansions when early
+     * candidates fail; 2,000 spreads that over roughly two seconds of game
+     * time, still shorter than the convoy's six-second arrival delay.
+     */
+    static final int EXPANSIONS_PER_TICK = 2_000;
 
     /**
      * Perimeter entries a dispatch will actually route from, nearest the drop
@@ -134,9 +141,7 @@ final class RouteProofJob {
     private final NavigationGrid grid;
     private final int width;
     private final int height;
-    private final TerrainCostField cost;
-    private final VehicleClearance clearance;
-    private final ClearanceComponents components;
+    private final ProgressiveVehicleField fields;
     private final LandingZoneScorer scorer;
     private final List<int[]> reserved;
     private final List<RoadGraph.Node> perimeter;
@@ -147,6 +152,7 @@ final class RouteProofJob {
 
     private State state = State.RUNNING;
     private RoutePlan plan;
+    private int expandedThisStep;
 
     private int entryCursor;
     private int entriesTried;
@@ -159,6 +165,8 @@ final class RouteProofJob {
     private int[] destinationCell;
 
     private DrivableRouteSearch inboundSearch;
+    /** A failed first base search proves which cells this entry can reach. */
+    private DrivableRouteSearch inboundFailedRegion;
     private float[][] inbound;
 
     private List<RoadGraph.Node> exits;
@@ -166,6 +174,8 @@ final class RouteProofJob {
     private RoadGraph.Node exit;
     private int[] exitCell;
     private DrivableRouteSearch outboundSearch;
+    /** Same proof for the current destination's exits, when available. */
+    private DrivableRouteSearch outboundFailedRegion;
 
     /**
      * A proof for this delivery, or {@code null} when the map offers no eligible
@@ -175,20 +185,17 @@ final class RouteProofJob {
     static RouteProofJob start(RoadGraph graph, TraversalAxis axis,
                                DeliveryDeployment deployment,
                                List<RoadGraph.Node> perimeter,
-                               NavigationGrid grid, long gridRevision,
-                               TerrainCostField cost, VehicleClearance clearance,
-                               ClearanceComponents components,
+                               long gridRevision,
+                               ProgressiveVehicleField fields,
                                LandingZoneScorer scorer, List<int[]> reserved) {
         if (perimeter.isEmpty()) return null;
-        return new RouteProofJob(graph, axis, deployment, grid, gridRevision, cost,
-                clearance, components, scorer, reserved, perimeter);
+        return new RouteProofJob(graph, axis, deployment, gridRevision, fields,
+                scorer, reserved, perimeter);
     }
 
     private RouteProofJob(RoadGraph graph, TraversalAxis axis,
                           DeliveryDeployment deployment,
-                          NavigationGrid grid, long gridRevision,
-                          TerrainCostField cost, VehicleClearance clearance,
-                          ClearanceComponents components,
+                          long gridRevision, ProgressiveVehicleField fields,
                           LandingZoneScorer scorer, List<int[]> reserved,
                           List<RoadGraph.Node> perimeter) {
         this.graph = graph;
@@ -196,13 +203,11 @@ final class RouteProofJob {
         this.deployment = deployment;
         this.hintX = deployment.hintX();
         this.hintY = deployment.hintY();
-        this.grid = grid;
+        this.grid = fields.grid();
         this.width = grid.getWidth();
         this.height = grid.getHeight();
         this.gridRevision = gridRevision;
-        this.cost = cost;
-        this.clearance = clearance;
-        this.components = components;
+        this.fields = fields;
         this.scorer = scorer;
         this.reserved = reserved;
         this.perimeter = perimeter;
@@ -218,39 +223,48 @@ final class RouteProofJob {
 
     RouteSearchBudget budget() { return budget; }
 
+    int expandedNodesThisStep() { return expandedThisStep; }
+
+    int clearanceEvaluations() { return fields.clearanceEvaluations(); }
+
+    int costEvaluations() { return fields.costEvaluations(); }
+
     /**
-     * Advances the enumeration by at most {@code maxSearches} grid searches.
-     *
-     * <p>Work that costs no search — ranking an entry's reachable junctions,
-     * snapping a candidate onto the mask, refusing a pair the component labels
-     * already separate — runs freely inside a step, because that is the work the
-     * previous slice made cheap and none of it is what a stall is made of. The
-     * allowance rations searching, which is.
+     * Advances the enumeration by at most {@code maxSearches} new grid searches
+     * and {@link #EXPANSIONS_PER_TICK} A* node expansions. A search that reaches
+     * the node limit keeps its frontier and resumes on the next tick, even when
+     * it has claimed the last search attempt in the whole proof budget.
      */
     State step(int maxSearches) {
+        return step(maxSearches, EXPANSIONS_PER_TICK);
+    }
+
+    State step(int maxSearches, int maxExpandedNodes) {
         if (state != State.RUNNING) return state;
         int allowance = Math.max(1, maxSearches);
+        expandedThisStep = 0;
         int spentAtStart = budget.spent();
         while (state == State.RUNNING) {
-            if (budget.isExhausted()) {
+            if (budget.isExhausted() && inboundSearch == null
+                    && outboundSearch == null) {
                 state = State.NO_ROUTE;
                 break;
             }
             int used = budget.spent() - spentAtStart;
-            if (used >= allowance) break;
-            pump(allowance - used);
+            if (used >= allowance || expandedThisStep >= maxExpandedNodes) break;
+            pump(allowance - used, maxExpandedNodes - expandedThisStep);
         }
         return state;
     }
 
     /** One unit of progress, innermost cursor first so a started search is finished before another is begun. */
-    private void pump(int allowance) {
+    private void pump(int allowance, int nodeAllowance) {
         if (outboundSearch != null) {
-            pumpOutbound(allowance);
+            pumpOutbound(allowance, nodeAllowance);
         } else if (exits != null) {
             advanceExit();
         } else if (inboundSearch != null) {
-            pumpInbound(allowance);
+            pumpInbound(allowance, nodeAllowance);
         } else if (destinations != null) {
             advanceDestination();
         } else {
@@ -261,12 +275,13 @@ final class RouteProofJob {
     private void advanceEntry() {
         while (entryCursor < entries.size() && entriesTried < MAX_ENTRIES_TRIED) {
             RoadGraph.Node candidate = entries.get(entryCursor++);
-            int[] cell = ConvoyMeans.perimeterRouteCell(axis, clearance, candidate,
+            int[] cell = ConvoyMeans.perimeterRouteCell(axis, fields, candidate,
                     width, height);
             if (cell == null) continue;
             entriesTried++;
             entry = candidate;
             entryCell = cell;
+            inboundFailedRegion = null;
             destinations = rankedDrops(reachableFrom(candidate));
             destinationCursor = 0;
             return;
@@ -277,11 +292,12 @@ final class RouteProofJob {
     private void advanceDestination() {
         while (destinationCursor < destinations.size()) {
             RoadGraph.Node candidate = destinations.get(destinationCursor++);
-            int[] cell = VehicleRoutePlanner.snapToMask(clearance,
-                    candidate.cellX, candidate.cellY, SNAP_RADIUS);
+            int[] cell = VehicleRoutePlanner.snapToMaskOnDemand(fields,
+                    width, height, candidate.cellX, candidate.cellY, SNAP_RADIUS);
             if (cell == null
                     || entryCell[0] == cell[0] && entryCell[1] == cell[1]
-                    || !components.connected(entryCell[0], entryCell[1], cell[0], cell[1])
+                    || inboundFailedRegion != null
+                    && !inboundFailedRegion.exhaustedBaseRegionContains(cell[0], cell[1])
                     || !scorer.isViable(cell[0], cell[1])
                     || !ConvoyMeans.behindMinimum(axis, cell[0], cell[1],
                     deployment.minimumDefenderForward())) {
@@ -289,15 +305,17 @@ final class RouteProofJob {
             }
             destination = candidate;
             destinationCell = cell;
-            inboundSearch = DrivableRouteSearch.over(entryCell[0], entryCell[1],
-                    cell[0], cell[1], grid, cost, clearance, VehicleType.HEAVY_APC);
+            inboundSearch = DrivableRouteSearch.overOnDemand(entryCell[0], entryCell[1],
+                    cell[0], cell[1], grid, fields, fields, VehicleType.HEAVY_APC);
             return;
         }
         destinations = null;
     }
 
-    private void pumpInbound(int allowance) {
-        DrivableRouteSearch.Status status = inboundSearch.advance(budget, allowance);
+    private void pumpInbound(int allowance, int nodeAllowance) {
+        DrivableRouteSearch.Status status = inboundSearch.advance(budget, allowance,
+                nodeAllowance);
+        expandedThisStep += inboundSearch.expandedNodesThisAdvance();
         if (status == DrivableRouteSearch.Status.PENDING) return;
         if (status == DrivableRouteSearch.Status.ROUTED) {
             inbound = inboundSearch.route();
@@ -307,7 +325,11 @@ final class RouteProofJob {
                     destination.cellX, destination.cellY)
                     : List.of(ConvoyPlanner.pickExitNode(graph, destination, entry));
             exitCursor = 0;
+            outboundFailedRegion = null;
             return;
+        }
+        if (inboundSearch.hasExhaustedBaseRegion()) {
+            inboundFailedRegion = inboundSearch;
         }
         inboundSearch = null;
     }
@@ -315,26 +337,27 @@ final class RouteProofJob {
     private void advanceExit() {
         while (exitCursor < exits.size()) {
             RoadGraph.Node candidate = exits.get(exitCursor++);
-            int[] cell = ConvoyMeans.perimeterRouteCell(axis, clearance, candidate,
+            int[] cell = ConvoyMeans.perimeterRouteCell(axis, fields, candidate,
                     width, height);
             if (cell == null) continue;
-            if (!components.connected(destinationCell[0], destinationCell[1],
-                    cell[0], cell[1])) {
-                continue;
-            }
+            if (outboundFailedRegion != null
+                    && !outboundFailedRegion.exhaustedBaseRegionContains(
+                    cell[0], cell[1])) continue;
             exit = candidate;
             exitCell = cell;
-            outboundSearch = DrivableRouteSearch.over(
+            outboundSearch = DrivableRouteSearch.overOnDemand(
                     destinationCell[0], destinationCell[1], cell[0], cell[1],
-                    grid, cost, clearance, VehicleType.HEAVY_APC);
+                    grid, fields, fields, VehicleType.HEAVY_APC);
             return;
         }
         exits = null;
         inbound = null;
     }
 
-    private void pumpOutbound(int allowance) {
-        DrivableRouteSearch.Status status = outboundSearch.advance(budget, allowance);
+    private void pumpOutbound(int allowance, int nodeAllowance) {
+        DrivableRouteSearch.Status status = outboundSearch.advance(budget, allowance,
+                nodeAllowance);
+        expandedThisStep += outboundSearch.expandedNodesThisAdvance();
         if (status == DrivableRouteSearch.Status.PENDING) return;
         if (status == DrivableRouteSearch.Status.ROUTED) {
             float[][] outbound = outboundSearch.route();
@@ -346,10 +369,13 @@ final class RouteProofJob {
             // the battle.
             if (canLeaveTheWayItArrived(inbound, outbound)) {
                 plan = new RoutePlan(entry, destination, exit, inbound, outbound,
-                        cost, clearance);
+                        fields);
                 state = State.PROVED;
             }
             return;
+        }
+        if (outboundSearch.hasExhaustedBaseRegion()) {
+            outboundFailedRegion = outboundSearch;
         }
         outboundSearch = null;
     }

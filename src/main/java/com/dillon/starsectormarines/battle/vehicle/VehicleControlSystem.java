@@ -482,18 +482,29 @@ public final class VehicleControlSystem {
                                    VehicleControlComponent s) {
         TerrainCostField cost = mission.routeCostField;
         VehicleClearance clr = mission.routeClearance;
-        if (cost == null || clr == null) return false; // not cost-routed — can't lap
+        ProgressiveVehicleField fields = mission.routeFields;
+        if (fields == null && (cost == null || clr == null)) return false;
         float[] xs = s.routeXs;
         float[] ys = s.routeYs;
         if (xs == null || ys == null) return false;
-        NavigationGrid grid = navigation.getGrid();
+        NavigationGrid grid = fields != null ? fields.grid() : navigation.getGrid();
 
         int goalIdx = VehicleController.lastOnGridIndex(xs, ys, grid);
         if (goalIdx < 1) return false;
-        int[] goal = VehicleRoutePlanner.snapToMask(clr,
-                (int) Math.floor(xs[goalIdx]), (int) Math.floor(ys[goalIdx]), VehicleController.REROUTE_SNAP_RADIUS);
-        int[] cur = VehicleRoutePlanner.snapToMask(clr,
-                (int) Math.floor(body.x), (int) Math.floor(body.y), VehicleController.REROUTE_SNAP_RADIUS);
+        int[] goal = fields != null
+                ? VehicleRoutePlanner.snapToMaskOnDemand(fields, fields.width(), fields.height(),
+                (int) Math.floor(xs[goalIdx]), (int) Math.floor(ys[goalIdx]),
+                VehicleController.REROUTE_SNAP_RADIUS)
+                : VehicleRoutePlanner.snapToMask(clr,
+                (int) Math.floor(xs[goalIdx]), (int) Math.floor(ys[goalIdx]),
+                VehicleController.REROUTE_SNAP_RADIUS);
+        int[] cur = fields != null
+                ? VehicleRoutePlanner.snapToMaskOnDemand(fields, fields.width(), fields.height(),
+                (int) Math.floor(body.x), (int) Math.floor(body.y),
+                VehicleController.REROUTE_SNAP_RADIUS)
+                : VehicleRoutePlanner.snapToMask(clr,
+                (int) Math.floor(body.x), (int) Math.floor(body.y),
+                VehicleController.REROUTE_SNAP_RADIUS);
         if (goal == null || cur == null) return false;
 
         // Avoid the failing spot AHEAD on the corridor (the turn / corridor mouth
@@ -505,7 +516,13 @@ public final class VehicleControlSystem {
         int avoidX = (int) Math.floor(ahead.x);
         int avoidY = (int) Math.floor(ahead.y);
         rememberFailedArea(s, avoidX, avoidY);
-        VehicleRoutePlanner.RescueRoute rescue = VehicleRoutePlanner.routeAvoidingForwardFirst(
+        VehicleRoutePlanner.RescueRoute rescue = fields != null
+                ? VehicleRoutePlanner.routeAvoidingForwardFirstOnDemand(
+                cur[0], cur[1], goal[0], goal[1], body.facingDegrees,
+                s.rescueFirstStepTriedMask, grid, fields, fields,
+                s.rerouteAvoidX, s.rerouteAvoidY, s.rerouteAvoidCount,
+                VehicleController.REROUTE_AVOID_RADIUS, type)
+                : VehicleRoutePlanner.routeAvoidingForwardFirst(
                 cur[0], cur[1], goal[0], goal[1], body.facingDegrees,
                 s.rescueFirstStepTriedMask, grid, cost, clr,
                 s.rerouteAvoidX, s.rerouteAvoidY, s.rerouteAvoidCount,
