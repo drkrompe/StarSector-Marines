@@ -121,6 +121,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.RouteCostField;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SquadRouteRequest;
+import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.squad.SquadRoutePreparationSystem;
 import com.dillon.starsectormarines.battle.squad.SquadReplanSystem;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -768,6 +769,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     public NavigationGrid getGrid() { return grid; }
+    /** Published derived navigation geometry; exposed for battle diagnostics. */
+    public GreedyNavigationMesh getNavigationMesh() {
+        return navigation.getNavigationMesh();
+    }
     @Override public AsyncDefendTrackRoutes asyncDefendTrackRoutes() {
         return asyncDefendTrackRoutes;
     }

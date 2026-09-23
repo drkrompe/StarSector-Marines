@@ -72,8 +72,10 @@ class GreedyNavigationMeshTiledTest {
         NavigationGrid grid = randomCity(100, 70, 3L);
         GreedyNavigationMesh mesh = new GreedyNavigationMesh(grid);
         assertEquals(12, mesh.lastTilesCovered());
+        assertEquals(0, mesh.pendingGridChanges());
         assertMatchesFreshRebuild(grid, mesh.snapshot());
         Random random = new Random(5L);
+        long lastChangeCount = grid.changeCount();
         for (int round = 0; round < 40; round++) {
             int changes = 1 + random.nextInt(3);
             for (int i = 0; i < changes; i++) {
@@ -89,8 +91,12 @@ class GreedyNavigationMeshTiledTest {
                 }
             }
             long before = mesh.snapshot().revision();
+            assertEquals(grid.changeCount() - lastChangeCount,
+                    mesh.pendingGridChanges());
             mesh.rebuild();
             assertEquals(before + 1, mesh.snapshot().revision());
+            assertEquals(0, mesh.pendingGridChanges());
+            lastChangeCount = grid.changeCount();
             // A shared-edge write names both its cells, so one change can dirty two tiles.
             assertTrue(mesh.lastTilesCovered() <= 2 * changes,
                     "changes " + changes + " re-covered " + mesh.lastTilesCovered());
