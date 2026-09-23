@@ -19,12 +19,9 @@ import java.util.Objects;
  * any unit executes. Runs after the squad triad (alert / morale /
  * fallback) and before {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem}.
  *
- * <p>Serial today; the planner + WorldStateBuilder + actions are designed
- * for parallel execution across squads (see {@code ai-nouns.md}) and we'll
- * fork-join here once we feel the cost.
- * When that happens, the for-loop becomes the next entity for-loop seam —
- * sibling shape to {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem},
- * just keyed on {@link Squad} instead of {@code Entity}.
+ * <p>Serial by contract: frontage planning reads sibling squads' current
+ * plans to reserve distinct posts. Parallel execution would first need an
+ * immutable input snapshot and a reservation/publication phase.
  *
  * <p>Sibling System to {@link SquadAlertSystem} / {@link SquadMoraleSystem}
  * / {@link SquadFallbackSystem}.
@@ -69,17 +66,23 @@ public final class SquadReplanSystem {
             SquadPlan previousPlan = squad.currentPlan;
             SquadSample before = collectDiagnostics ? beforeCall(squad) : null;
             long startedNanos = collectDiagnostics ? System.nanoTime() : 0L;
+            GoapInfantryBehavior.ReplanTiming infantryTiming = collectDiagnostics
+                    && !squad.isDroneSquad() && !squad.isMechSquad()
+                    ? new GoapInfantryBehavior.ReplanTiming() : null;
             if (squad.isDroneSquad()) {
                 GoapDroneBehavior.replanIfNeeded(squad, sim);
             } else if (squad.isMechSquad()) {
                 GoapMechBehavior.replanIfNeeded(squad, sim);
             } else {
-                GoapInfantryBehavior.replanIfNeeded(squad, sim);
+                GoapInfantryBehavior.replanIfNeeded(squad, sim, infantryTiming);
             }
             if (collectDiagnostics) {
                 diagnosticsCollector.record(before.withResult(
                         System.nanoTime() - startedNanos,
-                        squad.routingEpoch != previousRoutingEpoch));
+                        squad.routingEpoch != previousRoutingEpoch,
+                        infantryTiming == null
+                                ? GoapInfantryBehavior.ReplanBreakdown.EMPTY
+                                : infantryTiming.snapshot()));
             }
             // An old DefendTrack action may never execute again after a
             // squad replan (or wipe), so its worker request cannot rely on
@@ -119,7 +122,8 @@ public final class SquadReplanSystem {
                 kind == SquadKind.INFANTRY
                         && squad._underFireAtLosThisTick
                         && !squad._underFireAtLosLastTick,
-                kind == SquadKind.INFANTRY && squad._moraleBrokenChangedThisTick);
+                kind == SquadKind.INFANTRY && squad._moraleBrokenChangedThisTick,
+                GoapInfantryBehavior.ReplanBreakdown.EMPTY);
     }
 
     public enum SquadKind { INFANTRY, MECH, DRONE }
@@ -130,11 +134,13 @@ public final class SquadReplanSystem {
                               boolean planComplete, boolean periodic,
                               boolean memberChanged, boolean assignmentChanged,
                               boolean contactChanged, boolean incomingFireStarted,
-                              boolean moraleChanged) {
-        private SquadSample withResult(long nanos, boolean didReplan) {
+                              boolean moraleChanged,
+                              GoapInfantryBehavior.ReplanBreakdown breakdown) {
+        private SquadSample withResult(long nanos, boolean didReplan,
+                                      GoapInfantryBehavior.ReplanBreakdown detail) {
             return new SquadSample(squadId, kind, nanos, didReplan, planMissing,
                     planComplete, periodic, memberChanged, assignmentChanged,
-                    contactChanged, incomingFireStarted, moraleChanged);
+                    contactChanged, incomingFireStarted, moraleChanged, detail);
         }
     }
 

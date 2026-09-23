@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.scoring;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,22 +50,45 @@ public final class RoleAssigner {
             return result;
         }
 
-        List<C> pool = new ArrayList<>(candidates);
+        int candidateCount = candidates.size();
+        int slotCount = slots.size();
+        // A scorer reads live member positions, but all scores in one assign
+        // call observe the same replan snapshot. Evaluate each pair once;
+        // sorting and iterative swap improvement then walk compact floats.
+        float[][] scores = new float[slotCount][candidateCount];
+        for (int i = 0; i < slotCount; i++) {
+            Scorer<C> scorer = slots.get(i).scorer();
+            for (int j = 0; j < candidateCount; j++) {
+                scores[i][j] = scorer.score(candidates.get(j));
+            }
+        }
+        List<Integer> pool = new ArrayList<>(candidateCount);
+        for (int i = 0; i < candidateCount; i++) pool.add(i);
 
         // Greedy phase: rank slots by their mean score over the pool, fill
         // the most-discriminating slot first so its top picks aren't stolen
         // by a less-picky slot that could've taken anyone.
-        List<Slot<C>> ordered = new ArrayList<>(slots);
-        Map<Slot<C>, Float> meanCache = new HashMap<>();
-        for (Slot<C> s : slots) meanCache.put(s, meanScore(s.scorer(), pool));
-        ordered.sort(Comparator.comparingDouble((Slot<C> s) -> meanCache.get(s)).reversed());
+        List<Integer> ordered = new ArrayList<>(slotCount);
+        float[] means = new float[slotCount];
+        for (int i = 0; i < slotCount; i++) {
+            ordered.add(i);
+            double sum = 0d;
+            for (int j = 0; j < candidateCount; j++) sum += scores[i][j];
+            means[i] = (float) (sum / candidateCount);
+        }
+        ordered.sort(Comparator.comparingDouble((Integer i) -> means[i]).reversed());
 
-        for (Slot<C> slot : ordered) {
+        List<List<Integer>> assigned = new ArrayList<>(slotCount);
+        for (Slot<C> slot : slots) assigned.add(new ArrayList<>(slot.count()));
+
+        for (int slotIndex : ordered) {
+            Slot<C> slot = slots.get(slotIndex);
             int want = Math.min(slot.count(), pool.size());
             if (want <= 0) continue;
             // Sort the remaining pool by this slot's preference, take the top N.
-            pool.sort(Comparator.comparingDouble((C c) -> slot.scorer().score(c)).reversed());
-            List<C> bucket = result.get(slot.name());
+            pool.sort(Comparator.comparingDouble(
+                    (Integer c) -> scores[slotIndex][c]).reversed());
+            List<Integer> bucket = assigned.get(slotIndex);
             for (int i = 0; i < want; i++) {
                 bucket.add(pool.get(i));
             }
@@ -75,7 +97,13 @@ public final class RoleAssigner {
             pool.subList(0, want).clear();
         }
 
-        improveBySwapping(result, slots);
+        improveBySwapping(assigned, scores);
+        for (int i = 0; i < slotCount; i++) {
+            List<C> bucket = result.get(slots.get(i).name());
+            for (int candidateIndex : assigned.get(i)) {
+                bucket.add(candidates.get(candidateIndex));
+            }
+        }
         return result;
     }
 
@@ -85,26 +113,20 @@ public final class RoleAssigner {
      * full pass produces no improvement; converges quickly because each swap
      * strictly increases a bounded total.
      */
-    private static <C> void improveBySwapping(Map<String, List<C>> assigned, List<Slot<C>> slots) {
-        Map<String, Slot<C>> bySlotName = new HashMap<>();
-        for (Slot<C> s : slots) bySlotName.put(s.name(), s);
-
-        List<String> names = new ArrayList<>(assigned.keySet());
+    private static void improveBySwapping(List<List<Integer>> assigned, float[][] scores) {
         boolean changed = true;
         while (changed) {
             changed = false;
-            for (int i = 0; i < names.size(); i++) {
-                Slot<C> si = bySlotName.get(names.get(i));
-                List<C> li = assigned.get(names.get(i));
-                for (int j = i + 1; j < names.size(); j++) {
-                    Slot<C> sj = bySlotName.get(names.get(j));
-                    List<C> lj = assigned.get(names.get(j));
+            for (int i = 0; i < assigned.size(); i++) {
+                List<Integer> li = assigned.get(i);
+                for (int j = i + 1; j < assigned.size(); j++) {
+                    List<Integer> lj = assigned.get(j);
                     for (int a = 0; a < li.size(); a++) {
                         for (int b = 0; b < lj.size(); b++) {
-                            C ca = li.get(a);
-                            C cb = lj.get(b);
-                            float before = si.scorer().score(ca) + sj.scorer().score(cb);
-                            float after  = si.scorer().score(cb) + sj.scorer().score(ca);
+                            int ca = li.get(a);
+                            int cb = lj.get(b);
+                            float before = scores[i][ca] + scores[j][cb];
+                            float after  = scores[i][cb] + scores[j][ca];
                             if (after > before) {
                                 li.set(a, cb);
                                 lj.set(b, ca);
@@ -115,12 +137,5 @@ public final class RoleAssigner {
                 }
             }
         }
-    }
-
-    private static <C> float meanScore(Scorer<C> s, List<C> pool) {
-        if (pool.isEmpty()) return 0f;
-        double sum = 0d;
-        for (C c : pool) sum += s.score(c);
-        return (float) (sum / pool.size());
     }
 }

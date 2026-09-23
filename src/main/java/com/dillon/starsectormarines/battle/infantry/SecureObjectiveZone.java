@@ -92,8 +92,8 @@ public final class SecureObjectiveZone implements Goal {
      * extend under without touching the customPlan logic above.
      */
     private static int findObjectiveZone(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long u = sim.squadMemberAt(squad.id, i);
             if (sim.task().assignedObjective(u) instanceof ChargeSiteObjective cs) {
                 if (cs.isComplete()) continue;
                 return sim.getZoneGraph().zoneIdAt(cs.cellX(), cs.cellY());

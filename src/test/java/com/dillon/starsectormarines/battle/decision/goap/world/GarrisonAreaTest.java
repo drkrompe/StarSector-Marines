@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -141,5 +142,41 @@ public class GarrisonAreaTest {
         assertTrue(zones.contains(compoundZone), "the compound room is in the garrison area");
         assertFalse(zones.contains(outdoorZone), "the outdoor flood is excluded");
         assertFalse(zones.contains(startZone), "the off-footprint start room is excluded");
+    }
+
+    @Test
+    public void localDiscoveryMatchesFullZoneScanForEverySmallFootprint() {
+        BattleSimulation sim = twoRoomBuildingSim();
+        var graph = sim.getZoneGraph();
+        var grid = sim.getGrid();
+        for (int left = -2; left < 40; left += 3) {
+            for (int top = -2; top < 10; top += 2) {
+                int right = left + 7;
+                int bottom = top + 4;
+                List<Integer> expected = new ArrayList<>();
+                for (NavigationZone zone : graph.getZones()) {
+                    if (zone.getCellCount() == 1
+                            && grid.isDoorwayAt(zone.getCellIndices()[0])) continue;
+                    if (GarrisonArea.isGarrisonZone(zone, left, top, right, bottom, grid)) {
+                        expected.add(zone.getZoneId());
+                    }
+                }
+                expected.sort((a, b) -> {
+                    int size = Integer.compare(graph.zoneById(b).getCellCount(),
+                            graph.zoneById(a).getCellCount());
+                    return size != 0 ? size : Integer.compare(a, b);
+                });
+                assertEquals(expected, GarrisonArea.garrisonZones(
+                        left, top, right, bottom, sim));
+            }
+        }
+    }
+
+    @Test
+    public void emptyIncrementalZoneTombstoneIsNotAnInteriorRoom() {
+        BattleSimulation sim = threeZoneSim();
+        NavigationZone tombstone = new NavigationZone(123, new int[0]);
+        assertFalse(GarrisonArea.isGarrisonZone(tombstone,
+                0, 0, 10, 10, sim.getGrid()));
     }
 }

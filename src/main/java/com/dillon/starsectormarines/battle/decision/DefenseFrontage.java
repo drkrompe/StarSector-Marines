@@ -147,13 +147,23 @@ public final class DefenseFrontage {
      */
     public static List<Aperture> derive(int boxL, int boxT, int boxR, int boxB,
                                         int margin, BattleView sim) {
+        if (sim.getGrid() == null || sim.getZoneGraph() == null
+                || sim.getTopology() == null) return List.of();
+        Set<Integer> inside = insideZones(boxL - margin, boxT - margin,
+                boxR + margin, boxB + margin, sim);
+        return deriveWithInsideZones(boxL, boxT, boxR, boxB, margin, inside, sim);
+    }
+
+    /** Same derivation when the caller already resolved this footprint's zones. */
+    public static List<Aperture> deriveWithInsideZones(int boxL, int boxT,
+                                                       int boxR, int boxB,
+                                                       int margin,
+                                                       Set<Integer> inside,
+                                                       BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph graph = sim.getZoneGraph();
         CellTopology topology = sim.getTopology();
         if (grid == null || graph == null || topology == null) return List.of();
-
-        Set<Integer> inside = insideZones(boxL - margin, boxT - margin,
-                boxR + margin, boxB + margin, sim);
         if (inside.isEmpty()) return List.of();
 
         int scanL = Math.max(0, boxL - margin - 1);

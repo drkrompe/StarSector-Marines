@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -589,6 +590,7 @@ class BattleFixtureTailProfileTest {
                 .put("replanned", replans.replanCount());
         JSONArray slowSquads = new JSONArray();
         for (SquadReplanSystem.SquadSample squad : replans.slowestSquads()) {
+            GoapInfantryBehavior.ReplanBreakdown breakdown = squad.breakdown();
             slowSquads.put(new JSONObject().put("squadId", squad.squadId())
                     .put("kind", squad.kind().name())
                     .put("ms", millis(squad.durationNanos()))
@@ -600,7 +602,23 @@ class BattleFixtureTailProfileTest {
                     .put("assignmentChanged", squad.assignmentChanged())
                     .put("contactChanged", squad.contactChanged())
                     .put("incomingFireStarted", squad.incomingFireStarted())
-                    .put("moraleChanged", squad.moraleChanged()));
+                    .put("moraleChanged", squad.moraleChanged())
+                    .put("goal", breakdown.selectedGoal())
+                    .put("worldStateMs", millis(breakdown.worldStateNanos()))
+                    .put("goalSelectionMs", millis(breakdown.selectionNanos()))
+                    .put("goalRelevanceMs", millis(breakdown.relevanceNanos()))
+                    .put("goalRelevanceCalls", breakdown.relevanceCalls())
+                    .put("slowestRelevanceGoal", breakdown.slowestRelevanceGoal())
+                    .put("slowestRelevanceMs", millis(breakdown.slowestRelevanceNanos()))
+                    .put("customPlanMs", millis(breakdown.customPlanNanos()))
+                    .put("plannerSearchMs", millis(breakdown.searchNanos()))
+                    .put("roleAssignmentMs", millis(breakdown.roleAssignmentNanos()))
+                    .put("slowestRoleAction", breakdown.slowestRoleAction())
+                    .put("slowestRoleMs", millis(breakdown.slowestRoleNanos()))
+                    .put("roleCandidates", breakdown.roleCandidates())
+                    .put("planSteps", breakdown.planSteps())
+                    .put("planAttempts", breakdown.planAttempts())
+                    .put("declinedGoals", breakdown.declinedGoals()));
         }
         goap.put("slowestSquads", slowSquads);
         tick.put("squadReplan", goap);

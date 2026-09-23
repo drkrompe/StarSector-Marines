@@ -122,6 +122,47 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     /** Hard cap on planner-search node expansions. 256 is comfortably above what Stage 1's tiny action library needs; Stage 2 may bump as the action surface grows. */
     public static final int PLAN_NODE_LIMIT = 256;
 
+    /** Captured only by the opt-in Conquest profiler, never on the normal tick path. */
+    public record ReplanBreakdown(long worldStateNanos, long selectionNanos,
+                                  long relevanceNanos, int relevanceCalls,
+                                  String slowestRelevanceGoal, long slowestRelevanceNanos,
+                                  long customPlanNanos, long searchNanos,
+                                  long roleAssignmentNanos, String slowestRoleAction,
+                                  long slowestRoleNanos, int roleCandidates,
+                                  int planSteps, int planAttempts,
+                                  int declinedGoals, String selectedGoal) {
+        public static final ReplanBreakdown EMPTY = new ReplanBreakdown(
+                0L, 0L, 0L, 0, "", 0L, 0L, 0L, 0L, "", 0L, 0, 0, 0, 0, "");
+    }
+
+    public static final class ReplanTiming implements Goal.RelevanceProbe {
+        private long worldStateNanos, selectionNanos, relevanceNanos;
+        private long slowestRelevanceNanos, customPlanNanos, searchNanos;
+        private long roleAssignmentNanos;
+        private long slowestRoleNanos;
+        private int relevanceCalls, planAttempts, declinedGoals, roleCandidates, planSteps;
+        private String slowestRelevanceGoal = "", slowestRoleAction = "", selectedGoal = "";
+
+        @Override
+        public void record(Goal goal, long nanos) {
+            relevanceNanos += nanos;
+            relevanceCalls++;
+            if (nanos > slowestRelevanceNanos) {
+                slowestRelevanceNanos = nanos;
+                slowestRelevanceGoal = goal.name();
+            }
+        }
+
+        public ReplanBreakdown snapshot() {
+            return new ReplanBreakdown(worldStateNanos, selectionNanos,
+                    relevanceNanos, relevanceCalls, slowestRelevanceGoal,
+                    slowestRelevanceNanos, customPlanNanos, searchNanos,
+                    roleAssignmentNanos, slowestRoleAction, slowestRoleNanos,
+                    roleCandidates, planSteps, planAttempts, declinedGoals,
+                    selectedGoal);
+        }
+    }
+
     private GoapInfantryBehavior() {}
 
     /**
@@ -271,15 +312,16 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
      * </ul>
      *
-     * <p><b>Parallelism candidate.</b> Planning is purely functional and
-     * per-squad — this method is safe to invoke across squads concurrently
-     * once the sim is willing to parallelize the alert-update pass. The
-     * current replan system calls it serially; the value-oriented WorldState
-     * and stateless actions
-     * (see {@code ai-nouns.md}) are sized for
-     * the parallel future.
+     * <p>Called serially by the squad replan pass. The value-oriented search
+     * is per-squad, but some goal evaluations read sibling plans for frontage
+     * reservations; parallel execution needs a separate publication contract.
      */
     public static void replanIfNeeded(Squad squad, BattleSimulation sim) {
+        replanIfNeeded(squad, sim, null);
+    }
+
+    public static void replanIfNeeded(Squad squad, BattleSimulation sim,
+                                      ReplanTiming timing) {
         if (squad.aliveMembers == 0) {
             // Wiped squad — drop any lingering plan so the assignedMembers
             // list doesn't pin dead units.
@@ -341,7 +383,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // dissolved, folded into a sibling, or entirely dead.
         if (memberCountChanged) squad.clearBoundingOverwatch();
 
+        long stageStart = timing == null ? 0L : System.nanoTime();
         WorldState current = WorldStateBuilder.build(squad, sim);
+        if (timing != null) timing.worldStateNanos += System.nanoTime() - stageStart;
+        Goal.EvaluationContext evaluations = new Goal.EvaluationContext(
+                current, squad, sim, timing);
         // Walk down the ladder rather than stopping at the first winner.
         // Relevance answers "is this goal worth wanting"; only the planner
         // answers "can it be acted on from here", and a goal that loses the
@@ -354,19 +400,27 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         SquadPlan plan;
         Set<Goal> declined = Set.of();
         while (true) {
-            goal = pickGoal(current, squad, sim, declined);
-            if (goal == null) {
+            stageStart = timing == null ? 0L : System.nanoTime();
+            Goal.Choice choice = pickGoal(squad, sim, declined, evaluations);
+            if (timing != null) timing.selectionNanos += System.nanoTime() - stageStart;
+            if (choice == null) {
+                goal = null;
                 plan = null;
                 break;
             }
+            goal = choice.goal();
+            if (timing != null) timing.planAttempts++;
             // Custom-plan escape hatch: goals that synthesize their plan
             // directly (e.g. SecureObjectiveZone walking a zone-graph BFS
             // path) bypass the backward-chaining search and return their plan
             // ready to be filled with role assignments below. Returning null
             // means "use the planner", not "no plan" — the decline is the
             // planner's null below.
-            plan = goal.customPlan(squad, sim);
+            stageStart = timing == null ? 0L : System.nanoTime();
+            plan = goal.customPlan(choice.evaluation(), squad, sim);
+            if (timing != null) timing.customPlanNanos += System.nanoTime() - stageStart;
             if (plan == null) {
+                stageStart = timing == null ? 0L : System.nanoTime();
                 plan = Planner.plan(
                         current,
                         goal.desiredState(squad, sim),
@@ -374,10 +428,12 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                         squad,
                         sim,
                         PLAN_NODE_LIMIT);
+                if (timing != null) timing.searchNanos += System.nanoTime() - stageStart;
             }
             if (plan != null) break;
             if (declined.isEmpty()) declined = new HashSet<>();
             declined.add(goal);
+            if (timing != null) timing.declinedGoals++;
         }
         if (goal == null) {
             // No relevant goal — sit idle until something changes.
@@ -392,6 +448,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
 
         if (plan != null && !plan.isComplete()) {
+            stageStart = timing == null ? 0L : System.nanoTime();
             // Gather alive squadmates once, hand them to RoleAssigner per step.
             // Stage 1 actions declare a single "any" slot taking all members
             // (Action.roles default) — same effect as the previous "add
@@ -418,7 +475,12 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 if (squad.isRejoining(member)) continue;
                 aliveMembers.add(member);
             }
+            if (timing != null) {
+                timing.roleCandidates = aliveMembers.size();
+                timing.planSteps = plan.steps().size();
+            }
             for (SquadPlan.Step step : plan.steps()) {
+                long roleStart = timing == null ? 0L : System.nanoTime();
                 Map<String, List<Long>> assignment = step.action.assignRoles(
                         squad, sim, aliveMembers);
                 // Some mission goals deliberately retain the current plan
@@ -427,7 +489,15 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 // keys and duplicate survivors after casualties.
                 step.assignments.clear();
                 step.assignments.putAll(assignment);
+                if (timing != null) {
+                    long duration = System.nanoTime() - roleStart;
+                    if (duration > timing.slowestRoleNanos) {
+                        timing.slowestRoleNanos = duration;
+                        timing.slowestRoleAction = step.action.name();
+                    }
+                }
             }
+            if (timing != null) timing.roleAssignmentNanos += System.nanoTime() - stageStart;
         }
         if (squad.boundingActive && !continuesBoundingAdvance(plan, squad)) {
             squad.clearBoundingOverwatch();
@@ -436,6 +506,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         else squad.clearMechScreen();
         squad.currentPlan = plan;
         squad.currentGoal = goal;
+        if (timing != null) timing.selectedGoal = goal.name();
         squad.timeSinceReplan = Planner.periodicTimerAfterReplan(squad.id);
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
         squad.assignedObjectiveAtLastPlan = executableAssignment;
@@ -451,12 +522,14 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      * to say, not this dispatcher's — the same row the order system reads to
      * decide who may be handed the order and when it is over.
      */
-    private static Goal pickGoal(WorldState current, Squad squad,
-                                 BattleSimulation sim, Set<Goal> declined) {
+    private static Goal.Choice pickGoal(Squad squad, BattleSimulation sim,
+                                        Set<Goal> declined,
+                                        Goal.EvaluationContext evaluations) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null
                 || !squad.hasPlayerOrder(assignment.kind())) {
-            return Goal.pickMostRelevant(INFANTRY_GOALS, current, squad, sim, declined);
+            return Goal.pickMostRelevantPrepared(INFANTRY_GOALS, evaluations,
+                    declined);
         }
 
         // The player's own order still outranks the authored library, but it
@@ -466,13 +539,14 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // The order system cannot produce one, but the field behind it is a
         // plain setter, so the case is answered rather than assumed away.
         PlayerOrder player = OrderCatalog.playerOrder(assignment.kind());
-        if (player != null
-                && !declined.contains(player.goal())
-                && player.goal().relevance(current, squad, sim) > 0f) {
-            return player.goal();
+        if (player != null && !declined.contains(player.goal())) {
+            Goal.Evaluation evaluation = evaluations.evaluate(player.goal());
+            if (evaluation.relevance() > 0f) {
+                return new Goal.Choice(player.goal(), evaluation);
+            }
         }
-        return Goal.pickMostRelevant(
-                NON_MISSION_INFANTRY_GOALS, current, squad, sim, declined);
+        return Goal.pickMostRelevantPrepared(
+                NON_MISSION_INFANTRY_GOALS, evaluations, declined);
     }
 
     private static boolean protectedShelterGuard(

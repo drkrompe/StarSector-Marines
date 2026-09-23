@@ -90,4 +90,26 @@ public class RoleAssignerTest {
         Map<String, List<Cand>> result = RoleAssigner.assign(List.of(), slots);
         assertEquals(List.of(), result.get("anchor"));
     }
+
+    @Test
+    public void scoresEachCandidateSlotPairOnceEvenWhenSwapPassRuns() {
+        Cand x = new Cand("x", 1.0f, 0.9f);
+        Cand y = new Cand("y", 0.7f, 0.4f);
+        int[] calls = {0};
+        List<RoleAssigner.Slot<Cand>> slots = List.of(
+                new RoleAssigner.Slot<>("alpha", 1, c -> {
+                    calls[0]++;
+                    return c.anchorAffinity;
+                }),
+                new RoleAssigner.Slot<>("beta", 1, c -> {
+                    calls[0]++;
+                    return c.moverAffinity;
+                }));
+
+        Map<String, List<Cand>> result = RoleAssigner.assign(List.of(x, y), slots);
+
+        assertEquals(4, calls[0]);
+        assertEquals(List.of(y), result.get("alpha"));
+        assertEquals(List.of(x), result.get("beta"));
+    }
 }
