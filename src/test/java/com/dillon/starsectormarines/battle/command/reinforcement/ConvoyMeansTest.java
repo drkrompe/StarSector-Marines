@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,6 +38,32 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConvoyMeansTest {
+
+    @Test
+    void localEntranceProbeMatchesTheRouteProofsMaskedGate() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        for (int y = 0; y < 20; y++) {
+            for (int x = 0; x < 20; x++) grid.setWalkableFloor(x, y);
+        }
+        grid.setWalkable(4, 17, false);
+        VehicleClearance mask = VehicleClearance.erode(grid,
+                VehicleClearance.radiusForWidth(
+                        VehicleType.HEAVY_APC.visualWidthCells));
+        List<RoadGraph.Node> gates = List.of(
+                new RoadGraph.Node(0, 4, 19, true),
+                new RoadGraph.Node(1, 10, 19, true),
+                new RoadGraph.Node(2, 0, 10, true),
+                new RoadGraph.Node(3, 19, 10, true),
+                new RoadGraph.Node(4, 10, 10, false));
+        for (TraversalAxis axis : TraversalAxis.values()) {
+            for (RoadGraph.Node gate : gates) {
+                assertArrayEquals(ConvoyMeans.perimeterRouteCell(axis, mask,
+                                gate, 20, 20),
+                        ConvoyMeans.perimeterRouteCell(axis, grid,
+                                gate, 20, 20));
+            }
+        }
+    }
 
     private static final int WIDTH = 40;
     private static final int HEIGHT = 40;
@@ -278,6 +305,9 @@ class ConvoyMeansTest {
         ReinforcementRequest req = request(15, 10);
         assertTrue(means.canFulfill(sim, req),
                 "an open rear gate is a gate a truck can use");
+        assertTrue(means.arrivalSeconds(sim, req) < Float.MAX_VALUE);
+        assertEquals(0, means.clearanceMaskBuilds(),
+                "entry probes must not erode the whole map");
 
         sim.getGrid().setWalkable(15, HEIGHT - 3, false);
 
@@ -285,6 +315,7 @@ class ConvoyMeansTest {
                 "and a blocked one is refused before an attempt is spent on it");
         assertEquals(Float.MAX_VALUE, means.arrivalSeconds(sim, req),
                 "a means that cannot come never quotes a time");
+        assertEquals(0, means.clearanceMaskBuilds());
     }
 
     /**

@@ -117,6 +117,13 @@ public final class VehicleClearance {
 
     private boolean fits(NavigationGrid grid, int cx, int cy, int r) {
         fitEvaluations++;
+        return fitsAt(grid, cx, cy, r);
+    }
+
+    /** One footprint probe without allocating or eroding a whole-map mask. */
+    public static boolean fitsAt(NavigationGrid grid, int cx, int cy,
+                                 int radiusCells) {
+        int r = Math.max(0, radiusCells);
         for (int dy = -r; dy <= r; dy++) {
             for (int dx = -r; dx <= r; dx++) {
                 if (!grid.isWalkable(cx + dx, cy + dy)) return false;

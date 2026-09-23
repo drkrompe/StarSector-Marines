@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
@@ -67,6 +69,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * still prepends/appends the actual off-map point.
      */
     private static final int PERIMETER_STAGING_INSET = 2;
+    private static final int APC_CLEARANCE_RADIUS = VehicleClearance.radiusForWidth(
+            VehicleType.HEAVY_APC.visualWidthCells);
     /**
      * Grid searches one {@link #advance} spends on one route proof.
      *
@@ -127,7 +131,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * of the invalidation.
      */
     private final VehicleClearanceCache clearanceCache = new VehicleClearanceCache(
-            VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+            APC_CLEARANCE_RADIUS);
     /**
      * Route proofs in flight, keyed by the request they belong to.
      *
@@ -138,6 +142,11 @@ public final class ConvoyMeans implements ReinforcementMeans {
      */
     private final Map<ReinforcementRequest, InFlightProof> proofs =
             new IdentityHashMap<>();
+    /** Static road-gate candidates; footprint viability is checked against the live grid. */
+    private int perimeterWidth = -1;
+    private int perimeterHeight = -1;
+    private List<RoadGraph.Node> rearPerimeter = List.of();
+    private List<RoadGraph.Node> sidePerimeter = List.of();
 
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
         this(graph, axis, null, RiskLevel.LOW, null);
@@ -214,10 +223,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
      *
      * <p>Shared by the feasibility probe and the arrival estimate so the entry
      * that decides whether this means can deliver is the same entry it quotes
-     * a time from. It reads the retained clearance mask rather than eroding
-     * one: a probe asked of every request on every reinforcement tick cannot
-     * afford a full-grid sweep, and the mask is only stale when the grid says
-     * so. See {@link #clearanceFor}.
+     * a time from. Only each candidate gate's footprint is tested here; the
+     * full clearance mask is needed by an actual route proof, not by a probe
+     * asked of every request on every reinforcement tick.
      *
      * <p><b>A necessary condition, not the proof.</b> The drive itself is
      * still proven at commit, because proving it is a bounded enumeration of
@@ -238,14 +246,14 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private RoadGraph.Node entryNode(BattleView sim, DeliveryDeployment deployment) {
         int width = sim.getGrid().getWidth();
         int height = sim.getGrid().getHeight();
-        List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
-                ? defenderRearPerimeter(axis, graph.perimeterNodes(), width, height)
-                : defenderSidePerimeter(axis, graph.perimeterNodes(), width, height);
+        List<RoadGraph.Node> perimeter = perimeterFor(sim,
+                deployment.strictDefenderRearEntry());
         if (perimeter.isEmpty()) return null;
-        VehicleClearance clearance = clearanceFor(sim);
         for (RoadGraph.Node node : sortedByDistance(perimeter,
                 deployment.hintX(), deployment.hintY())) {
-            if (perimeterRouteCell(axis, clearance, node, width, height) != null) return node;
+            if (perimeterRouteCell(axis, sim.getGrid(), node, width, height) != null) {
+                return node;
+            }
         }
         return null;
     }
@@ -441,7 +449,12 @@ public final class ConvoyMeans implements ReinforcementMeans {
      */
     private RouteProofJob startProof(BattleControl sim, DeliveryDeployment deployment,
                                      long gridRevision) {
-        return RouteProofJob.start(graph, axis, deployment, sim.getGrid(), gridRevision,
+        List<RoadGraph.Node> perimeter = perimeterFor(sim,
+                deployment.strictDefenderRearEntry());
+        if (perimeter.isEmpty()) return null;
+        return RouteProofJob.start(graph, axis, deployment,
+                perimeter,
+                sim.getGrid(), gridRevision,
                 costFieldFor(sim), clearanceFor(sim),
                 clearanceCache.components(sim.getGrid(), gridRevision),
                 new LandingZoneScorer(sim.getGrid(), sim.getTopology()),
@@ -450,7 +463,14 @@ public final class ConvoyMeans implements ReinforcementMeans {
 
     /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */
     private TerrainCostField costFieldFor(BattleView sim) {
-        if (costField == null) costField = TerrainCostField.from(sim.getTopology());
+        if (costField == null) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
+            costField = TerrainCostField.from(sim.getTopology());
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_TERRAIN_COST_BUILD,
+                    System.nanoTime() - started);
+        }
         return costField;
     }
 
@@ -469,6 +489,20 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private VehicleClearance clearanceFor(BattleView sim) {
         return clearanceCache.clearance(sim.getGrid(),
                 sim.getNavigationGridRevision());
+    }
+
+    /** Road-graph perimeter selection is map-static; only full-body fit changes. */
+    private List<RoadGraph.Node> perimeterFor(BattleView sim, boolean strictRear) {
+        int width = sim.getGrid().getWidth();
+        int height = sim.getGrid().getHeight();
+        if (width != perimeterWidth || height != perimeterHeight) {
+            List<RoadGraph.Node> nodes = graph.perimeterNodes();
+            rearPerimeter = List.copyOf(defenderRearPerimeter(axis, nodes, width, height));
+            sidePerimeter = List.copyOf(defenderSidePerimeter(axis, nodes, width, height));
+            perimeterWidth = width;
+            perimeterHeight = height;
+        }
+        return strictRear ? rearPerimeter : sidePerimeter;
     }
 
     /**
@@ -507,6 +541,21 @@ public final class ConvoyMeans implements ReinforcementMeans {
     static int[] perimeterRouteCell(TraversalAxis axis, VehicleClearance clearance,
                                     RoadGraph.Node node,
                                     int width, int height) {
+        int[] cell = perimeterStagingCell(axis, node, width, height);
+        return cell != null && clearance.isPassable(cell[0], cell[1]) ? cell : null;
+    }
+
+    /** The same perimeter pose check as the route proof, without a full mask. */
+    static int[] perimeterRouteCell(TraversalAxis axis, NavigationGrid grid,
+                                    RoadGraph.Node node, int width, int height) {
+        int[] cell = perimeterStagingCell(axis, node, width, height);
+        return cell != null && VehicleClearance.fitsAt(grid, cell[0], cell[1],
+                APC_CLEARANCE_RADIUS) ? cell : null;
+    }
+
+    private static int[] perimeterStagingCell(TraversalAxis axis,
+                                               RoadGraph.Node node,
+                                               int width, int height) {
         int inwardX = 0;
         int inwardY = 0;
         if (axis == TraversalAxis.SOUTH_TO_NORTH && node.cellY == height - 1) {
@@ -529,8 +578,11 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // blocker before full-body validation begins.
         int x = node.cellX + inwardX * PERIMETER_STAGING_INSET;
         int y = node.cellY + inwardY * PERIMETER_STAGING_INSET;
-        return clearance.isPassable(x, y) ? new int[]{x, y} : null;
+        return new int[]{x, y};
     }
+
+    /** Full-mask builds made by this means; diagnostic evidence only. */
+    int clearanceMaskBuilds() { return clearanceCache.clearanceBuilds(); }
 
     private static boolean isMarineEntryEdge(TraversalAxis axis, RoadGraph.Node n, int gw, int gh) {
         if (axis == TraversalAxis.SOUTH_TO_NORTH) return n.cellY == 0;
