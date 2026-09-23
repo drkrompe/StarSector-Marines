@@ -1,0 +1,46 @@
+# Controlled Marine slice
+
+Status: PLANNED
+
+Written: 2026-09-23
+
+Read `direct-control-nouns.md`, `ai-nouns.md`, and `ui-nouns.md` first.
+Depends on `point-aim-direct-fire.md`.
+
+## Goal
+
+Make one exact, already deployed Marine infantry member playable in the
+standalone battle. This slice proves the interaction before hero eligibility
+or a new campaign unlock is defined.
+
+## Plan
+
+1. Add a battle-owned one-body control session. Validate exact Marine identity
+   on entry, consume immutable input at fixed ticks, and release through one
+   handback path on explicit exit, loss of eligibility, or battle teardown.
+2. Give the selected exact member an enter/exit affordance and mode/status
+   readout. Route held WASD, mouse world aim, and primary trigger before world
+   picking/orders/camera keys, while respecting retained UI input ownership.
+   Follow the body with the battle camera and constrain active play to 1x.
+3. Add an infantry direct-movement entry that preserves speed, normalized
+   diagonal motion, walkability, body interaction, velocity, and animation.
+   Manual execution must not skip cooldown or equipment housekeeping.
+4. Feed primary fire through point-aim direct fire. Temporarily remove the
+   controlled member from AI-assigned execution roles and replan the fire
+   team/squad on entry and handback without changing mission assignment or
+   roster membership.
+
+## Acceptance
+
+- Only an exact eligible Marine body enters; selection of a whole squad, an
+  ally, enemy, incapacitated member, or riding member does not.
+- Moving, aiming, and firing work while the rest of the squad continues its
+  mission. The controlled member cannot walk through structure or fire faster
+  than the equipped weapon allows. Another AI path or reflex never moves or
+  fires the same member a second time in one tick.
+- Pause produces no movement or shots. Enter, exit, pointer-over-chrome,
+  lost focus, death, boarding, withdrawal, battle completion, and detach all
+  neutralize held input; normal camera pan, selection, orders, and AI resume.
+- A headless controlled scene records movement, fire, squad progress, and
+  handback from the same fixed-tick intent sequence twice with identical
+  results. A live pass checks keyboard/mouse feel and UI ownership.
