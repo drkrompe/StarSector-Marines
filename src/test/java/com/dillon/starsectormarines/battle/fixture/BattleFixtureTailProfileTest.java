@@ -7,6 +7,10 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadReplanSystem;
+import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
+import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import jdk.jfr.Category;
 import jdk.jfr.Configuration;
 import jdk.jfr.Event;
@@ -73,6 +77,9 @@ class BattleFixtureTailProfileTest {
 
     private record GcCounters(long collections, long collectionMillis) { }
 
+    private record ConvoyUncachedStages(int cells, int radius, long terrainNanos,
+                                        long clearanceNanos, long componentsNanos) { }
+
     private record MeshRefresh(int tick, long gridChangesConsumed,
                                int tilesCovered, int seamsDerived,
                                long coverNanos, long seamNanos,
@@ -135,6 +142,7 @@ class BattleFixtureTailProfileTest {
         long totalReplans = 0;
         AsyncDefendTrackRoutes.Metrics firstRoutes;
         AsyncDefendTrackRoutes.Metrics finalRoutes;
+        ConvoyUncachedStages convoyUncachedStages = null;
         long nextDeadline = System.nanoTime();
         long paceNanos = paceMillis * 1_000_000L;
         List<GarbageCollectorMXBean> garbageCollectors =
@@ -289,6 +297,23 @@ class BattleFixtureTailProfileTest {
                 recording.stop();
                 recording.dump(jfrPath);
             }
+            if (Boolean.getBoolean("battle.tail.convoyUncachedStages")) {
+                int radius = VehicleClearance.radiusForWidth(
+                        VehicleType.HEAVY_APC.visualWidthCells);
+                long started = System.nanoTime();
+                TerrainCostField.from(sim.getTopology());
+                long terrainNanos = System.nanoTime() - started;
+                started = System.nanoTime();
+                VehicleClearance clearance = VehicleClearance.erode(
+                        sim.getGrid(), radius);
+                long clearanceNanos = System.nanoTime() - started;
+                started = System.nanoTime();
+                ClearanceComponents.of(sim.getGrid(), clearance);
+                long componentsNanos = System.nanoTime() - started;
+                convoyUncachedStages = new ConvoyUncachedStages(
+                        sim.getGrid().getWidth() * sim.getGrid().getHeight(),
+                        radius, terrainNanos, clearanceNanos, componentsNanos);
+            }
         }
 
         assertTrue(commanderPulses > 0, "late-age run missed commander pulses");
@@ -301,7 +326,7 @@ class BattleFixtureTailProfileTest {
                 meshCoverNanos, meshSeamNanos, meshAssemblyNanos,
                 meshRebuildNanos, meshRefreshSamples, totalReplans,
                 minimumUnits, maximumUnits, firstRoutes,
-                finalRoutes, jfrPath);
+                finalRoutes, jfrPath, convoyUncachedStages);
         assertEquals(Math.min(topLimit, durations.length),
                 report.getJSONArray("worstTicks").length());
         assertEquals(TickProfile.Phase.VALUES.length,
@@ -339,7 +364,7 @@ class BattleFixtureTailProfileTest {
                                      int minimumUnits, int maximumUnits,
                                      AsyncDefendTrackRoutes.Metrics firstRoutes,
                                      AsyncDefendTrackRoutes.Metrics finalRoutes,
-                                     Path jfrPath)
+                                     Path jfrPath, ConvoyUncachedStages convoyUncachedStages)
             throws Exception {
         long[] sorted = durations.clone();
         Arrays.sort(sorted);
@@ -357,7 +382,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 3);
+        report.put("schemaVersion", 4);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -439,6 +464,14 @@ class BattleFixtureTailProfileTest {
                 - firstRoutes.rejected());
         report.put("asyncRouteWorkerTotalMs", millis(finalRoutes.searchNanos()
                 - firstRoutes.searchNanos()));
+        if (convoyUncachedStages != null) {
+            report.put("isolatedConvoyUncachedStages", new JSONObject()
+                    .put("cells", convoyUncachedStages.cells())
+                    .put("footprintRadius", convoyUncachedStages.radius())
+                    .put("terrainCostMs", millis(convoyUncachedStages.terrainNanos()))
+                    .put("clearanceMs", millis(convoyUncachedStages.clearanceNanos()))
+                    .put("componentsMs", millis(convoyUncachedStages.componentsNanos())));
+        }
         if (jfrPath != null) report.put("jfrPath", jfrPath.toAbsolutePath().toString());
         report.put("timingSemantics", "tick and phase values are wall time; "
                 + "inner behavior/action and sampled unit values aggregate parallel worker time "

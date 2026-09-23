@@ -4,10 +4,9 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — the clearance mask and its component labels catch up
-from the navigation grid's changed-cell log in tiles rather than being rebuilt
-per dispatch, and the route proof is a resumable job stepped a few searches
-per tick.
+Updated: 2026-09-23 — feasibility checks only local entrance footprints;
+static perimeter candidates are retained, while full clearance and component
+labels remain route-proof work.
 
 Updated: 2026-08-30 — map generation now guarantees a drivable corridor from
 the defender's rear edge to the city, so the strict rear entry admits a hull.
@@ -138,6 +137,12 @@ inside the map for the full body to fit while its visible path still begins and
 ends off-map. If no complete journey exists, the means rejects atomically and
 the reinforcement dispatcher may try its next provider; no ticket-consuming
 false success or stranded actor is created.
+
+The road graph's eligible perimeter candidates are static for a battle and
+retained. Feasibility and arrival estimates check only the full-body footprint
+at each candidate's staging cell against current walkability; neither needs a
+whole-map clearance mask. A chosen convoy still builds or catches up the mask
+and its connectivity labels for the complete inbound and outbound proof.
 
 ## A vehicle is a unit
 

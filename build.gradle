@@ -486,7 +486,7 @@ tasks.register('profileConquestTail', Test) {
     }
     ['battle.tail.totalTicks', 'battle.tail.warmupTicks',
      'battle.tail.paceMillis', 'battle.tail.topTicks',
-     'battle.tail.jfr'].each { propertyName ->
+     'battle.tail.jfr', 'battle.tail.convoyUncachedStages'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) systemProperty propertyName, propertyValue
     }

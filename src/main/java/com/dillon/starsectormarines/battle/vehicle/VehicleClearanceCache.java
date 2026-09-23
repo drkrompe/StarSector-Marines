@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 /**
  * One chassis width's {@link VehicleClearance} mask and its
@@ -89,7 +90,12 @@ public final class VehicleClearanceCache {
      */
     public VehicleClearance clearance(NavigationGrid grid, long topologyRevision) {
         if (clearance == null || clearanceGrid != grid) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
             clearance = VehicleClearance.erode(grid, radiusCells);
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_CLEARANCE_BUILD,
+                    System.nanoTime() - started);
             clearanceGrid = grid;
             clearanceRevision = topologyRevision;
             clearanceCaughtUp = grid.changeCount();
@@ -101,6 +107,8 @@ public final class VehicleClearanceCache {
         }
         long changeCount = grid.changeCount();
         if (grid.hasCaughtUpFrom(clearanceCaughtUp)) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
             VehicleClearance patched = VehicleClearance.copyOf(clearance);
             int width = grid.getWidth();
             for (long seq = clearanceCaughtUp; seq < changeCount; seq++) {
@@ -108,9 +116,17 @@ public final class VehicleClearanceCache {
                 patched.refreshAround(grid, idx % width, idx / width);
             }
             clearance = patched;
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_CLEARANCE_CATCHUP,
+                    System.nanoTime() - started);
             clearanceCatchUps++;
         } else {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
             clearance = VehicleClearance.erode(grid, radiusCells);
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_CLEARANCE_BUILD,
+                    System.nanoTime() - started);
             clearanceBuilds++;
         }
         clearanceRevision = topologyRevision;
@@ -126,7 +142,12 @@ public final class VehicleClearanceCache {
     public ClearanceComponents components(NavigationGrid grid, long topologyRevision) {
         VehicleClearance mask = clearance(grid, topologyRevision);
         if (components == null || componentsGrid != grid) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
             components = ClearanceComponents.of(grid, mask);
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_COMPONENT_BUILD,
+                    System.nanoTime() - started);
             componentsGrid = grid;
             componentsRevision = topologyRevision;
             componentsCaughtUp = grid.changeCount();
@@ -138,11 +159,21 @@ public final class VehicleClearanceCache {
         }
         long changeCount = grid.changeCount();
         if (grid.hasCaughtUpFrom(componentsCaughtUp)) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
             components = components.catchUp(grid, mask, componentsCaughtUp,
                     changeCount, radiusCells);
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_COMPONENT_CATCHUP,
+                    System.nanoTime() - started);
             componentCatchUps++;
         } else {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
             components = ClearanceComponents.of(grid, mask);
+            if (profile != null) profile.record(
+                    TickInnerProfile.Bucket.CONVOY_COMPONENT_BUILD,
+                    System.nanoTime() - started);
             componentBuilds++;
         }
         componentsRevision = topologyRevision;

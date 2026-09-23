@@ -174,15 +174,11 @@ final class RouteProofJob {
      */
     static RouteProofJob start(RoadGraph graph, TraversalAxis axis,
                                DeliveryDeployment deployment,
+                               List<RoadGraph.Node> perimeter,
                                NavigationGrid grid, long gridRevision,
                                TerrainCostField cost, VehicleClearance clearance,
                                ClearanceComponents components,
                                LandingZoneScorer scorer, List<int[]> reserved) {
-        int width = grid.getWidth();
-        int height = grid.getHeight();
-        List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
-                ? ConvoyMeans.defenderRearPerimeter(axis, graph.perimeterNodes(), width, height)
-                : ConvoyMeans.defenderSidePerimeter(axis, graph.perimeterNodes(), width, height);
         if (perimeter.isEmpty()) return null;
         return new RouteProofJob(graph, axis, deployment, grid, gridRevision, cost,
                 clearance, components, scorer, reserved, perimeter);

@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,6 +23,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * </ul>
  */
 public class VehicleClearanceTest {
+
+    @Test
+    public void localFootprintProbeMatchesFullErosionAtEveryCell() {
+        NavigationGrid grid = new NavigationGrid(37, 23);
+        Random random = new Random(41L);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (random.nextFloat() < 0.8f) grid.setWalkableFloor(x, y);
+            }
+        }
+        for (int radius = 0; radius <= 3; radius++) {
+            VehicleClearance full = VehicleClearance.erode(grid, radius);
+            for (int y = -1; y <= grid.getHeight(); y++) {
+                for (int x = -1; x <= grid.getWidth(); x++) {
+                    assertEquals(full.isPassable(x, y),
+                            VehicleClearance.fitsAt(grid, x, y, radius),
+                            "radius " + radius + " at (" + x + "," + y + ")");
+                }
+            }
+        }
+    }
 
     /** Rectangular block of walkable floor [x0..x1] × [y0..y1] inclusive. */
     private static void carve(NavigationGrid grid, int x0, int y0, int x1, int y1) {

@@ -201,7 +201,11 @@ Do not run builds or leave generated task files there.
   spikes can be read together. Add `-Dbattle.tail.jfr=true` for a JFR
   execution-sample recording and one event per measured tick in the same output directory;
   JFR adds overhead, so use the ordinary run for timing magnitude and the
-  recording for code-path attribution. Use
+  recording for code-path attribution. Add
+  `-Dbattle.tail.convoyUncachedStages=true` to measure isolated terrain-cost,
+  APC-clearance, and connectivity-label construction on the same grid after
+  the timed replay; this does not depend on a convoy winning dispatch and does
+  not change measured ticks. Use
   `-Dbattle.fixture.path=<absolute path>` to replay construction inputs from a
   live `tick_profile_spike_*.json.data` or its `.fixture.json.data` sibling,
   and `-Dbattle.tail.totalTicks=N`, `-Dbattle.tail.warmupTicks=N`,
