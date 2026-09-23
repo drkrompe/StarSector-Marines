@@ -143,7 +143,8 @@ void forwardBattleSwitches(task) {
 
 test {
     useJUnitPlatform {
-        excludeTags 'battle-profile', 'battle-tail-profile', 'commander-balance',
+        excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
+                'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence'
@@ -490,6 +491,24 @@ tasks.register('profileConquestTail', Test) {
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) systemProperty propertyName, propertyValue
     }
+    testLogging { showStandardStreams = true }
+}
+
+// Isolated route proof on generated full-size Conquest maps. It measures the
+// actual entrance/drop/exit decision without depending on battle timing to
+// select convoy as the reinforcement means during a replay.
+tasks.register('profileConvoyRoute', Test) {
+    group = 'verification'
+    description = 'Measure progressive convoy proof coverage and worst step on large Conquest maps.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'convoy-route-evidence' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.convoyRoute.outputDir', System.getProperty(
+            'battle.convoyRoute.outputDir',
+            layout.buildDirectory.dir('reports/performance/convoy-route').get().asFile.absolutePath)
     testLogging { showStandardStreams = true }
 }
 

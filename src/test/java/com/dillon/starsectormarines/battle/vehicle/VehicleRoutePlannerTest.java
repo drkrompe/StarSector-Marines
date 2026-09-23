@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -163,6 +164,103 @@ public class VehicleRoutePlannerTest {
         assertEquals(2, poly[0].length, "a straight run should string-pull to just its endpoints");
         assertTrue(routeCovers(poly, 5, 2), "the segment should run along the road");
         assertRouteClear(poly, clr);
+    }
+
+    @Test
+    public void onDemandSearchAndStringPullMatchEagerFields() {
+        NavigationGrid grid = new NavigationGrid(11, 11);
+        carve(grid, 0, 0, 10, 10);
+        for (int y = 4; y <= 6; y++) {
+            for (int x = 4; x <= 6; x++) grid.setWalkable(x, y, false);
+        }
+        CellTopology topo = new CellTopology(11, 11);
+        fillKind(topo, GroundKind.GRASS);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clearance = VehicleClearance.erode(grid, 0);
+
+        float[][] eager = VehicleRoutePlanner.route(1, 1, 9, 9,
+                grid, cost, clearance);
+        float[][] onDemand = VehicleRoutePlanner.routeOnDemand(1, 1, 9, 9,
+                grid, cost::costAtIndex,
+                index -> clearance.passableArray()[index]);
+
+        assertNotNull(onDemand);
+        assertArrayEquals(eager[0], onDemand[0]);
+        assertArrayEquals(eager[1], onDemand[1]);
+        assertRouteClear(onDemand, clearance);
+    }
+
+    @Test
+    public void onDemandDrivableSearchMatchesEagerBendRefinement() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 8, 0, 24, 24);
+        carve(grid, 8, 8, 39, 24);
+        CellTopology topo = new CellTopology(40, 40);
+        fillKind(topo, GroundKind.STREET);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clearance = VehicleClearance.erode(grid, 1);
+
+        float[][] eager = VehicleRoutePlanner.routeDrivable(16, 3, 34, 16,
+                grid, cost, clearance, VehicleType.HEAVY_APC);
+        DrivableRouteSearch lazy = DrivableRouteSearch.overOnDemand(
+                16, 3, 34, 16, grid, cost::costAtIndex,
+                index -> clearance.passableArray()[index], VehicleType.HEAVY_APC);
+        lazy.advance(new RouteSearchBudget(8), Integer.MAX_VALUE);
+
+        assertEquals(DrivableRouteSearch.Status.ROUTED, lazy.status());
+        assertArrayEquals(eager[0], lazy.route()[0]);
+        assertArrayEquals(eager[1], lazy.route()[1]);
+    }
+
+    @Test
+    public void onDemandDrivableSearchSpreadsOneAttemptAcrossNodeBudgets() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 8, 0, 24, 24);
+        carve(grid, 8, 8, 39, 24);
+        CellTopology topo = new CellTopology(40, 40);
+        fillKind(topo, GroundKind.STREET);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clearance = VehicleClearance.erode(grid, 1);
+        DrivableRouteSearch search = DrivableRouteSearch.overOnDemand(
+                16, 3, 34, 16, grid, cost::costAtIndex,
+                index -> clearance.passableArray()[index], VehicleType.HEAVY_APC);
+        RouteSearchBudget budget = new RouteSearchBudget(16);
+
+        assertEquals(DrivableRouteSearch.Status.PENDING,
+                search.advance(budget, 1, 3));
+        assertEquals(3, search.expandedNodesThisAdvance());
+        assertEquals(1, budget.spent(), "pausing A* must not re-claim its search");
+        for (int i = 0; i < 2000 && search.status()
+                == DrivableRouteSearch.Status.PENDING; i++) {
+            search.advance(budget, 1, 3);
+            assertTrue(search.expandedNodesThisAdvance() <= 3);
+        }
+
+        assertEquals(DrivableRouteSearch.Status.ROUTED, search.status());
+        assertNotNull(search.route());
+    }
+
+    @Test
+    public void onlyFirstUnmaskedNoRouteExposesExhaustedBaseRegion() {
+        NavigationGrid grid = new NavigationGrid(20, 10);
+        carve(grid, 0, 0, 19, 9);
+        for (int y = 0; y < 10; y++) grid.setWalkable(10, y, false);
+        CellTopology topo = new CellTopology(20, 10);
+        fillKind(topo, GroundKind.STREET);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clearance = VehicleClearance.erode(grid, 0);
+        DrivableRouteSearch search = DrivableRouteSearch.overOnDemand(
+                2, 5, 17, 5, grid, cost::costAtIndex,
+                index -> clearance.passableArray()[index], VehicleType.HEAVY_APC);
+        RouteSearchBudget budget = new RouteSearchBudget(1);
+        for (int i = 0; i < 100 && search.status()
+                == DrivableRouteSearch.Status.PENDING; i++) search.advance(budget, 1, 5);
+
+        assertEquals(DrivableRouteSearch.Status.NO_ROUTE, search.status());
+        assertEquals(1, budget.spent());
+        assertTrue(search.hasExhaustedBaseRegion());
+        assertTrue(search.exhaustedBaseRegionContains(2, 5));
+        assertFalse(search.exhaustedBaseRegionContains(17, 5));
     }
 
     @Test

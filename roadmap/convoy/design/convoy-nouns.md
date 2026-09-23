@@ -4,56 +4,8 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-09-23 — feasibility checks only local entrance footprints;
-static perimeter candidates are retained, while full clearance and component
-labels remain route-proof work.
-
-Updated: 2026-08-30 — map generation now guarantees a drivable corridor from
-the defender's rear edge to the city, so the strict rear entry admits a hull.
-
-Updated: 2026-08-30 — a wreck writes nothing to the navigation or sight map,
-a live vehicle wears the shared durability gauge, and a carrier that has
-unloaded departs rather than holding armed overwatch on its drop point.
-
-Updated: 2026-08-30 — a chassis is an ordinary body: it carries `IDENTITY`,
-lives in the unit spatial index, and is a squad contact like any other enemy.
-The explicit convoy candidate set is gone from targeting.
-
-Updated: 2026-08-31 — an arrival gate is derived from the step a body takes in
-one tick, not authored as a bare distance, so a faster variant cannot drive
-through its own LZ without arriving.
-
-Updated: 2026-08-31 — route construction proves the turn from the way a truck
-arrives to the way it must leave, and a departure that finds itself misaligned
-backs and fills onto its corridor instead of holding.
-
-Updated: 2026-08-31 — the control layer takes a route and a leg rather than an
-inbound/outbound flag, so what arrival means is a property of the journey and a
-route need not belong to a delivery.
-
-Updated: 2026-08-31 — a vehicle can be given a move order, and an order that
-cannot be carried out is refused with a reason rather than parked on.
-
-Updated: 2026-08-31 — the departure turn is proved from the drop point with no
-run-up, because the maneuver that would have earned the run-up is an attempt
-rather than a guarantee.
-
-Updated: 2026-08-31 — a chassis can be deployed with no errand and commanded,
-and only its owner may command it.
-
-Updated: 2026-08-31 — a vehicle can carry a named squad rather than a count;
-mounting narrows a unit instead of deleting it, and a ride ends the objective
-but not the claim.
-
-Updated: 2026-08-31 — mounting and dismounting are contextual right-click
-orders on the vehicle itself rather than buttons.
-
-Updated: 2026-08-31 — the pointer says which contextual order a right-click
-would issue, resolved through the same services the order systems use.
-
-Updated: 2026-08-31 — a chassis is one implementation of the shared body
-surface rather than its own target model; the explicit convoy loops in the
-spatial index, ballistics, the splash sweep and the damage route are gone.
+Updated: 2026-09-23 — convoy route proofs derive clearance and terrain costs
+as bounded searches explore, with no full-map connectivity preparation.
 
 ## Purpose and boundary
 
@@ -140,9 +92,9 @@ false success or stranded actor is created.
 
 The road graph's eligible perimeter candidates are static for a battle and
 retained. Feasibility and arrival estimates check only the full-body footprint
-at each candidate's staging cell against current walkability; neither needs a
-whole-map clearance mask. A chosen convoy still builds or catches up the mask
-and its connectivity labels for the complete inbound and outbound proof.
+at each candidate's staging cell against current walkability. A chosen convoy
+captures raw navigation and ground kinds, then derives clearance and terrain
+cost only where its inbound and outbound route searches actually explore.
 
 ## A vehicle is a unit
 
@@ -322,11 +274,12 @@ so later attempts cannot ping-pong through an earlier bad bend. If no such route
 exists, reroute attempts are rate-limited while ordinary tracking continues;
 the durable abort, hold, or deliver-in-place terminal outcome remains open.
 
-The macro terrain cost input is built for a battle and reused by recovery.
-Clearance is an immutable snapshot derived from live walkability, and later
-dispatches always derive a fresh mask. Because a wreck closes no cell, that
-mask does not change when a vehicle dies, and a later convoy plans the street
-it planned before.
+An actual convoy proof retains a frozen routing view: raw navigation and ground
+kinds are copied once, while footprint clearance and terrain cost are evaluated
+and memoized only as the route or later recovery asks for a cell. Unexamined
+ground is neither passable nor blocked until queried. Another convoy captures
+the current map; a vehicle wreck closes no navigation cell, so it does not
+change the next convoy's clearance.
 
 ## Standing laws
 
@@ -338,44 +291,29 @@ it planned before.
 - Route construction proves ordinary forward bends. Live motion remains the
   final kinematic authority, and any changed-grid failure stops and recovers
   instead of degrading to raw polyline pursuit.
-- **Reachability is settled on the clearance mask before anything is
-  searched.** The mask's connected components are labelled once per dispatch,
-  under the pathfinder's own step rule, and an entry, a drop and an exit that do
-  not share a component are never offered to the router. The road graph cannot
-  answer this question and must not be asked it: it describes the streets, not
-  what fits down them, so a junction the graph joins and the body cannot reach
-  costs a full-grid flood to refuse — and the proof asks about many junctions.
-  The labelling must use the router's own step rule rather than the mask alone,
-  because a closed edge is a wall the mask cannot see.
-- **The mask and its labels are held against the grid's own revision, not
-  rebuilt per ask.** Both are pure derivations of the navigation grid, and the
-  grid already counts every write that could change either — cell flags and edge
-  passability — so a revision that has not moved is a proof that rebuilding
-  would produce the same arrays. They used to be rebuilt on every dispatch
-  *and* on every feasibility probe, out of a correct worry that stated the wrong
-  remedy: a wreck can close ground under a proved route, so the mask was thrown
-  away every time rather than when that happened. On a 560x336 map that is
-  twelve milliseconds to erode and twelve to label, charged to a game-thread
-  tick, for arrays that are almost always identical to the last ones. What
-  actually closes ground during a battle is an **aircraft** settling onto it;
-  a vehicle wreck writes nothing to the navigation grid, and destruction
-  otherwise only makes the map more permissive. The revision covers all three
-  without knowing which is which, and there is nothing for a caller to remember
-  to invalidate. When the revision has moved, neither is rebuilt whole: the
-  grid's changed-cell log names the cells, the mask re-evaluates only the
-  chassis-radius neighbourhood of each, and the labels relabel only the tiles
-  those cells fall in before re-uniting the tile seams — the tiled-derivation
-  law the navigation substrate states in its own charter
-  (`battle.nav` package charter). A reader the log no longer reaches back to
-  rebuilds whole, which is the old answer and never a wrong one.
+- **Reachability is proved as the route search expands, not by preparing a
+  global label map.** A road-graph connection does not imply a vehicle fits:
+  the pathfinder's own step rule tests clearance, edges, and diagonal corners.
+  A failed unmasked search has exhausted its reachable region, so later
+  endpoints outside it can be skipped without confusing an unknown cell with a
+  blocked one. The search may ultimately inspect the whole region when no
+  route exists, but does so across ticks rather than in one burst.
+- **A proof belongs to a frozen raw map and a live revision.** Its raw routing
+  inputs are copied once; their clearance and cost derivatives are filled only
+  on demand. A grid revision during proof invalidates it, including partial A*
+  frontiers. A committed route retains its frozen view for later recovery, so
+  unqueried cells cannot silently read a newer map. A settled aircraft can
+  close ground; a vehicle wreck does not write to navigation.
 - **A route proof is bounded in searches, not in the map.** The proof is an
   enumeration — entries against junctions against exits — so a limit of eight
   retries per endpoint pair bounds nothing a player is waiting on. One budget,
   counted in grid searches, spans the whole enumeration. Exhausting it is not
   an error: the dispatch reports no route, which is what it would have reported
   more slowly, and the request falls through to another means.
-- **Bound it in the currency the cost is in.** Searching is bounded by the
-  search budget and by nothing else; only the perimeter entries are capped by
+- **Bound both attempts and per-tick expansion.** The whole proof is bounded by
+  search attempts, while each tick has a shared node-expansion allowance across
+  active convoy proofs. An A* frontier that reaches that allowance resumes on
+  another tick without paying for another attempt. Only perimeter entries are capped by
   count, because what an entry costs before any search is a road-graph flood
   and a sort rather than a search. Capping drops and exits by count as well
   looked harmless at six and three and was a bar set in the dark: the canonical
@@ -394,33 +332,21 @@ it planned before.
   the ranking already called best cost nineteen searches and delivered nearer.
   Where the retries go matters more than how many there are.
 - **A proof is spread across ticks, because a bound in total is not a bound in
-  a frame.** The search budget says what one dispatch may spend; it says nothing
-  about how much of that lands in the tick that asked, and the answer was all of
-  it — 118 ms of one game thread on the 560x336 map, which is a visible hitch on
-  hardware weaker than the one it was measured on. Nothing about the question
-  requires an answer this frame: the delivery it authorises takes six seconds to
-  appear and most of a minute to arrive. So the enumeration is a resumable
-  object stepped a few searches per sim tick, and the dispatch that started it
-  reads a finished result a handful of ticks later.
+  a frame.** Neither the enumeration nor a single disconnected A* may consume
+  an unbounded tick. The dispatch that starts the proof reads its finished
+  result later; the delivery itself takes seconds to appear and much longer to
+  arrive, so this preparation can tolerate that delay.
 - **Every cursor in that enumeration is state a restart would destroy**, which
   is why it is an object and not a smaller budget passed in again. The
-  accumulating avoidance mask inside one endpoint pair's retry loop is the
-  obvious one — that mask *is* the eighteen retries — but so is which entry is
+  accumulating failed-turn exclusions and one A* frontier inside an endpoint
+  pair are the obvious ones, but so is which entry is
   being tried and how many drops beneath it have already been refused. Beginning
   again each tick would spend the whole budget on the first candidate forever.
-- **A proof belongs to the world it was proved against.** It holds the mask, the
-  labels, the cost field and several half-finished searches, all of them true of
-  one grid revision. A revision that moves under a running proof invalidates all
-  of it at once, and the honest response is to start over rather than to finish
-  an argument about a map that no longer exists. A proof nobody has asked after
-  for two dispatch cadences is abandoned: the request was dropped or served
-  elsewhere, and nothing tells a means it lost.
-- **Standing a proof up is itself a tick's work, and on the first dispatch of a
-  battle it is the expensive part.** The terrain cost field and the clearance
-  component labels are each a sweep of the whole map, and building both came to
-  thirteen milliseconds before a single search was spent. A freshly created
-  proof therefore does not also search on the tick that created it; that would
-  be the same mistake one tick smaller.
+- **Standing a proof up still costs a snapshot.** It copies raw map inputs but
+  neither erodes every footprint nor prices every terrain cell nor labels all
+  connectivity. Its first search begins on a later tick. A proof nobody has
+  asked after for two dispatch cadences is abandoned: the request was dropped
+  or served elsewhere, and nothing tells a means it lost.
 - It also proves the one bend that lies on neither polyline: the turn from the
   heading a vehicle arrives on to the heading its exit demands — asked with no
   run-up, from the drop point itself. The docking maneuver would often rescue

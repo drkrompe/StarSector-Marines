@@ -123,6 +123,8 @@ public final class TickInnerProfile {
         CONVOY_COMPONENT_BUILD,
         CONVOY_COMPONENT_CATCHUP,
         CONVOY_TERRAIN_COST_BUILD,
+        CONVOY_PROGRESSIVE_SNAPSHOT,
+        CONVOY_ROUTE_PROOF_STEP,
         TARGET_PICK,
         FIRING_POSITION,
         FALLBACK_POSITION,
@@ -260,6 +262,10 @@ public final class TickInnerProfile {
     private long squadRouteCorridorCells;
     private long squadRouteSettledCells;
     private long pathfindExpandedNodes;
+    private long convoyClearanceEvaluations;
+    private long convoyCostEvaluations;
+    private long convoyExpandedNodes;
+    private long convoySearchesStarted;
     private final MutablePathSearch[] slowPathSearches = new MutablePathSearch[SLOW_PATH_SEARCH_LIMIT];
     private int slowPathSearchCount;
     private Bucket activeBehavior;
@@ -281,6 +287,10 @@ public final class TickInnerProfile {
         squadRouteCorridorCells = 0L;
         squadRouteSettledCells = 0L;
         pathfindExpandedNodes = 0L;
+        convoyClearanceEvaluations = 0L;
+        convoyCostEvaluations = 0L;
+        convoyExpandedNodes = 0L;
+        convoySearchesStarted = 0L;
         slowPathSearchCount = 0;
         activeBehavior = null;
         actions.clear();
@@ -386,6 +396,15 @@ public final class TickInnerProfile {
         squadRouteSettledCells += settledCells;
     }
 
+    /** Progressive convoy work performed in one proof slice, not full-map totals. */
+    public void recordConvoyRouteWork(int clearanceCells, int costCells,
+                                      int expandedNodes, int searchesStarted) {
+        convoyClearanceEvaluations += clearanceCells;
+        convoyCostEvaluations += costCells;
+        convoyExpandedNodes += expandedNodes;
+        convoySearchesStarted += searchesStarted;
+    }
+
     private void ensurePathfindRequestCapacity(int required) {
         if (pathfindRequests.length >= required) return;
         pathfindRequests = Arrays.copyOf(pathfindRequests,
@@ -415,6 +434,10 @@ public final class TickInnerProfile {
         squadRouteCorridorCells += other.squadRouteCorridorCells;
         squadRouteSettledCells += other.squadRouteSettledCells;
         pathfindExpandedNodes += other.pathfindExpandedNodes;
+        convoyClearanceEvaluations += other.convoyClearanceEvaluations;
+        convoyCostEvaluations += other.convoyCostEvaluations;
+        convoyExpandedNodes += other.convoyExpandedNodes;
+        convoySearchesStarted += other.convoySearchesStarted;
         for (int i = 0; i < other.slowPathSearchCount; i++) {
             MutablePathSearch sample = other.slowPathSearches[i];
             retainSlowPathSearch(sample.nanos, sample.startX, sample.startY,
@@ -455,6 +478,10 @@ public final class TickInnerProfile {
     public long squadRouteCorridorCells() { return squadRouteCorridorCells; }
     public long squadRouteSettledCells() { return squadRouteSettledCells; }
     public long pathfindExpandedNodes() { return pathfindExpandedNodes; }
+    public long convoyClearanceEvaluations() { return convoyClearanceEvaluations; }
+    public long convoyCostEvaluations() { return convoyCostEvaluations; }
+    public long convoyExpandedNodes() { return convoyExpandedNodes; }
+    public long convoySearchesStarted() { return convoySearchesStarted; }
 
     /** Frozen samples for manual dumps; the spike latch freezes these at endTick. */
     public List<PathSearch> slowPathSearches() {
@@ -517,7 +544,9 @@ public final class TickInnerProfile {
     public Snapshot snapshot() {
         return new Snapshot(nanos.clone(), counts.clone(), copyActions(actions),
                 squadRouteCorridorCells, squadRouteSettledCells,
-                pathfindExpandedNodes, slowPathSearches());
+                pathfindExpandedNodes, slowPathSearches(),
+                convoyClearanceEvaluations, convoyCostEvaluations,
+                convoyExpandedNodes, convoySearchesStarted);
     }
 
     /** Immutable frozen bucket state — what spike dumps carry forward past the next tick's reset. */
@@ -529,6 +558,10 @@ public final class TickInnerProfile {
         public final long squadRouteCorridorCells;
         public final long squadRouteSettledCells;
         public final long pathfindExpandedNodes;
+        public final long convoyClearanceEvaluations;
+        public final long convoyCostEvaluations;
+        public final long convoyExpandedNodes;
+        public final long convoySearchesStarted;
         public final List<PathSearch> slowPathSearches;
         public Snapshot(long[] nanos, int[] counts) {
             this(nanos, counts, Collections.emptyMap(), 0L, 0L);
@@ -540,12 +573,16 @@ public final class TickInnerProfile {
                         long squadRouteCorridorCells,
                         long squadRouteSettledCells) {
             this(nanos, counts, actions, squadRouteCorridorCells,
-                    squadRouteSettledCells, 0L, List.of());
+                    squadRouteSettledCells, 0L, List.of(), 0L, 0L, 0L, 0L);
         }
         public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions,
                         long squadRouteCorridorCells,
                         long squadRouteSettledCells, long pathfindExpandedNodes,
-                        List<PathSearch> slowPathSearches) {
+                        List<PathSearch> slowPathSearches,
+                        long convoyClearanceEvaluations,
+                        long convoyCostEvaluations,
+                        long convoyExpandedNodes,
+                        long convoySearchesStarted) {
             this.nanos = nanos;
             this.counts = counts;
             this.actions = actions;
@@ -553,6 +590,10 @@ public final class TickInnerProfile {
             this.squadRouteSettledCells = squadRouteSettledCells;
             this.pathfindExpandedNodes = pathfindExpandedNodes;
             this.slowPathSearches = List.copyOf(slowPathSearches);
+            this.convoyClearanceEvaluations = convoyClearanceEvaluations;
+            this.convoyCostEvaluations = convoyCostEvaluations;
+            this.convoyExpandedNodes = convoyExpandedNodes;
+            this.convoySearchesStarted = convoySearchesStarted;
         }
         public long nanosOf(Bucket b) { return nanos[b.ordinal()]; }
         public int countOf(Bucket b)  { return counts[b.ordinal()]; }

@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * One endpoint pair's drivable-route search, carried across ticks.
@@ -16,11 +20,10 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * begin it again.
  *
  * <p>So spreading a route proof across ticks cannot be done by re-entering the
- * planner with a smaller budget. It is done by holding this: the endpoints, the
- * accumulating avoidance mask, and how far the loop has got. {@link #advance}
- * spends at most a stated number of searches and reports {@code PENDING} when it
- * has neither found a route nor refused one, so the caller can put it down and
- * pick it up on the next tick with nothing lost.
+ * planner with a smaller budget. It holds the endpoints, failed-turn exclusions,
+ * and the current A* frontier. {@link #advance} bounds both new attempts and,
+ * for on-demand routing, node expansions, reporting {@code PENDING} when it
+ * has neither found a route nor refused one.
  *
  * <p>The planner stays a function of its inputs: this is where the resumable
  * state lives, and {@code routeDrivable} is now the special case that advances
@@ -48,12 +51,21 @@ public final class DrivableRouteSearch {
     private final boolean[] mask;
     /** The unmodified clearance set, used to restore the endpoints after a disc clips them. */
     private final boolean[] basePassable;
+    /** On-demand mode keeps only refused bends, not a copied map-sized mask. */
+    private final Set<Integer> blocked;
+    private final GridPathfinder.IndexedCost indexedCost;
+    private final GridPathfinder.IndexedPassability indexedPassable;
+    private final GridPathfinder.IndexedPassability workingPassable;
     private final int width;
     private final int height;
     private final VehicleType type;
 
     private Status status = Status.PENDING;
     private float[][] route;
+    private GridPathfinder.OnDemandSearch pendingSearch;
+    private GridPathfinder.OnDemandSearch exhaustedBaseSearch;
+    private int attemptsStarted;
+    private int expandedNodesThisAdvance;
 
     /**
      * A search over {@code clearance} for a body of {@code type}. The mask is
@@ -68,6 +80,22 @@ public final class DrivableRouteSearch {
                 clearance.getWidth(), clearance.getHeight(), type);
     }
 
+    /**
+     * Resumable drivable search over stable, lazily derived fields. Failed turns
+     * are recorded as a sparse overlay; neither the clearance view nor the
+     * terrain-cost view is materialized or copied. The supplied grid must be
+     * the same frozen topology used by both views and by turn refinement.
+     */
+    public static DrivableRouteSearch overOnDemand(int startX, int startY,
+                                                    int goalX, int goalY,
+                                                    NavigationGrid grid,
+                                                    GridPathfinder.IndexedCost cost,
+                                                    GridPathfinder.IndexedPassability passable,
+                                                    VehicleType type) {
+        return new DrivableRouteSearch(startX, startY, goalX, goalY,
+                grid, cost, passable, type);
+    }
+
     DrivableRouteSearch(int startX, int startY, int goalX, int goalY,
                         NavigationGrid grid, TerrainCostField costField,
                         boolean[] mask, boolean[] basePassable,
@@ -80,8 +108,35 @@ public final class DrivableRouteSearch {
         this.costField = costField;
         this.mask = mask;
         this.basePassable = basePassable;
+        this.blocked = null;
+        this.indexedCost = null;
+        this.indexedPassable = null;
+        this.workingPassable = null;
         this.width = width;
         this.height = height;
+        this.type = type;
+    }
+
+    private DrivableRouteSearch(int startX, int startY, int goalX, int goalY,
+                                NavigationGrid grid,
+                                GridPathfinder.IndexedCost cost,
+                                GridPathfinder.IndexedPassability passable,
+                                VehicleType type) {
+        this.startX = startX;
+        this.startY = startY;
+        this.goalX = goalX;
+        this.goalY = goalY;
+        this.grid = grid;
+        this.costField = null;
+        this.mask = null;
+        this.basePassable = null;
+        this.blocked = new HashSet<>();
+        this.indexedCost = cost;
+        this.indexedPassable = passable;
+        this.workingPassable = index -> !blocked.contains(index)
+                && indexedPassable.isPassable(index);
+        this.width = grid.getWidth();
+        this.height = grid.getHeight();
         this.type = type;
     }
 
@@ -94,11 +149,62 @@ public final class DrivableRouteSearch {
      * first is "come back next tick" and the second is "the proof is over".
      */
     public Status advance(RouteSearchBudget budget, int maxSearches) {
+        return advance(budget, maxSearches, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Also limits on-demand A* work by node expansions. A partially expanded
+     * search retains its own frontier and consumes its caller-owned search
+     * budget only once, when that attempt starts. Eager mode retains its
+     * historical whole-search behavior.
+     */
+    public Status advance(RouteSearchBudget budget, int maxSearches,
+                          int maxExpandedNodes) {
+        if (maxExpandedNodes < 0) {
+            throw new IllegalArgumentException("maxExpandedNodes must be nonnegative");
+        }
+        expandedNodesThisAdvance = 0;
+        if (blocked != null) {
+            return advanceOnDemand(budget, maxSearches, maxExpandedNodes);
+        }
         int spent = 0;
         while (status == Status.PENDING && spent < maxSearches) {
             if (!budget.claim()) return status;
             spent++;
             searchOnce();
+        }
+        return status;
+    }
+
+    private Status advanceOnDemand(RouteSearchBudget budget, int maxSearches,
+                                   int maxExpandedNodes) {
+        int attempted = 0;
+        while (status == Status.PENDING && attempted < maxSearches
+                && expandedNodesThisAdvance < maxExpandedNodes) {
+            if (pendingSearch == null) {
+                if (!budget.claim()) return status;
+                pendingSearch = GridPathfinder.beginOnDemand(grid,
+                        startX, startY, goalX, goalY,
+                        indexedCost, workingPassable);
+                attemptsStarted++;
+            }
+            attempted++;
+            int before = pendingSearch.expandedNodes();
+            GridPathfinder.OnDemandSearch.Status searchStatus = pendingSearch.advance(
+                    maxExpandedNodes - expandedNodesThisAdvance);
+            expandedNodesThisAdvance += pendingSearch.expandedNodes() - before;
+            if (searchStatus == GridPathfinder.OnDemandSearch.Status.PENDING) return status;
+            if (searchStatus == GridPathfinder.OnDemandSearch.Status.NO_ROUTE
+                    && attemptsStarted == 1 && blocked.isEmpty()
+                    && pendingSearch.expandedNodes() > 0) {
+                exhaustedBaseSearch = pendingSearch;
+            }
+            float[][] macro = searchStatus == GridPathfinder.OnDemandSearch.Status.ROUTED
+                    ? VehicleRoutePlanner.stringPullOnDemand(pendingSearch.path(),
+                            workingPassable, width, height)
+                    : null;
+            pendingSearch = null;
+            considerMacro(macro);
         }
         return status;
     }
@@ -109,9 +215,29 @@ public final class DrivableRouteSearch {
     /** The drivable polyline, or {@code null} until {@link #status} is {@link Status#ROUTED}. */
     public float[][] route() { return route; }
 
+    /** Node expansions spent by the most recent {@link #advance} call. */
+    public int expandedNodesThisAdvance() { return expandedNodesThisAdvance; }
+
+    /**
+     * True only for a cell proved reachable from this search's start by a
+     * fully exhausted first A* over the unmasked base field. Failed-turn
+     * exclusion attempts cannot establish this for another endpoint pair.
+     */
+    public boolean exhaustedBaseRegionContains(int x, int y) {
+        return exhaustedBaseSearch != null && x >= 0 && x < width
+                && y >= 0 && y < height
+                && exhaustedBaseSearch.exhaustedReachable(y * width + x);
+    }
+
+    public boolean hasExhaustedBaseRegion() { return exhaustedBaseSearch != null; }
+
     private void searchOnce() {
-        float[][] macro = VehicleRoutePlanner.routeMasked(startX, startY, goalX, goalY,
-                grid, costField, mask, width, height);
+        float[][] macro = VehicleRoutePlanner.routeMasked(startX, startY,
+                goalX, goalY, grid, costField, mask, width, height);
+        considerMacro(macro);
+    }
+
+    private void considerMacro(float[][] macro) {
         if (macro == null) {
             status = Status.NO_ROUTE;
             return;
@@ -132,9 +258,29 @@ public final class DrivableRouteSearch {
             status = Status.NO_ROUTE;
             return;
         }
-        VehicleRoutePlanner.blockDisc(mask, width, height, failedX, failedY,
-                VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
-        VehicleRoutePlanner.restoreEndpoint(mask, basePassable, width, height, startX, startY);
-        VehicleRoutePlanner.restoreEndpoint(mask, basePassable, width, height, goalX, goalY);
+        if (blocked == null) {
+            VehicleRoutePlanner.blockDisc(mask, width, height, failedX, failedY,
+                    VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
+            VehicleRoutePlanner.restoreEndpoint(mask, basePassable, width, height, startX, startY);
+            VehicleRoutePlanner.restoreEndpoint(mask, basePassable, width, height, goalX, goalY);
+        } else {
+            blockDisc(failedX, failedY, VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
+            blocked.remove(startY * width + startX);
+            blocked.remove(goalY * width + goalX);
+        }
+    }
+
+    private void blockDisc(int centerX, int centerY, float radius) {
+        int r = (int) Math.ceil(radius);
+        float radiusSq = radius * radius;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy > radiusSq) continue;
+                int x = centerX + dx, y = centerY + dy;
+                if (x >= 0 && x < width && y >= 0 && y < height) {
+                    blocked.add(y * width + x);
+                }
+            }
+        }
     }
 }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class VehicleRescueRouteTest {
 
@@ -59,6 +60,37 @@ class VehicleRescueRouteTest {
         assertNotNull(rescue);
         assertFalse(covers(rescue.points(), 5, 5));
         assertFalse(covers(rescue.points(), 8, 5));
+    }
+
+    @Test
+    void onDemandRecoveryMatchesEagerAvoidanceAndSnapping() {
+        NavigationGrid grid = new NavigationGrid(14, 12);
+        CellTopology topology = new CellTopology(14, 12);
+        for (int y = 0; y < 12; y++) for (int x = 0; x < 14; x++) {
+            grid.setWalkableFloor(x, y);
+            topology.setGroundKind(x, y, GroundKind.GRASS);
+        }
+        TerrainCostField cost = TerrainCostField.from(topology);
+        VehicleClearance clearance = VehicleClearance.erode(grid, 0);
+        int[] avoidXs = {5, 8};
+        int[] avoidYs = {5, 5};
+
+        VehicleRoutePlanner.RescueRoute eager = VehicleRoutePlanner.routeAvoidingForwardFirst(
+                2, 5, 11, 5, -90f, 0, grid, cost, clearance,
+                avoidXs, avoidYs, 2, 1f, VehicleType.HEAVY_APC);
+        VehicleRoutePlanner.RescueRoute lazy = VehicleRoutePlanner.routeAvoidingForwardFirstOnDemand(
+                2, 5, 11, 5, -90f, 0, grid, cost::costAtIndex,
+                index -> clearance.passableArray()[index],
+                avoidXs, avoidYs, 2, 1f, VehicleType.HEAVY_APC);
+
+        assertNotNull(lazy);
+        assertEquals(eager.firstStepDirectionBit(), lazy.firstStepDirectionBit());
+        assertArrayEquals(eager.points()[0], lazy.points()[0]);
+        assertArrayEquals(eager.points()[1], lazy.points()[1]);
+        assertArrayEquals(new int[]{2, 5}, VehicleRoutePlanner.snapToMaskOnDemand(
+                index -> clearance.passableArray()[index], 14, 12, 2, 5, 3));
+        assertFalse(covers(lazy.points(), 5, 5));
+        assertFalse(covers(lazy.points(), 8, 5));
     }
 
     private static boolean covers(float[][] route, int cellX, int cellY) {

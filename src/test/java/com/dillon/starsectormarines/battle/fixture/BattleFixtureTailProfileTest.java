@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadReplanSystem;
 import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
+import com.dillon.starsectormarines.battle.vehicle.ProgressiveVehicleField;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -78,7 +79,8 @@ class BattleFixtureTailProfileTest {
     private record GcCounters(long collections, long collectionMillis) { }
 
     private record ConvoyUncachedStages(int cells, int radius, long terrainNanos,
-                                        long clearanceNanos, long componentsNanos) { }
+                                        long clearanceNanos, long componentsNanos,
+                                        long progressiveSnapshotNanos) { }
 
     private record MeshRefresh(int tick, long gridChangesConsumed,
                                int tilesCovered, int seamsDerived,
@@ -120,6 +122,7 @@ class BattleFixtureTailProfileTest {
         long[] phaseTotals = new long[TickProfile.Phase.VALUES.length];
         long[] innerTotals = new long[TickInnerProfile.Bucket.VALUES.length];
         long[] innerCounts = new long[TickInnerProfile.Bucket.VALUES.length];
+        long[] convoyWorkTotals = new long[4];
         Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
                 "build/reports/performance/conquest-tail"));
         Files.createDirectories(outputDir);
@@ -226,6 +229,10 @@ class BattleFixtureTailProfileTest {
                         innerTotals[index] += inner.nanosOf(bucket);
                         innerCounts[index] += inner.countOf(bucket);
                     }
+                    convoyWorkTotals[0] += inner.convoyClearanceEvaluations();
+                    convoyWorkTotals[1] += inner.convoyCostEvaluations();
+                    convoyWorkTotals[2] += inner.convoyExpandedNodes();
+                    convoyWorkTotals[3] += inner.convoySearchesStarted();
                     if (inner.countOf(TickInnerProfile.Bucket.COMMANDER_PULSE) > 0) {
                         commanderPulses++;
                     }
@@ -310,9 +317,16 @@ class BattleFixtureTailProfileTest {
                 started = System.nanoTime();
                 ClearanceComponents.of(sim.getGrid(), clearance);
                 long componentsNanos = System.nanoTime() - started;
+                started = System.nanoTime();
+                ProgressiveVehicleField progressive = ProgressiveVehicleField.capture(
+                        sim.getGrid(), sim.getTopology(), radius);
+                long progressiveSnapshotNanos = System.nanoTime() - started;
+                assertEquals(0, progressive.clearanceEvaluations());
+                assertEquals(0, progressive.costEvaluations());
                 convoyUncachedStages = new ConvoyUncachedStages(
                         sim.getGrid().getWidth() * sim.getGrid().getHeight(),
-                        radius, terrainNanos, clearanceNanos, componentsNanos);
+                        radius, terrainNanos, clearanceNanos, componentsNanos,
+                        progressiveSnapshotNanos);
             }
         }
 
@@ -321,7 +335,7 @@ class BattleFixtureTailProfileTest {
         assertTrue(maximumUnits >= UnitUpdateSystem.configuredMinimumParallelUnits());
         JSONObject report = report(fixturePath, fixtureBytes, totalTicks,
                 warmupTicks, paceMillis, durations, phaseTotals, innerTotals,
-                innerCounts, worst, worstByPhase, commanderPulses,
+                innerCounts, convoyWorkTotals, worst, worstByPhase, commanderPulses,
                 meshRefreshes, meshTilesCovered, setupPendingMeshChanges,
                 meshCoverNanos, meshSeamNanos, meshAssemblyNanos,
                 meshRebuildNanos, meshRefreshSamples, totalReplans,
@@ -352,6 +366,7 @@ class BattleFixtureTailProfileTest {
                                      int paceMillis, long[] durations,
                                      long[] phaseTotals, long[] innerTotals,
                                      long[] innerCounts,
+                                     long[] convoyWorkTotals,
                                      PriorityQueue<TickSample> worst,
                                      TickSample[] worstByPhase,
                                      int commanderPulses, int meshRefreshes,
@@ -382,7 +397,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 4);
+        report.put("schemaVersion", 5);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -452,6 +467,7 @@ class BattleFixtureTailProfileTest {
                     .put("count", innerCounts[index]));
         }
         report.put("innerTotals", innerTime);
+        report.put("convoyRouteWorkTotals", convoyWorkJson(convoyWorkTotals));
         report.put("overBudgetTicks", Arrays.stream(durations)
                 .filter(ns -> ns >= FRAME_BUDGET_NANOS).count());
         report.put("over50MsTicks", Arrays.stream(durations)
@@ -470,7 +486,9 @@ class BattleFixtureTailProfileTest {
                     .put("footprintRadius", convoyUncachedStages.radius())
                     .put("terrainCostMs", millis(convoyUncachedStages.terrainNanos()))
                     .put("clearanceMs", millis(convoyUncachedStages.clearanceNanos()))
-                    .put("componentsMs", millis(convoyUncachedStages.componentsNanos())));
+                    .put("componentsMs", millis(convoyUncachedStages.componentsNanos()))
+                    .put("progressiveSnapshotMs", millis(
+                            convoyUncachedStages.progressiveSnapshotNanos())));
         }
         if (jfrPath != null) report.put("jfrPath", jfrPath.toAbsolutePath().toString());
         report.put("timingSemantics", "tick and phase values are wall time; "
@@ -537,6 +555,11 @@ class BattleFixtureTailProfileTest {
         tick.put("actions", actions);
         tick.put("flatPathfindExpandedNodes",
                 sample.inner().pathfindExpandedNodes);
+        tick.put("convoyRouteWork", convoyWorkJson(new long[]{
+                sample.inner().convoyClearanceEvaluations,
+                sample.inner().convoyCostEvaluations,
+                sample.inner().convoyExpandedNodes,
+                sample.inner().convoySearchesStarted}));
         JSONArray paths = new JSONArray();
         for (TickInnerProfile.PathSearch search : sample.inner().slowPathSearches) {
             paths.put(new JSONObject().put("ms", millis(search.nanos()))
@@ -614,6 +637,14 @@ class BattleFixtureTailProfileTest {
                 .put("pendingMembers", after.pendingMembers())
                 .put("maxQueueDepthSoFar", after.maxQueueDepth()));
         return tick;
+    }
+
+    private static JSONObject convoyWorkJson(long[] counts) throws Exception {
+        return new JSONObject()
+                .put("clearanceCells", counts[0])
+                .put("terrainCostCells", counts[1])
+                .put("expandedNodes", counts[2])
+                .put("searchesStarted", counts[3]);
     }
 
     private static double millis(long nanos) { return nanos / 1_000_000.0; }

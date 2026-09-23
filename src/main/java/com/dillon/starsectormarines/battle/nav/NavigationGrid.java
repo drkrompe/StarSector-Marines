@@ -182,20 +182,25 @@ public class NavigationGrid {
     private final LosCaches losCaches = new LosCaches();
 
     public NavigationGrid(int width, int height) {
+        this(width, height, false);
+    }
+
+    /** Routing snapshots need only walkability and edges, not the battle's cover and obstacle stores. */
+    private NavigationGrid(int width, int height, boolean routingOnly) {
         this.width = width;
         this.height = height;
         int size = width * height;
         this.cellFlags = new long[size];
         this.edgePassability = new byte[size];
-        this.coverByFacing = new byte[size * FACING_COUNT];
-        this.coverCatchHalfHeightByFacing = new float[size * FACING_COUNT];
-        this.edgeBarrierCoverByFacing = new byte[size * FACING_COUNT];
+        this.coverByFacing = new byte[routingOnly ? 0 : size * FACING_COUNT];
+        this.coverCatchHalfHeightByFacing = new float[routingOnly ? 0 : size * FACING_COUNT];
+        this.edgeBarrierCoverByFacing = new byte[routingOnly ? 0 : size * FACING_COUNT];
         this.edgeBarrierCoverCatchHalfHeightByFacing =
-                new float[size * FACING_COUNT];
-        this.eastEdgeBarriers = new SharedEdgeBarrier[size];
-        this.northEdgeBarriers = new SharedEdgeBarrier[size];
-        this.wallHp = new int[size];
-        this.transientOpacity = new short[size];
+                new float[routingOnly ? 0 : size * FACING_COUNT];
+        this.eastEdgeBarriers = new SharedEdgeBarrier[routingOnly ? 0 : size];
+        this.northEdgeBarriers = new SharedEdgeBarrier[routingOnly ? 0 : size];
+        this.wallHp = new int[routingOnly ? 0 : size];
+        this.transientOpacity = new short[routingOnly ? 0 : size];
     }
 
     // ----- Tag access (generic) -----
@@ -227,6 +232,19 @@ public class NavigationGrid {
     /** Independent public-navigation snapshot for commander planning. */
     public NavigationGrid copyNavigationTopology() {
         NavigationGrid copy = new NavigationGrid(width, height);
+        System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
+        System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
+                edgePassability.length);
+        return copy;
+    }
+
+    /**
+     * Compact frozen view for A* and vehicle footprint/turn checks. Only cell
+     * flags and edge passability are present; do not use this as a battle grid
+     * for cover, damage, barriers, or transient-opacity operations.
+     */
+    public NavigationGrid copyVehicleRoutingTopology() {
+        NavigationGrid copy = new NavigationGrid(width, height, true);
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);

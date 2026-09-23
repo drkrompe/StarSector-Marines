@@ -193,6 +193,24 @@ class ConvoyMeansTest {
     }
 
     @Test
+    void topologyChangeDiscardsAnInFlightProgressiveProof() {
+        BattleSimulation sim = openSim();
+        ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH, northGraph(), 20);
+        ReinforcementRequest request = request(15, 10);
+
+        assertEquals(ReinforcementDispatchResult.RETRYABLE,
+                means.dispatch(sim, request));
+        assertEquals(1, means.routeFieldCaptures());
+        sim.getGrid().setWalkable(5, 5, false);
+        means.advance(BattleSimulation.TICK_DT, sim);
+
+        assertEquals(ReinforcementDispatchResult.RETRYABLE,
+                means.dispatch(sim, request));
+        assertEquals(2, means.routeFieldCaptures(),
+                "the proof must capture the new topology, not resume its old view");
+    }
+
+    @Test
     void snappedDropInsideBuildingIsRejected() {
         BattleSimulation sim = openSim();
         sim.getGrid().setWalkable(15, 29, false);
@@ -267,6 +285,29 @@ class ConvoyMeansTest {
     }
 
     @Test
+    void disconnectedTopRankedDropDoesNotHideReachableLaterDrop() {
+        BattleSimulation sim = openSim();
+        for (int x = 0; x < WIDTH; x++) sim.getGrid().setWalkable(x, 25, false);
+        RoadGraph.Node entry = new RoadGraph.Node(0, 15, HEIGHT - 1, true);
+        RoadGraph.Node unreachable = new RoadGraph.Node(1, 15, 20, false);
+        RoadGraph.Node unreachableLeft = new RoadGraph.Node(2, 9, 20, false);
+        RoadGraph.Node unreachableRight = new RoadGraph.Node(3, 21, 20, false);
+        RoadGraph.Node reachable = new RoadGraph.Node(4, 15, 30, false);
+        RoadGraph.Node reachableBranch = new RoadGraph.Node(5, 21, 30, false);
+        RoadGraph graph = graph(List.of(entry, unreachable, unreachableLeft,
+                        unreachableRight, reachable, reachableBranch),
+                edge(0, entry, unreachable), edge(1, unreachable, unreachableLeft),
+                edge(2, unreachable, unreachableRight), edge(3, entry, reachable),
+                edge(4, reachable, reachableBranch));
+        ConvoyMeans means = means(TraversalAxis.SOUTH_TO_NORTH, graph, 20);
+
+        assertEquals(ReinforcementDispatchResult.COMMITTED,
+                prove(means, sim, request(15, 20)));
+        assertTrue(onlyMission(sim).lzY > 25f,
+                "the proof must skip the unreachable region and try the later drop");
+    }
+
+    @Test
     void legacyMissionWithoutPolicyKeepsDefenderSideEntryAndReinforcementOwnership() {
         BattleSimulation sim = openSim();
         ConvoyMeans means = new ConvoyMeans(
@@ -306,8 +347,8 @@ class ConvoyMeansTest {
         assertTrue(means.canFulfill(sim, req),
                 "an open rear gate is a gate a truck can use");
         assertTrue(means.arrivalSeconds(sim, req) < Float.MAX_VALUE);
-        assertEquals(0, means.clearanceMaskBuilds(),
-                "entry probes must not erode the whole map");
+        assertEquals(0, means.routeFieldCaptures(),
+                "entry probes must not capture full route inputs");
 
         sim.getGrid().setWalkable(15, HEIGHT - 3, false);
 
@@ -315,7 +356,7 @@ class ConvoyMeansTest {
                 "and a blocked one is refused before an attempt is spent on it");
         assertEquals(Float.MAX_VALUE, means.arrivalSeconds(sim, req),
                 "a means that cannot come never quotes a time");
-        assertEquals(0, means.clearanceMaskBuilds());
+        assertEquals(0, means.routeFieldCaptures());
     }
 
     /**
@@ -432,6 +473,14 @@ class ConvoyMeansTest {
         assertEquals(ReinforcementDispatchResult.COMMITTED, result,
                 "canonical " + axis + " map needs a complete rear convoy route");
         VehicleMission mission = onlyMission(sim);
+        assertNotNull(mission.routeFields);
+        int mapCells = map.grid.getWidth() * map.grid.getHeight();
+        assertTrue(mission.routeFields.clearanceEvaluations() < mapCells / 10,
+                "proof should leave clearance unexamined outside its searched region: "
+                        + mission.routeFields.clearanceEvaluations() + "/" + mapCells);
+        assertTrue(mission.routeFields.costEvaluations() < mapCells / 10,
+                "proof should leave terrain unpriced outside its searched region: "
+                        + mission.routeFields.costEvaluations() + "/" + mapCells);
         if (axis == TraversalAxis.WEST_TO_EAST) {
             assertTrue(mission.inboundX[0] > map.grid.getWidth());
             assertTrue(mission.lzX >= minimumForward);

@@ -6,15 +6,11 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
-import com.dillon.starsectormarines.battle.vehicle.ClearanceComponents;
-import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.air.AirBody;
-import com.dillon.starsectormarines.battle.vehicle.RouteSearchBudget;
-import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
+import com.dillon.starsectormarines.battle.vehicle.ProgressiveVehicleField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
-import com.dillon.starsectormarines.battle.vehicle.VehicleClearanceCache;
 import com.dillon.starsectormarines.battle.vehicle.VehicleController;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -72,20 +68,15 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final int APC_CLEARANCE_RADIUS = VehicleClearance.radiusForWidth(
             VehicleType.HEAVY_APC.visualWidthCells);
     /**
-     * Grid searches one {@link #advance} spends on one route proof.
+     * New grid searches the means spends across all active proofs in one
+     * {@link #advance}. Node expansions have a separate shared tick ceiling.
      *
-     * <p>A cost-field A* over the 560x336 Conquest map costs about two and a
-     * half milliseconds, so four of them is a tenth of the frame budget and
-     * leaves room for the road-graph ranking the first step of a proof also
-     * does. The whole proof is {@link RouteProofJob#SEARCH_BUDGET} searches, so
-     * this also bounds how long a convoy can go on answering RETRYABLE: eight
-     * ticks, and then it has either committed or fallen through.
+     * <p>The whole proof retains {@link RouteProofJob#SEARCH_BUDGET} attempts,
+     * but one disconnected A* may span several ticks; attempts alone are not
+     * an adequate per-tick work bound without the node-expansion ceiling.
      *
-     * <p>It is deliberately not tuned to "one search per tick, whatever that
-     * costs". A proof that takes half a second of wall clock to finish is a
-     * reinforcement arriving noticeably late for no reason a player could name;
-     * what was wrong was the whole enumeration landing in one frame, not the
-     * searching itself.
+     * <p>Ready proofs are visited round-robin so one long failed search cannot
+     * permanently monopolize the shared per-tick allowance.
      */
     static final int SEARCHES_PER_TICK = 4;
 
@@ -108,30 +99,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private final GroundRosterProfile groundRoster;
     private final RiskLevel risk;
     private final DeliveryDeploymentPolicy deploymentPolicy;
-    /**
-     * Per-battle terrain cost field, baked lazily on first dispatch. Ground kinds
-     * are effectively static (rubble appears only on wall breach); a slightly
-     * stale macro route is fine — the rolling local planner handles live terrain.
-     *
-     * <p>Deliberately never invalidated, and
-     * {@link com.dillon.starsectormarines.battle.nav.NavigationGrid}'s
-     * changed-cell log (see the {@code battle.nav} package charter) is not the
-     * fact that would tell it to: {@link TerrainCostField#from} reads
-     * {@link com.dillon.starsectormarines.battle.world.model.CellTopology}'s
-     * {@code GroundKind} array, which the nav grid's own log knows nothing
-     * about, so this field has nothing to catch up from there —
-     * {@code CellTopology} keeps a change log of its own if that staleness is
-     * ever worth closing.
-     */
-    private TerrainCostField costField;
-    /**
-     * Per-battle clearance mask and component labels for the one chassis this
-     * means drives, rebuilt only when the grid's passability changes. See
-     * {@link VehicleClearanceCache} for why the topology revision is the whole
-     * of the invalidation.
-     */
-    private final VehicleClearanceCache clearanceCache = new VehicleClearanceCache(
-            APC_CLEARANCE_RADIUS);
+    /** Diagnostic count of frozen route views captured by actual proof requests. */
+    private int routeFieldCaptures;
     /**
      * Route proofs in flight, keyed by the request they belong to.
      *
@@ -142,6 +111,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
      */
     private final Map<ReinforcementRequest, InFlightProof> proofs =
             new IdentityHashMap<>();
+    private int nextProofIndex;
     /** Static road-gate candidates; footprint viability is checked against the live grid. */
     private int perimeterWidth = -1;
     private int perimeterHeight = -1;
@@ -277,7 +247,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * has stopped asking — {@link #ABANDON_AFTER_SECONDS} without a dispatch
      * touching it means the request was dropped as undeliverable or served by
      * another means — or when the grid's passability moved under it, since the
-     * mask, the labels and every partial search were all proved against a map
+     * field and every partial search were all proved against a map
      * that no longer exists.
      */
     @Override
@@ -285,6 +255,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
         if (proofs.isEmpty()) return false;
         long revision = sim.getNavigationGridRevision();
         boolean finishedSomething = false;
+        List<InFlightProof> running = new ArrayList<>();
         Iterator<Map.Entry<ReinforcementRequest, InFlightProof>> it =
                 proofs.entrySet().iterator();
         while (it.hasNext()) {
@@ -295,11 +266,37 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 it.remove();
                 continue;
             }
-            if (proof.job.state() != RouteProofJob.State.RUNNING) continue;
-            if (proof.job.step(SEARCHES_PER_TICK) != RouteProofJob.State.RUNNING) {
+            if (proof.job.state() == RouteProofJob.State.RUNNING) running.add(proof);
+        }
+        int searchesLeft = SEARCHES_PER_TICK;
+        int expansionsLeft = RouteProofJob.EXPANSIONS_PER_TICK;
+        int count = running.size();
+        int startIndex = count == 0 ? 0 : nextProofIndex % count;
+        for (int offset = 0; offset < count
+                && searchesLeft > 0 && expansionsLeft > 0; offset++) {
+            InFlightProof proof = running.get((startIndex + offset) % count);
+            int searchesBefore = proof.job.budget().spent();
+            int clearanceBefore = proof.job.clearanceEvaluations();
+            int costBefore = proof.job.costEvaluations();
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile != null ? System.nanoTime() : 0L;
+            RouteProofJob.State state = proof.job.step(searchesLeft, expansionsLeft);
+            if (profile != null) {
+                profile.record(TickInnerProfile.Bucket.CONVOY_ROUTE_PROOF_STEP,
+                        System.nanoTime() - started);
+                profile.recordConvoyRouteWork(
+                        proof.job.clearanceEvaluations() - clearanceBefore,
+                        proof.job.costEvaluations() - costBefore,
+                        proof.job.expandedNodesThisStep(),
+                        proof.job.budget().spent() - searchesBefore);
+            }
+            searchesLeft -= proof.job.budget().spent() - searchesBefore;
+            expansionsLeft -= proof.job.expandedNodesThisStep();
+            if (state != RouteProofJob.State.RUNNING) {
                 finishedSomething = true;
             }
         }
+        if (count > 0) nextProofIndex = (startIndex + 1) % count;
         return finishedSomething;
     }
 
@@ -327,13 +324,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
             }
             proof = new InFlightProof(job);
             proofs.put(req, proof);
-            // Standing a proof up is itself this tick's work, and on the first
-            // dispatch of a battle it is the expensive part: the terrain cost
-            // field and the clearance component labels are both a sweep of the
-            // whole map. Measured, that tick came to 13ms before a single
-            // search. Adding four searches on top of it is the same mistake the
-            // job exists to fix, one tick smaller, so the first step waits for
-            // the next tick.
+            // The raw routing snapshot is this tick's preparation. Its
+            // clearance and cost cells remain unexamined until search steps on
+            // later ticks, so the first step still waits for the next tick.
         }
         proof.untouchedSeconds = 0f;
         if (proof.job.state() == RouteProofJob.State.RUNNING) {
@@ -405,9 +398,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
                 inX, inY, outX, outY,
                 PENDING_SEC, VehicleType.HEAVY_APC.capacity);
         mission.commandClaim = deployment.squadClaim();
-        // Stash the routing inputs so the recovery ladder can re-route mid-drive.
-        mission.routeCostField = route.cost();
-        mission.routeClearance = route.clearance();
+        // Retain the frozen lazy view for the recovery ladder; unvisited cells
+        // must keep the topology this journey was proved against.
+        mission.routeFields = route.fields();
         // Objective assignment (progressive-reinforcement slice 4): resolve the
         // request's objective to a tactical node now, at dispatch time, so the
         // deboarded squad is assigned the moment it deboards rather than only
@@ -452,43 +445,27 @@ public final class ConvoyMeans implements ReinforcementMeans {
         List<RoadGraph.Node> perimeter = perimeterFor(sim,
                 deployment.strictDefenderRearEntry());
         if (perimeter.isEmpty()) return null;
+        List<RoadGraph.Node> viable = new ArrayList<>();
+        NavigationGrid grid = sim.getGrid();
+        for (RoadGraph.Node node : perimeter) {
+            if (perimeterRouteCell(axis, grid, node,
+                    grid.getWidth(), grid.getHeight()) != null) {
+                viable.add(node);
+            }
+        }
+        if (viable.isEmpty()) return null;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile != null ? System.nanoTime() : 0L;
+        ProgressiveVehicleField fields = ProgressiveVehicleField.capture(
+                sim.getGrid(), sim.getTopology(), APC_CLEARANCE_RADIUS);
+        if (profile != null) profile.record(
+                TickInnerProfile.Bucket.CONVOY_PROGRESSIVE_SNAPSHOT,
+                System.nanoTime() - started);
+        routeFieldCaptures++;
         return RouteProofJob.start(graph, axis, deployment,
-                perimeter,
-                sim.getGrid(), gridRevision,
-                costFieldFor(sim), clearanceFor(sim),
-                clearanceCache.components(sim.getGrid(), gridRevision),
+                viable, gridRevision, fields,
                 new LandingZoneScorer(sim.getGrid(), sim.getTopology()),
                 activeConvoyDestinations(sim));
-    }
-
-    /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */
-    private TerrainCostField costFieldFor(BattleView sim) {
-        if (costField == null) {
-            TickInnerProfile profile = TickInnerProfile.currentIfBound();
-            long started = profile != null ? System.nanoTime() : 0L;
-            costField = TerrainCostField.from(sim.getTopology());
-            if (profile != null) profile.record(
-                    TickInnerProfile.Bucket.CONVOY_TERRAIN_COST_BUILD,
-                    System.nanoTime() - started);
-        }
-        return costField;
-    }
-
-    /**
-     * The clearance snapshot for this battle's current passability.
-     *
-     * <p>Held across dispatches rather than eroded per call. It used to be
-     * rebuilt every time because the map can close ground under a proved route
-     * — an aircraft settling onto a road is the live case — but "the map might
-     * have changed" is a question the grid answers exactly, and answering it by
-     * sweeping 188,160 cells cost about twelve milliseconds a time — paid by
-     * the dispatch, paid again by the labelling beside it, and paid again by
-     * every feasibility probe that never dispatches. See
-     * {@link VehicleClearanceCache}.
-     */
-    private VehicleClearance clearanceFor(BattleView sim) {
-        return clearanceCache.clearance(sim.getGrid(),
-                sim.getNavigationGridRevision());
     }
 
     /** Road-graph perimeter selection is map-static; only full-body fit changes. */
@@ -545,6 +522,12 @@ public final class ConvoyMeans implements ReinforcementMeans {
         return cell != null && clearance.isPassable(cell[0], cell[1]) ? cell : null;
     }
 
+    static int[] perimeterRouteCell(TraversalAxis axis, ProgressiveVehicleField fields,
+                                    RoadGraph.Node node, int width, int height) {
+        int[] cell = perimeterStagingCell(axis, node, width, height);
+        return cell != null && fields.isPassable(cell[0], cell[1]) ? cell : null;
+    }
+
     /** The same perimeter pose check as the route proof, without a full mask. */
     static int[] perimeterRouteCell(TraversalAxis axis, NavigationGrid grid,
                                     RoadGraph.Node node, int width, int height) {
@@ -581,8 +564,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
         return new int[]{x, y};
     }
 
-    /** Full-mask builds made by this means; diagnostic evidence only. */
-    int clearanceMaskBuilds() { return clearanceCache.clearanceBuilds(); }
+    /** Captures of raw route inputs; an entrance probe never makes one. */
+    int routeFieldCaptures() { return routeFieldCaptures; }
 
     private static boolean isMarineEntryEdge(TraversalAxis axis, RoadGraph.Node n, int gw, int gh) {
         if (axis == TraversalAxis.SOUTH_TO_NORTH) return n.cellY == 0;

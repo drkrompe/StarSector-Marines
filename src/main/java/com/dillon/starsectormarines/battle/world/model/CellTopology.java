@@ -339,6 +339,11 @@ public class CellTopology {
         return GROUND_KINDS[ground[index(x, y)]];
     }
 
+    /** Frozen raw ground kinds for an on-demand route cost view. */
+    public byte[] copyGroundKinds() {
+        return ground.clone();
+    }
+
     public void setGroundKind(int x, int y, GroundKind kind) {
         if (!inBounds(x, y)) return;
         int idx = index(x, y);

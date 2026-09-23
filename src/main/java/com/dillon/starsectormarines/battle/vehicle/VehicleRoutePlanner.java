@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Direction;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The cost-field convoy router: a cost-weighted grid A* over a vehicle-clearance
@@ -177,6 +179,91 @@ public final class VehicleRoutePlanner {
         return bestRoute == null ? null : new RescueRoute(bestRoute, bestDirection.bit());
     }
 
+    /** On-demand counterpart for recovery without rebuilding full route fields. */
+    static RescueRoute routeAvoidingForwardFirstOnDemand(
+            int startX, int startY, int goalX, int goalY,
+            float facingDegrees, int triedFirstStepMask,
+            NavigationGrid grid, GridPathfinder.IndexedCost cost,
+            GridPathfinder.IndexedPassability passable,
+            int[] avoidXs, int[] avoidYs, int avoidCount,
+            float avoidRadius, VehicleType type) {
+        double radians = Math.toRadians(facingDegrees);
+        float forwardX = -(float) Math.sin(radians);
+        float forwardY = (float) Math.cos(radians);
+        Direction bestDirection = null;
+        float[][] bestRoute = null;
+        float bestDot = -Float.MAX_VALUE;
+        Set<Integer> avoided = new HashSet<>();
+        int count = Math.min(avoidCount, Math.min(avoidXs.length, avoidYs.length));
+        for (int i = 0; i < count; i++) {
+            addDisc(avoided, grid.getWidth(), grid.getHeight(),
+                    avoidXs[i], avoidYs[i], avoidRadius);
+        }
+        // The physical rescue pose may sit inside the avoid disc. Its own cell
+        // remains valid, but the forced next cell must be clear of the disc.
+        if (startX >= 0 && startX < grid.getWidth()
+                && startY >= 0 && startY < grid.getHeight()) {
+            avoided.remove(startY * grid.getWidth() + startX);
+        }
+        GridPathfinder.IndexedPassability available = index ->
+                !avoided.contains(index) && passable.isPassable(index);
+        for (Direction direction : Direction.ALL) {
+            if ((triedFirstStepMask & (1 << direction.bit())) != 0) continue;
+            float[][] candidate = routeAvoidingViaOnDemand(startX, startY,
+                    startX + direction.dx, startY + direction.dy, goalX, goalY,
+                    grid, cost, available, type);
+            if (candidate == null) continue;
+            float length = direction.isDiagonal() ? (float) Math.sqrt(2f) : 1f;
+            float dot = (forwardX * direction.dx + forwardY * direction.dy) / length;
+            if (dot > bestDot) {
+                bestDot = dot;
+                bestDirection = direction;
+                bestRoute = candidate;
+            }
+        }
+        return bestRoute == null ? null : new RescueRoute(bestRoute, bestDirection.bit());
+    }
+
+    private static float[][] routeAvoidingViaOnDemand(
+            int startX, int startY, int viaX, int viaY, int goalX, int goalY,
+            NavigationGrid grid, GridPathfinder.IndexedCost cost,
+            GridPathfinder.IndexedPassability passable, VehicleType type) {
+        int[] step = GridPathfinder.findPathOnDemand(grid, startX, startY,
+                viaX, viaY, cost, passable);
+        if (step.length != 4 || step[2] != viaX || step[3] != viaY) return null;
+        if (viaX == goalX && viaY == goalY) {
+            return new float[][]{{startX + 0.5f, viaX + 0.5f},
+                    {startY + 0.5f, viaY + 0.5f}};
+        }
+        DrivableRouteSearch search = DrivableRouteSearch.overOnDemand(
+                viaX, viaY, goalX, goalY, grid, cost, passable, type);
+        search.advance(new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS), Integer.MAX_VALUE);
+        float[][] tail = search.route();
+        if (tail == null) return null;
+        float[] xs = new float[tail[0].length + 1];
+        float[] ys = new float[tail[1].length + 1];
+        xs[0] = startX + 0.5f;
+        ys[0] = startY + 0.5f;
+        System.arraycopy(tail[0], 0, xs, 1, tail[0].length);
+        System.arraycopy(tail[1], 0, ys, 1, tail[1].length);
+        return new float[][]{xs, ys};
+    }
+
+    private static void addDisc(Set<Integer> blocked, int w, int h,
+                                int centerX, int centerY, float radius) {
+        int r = (int) Math.ceil(radius);
+        float radiusSq = radius * radius;
+        for (int dy = -r; dy <= r; dy++) {
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy > radiusSq) continue;
+                int x = centerX + dx, y = centerY + dy;
+                if (x >= 0 && x < w && y >= 0 && y < h) {
+                    blocked.add(y * w + x);
+                }
+            }
+        }
+    }
+
     /**
      * Routes through an explicitly selected adjacent first cell, retaining that
      * waypoint in the output so the controller receives the intended initial
@@ -244,7 +331,26 @@ public final class VehicleRoutePlanner {
             // EMPTY_PATH (no route) or a single cell (start == goal) — nothing to drive.
             return null;
         }
-        return stringPull(cells, passable, w, h);
+        return stringPull(cells, index -> passable[index], w, h);
+    }
+
+    /** Search and string-pull over the same stable on-demand clearance view. */
+    static float[][] routeOnDemand(int startX, int startY, int goalX, int goalY,
+                                   NavigationGrid grid,
+                                   GridPathfinder.IndexedCost cost,
+                                   GridPathfinder.IndexedPassability passable) {
+        int[] cells = GridPathfinder.findPathOnDemand(grid, startX, startY,
+                goalX, goalY, cost, passable);
+        return stringPullOnDemand(cells, passable,
+                grid.getWidth(), grid.getHeight());
+    }
+
+    /** Turns a completed incremental cell path into the same sparse corridor. */
+    static float[][] stringPullOnDemand(int[] cells,
+                                        GridPathfinder.IndexedPassability passable,
+                                        int width, int height) {
+        if (cells.length < 4) return null;
+        return stringPull(cells, passable, width, height);
     }
 
     private static float[][] routeMaskedDrivable(int startX, int startY, int goalX, int goalY,
@@ -317,6 +423,31 @@ public final class VehicleRoutePlanner {
         return null;
     }
 
+    /** Endpoint snapping over a stable on-demand footprint view. */
+    public static int[] snapToMaskOnDemand(GridPathfinder.IndexedPassability passable,
+                                            int width, int height,
+                                            int x, int y, int maxRadius) {
+        if (cellPassable(passable, width, height, x, y)) return new int[]{x, y};
+        for (int r = 1; r <= maxRadius; r++) {
+            int bestX = -1, bestY = -1, bestD2 = Integer.MAX_VALUE;
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int nx = x + dx, ny = y + dy;
+                    if (!cellPassable(passable, width, height, nx, ny)) continue;
+                    int d2 = dx * dx + dy * dy;
+                    if (d2 < bestD2) {
+                        bestD2 = d2;
+                        bestX = nx;
+                        bestY = ny;
+                    }
+                }
+            }
+            if (bestX >= 0) return new int[]{bestX, bestY};
+        }
+        return null;
+    }
+
     /**
      * Collapse a dense cell path (flat {@code x,y} pairs) to a sparse cell-center
      * polyline, dropping any vertex a straight clearance-clear segment can skip.
@@ -324,7 +455,9 @@ public final class VehicleRoutePlanner {
      * is no longer visible from the current anchor, lock the previous cell as a
      * vertex, and re-anchor there.
      */
-    private static float[][] stringPull(int[] cells, boolean[] passable, int w, int h) {
+    private static float[][] stringPull(int[] cells,
+                                        GridPathfinder.IndexedPassability passable,
+                                        int w, int h) {
         int n = cells.length / 2;
         List<Float> xs = new ArrayList<>();
         List<Float> ys = new ArrayList<>();
@@ -354,8 +487,10 @@ public final class VehicleRoutePlanner {
         ys.add(cells[cell * 2 + 1] + 0.5f);
     }
 
-    private static boolean cellPassable(boolean[] passable, int w, int h, int x, int y) {
-        return x >= 0 && x < w && y >= 0 && y < h && passable[y * w + x];
+    private static boolean cellPassable(GridPathfinder.IndexedPassability passable,
+                                        int w, int h, int x, int y) {
+        return x >= 0 && x < w && y >= 0 && y < h
+                && passable.isPassable(y * w + x);
     }
 
     /**
@@ -369,7 +504,8 @@ public final class VehicleRoutePlanner {
      * is not, which is correct: a vehicle on the centerline never enters it.
      */
     private static boolean segmentClear(int[] cells, int from, int to,
-                                        boolean[] passable, int w, int h) {
+                                        GridPathfinder.IndexedPassability passable,
+                                        int w, int h) {
         double x0 = cells[from * 2] + 0.5, y0 = cells[from * 2 + 1] + 0.5;
         double x1 = cells[to * 2] + 0.5,   y1 = cells[to * 2 + 1] + 0.5;
         double dx = x1 - x0, dy = y1 - y0;

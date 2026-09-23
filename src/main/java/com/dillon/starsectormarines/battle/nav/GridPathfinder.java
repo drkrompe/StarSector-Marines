@@ -32,6 +32,18 @@ import java.util.Arrays;
  */
 public final class GridPathfinder {
 
+    /** Indexed, stable traversal gate for a search over lazily derived cells. */
+    @FunctionalInterface
+    public interface IndexedPassability {
+        boolean isPassable(int index);
+    }
+
+    /** Indexed traversal multiplier; values must be finite and at least 1.0. */
+    @FunctionalInterface
+    public interface IndexedCost {
+        float costAt(int index);
+    }
+
     private static final Logger LOG = Logger.getLogger(GridPathfinder.class);
     private static final boolean PROFILE_PATH_REQUESTS =
             Boolean.getBoolean("battle.profile.pathRequests");
@@ -339,13 +351,211 @@ public final class GridPathfinder {
     /** Full-control overload threading both the occupancy penalty and the cost-field / clearance gate. */
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                   boolean cardinalOnly, byte[] occupancy, float[] costField, boolean[] passable) {
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, costField, passable, null, null, true);
+    }
+
+    /**
+     * Vehicle-search path that asks for clearance and terrain cost only as A*
+     * reaches a cell. Both indexed views must remain stable for this search.
+     * The raw-grid component precheck is deliberately omitted: it can require
+     * a whole-map label build and cannot prove clearance connectivity anyway.
+     */
+    public static int[] findPathOnDemand(NavigationGrid grid,
+                                         int startX, int startY, int goalX, int goalY,
+                                         IndexedCost cost, IndexedPassability passable) {
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                USE_CARDINAL_NAVIGATION, null, null, null, cost, passable, false);
+    }
+
+    /** Starts a search whose A* frontier can be advanced across simulation ticks. */
+    public static OnDemandSearch beginOnDemand(NavigationGrid grid,
+                                                int startX, int startY,
+                                                int goalX, int goalY,
+                                                IndexedCost cost,
+                                                IndexedPassability passable) {
+        return new OnDemandSearch(grid, startX, startY, goalX, goalY,
+                USE_CARDINAL_NAVIGATION, cost, passable);
+    }
+
+    /**
+     * Search-owned A* state for a frozen grid and stable indexed views. Unlike
+     * the ordinary pathfinder workspace, these arrays and this heap cannot be
+     * disturbed by another search between calls to {@link #advance(int)}.
+     */
+    public static final class OnDemandSearch {
+        public enum Status { PENDING, ROUTED, NO_ROUTE }
+
+        private static final byte UNVISITED = 0;
+        private static final byte OPEN = 1;
+        private static final byte DONE = 2;
+
+        private final NavigationGrid grid;
+        private final IndexedCost cost;
+        private final IndexedPassability passable;
+        private final boolean cardinalOnly;
+        private final int width;
+        private final int height;
+        private final int totalCells;
+        private final int startIdx;
+        private final int goalIdx;
+        private final int goalX;
+        private final int goalY;
+        private final float[] gCost;
+        private final float[] fCost;
+        private final int[] parentIdx;
+        private final int[] heapPos;
+        private final byte[] state;
+        private int[] heap = new int[64];
+        private int heapSize;
+        private int expandedNodes;
+        private Status status = Status.PENDING;
+        private int[] path = EMPTY_PATH;
+
+        private OnDemandSearch(NavigationGrid grid,
+                               int startX, int startY, int goalX, int goalY,
+                               boolean cardinalOnly, IndexedCost cost,
+                               IndexedPassability passable) {
+            this.grid = grid;
+            this.cost = cost;
+            this.passable = passable;
+            this.cardinalOnly = cardinalOnly;
+            this.width = grid.getWidth();
+            this.height = grid.getHeight();
+            this.totalCells = width * height;
+            this.goalX = goalX;
+            this.goalY = goalY;
+            this.gCost = new float[totalCells];
+            this.fCost = new float[totalCells];
+            this.parentIdx = new int[totalCells];
+            this.heapPos = new int[totalCells];
+            this.state = new byte[totalCells];
+            if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
+                startIdx = -1;
+                goalIdx = -1;
+                status = Status.NO_ROUTE;
+                return;
+            }
+            startIdx = startY * width + startX;
+            goalIdx = goalY * width + goalX;
+            if (passable != null && (!passable.isPassable(startIdx)
+                    || !passable.isPassable(goalIdx))) {
+                status = Status.NO_ROUTE;
+                return;
+            }
+            if (startIdx == goalIdx) {
+                path = new int[]{startX, startY};
+                status = Status.ROUTED;
+                return;
+            }
+            gCost[startIdx] = 0f;
+            fCost[startIdx] = heuristic(startX, startY, goalX, goalY, cardinalOnly);
+            parentIdx[startIdx] = startIdx;
+            heap[0] = startIdx;
+            heapPos[startIdx] = 0;
+            state[startIdx] = OPEN;
+            heapSize = 1;
+        }
+
+        /** Expands at most this many nodes; zero preserves the current state. */
+        public Status advance(int maxExpandedNodes) {
+            if (maxExpandedNodes < 0) {
+                throw new IllegalArgumentException("maxExpandedNodes must be nonnegative");
+            }
+            if (status != Status.PENDING || maxExpandedNodes == 0) return status;
+            long[] cellFlags = grid.getCellFlagsArray();
+            byte[] edgePass = grid.getEdgePassabilityArray();
+            int dirCount = cardinalOnly ? 4 : 8;
+            int spent = 0;
+            while (heapSize > 0 && spent < maxExpandedNodes) {
+                int currentIdx = heap[0];
+                heapSize--;
+                if (heapSize > 0) {
+                    heap[0] = heap[heapSize];
+                    heapPos[heap[0]] = 0;
+                    heapSiftDown(heap, heapPos, fCost, 0, heapSize);
+                }
+                if (state[currentIdx] == DONE) continue;
+                state[currentIdx] = DONE;
+                expandedNodes++;
+                spent++;
+                if (currentIdx == goalIdx) {
+                    path = reconstructPath(parentIdx, width, totalCells,
+                            startIdx, goalIdx);
+                    status = path == EMPTY_PATH ? Status.NO_ROUTE : Status.ROUTED;
+                    return status;
+                }
+                int cx = currentIdx % width;
+                int cy = currentIdx / width;
+                for (int dirI = 0; dirI < dirCount; dirI++) {
+                    int nx = cx + DIR_DX[dirI];
+                    int ny = cy + DIR_DY[dirI];
+                    if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+                    int nIdx = ny * width + nx;
+                    if (!canStep(currentIdx, cx, cy, nIdx, dirI, width, height,
+                            cellFlags, edgePass, null, passable)) continue;
+                    if (state[nIdx] == DONE) continue;
+                    float step = DIR_COST[dirI];
+                    if (cost != null) step *= cost.costAt(nIdx);
+                    float nextG = gCost[currentIdx] + step;
+                    if (state[nIdx] == UNVISITED || nextG < gCost[nIdx]) {
+                        gCost[nIdx] = nextG;
+                        fCost[nIdx] = nextG + heuristic(nx, ny, goalX, goalY,
+                                cardinalOnly);
+                        parentIdx[nIdx] = currentIdx;
+                        if (state[nIdx] == OPEN) {
+                            heapSiftUp(heap, heapPos, fCost, heapPos[nIdx]);
+                        } else {
+                            if (heapSize == heap.length) {
+                                heap = Arrays.copyOf(heap, heap.length * 2);
+                            }
+                            heap[heapSize] = nIdx;
+                            heapPos[nIdx] = heapSize;
+                            state[nIdx] = OPEN;
+                            heapSiftUp(heap, heapPos, fCost, heapSize);
+                            heapSize++;
+                        }
+                    }
+                }
+            }
+            if (heapSize == 0) status = Status.NO_ROUTE;
+            return status;
+        }
+
+        public Status status() { return status; }
+
+        /** Empty until a route is complete; also empty on terminal no-route. */
+        public int[] path() { return path; }
+
+        /** Cumulative A* node expansions, including all prior advances. */
+        public int expandedNodes() { return expandedNodes; }
+
+        /**
+         * Whether this cell belongs to the fully exhausted reachable region.
+         * Meaningful only after a no-route search: pending frontier cells are
+         * not yet a connectivity proof.
+         */
+        public boolean exhaustedReachable(int index) {
+            return status == Status.NO_ROUTE && index >= 0
+                    && index < totalCells && state[index] == DONE;
+        }
+    }
+
+    private static int[] findPathProfiled(NavigationGrid grid,
+                                          int startX, int startY, int goalX, int goalY,
+                                          boolean cardinalOnly, byte[] occupancy,
+                                          float[] costField, boolean[] passable,
+                                          IndexedCost indexedCost,
+                                          IndexedPassability indexedPassable,
+                                          boolean checkComponents) {
         long _profT0 = System.nanoTime();
         Workspace profileWorkspace = WORKSPACE.get();
         profileWorkspace.expandedNodes = 0;
         int[] result = EMPTY_PATH;
         try {
             result = findPathInner(grid, startX, startY, goalX, goalY,
-                    cardinalOnly, occupancy, costField, passable, true, false);
+                    cardinalOnly, occupancy, costField, passable,
+                    indexedCost, indexedPassable, checkComponents, false);
             return result;
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
@@ -374,7 +584,7 @@ public final class GridPathfinder {
                                     boolean cardinalOnly, byte[] occupancy,
                                     float[] costField, boolean[] passable) {
         return findPathInner(grid, startX, startY, goalX, goalY,
-                cardinalOnly, occupancy, costField, passable, true, false);
+                cardinalOnly, occupancy, costField, passable, null, null, true, false);
     }
 
     /** Cancelable unprofiled search used only by the battle-owned async worker. */
@@ -383,7 +593,7 @@ public final class GridPathfinder {
                                          int goalX, int goalY,
                                          boolean cardinalOnly, byte[] occupancy) {
         return findPathInner(grid, startX, startY, goalX, goalY,
-                cardinalOnly, occupancy, null, null, true, true);
+                cardinalOnly, occupancy, null, null, null, null, true, true);
     }
 
     /** Full A* seam for validating the connectivity rejection independently. */
@@ -391,12 +601,14 @@ public final class GridPathfinder {
             NavigationGrid grid, int startX, int startY,
             int goalX, int goalY, boolean cardinalOnly) {
         return findPathInner(grid, startX, startY, goalX, goalY,
-                cardinalOnly, null, null, null, false, false);
+                cardinalOnly, null, null, null, null, null, false, false);
     }
 
     private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                         boolean cardinalOnly, byte[] occupancy,
                                         float[] costField, boolean[] passable,
+                                        IndexedCost indexedCost,
+                                        IndexedPassability indexedPassable,
                                         boolean checkComponents,
                                         boolean cancelable) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
@@ -416,7 +628,10 @@ public final class GridPathfinder {
 
         // Clearance gate: a vehicle whose footprint can't sit on either endpoint
         // has no route. (Endpoint snapping for eroded perimeter cells is slice 2's job.)
-        if (passable != null && (!passable[startIdx] || !passable[goalIdx])) {
+        if ((passable != null && (!passable[startIdx] || !passable[goalIdx]))
+                || (indexedPassable != null
+                && (!indexedPassable.isPassable(startIdx)
+                || !indexedPassable.isPassable(goalIdx)))) {
             return EMPTY_PATH;
         }
         if (startX == goalX && startY == goalY) {
@@ -482,11 +697,12 @@ public final class GridPathfinder {
                 int nIdx = ny * w + nx;
 
                 if (!canStep(currentIdx, cx, cy, nIdx, dirI, w, h,
-                        cellFlags, edgePass, passable)) continue;
+                        cellFlags, edgePass, passable, indexedPassable)) continue;
 
                 if (heapPos[nIdx] == CLOSED) continue;
 
                 float stepCost = stepCost(dirI, nIdx, occupancy, costField);
+                if (indexedCost != null) stepCost *= indexedCost.costAt(nIdx);
                 float tentativeG = gCost[currentIdx] + stepCost;
 
                 if (tentativeG < gCost[nIdx]) {
@@ -598,8 +814,17 @@ public final class GridPathfinder {
                            int toIdx, int direction, int width, int height,
                            long[] cellFlags, byte[] edgePass,
                            boolean[] passable) {
+        return canStep(fromIdx, fromX, fromY, toIdx, direction, width, height,
+                cellFlags, edgePass, passable, null);
+    }
+
+    private static boolean canStep(int fromIdx, int fromX, int fromY,
+                                   int toIdx, int direction, int width, int height,
+                                   long[] cellFlags, byte[] edgePass,
+                                   boolean[] passable, IndexedPassability indexedPassable) {
         if ((cellFlags[toIdx] & 1L) == 0L) return false;
         if (passable != null && !passable[toIdx]) return false;
+        if (indexedPassable != null && !indexedPassable.isPassable(toIdx)) return false;
         if ((edgePass[fromIdx] & DIR_EDGE_MASK[direction]) == 0) return false;
         if ((edgePass[toIdx] & DIR_OPP_EDGE_MASK[direction]) == 0) return false;
         if (!DIR_IS_DIAGONAL[direction]) return true;
