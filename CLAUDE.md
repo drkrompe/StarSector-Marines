@@ -196,9 +196,10 @@ Do not run builds or leave generated task files there.
   plus async-route queue/activity deltas;
   the report also retains the worst tick for each phase. It includes summed
   tick wall time, per-phase totals, overlapping inner-operation totals, and
-  navigation-mesh refresh shape so cumulative cost and rare topology spikes
-  can be read together. Add `-Dbattle.tail.jfr=true` for a JFR execution-sample
-  recording and one event per measured tick in the same output directory;
+  navigation-mesh refresh shape, setup-pending changes, and per-refresh
+  cover/seam/whole-snapshot assembly times so cumulative cost and rare topology
+  spikes can be read together. Add `-Dbattle.tail.jfr=true` for a JFR
+  execution-sample recording and one event per measured tick in the same output directory;
   JFR adds overhead, so use the ordinary run for timing magnitude and the
   recording for code-path attribution. Use
   `-Dbattle.fixture.path=<absolute path>` to replay construction inputs from a

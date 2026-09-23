@@ -96,6 +96,9 @@ class GreedyNavigationMeshTiledTest {
             mesh.rebuild();
             assertEquals(before + 1, mesh.snapshot().revision());
             assertEquals(0, mesh.pendingGridChanges());
+            assertTrue(mesh.lastCoverNanos() + mesh.lastSeamNanos()
+                            + mesh.lastAssemblyNanos() <= mesh.lastRebuildNanos(),
+                    "stage times must fit inside the measured rebuild");
             lastChangeCount = grid.changeCount();
             // A shared-edge write names both its cells, so one change can dirty two tiles.
             assertTrue(mesh.lastTilesCovered() <= 2 * changes,

@@ -70,6 +70,10 @@ public final class GreedyNavigationMesh {
     private volatile Snapshot snapshot;
     private int lastTilesCovered;
     private int lastSeamsDerived;
+    private long lastCoverNanos;
+    private long lastSeamNanos;
+    private long lastAssemblyNanos;
+    private long lastRebuildNanos;
 
     public GreedyNavigationMesh(NavigationGrid grid) {
         this.grid = grid;
@@ -93,6 +97,7 @@ public final class GreedyNavigationMesh {
      * last rebuild.
      */
     public void rebuild() {
+        long started = System.nanoTime();
         int tiles = tilesX * tilesY;
         boolean[] dirty = new boolean[tiles];
         long changeCount = grid.changeCount();
@@ -105,12 +110,15 @@ public final class GreedyNavigationMesh {
             }
         }
         int covered = 0;
+        long coverStarted = System.nanoTime();
         for (int tile = 0; tile < tiles; tile++) {
             if (!dirty[tile]) continue;
             covers[tile] = coverTile(tile);
             covered++;
         }
+        lastCoverNanos = System.nanoTime() - coverStarted;
         int seams = 0;
+        long seamStarted = System.nanoTime();
         for (int tile = 0; tile < tiles; tile++) {
             int tx = tile % tilesX;
             int ty = tile / tilesX;
@@ -123,11 +131,15 @@ public final class GreedyNavigationMesh {
                 seams++;
             }
         }
+        lastSeamNanos = System.nanoTime() - seamStarted;
         lastTilesCovered = covered;
         lastSeamsDerived = seams;
         caughtUp = changeCount;
         Snapshot previous = snapshot;
+        long assemblyStarted = System.nanoTime();
         snapshot = assemble(previous.revision() + 1L);
+        lastAssemblyNanos = System.nanoTime() - assemblyStarted;
+        lastRebuildNanos = System.nanoTime() - started;
     }
 
     /** One internally consistent immutable mesh view. */
@@ -154,6 +166,12 @@ public final class GreedyNavigationMesh {
 
     /** Logged grid writes not yet consumed by this mesh. Evidence, not behavior. */
     public long pendingGridChanges() { return grid.changeCount() - caughtUp; }
+
+    /** Stage wall times of the last rebuild, for profile evidence only. */
+    public long lastCoverNanos() { return lastCoverNanos; }
+    public long lastSeamNanos() { return lastSeamNanos; }
+    public long lastAssemblyNanos() { return lastAssemblyNanos; }
+    public long lastRebuildNanos() { return lastRebuildNanos; }
 
     private int tileOf(int x, int y) {
         return (y >> TILE_SHIFT) * tilesX + (x >> TILE_SHIFT);
