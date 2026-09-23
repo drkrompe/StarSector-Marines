@@ -238,8 +238,8 @@ public final class NavigationService {
      *
      * <p>Split from the second half so the tick profile can charge them
      * separately. The zone graph is the one derivation here that is already
-     * incremental; the mesh rebuild beside it is a full row-major sweep of the
-     * grid, and folding the two into one lap left the expensive one invisible.
+     * incremental; the mesh re-covers only changed tiles but assembles a new
+     * whole-region snapshot, so the two costs deserve separate laps.
      */
     public boolean flushZoneTopologyIfDirty() {
         if (!navigationTopologyDirty) return false;

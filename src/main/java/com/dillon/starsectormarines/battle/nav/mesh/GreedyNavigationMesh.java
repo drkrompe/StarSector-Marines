@@ -152,6 +152,9 @@ public final class GreedyNavigationMesh {
     /** Seams the last {@link #rebuild()} re-derived. Evidence, not behavior. */
     public int lastSeamsDerived() { return lastSeamsDerived; }
 
+    /** Logged grid writes not yet consumed by this mesh. Evidence, not behavior. */
+    public long pendingGridChanges() { return grid.changeCount() - caughtUp; }
+
     private int tileOf(int x, int y) {
         return (y >> TILE_SHIFT) * tilesX + (x >> TILE_SHIFT);
     }

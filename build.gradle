@@ -485,7 +485,8 @@ tasks.register('profileConquestTail', Test) {
         executable = gameJava.absolutePath
     }
     ['battle.tail.totalTicks', 'battle.tail.warmupTicks',
-     'battle.tail.paceMillis', 'battle.tail.topTicks'].each { propertyName ->
+     'battle.tail.paceMillis', 'battle.tail.topTicks',
+     'battle.tail.jfr'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) systemProperty propertyName, propertyValue
     }

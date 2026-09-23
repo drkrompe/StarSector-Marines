@@ -2,10 +2,17 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
+import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadReplanSystem;
+import jdk.jfr.Category;
+import jdk.jfr.Configuration;
+import jdk.jfr.Event;
+import jdk.jfr.Label;
+import jdk.jfr.Name;
+import jdk.jfr.Recording;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -18,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -54,9 +62,22 @@ class BattleFixtureTailProfileTest {
                               GcCounters gcBefore, GcCounters gcAfter,
                               AsyncDefendTrackRoutes.Metrics routesBefore,
                               AsyncDefendTrackRoutes.Metrics routesAfter,
+                              long gridChanges, long gridChangesConsumedByMesh,
+                              boolean meshRefreshed,
+                              int meshTilesCovered, int meshSeamsDerived,
+                              int meshRegions, int meshTransitions,
+                              int meshTileCount,
                               int units, int squads) { }
 
     private record GcCounters(long collections, long collectionMillis) { }
+
+    @Name("com.dillon.starsectormarines.ConquestTailTick")
+    @Label("Conquest tail tick")
+    @Category({"Starsector Marines", "Battle"})
+    static final class TailTickEvent extends Event {
+        @Label("Simulation tick") int tick;
+        @Label("Tick wall nanoseconds") long wallNanos;
+    }
 
     @Test
     void capturesProductionConquestTailWithCodeLevelContext() throws Exception {
@@ -71,6 +92,7 @@ class BattleFixtureTailProfileTest {
                 DEFAULT_WARMUP_TICKS);
         int topLimit = Integer.getInteger("battle.tail.topTicks", DEFAULT_TOP_TICKS);
         int paceMillis = Integer.getInteger("battle.tail.paceMillis", 33);
+        boolean jfrEnabled = Boolean.getBoolean("battle.tail.jfr");
         assertTrue(totalTicks > warmupTicks && warmupTicks >= 0);
         assertTrue(topLimit > 0 && paceMillis >= 0);
         assertEquals("true", System.getProperty(
@@ -80,11 +102,20 @@ class BattleFixtureTailProfileTest {
                 "tail evidence requires production parallel workers");
 
         long[] durations = new long[totalTicks - warmupTicks];
+        long[] phaseTotals = new long[TickProfile.Phase.VALUES.length];
+        long[] innerTotals = new long[TickInnerProfile.Bucket.VALUES.length];
+        long[] innerCounts = new long[TickInnerProfile.Bucket.VALUES.length];
+        Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
+                "build/reports/performance/conquest-tail"));
+        Files.createDirectories(outputDir);
+        Path jfrPath = jfrEnabled ? outputDir.resolve("conquest-tail.jfr") : null;
         PriorityQueue<TickSample> worst = new PriorityQueue<>(Comparator
                 .comparingLong(TickSample::totalNanos)
                 .thenComparingInt(TickSample::tick));
         TickSample[] worstByPhase = new TickSample[TickProfile.Phase.VALUES.length];
         int commanderPulses = 0;
+        int meshRefreshes = 0;
+        long meshTilesCovered = 0L;
         int maximumUnits = 0;
         int minimumUnits = Integer.MAX_VALUE;
         long totalReplans = 0;
@@ -95,7 +126,15 @@ class BattleFixtureTailProfileTest {
         List<GarbageCollectorMXBean> garbageCollectors =
                 ManagementFactory.getGarbageCollectorMXBeans();
 
-        try (BattleSimulation sim = fixture.build()) {
+        try (BattleSimulation sim = fixture.build();
+             Recording recording = jfrEnabled
+                     ? new Recording(Configuration.getConfiguration("profile")) : null) {
+            if (recording != null) {
+                recording.setName("conquest-tail-measured-ticks");
+                recording.enable("jdk.ExecutionSample")
+                        .withPeriod(Duration.ofMillis(5));
+                recording.enable(TailTickEvent.class);
+            }
             assertNotNull(sim.asyncDefendTrackRoutes());
             sim.getSquadReplanSystem().setDiagnosticsEnabled(true);
             sim.getUnitUpdateSystem().setDiagnosticsEnabled(true);
@@ -103,28 +142,63 @@ class BattleFixtureTailProfileTest {
                     <= sim.liveUnitCount(),
                     "selected fixture is too small for parallel unit updates");
             firstRoutes = sim.asyncDefendTrackRoutes().metrics();
+            // Let JFR's own class loading and stack instrumentation settle
+            // before the first tick whose timing enters the report.
+            int recordingStart = Math.max(0, warmupTicks - 30);
             for (int attempt = 0; attempt < totalTicks; attempt++) {
+                if (recording != null && attempt == recordingStart) recording.start();
                 assertFalse(sim.isComplete(), "fixture ended before tick " + (attempt + 1));
                 int beforeTick = sim.simTickIndex;
+                long gridChangeBefore = sim.getGrid().changeCount();
+                GreedyNavigationMesh mesh = sim.getNavigationMesh();
+                long meshPendingBefore = mesh.pendingGridChanges();
+                long meshRevisionBefore = mesh.snapshot().revision();
                 AsyncDefendTrackRoutes.Metrics routesBefore =
                         sim.asyncDefendTrackRoutes().metrics();
                 GcCounters gcBefore = gcCounters(garbageCollectors);
+                TailTickEvent tickEvent = recording != null && attempt >= warmupTicks
+                        ? new TailTickEvent() : null;
+                if (tickEvent != null) {
+                    tickEvent.tick = beforeTick + 1;
+                    tickEvent.begin();
+                }
                 long started = System.nanoTime();
                 sim.advance(BattleSimulation.TICK_DT);
                 long duration = System.nanoTime() - started;
+                if (tickEvent != null) {
+                    tickEvent.wallNanos = duration;
+                    tickEvent.end();
+                    tickEvent.commit();
+                }
                 GcCounters gcAfter = gcCounters(garbageCollectors);
                 assertEquals(beforeTick + 1, sim.simTickIndex,
                         "one advance must execute exactly one fixed tick");
                 AsyncDefendTrackRoutes.Metrics routesAfter =
                         sim.asyncDefendTrackRoutes().metrics();
+                boolean meshRefreshed = mesh.snapshot().revision()
+                        != meshRevisionBefore;
+                long gridChangesThisTick = sim.getGrid().changeCount()
+                        - gridChangeBefore;
+                long gridChangesConsumedByMesh = meshRefreshed
+                        ? meshPendingBefore + gridChangesThisTick
+                        - mesh.pendingGridChanges() : 0L;
 
                 if (sim.simTickIndex > warmupTicks) {
+                    if (meshRefreshed) {
+                        meshRefreshes++;
+                        meshTilesCovered += mesh.lastTilesCovered();
+                    }
                     int sampleIndex = sim.simTickIndex - warmupTicks - 1;
                     durations[sampleIndex] = duration;
                     int units = sim.liveUnitCount();
                     maximumUnits = Math.max(maximumUnits, units);
                     minimumUnits = Math.min(minimumUnits, units);
                     TickInnerProfile inner = sim.getTickInnerProfile();
+                    for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
+                        int index = bucket.ordinal();
+                        innerTotals[index] += inner.nanosOf(bucket);
+                        innerCounts[index] += inner.countOf(bucket);
+                    }
                     if (inner.countOf(TickInnerProfile.Bucket.COMMANDER_PULSE) > 0) {
                         commanderPulses++;
                     }
@@ -135,6 +209,7 @@ class BattleFixtureTailProfileTest {
                     for (TickProfile.Phase phase : TickProfile.Phase.VALUES) {
                         int index = phase.ordinal();
                         phases[index] = sim.getTickProfile().lastTickNanos(phase);
+                        phaseTotals[index] += phases[index];
                         if (worstByPhase[index] == null
                                 || phases[index] > worstByPhase[index].phases()[index]) {
                             phaseRecord = true;
@@ -147,7 +222,15 @@ class BattleFixtureTailProfileTest {
                                 sim.getSquadReplanSystem().lastTickDiagnostics(),
                                 sim.getUnitUpdateSystem().lastTickDiagnostics(),
                                 gcBefore, gcAfter,
-                                routesBefore, routesAfter, units,
+                                routesBefore, routesAfter,
+                                gridChangesThisTick,
+                                gridChangesConsumedByMesh,
+                                meshRefreshed,
+                                meshRefreshed ? mesh.lastTilesCovered() : 0,
+                                meshRefreshed ? mesh.lastSeamsDerived() : 0,
+                                mesh.snapshot().regions().size(),
+                                mesh.snapshot().transitions().size(),
+                                mesh.tileCount(), units,
                                 sim.getSquads().size());
                         for (TickProfile.Phase phase : TickProfile.Phase.VALUES) {
                             int index = phase.ordinal();
@@ -171,22 +254,29 @@ class BattleFixtureTailProfileTest {
             }
             assertEquals(totalTicks, sim.simTickIndex);
             finalRoutes = sim.asyncDefendTrackRoutes().metrics();
+            if (recording != null) {
+                recording.stop();
+                recording.dump(jfrPath);
+            }
         }
 
         assertTrue(commanderPulses > 0, "late-age run missed commander pulses");
         assertTrue(totalReplans > 0, "replan diagnostics captured no replans");
         assertTrue(maximumUnits >= UnitUpdateSystem.configuredMinimumParallelUnits());
         JSONObject report = report(fixturePath, fixtureBytes, totalTicks,
-                warmupTicks, paceMillis, durations, worst, worstByPhase, commanderPulses,
-                totalReplans, minimumUnits, maximumUnits, firstRoutes,
-                finalRoutes);
+                warmupTicks, paceMillis, durations, phaseTotals, innerTotals,
+                innerCounts, worst, worstByPhase, commanderPulses,
+                meshRefreshes, meshTilesCovered, totalReplans,
+                minimumUnits, maximumUnits, firstRoutes,
+                finalRoutes, jfrPath);
         assertEquals(Math.min(topLimit, durations.length),
                 report.getJSONArray("worstTicks").length());
         assertEquals(TickProfile.Phase.VALUES.length,
                 report.getJSONArray("worstByPhase").length());
-        Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
-                "build/reports/performance/conquest-tail"));
-        Files.createDirectories(outputDir);
+        assertEquals(TickProfile.Phase.VALUES.length,
+                report.getJSONArray("phaseTotals").length());
+        assertTrue(report.getDouble("totalTickWallMs") > 0.0);
+        if (jfrEnabled) assertTrue(Files.size(jfrPath) > 0L);
         Path temporary = Files.createTempFile(outputDir, "tail-", ".tmp");
         Files.writeString(temporary, report.toString(2), StandardCharsets.UTF_8);
         Path destination = outputDir.resolve("summary.json");
@@ -202,12 +292,16 @@ class BattleFixtureTailProfileTest {
     private static JSONObject report(String fixturePath, byte[] fixtureBytes,
                                      int totalTicks, int warmupTicks,
                                      int paceMillis, long[] durations,
+                                     long[] phaseTotals, long[] innerTotals,
+                                     long[] innerCounts,
                                      PriorityQueue<TickSample> worst,
                                      TickSample[] worstByPhase,
-                                     int commanderPulses, long totalReplans,
+                                     int commanderPulses, int meshRefreshes,
+                                     long meshTilesCovered, long totalReplans,
                                      int minimumUnits, int maximumUnits,
                                      AsyncDefendTrackRoutes.Metrics firstRoutes,
-                                     AsyncDefendTrackRoutes.Metrics finalRoutes)
+                                     AsyncDefendTrackRoutes.Metrics finalRoutes,
+                                     Path jfrPath)
             throws Exception {
         long[] sorted = durations.clone();
         Arrays.sort(sorted);
@@ -225,7 +319,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 1);
+        report.put("schemaVersion", 2);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -247,11 +341,35 @@ class BattleFixtureTailProfileTest {
         report.put("minimumUnits", minimumUnits);
         report.put("maximumUnits", maximumUnits);
         report.put("commanderPulses", commanderPulses);
+        report.put("navigationMeshRefreshes", meshRefreshes);
+        report.put("navigationMeshTilesCovered", meshTilesCovered);
         report.put("replannedSquads", totalReplans);
         report.put("medianMs", millis(percentile(sorted, 0.50)));
         report.put("p95Ms", millis(percentile(sorted, 0.95)));
         report.put("p99Ms", millis(percentile(sorted, 0.99)));
         report.put("maxMs", millis(sorted[sorted.length - 1]));
+        long totalTickNanos = Arrays.stream(durations).sum();
+        report.put("totalTickWallMs", millis(totalTickNanos));
+        JSONArray phaseTime = new JSONArray();
+        long measuredPhaseNanos = 0L;
+        for (TickProfile.Phase phase : TickProfile.Phase.VALUES) {
+            long nanos = phaseTotals[phase.ordinal()];
+            measuredPhaseNanos += nanos;
+            phaseTime.put(new JSONObject().put("name", phase.name())
+                    .put("totalMs", millis(nanos))
+                    .put("shareOfTickWall", (double) nanos / totalTickNanos));
+        }
+        report.put("phaseTotals", phaseTime);
+        report.put("outsidePhaseTotalMs", millis(totalTickNanos - measuredPhaseNanos));
+        JSONArray innerTime = new JSONArray();
+        for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
+            int index = bucket.ordinal();
+            if (innerCounts[index] == 0) continue;
+            innerTime.put(new JSONObject().put("name", bucket.name())
+                    .put("totalMs", millis(innerTotals[index]))
+                    .put("count", innerCounts[index]));
+        }
+        report.put("innerTotals", innerTime);
         report.put("overBudgetTicks", Arrays.stream(durations)
                 .filter(ns -> ns >= FRAME_BUDGET_NANOS).count());
         report.put("over50MsTicks", Arrays.stream(durations)
@@ -262,6 +380,9 @@ class BattleFixtureTailProfileTest {
                 - firstRoutes.completed());
         report.put("asyncRouteRejected", finalRoutes.rejected()
                 - firstRoutes.rejected());
+        report.put("asyncRouteWorkerTotalMs", millis(finalRoutes.searchNanos()
+                - firstRoutes.searchNanos()));
+        if (jfrPath != null) report.put("jfrPath", jfrPath.toAbsolutePath().toString());
         report.put("timingSemantics", "tick and phase values are wall time; "
                 + "inner behavior/action and sampled unit values aggregate parallel worker time "
                 + "and overlap enclosing phases; GC counters may include concurrent or "
@@ -336,6 +457,15 @@ class BattleFixtureTailProfileTest {
                     .put("found", search.found()));
         }
         tick.put("slowFlatPathSearches", paths);
+        tick.put("navigationMesh", new JSONObject()
+                .put("gridChanges", sample.gridChanges())
+                .put("gridChangesConsumed", sample.gridChangesConsumedByMesh())
+                .put("refreshed", sample.meshRefreshed())
+                .put("tilesCovered", sample.meshTilesCovered())
+                .put("seamsDerived", sample.meshSeamsDerived())
+                .put("tileCount", sample.meshTileCount())
+                .put("regions", sample.meshRegions())
+                .put("transitions", sample.meshTransitions()));
 
         SquadReplanSystem.TickDiagnostics replans = sample.replans();
         JSONObject goap = new JSONObject().put("squadsVisited", replans.squadCount())
