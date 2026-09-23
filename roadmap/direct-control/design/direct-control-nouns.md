@@ -4,6 +4,8 @@ Status: DRAFT — one-unit ground control is designed but not implemented.
 
 Written: 2026-09-23
 
+Updated: 2026-09-23 — specified swept terrain collision and sliding for manual motion.
+
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
 fire intent; it does not turn the player into a second mission commander.
@@ -88,6 +90,40 @@ movement yields zero drive input on the next tick, rather than replaying the
 last key state. A manual detour does not rewrite the squad's mission directive
 or the vehicle's delivery errand. On handback, the current AI decides a new
 route from the body's actual position.
+
+Manual movement is checked along the **whole proposed step**, not only at its
+destination. Each tick turns input into a speed-limited displacement, then
+tests every crossed cell boundary against the battle's current walkability,
+reciprocal edge passability, and diagonal corner rules. A closed door or thin
+barrier still blocks when the cells on both sides are walkable. The moving
+body's collision envelope must also clear solid terrain and closed edge
+segments, including at sub-cell positions; map edges are solid for deployed
+ground bodies. A feature authored as walkable remains traversable even when
+it catches shots or provides cover. At first contact, motion stops at the
+last legal position and may use the remaining
+displacement to slide along the obstacle if that slide is legal. Velocity,
+and gait reflect the displacement actually applied, while a Mech or vehicle
+may still pivot in place under its own facing rules. Pressing into a wall
+never animates forward progress or accumulates motion to be released later.
+A changing wall or door is read from current topology on the next tick.
+Physical body separation remains downstream and cannot push the unit across
+an impassable edge.
+
+Infantry and Mechs share the terrain/topology law but keep their own movement
+speed, body clearance, and Mech pivot behavior. The existing path follower
+assumes a planned route and cannot serve as the manual collision check by
+itself. If a body-clearance rule makes a route that AI uses impassable under
+manual control, reconcile the shared pathing clearance rather than allowing
+the player-only mover to clip through a wall. Vehicles test their complete
+oriented footprint throughout translation and rotation, including intervening
+poses and crossed closed edges. A legal end pose alone does not prove that a
+chassis did not pass through an obstacle on the way there. A blocked drive
+step retains the last legal pose and uses the vehicle's ordinary stopped or
+recovery behavior; it never teleports or snaps through the obstruction.
+Other live bodies keep their shared separation rules. In particular, moving
+vehicle versus infantry occupancy still needs the cross-domain policy in
+`truck-infantry-interaction.md`; direct control must not invent a player-only
+collision outcome for it.
 
 ## Fire and knowledge
 
