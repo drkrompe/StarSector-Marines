@@ -203,6 +203,25 @@ public class ZoneQueriesTest {
                 "dead defender should not count");
     }
 
+    @Test
+    public void heldZoneGroupChecksEveryRoomInOneAnswer() {
+        BattleSimulation sim = singleDoorwaySim();
+        int leftZone = sim.getZoneGraph().zoneIdAt(2, 2);
+        int rightZone = sim.getZoneGraph().zoneIdAt(8, 3);
+        List<Integer> held = List.of(leftZone, rightZone);
+        assertTrue(ZoneQueries.zonesClearOfHostiles(held, Faction.MARINE, sim));
+
+        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER,
+                UnitType.MILITIA, 8, 3));
+        assertFalse(ZoneQueries.zonesClearOfHostiles(held, Faction.MARINE, sim),
+                "an enemy in the second held room breaches the group");
+        TestUnits.kill(sim, defender);
+        assertTrue(ZoneQueries.zonesClearOfHostiles(held, Faction.MARINE, sim));
+        sim.spawn(new EntitySpec("ally", Faction.ALLY, UnitType.MILITIA, 2, 2));
+        assertTrue(ZoneQueries.zonesClearOfHostiles(held, Faction.MARINE, sim),
+                "an allied occupant does not breach a marine hold");
+    }
+
     /**
      * The question is hostility, not difference. A room holding nothing but
      * friendly militia is a room the squad has cleared, and the flip this used
