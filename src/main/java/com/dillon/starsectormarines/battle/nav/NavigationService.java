@@ -419,6 +419,15 @@ public final class NavigationService {
             boolean compatible = retained != null
                     && retained.isCompatible(request, mesh.revision(),
                     grid.getWidth());
+            // Replanning changes the epoch and step token even when the route
+            // itself has not changed. An immutable field is still exact for
+            // this intent when its goal, topology, costing, and every member
+            // start match; publish it under the new token without rebuilding.
+            if (compatible && retained.cost == request.cost()) {
+                next.put(request.squadId(), retained.adoptFresh(request));
+                lastSquadRouteReuses++;
+                continue;
+            }
             pending.add(new RouteCandidate(request, retained, compatible));
         }
         int buildBudget = SharedGoalPolicy.maximumSquadRouteBuildsPerTick();
@@ -471,6 +480,8 @@ public final class NavigationService {
 
     private PreparedSquadRoute buildSquadRoute(
             SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long stageStart = profile == null ? 0L : System.nanoTime();
         if (!grid.inBounds(request.goalX(), request.goalY())
                 || !grid.isWalkable(request.goalX(), request.goalY())) {
             return null;
@@ -505,7 +516,12 @@ public final class NavigationService {
             }
             hasRoute = true;
         }
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_SEED,
+                    System.nanoTime() - stageStart);
+        }
         if (!hasRoute) return null;
+        stageStart = profile == null ? 0L : System.nanoTime();
         routeRegions[goalRegion] = true;
         padRouteRegions(mesh, routeRegions, selectedRegions);
         int corridorCount = 0;
@@ -524,8 +540,17 @@ public final class NavigationService {
             }
         }
         Arrays.sort(corridor);
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_CORRIDOR,
+                    System.nanoTime() - stageStart);
+        }
+        stageStart = profile == null ? 0L : System.nanoTime();
         SquadRouteField field = squadRouteBuilder.build(corridor, costs, goal,
                 starts, GridPathfinder.USE_CARDINAL_NAVIGATION);
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_REVERSE,
+                    System.nanoTime() - stageStart);
+        }
         return new PreparedSquadRoute(request.routingEpoch(),
                 request.routeToken(), goal, mesh.revision(), request.cost(), field);
     }
@@ -666,6 +691,11 @@ public final class NavigationService {
 
         private PreparedSquadRoute adopt(SquadRouteRequest request) {
             return new PreparedSquadRoute(request.routingEpoch(), builtEpoch,
+                    request.routeToken(), goal, meshRevision, cost, field);
+        }
+
+        private PreparedSquadRoute adoptFresh(SquadRouteRequest request) {
+            return new PreparedSquadRoute(request.routingEpoch(),
                     request.routeToken(), goal, meshRevision, cost, field);
         }
     }

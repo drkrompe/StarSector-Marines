@@ -17,7 +17,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Stateless convenience layer over {@link ZoneGraph} for the GOAP action
@@ -26,8 +28,8 @@ import java.util.List;
  * L need (zone the squad stands in, zone its objective lives in, whether a
  * zone is clear of a faction, the zone-by-zone path between two zones).
  *
- * <p>No caching, no instance state — {@link ZoneGraph#rebuild} already runs at
- * most once per tick, so per-query overhead is just a handful of int lookups.
+ * <p>No caching or instance state. Zone membership and portals are graph
+ * lookups; hostile-presence queries inspect the live unit roster.
  */
 public final class ZoneQueries {
 
@@ -99,7 +101,7 @@ public final class ZoneQueries {
 
     /**
      * True iff no alive unit hostile to {@code selfFaction} stands on any cell
-     * of {@code zoneId}. Iterates the unit list (typically tens of entries) and
+     * of {@code zoneId}. Iterates the live unit roster and
      * cross-checks each enemy's cell against {@link ZoneGraph#zoneIdAt}; far
      * cheaper than walking the zone's full cell list since zones often hold
      * hundreds of cells.
@@ -116,6 +118,28 @@ public final class ZoneQueries {
             long u = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(u))) continue;
             if (graph.zoneIdAt(sim.world().cellX(u), sim.world().cellY(u)) == zoneId) return false;
+        }
+        return true;
+    }
+
+    /** Tests a held group of zones with one live-roster pass, not one pass per room. */
+    public static boolean zonesClearOfHostiles(List<Integer> zoneIds,
+                                               Faction selfFaction, BattleView sim) {
+        if (sim == null || selfFaction == null || zoneIds.isEmpty()) return true;
+        if (zoneIds.size() == 1) {
+            return zoneClearOfHostiles(zoneIds.get(0), selfFaction, sim);
+        }
+        ZoneGraph graph = sim.getZoneGraph();
+        Set<Integer> held = new HashSet<>();
+        for (int zoneId : zoneIds) {
+            if (graph.zoneById(zoneId) != null) held.add(zoneId);
+        }
+        if (held.isEmpty()) return true;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            if (!selfFaction.hostileTo(sim.identity().faction(unit))) continue;
+            if (held.contains(graph.zoneIdAt(sim.world().cellX(unit),
+                    sim.world().cellY(unit)))) return false;
         }
         return true;
     }

@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -163,11 +164,20 @@ public final class FrontageDefense implements Goal {
      * being serial.
      */
     private Held plan(Squad squad, BattleView sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile == null ? 0L : System.nanoTime();
         TacticalNode node = heldNode(squad, sim);
-        if (node == null) return null;
+        if (node == null) {
+            recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_SCOPE, started);
+            return null;
+        }
+        List<Layer> layers = layersFor(squad, sim);
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_SCOPE, started);
+        started = profile == null ? 0L : System.nanoTime();
         Set<Long> claimed = stancesClaimedByOthers(squad, sim);
-        for (Layer layer : layersFor(squad, sim)) {
-            Held held = planLayer(squad, node, layer, claimed, sim);
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_CLAIMS, started);
+        for (Layer layer : layers) {
+            Held held = planLayer(squad, node, layer, claimed, sim, profile);
             if (held != null) return held;
         }
         return null;
@@ -181,17 +191,29 @@ public final class FrontageDefense implements Goal {
      * every post that would be worth taking is already manned by somebody else.
      */
     private Held planLayer(Squad squad, TacticalNode node, Layer layer,
-                           Set<Long> claimed, BattleView sim) {
+                           Set<Long> claimed, BattleView sim,
+                           TickInnerProfile profile) {
+        long started = profile == null ? 0L : System.nanoTime();
         int[] box = boxFor(node, layer);
         List<Integer> zones = zonesFor(node, layer, sim);
-        if (zones.isEmpty() || breached(zones, squad, sim)) return null;
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_ZONES, started);
+        if (zones.isEmpty()) return null;
+        started = profile == null ? 0L : System.nanoTime();
+        boolean isBreached = breached(zones, squad, sim);
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_BREACH, started);
+        if (isBreached) return null;
 
-        List<Aperture> threatened = byThreat(DefenseFrontage.deriveWithInsideZones(
+        started = profile == null ? 0L : System.nanoTime();
+        List<Aperture> apertures = DefenseFrontage.deriveWithInsideZones(
                 box[0], box[1], box[2], box[3], DefenseFrontage.COMPOUND_MARGIN,
-                new HashSet<>(zones), sim),
-                squad.faction, sim);
+                new HashSet<>(zones), sim);
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_APERTURES, started);
+        started = profile == null ? 0L : System.nanoTime();
+        List<Aperture> threatened = byThreat(apertures, squad.faction, sim);
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_THREAT, started);
         if (threatened.isEmpty()) return null;
 
+        started = profile == null ? 0L : System.nanoTime();
         int alive = Math.max(1, squad.aliveMembers);
         int reserve = alive >= MIN_SQUAD_FOR_RESERVE
                 ? Math.max(1, Math.round(alive * RESERVE_FRACTION)) : 0;
@@ -212,12 +234,21 @@ public final class FrontageDefense implements Goal {
             posts.add(new ApertureHold.Post(aperture.stanceX(), aperture.stanceY(),
                     aperture.outsideX(), aperture.outsideY(), aperture.kind()));
         }
-        if (posts.isEmpty()) return null;
+        if (posts.isEmpty()) {
+            recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_POSTS, started);
+            return null;
+        }
 
         for (int[] cell : reserveCells(node, zones, alive - posts.size(), taken, sim)) {
             posts.add(ApertureHold.Post.reserve(cell[0], cell[1]));
         }
+        recordStage(profile, TickInnerProfile.Bucket.FRONTAGE_POSTS, started);
         return new Held(new ApertureHold(posts), layer);
+    }
+
+    private static void recordStage(TickInnerProfile profile,
+                                    TickInnerProfile.Bucket bucket, long started) {
+        if (profile != null) profile.record(bucket, System.nanoTime() - started);
     }
 
     /**
@@ -427,10 +458,7 @@ public final class FrontageDefense implements Goal {
 
     /** True once any enemy stands inside the held zones — the fight is indoors and belongs to the room-clearing behaviors. */
     private static boolean breached(List<Integer> heldZones, Squad squad, BattleView sim) {
-        for (int zoneId : heldZones) {
-            if (!ZoneQueries.zoneClearOfHostiles(zoneId, squad.faction, sim)) return true;
-        }
-        return false;
+        return !ZoneQueries.zonesClearOfHostiles(heldZones, squad.faction, sim);
     }
 
     /**

@@ -50,6 +50,47 @@ class NavigationServiceSquadRouteTest {
     }
 
     @Test
+    void replannedSameRouteAdoptsCoveredFieldButNewCostOrStartRebuilds() {
+        NavigationGrid grid = openGrid(160, 160);
+        NavigationService navigation = new NavigationService(grid,
+                new CellTopology(160, 160));
+        RouteCostField cost = new RouteCostField(
+                unitCosts(grid), RouteCostField.nextRevision());
+        Object firstToken = new Object();
+        navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 1L,
+                firstToken, 158, 1, new int[]{grid.index(1, 1)}, cost)));
+        assertEquals(1, navigation.lastSquadRouteBuilds());
+
+        Object nextToken = new Object();
+        navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 2L,
+                nextToken, 158, 1, new int[]{grid.index(2, 1)}, cost)));
+        assertEquals(0, navigation.lastSquadRouteBuilds());
+        assertEquals(1, navigation.lastSquadRouteReuses());
+        assertFalse(Paths.isEmpty(navigation.findSquadPathToGoal(7, 2L,
+                nextToken, 2, 1, 158, 1, cost)));
+
+        // Adoption is now fresh for this epoch, even if the producer publishes
+        // a newer casualty-cost snapshot before the squad replans again.
+        RouteCostField newerCost = new RouteCostField(
+                unitCosts(grid), RouteCostField.nextRevision());
+        navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 2L,
+                nextToken, 158, 1, new int[]{grid.index(3, 1)}, newerCost)));
+        assertEquals(0, navigation.lastSquadRouteBuilds());
+        assertEquals(1, navigation.lastSquadRouteReuses());
+
+        Object costChangeToken = new Object();
+        navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 3L,
+                costChangeToken, 158, 1, new int[]{grid.index(3, 1)}, newerCost)));
+        assertEquals(1, navigation.lastSquadRouteBuilds(),
+                "a new epoch must adopt the current casualty costing");
+
+        navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 4L,
+                new Object(), 158, 1, new int[]{grid.index(1, 150)}, newerCost)));
+        assertEquals(1, navigation.lastSquadRouteBuilds(),
+                "a start outside the settled field needs a new corridor");
+    }
+
+    @Test
     void uncoveredStartAndNewStepAreExactFallbacksNotUnreachableAnswers() {
         NavigationGrid grid = openGrid(160, 160);
         NavigationService navigation = new NavigationService(grid,

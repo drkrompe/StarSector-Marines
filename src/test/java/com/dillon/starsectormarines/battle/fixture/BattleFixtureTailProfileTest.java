@@ -398,7 +398,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 5);
+        report.put("schemaVersion", 6);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -556,6 +556,10 @@ class BattleFixtureTailProfileTest {
         tick.put("actions", actions);
         tick.put("flatPathfindExpandedNodes",
                 sample.inner().pathfindExpandedNodes);
+        tick.put("squadFieldCorridorCells",
+                sample.inner().squadRouteCorridorCells);
+        tick.put("squadFieldSettledCells",
+                sample.inner().squadRouteSettledCells);
         tick.put("convoyRouteWork", convoyWorkJson(new long[]{
                 sample.inner().convoyClearanceEvaluations,
                 sample.inner().convoyCostEvaluations,
