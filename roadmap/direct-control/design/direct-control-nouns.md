@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — individual control hides strategic chrome and keeps a compact return/pause strip.
+Updated: 2026-09-26 — action framing adds bounded cursor look-ahead and a closer shared zoom range.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -87,10 +87,17 @@ accepts no movement or shot; the aim preview may still move. Direct control
 plays at 1x so a real-time hand has a stable movement and firing cadence.
 Entering while paused leaves the battle paused. Entering from 2x or 4x
 remembers that rate, and exiting restores it unless the player deliberately
-changed time while controlling. A follow camera uses the same screen-to-world
-projection as picking and shooting, with wheel zoom available during control.
-Temporary camera look is deferred; the camera keeps following the
-controlled body and reserves right-click without issuing a world order.
+changed time while controlling. An action camera follows body movement immediately and eases a bounded lead
+toward the cursor beyond a central dead zone. Its framing sits between the body
+and cursor without letting camera motion feed back into further camera drift.
+The lead scales with the viewport and leaves the controlled body on screen;
+world-edge clamping remains authoritative. Moving onto UI chrome or outside
+the battlefield eases the lead back toward the body. Entry resets old lead.
+Wheel zoom remains available, reaching twice the former close-up limit in
+strategic and action views. Action zoom preserves the body’s screen framing;
+strategic zoom retains its cursor anchor. Camera projection remains shared
+with point aiming and the crosshair. Right-click issues no world order while
+controlling.
 
 The mode is a freely entered one-unit intervention. It consumes
 the player's attention and excludes simultaneous control of another body.

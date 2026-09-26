@@ -15,8 +15,8 @@ class BattleCameraTest {
 
         camera.zoomAt(20f, 560f, 320f);
 
-        assertEquals(8f, camera.zoom(), 1e-6f);
-        assertEquals(80f, camera.cellPxSize(), 1e-6f);
+        assertEquals(16f, camera.zoom(), 1e-6f);
+        assertEquals(160f, camera.cellPxSize(), 1e-6f);
     }
 
     @Test

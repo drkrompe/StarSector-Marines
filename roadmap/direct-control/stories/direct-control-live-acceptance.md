@@ -22,6 +22,10 @@ including its transition back to autonomous play.
   compact unit-control strip and world status/crosshair remain; firing across
   the old panel bounds must work. Pause and resume through the strip, then exit by button and key;
   the strategic view must return with current information and the same selection.
+- Sweep the cursor near and far from the controlled body, across the dead zone,
+  and onto UI chrome. Look-ahead should ease without drift or losing the body.
+  Check both camera modes at the closest wheel zoom, including map edges and
+  transitions into and out of control; aim and the crosshair must agree.
 - Sweep the cursor during a Bulwark burst, including behind the hips and while
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.
