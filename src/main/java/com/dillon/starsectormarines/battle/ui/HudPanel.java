@@ -30,8 +30,14 @@ public interface HudPanel {
      */
     void handleInput(List<InputEventAPI> events);
 
-    /** When false, the panel skips update/render/input for the frame. */
+    /** When false, the panel skips rendering and input; cached state still updates. */
     boolean isVisible();
+
+    /** Releases transient captures when a visible surface is hidden by a mode change. */
+    default void deactivateInput() {}
+
+    /** Only immediate unit-control cues remain visible while the player inhabits a body. */
+    default boolean visibleDuringDirectControl() { return false; }
 
     /** Opaque chrome blocks held world controls even without a fresh click. */
     default boolean blocksWorldPointer(float x, float y) { return false; }

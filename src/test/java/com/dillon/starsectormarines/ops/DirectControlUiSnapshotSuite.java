@@ -47,7 +47,36 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 composite(renderer, context.modRoot(), 1280, 720, 1.5f, true)));
         artifacts.add(new SnapshotArtifact("selected-infantry-1366x768-ui125.png",
                 composite(renderer, context.modRoot(), 1366, 768, 1.25f, false)));
+        artifacts.add(new SnapshotArtifact("active-mech-1280x720-ui150.png",
+                activeComposite(renderer, context.modRoot(), 1280, 720, 1.5f, false)));
+        artifacts.add(new SnapshotArtifact("active-mech-paused-1744x938-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1744, 938, 1f, true)));
         return artifacts;
+    }
+
+    /** Active control leaves the battlefield clear apart from the bottom-center essential controls. */
+    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+                                                  int width, int height, float uiScale,
+                                                  boolean paused) throws Exception {
+        var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        try {
+            graphics.setColor(new Color(18, 25, 30));
+            graphics.fillRect(0, 0, width, height);
+            graphics.setColor(new Color(25, 34, 39));
+            for (int x = 0; x < width; x += 48) graphics.drawLine(x, 0, x, height);
+            for (int y = 0; y < height; y += 48) graphics.drawLine(0, y, width, y);
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            try (MarkupInstance markup = BattleDirectControlOverlayTest.fixture(modRoot,
+                    true, true, true, false, paused, () -> {}, () -> {})) {
+                draw(graphics, renderer, markup, layout.activeControl(), layout.host(), uiScale);
+            }
+        } finally {
+            graphics.dispose();
+        }
+        return image;
     }
 
     private static BufferedImage composite(HeadlessUiRenderer renderer, Path modRoot,

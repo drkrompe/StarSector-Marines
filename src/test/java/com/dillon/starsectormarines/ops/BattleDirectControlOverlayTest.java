@@ -34,6 +34,9 @@ class BattleDirectControlOverlayTest {
                 assertTrue(box.y() >= 0 && box.bottom() <= BattleDirectControlOverlay.DOCUMENT_HEIGHT);
                 assertTrue(markup.requireElement("battle-direct-control-hint")
                         .box().borderBox().bottom() <= BattleDirectControlOverlay.DOCUMENT_HEIGHT);
+                assertEquals(0f, markup.requireElement("battle-direct-control-pause").box().borderBox().width(),
+                        "the hidden pause control has no painted or pointer area");
+                assertTrue(markup.requireElement("battle-direct-control-pause").disabled());
                 document.pointerDown(box.x() + 20, box.y() + 12);
                 document.pointerUp(box.x() + 20, box.y() + 12);
                 assertEquals(enabled ? 1 : 0, actions.get());
@@ -80,7 +83,7 @@ class BattleDirectControlOverlayTest {
 
     static record OverlayLayout(UiViewport host, UiViewport control, UiViewport squad,
                                 UiViewport mech, UiViewport powers, UiViewport retreat,
-                                UiViewport hud) { }
+                                UiViewport hud, UiViewport activeControl) { }
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
@@ -104,7 +107,8 @@ class BattleDirectControlOverlayTest {
                     BattleDirectControlOverlay.viewport(position), BattleSquadOverlay.viewport(position),
                     BattleMechOverlay.viewport(position), BattlePowerOverlay.viewport(position, 5, true),
                     BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
-                    BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)));
+                    BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
+                    BattleDirectControlOverlay.viewport(position, true));
         } finally {
             Global.setSettings(previous);
         }
@@ -127,6 +131,12 @@ class BattleDirectControlOverlayTest {
 
     static MarkupInstance fixture(Path modRoot, boolean active, boolean enabled,
                                   boolean mech, boolean vehicle, Runnable action) throws Exception {
+        return fixture(modRoot, active, enabled, mech, vehicle, false, action, () -> {});
+    }
+
+    static MarkupInstance fixture(Path modRoot, boolean active, boolean enabled,
+                                  boolean mech, boolean vehicle, boolean paused,
+                                  Runnable action, Runnable pauseAction) throws Exception {
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(modRoot.resolve(path)),
                 List.of(BattleDirectControlOverlay.COMPONENT_PATH));
         loader.reload();
@@ -137,7 +147,52 @@ class BattleDirectControlOverlayTest {
                         : "Rhea Voss  |  WASD move | Mouse aim | Hold LMB fire"
                         : enabled ? "Direct control uses pause or 1x speed"
                         : "Select a ready Marine, combat Mech, or deployed APC",
-                "disabled", !enabled, "toggle", action));
+                "disabled", !enabled, "toggle", action,
+                "pauseLabel", paused ? "1x" : "Pause",
+                "pauseClasses", active ? "direct-pause" : "direct-pause direct-pause-hidden",
+                "pauseDisabled", !active,
+                "togglePause", pauseAction));
+    }
+
+    @Test
+    void activeControlsStayBottomCenteredAndBothActionsRemainClickable() throws Exception {
+        for (int[] size : List.of(new int[]{1744, 938}, new int[]{1920, 1080},
+                new int[]{1366, 768}, new int[]{1280, 720})) {
+            for (float uiScale : new float[]{1f, 1.25f, 1.5f}) {
+                OverlayLayout layout = layout(size[0], size[1], uiScale);
+                UiViewport plate = layout.activeControl();
+                assertEquals(layout.host().screenX() + layout.host().width() / 2f,
+                        plate.screenX() + plate.width() / 2f, .001f);
+                assertEquals(layout.host().screenY() + 12f, plate.screenY(), .001f);
+                assertTrue(plate.screenX() >= layout.host().screenX());
+                assertTrue(plate.screenX() + plate.width() <= layout.host().screenX() + layout.host().width());
+                assertTrue(plate.screenY() + plate.height() <= layout.host().screenY() + layout.host().height());
+                for (boolean paused : List.of(false, true)) {
+                    AtomicInteger returns = new AtomicInteger();
+                    AtomicInteger pauses = new AtomicInteger();
+                    try (MarkupInstance markup = fixture(Path.of("mod"), true, true,
+                            true, false, paused, returns::incrementAndGet, pauses::incrementAndGet)) {
+                        UiDocument document = document(markup);
+                        assertFalse(markup.requireElement("battle-direct-control-pause").disabled());
+                        document.layout(plate.documentWidth(), plate.documentHeight());
+                        for (String id : List.of("battle-direct-control-toggle", "battle-direct-control-pause")) {
+                            var box = markup.requireElement(id).box().borderBox();
+                            assertTrue(box.width() > 0f && box.height() > 0f);
+                            assertTrue(box.x() >= 0f && box.right() <= plate.documentWidth());
+                            assertTrue(box.y() >= 0f && box.bottom() <= plate.documentHeight());
+                            float x = plate.screenXFor(box.x() + box.width() / 2f);
+                            float y = plate.screenTopFor(box.y() + box.height() / 2f);
+                            document.pointerDown(plate.documentX(x), plate.documentY(y));
+                            document.pointerUp(plate.documentX(x), plate.documentY(y));
+                        }
+                        assertEquals(1, returns.get());
+                        assertEquals(1, pauses.get());
+                        assertTrue(markup.requireElement("battle-direct-control-hint")
+                                .box().borderBox().bottom() <= plate.documentHeight());
+                    }
+                }
+            }
+        }
     }
 
     static UiDocument document(MarkupInstance markup) {

@@ -95,6 +95,11 @@ final class BattleRetreatOverlay {
         if (document != null) document.advance(0f);
     }
 
+    void cancelConfirmation() {
+        model.cancelRetreat();
+        update(0f, false);
+    }
+
     void detach() {
         if (document != null) document.deactivateInput();
         input = null;

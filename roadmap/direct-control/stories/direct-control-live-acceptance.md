@@ -18,6 +18,10 @@ including its transition back to autonomous play.
 
 - Select infantry, a Mech lance, and an APC at supported UI scales. The control
   button must remain visible and clickable outside the selected-unit panels.
+- Enter control with strategic panels or retreat confirmation open. Only the
+  compact unit-control strip and world status/crosshair remain; firing across
+  the old panel bounds must work. Pause and resume through the strip, then exit by button and key;
+  the strategic view must return with current information and the same selection.
 - Sweep the cursor during a Bulwark burst, including behind the hips and while
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.
