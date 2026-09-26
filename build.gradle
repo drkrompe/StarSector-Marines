@@ -148,6 +148,7 @@ void forwardBattleSwitches(task) {
 test {
     useJUnitPlatform {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
+                'squad-firing-evidence',
                 'commander-balance',
                 'sabotage-command-evidence', 'assault-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
@@ -517,6 +518,22 @@ tasks.register('profileConvoyRoute', Test) {
     systemProperty 'battle.convoyRoute.outputDir', System.getProperty(
             'battle.convoyRoute.outputDir',
             layout.buildDirectory.dir('reports/performance/convoy-route').get().asFile.absolutePath)
+    testLogging { showStandardStreams = true }
+}
+
+// Scorer-level quality/work evidence, not a played battle or a timing gate.
+tasks.register('profileSquadFiringPositions', Test) {
+    group = 'verification'
+    description = 'Compare individual and experimental shared firing-position scoring in a bounded six-member arena.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { includeTags 'squad-firing-evidence' }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncDefendTrack', 'false'
+    forwardBattleSwitches(delegate)
     testLogging { showStandardStreams = true }
 }
 

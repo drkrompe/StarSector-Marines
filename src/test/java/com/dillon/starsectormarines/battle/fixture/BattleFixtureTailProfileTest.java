@@ -476,6 +476,8 @@ class BattleFixtureTailProfileTest {
         report.put("availableProcessors", Runtime.getRuntime().availableProcessors());
         report.put("renderSink", "none");
         report.put("asyncDefendTrack", true);
+        report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.squadFiringPositions", "false")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",
