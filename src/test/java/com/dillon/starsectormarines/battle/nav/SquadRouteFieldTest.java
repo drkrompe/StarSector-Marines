@@ -94,7 +94,8 @@ class SquadRouteFieldTest {
         costs[grid.index(2, 1)] = 10f;
         costs[grid.index(4, 1)] = 3f;
         SquadRouteField field = new SquadRouteField.Builder(grid).build(allCells(grid),
-                costs, grid.index(4, 1), new int[]{grid.index(0, 1)}, false);
+                new RouteCostField(costs, RouteCostField.nextRevision()),
+                grid.index(4, 1), new int[]{grid.index(0, 1)}, false);
         int[] path = field.extract(0, 1);
         assertFalse(contains(path, 2, 1));
         int[] ordinary = GridPathfinder.findPath(grid, 0, 1, 4, 1, false, null, costs, null);

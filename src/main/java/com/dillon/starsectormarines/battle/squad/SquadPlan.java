@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.RandomAccess;
 
 /**
  * Ordered sequence of actions a squad is currently executing, with per-step
@@ -71,8 +72,17 @@ public final class SquadPlan {
          */
         public String slotOf(long unitId) {
             for (Map.Entry<String, List<Long>> e : assignments.entrySet()) {
-                for (long u : e.getValue()) {
-                    if (u == unitId) return e.getKey();
+                List<Long> members = e.getValue();
+                // Role assignment produces random-access lists. This lookup runs
+                // per member per tick, so do not allocate an iterator per slot.
+                if (members instanceof RandomAccess) {
+                    for (int i = 0; i < members.size(); i++) {
+                        if (members.get(i) == unitId) return e.getKey();
+                    }
+                } else {
+                    for (long member : members) {
+                        if (member == unitId) return e.getKey();
+                    }
                 }
             }
             return null;

@@ -499,7 +499,7 @@ public final class NavigationService implements AutoCloseable {
         if (goalRegion < 0) return null;
         boolean[] routeRegions = new boolean[mesh.regions().size()];
         boolean[] selectedRegions = new boolean[mesh.regions().size()];
-        float[] costs = request.cost() == null ? null : request.cost().cells();
+        RouteCostField costs = request.cost();
         boolean hasRoute = false;
         for (int start : starts) {
             if (start < 0 || start >= grid.getWidth() * grid.getHeight()) continue;
@@ -511,9 +511,9 @@ public final class NavigationService implements AutoCloseable {
                 padRouteRegions(mesh, routeRegions, selectedRegions);
                 if (selectedRegions[startRegion]) continue;
             }
-            int[] seed = GridPathfinder.findPathUnprofiled(grid,
+            int[] seed = GridPathfinder.findPathWithCostUnprofiled(grid,
                     startX, startY, request.goalX(), request.goalY(),
-                    GridPathfinder.USE_CARDINAL_NAVIGATION, null, costs, null);
+                    GridPathfinder.USE_CARDINAL_NAVIGATION, null, costs);
             if (Paths.isEmpty(seed)) continue;
             for (int cell = 0; cell < Paths.cellCount(seed); cell++) {
                 int region = mesh.regionIdAt(Paths.cellX(seed, cell),
@@ -607,10 +607,9 @@ public final class NavigationService implements AutoCloseable {
                 }
             }
             RouteCostField fallbackCost = matches ? prepared.cost : currentCost;
-            float[] costs = fallbackCost == null ? null : fallbackCost.cells();
-            return GridPathfinder.findPathUnprofiled(grid, startX, startY,
+            return GridPathfinder.findPathWithCostUnprofiled(grid, startX, startY,
                     goalX, goalY, GridPathfinder.USE_CARDINAL_NAVIGATION,
-                    occupancyMap, costs, null);
+                    occupancyMap, fallbackCost);
         } finally {
             TickInnerProfile profile = TickInnerProfile.currentIfBound();
             if (profile != null) {
