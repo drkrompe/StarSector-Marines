@@ -216,6 +216,9 @@ Do not run builds or leave generated task files there.
   present; `-Dbattle.tail.javaExecutable=<absolute path>` overrides it. The
   live dump is a tick-zero construction fixture, not
   an in-flight state snapshot, so replay need not reproduce the exact spike.
+  `-Dbattle.pathfinding.compactCasualtyRouteCost=false` is the dense-storage
+  control for casualty routing costs. Both representations calculate the same
+  block multipliers; the control additionally expands them across the map.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.
