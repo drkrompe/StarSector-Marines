@@ -7,7 +7,7 @@ Written: 2026-09-23
 Updated: 2026-09-23 — made terrain sweep, sliding, and topology changes explicit acceptance.
 
 Read `direct-control-nouns.md`, `ai-nouns.md`, and `ui-nouns.md` first.
-Depends on `point-aim-direct-fire.md`.
+Uses the point-fire contract in `ballistics-nouns.md` and `direct-control-nouns.md`.
 
 ## Goal
 
@@ -35,7 +35,15 @@ or a new campaign unlock is defined.
 4. Feed primary fire through point-aim direct fire. Temporarily remove the
    controlled member from AI-assigned execution roles and replan the fire
    team/squad on entry and handback without changing mission assignment or
-   roster membership.
+   roster membership. Use one availability rule for role assignment, arrival,
+   stackup, and cohesion; keep living strength distinct from the autonomous
+   formation population. A controlled squad leader must not remain the
+   formation anchor or the sole writer of shared patrol/breach timers.
+   Refresh retained assignments immediately on entry and exit.
+5. Give manual aim precedence in the final facing pass without losing the
+   movement gait. Bypass AI opportunity fire for the controlled member while
+   retaining exactly one cooldown update. Cancel queued intent and point-burst
+   continuation whenever manual fire is suspended or control is released.
 
 ## Acceptance
 
