@@ -20,7 +20,11 @@ Updated: 2026-09-26 — defined continuous body-clearance route proofs and expli
   tolerance. A half-cell graph can represent a wide body's centerline between
   ordinary cell centers, but is still a discrete approximation of continuous
   reachability. Its route proof does not replace current terrain checks during
-  motion. Runtime adoption for Mechs is tracked in `mech-terrain-clearance.md`.
+  motion. A pending proof is distinct from a failed route; spreading a search
+  across work slices retains its frontier and never mixes terrain revisions.
+  Body owners share a work allowance, and abandoning an intent releases its
+  pending proof. Runtime adoption for Mechs is tracked in
+  `mech-terrain-clearance.md`.
 - **Navigation region** is a derived axis-aligned rectangle of compatible
   walkable cells joined by passable internal edges. Regions and their boundary
   intervals form the acceleration seam for higher-level routing; they never replace or modify the

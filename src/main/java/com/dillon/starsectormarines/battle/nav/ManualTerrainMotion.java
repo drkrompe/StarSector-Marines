@@ -83,10 +83,10 @@ public final class ManualTerrainMotion {
     private static Hit sweep(NavigationGrid grid, double x, double y,
                              double dx, double dy, double radius) {
         Hit hit = new Hit();
-        if (dx < 0d) hit.offer((radius - x) / dx, 1d, 0d, dx, dy);
-        if (dx > 0d) hit.offer((grid.getWidth() - radius - x) / dx, -1d, 0d, dx, dy);
-        if (dy < 0d) hit.offer((radius - y) / dy, 0d, 1d, dx, dy);
-        if (dy > 0d) hit.offer((grid.getHeight() - radius - y) / dy, 0d, -1d, dx, dy);
+        if (dx < 0d) hit.offer(planeTime(x, dx, radius), 1d, 0d, dx, dy);
+        if (dx > 0d) hit.offer(planeTime(grid.getWidth() - x, -dx, radius), -1d, 0d, dx, dy);
+        if (dy < 0d) hit.offer(planeTime(y, dy, radius), 0d, 1d, dx, dy);
+        if (dy > 0d) hit.offer(planeTime(grid.getHeight() - y, -dy, radius), 0d, -1d, dx, dy);
         int minX = Math.max(0, (int) Math.floor(Math.min(x, x + dx) - radius));
         int minY = Math.max(0, (int) Math.floor(Math.min(y, y + dy) - radius));
         int maxX = Math.min(grid.getWidth() - 1, (int) Math.floor(Math.max(x, x + dx) + radius));
@@ -143,17 +143,24 @@ public final class ManualTerrainMotion {
                                 double radius, double ax, double ay, double bx, double by) {
         if (ax == bx && dx != 0d) {
             double nx = dx > 0d ? -1d : 1d;
-            double time = (ax + nx * radius - x) / dx;
+            double time = planeTime((x - ax) * nx, dx * nx, radius);
             double atY = y + dy * time;
             if (atY >= ay && atY <= by) hit.offer(time, nx, 0d, dx, dy);
         } else if (ay == by && dy != 0d) {
             double ny = dy > 0d ? -1d : 1d;
-            double time = (ay + ny * radius - y) / dy;
+            double time = planeTime((y - ay) * ny, dy * ny, radius);
             double atX = x + dx * time;
             if (atX >= ax && atX <= bx) hit.offer(time, 0d, ny, dx, dy);
         }
         endpoint(hit, x, y, dx, dy, radius, ax, ay);
         endpoint(hit, x, y, dx, dy, radius, bx, by);
+    }
+
+    private static double planeTime(double distance, double inwardVelocity, double radius) {
+        double time = (radius - distance) / inwardVelocity;
+        // Judge tolerated overlap along the normal, independently of tangent
+        // speed. Finite segments then check their extent at this clamped time.
+        return time < 0d && distance >= radius - SKIN ? 0d : time;
     }
 
     private static void endpoint(Hit hit, double x, double y, double dx, double dy,
@@ -166,6 +173,15 @@ public final class ManualTerrainMotion {
         double discriminant = b * b - a * c;
         if (discriminant < 0d) return;
         double time = (-b - Math.sqrt(discriminant)) / a;
+        if (time < 0d) {
+            // A backward intersection is relevant only when the body starts
+            // within the accepted contact skin. Use the starting normal, not
+            // the normal of a distant intersection behind the moving body.
+            double distance = Math.hypot(ox, oy);
+            if (distance > radius || distance < radius - SKIN || distance <= EPSILON) return;
+            hit.offer(0d, ox / distance, oy / distance, dx, dy);
+            return;
+        }
         double nx = x + dx * time - cx;
         double ny = y + dy * time - cy;
         double length = Math.hypot(nx, ny);
@@ -209,7 +225,7 @@ public final class ManualTerrainMotion {
         double ny;
 
         void offer(double candidate, double normalX, double normalY, double dx, double dy) {
-            if (candidate < -SKIN / Math.hypot(dx, dy) || candidate > 1d || candidate >= time
+            if (candidate < 0d || candidate > 1d || candidate >= time
                     || dx * normalX + dy * normalY >= -EPSILON) return;
             time = Math.max(0d, candidate);
             nx = normalX;

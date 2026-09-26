@@ -1,6 +1,6 @@
 # Shared Mech terrain clearance
 
-Status: IN PROGRESS — pure route proof verified; scheduling and shared runtime adoption remain.
+Status: IN PROGRESS — resumable route proof and queue verified; shared runtime adoption remains.
 
 Written: 2026-09-26
 
@@ -35,11 +35,11 @@ Neither shrinking its radius nor rejecting every cell-center lane is correct.
 
 ## Remaining implementation
 
-The pure route proof and straight sweep are available. Before adopting them in
-battle, make expensive searches resumable or otherwise schedule them outside
-the fixed-tick critical path. An expansion cap is not a frame-time bound: the
-production-size synthetic detour exhausts the current cap while taking longer
-than one simulation tick. `profileClearanceRoute` records that constraint and
+The pure route proof, resumable frontier, and shared work queue are available.
+Before adopting them in battle, select and verify the execution policy: small
+serial slices bound work but can delay long routes, while workers need frozen
+terrain inputs and stale-result rejection. An expansion cap is not a frame-time
+bound. `profileClearanceRoute` records whole-query cost, per-slice cost, and
 the cheap local-route control case. Runtime consumers, placement, separation,
 and objective-aware arrival still need the shared authority described above.
 
