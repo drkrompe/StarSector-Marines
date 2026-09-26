@@ -141,6 +141,7 @@ public final class MechMoveOrderSystem {
         Squad squad = sim.squadOf(mech);
         return squad == null || squad.faction != Faction.MARINE
                 || !squad.isMechSquad() || squad.rescuePickupMech
+                || squad.controlledMemberId() == mech
                 ? null : squad;
     }
 }

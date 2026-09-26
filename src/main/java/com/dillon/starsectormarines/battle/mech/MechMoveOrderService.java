@@ -51,6 +51,12 @@ public final class MechMoveOrderService {
         return active.get(mechId);
     }
 
+    /** Cancels both accepted and queued intent for a chassis during serial ownership transfer. */
+    public void cancel(long mechId) {
+        pending.removeIf(order -> order.mechId == mechId);
+        active.remove(mechId);
+    }
+
     List<PendingOrder> drainPending() {
         if (pending.isEmpty()) return Collections.emptyList();
         List<PendingOrder> drained = new ArrayList<>(pending);

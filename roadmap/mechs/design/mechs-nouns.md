@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — shared chassis clearance governs routes, placement, motion, and tactical arrival.
+Updated: 2026-09-26 — direct control shares chassis clearance, posed mount fire, and autonomous lance handback.
 
 ## Purpose
 
@@ -301,6 +301,46 @@ area before constructing the body. It does not repair an existing chassis by
 teleporting it. A delivery or finished frame without room for its actual body
 must wait or decline placement under its owning system's rules. Spawn position,
 foot plants, spatial lookup, and visible chassis begin at the same point.
+
+## Direct control
+
+The one-body session in `direct-control-nouns.md` may take over an exact live
+Marine combat Mech in a friendly non-rescue lance. A chassis still being built,
+a delivery payload, and a rescue pickup Mech are outside this contract. Entry
+requires its actual body envelope to fit current terrain. Existing broken-squad
+morale, forced fallback, structural squad retreat, and hard withdrawal retain
+authority to refuse or release control. Personal chassis morale continues to
+feed the shared survival rule without a separate manual-only threshold.
+
+WASD supplies desired travel direction to the existing damped hips. Translation
+waits until the hips are within eight degrees of travel; the mouse turns the
+upper chassis independently within 145 degrees of either side of the hips.
+Fire requires four-degree alignment and the installed mount's own legal arc.
+Terrain sweep, speed, separation, and gait remain the shared chassis rules.
+
+The primary trigger requests all installed ground-direct mounts, each spending
+its own ready ammunition and observing its cooldown and burst state. Indirect
+mounts are withheld. A burst retains the world point accepted by that mount at
+trigger pull; committed bursts own torso aim before the live cursor, with
+installed-mount order resolving simultaneous commitments. Entry, exit, and
+input suspension cancel queued rounds and aim without resetting mount clocks,
+ammunition, or replenishment progress. Mech accuracy uses its shared weapon
+calculation without infantry training multipliers.
+
+The actual posed barrel is the source for both autonomous and manual direct
+fire. A structural obstruction between body and barrel blocks launch, including
+when the rendered muzzle protrudes beyond the obstacle. Ground-direct area
+weapons retain physical terminal-contact detonation and missile interception;
+neither the cursor nor an overshoot manufactures an impact. `ballistics-nouns.md`
+owns their shared contact and arrival law.
+
+Manual ownership cancels queued and active one-shot moves for this exact body.
+It excludes the body from autonomous role allocation, doctrine relevance,
+formation anchors, and shared arrival work; the remaining lance chooses an
+autonomous lead. Real leader identity, membership, physical strength, screening,
+and morale contributions remain intact. Mission, doctrine, and lance orders
+remain current during control. Release discards stale route and firing work and
+forces fresh allocation from the actual position and current command context.
 
 ## Authority flow
 

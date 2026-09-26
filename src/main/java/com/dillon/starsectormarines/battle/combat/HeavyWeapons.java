@@ -75,7 +75,20 @@ public class HeavyWeapons {
      * from every installed mech mount.
      */
     public void tick() {
-        advanceMechWeapons();
+        tick(0L, null, false);
+    }
+
+    /** Manual triggers join the same mount clocks and continuation pass as autonomous fire. */
+    public void tick(long controlledId, PointFireAim aim, boolean trigger) {
+        if (trigger && roster.isAliveById(controlledId)
+                && roster.world().hasMechLoadout(controlledId)) {
+            MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
+            for (MechWeaponMount mount : loadout.mounts()) {
+                if (mount == null || mount.cooldown > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
+                if (firePointRound(controlledId, mount, aim)) mount.commitTrigger(0L, aim);
+            }
+        }
+        advanceMechWeapons(controlledId);
     }
 
     /**
@@ -106,10 +119,24 @@ public class HeavyWeapons {
     /** Fires from the installed mount's posed hardpoint rather than the chassis center. */
     public void fireMechWeapon(long shooter, long target, MechWeaponMount mount,
                                float accuracyMult) {
+        if (!canFireMechMount(shooter, mount)) return;
         int releaseIndex = MechHardpointGeometry.nextReleaseIndex(mount);
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, releaseIndex);
         fireMechWeaponAt(shooter, target, mount.weaponDef(), accuracyMult,
                 muzzle.x(), muzzle.y());
+    }
+
+    /** The barrel cannot put its source through structural terrain, including its own end cell. */
+    public boolean canFireMechMount(long shooter, MechWeaponMount mount) {
+        World world = roster.world();
+        if (mount == null || !roster.isAliveById(shooter) || !world.hasMechLoadout(shooter)
+                || world.mechLoadout(shooter).mount(mount.slot) != mount) return false;
+        MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
+        float x = world.renderX(shooter);
+        float y = world.renderY(shooter);
+        long wall = grid.firstWallOnLine(x, y, muzzle.x(), muzzle.y());
+        return (int) wall == -1 && (int) (wall >>> 32) == -1
+                && grid.firstProjectileBlockingEdgeBarrierOnLine(x, y, muzzle.x(), muzzle.y()) == null;
     }
 
     private void fireMechWeaponAt(long shooter, long target, WeaponDef weapon,
@@ -129,15 +156,46 @@ public class HeavyWeapons {
         World world = roster.world();
         float effectiveAccuracy = weapon.accuracy * accuracyMult;
         Faction shooterFaction = roster.identity().faction(shooter);
-        float moraleImpact = roster.moraleImpact(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(
                 weapon.hitSpread, distToTarget, weapon.range);
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target,
+        BallisticResolver.Source source = new BallisticResolver.Source(shooter, fromX, fromY, 0f, shooterFaction);
+        BallisticResolver.Resolution res = resolver.resolve(source, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity,
                 weapon.range, weapon.bodyPenetrations, rng);
+        deliverDirectRound(shooter, weapon, res, fromX, fromY);
+    }
 
+    /** Refuses unsupported or physically unaimed triggers before spending a mount resource. */
+    private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim) {
+        if (!canFireMechMount(shooter, mount)) return false;
+        WeaponDef weapon = mount.weaponDef();
+        if (weapon.arcHeight != 0f || weapon.indirectFire
+                || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
+        MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
+        float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+        if (!loadout.isPointAimedAt(aim, roster.world().renderX(shooter),
+                roster.world().renderY(shooter), hipFacing)) return false;
+        MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, MechHardpointGeometry.nextReleaseIndex(mount));
+        if (!loadout.isPointAimedAt(aim, muzzle.x(), muzzle.y(), hipFacing)) return false;
+        BallisticResolver.Source source = new BallisticResolver.Source(shooter, muzzle.x(), muzzle.y(),
+                0f, roster.identity().faction(shooter));
+        // Mech mounts retain their own accuracy contract; no infantry training or stance factor.
+        float spread = RangeFalloff.spread(weapon.hitSpread, weapon.range, weapon.range);
+        BallisticResolver.Resolution resolution = resolver.resolvePoint(source, aim.x(), aim.y(),
+                weapon.accuracy, spread, weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng);
+        roster.telemetry().recordRoundFired(shooter);
+        deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y());
+        return true;
+    }
+
+    /** AI and point fire share contact, delayed payload, interception, and presentation. */
+    private void deliverDirectRound(long shooter, WeaponDef weapon, BallisticResolver.Resolution res,
+                                    float fromX, float fromY) {
+        Faction shooterFaction = roster.identity().faction(shooter);
+        float moraleImpact = roster.moraleImpact(shooter);
         float contactDamage = weapon.contactDamage > 0f
                 ? weapon.contactDamage
                 : weapon.aoeRadius <= 0f ? weapon.damage : 0f;
@@ -240,7 +298,7 @@ public class HeavyWeapons {
      * ticks down per-weapon cooldowns, and advances each finite missile rack's
      * installed replenisher cadence.
      */
-    private void advanceMechWeapons() {
+    private void advanceMechWeapons(long controlledId) {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
         // entities match it, so no scan over the whole registry), then run the
         // continuation pass over the snapshot. Other arrivals in this phase
@@ -272,13 +330,22 @@ public class HeavyWeapons {
                 mount.burstTimer -= BattleSimulation.TICK_DT;
                 if (mount.burstTimer > 0f) continue;
 
-                long target = mount.burstTargetId;
-                if (!roster.isAliveById(target)) {
-                    mount.burstRemaining = 0;
-                    mount.burstTargetId = 0L;
+                if (mount.burstPointAim != null) {
+                    if (u != controlledId) {
+                        mount.clearBurst();
+                        continue;
+                    }
+                    if (!firePointRound(u, mount, mount.burstPointAim)) continue;
+                    finishBurstRound(mount);
                     continue;
                 }
-                if (!m.isAimedAt(target)) continue;
+                // A controlled chassis never continues autonomous target bursts.
+                long target = mount.burstTargetId;
+                if (u == controlledId || !roster.isAliveById(target)) {
+                    mount.clearBurst();
+                    continue;
+                }
+                if (!m.isAimedAt(target) || !canFireMechMount(u, mount)) continue;
 
                 WeaponDef weapon = mount.weaponDef();
                 float accuracyMult = 1f;
@@ -289,11 +356,15 @@ public class HeavyWeapons {
                     accuracyMult = hasLos ? 1f : weapon.noLosAccuracyMult;
                 }
                 fireMechWeapon(u, target, mount, accuracyMult);
-                mount.burstRemaining--;
-                mount.burstTimer = weapon.burstSpacing;
-                if (mount.burstRemaining == 0) mount.burstTargetId = 0L;
+                finishBurstRound(mount);
             }
         }
+    }
+
+    private static void finishBurstRound(MechWeaponMount mount) {
+        mount.burstRemaining--;
+        if (mount.burstRemaining <= 0) mount.clearBurst();
+        else mount.burstTimer = mount.weaponDef().burstSpacing;
     }
 
     private MechHardpointGeometry.Point muzzle(long shooter, MechWeaponMount mount,

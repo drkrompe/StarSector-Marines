@@ -112,6 +112,7 @@ public final class BreachAndAssault implements Action {
             Squad candidateSquad = sim.squadOf(candidate);
             if (candidateSquad == null || candidateSquad.aliveMembers == 0
                     || type.isMech() && candidateSquad.rescuePickupMech) continue;
+            if (!candidateSquad.availableToPlan(candidate, sim)) continue;
             if (type.isMech() && sameMechVariant(member, candidate, sim)) continue;
 
             float dx = sim.world().x(candidate) - memberX;
@@ -128,14 +129,14 @@ public final class BreachAndAssault implements Action {
     }
 
     /**
-     * Formation recall prefers the actual lance leader, then the nearest live
+     * Formation recall prefers the autonomous lance leader, then the nearest available
      * same-lance mech when the caller is itself the leader or leadership is
      * temporarily unavailable. Unlike {@link #nearestSupport}, this anchor is
      * allowed beyond the local acquisition radius: it is existing lance
      * cohesion, not a new relationship with an unrelated force.
      */
     static long lanceCohesionAnchor(long member, Squad squad, BattleView sim) {
-        long leader = sim.resolveUnit(squad.leaderId);
+        long leader = squad.autonomousLeader(sim);
         if (leader != 0L && leader != member
                 && sim.world().hasMechLoadout(leader)
                 && sim.squadOf(leader) == squad) {
@@ -149,6 +150,7 @@ public final class BreachAndAssault implements Action {
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long candidate = sim.squadMemberAt(squad.id, i);
             if (candidate == member || !sim.world().isAlive(candidate)
+                    || !squad.availableToPlan(candidate, sim)
                     || !sim.world().hasMechLoadout(candidate)) continue;
             float dx = sim.world().x(candidate) - memberX;
             float dy = sim.world().y(candidate) - memberY;

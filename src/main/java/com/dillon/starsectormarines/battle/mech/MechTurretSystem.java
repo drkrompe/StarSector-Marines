@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -39,6 +40,10 @@ public final class MechTurretSystem {
     }
 
     public void tick(float dt) {
+        tick(dt, 0L, null);
+    }
+
+    public void tick(float dt, long controlledId, PointFireAim manualAim) {
         for (ArchetypeTable table : world.matched(mechs)) {
             boolean hasCombat = table.has(components.COMBAT);
             boolean hasMovement = table.has(components.MOVEMENT);
@@ -56,10 +61,19 @@ public final class MechTurretSystem {
 
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 MechLoadoutComponent loadout = (MechLoadoutComponent) loadouts[row];
-                long target = aimTarget(loadout, hasCombat ? combatTargets[row] : 0L);
+                boolean controlled = table.entityAt(row) == controlledId;
+                PointFireAim point = controlled ? loadout.pointBurstAim() : null;
+                if (controlled && point == null) point = manualAim;
+                long target = controlled ? 0L : aimTarget(loadout, hasCombat ? combatTargets[row] : 0L);
                 float desired = hipFacing[row];
                 boolean withinTraverse = false;
-                if (target != 0L && roster.isAliveById(target)) {
+                if (controlled) {
+                    if (point != null && point.validFrom(posX[row], posY[row])) {
+                        float bearing = LayeredAppearance.wrapDegrees(AirBody.facingToward(
+                                point.x() - posX[row], point.y() - posY[row]));
+                        desired = LayeredMechAppearance.torsoFacing(hipFacing[row], bearing);
+                    }
+                } else if (target != 0L && roster.isAliveById(target)) {
                     float dx = roster.world().x(target) - posX[row];
                     float dy = roster.world().y(target) - posY[row];
                     if (dx != 0f || dy != 0f) {
