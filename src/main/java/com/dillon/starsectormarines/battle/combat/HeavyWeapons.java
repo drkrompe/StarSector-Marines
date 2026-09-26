@@ -88,7 +88,7 @@ public class HeavyWeapons {
                 if (firePointRound(controlledId, mount, aim)) mount.commitTrigger(0L, aim);
             }
         }
-        advanceMechWeapons(controlledId);
+        advanceMechWeapons(controlledId, aim);
     }
 
     /**
@@ -298,7 +298,7 @@ public class HeavyWeapons {
      * ticks down per-weapon cooldowns, and advances each finite missile rack's
      * installed replenisher cadence.
      */
-    private void advanceMechWeapons(long controlledId) {
+    private void advanceMechWeapons(long controlledId, PointFireAim aim) {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
         // entities match it, so no scan over the whole registry), then run the
         // continuation pass over the snapshot. Other arrivals in this phase
@@ -335,7 +335,9 @@ public class HeavyWeapons {
                         mount.clearBurst();
                         continue;
                     }
-                    if (!firePointRound(u, mount, mount.burstPointAim)) continue;
+                    // Manual bursts follow the live cursor. A refused release uses its
+                    // scheduled slot so blocked barrels cannot retain a stale backlog.
+                    firePointRound(u, mount, aim);
                     finishBurstRound(mount);
                     continue;
                 }

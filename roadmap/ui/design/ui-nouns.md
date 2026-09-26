@@ -354,7 +354,9 @@ until another order or withdrawal supersedes it. Presentation supplies only
 the squad identity and clicked cell; the simulation validates and snaps the
 center and owns the defensive behavior.
 
-The direct-control plate above the infantry roster offers control of one exact,
+The direct-control plate reserves a stable position above the taller of the
+infantry roster and Mech/lance selection plates, so its button stays clear of
+both selection panels at the host UI scale. It offers control of one exact,
 eligible player Marine selected in the world. Its button or C enters; C or Escape
 returns authority to autonomous behavior. WASD moves in world axes, the mouse
 aims at a world point, and held primary fire uses the Marine's equipped primary.

@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -33,10 +37,10 @@ class MechTurretSystemTest {
         long target = sim.spawn(new EntitySpec("target", Faction.MARINE, UnitType.MARINE, 7, 8));
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT);
         loadout.torsoFacingDegrees = 0f;
-        sim.world().attachMechLoadout(mech, loadout);
-        sim.world().setTargetId(mech, target);
         sim.getEntityWorld().setFloat(mech, c.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 0f);
+        sim.world().attachMechLoadout(mech, loadout);
+        sim.world().setTargetId(mech, target);
         MechTurretSystem turrets = new MechTurretSystem(
                 sim.getEntityWorld(), c, sim.getRoster());
 
@@ -70,6 +74,8 @@ class MechTurretSystemTest {
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(
                 MechRole.ARMORED_SUPPORT);
         loadout.torsoFacingDegrees = 0f;
+        sim.getEntityWorld().setFloat(mech, c.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 0f);
         sim.world().attachMechLoadout(mech, loadout);
         sim.setPath(mech, new int[]{5, 5, 6, 5, 7, 5, 7, 6, 7, 7});
         sim.getSquad(squadId).contactPicture = rememberedContact(77L, 2, 5);
@@ -93,6 +99,8 @@ class MechTurretSystemTest {
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(
                 MechRole.ARMORED_SUPPORT);
         loadout.torsoFacingDegrees = 0f;
+        sim.getEntityWorld().setFloat(mech, c.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 0f);
         sim.world().attachMechLoadout(mech, loadout);
         sim.setPath(mech, new int[]{5, 5, 6, 5, 7, 5, 7, 6, 7, 7});
 
@@ -117,6 +125,8 @@ class MechTurretSystemTest {
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(
                 MechRole.ARMORED_SUPPORT);
         loadout.torsoFacingDegrees = 0f;
+        sim.getEntityWorld().setFloat(mech, c.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 0f);
         sim.world().attachMechLoadout(mech, loadout);
         sim.world().setTargetId(mech, target);
         sim.setPath(mech, new int[]{5, 5, 6, 5, 7, 5, 7, 6, 7, 7});
@@ -128,6 +138,94 @@ class MechTurretSystemTest {
         assertEquals(-0.3333f, loadout.torsoFacingDegrees, 0.001f,
                 "the southward active target wins over the westward memory");
         assertEquals(target, loadout.torsoAimTargetId);
+    }
+
+    @Test
+    void liveManualCursorOwnsTraverseEvenWhileDifferentMountsRetainPointBursts() {
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(20, 20), null);
+        long mech = roster.spawn(new EntitySpec("manual-bulwark", Faction.MARINE,
+                UnitType.HEAVY_MECH, 5, 5).mechVariant(MechVariant.BULWARK));
+        MechLoadoutComponent loadout = MechVariant.BULWARK.createLoadout(MechRole.BALANCED);
+        roster.world().attachMechLoadout(mech, loadout);
+        roster.entityWorld().setFloat(mech, roster.components().MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 0f);
+        loadout.torsoFacingDegrees = 0f;
+        MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
+        arms.burstRemaining = 11;
+        arms.burstPointAim = aimAt(-90f);
+        MechWeaponMount shoulder = loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        shoulder.burstRemaining = 3;
+        shoulder.burstPointAim = aimAt(90f);
+        MechTurretSystem turrets = new MechTurretSystem(roster.entityWorld(), roster.components(), roster);
+
+        turrets.tick(BattleSimulation.TICK_DT, mech, aimAt(30f));
+
+        assertEquals(.3333f, loadout.torsoFacingDegrees, .001f,
+                "the first turn follows the live cursor despite the older arm commitment");
+        for (int tick = 0; tick < 45; tick++) turrets.tick(BattleSimulation.TICK_DT, mech, aimAt(30f));
+        assertEquals(30f, loadout.torsoFacingDegrees, .001f);
+        for (int tick = 0; tick < 60; tick++) turrets.tick(BattleSimulation.TICK_DT, mech, aimAt(-30f));
+        assertEquals(-30f, loadout.torsoFacingDegrees, .001f,
+                "a changed cursor takes ownership without waiting for either burst to finish");
+        assertEquals(11, arms.burstRemaining, "traverse never edits weapon schedules");
+        assertEquals(3, shoulder.burstRemaining);
+        assertEquals(0L, loadout.torsoAimTargetId);
+    }
+
+    @Test
+    void rearSideChangesTraverseThroughTheFrontWithBoundedSpeedAndAcceleration() {
+        float dt = BattleSimulation.TICK_DT;
+        for (int sign : new int[]{-1, 1}) {
+            float facing = sign * 144f, velocity = 0f;
+            boolean crossedFront = false;
+            for (int tick = 0; tick < 150; tick++) {
+                var turn = MechTurretSystem.traverseWithinHips(facing, velocity, 0f, -sign * 144f, 120f, dt);
+                float applied = LayeredAppearance.wrapDegrees(turn.facingDegrees() - facing);
+                assertTrue(Math.abs(turn.facingDegrees()) <= 145f);
+                assertTrue(Math.abs(applied) <= 120f * dt + .0001f);
+                if (turn.facingDegrees() != -sign * 144f) {
+                    assertTrue(Math.abs(turn.angularVelocityDegrees() - velocity) <= 300f * dt + .0001f);
+                }
+                if (tick == 0) {
+                    assertEquals(-sign * 10f, turn.angularVelocityDegrees(), .001f);
+                    assertTrue(sign * applied < 0f, "turn inward instead of taking the rear shortcut");
+                }
+                crossedFront |= Math.abs(turn.facingDegrees()) < 4f;
+                facing = turn.facingDegrees();
+                velocity = turn.angularVelocityDegrees();
+            }
+            assertTrue(crossedFront);
+            assertEquals(-sign * 144f, facing, .001f);
+            assertEquals(0f, velocity);
+        }
+    }
+
+    @Test
+    void mechanicalStopsContainResidualMomentumAndFollowAMovingHipFrame() {
+        var arrested = MechTurretSystem.traverseWithinHips(144f, 120f, 0f, -144f,
+                120f, BattleSimulation.TICK_DT);
+        assertEquals(145f, arrested.facingDegrees());
+        assertEquals(0f, arrested.angularVelocityDegrees());
+        var movedHips = MechTurretSystem.traverseWithinHips(145f, 0f, -10f, 145f,
+                120f, BattleSimulation.TICK_DT);
+        assertEquals(135f, movedHips.facingDegrees(), .001f,
+                "hip rotation carries the torso stop rather than exposing an illegal rear pose");
+        assertEquals(145f, LayeredAppearance.wrapDegrees(movedHips.facingDegrees() + 10f), .001f);
+        for (int sign : new int[]{-1, 1}) {
+            // The hips crossed from +/-170 to -/+179, carrying a torso that
+            // was already at the opposite stop. Numeric angle wrap is no jump.
+            var wrappedHips = MechTurretSystem.traverseWithinHips(sign * 25f, 0f,
+                    -sign * 179f, sign * 25f, 120f, BattleSimulation.TICK_DT);
+            assertEquals(sign * 36f, wrappedHips.facingDegrees(), .001f);
+            assertEquals(-sign * 145f, LayeredAppearance.wrapDegrees(
+                    wrappedHips.facingDegrees() + sign * 179f), .001f);
+        }
+    }
+
+    private static PointFireAim aimAt(float facing) {
+        double radians = Math.toRadians(facing);
+        return new PointFireAim(5.5f - 10f * (float) Math.sin(radians),
+                5.5f + 10f * (float) Math.cos(radians));
     }
 
     private static SquadContactPicture rememberedContact(long id, int cellX, int cellY) {

@@ -87,16 +87,6 @@ public final class MechLoadoutComponent {
                     <= MechTurretSystem.FIRE_ALIGNMENT_DEGREES;
     }
 
-    /** Committed bursts own torso aim before the current cursor; mount order is deterministic. */
-    public PointFireAim pointBurstAim() {
-        for (MechWeaponMount mount : mounts) {
-            if (mount != null && mount.burstRemaining > 0 && mount.burstPointAim != null) {
-                return mount.burstPointAim;
-            }
-        }
-        return null;
-    }
-
     /** Release trigger work while preserving every mount's resources and current physical pose. */
     public void clearQueuedFire() {
         for (MechWeaponMount mount : mounts) if (mount != null) mount.clearBurst();

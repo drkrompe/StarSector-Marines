@@ -17,10 +17,13 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import java.util.List;
 import java.util.Map;
 
-/** A bounded, retained enter/exit button and control legend above the infantry roster. */
+/** A bounded enter/exit plate above the shared infantry/Mech selection area. */
 final class BattleDirectControlOverlay {
     static final String COMPONENT = "battle-direct-control-overlay";
     static final String COMPONENT_PATH = "data/ui/components/battle/" + COMPONENT + ".mlx";
+    static final float DOCUMENT_WIDTH = 440f;
+    static final float DOCUMENT_HEIGHT = 52f;
+    private static final float SELECTION_GAP = 4f;
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> label = reactor.signal("");
     private final MutableSignal<String> hint = reactor.signal("");
@@ -39,13 +42,7 @@ final class BattleDirectControlOverlay {
     }
 
     void attach(PositionAPI position, BattleSimulation sim) {
-        UiViewport host = MarineOpsUiViewport.from(position);
-        float scale = host.documentScale();
-        float width = Math.min(440f * scale, position.getWidth() - 24f);
-        UiViewport squad = BattleSquadOverlay.viewport(position);
-        viewport = new UiViewport(position.getX() + 12f,
-                squad.screenY() + squad.height() + 8f * scale,
-                width, 64f * scale, scale);
+        viewport = viewport(position);
         if (document == null) {
             MarkupLoader loader = new MarkupLoader(path -> Global.getSettings().loadText(path),
                     List.of(COMPONENT_PATH));
@@ -58,6 +55,20 @@ final class BattleDirectControlOverlay {
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
         update(0f, sim);
+    }
+
+    /** Reserve the taller selection plate even when another carrier is selected, avoiding button jumps. */
+    static UiViewport viewport(PositionAPI position) {
+        UiViewport host = MarineOpsUiViewport.from(position);
+        float scale = host.documentScale();
+        UiViewport squad = BattleSquadOverlay.viewport(position);
+        UiViewport mech = BattleMechOverlay.viewport(position);
+        float selectionTop = Math.max(squad.screenY() + squad.height(),
+                mech.screenY() + mech.height());
+        return new UiViewport(position.getX() + 12f,
+                selectionTop + SELECTION_GAP * scale,
+                Math.max(0f, Math.min(DOCUMENT_WIDTH * scale, position.getWidth() - 24f)),
+                DOCUMENT_HEIGHT * scale, scale);
     }
 
     void update(float dt, BattleSimulation sim) {
