@@ -175,6 +175,9 @@ class BattleFixtureTailProfileTest {
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
             assertEquals(Boolean.parseBoolean(System.getProperty(
+                            "battle.targeting.firingReachabilityComponents", "true")),
+                    sim.getTacticalScoring().firingReachabilityComponentsEnabled());
+            assertEquals(Boolean.parseBoolean(System.getProperty(
                             CommanderInfluenceService.ASYNC_PROPERTY, "true")),
                     sim.getCommanderInfluenceMetrics().asynchronous());
             setupPendingMeshChanges = sim.getNavigationMesh().pendingGridChanges();
@@ -478,6 +481,10 @@ class BattleFixtureTailProfileTest {
         report.put("asyncDefendTrack", true);
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
+        report.put("firingReachabilityComponents", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.firingReachabilityComponents", "true")));
+        report.put("localHoldPositions", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.localHoldPositions", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",
