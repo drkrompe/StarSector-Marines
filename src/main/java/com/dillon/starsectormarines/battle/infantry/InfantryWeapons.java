@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -102,6 +103,22 @@ public class InfantryWeapons {
             world.setBurstTimer(id, timer);
             if (timer > 0f) continue;
             long burstTargetId = world.burstTargetId(id);
+            PointFireAim pointAim = roster.combat().burstPointAim(id);
+            if (pointAim != null) {
+                if (!PointFireAim.supports(weapon)
+                        || !pointAim.validFrom(world.renderX(id), world.renderY(id))) {
+                    roster.combat().clearPrimaryFire(id);
+                    continue;
+                }
+                boolean moving = world.hasMovement(id)
+                        && (roster.movement().velX(id) != 0f || roster.movement().velY(id) != 0f);
+                firePointShot(id, pointAim, FireStance.stanceFor(moving));
+                int remaining = world.burstRemaining(id) - 1;
+                world.setBurstRemaining(id, remaining);
+                world.setBurstTimer(id, weapon.burstSpacing);
+                if (remaining == 0) roster.combat().setBurstPointAim(id, null);
+                continue;
+            }
             if (!roster.isAliveById(burstTargetId) || weapon == null) {
                 world.setBurstRemaining(id, 0);
                 world.setBurstTargetId(id, 0L);
@@ -155,6 +172,13 @@ public class InfantryWeapons {
         fireShot(shooter, target, stance, rng, false);
     }
 
+    /** Same payload and presentation pipeline, with no target-conditioned hit or lead. */
+    public void firePointShot(long shooter, PointFireAim aim, FireStance stance) {
+        if (!PointFireAim.supports(roster.combat().primaryWeaponDef(shooter))
+                || aim == null || !aim.validFrom(roster.world().renderX(shooter), roster.world().renderY(shooter))) return;
+        firePrimary(shooter, 0L, aim, stance, rng, false);
+    }
+
     /**
      * The same shot, fired on a range, where nothing but the butts may be hurt.
      *
@@ -193,6 +217,11 @@ public class InfantryWeapons {
      *     {@code target} may take damage; see {@link #fireDrillShot}
      */
     void fireShot(long shooter, long target, FireStance stance, Random rng, boolean drill) {
+        firePrimary(shooter, target, null, stance, rng, drill);
+    }
+
+    private void firePrimary(long shooter, long target, PointFireAim aim,
+                             FireStance stance, Random rng, boolean drill) {
         World world = roster.world();
         Faction shooterFaction = roster.identity().faction(shooter);
         UnitType shooterType = roster.identity().type(shooter);
@@ -206,9 +235,11 @@ public class InfantryWeapons {
         // a per-weapon profile (marines). Militia / aliens / turrets fall
         // through to their baked Entity stats with flat accuracy and no
         // lateral spread.
-        float dist = RangeFalloff.dist(world.x(shooter), world.y(shooter),
-                world.x(target), world.y(target));
         float maximumTargetingRange = world.attackRange(shooter);
+        // Point aim defines only a bearing. Calibrate angular dispersion at weapon
+        // range so moving the cursor closer cannot tighten distant impacts.
+        float dist = aim != null ? maximumTargetingRange
+                : RangeFalloff.dist(world.x(shooter), world.y(shooter), world.x(target), world.y(target));
         float effectiveSpread = 0f;
         if (weapon != null) {
             accuracy = RangeFalloff.accuracy(world.accuracy(shooter),
@@ -244,9 +275,11 @@ public class InfantryWeapons {
                 new BallisticResolver.Resolution[projectileCount];
         boolean friendlyThreat = false;
         for (int i = 0; i < projectileCount; i++) {
-            BallisticResolver.Resolution resolution = resolver.resolve(shooter, target,
-                    accuracy, effectiveSpread, roundVelocity,
-                    maximumTargetingRange, rng);
+            BallisticResolver.Resolution resolution = aim != null
+                    ? resolver.resolvePoint(shooter, aim.x(), aim.y(), accuracy, effectiveSpread,
+                            roundVelocity, maximumTargetingRange, rng)
+                    : resolver.resolve(shooter, target, accuracy, effectiveSpread, roundVelocity,
+                            maximumTargetingRange, rng);
             resolutions[i] = resolution;
             friendlyThreat |= resolution.friendlyHit();
         }

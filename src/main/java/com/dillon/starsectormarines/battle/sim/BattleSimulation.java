@@ -95,6 +95,7 @@ import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
@@ -2405,6 +2406,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void fireShot(long shooter, long target,
                          com.dillon.starsectormarines.battle.combat.FireStance stance) {
         infantry.fireShot(shooter, target, stance);
+    }
+
+    @Override
+    public void firePointShot(long shooter, PointFireAim aim, FireStance stance) {
+        infantry.firePointShot(shooter, aim, stance);
     }
 
     /**

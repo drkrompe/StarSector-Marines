@@ -1,6 +1,6 @@
 # Direct control stories
 
-Status: DRAFT — proposed sequence for the first playable one-unit mode.
+Status: ACTIVE — remaining work for the first playable one-unit mode.
 
 Written: 2026-09-23
 
@@ -8,7 +8,6 @@ Read `direct-control-nouns.md` before changing these stories.
 
 | Story | State | Outcome |
 | --- | --- | --- |
-| `point-aim-direct-fire.md` | PLANNED | Fire a physically resolved ground-direct round toward a world point without an entity target. |
 | `controlled-marine.md` | PLANNED | Enter, play, and leave one exact Marine infantry body with WASD, mouse aim, and primary fire. |
 | `controlled-mech.md` | PLANNED | Apply the same session to one deployed combat Mech with chassis movement and legal mount fire. |
 | `controlled-vehicle.md` | PLANNED | Apply it to one deployed Marine vehicle with steering and independent turret aim. |

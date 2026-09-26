@@ -12,7 +12,9 @@ public enum FireGate {
     COOLDOWN,
     TARGET_GONE,
     OUT_OF_RANGE,
-    NO_LOS;
+    NO_LOS,
+    INVALID_AIM,
+    UNSUPPORTED_WEAPON;
 
     public static final FireGate[] VALUES = values();
 }

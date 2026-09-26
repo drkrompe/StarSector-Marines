@@ -269,7 +269,6 @@ public final class BallisticResolver {
         }
         World world = roster.world();
         MovementService movement = roster.movement();
-        Faction shooterFaction = source.faction();
 
         float fromX = source.x();
         float fromY = source.y();
@@ -354,6 +353,99 @@ public final class BallisticResolver {
                     : aimDist;
             rawLen = Math.min(maximumFlightDistance, accurateFlightDistance);
         }
+        return trace(source, target, aim.onTarget(), dirX, dirY, zSlope,
+                rawLen, roundVelocity, bodyPenetrations, rng);
+    }
+
+    /**
+     * Commits a manually aimed primary from the body's current float position.
+     * There is no target identity, target lead, or silhouette-based hit roll.
+     */
+    public Resolution resolvePoint(long shooter, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   Random rng) {
+        World world = roster.world();
+        return resolvePoint(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
+                        0f, roster.identity().faction(shooter)),
+                aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, 0, rng);
+    }
+
+    public Resolution resolvePoint(Source source, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   Random rng) {
+        return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread,
+                roundVelocity, maximumTargetingRange, 0, rng);
+    }
+
+    /**
+     * Resolves one point shot from an explicit muzzle. The aim point supplies
+     * only a bearing; it is not a lifetime or a locked
+     * body. The round remains live to the weapon's full modeled reach, including
+     * beyond the cursor, and every body it meets is an incidental contact.
+     * Callers retain the ordinary weapon/profile/range/stance accuracy stack.
+     * Smoke further widens aim error before the shared contact walk.
+     *
+     * @throws IllegalArgumentException for a non-finite input or coincident aim;
+     *     a trigger without a meaningful bearing must be held by the caller
+     */
+    public Resolution resolvePoint(Source source, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   int bodyPenetrations, Random rng) {
+        if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
+            throw new IllegalArgumentException("roundVelocity must be finite and positive");
+        }
+        if (!(maximumTargetingRange > 0f) || !Float.isFinite(maximumTargetingRange)) {
+            throw new IllegalArgumentException("maximumTargetingRange must be finite and positive");
+        }
+        if (bodyPenetrations < 0) {
+            throw new IllegalArgumentException("bodyPenetrations cannot be negative");
+        }
+        float dx = aimX - source.x();
+        float dy = aimY - source.y();
+        float aimDistance = (float) Math.hypot(dx, dy);
+        if (!Float.isFinite(aimDistance) || aimDistance <= 1e-6f) {
+            throw new IllegalArgumentException("Point aim must be finite and distinct from its source");
+        }
+        float baseDirX = dx / aimDistance;
+        float baseDirY = dy / aimDistance;
+        // A nearby cursor must not evade smoke further down the same firing
+        // lane. Manual aim is calibrated at weapon range, including its sight
+        // picture, rather than at an arbitrary cursor distance.
+        float sightDistance = maximumTargetingRange;
+        float obscuredAccuracy = finalAccuracy * SmokeObscuration.accuracyMultiplier(
+                grid.smokeDepthOnLine(source.x(), source.y(),
+                        source.x() + baseDirX * sightDistance,
+                        source.y() + baseDirY * sightDistance));
+        PointAim.Sample aim = PointAim.sample(obscuredAccuracy, effectiveSpread,
+                maximumTargetingRange, rng);
+        float dirX = baseDirX - baseDirY * aim.lateralSlope();
+        float dirY = baseDirY + baseDirX * aim.lateralSlope();
+        float directionLength = (float) Math.hypot(dirX, dirY);
+        dirX /= directionLength;
+        dirY /= directionLength;
+        // Source Z is the same lightweight ground silhouette coordinate used
+        // by entity aim; at the sight plane the centered round reaches Z=0.
+        float zSlope = (aim.elevationSlope() - source.z() / sightDistance)
+                / directionLength;
+        return trace(source, 0L, false, dirX, dirY, zSlope,
+                maximumTargetingRange * FLIGHT_RANGE_MULTIPLIER,
+                roundVelocity, bodyPenetrations, rng);
+    }
+
+    /** Shared physical contact walk; aim policy is fully committed before entry. */
+    private Resolution trace(Source source, long target, boolean onTarget,
+                             float dirX, float dirY, float zSlope, float rawLen,
+                             float roundVelocity, int bodyPenetrations, Random rng) {
+        World world = roster.world();
+        MovementService movement = roster.movement();
+        Faction shooterFaction = source.faction();
+        float fromX = source.x();
+        float fromY = source.y();
+        float fromZ = source.z();
         float rawEndX = fromX + dirX * rawLen;
         float rawEndY = fromY + dirY * rawLen;
 
@@ -530,7 +622,7 @@ public final class BallisticResolver {
 
             boolean isLockedTarget = victim == target;
             if (isLockedTarget) {
-                if (!aim.onTarget()) continue;
+                if (!onTarget) continue;
                 BodyHit hit = new BodyHit(victim, e.x, e.y, e.z, e.t, true, e.friendly);
                 bodyHits.add(hit);
                 if (penetrationsRemaining-- > 0) continue;
