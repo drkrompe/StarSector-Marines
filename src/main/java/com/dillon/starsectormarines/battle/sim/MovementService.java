@@ -108,10 +108,12 @@ public final class MovementService {
      * The unit has arrived at cell {@code (cx, cy)} for post/destination
      * tests: within {@link #ARRIVE_RADIUS} of the cell center. The mover pins
      * a finished path exactly on its final cell center, so a unit that walked
-     * a path to this cell always answers {@code true} on arrival.
+     * a path to this cell always answers {@code true} on arrival. Static positioned
+     * bodies use the same cell-distance test; carriers without POSITION answer false.
      */
     public boolean atCell(long id, int cx, int cy) {
-        ContinuousRoute route = continuousRoute(id);
+        if (!entityWorld.has(id, components.POSITION)) return false;
+        ContinuousRoute route = has(id) ? continuousRoute(id) : null;
         if (route != null && route.requestedCellX() == cx && route.requestedCellY() == cy) {
             if (!route.completed()) return false;
             float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);

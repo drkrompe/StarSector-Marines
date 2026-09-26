@@ -62,7 +62,8 @@ final class BattleDirectControlOverlay {
 
     void update(float dt, BattleSimulation sim) {
         boolean active = sim != null && sim.directControl().active();
-        long selected = selection.getSelectedUnitEntityId();
+        long selected = selection.hasVehicleSelection() ? selection.getSelectedVehicleId()
+                : selection.getSelectedUnitEntityId();
         boolean eligible = sim != null && sim.directControl().canEnter(selected);
         visible = sim != null && !sim.isComplete();
         disabled.set(!active && !eligible);
@@ -70,8 +71,10 @@ final class BattleDirectControlOverlay {
         if (active) {
             String name = sim.identity().name(sim.directControl().activeUnitId());
             boolean mech = sim.directControl().controlledMechId() != 0L;
+            boolean vehicle = sim.directControl().controlledVehicleId() != 0L;
             hint.set((name == null ? "" : name + "  |  ")
-                    + Strings.get(mech ? "battleDirectMechControls" : "battleDirectControls"));
+                    + Strings.get(vehicle ? "battleDirectVehicleControls"
+                            : mech ? "battleDirectMechControls" : "battleDirectControls"));
         } else {
             hint.set(Strings.get(eligible ? "battleDirectReady" : "battleDirectSelect"));
         }

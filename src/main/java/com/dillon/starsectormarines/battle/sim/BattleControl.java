@@ -167,6 +167,11 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     /** Discard this chassis's queued and active one-shot moves at an ownership boundary. */
     void cancelMechMoveOrder(long member);
 
+    /** Transfer a deployed chassis's movement and turret intent to the manual session. */
+    boolean beginVehicleDirectControl(long vehicle);
+    void suspendVehicleDirectInput(long vehicle);
+    void endVehicleDirectControl(long vehicle);
+
     /** The posed barrel must reach open space before a mount spends its trigger. */
     boolean canFireMechMount(long shooter, MechWeaponMount mount);
 }

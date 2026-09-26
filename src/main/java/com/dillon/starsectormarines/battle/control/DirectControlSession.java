@@ -15,12 +15,17 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.vehicle.BicycleBody;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.LongPredicate;
 
 /**
- * Battle-owned authority for one directly controlled Marine infantry member or Mech. UI publishes input;
+ * Battle-owned authority for one directly controlled ground body. UI publishes input;
  * the serial tick validates ownership, snapshots input and runs one movement and
  * primary intent pass. Ordinary unit dispatch skips only this identity. No health,
  * mission, damage, or equipment resource authority moves into the session.
@@ -31,6 +36,7 @@ public final class DirectControlSession {
     private final LongPredicate unavailable;
     private final BooleanSupplier complete;
     private long unitId;
+    private boolean vehicleControl;
     private Squad controlledSquad;
     private ManualIntent intent = ManualIntent.NEUTRAL;
 
@@ -49,6 +55,7 @@ public final class DirectControlSession {
     public long controlledMechId() {
         return active() && roster.world().hasMechLoadout(unitId) ? unitId : 0L;
     }
+    public long controlledVehicleId() { return vehicleControl ? unitId : 0L; }
     public PointFireAim pointAim() {
         return active() && Float.isFinite(intent.aimX()) && Float.isFinite(intent.aimY())
                 ? new PointFireAim(intent.aimX(), intent.aimY()) : null;
@@ -57,6 +64,12 @@ public final class DirectControlSession {
     /** Read-only entry check. Committed special actions finish under their original owner. */
     public boolean canEnter(long id) {
         if (!eligible(id)) return false;
+        if (roster.convoy().isVehicle(id)) {
+            GroundBody body = roster.convoy().body(id);
+            VehicleType type = roster.convoy().vehicleType(id);
+            return VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
+                    type.visualLengthCells, type.visualWidthCells, battle.getGrid());
+        }
         return ManualTerrainMotion.canStand(battle.getGrid(), roster.world().renderX(id),
                 roster.world().renderY(id), battle.physicalRadius(id));
     }
@@ -64,6 +77,15 @@ public final class DirectControlSession {
     private boolean eligible(long id) {
         if (id == 0L || complete.getAsBoolean() || !roster.isAliveById(id)) return false;
         World world = roster.world();
+        if (roster.convoy().isVehicle(id)) {
+            var convoy = roster.convoy();
+            var mission = convoy.mission(id);
+            return convoy.faction(id) == Faction.MARINE && world.hp(id) > 0f
+                    && convoy.vehicleType(id) == VehicleType.HEAVY_APC
+                    && convoy.body(id) instanceof BicycleBody && convoy.control(id) != null
+                    && mission != null && mission.state == VehicleState.DEPLOYED
+                    && !unavailable.test(id);
+        }
         UnitType type = roster.identity().type(id);
         boolean mech = type.isMech();
         if ((type != UnitType.MARINE && !mech)
@@ -94,11 +116,14 @@ public final class DirectControlSession {
     public boolean enter(long id) {
         if (active()) return unitId == id;
         if (!canEnter(id)) return false;
+        boolean vehicle = roster.convoy().isVehicle(id);
+        if (vehicle && !battle.beginVehicleDirectControl(id)) return false;
         unitId = id;
+        vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
-        controlledSquad = battle.squadOf(id);
+        controlledSquad = vehicle ? null : battle.squadOf(id);
         clearOwnedWork(id);
-        roster.combat().setTargetId(id, 0L);
+        if (roster.combat().has(id)) roster.combat().setTargetId(id, 0L);
         if (controlledSquad != null) controlledSquad.setControlledMember(id, battle);
         return true;
     }
@@ -110,6 +135,7 @@ public final class DirectControlSession {
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
         intent = intent.neutralized();
+        if (vehicleControl) battle.suspendVehicleDirectInput(unitId);
         if (active() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
             roster.combat().clearPrimaryFire(unitId);
             if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
@@ -119,7 +145,10 @@ public final class DirectControlSession {
     public void exit() {
         long previous = unitId;
         if (previous == 0L) return;
+        boolean vehicle = vehicleControl;
         unitId = 0L;
+        vehicleControl = false;
+        if (vehicle) battle.endVehicleDirectControl(previous);
         intent = ManualIntent.NEUTRAL;
         clearOwnedWork(previous);
         Squad squad = controlledSquad;
@@ -150,13 +179,13 @@ public final class DirectControlSession {
 
     /** Run before replanning and after lifecycle phases, including on paused advances. */
     public void validate() {
-        if (active() && (!eligible(unitId) || controlledSquad != battle.squadOf(unitId))) exit();
+        if (active() && (!eligible(unitId) || (!vehicleControl && controlledSquad != battle.squadOf(unitId)))) exit();
     }
 
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
     public void tick() {
         validate();
-        if (!active()) return;
+        if (!active() || vehicleControl) return; // GroundSystem owns vehicle movement and turret clocks.
         long id = unitId;
         ManualIntent input = intent;
         if (roster.identity().type(id).isMech()) {

@@ -365,7 +365,8 @@ public final class VehicleController {
         float dist = 0f;
         while (dist + REVERSE_MARCH_STEP <= REVERSE_RECOVERY_CELLS) {
             float nd = dist + REVERSE_MARCH_STEP;
-            if (!VehicleFootprint.isPoseFeasible(x + bx * nd, y + by * nd, facingDeg,
+            if (!VehicleTerrainMotion.isSweepFeasible(new Pose(x + bx * dist, y + by * dist, facingDeg),
+                    new Pose(x + bx * nd, y + by * nd, facingDeg),
                     type.visualLengthCells, type.visualWidthCells, grid)) {
                 break;
             }
@@ -399,22 +400,13 @@ public final class VehicleController {
     }
 
     /**
-     * Sample-based feasibility: walk the RS path at
-     * {@link #DOCKING_FOOTPRINT_SAMPLE_CELLS} resolution and footprint-check
-     * each pose. Conservative — false-positive rejection on a clear path is
-     * fine because we just fall back to pursuit.
+     * Prove the complete RS curve with bounded conservative footprint enclosures.
+     * An uncertain interval is refused; clear sample points alone are insufficient.
      */
     static boolean isPathFeasible(Pose start, ReedsShepp.Path path,
                                   float turnRadius, VehicleType type,
                                   NavigationGrid grid) {
-        float total = path.lengthCells(turnRadius);
-        for (float d = 0; d <= total; d += DOCKING_FOOTPRINT_SAMPLE_CELLS) {
-            Pose p = ReedsShepp.sample(start, turnRadius, path, d);
-            if (!VehicleFootprint.isPoseFeasible(p.x, p.y, p.facingDeg,
-                    type.visualLengthCells, type.visualWidthCells, grid)) {
-                return false;
-            }
-        }
-        return true;
+        return VehicleTerrainMotion.isReedsSheppFeasible(start, path, turnRadius, 0f,
+                path.lengthCells(turnRadius), type.visualLengthCells, type.visualWidthCells, grid);
     }
 }
