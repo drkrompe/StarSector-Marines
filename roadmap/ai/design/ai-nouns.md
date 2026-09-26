@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — bounded shared firing arrangements remain an opt-in
-experiment; track and defended-site travel retain asynchronous route ownership.
+Updated: 2026-09-26 — capture posts stay within the compound and exact capture
+zone even when a breach enlarges that zone; shared firing arrangements remain opt-in.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1768,6 +1768,13 @@ threshold, clears the capture room, and holds it. Reaching the marker or capture
 cell does not finish the order; only the compound state reaching `MARINE_HELD`
 does. A captured compound is ordinary ground again, and an unreachable
 contextual target is refused without clearing a still-effective player order.
+
+Capture hold posts belong to both the exact capture zone and the authored
+compound footprint. A breach can merge the room with open ground; that enlarges
+connectivity, not the place the squad was sent to occupy. If those two geometries
+have no usable intersection, a single nearest legal capture-zone post preserves
+presence rather than spreading the squad over unrelated ground. Capture
+authority and completion still belong to the objective, not to post selection.
 
 A selected Marine infantry squad may instead receive a persistent **defend
 area** context through a deliberate two-step command. Its clicked center snaps

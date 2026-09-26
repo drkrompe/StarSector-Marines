@@ -228,6 +228,14 @@ Do not run builds or leave generated task files there.
   shared constrained firing-position experiment for patrol and zone-entry
   execution. `FIRING_POOL_*` and `FIRING_INDIVIDUAL_*` inner counters expose
   reuse and candidate/ray work (count-only counters have zero time).
+  `-Dbattle.targeting.firingReachabilityComponents=false` restores discarded A*
+  reachability proofs for unconstrained firing positions. The default uses the
+  grid's topology-revision component cache without changing movement rules.
+  `-Dbattle.goap.localHoldPositions=false` restores whole-zone capture-post
+  spreading; the default scopes posts to the compound footprint and maintains
+  nearest-selected distances incrementally. `HOLD_POSITION` records total picker
+  time, `HOLD_POSITION_CELL` inspected cells, and `HOLD_POSITION_FALLBACK` the
+  exceptional nearest-zone-cell fallback when no local intersection exists.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.

@@ -90,6 +90,11 @@ public final class TacticalScoring {
     public static final String SQUAD_FIRING_PROPERTY = "battle.targeting.squadFiringPositions";
     private final boolean squadFiringPositions = Boolean.parseBoolean(
             System.getProperty(SQUAD_FIRING_PROPERTY, "false"));
+    /** Same-build control for the discarded A* reachability proof. */
+    public static final String FIRING_REACHABILITY_COMPONENTS_PROPERTY =
+            "battle.targeting.firingReachabilityComponents";
+    private final boolean firingReachabilityComponents = Boolean.parseBoolean(
+            System.getProperty(FIRING_REACHABILITY_COMPONENTS_PROPERTY, "true"));
     private final FiringPositionRefreshBudget firingRefreshBudget = new FiringPositionRefreshBudget(8);
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
@@ -1832,7 +1837,8 @@ public final class TacticalScoring {
      * close on — e.g. a surviving turret whose only LOS cells lie across a wall
      * the zone graph floods past but the pathfinder honors
      * ([[zone_graph_ignores_edges]]). Cost: one {@link #findFiringPosition}
-     * plus at most a couple of pathfinds; invoke only when a cheaper "is anyone
+     * plus a cached component check and, if rejected, bounded vantage pathfinds;
+     * invoke only when a cheaper "is anyone
      * even here" gate (e.g. zone-clear) has already passed.
      */
     public boolean hasReachableFiringSpot(long self, long target) {
@@ -1848,14 +1854,33 @@ public final class TacticalScoring {
     public int[] findReachableFiringPosition(long self, long target) {
         int[] spot = findFiringPosition(self, target);
         if (spot == null) return null;
-        // A stage-2 vantage is already reachability-checked, so this pathfind
+        // A stage-2 vantage is already reachability-checked, so this proof
         // only ever fails when findFiringPosition returned a stage-1 (LOS+range)
         // cell that's walled off from self — in which case the vantage probe is
         // the real verdict on whether an approach exists at all.
         World world = roster.world();
-        int[] path = GridPathfinder.findPath(grid, world.cellX(self), world.cellY(self), spot[0], spot[1]);
-        if (path.length > 0) return spot;
+        if (isFiringPositionReachable(grid, world.cellX(self), world.cellY(self),
+                spot[0], spot[1], firingReachabilityComponents)) return spot;
         return pickReachableVantage(self, target);
+    }
+
+    public boolean firingReachabilityComponentsEnabled() {
+        return firingReachabilityComponents;
+    }
+
+    /**
+     * This proof asks only whether a route exists, not its cost or length. The
+     * ordinary infantry A* uses these same structural components and has no
+     * additional passability mask, so its discarded route adds no information.
+     * The navigation owner warms the labels before unit dispatch and retires
+     * them on topology changes; callers must not retain a second copy here.
+     */
+    static boolean isFiringPositionReachable(NavigationGrid grid, int startX, int startY,
+                                            int goalX, int goalY, boolean useComponents) {
+        return useComponents
+                ? grid.arePathConnected(startX, startY, goalX, goalY,
+                        GridPathfinder.USE_CARDINAL_NAVIGATION)
+                : GridPathfinder.findPath(grid, startX, startY, goalX, goalY).length > 0;
     }
 
     /**
