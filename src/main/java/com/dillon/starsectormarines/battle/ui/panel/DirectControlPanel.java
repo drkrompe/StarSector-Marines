@@ -17,6 +17,7 @@ public final class DirectControlPanel implements HudPanel {
     @Override public boolean isVisible() {
         return context.getSim() != null && context.getSim().directControl().active();
     }
+    @Override public boolean visibleDuringDirectControl() { return true; }
     @Override public void update(float dt) {}
     @Override public void handleInput(List<InputEventAPI> events) {}
 

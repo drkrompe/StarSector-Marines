@@ -17,6 +17,7 @@ import java.util.List;
 public final class BattleHud {
 
     private final BattleUiContext ctx;
+    private boolean directControl;
     private final List<HudPanel> panels = new ArrayList<>();
 
     public BattleHud(BattleUiContext ctx) {
@@ -44,9 +45,22 @@ public final class BattleHud {
         }
     }
 
+    public void setDirectControl(boolean active) {
+        if (active && !directControl) {
+            for (HudPanel panel : panels) {
+                if (!panel.visibleDuringDirectControl()) panel.deactivateInput();
+            }
+        }
+        directControl = active;
+    }
+
+    private boolean visible(HudPanel panel) {
+        return panel.isVisible() && (!directControl || panel.visibleDuringDirectControl());
+    }
+
     public void render(float alphaMult) {
         for (HudPanel p : panels) {
-            if (p.isVisible()) p.render(alphaMult);
+            if (visible(p)) p.render(alphaMult);
         }
     }
 
@@ -60,14 +74,14 @@ public final class BattleHud {
         if (events == null || events.isEmpty()) return;
         for (int i = panels.size() - 1; i >= 0; i--) {
             HudPanel p = panels.get(i);
-            if (!p.isVisible()) continue;
+            if (!visible(p)) continue;
             p.handleInput(events);
         }
     }
 
     public boolean blocksWorldPointer(float x, float y) {
         for (HudPanel panel : panels) {
-            if (panel.isVisible() && panel.blocksWorldPointer(x, y)) return true;
+            if (visible(panel) && panel.blocksWorldPointer(x, y)) return true;
         }
         return false;
     }

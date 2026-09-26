@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — deployed APC control shares vehicle motion, turret fire, and suspended-order handback.
+Updated: 2026-09-26 — individual control hides strategic chrome and keeps a compact return/pause strip.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -66,8 +66,15 @@ Selecting an exact eligible Marine infantry member, Mech, or APC exposes an ente
 control; C toggles takeover and Escape releases it. A bracket identifies the controlled body and a
 crosshair shows its point aim. The battle screen owns the mode indicator and
 routes input before ordinary
-world picking, contextual orders, and camera keys. Retained UI chrome keeps
-its own pointer and keyboard focus. In the world, WASD supplies movement and
+world picking, contextual orders, and camera keys. During control, strategic
+chrome is hidden: commander/objective rails, squad and Mech panels, command
+powers, retreat, communications, and developer panels. Their hidden bounds
+cannot capture input or suppress movement and fire. Entry clears old UI focus,
+pointer capture, and retreat confirmation. A compact bottom-center strip keeps
+return-to-command, pause/resume, the controlled identity, and control hints
+available; the world retains health bars, the controlled bracket, and aim
+crosshair. Selection and command/debug cell overlays are suppressed while
+controlling. Exit restores the strategic view and current selection. In the world, WASD supplies movement and
 the mouse supplies aim; a primary press starts held fire and its release ends
 it, even if the pointer has since crossed UI chrome. World fire is suspended
 while the pointer is over chrome or outside the battlefield. Entering and

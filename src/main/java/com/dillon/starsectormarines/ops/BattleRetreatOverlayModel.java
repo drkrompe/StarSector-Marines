@@ -109,7 +109,7 @@ final class BattleRetreatOverlayModel {
         }
     }
 
-    private void cancelRetreat() {
+    void cancelRetreat() {
         if (presentation == Presentation.CONFIRM) {
             setPresentation(Presentation.RETREAT);
         }

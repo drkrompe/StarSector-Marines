@@ -323,6 +323,11 @@ public final class DebugTogglesPanel implements HudPanel {
     }
 
     @Override
+    public void deactivateInput() {
+        draggingDial = -1;
+    }
+
+    @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null) return;
         if (!isVisible()) return;

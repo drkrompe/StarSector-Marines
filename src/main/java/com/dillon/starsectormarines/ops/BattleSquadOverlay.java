@@ -165,6 +165,8 @@ final class BattleSquadOverlay {
     }
 
     void detach() {
+        model.hover(null);
+        if (markupInstance != null) markupInstance.flush();
         if (document != null) document.deactivateInput();
         input = null;
     }

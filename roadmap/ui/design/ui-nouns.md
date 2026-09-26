@@ -354,22 +354,30 @@ until another order or withdrawal supersedes it. Presentation supplies only
 the squad identity and clicked cell; the simulation validates and snaps the
 center and owns the defensive behavior.
 
-The direct-control plate reserves a stable position above the taller of the
-infantry roster and Mech/lance selection plates, so its button stays clear of
-both selection panels at the host UI scale. It offers control of one exact,
-eligible player Marine selected in the world. Its button or C enters; C or Escape
-returns authority to autonomous behavior. WASD moves in world axes, the mouse
-aims at a world point, and held primary fire uses the Marine's equipped primary.
-The camera follows that Marine and retains wheel zoom. World selection, contextual
-orders, and keyboard camera pan yield while control is active; entering cancels
-armed command-power and Defend Area targeting. Retained chrome handles input first,
-and held movement and fire stop over chrome or during retreat confirmation. The
-host snapshots release events before chrome consumption so no held key survives
-a swallowed release. Control allows pause or 1x; exit restores the entry rate unless
-the player explicitly chose a time setting during control. Window focus loss,
-screen detach, battle completion, or simulation release exits control and clears
-held input. The plate and input host project the battle-owned session; neither
-owns unit movement, eligibility, damage, or squad membership.
+The direct-control entry plate reserves a stable position above the taller of
+infantry and Mech/lance selection panels. It offers takeover of an exact eligible
+player Marine, combat Mech, or deployed APC. Its button or C enters; C or Escape
+returns authority to autonomous behavior. The camera follows the controlled body
+and retains wheel zoom; carrier-specific movement and firing obey
+`direct-control-nouns.md`.
+
+Active control uses a reduced HUD: a bottom-center return/pause strip and unit
+control hints, world health bars, the controlled bracket, and the aim crosshair.
+Strategic panels, commander/objective rails, power cards, retreat, communications,
+and developer panels are hidden together with their input and pointer bounds.
+Selection and command/debug cell overlays also yield. Hidden projections continue
+to refresh, so handback restores current information and the existing selection.
+Entry cancels armed command-power and Defend Area targeting, clears retained focus
+and pointer capture, and dismisses retreat confirmation without abandoning the
+battle. The remaining strip owns only its visible bounds; movement and fire stop
+there. The host snapshots releases before chrome consumption, so a swallowed
+release cannot leave a key or trigger held.
+
+Control allows pause or 1x; exit restores the entry rate unless the player explicitly
+chose a time setting during control. Window focus loss, screen detach, battle
+completion, or simulation release exits control and clears held input. The plate
+and input host project the battle-owned session; neither owns unit movement,
+eligibility, damage, or squad membership.
 
 ## Vertical scrolling
 

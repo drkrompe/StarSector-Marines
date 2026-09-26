@@ -92,6 +92,20 @@ class BattleRetreatOverlayModelTest {
         }
     }
 
+    @Test
+    void enteringUnitControlCancelsAnArmedRetreatWithoutAbandoningTheBattle() {
+        AtomicInteger retreats = new AtomicInteger();
+        BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(new Reactor(),
+                retreats::incrementAndGet, () -> {}, "Retreat", "Continue",
+                "Abandon operation?", "Cancel", "Retreat");
+        ((Runnable) model.props().get("action")).run();
+        assertEquals(BattleRetreatOverlayModel.Presentation.CONFIRM, model.presentation());
+        model.cancelRetreat();
+        assertEquals(BattleRetreatOverlayModel.Presentation.RETREAT, model.presentation());
+        ((Runnable) model.props().get("confirmAction")).run();
+        assertEquals(0, retreats.get());
+    }
+
     private static UiDocument document(
             MarkupInstance instance, BattleRetreatOverlayModel.Presentation presentation) {
         UiDocument document = new UiDocument(instance.root());
