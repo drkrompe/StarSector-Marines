@@ -57,15 +57,28 @@ public final class TickInnerProfile {
 
     public record PathSearch(long nanos, int startX, int startY,
                              int goalX, int goalY, boolean usesOccupancy,
-                             boolean found, int pathCells, int expandedNodes) {}
+                             boolean found, int pathCells, int expandedNodes,
+                             long memberId, int squadId, String action,
+                             String routeReason) {
+        public PathSearch(long nanos, int startX, int startY,
+                          int goalX, int goalY, boolean usesOccupancy,
+                          boolean found, int pathCells, int expandedNodes) {
+            this(nanos, startX, startY, goalX, goalY, usesOccupancy,
+                    found, pathCells, expandedNodes, 0L, -1, "", "");
+        }
+    }
 
     private static final class MutablePathSearch {
         long nanos;
         int startX, startY, goalX, goalY, pathCells, expandedNodes;
         boolean usesOccupancy, found;
+        long memberId;
+        int squadId;
+        String action, routeReason;
 
         void set(long nanos, int startX, int startY, int goalX, int goalY,
-                 boolean usesOccupancy, int pathCells, int expandedNodes) {
+                 boolean usesOccupancy, int pathCells, int expandedNodes,
+                 long memberId, int squadId, String action, String routeReason) {
             this.nanos = nanos;
             this.startX = startX;
             this.startY = startY;
@@ -75,11 +88,16 @@ public final class TickInnerProfile {
             this.found = pathCells > 0;
             this.pathCells = pathCells;
             this.expandedNodes = expandedNodes;
+            this.memberId = memberId;
+            this.squadId = squadId;
+            this.action = action;
+            this.routeReason = routeReason;
         }
 
         PathSearch freeze() {
             return new PathSearch(nanos, startX, startY, goalX, goalY,
-                    usesOccupancy, found, pathCells, expandedNodes);
+                    usesOccupancy, found, pathCells, expandedNodes,
+                    memberId, squadId, action, routeReason);
         }
     }
 
@@ -160,7 +178,7 @@ public final class TickInnerProfile {
         REFLEX_BROKEN_FIRE_TEAM,
         REFLEX_LANE_SIDESTEP,
         REFLEX_OTHER,
-        /** The assigned GOAP step's {@code execute}; per action class under {@link #actions()}. */
+        /** The assigned GOAP step's {@code execute}; per profiling identity under {@link #actions()}. */
         ACTION_EXECUTE,
         /** {@code InfantryUnitPrep.tryOpportunityPrimary}, whichever site called it. */
         OPPORTUNITY_PRIMARY;
@@ -281,7 +299,11 @@ public final class TickInnerProfile {
     private final MutablePathSearch[] slowPathSearches = new MutablePathSearch[SLOW_PATH_SEARCH_LIMIT];
     private int slowPathSearchCount;
     private Bucket activeBehavior;
-    /** Per action-class {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}; keyed by simple class name. */
+    private long activeMemberId;
+    private int activeSquadId = -1;
+    private String activeAction = "";
+    private String activeRouteReason = "";
+    /** Per profiling identity {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}. */
     private final Map<String, long[]> actions = new HashMap<>();
 
     public TickInnerProfile() {
@@ -305,6 +327,7 @@ public final class TickInnerProfile {
         convoySearchesStarted = 0L;
         slowPathSearchCount = 0;
         activeBehavior = null;
+        exitAction();
         actions.clear();
     }
 
@@ -320,6 +343,32 @@ public final class TickInnerProfile {
     /** Clears the caller-attribution scope established by {@link #enterBehavior}. */
     public void exitBehavior() {
         activeBehavior = null;
+    }
+
+    /**
+     * Attributes searches to one action execution without allocating a scope
+     * object. Calls are not nested; the dispatcher must exit in a finally block.
+     * Names are stable profiling identities supplied by the action, not derived
+     * from a shared implementation class. A new action clears the route reason.
+     */
+    public void enterAction(long memberId, int squadId, String action) {
+        activeMemberId = memberId;
+        activeSquadId = squadId;
+        activeAction = action != null ? action : "";
+        activeRouteReason = "";
+    }
+
+    /** Clears all action attribution, including a pending route reason. */
+    public void exitAction() {
+        activeMemberId = 0L;
+        activeSquadId = -1;
+        activeAction = "";
+        activeRouteReason = "";
+    }
+
+    /** Labels subsequent searches in this action until replaced or the scope ends. */
+    public void routeReason(String reason) {
+        activeRouteReason = reason != null ? reason : "";
     }
 
     /**
@@ -379,13 +428,15 @@ public final class TickInnerProfile {
                                  int expandedNodes) {
         pathfindExpandedNodes += expandedNodes;
         retainSlowPathSearch(durationNanos, startX, startY, goalX, goalY,
-                usesOccupancy, pathCells, expandedNodes);
+                usesOccupancy, pathCells, expandedNodes,
+                activeMemberId, activeSquadId, activeAction, activeRouteReason);
     }
 
     private void retainSlowPathSearch(long durationNanos,
                                       int startX, int startY, int goalX, int goalY,
                                       boolean usesOccupancy, int pathCells,
-                                      int expandedNodes) {
+                                      int expandedNodes, long memberId,
+                                      int squadId, String action, String routeReason) {
         int index = 0;
         while (index < slowPathSearchCount
                 && slowPathSearches[index].nanos >= durationNanos) index++;
@@ -397,7 +448,8 @@ public final class TickInnerProfile {
         }
         slowPathSearches[index] = slot;
         slot.set(durationNanos, startX, startY, goalX, goalY,
-                usesOccupancy, pathCells, expandedNodes);
+                usesOccupancy, pathCells, expandedNodes,
+                memberId, squadId, action, routeReason);
         if (slowPathSearchCount < SLOW_PATH_SEARCH_LIMIT) slowPathSearchCount++;
     }
 
@@ -454,7 +506,8 @@ public final class TickInnerProfile {
             MutablePathSearch sample = other.slowPathSearches[i];
             retainSlowPathSearch(sample.nanos, sample.startX, sample.startY,
                     sample.goalX, sample.goalY, sample.usesOccupancy,
-                    sample.pathCells, sample.expandedNodes);
+                    sample.pathCells, sample.expandedNodes, sample.memberId,
+                    sample.squadId, sample.action, sample.routeReason);
         }
         for (Map.Entry<String, long[]> entry : other.actions.entrySet()) {
             long[] sample = actions.get(entry.getKey());
@@ -470,8 +523,21 @@ public final class TickInnerProfile {
     public long nanosOf(Bucket b)  { return nanos[b.ordinal()]; }
     public int countOf(Bucket b)   { return counts[b.ordinal()]; }
 
-    /** Per action-class {@code {nanos, count}} recorded through {@link #recordAction}; a copy. */
+    /** Per profiling identity {@code {nanos, count}} recorded through {@link #recordAction}; a copy. */
     public Map<String, long[]> actions() { return copyActions(actions); }
+
+    /** Adds this tick to a caller-owned evidence accumulator, reusing existing entries. */
+    public void accumulateActionTotals(Map<String, long[]> totals) {
+        for (Map.Entry<String, long[]> entry : actions.entrySet()) {
+            long[] total = totals.get(entry.getKey());
+            if (total == null) {
+                total = new long[2];
+                totals.put(entry.getKey(), total);
+            }
+            total[0] += entry.getValue()[0];
+            total[1] += entry.getValue()[1];
+        }
+    }
 
     private static Map<String, long[]> copyActions(Map<String, long[]> source) {
         Map<String, long[]> copy = new HashMap<>(source.size() * 2);
@@ -565,7 +631,7 @@ public final class TickInnerProfile {
     public static final class Snapshot {
         public final long[] nanos;
         public final int[] counts;
-        /** Per action-class {@code {nanos, count}}, as {@link TickInnerProfile#actions()}. */
+        /** Per profiling identity {@code {nanos, count}}, as {@link TickInnerProfile#actions()}. */
         public final Map<String, long[]> actions;
         public final long squadRouteCorridorCells;
         public final long squadRouteSettledCells;

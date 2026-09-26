@@ -34,6 +34,13 @@ public interface Action {
     String name();
 
     /**
+     * Stable, low-cardinality profile identity. Unlike display names, this must
+     * not embed target coordinates/IDs or allocate a new string each execution.
+     * Configurable actions may distinguish their finite set of command kinds.
+     */
+    default String profilingName() { return getClass().getSimpleName(); }
+
+    /**
      * State the world must be in for this action to be applicable. Conventionally
      * a small {@link WorldState} mentioning only the predicates this action
      * cares about; unrelated predicates are left unspecified.
