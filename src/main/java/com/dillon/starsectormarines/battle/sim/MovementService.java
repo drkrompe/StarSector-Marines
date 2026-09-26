@@ -108,10 +108,11 @@ public final class MovementService {
      * The unit has arrived at cell {@code (cx, cy)} for post/destination
      * tests: within {@link #ARRIVE_RADIUS} of the cell center. The mover pins
      * a finished path exactly on its final cell center, so a unit that walked
-     * a path to this cell always answers {@code true} on arrival. Static
-     * emplacements also support this position query without carrying MOVEMENT.
+     * a path to this cell always answers {@code true} on arrival. Static positioned
+     * bodies use the same cell-distance test; carriers without POSITION answer false.
      */
     public boolean atCell(long id, int cx, int cy) {
+        if (!entityWorld.has(id, components.POSITION)) return false;
         ContinuousRoute route = has(id) ? continuousRoute(id) : null;
         if (route != null && route.requestedCellX() == cx && route.requestedCellY() == cy) {
             if (!route.completed()) return false;

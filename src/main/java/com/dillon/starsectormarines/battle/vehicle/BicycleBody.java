@@ -90,6 +90,23 @@ public class BicycleBody extends GroundBody {
             desiredSteering = 0f;
         }
 
+        integrateSteering(desiredSteering, targetSpeed, dt);
+    }
+
+    /** W/S supply signed throttle; positive steering turns the front wheels left.
+     * Steering remains physical in reverse: reverse speed inverts yaw naturally.
+     */
+    public void tickManual(float throttle, float steering, float dt) {
+        if (!Float.isFinite(throttle) || !Float.isFinite(steering) || !Float.isFinite(dt) || dt < 0f) {
+            throw new IllegalArgumentException("Finite drive inputs and nonnegative time required");
+        }
+        throttle = Math.max(-1f, Math.min(1f, throttle));
+        steering = Math.max(-1f, Math.min(1f, steering));
+        float targetSpeed = throttle * maxSpeed * (throttle < 0f ? .5f : 1f);
+        integrateSteering(steering * maxSteeringRad, targetSpeed, dt);
+    }
+
+    private void integrateSteering(float desiredSteering, float targetSpeed, float dt) {
         // Slew steering toward desired — bounded driver wheel-spin rate.
         float steeringStep = steeringSlewRadPerSec * dt;
         float dSteer = desiredSteering - steeringRad;

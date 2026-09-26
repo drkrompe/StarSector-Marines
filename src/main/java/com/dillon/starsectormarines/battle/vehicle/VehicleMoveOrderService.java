@@ -39,8 +39,14 @@ public final class VehicleMoveOrderService {
         final long vehicleId;
         final int cellX;
         final int cellY;
+        final boolean destinationOnly;
 
         PendingOrder(long vehicleId, int cellX, int cellY) {
+            this(vehicleId, cellX, cellY, false);
+        }
+
+        PendingOrder(long vehicleId, int cellX, int cellY, boolean destinationOnly) {
+            this.destinationOnly = destinationOnly;
             this.vehicleId = vehicleId;
             this.cellX = cellX;
             this.cellY = cellY;
@@ -60,12 +66,17 @@ public final class VehicleMoveOrderService {
         public float destinationY() { return routeYs[routeYs.length - 1]; }
     }
 
+    /** Route-free destination retained while direct control owns the hull. */
+    public record RequestedOrder(int requestedX, int requestedY) { }
+
     /** A refused or abandoned order, kept for the interface to report. */
     public record RefusedOrder(int requestedX, int requestedY, Refusal reason) { }
 
     private final List<PendingOrder> pending = new ArrayList<>();
     private final Map<Long, ActiveOrder> active = new ConcurrentHashMap<>();
     private final Map<Long, RefusedOrder> refused = new ConcurrentHashMap<>();
+    private final Set<Long> suspended = ConcurrentHashMap.newKeySet();
+    private final Map<Long, RequestedOrder> retained = new ConcurrentHashMap<>();
 
     /** Queues a one-shot move request for resolution on the next fixed tick. */
     public void requestMove(long vehicleId, int cellX, int cellY) {
@@ -82,6 +93,40 @@ public final class VehicleMoveOrderService {
         return refused.get(vehicleId);
     }
 
+    public boolean isSuspended(long vehicleId) { return suspended.contains(vehicleId); }
+
+    /** Current requested destination awaiting handback, without a stale route proof. */
+    public RequestedOrder suspendedOrder(long vehicleId) { return retained.get(vehicleId); }
+
+    void suspend(long vehicleId) {
+        if (!suspended.add(vehicleId)) return;
+        ActiveOrder order = active.remove(vehicleId);
+        if (order != null) retain(vehicleId, order.requestedX(), order.requestedY());
+        retainLatestPending(vehicleId);
+    }
+
+    void retain(long vehicleId, int x, int y) {
+        retained.put(vehicleId, new RequestedOrder(x, y));
+        refused.remove(vehicleId);
+    }
+
+    void resume(long vehicleId) {
+        if (!suspended.remove(vehicleId)) return;
+        retainLatestPending(vehicleId);
+        RequestedOrder order = retained.remove(vehicleId);
+        if (order != null) pending.add(new PendingOrder(vehicleId,
+                order.requestedX(), order.requestedY(), true));
+    }
+
+    private void retainLatestPending(long vehicleId) {
+        for (PendingOrder order : pending) {
+            if (order.vehicleId == vehicleId) retain(vehicleId, order.cellX, order.cellY);
+        }
+        pending.removeIf(order -> order.vehicleId == vehicleId);
+    }
+
+    Set<Long> suspendedIds() { return suspended; }
+
     List<PendingOrder> drainPending() {
         if (pending.isEmpty()) return Collections.emptyList();
         List<PendingOrder> drained = new ArrayList<>(pending);
@@ -97,6 +142,7 @@ public final class VehicleMoveOrderService {
     /** Completed successfully — the vehicle arrived, so there is nothing to report. */
     void complete(long vehicleId) {
         active.remove(vehicleId);
+        refused.remove(vehicleId);
     }
 
     /** Gave up or was never viable. The reason survives so the interface can show it. */
@@ -109,6 +155,9 @@ public final class VehicleMoveOrderService {
     public void forget(long vehicleId) {
         active.remove(vehicleId);
         refused.remove(vehicleId);
+        suspended.remove(vehicleId);
+        retained.remove(vehicleId);
+        pending.removeIf(order -> order.vehicleId == vehicleId);
     }
 
     Set<Map.Entry<Long, ActiveOrder>> activeEntries() {
