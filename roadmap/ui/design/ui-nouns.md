@@ -354,6 +354,21 @@ until another order or withdrawal supersedes it. Presentation supplies only
 the squad identity and clicked cell; the simulation validates and snaps the
 center and owns the defensive behavior.
 
+The direct-control plate above the infantry roster offers control of one exact,
+eligible player Marine selected in the world. Its button or C enters; C or Escape
+returns authority to autonomous behavior. WASD moves in world axes, the mouse
+aims at a world point, and held primary fire uses the Marine's equipped primary.
+The camera follows that Marine and retains wheel zoom. World selection, contextual
+orders, and keyboard camera pan yield while control is active; entering cancels
+armed command-power and Defend Area targeting. Retained chrome handles input first,
+and held movement and fire stop over chrome or during retreat confirmation. The
+host snapshots release events before chrome consumption so no held key survives
+a swallowed release. Control allows pause or 1x; exit restores the entry rate unless
+the player explicitly chose a time setting during control. Window focus loss,
+screen detach, battle completion, or simulation release exits control and clears
+held input. The plate and input host project the battle-owned session; neither
+owns unit movement, eligibility, damage, or squad membership.
+
 ## Vertical scrolling
 
 `scrollTop` is retained content state on the element, while `scrollHeight` is a

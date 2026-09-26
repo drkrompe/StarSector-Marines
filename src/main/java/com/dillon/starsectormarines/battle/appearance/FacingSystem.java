@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.appearance;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
@@ -108,6 +109,11 @@ public final class FacingSystem {
 
     /** Authors {@code SPRITE_INDEX}/{@code SPRITE_FLIP_V}/{@code SPRITE_SHEET} for every row in {@link BattleComponents#liveSprites}. */
     public void tick() {
+        tick(0L, Float.NaN, Float.NaN);
+    }
+
+    /** Manual infantry aim overrides target/travel facing without changing applied movement gait. */
+    public void tick(long controlledUnitId, float aimX, float aimY) {
         for (ArchetypeTable t : world.matched(components.liveSprites)) {
             boolean hasCombat = t.has(components.COMBAT);
             boolean hasMovement = t.has(components.MOVEMENT);
@@ -192,8 +198,15 @@ public final class FacingSystem {
                 if (hp[r] <= 0f) continue;
 
                 UnitType type = (UnitType) types[r];
+                float manualDx = aimX - posX[r];
+                float manualDy = aimY - posY[r];
+                boolean manualAim = t.entityAt(r) == controlledUnitId
+                        && Float.isFinite(manualDx) && Float.isFinite(manualDy)
+                        && (manualDx != 0f || manualDy != 0f);
+                float manualFacing = manualAim
+                        ? AirBody.facingToward(manualDx, manualDy) : Float.NaN;
                 boolean inAim = hasSecondary && actionTimer[r] > 0f;
-                boolean up = LiveAppearance.weaponUp(inAim, type.combatant,
+                boolean up = manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
                         hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f);
 
                 // The grid cell this row occupies — floored locally because target
@@ -213,7 +226,11 @@ public final class FacingSystem {
                 int targetDx = 0;
                 int targetDy = 0;
                 boolean haveTargetDelta = false;
-                if (hasCombat && type.combatant) {
+                if (manualAim) {
+                    dx = octantComponent(manualDx, manualDy);
+                    dy = octantComponent(manualDy, manualDx);
+                    haveDelta = true;
+                } else if (hasCombat && type.combatant) {
                     long tid = inAim && secondaryAimTarget != null && secondaryAimTarget[r] != 0L
                             ? secondaryAimTarget[r]
                             : (reflexTargetId[r] != 0L ? reflexTargetId[r] : targetId[r]);
@@ -263,6 +280,11 @@ public final class FacingSystem {
                 } else {
                     LiveAppearance.Facing facing = haveDelta
                             ? LiveAppearance.facingFromDelta(dx, dy) : LiveAppearance.Facing.SOUTH;
+                    if (manualAim) {
+                        facing = Math.abs(manualDx) > Math.abs(manualDy)
+                                ? manualDx > 0f ? LiveAppearance.Facing.EAST : LiveAppearance.Facing.WEST
+                                : manualDy > 0f ? LiveAppearance.Facing.NORTH : LiveAppearance.Facing.SOUTH;
+                    }
                     frameIdx[r] = LiveAppearance.pickFrame(facing, up);
                     flipV[r] = LiveAppearance.flipV(facing, up) ? 1 : 0;
                 }
@@ -284,7 +306,7 @@ public final class FacingSystem {
                             secondaryFired, gaitPhase, haveTargetDelta, targetDx,
                             targetDy, haveTravelDelta, travelDx, travelDy, layeredFacing,
                             locomotionPhase, weaponPhase, headLook, weaponPose,
-                            layeredFlags);
+                            layeredFlags, manualFacing);
                 }
                 if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
                     authorLayeredMechRow(r, hasMovement && haveTravelDelta, gaitPhase,
@@ -407,9 +429,10 @@ public final class FacingSystem {
             boolean haveTargetDelta, int targetDx, int targetDy,
             boolean haveTravelDelta, int travelDx, int travelDy,
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
-            int[] pose, int[] flags) {
+            int[] pose, int[] flags, float manualFacing) {
 
         int previousFlags = flags[row];
+        boolean manualAim = Float.isFinite(manualFacing);
         // Nonzero applied velocity — true iff the mover translated this tick,
         // so held units (aim freeze, dwell with a retained path) idle cleanly.
         boolean moving = hasMovement && haveTravelDelta;
@@ -433,11 +456,15 @@ public final class FacingSystem {
             torsoDy = targetDy;
             torsoTracksTarget = true;
         }
-        float targetFacing = haveTargetDelta
+        float targetFacing = manualAim ? manualFacing : haveTargetDelta
                 ? LayeredAppearance.facingDegrees(targetDx, targetDy) : 0f;
-        float torsoFacing = torsoTracksTarget
+        float torsoFacing = manualAim ? manualFacing : torsoTracksTarget
                 ? targetFacing : LayeredAppearance.facingDegrees(torsoDx, torsoDy);
-        if (!type.combatant) {
+        if (manualAim) {
+            // Infantry point fire uses this bearing immediately. The visible
+            // weapon must share it rather than lag behind the player's shot.
+            torsoFacing = manualFacing;
+        } else if (!type.combatant) {
             // A held civilian keeps the last authored look instead of snapping
             // to the generic south-idle fallback between movement substeps.
             // New travel bearings rotate on a shortest-arc turn rate so rapid
@@ -453,7 +480,7 @@ public final class FacingSystem {
         // Retain the last gait sample while stationary. Idle clips ignore it,
         // but a newly-started action can settle out of the exact prior stride.
         locomotion[row] = LayeredAppearance.locomotionPhase(gaitPhase[row]);
-        headLook[row] = haveTargetDelta
+        headLook[row] = manualAim || haveTargetDelta
                 ? LayeredAppearance.headLookDegrees(torsoFacing, targetFacing)
                 : 0f;
 
@@ -504,6 +531,8 @@ public final class FacingSystem {
                 authoredPose = LayeredAppearance.POSE_AIMED;
                 authoredPhase = clamp01(elapsed / LiveAppearance.WEAPON_UP_TIME);
             }
+        } else if (manualAim) {
+            authoredPose = LayeredAppearance.POSE_AIMED;
         }
 
         pose[row] = authoredPose;

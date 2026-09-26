@@ -1113,6 +1113,14 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     @Override
+    public boolean blocksWorldPointer(float x, float y) {
+        if (!isVisible() || ctx.getLayout() == null) return false;
+        float bottom = panelY();
+        return x >= panelX() && x < panelX() + PANEL_W
+                && y >= bottom && y < bottom + detailPanelHeight();
+    }
+
+    @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null || detailSquad == null) return;
         // The only retained action in the consolidated diagnostic is DUMP.

@@ -157,6 +157,7 @@ public final class SquadAlertSystem {
             squad._directContactStartedThisTick = false;
             squad.beginBeliefTick(dt, simTick, beliefIdentityResolves);
             squad.aliveMembers = 0;
+            squad.centroidMembers = 0;
             squad.centroidX = 0f;
             squad.centroidY = 0f;
             squad._engagedThisTick = false;
@@ -191,6 +192,7 @@ public final class SquadAlertSystem {
             float uY = world.y(u);
             float visionRange = Math.max(0f, vision.visionRange(u));
             squad.aliveMembers++;
+            squad.centroidMembers++;
             squad.centroidX += uX;
             squad.centroidY += uY;
             if (world.fallbackTimer(u) > 0f) squad._suspiciousThisTick = true;
@@ -258,9 +260,9 @@ public final class SquadAlertSystem {
 
         List<ShotEvent> activeShots = shots.getActiveShots();
         for (Squad squad : roster.getSquads()) {
-            if (squad.aliveMembers <= 0) continue;
-            float listenerX = squad.centroidX / squad.aliveMembers;
-            float listenerY = squad.centroidY / squad.aliveMembers;
+            if (squad.centroidMembers <= 0) continue;
+            float listenerX = squad.centroidX / squad.centroidMembers;
+            float listenerY = squad.centroidY / squad.centroidMembers;
             for (NoiseEvent event : pendingNoises) {
                 if (event.sourceFaction() == squad.faction) continue;
                 NoiseDetection.Detection detection = NoiseDetection.detect(
@@ -322,9 +324,19 @@ public final class SquadAlertSystem {
         for (Squad squad : roster.getSquads()) {
             SquadAlertLevel previousAlert = squad.alertLevel;
             squad.publishBeliefSnapshot();
-            if (squad.aliveMembers > 0) {
-                squad.centroidX /= squad.aliveMembers;
-                squad.centroidY /= squad.aliveMembers;
+            int formationMembers = squad.centroidMembers;
+            long controlled = squad.controlledMemberId();
+            if (controlled != 0L && roster.isAliveById(controlled)
+                    && !roster.isRiding(controlled) && formationMembers > 1) {
+                // Perception above still includes the player's physical presence. Autonomous
+                // movement below follows the remainder of the squad, including its acting leader.
+                squad.centroidX -= world.x(controlled);
+                squad.centroidY -= world.y(controlled);
+                formationMembers--;
+            }
+            if (formationMembers > 0) {
+                squad.centroidX /= formationMembers;
+                squad.centroidY /= formationMembers;
             }
             // Story A: garrison kill-zone LOS hysteresis. Increments when any
             // squadmate sighted a close enemy this tick; resets to 0 when no

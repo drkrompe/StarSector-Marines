@@ -64,4 +64,11 @@ public final class BattleHud {
             p.handleInput(events);
         }
     }
+
+    public boolean blocksWorldPointer(float x, float y) {
+        for (HudPanel panel : panels) {
+            if (panel.isVisible() && panel.blocksWorldPointer(x, y)) return true;
+        }
+        return false;
+    }
 }

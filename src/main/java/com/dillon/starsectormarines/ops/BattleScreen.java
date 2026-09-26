@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
@@ -191,6 +192,12 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleHud hud;
     /** MLX-authored player-facing command chrome: time controls and capture state. */
     private BattleHudOverlay retainedOverlay;
+    private BattleDirectControlOverlay directControlOverlay;
+    private final BattleDirectControlInput directControlInput = new BattleDirectControlInput();
+    private BattleSimulation directControlSimulation;
+    private BattleSimulation attachedSimulation;
+    private WorldPicker worldPicker;
+    private TurretAuthorPanel turretAuthor;
     /** MLX-authored 3x4 selected-squad roster with hover loadout detail. */
     private BattleSquadOverlay retainedSquadOverlay;
     /** MLX-authored doctrine control for one exactly selected player mech. */
@@ -264,9 +271,14 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
+        BattleSimulation nextSimulation = ctx != null ? ctx.getBattleSimulation() : null;
+        if (attachedSimulation != nextSimulation) {
+            exitDirectControl();
+            speedMultiplier = 1f;
+            attachedSimulation = nextSimulation;
+        }
         this.position = position;
         this.ctx = ctx;
-        this.speedMultiplier = 1f;
         configureMechLiveries();
         sprites.ensureUnitSheets();
         sprites.ensureLayeredUnitSprites();
@@ -374,6 +386,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void advance(float dt) {
         lastAdvanceDt = dt;
+        syncDirectControl();
         // HUD ticks on real dt (not sim-scaled) so panel snapshots and hover
         // state still update when the sim is paused. Panels' update() just
         // refreshes their cached views over the sim — cheap even at every frame.
@@ -410,7 +423,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         // On real dt, not sim-time, so the player can still look around the map
         // while the simulation is paused.
-        cameraControls.advance(dt, camera);
+        if (!directControlInput.active()) cameraControls.advance(dt, camera);
         // playUILoop is documented as "must be called every frame or the loop will fade out" —
         // re-arming it every advance is how Starsector expects loops to be driven. When this
         // screen stops being current, advance() stops firing and all loops fade automatically.
@@ -448,7 +461,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
+        submitDirectControlIntent();
         sim.advance(BattleSimulation.frameBudget(dt * speedMultiplier));
+        syncDirectControl();
+        followControlledMarine();
         // Wall-collapse dust. Queued by whatever brought the wall down and
         // drained once here, so a collapse looks the same however it happened.
         for (float[] dust : sim.getWallDustsThisFrame()) {
@@ -540,6 +556,10 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
+        exitDirectControl();
+        cameraControls.release();
+        if (worldPicker != null) worldPicker.cancel();
+        if (directControlOverlay != null) directControlOverlay.detach();
         // Release the decal accumulator's FBO + color texture. Without this, an
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
@@ -583,7 +603,9 @@ public class BattleScreen implements Screen, BattleUiContext {
         // the dock panels (Overview / Detail / PlanDebug) see clicks first and
         // claim their own rows via consume(); WorldPicker only fires on the
         // leftover unconsumed clicks that landed in the world rect.
-        hud.addPanel(new WorldPicker(this));
+        worldPicker = new WorldPicker(this);
+        hud.addPanel(worldPicker);
+        hud.addPanel(new DirectControlPanel(this));
         // The MLX power tray owns cards; this small world-layer partner owns
         // only its reticle and next-click targeting. Added after WorldPicker so
         // an armed power claims the map click before squad selection sees it.
@@ -681,10 +703,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         debugPanel.addAction("Dump commander trace",
                 () -> CommanderTraceDumper.dump(getSim()));
         debugPanel.addAction("Spawn mech family", () -> MechFamilyDebugSpawner.spawn(getSim()));
-        TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
+        turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
                 () -> turretAuthor.active,
-                () -> turretAuthor.active = !turretAuthor.active);
+                () -> {
+                    exitDirectControl();
+                    turretAuthor.active = !turretAuthor.active;
+                });
         hud.addPanel(debugPanel);
         hud.addPanel(turretAuthor);
         // Player-facing battle dispatch surface. Added last so urgent comms
@@ -696,7 +721,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Installs or relayouts the retained overlay without rebuilding its reactive tree. */
     private void ensureRetainedOverlay(BattleSimulation sim) {
         if (retainedOverlay == null) {
-            retainedOverlay = new BattleHudOverlay(value -> speedMultiplier = value);
+            retainedOverlay = new BattleHudOverlay(this::setBattleSpeed);
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
         if (retainedSquadOverlay == null) {
@@ -726,15 +751,21 @@ public class BattleScreen implements Screen, BattleUiContext {
                     this::retreatFromBattle, this::continueFromBattle);
         }
         retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
+        if (directControlOverlay == null) {
+            directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl);
+        }
+        directControlOverlay.attach(position, sim);
     }
 
     private void toggleSquadDefendTargeting(int squadId) {
+        exitDirectControl();
         if (squadDefendTargeting == null) return;
         if (commandPowerTargeting != null) commandPowerTargeting.cancel();
         squadDefendTargeting.toggle(squadId);
     }
 
     private void toggleCommandPowerTargeting(String powerId) {
+        exitDirectControl();
         if (commandPowerTargeting == null) return;
         if (squadDefendTargeting != null) squadDefendTargeting.cancel();
         commandPowerTargeting.toggle(powerId);
@@ -1115,6 +1146,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (sim == null || sim.isComplete()) return;
         // Retreat is an abandonment, not a defeat: release the live simulation
         // and return without resolving rewards, casualties, or campaign effects.
+        exitDirectControl();
         ctx.setBattleSimulation(null);
         ctx.goTo(ScreenId.MISSION_SELECT);
     }
@@ -1140,6 +1172,8 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
+        syncDirectControl();
+        var manualSamples = BattleDirectControlInput.capture(events);
         // Retained command surfaces claim only their compact corner/tray
         // rectangles. Everywhere else input continues to the debug HUD and
         // battlefield picker.
@@ -1148,6 +1182,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedMechOverlay != null) retainedMechOverlay.processInput(events);
         if (retainedPowerOverlay != null) retainedPowerOverlay.processInput(events);
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
+        if (directControlOverlay != null) directControlOverlay.processInput(events);
         // HUD gets first crack after retained chrome so a click on a squad row doesn't
         // also pan the camera or hit a future world-picker on the cells the
         // panel overlays. Panels self-consume claimed events.
@@ -1155,9 +1190,72 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Debug damage runs BEFORE pan-drag so shift+RMB consumes the event
         // and the plain-RMB pan handler never sees it. Plain RMB (no shift)
         // is unclaimed and falls through to pan.
-        handleDebugDamageInput(events);
+        directControlInput.process(manualSamples, this::toggleDirectControl,
+                this::exitDirectControl, this::battleChromeBlocksWorldPointer);
+        if (!directControlInput.active()) handleDebugDamageInput(events);
         handleCameraInput(events);
+        submitDirectControlIntent();
         handleDebugZoneToggle(events);
+    }
+
+    private void toggleDirectControl() {
+        if (directControlInput.active()) {
+            exitDirectControl();
+            return;
+        }
+        BattleSimulation sim = getSim();
+        if (sim == null || sim.isComplete()
+                || !sim.directControl().enter(selection.getSelectedUnitEntityId())) return;
+        directControlSimulation = sim;
+        speedMultiplier = directControlInput.enter(speedMultiplier);
+        cameraControls.release();
+        if (worldPicker != null) worldPicker.cancel();
+        if (commandPowerTargeting != null) commandPowerTargeting.cancel();
+        if (squadDefendTargeting != null) squadDefendTargeting.cancel();
+        followControlledMarine();
+        if (turretAuthor != null) turretAuthor.active = false;
+    }
+
+    private void exitDirectControl() {
+        if (directControlSimulation != null) directControlSimulation.directControl().exit();
+        directControlSimulation = null;
+        speedMultiplier = directControlInput.exit(speedMultiplier);
+        cameraControls.release();
+    }
+
+    private void syncDirectControl() {
+        BattleSimulation sim = getSim();
+        if (directControlInput.active() && (sim != directControlSimulation
+                || sim == null || sim.isComplete() || !sim.directControl().active()
+                || Display.isCreated() && !Display.isActive())) {
+            exitDirectControl();
+        }
+        if (directControlOverlay != null) directControlOverlay.update(0f, sim);
+    }
+
+    private void setBattleSpeed(float requested) {
+        speedMultiplier = directControlInput.active()
+                ? directControlInput.speedChanged(requested) : requested;
+        if (directControlInput.active()) {
+            directControlSimulation.directControl().suspendInput();
+        }
+    }
+
+    private void submitDirectControlIntent() {
+        if (directControlSimulation == null || !directControlInput.active()) return;
+        if (directControlInput.blocked(camera, speedMultiplier == 0f,
+                this::battleChromeBlocksWorldPointer)) {
+            directControlSimulation.directControl().suspendInput();
+        }
+        directControlSimulation.directControl().submit(directControlInput.intent(
+                camera, speedMultiplier == 0f, this::battleChromeBlocksWorldPointer));
+    }
+
+    private void followControlledMarine() {
+        if (directControlSimulation == null || !directControlInput.active() || camera == null) return;
+        long unit = directControlSimulation.directControl().activeUnitId();
+        if (unit != 0L) camera.centerOn(directControlSimulation.world().renderX(unit),
+                directControlSimulation.world().renderY(unit));
     }
 
     /**
@@ -1176,7 +1274,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Queues an exact-mech move or context-resolved infantry squad order. */
     private void requestSelectedTacticalOrder(float screenX, float screenY) {
         BattleSimulation sim = getSim();
-        if (sim == null || camera == null) return;
+        if (sim == null || camera == null || sim.directControl().active()) return;
         if (battleChromeBlocksWorldPointer(screenX, screenY)) return;
         int cellX = (int) Math.floor(camera.screenToCellX(screenX));
         int cellY = (int) Math.floor(camera.screenToCellY(screenY));
@@ -1201,7 +1299,12 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private boolean battleChromeBlocksWorldPointer(float screenX, float screenY) {
-        return retainedOverlay != null
+        return directControlInput.active() && retainedRetreatOverlay != null
+                && retainedRetreatOverlay.confirmingRetreat()
+                || directControlOverlay != null
+                && directControlOverlay.blocksWorldPointer(screenX, screenY)
+                || hud != null && hud.blocksWorldPointer(screenX, screenY)
+                || retainedOverlay != null
                 && retainedOverlay.blocksWorldPointer(screenX, screenY)
                 || retainedSquadOverlay != null
                 && retainedSquadOverlay.blocksWorldPointer(screenX, screenY)
@@ -1326,6 +1429,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (retainedMechOverlay != null) retainedMechOverlay.render(alphaMult);
         if (retainedPowerOverlay != null) retainedPowerOverlay.render(alphaMult);
         if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
+        if (directControlOverlay != null) directControlOverlay.render(alphaMult);
 
         if (sim != null && sim.isComplete()) {
             renderBanner(sim.getWinner(), alphaMult);

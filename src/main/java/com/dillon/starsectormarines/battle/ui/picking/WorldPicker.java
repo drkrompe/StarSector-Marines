@@ -81,6 +81,9 @@ public final class WorldPicker implements HudPanel {
     @Override public boolean isVisible() { return true; }
     @Override public void update(float dt) {}
 
+    /** Entering another world input mode abandons any unfinished selection gesture. */
+    public void cancel() { primaryGestureActive = false; }
+
     @Override
     public void render(float alphaMult) {
         BattleCamera camera = ctx.getCamera();
@@ -106,6 +109,10 @@ public final class WorldPicker implements HudPanel {
         if (events == null) return;
         BattleSimulation sim = ctx.getSim();
         BattleCamera camera = ctx.getCamera();
+        if (sim != null && sim.directControl().active()) {
+            cancel();
+            return;
+        }
         if (sim == null || camera == null) {
             primaryGestureActive = false;
             return;

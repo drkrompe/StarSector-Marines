@@ -268,6 +268,14 @@ public final class TickProfileDebugPanel implements HudPanel {
     }
 
     @Override
+    public boolean blocksWorldPointer(float x, float y) {
+        if (!isVisible() || ctx.getLayout() == null) return false;
+        float bottom = panelY() - panelHeight();
+        return x >= panelX() && x < panelX() + PANEL_W
+                && y >= bottom && y < bottom + panelHeight();
+    }
+
+    @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null) return;
         if (!isVisible()) return;

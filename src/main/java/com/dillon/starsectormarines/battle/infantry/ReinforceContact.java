@@ -90,6 +90,7 @@ public final class ReinforceContact implements Goal {
         float contactY = squad.lastSeenEnemyY + 0.5f;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long member = sim.squadMemberAt(squad.id, i);
+            if (!squad.participatesInPlan(member)) continue;
             float dx = sim.world().x(member) - contactX;
             float dy = sim.world().y(member) - contactY;
             if (Math.sqrt(dx * dx + dy * dy) <= ALREADY_AT_CONTACT_RADIUS) {
@@ -249,13 +250,9 @@ public final class ReinforceContact implements Goal {
     }
 
     private static int[] squadOrigin(Squad squad, BattleView sim) {
-        long leader = sim.resolveUnit(squad.leaderId);
+        long leader = squad.autonomousLeader(sim);
         if (leader != 0L) {
             return new int[]{sim.world().cellX(leader), sim.world().cellY(leader)};
-        }
-        if (sim.squadMemberCount(squad.id) > 0) {
-            long member = sim.squadMemberAt(squad.id, 0);
-            return new int[]{sim.world().cellX(member), sim.world().cellY(member)};
         }
         int x = Math.max(0, Math.min(sim.getGrid().getWidth() - 1,
                 (int) Math.floor(squad.centroidX)));

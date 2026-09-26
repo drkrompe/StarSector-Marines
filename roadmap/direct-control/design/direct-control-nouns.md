@@ -1,10 +1,10 @@
 # Direct control nouns
 
-Status: ACTIVE — point-fire foundation is available; playable control sessions remain planned.
+Status: ACTIVE — Marine control is implemented; live acceptance and other carriers remain open.
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — defined target-free primary fire, reach calibration, and burst ownership.
+Updated: 2026-09-26 — defined Marine takeover, safe entry, input ownership, and squad handback.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -29,7 +29,12 @@ fire intent; it does not turn the player into a second mission commander.
 Only an exact player-owned, controllable ground body may enter. The first
 families are a named Marine infantry member, a deployed combat Mech, and a
 deployed Marine vehicle. Allied or enemy bodies, incapacitated or riding
-members, wrecks, and vehicles in a delivery leg are not eligible. The exact
+members, wrecks, and vehicles in a delivery leg are not eligible. Marine entry
+also waits for committed special-equipment actions and is unavailable to a
+mission planter or kit retriever. Those interactions need an explicit manual
+action contract; primary control cannot silently continue an objective-owned
+channel. A broken fire team, forced fallback, or hard withdrawal releases
+control to its existing survival authority. The exact
 eligibility of a future hero designation belongs to company/progression; the
 control mechanism should not mint a second soldier identity or change the
 campaign's casualty accounting.
@@ -46,7 +51,10 @@ target knowledge.
 
 ## Input and time
 
-The battle screen owns the mode indicator and routes input before ordinary
+Selecting an exact Marine exposes an enter/exit control; C toggles takeover
+and Escape releases it. A bracket identifies the controlled body and a
+crosshair shows its point aim. The battle screen owns the mode indicator and
+routes input before ordinary
 world picking, contextual orders, and camera keys. Retained UI chrome keeps
 its own pointer and keyboard focus. In the world, WASD supplies movement and
 the mouse supplies aim; a primary press starts held fire and its release ends
@@ -107,7 +115,11 @@ may still pivot in place under its own facing rules. Pressing into a wall
 never animates forward progress or accumulates motion to be released later.
 A changing wall or door is read from current topology on the next tick.
 Physical body separation remains downstream and cannot push the unit across
-an impassable edge.
+an impassable edge. Entry requires a legal body envelope at the current
+position. Existing AI crowd motion can place a body closer to terrain than
+that envelope permits; such a position is refused for takeover rather than
+teleported or allowed to begin a motionless session. Shared AI body-clearance
+reconciliation remains necessary before widening carrier support.
 
 Infantry and Mechs share the terrain/topology law but keep their own movement
 speed, body clearance, and Mech pivot behavior. The existing path follower

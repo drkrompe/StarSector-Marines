@@ -23,6 +23,13 @@ public final class ManualTerrainMotion {
     /** Final position and the displacement actually applied, all in cells. */
     public record Result(float x, float y, float dx, float dy) {}
 
+    /** Whether an existing body clears current terrain without any placement correction. */
+    public static boolean canStand(NavigationGrid grid, float x, float y, float radius) {
+        return Float.isFinite(x) && Float.isFinite(y)
+                && Float.isFinite(radius) && radius > 0f
+                && clear(grid, x, y, radius);
+    }
+
     public static Result move(NavigationGrid grid, float x, float y,
                               float dx, float dy, float radius) {
         if (!Float.isFinite(x) || !Float.isFinite(y)

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
@@ -239,6 +240,12 @@ public final class SeparationSystem {
      * ground-unit POSITION except spawn placement.
      */
     public void tick(float dt) {
+        tick(dt, 0L);
+    }
+
+    /** Physical relaxation remains active for the controlled body; formation steering does not. */
+    public void tick(float dt, long controlledUnitId) {
+        if (dt <= 0f) return;
         int liveCount = roster.liveCount();
         ensureCapacity(liveCount);
         Arrays.fill(impulseX, 0, liveCount, 0f);
@@ -247,12 +254,12 @@ public final class SeparationSystem {
         cacheCollisionSlots(dense, liveCount);
         cacheCollisionState(dense, liveCount);
 
-        accumulate(dense, liveCount);
-        accumulateSquadFormations(dense, liveCount, dt);
-        apply(dense, liveCount, dt);
+        accumulate(dense, liveCount, controlledUnitId);
+        accumulateSquadFormations(dense, liveCount, dt, controlledUnitId);
+        apply(dense, liveCount, dt, controlledUnitId);
     }
 
-    private void accumulate(long[] dense, int liveCount) {
+    private void accumulate(long[] dense, int liveCount, long controlledUnitId) {
         for (int i = 0; i < liveCount; i++) {
             long a = dense[i];
             byte aFlags = collisionFlags[i];
@@ -284,7 +291,8 @@ public final class SeparationSystem {
                 float dist2 = dx * dx + dy * dy;
                 float dist = (float) Math.sqrt(dist2);
                 float physicalOverlap = Math.max(0f, sumR - dist);
-                float formationGap = hasFlag(aFlags, MECH)
+                float formationGap = a != controlledUnitId && b != controlledUnitId
+                        && hasFlag(aFlags, MECH)
                         && hasFlag(bFlags, MECH)
                         && collisionFaction[i] == collisionFaction[j]
                         && (hasFlag(aFlags, ACTIVE_PATH)
@@ -480,13 +488,15 @@ public final class SeparationSystem {
         return (flags & flag) != 0;
     }
 
-    private void accumulateSquadFormations(long[] dense, int liveCount, float dt) {
+    private void accumulateSquadFormations(long[] dense, int liveCount, float dt,
+                                           long controlledUnitId) {
         ensureFormationCapacity(liveCount);
         // One grouping pass over the roster, not one full scan per squad. A
         // late-battle Conquest fields a few hundred squads against a few
         // hundred units, so the old per-squad rescan was the single most
         // expensive thing this phase did.
-        Map<Integer, List<Long>> membersBySquad = groupCombatantsBySquad(dense, liveCount);
+        Map<Integer, List<Long>> membersBySquad = groupCombatantsBySquad(
+                dense, liveCount, controlledUnitId);
         for (Squad squad : roster.getSquads()) {
             FormationProfile profile = formationProfile(squad);
             if (profile == null) continue;
@@ -510,10 +520,12 @@ public final class SeparationSystem {
      * combatant are absent rather than empty, so a caller skipping a null is
      * skipping exactly what the old empty-scan path skipped.
      */
-    private Map<Integer, List<Long>> groupCombatantsBySquad(long[] dense, int liveCount) {
+    private Map<Integer, List<Long>> groupCombatantsBySquad(long[] dense, int liveCount,
+                                                         long controlledUnitId) {
         Map<Integer, List<Long>> bySquad = new HashMap<>();
         for (int i = 0; i < liveCount; i++) {
             long member = dense[i];
+            if (member == controlledUnitId) continue;
             if (!roster.combat().has(member) || !roster.squad().hasSquad(member)) continue;
             bySquad.computeIfAbsent(roster.squad().squadId(member),
                     id -> new ArrayList<>()).add(member);
@@ -900,7 +912,7 @@ public final class SeparationSystem {
         return world.pathIdx(id) < Paths.cellCount(world.path(id));
     }
 
-    private void apply(long[] dense, int liveCount, float dt) {
+    private void apply(long[] dense, int liveCount, float dt, long controlledUnitId) {
         float maxMag = MAX_PUSH_SPEED * dt;
         for (ArchetypeTable table : entityWorld.matched(components.gridOccupants)) {
             if (!table.has(components.MOVEMENT)) continue;
@@ -912,6 +924,8 @@ public final class SeparationSystem {
                     BattleComponents.MOVEMENT_VEL_X).array();
             float[] velY = table.floats(components.MOVEMENT,
                     BattleComponents.MOVEMENT_VEL_Y).array();
+            float[] gaitPhase = table.floats(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_GAIT_PHASE).array();
             for (int row = 0, rows = table.rowCount(); row < rows; row++) {
                 int i = collisionSlot(table.entityAt(row), dense, liveCount);
                 if (i == UnitRosterService.INVALID_INDEX) continue;
@@ -929,7 +943,16 @@ public final class SeparationSystem {
                 float nx = ax + ix;
                 float ny = ay + iy;
                 float appliedX, appliedY;
-                if (canApplyDisplacement(ax, ay, nx, ny)) {
+                if (table.entityAt(row) == controlledUnitId) {
+                    // A manual mover can be stopped at sub-cell clearance.
+                    // The later relaxation may not undo that terrain contact.
+                    ManualTerrainMotion.Result result = ManualTerrainMotion.move(
+                            grid, ax, ay, ix, iy, collisionRadius[i]);
+                    posX[row] = result.x();
+                    posY[row] = result.y();
+                    appliedX = result.dx();
+                    appliedY = result.dy();
+                } else if (canApplyDisplacement(ax, ay, nx, ny)) {
                     posX[row] = nx;
                     posY[row] = ny;
                     appliedX = ix;
@@ -952,6 +975,10 @@ public final class SeparationSystem {
                 }
                 velX[row] = velX[row] + appliedX / dt;
                 velY[row] = velY[row] + appliedY / dt;
+                if (table.entityAt(row) == controlledUnitId) {
+                    gaitPhase[row] = (gaitPhase[row]
+                            + (float) Math.hypot(appliedX, appliedY)) % 1f;
+                }
             }
         }
     }

@@ -143,7 +143,8 @@ public final class BreachToEngage implements Goal {
         // a stack-up + forward cell pair. Slot 0 binds the closest member.
         int aliveCount = 0;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
-            if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id) aliveCount++;
+            if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id
+                    && squad.availableToPlan(u, sim)) aliveCount++;
         }
         if (aliveCount <= 0) return null;
 

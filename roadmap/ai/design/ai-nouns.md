@@ -1702,6 +1702,24 @@ broken-morale survival suspends it, while a hard withdrawal invalidates it. The
 request therefore supplies neither a squad assignment nor a hostile target and
 never changes the knowledge available to the squad.
 
+Direct control of one Marine temporarily transfers that exact body's movement,
+facing, and primary-fire intent to player input. The body remains a living squad
+member: its organizational leader identity, fire-team identity, strength, morale,
+and physical observations stay intact. Availability to execute the squad plan
+is separate from membership. A controlled member receives no autonomous role
+and cannot delay squad arrival or breach stack-up, pull the cohesion anchor or
+formation centroid, or supply the shared execution timer's leader tick. The
+remaining available members use an acting leader without promoting a new
+organizational leader. A controlled solo Marine has no autonomous executor.
+
+Entry and handback invalidate the retained plan's role partitions and transient
+bounding, screening, and breach state. The squad immediately replans around the
+available population while retaining its authoritative assignment and contact
+knowledge; handback gives the released Marine a fresh assignment. A controlled
+Marine may still observe for the squad and count as a physical friendly body,
+but its personal firing position does not constitute the autonomous squad's
+firing line or extend that squad's local contact footprint.
+
 A selected Marine infantry squad may receive the same one-shot destination at
 the squad decision layer. The accepted cell temporarily becomes its executable
 attack-move context while the authoritative mission directive remains stored

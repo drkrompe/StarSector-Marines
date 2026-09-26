@@ -145,7 +145,7 @@ public final class BreachAndAdvance implements Action {
             // timer by ~N× (or drop increments under torn writes), either
             // way mis-tripping the timeout. One canonical writer per tick
             // gives a deterministic timer regardless of worker count.
-            if (member == squad.leaderId) {
+            if (member == squad.autonomousLeader(sim)) {
                 squad.breachStackupTimer += BattleSimulation.TICK_DT;
             }
         }
@@ -189,6 +189,7 @@ public final class BreachAndAdvance implements Action {
         float r2 = STACKUP_ARRIVAL_RADIUS * STACKUP_ARRIVAL_RADIUS;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+            if (!squad.availableToPlan(u, sim)) continue;
             alive++;
             for (int i2 = 0; i2 < stackUpX.length; i2++) {
                 float dx = sim.world().x(u) - (stackUpX[i2] + 0.5f);
@@ -210,6 +211,7 @@ public final class BreachAndAdvance implements Action {
         if (step == null) return false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+            if (!squad.availableToPlan(u, sim)) continue;
             String name = step.slotOf(u);
             if (name == null) continue;
             int s = parseSlotIndex(name);

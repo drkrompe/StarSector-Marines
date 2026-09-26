@@ -471,8 +471,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
                 long member = sim.squadMemberAt(squad.id, i);
-                if (squad.fireTeamBroken(sim.squad().fireTeamIndex(member))) continue;
-                if (squad.isRejoining(member)) continue;
+                if (!squad.availableToPlan(member, sim)) continue;
                 aliveMembers.add(member);
             }
             if (timing != null) {

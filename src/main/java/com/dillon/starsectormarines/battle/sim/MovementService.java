@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -166,6 +168,50 @@ public final class MovementService {
     private void setVelocity(long id, float vx, float vy) {
         entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, vx);
         entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, vy);
+    }
+
+    /**
+     * Applies one infantry drive step at the unit's current movement speed.
+     * Axes shorter than one retain their magnitude; longer input (including a
+     * WASD diagonal) is normalized. Terrain contact determines the position,
+     * velocity and gait actually applied. The session clears any AI path at
+     * entry; this method does not author a route or its occupancy bookkeeping.
+     */
+    public void moveDirect(long id, NavigationGrid grid, float axisX, float axisY,
+                           float radius, float dt) {
+        ManualTerrainMotion.Result result = previewDirect(id, grid, axisX, axisY, radius, dt);
+        setVelocity(id, 0f, 0f);
+        setFormationMemoryTimer(id, 0f);
+        if (dt == 0f) return;
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, result.x());
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, result.y());
+        setVelocity(id, result.dx() / dt, result.dy() / dt);
+        float appliedDistance = (float) Math.hypot(result.dx(), result.dy());
+        setGaitPhase(id, (gaitPhase(id) + appliedDistance) % 1f);
+    }
+
+    /**
+     * The legal drive step at the current speed, without changing position,
+     * velocity, gait, or path state. Early suit policies use this before their
+     * speed effects are applied; the movement pass resolves again afterward.
+     */
+    public ManualTerrainMotion.Result previewDirect(long id, NavigationGrid grid,
+                                                     float axisX, float axisY,
+                                                     float radius, float dt) {
+        if (!Float.isFinite(axisX) || !Float.isFinite(axisY)
+                || !Float.isFinite(dt) || dt < 0f) {
+            throw new IllegalArgumentException("Direct motion requires finite axes and nonnegative time");
+        }
+        float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+        float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        if (dt == 0f || (axisX == 0f && axisY == 0f)) {
+            return new ManualTerrainMotion.Result(x, y, 0f, 0f);
+        }
+        double divisor = Math.max(1d, Math.hypot(axisX, axisY));
+        float distance = Math.max(0f, moveSpeed(id)) * dt;
+        float dx = (float) (axisX / divisor * distance);
+        float dy = (float) (axisY / divisor * distance);
+        return ManualTerrainMotion.move(grid, x, y, dx, dy, radius);
     }
 
     /**
