@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -13,6 +14,23 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MovementServiceTest {
+
+    @Test
+    void staticEmplacementArrivalReadsPositionWithoutMovement() {
+        EntityWorld world = new EntityWorld();
+        BattleComponents components = new BattleComponents(world);
+        MovementService movement = new MovementService(world, components);
+        long emplacement = world.createEntity(components.POSITION);
+        world.setFloat(emplacement, components.POSITION, BattleComponents.POSITION_X, 5.5f);
+        world.setFloat(emplacement, components.POSITION, BattleComponents.POSITION_Y, 6.5f);
+        assertFalse(movement.has(emplacement));
+        assertTrue(movement.atCell(emplacement, 5, 6));
+        assertFalse(movement.atCell(emplacement, 6, 6));
+        world.setFloat(emplacement, components.POSITION, BattleComponents.POSITION_X, 5.95f);
+        assertFalse(movement.atCell(emplacement, 5, 6),
+                "static bodies retain the same centered arrival tolerance");
+        assertFalse(movement.has(emplacement), "query must not add mover state");
+    }
 
     private static BattleSimulation arena() {
         NavigationGrid grid = new NavigationGrid(20, 20);
