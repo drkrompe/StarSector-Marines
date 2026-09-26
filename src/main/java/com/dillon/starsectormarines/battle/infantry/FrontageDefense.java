@@ -214,7 +214,10 @@ public final class FrontageDefense implements Goal {
         if (threatened.isEmpty()) return null;
 
         started = profile == null ? 0L : System.nanoTime();
-        int alive = Math.max(1, squad.autonomousMemberCount(sim));
+        // Preserve the ordinary strength-based frontage budget. Only direct control
+        // changes this budget to the population currently available to execute it.
+        int alive = Math.max(1, squad.controlledMemberId() == 0L
+                ? squad.aliveMembers : squad.autonomousMemberCount(sim));
         int reserve = alive >= MIN_SQUAD_FOR_RESERVE
                 ? Math.max(1, Math.round(alive * RESERVE_FRACTION)) : 0;
         // The reserve is there so one threatened facing cannot strip the rest
