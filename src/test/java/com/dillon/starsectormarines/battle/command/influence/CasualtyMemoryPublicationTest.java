@@ -90,7 +90,7 @@ public class CasualtyMemoryPublicationTest {
 
         RouteCostField cost = sim.getRouteCostField(Faction.MARINE);
         assertNotNull(cost, "published without anybody asking for a snapshot");
-        assertTrue(cost.cells()[20 * W + 20] > 1f,
+        assertTrue(cost.costAt(20 * W + 20) > 1f,
                 "and the ground the marine died on costs the marines more");
         assertNull(sim.getRouteCostField(Faction.DEFENDER),
                 "while the defenders, who have lost nobody, route as before");

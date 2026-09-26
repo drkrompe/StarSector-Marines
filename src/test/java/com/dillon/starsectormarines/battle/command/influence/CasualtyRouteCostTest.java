@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
@@ -13,11 +15,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * What a side's remembered dead make ground cost to cross. The memory's own
- * arithmetic is pinned next door; this is about the costing expanded from it -
+ * arithmetic is pinned next door; this is about the costing published from it -
  * where the penalty lands, how far it can go, and that a side which has lost
  * nobody publishes nothing at all.
  */
@@ -50,7 +53,7 @@ public class CasualtyRouteCostTest {
     }
 
     private static float at(RouteCostField field, int x, int y) {
-        return field.cells()[y * W + x];
+        return field.costAt(y * W + x);
     }
 
     @Test
@@ -143,5 +146,60 @@ public class CasualtyRouteCostTest {
         memory.advance(1);
         assertEquals(published, memory.routeCost(Faction.MARINE).revision(),
                 "a costing every mover reads is rebuilt on a clock, not per death");
+    }
+
+    @Test
+    public void publicationKeepsOnlyBlockCostsOnTheConquestMap() {
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(560, 336), null);
+        CasualtyMemory memory = new CasualtyMemory(roster, 8, 560, 336);
+        long unit = roster.spawn(new EntitySpec("lost", Faction.MARINE, UnitType.MARINE, 20, 20));
+        memory.onDeath(new DeathEvent(unit, 20, 20, 0));
+        memory.advance(0);
+
+        RouteCostField cost = memory.routeCost(Faction.MARINE);
+        assertNotNull(cost);
+        assertEquals(188_160, cost.size());
+        boolean compact = Boolean.parseBoolean(System.getProperty(
+                CasualtyMemory.COMPACT_ROUTE_COST_PROPERTY, "true"));
+        assertEquals(compact ? 2_940 : 188_160, cost.storedValueCount());
+    }
+
+    @Test
+    public void heldPublicationsSurviveDeathsDecayAndReplacementWithoutChangingOneBit() {
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(17, 11), null);
+        CasualtyMemory memory = new CasualtyMemory(roster, 3, 17, 11);
+        long unit = roster.spawn(new EntitySpec("lost", Faction.MARINE, UnitType.MARINE, 16, 10));
+        memory.onDeath(new DeathEvent(unit, 16, 10, 0));
+        memory.advance(0);
+        RouteCostField held = memory.routeCost(Faction.MARINE);
+        int[] heldBits = new int[held.size()];
+        for (int i = 0; i < heldBits.length; i++) heldBits[i] = Float.floatToRawIntBits(held.costAt(i));
+
+        memory.onDeath(new DeathEvent(unit, 16, 10, 0));
+        memory.decay((int) CasualtyMemory.HALF_LIFE_TICKS);
+        memory.advance(1);
+        assertSame(held, memory.routeCost(Faction.MARINE), "no premature publication");
+        memory.onDeath(new DeathEvent(unit, 0, 0, 0));
+        memory.advance(CasualtyMemory.PUBLISH_INTERVAL_TICKS);
+        RouteCostField replacement = memory.routeCost(Faction.MARINE);
+        assertTrue(replacement.revision() > held.revision());
+        assertTrue(replacement.costAt(0) > held.costAt(0));
+        assertTrue(replacement.costAt(held.size() - 1) < held.costAt(held.size() - 1));
+        float[] weights = memory.copyFor(Faction.MARINE);
+        for (int y = 0; y < 11; y++) {
+            for (int x = 0; x < 17; x++) {
+                int index = y * 17 + x;
+                assertEquals(heldBits[index], Float.floatToRawIntBits(held.costAt(index)));
+                float expected = CasualtyMemory.multiplierFor(weights[(y / 3) * memory.blockWidth() + x / 3]);
+                assertEquals(Float.floatToRawIntBits(expected), Float.floatToRawIntBits(replacement.costAt(index)));
+            }
+        }
+
+        memory.decay((int) CasualtyMemory.HALF_LIFE_TICKS * 12);
+        memory.advance(2 * CasualtyMemory.PUBLISH_INTERVAL_TICKS);
+        assertNull(memory.routeCost(Faction.MARINE), "negligible memory returns to no-cost routing");
+        for (int i = 0; i < heldBits.length; i++) {
+            assertEquals(heldBits[i], Float.floatToRawIntBits(held.costAt(i)));
+        }
     }
 }

@@ -535,12 +535,10 @@ abstract class AbstractZoneAction implements Action {
                             : SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
                             ? sim.findSharedPathToGoal(memberX, memberY,
                                     destX, destY, losses)
-                            : GridPathfinder.findPath(sim.getGrid(),
+                            : GridPathfinder.findPathWithCost(sim.getGrid(),
                                     memberX, memberY, destX, destY,
                                     GridPathfinder.USE_CARDINAL_NAVIGATION,
-                                    sim.getOccupancyMap(),
-                                    losses == null ? null : losses.cells(),
-                                    null));
+                                    sim.getOccupancyMap(), losses));
         }
         sim.advanceMovement(member);
     }

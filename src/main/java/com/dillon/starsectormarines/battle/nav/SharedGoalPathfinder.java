@@ -129,19 +129,18 @@ final class SharedGoalPathfinder {
 
     int[] findPath(int startX, int startY, int goalX, int goalY,
                    boolean cardinalOnly, RouteCostField cost) {
-        float[] costCells = cost == null ? null : cost.cells();
         if (!snapshotReady) {
             // The coarse pathfinder scans the whole cost field for an
             // admissible lower bound on every call - affordable for the
             // terrain fields it was written for, not for one consulted on
             // ordinary infantry repaths. Off-snapshot requests are the rare
             // path anyway, so a costed one goes flat rather than hierarchical.
-            if (ordinaryPathfinder != null && costCells == null) {
+            if (ordinaryPathfinder != null && cost == null) {
                 return ordinaryPathfinder.findPath(startX, startY,
                         goalX, goalY, cardinalOnly, occupancy);
             }
-            return GridPathfinder.findPath(grid, startX, startY,
-                    goalX, goalY, cardinalOnly, occupancy, costCells, null);
+            return GridPathfinder.findPathWithCost(grid, startX, startY,
+                    goalX, goalY, cardinalOnly, occupancy, cost);
         }
         long requestStart = System.nanoTime();
         try {
@@ -156,7 +155,7 @@ final class SharedGoalPathfinder {
             FieldKey key = new FieldKey(goalIdx, cardinalOnly,
                     cost == null ? 0L : cost.revision());
             ReverseField field = fields.computeIfAbsent(key,
-                    ignored -> buildField(goalIdx, cardinalOnly, costCells,
+                    ignored -> buildField(goalIdx, cardinalOnly, cost,
                             snapshotIndex));
             long extractStart = System.nanoTime();
             int[] path = field.extract(startX, startY);
@@ -180,13 +179,13 @@ final class SharedGoalPathfinder {
     }
 
     private ReverseField buildField(int goalIdx, boolean cardinalOnly,
-                                    float[] costCells, long builtSnapshot) {
+                                    RouteCostField cost, long builtSnapshot) {
         ReverseField field = recycled.poll();
         if (field == null) {
             field = new ReverseField(grid.getWidth(), grid.getHeight());
         }
         long buildStart = System.nanoTime();
-        field.rebuild(grid, occupancy, costCells, goalIdx, cardinalOnly);
+        field.rebuild(grid, occupancy, cost, goalIdx, cardinalOnly);
         field.builtSnapshot = builtSnapshot;
         TickInnerProfile profile = TickInnerProfile.current();
         if (profile != null) {
@@ -261,7 +260,7 @@ final class SharedGoalPathfinder {
             this.heap = new int[totalCells];
         }
 
-        void rebuild(NavigationGrid grid, byte[] occupancy, float[] costCells,
+        void rebuild(NavigationGrid grid, byte[] occupancy, RouteCostField cost,
                      int newGoalIdx, boolean cardinalOnly) {
             Arrays.fill(distance, INF);
             Arrays.fill(nextIdx, UNSEEN);
@@ -296,14 +295,15 @@ final class SharedGoalPathfinder {
                 // per expansion rather than repeating that work for all 4/8
                 // predecessors.
                 float currentDistance = distance[currentIdx];
+                float multiplier = cost == null ? 1f : cost.costAt(currentIdx, currentX, currentY);
                 float cardinalCandidate = currentDistance
                         + GridPathfinder.stepCost(
                         GridPathfinder.FIRST_CARDINAL_DIRECTION, currentIdx,
-                        occupancy, costCells);
+                        occupancy, multiplier);
                 float diagonalCandidate = cardinalOnly ? 0f
                         : currentDistance + GridPathfinder.stepCost(
                         GridPathfinder.FIRST_DIAGONAL_DIRECTION, currentIdx,
-                        occupancy, costCells);
+                        occupancy, multiplier);
                 for (int direction = 0;
                      direction < directionCount; direction++) {
                     int predecessorX = currentX

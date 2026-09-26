@@ -42,6 +42,9 @@ public final class GridPathfinder {
     @FunctionalInterface
     public interface IndexedCost {
         float costAt(int index);
+
+        /** Same cell with coordinates already decoded by the search. */
+        default float costAt(int index, int x, int y) { return costAt(index); }
     }
 
     private static final Logger LOG = Logger.getLogger(GridPathfinder.class);
@@ -355,6 +358,14 @@ public final class GridPathfinder {
                 cardinalOnly, occupancy, costField, passable, null, null, true);
     }
 
+    /** Infantry cost snapshot, read directly without expanding compact block storage. */
+    public static int[] findPathWithCost(NavigationGrid grid,
+                                  int startX, int startY, int goalX, int goalY,
+                                  boolean cardinalOnly, byte[] occupancy, RouteCostField cost) {
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, null, null, cost, null, true);
+    }
+
     /**
      * Vehicle-search path that asks for clearance and terrain cost only as A*
      * reaches a cell. Both indexed views must remain stable for this search.
@@ -587,6 +598,15 @@ public final class GridPathfinder {
                 cardinalOnly, occupancy, costField, passable, null, null, true, false);
     }
 
+    /** Compact-cost counterpart for callers that own the outer profiling scope. */
+    static int[] findPathWithCostUnprofiled(NavigationGrid grid,
+                                            int startX, int startY, int goalX, int goalY,
+                                            boolean cardinalOnly, byte[] occupancy,
+                                            RouteCostField cost) {
+        return findPathInner(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, null, null, cost, null, true, false);
+    }
+
     /** Cancelable unprofiled search used only by the battle-owned async worker. */
     static int[] findPathAsyncUnprofiled(NavigationGrid grid,
                                          int startX, int startY,
@@ -701,8 +721,9 @@ public final class GridPathfinder {
 
                 if (heapPos[nIdx] == CLOSED) continue;
 
-                float stepCost = stepCost(dirI, nIdx, occupancy, costField);
-                if (indexedCost != null) stepCost *= indexedCost.costAt(nIdx);
+                float stepCost = indexedCost == null
+                        ? stepCost(dirI, nIdx, occupancy, costField)
+                        : stepCost(dirI, nIdx, occupancy, indexedCost.costAt(nIdx, nx, ny));
                 float tentativeG = gCost[currentIdx] + stepCost;
 
                 if (tentativeG < gCost[nIdx]) {
@@ -848,8 +869,14 @@ public final class GridPathfinder {
     /** Forward cost of entering {@code destinationIdx}. */
     static float stepCost(int direction, int destinationIdx,
                           byte[] occupancy, float[] costField) {
-        float cost = DIR_COST[direction];
-        if (costField != null) cost *= costField[destinationIdx];
+        return stepCost(direction, destinationIdx, occupancy,
+                costField == null ? 1f : costField[destinationIdx]);
+    }
+
+    /** The route multiplier never scales the additive occupancy penalty. */
+    static float stepCost(int direction, int destinationIdx,
+                          byte[] occupancy, float multiplier) {
+        float cost = DIR_COST[direction] * multiplier;
         if (occupancy != null) {
             cost += OCCUPANCY_PENALTY * (occupancy[destinationIdx] & 0xFF);
         }
