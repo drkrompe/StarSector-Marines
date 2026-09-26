@@ -7,7 +7,7 @@ Written: 2026-09-23
 Updated: 2026-09-23 — required swept footprint checks across turns and closed edges.
 
 Read `direct-control-nouns.md` and `convoy-nouns.md` first.
-Depends on `controlled-marine.md` and `point-aim-direct-fire.md`.
+Depends on `controlled-marine.md`; uses the point-fire contract in `ballistics-nouns.md`.
 
 ## Goal
 

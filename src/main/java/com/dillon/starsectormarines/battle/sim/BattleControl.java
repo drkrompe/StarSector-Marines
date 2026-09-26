@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
@@ -62,6 +63,9 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Stance-aware fire — MOVING halves the base accuracy roll. */
     void fireShot(long shooter, long target, FireStance stance);
+
+    /** Commit a direct primary round along a world bearing without a target lock. */
+    void firePointShot(long shooter, PointFireAim aim, FireStance stance);
 
     void fireSecondary(long shooter, long target);
 

@@ -37,6 +37,13 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * fired, so a stale intent (the behavior didn't run again this tick, or
  * wrote a hold) can never re-fire on a later tick.
  *
+ * <p>A point intent is mutually exclusive with the entity intent and is also
+ * consumed once. It validates an equipped direct primary, a finite bearing,
+ * positive weapon reach, cooldown, and burst availability. It needs no target
+ * registration or clear line of fire: the resolver stops rounds at physical
+ * obstacles. Handheld primaries have no ammunition counter; this path uses the
+ * same cadence and resources as their ordinary primary release.
+ *
  * <p><b>The weapon-cooldown decrement is NOT here.</b> {@code
  * InfantryUnitPrep.tickCooldowns} stays the canonical once-per-unit cooldown decrement — it's coupled to the
  * mid-aim short-circuit (cooldowns freeze during the rocket-aim window) and
@@ -111,6 +118,7 @@ public final class FiringSystem {
         World w = roster.world();
 
         for (ArchetypeTable t : world.matched(components.combatants)) {
+            Object[] pointAim = t.objects(components.COMBAT, BattleComponents.COMBAT_POINT_FIRE_AIM).array();
             long[] fireTarget = t.longs(components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID).array();
             float[] cooldownTimer = t.floats(components.COMBAT, BattleComponents.COMBAT_COOLDOWN_TIMER).array();
             float[] attackRange = t.floats(components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE).array();
@@ -136,17 +144,38 @@ public final class FiringSystem {
                 }
 
                 long ft = fireTarget[r];
-                if (ft == 0L) continue; // no intent — hold fire
+                PointFireAim aim = (PointFireAim) pointAim[r];
+                if (ft == 0L && aim == null) continue; // no intent — hold fire
 
                 // Consume-once: cleared whether or not this shot actually
                 // fires, so a stale intent never carries into a later tick.
                 fireTarget[r] = 0L;
+                pointAim[r] = null;
                 lastFireGateTick[r] = sim.getSimTickIndex();
 
                 long shooterId = t.entityAt(r);
                 if (!roster.isAliveById(shooterId)) {
                     lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
                     continue; // killed earlier this walk
+                }
+                if (aim != null) {
+                    if (!PointFireAim.supports(combat.primaryWeaponDef(shooterId))) {
+                        lastFireGate[r] = FireGate.UNSUPPORTED_WEAPON.ordinal();
+                    } else if (!aim.validFrom(w.renderX(shooterId), w.renderY(shooterId))) {
+                        lastFireGate[r] = FireGate.INVALID_AIM.ordinal();
+                    } else if (!Float.isFinite(attackRange[r]) || attackRange[r] <= 0f) {
+                        lastFireGate[r] = FireGate.OUT_OF_RANGE.ordinal();
+                    } else if (cooldownTimer[r] > 0f || combat.burstRemaining(shooterId) > 0) {
+                        lastFireGate[r] = FireGate.COOLDOWN.ordinal();
+                    } else {
+                        // The point supplies a bearing, not a lock or a distance gate.
+                        // Walls and bodies are physical contacts along the weapon's reach.
+                        sim.firePointShot(shooterId, aim, FireStance.VALUES[fireStance[r]]);
+                        lastFireGate[r] = FireGate.FIRED.ordinal();
+                        combat.setCooldownTimer(shooterId, combat.attackCooldown(shooterId));
+                        combat.beginPointBurst(shooterId, aim);
+                    }
+                    continue;
                 }
                 if (!roster.isAliveById(ft)) {
                     lastFireGate[r] = FireGate.TARGET_GONE.ordinal();

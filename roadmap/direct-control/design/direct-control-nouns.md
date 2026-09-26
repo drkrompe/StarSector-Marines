@@ -1,10 +1,10 @@
 # Direct control nouns
 
-Status: DRAFT — one-unit ground control is designed but not implemented.
+Status: ACTIVE — point-fire foundation is available; playable control sessions remain planned.
 
 Written: 2026-09-23
 
-Updated: 2026-09-23 — specified swept terrain collision and sliding for manual motion.
+Updated: 2026-09-26 — defined target-free primary fire, reach calibration, and burst ownership.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -141,8 +141,21 @@ silhouette-based hit roll, and treating every body as an incidental contact
 must not erase the weapon's accuracy. A moving shooter retains the existing
 moving-fire penalty. Structural stops, smoke, cover catches, friendly-fire
 contacts, damage delay, telemetry, sound, and effects follow the ordinary
-shot pipeline. A burst retains the manual aim policy over its follow-up rounds
-instead of falling back to an entity id.
+shot pipeline. A primary burst retains the world point accepted at trigger pull for all its
+follow-up rounds; moving the cursor affects the next trigger, while moving the
+shooter changes its bearing to that frozen point. Follow-up spread uses the
+shooter’s actual applied movement. A held trigger cannot restart an unfinished
+burst. Releasing control cancels pending intent and burst work without
+resetting cooldown. The current handheld primary family has no ammunition
+counter; manual fire shares that resource contract rather than granting a
+separate ammunition supply.
+
+A point request is consumed once whether it fires or is held by a gate. It
+requires a live equipped direct primary, a finite noncoincident world bearing,
+positive weapon reach, a ready cooldown, and no active burst. The cursor is
+not a range limit: an unobstructed round travels to the weapon’s full modeled
+reach beyond it. Accuracy, falloff, spread, and smoke depth are calibrated at
+weapon range so placing the cursor nearer cannot improve distant accuracy.
 
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved

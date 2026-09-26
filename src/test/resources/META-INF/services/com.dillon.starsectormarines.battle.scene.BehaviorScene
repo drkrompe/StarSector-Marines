@@ -2,3 +2,4 @@ com.dillon.starsectormarines.battle.squad.PlayerOrderScene
 com.dillon.starsectormarines.battle.infantry.FiringLineScene
 com.dillon.starsectormarines.battle.decision.goap.action.ProsecutionHoldScene
 com.dillon.starsectormarines.battle.squad.LateArrivalScene
+com.dillon.starsectormarines.battle.combat.PointFireScene
