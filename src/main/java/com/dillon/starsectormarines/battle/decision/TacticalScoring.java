@@ -2066,6 +2066,7 @@ public final class TacticalScoring {
         long[] members = roster.squadMemberArray(squad.id);
         for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
             long member = members[i];
+            if (member == squad.controlledMemberId()) continue;
             if (!roster.isAliveById(member) || !roster.world().hasCombat(member)) continue;
             liveMembers++;
             int team = roster.squad().fireTeamIndex(member);
@@ -2113,6 +2114,7 @@ public final class TacticalScoring {
         long[] members = roster.squadMemberArray(squad.id);
         for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
             long member = members[i];
+            if (member == squad.controlledMemberId()) continue;
             if (!roster.isAliveById(member)) continue;
             nearest = Math.min(nearest,
                     cellDistance(roster.world().x(member), roster.world().y(member),

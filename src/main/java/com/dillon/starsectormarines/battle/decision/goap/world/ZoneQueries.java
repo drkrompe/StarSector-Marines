@@ -56,7 +56,7 @@ public final class ZoneQueries {
     public static int squadCurrentZone(Squad squad, BattleView sim) {
         if (squad == null || sim == null) return -1;
         if (squad.aliveMembers <= 0) return -1;
-        long leader = sim.resolveUnit(squad.leaderId);
+        long leader = squad.autonomousLeader(sim);
         if (leader != 0L) {
             int zone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(leader), sim.world().cellY(leader));
             if (zone >= 0) return zone;

@@ -275,7 +275,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
             for (long assigned : step.allAssignedMembers()) {
                 long resolved = sim.resolveUnit(assigned);
                 if (resolved == 0L) continue; // no longer alive; not a straggler
-                if (squad.isRejoining(resolved)) continue;
+                if (!squad.participatesInPlan(resolved)) continue;
                 if (!withinSquadArrival(resolved, sim)) return false;
             }
             return true;
@@ -283,7 +283,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         int count = sim.squadMemberCount(squad.id);
         for (int i = 0; i < count; i++) {
             long member = sim.squadMemberAt(squad.id, i);
-            if (squad.isRejoining(member)) continue;
+            if (!squad.participatesInPlan(member)) continue;
             if (!withinSquadArrival(member, sim)) return false;
         }
         return true;
@@ -326,7 +326,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         for (int i = 0; i < count; i++) {
             long member = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
             if (member == 0L) continue;
-            if (squad.isRejoining(member)) continue;
+            if (!squad.participatesInPlan(member)) continue;
             any = true;
             float distance = TacticalScoring.cellDistance(
                     sim.world().x(member), sim.world().y(member),

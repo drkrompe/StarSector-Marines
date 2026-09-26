@@ -96,12 +96,12 @@ public final class SecureCompoundGoal implements Goal {
             if (!ZoneQueries.zoneClearOfHostiles(to, squad.faction, sim)) {
                 steps.add(new SquadPlan.Step(new ClearZone(to)));
             }
-            int[][] cells = HoldZone.pickHoldCells(node, to, squad.aliveMembers, sim);
+            int[][] cells = HoldZone.pickHoldCells(node, to, squad.autonomousMemberCount(sim), sim);
             steps.add(new SquadPlan.Step(new HoldZone(to, node, cells[0], cells[1])));
             return new SquadPlan(steps);
         }
 
-        return synthesizeSecurePlan(from, to, node, squad.aliveMembers, sim);
+        return synthesizeSecurePlan(from, to, node, squad.autonomousMemberCount(sim), sim);
     }
 
     private static SquadPlan synthesizeSecurePlan(int fromZone, int toZone, TacticalNode node,

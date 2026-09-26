@@ -1,10 +1,10 @@
 # Controlled Marine slice
 
-Status: PLANNED
+Status: IMPLEMENTED — focused and headless verification passed; live acceptance remains.
 
 Written: 2026-09-23
 
-Updated: 2026-09-23 — made terrain sweep, sliding, and topology changes explicit acceptance.
+Updated: 2026-09-26 — implementation is ready for the keyboard/mouse and UI ownership pass.
 
 Read `direct-control-nouns.md`, `ai-nouns.md`, and `ui-nouns.md` first.
 Uses the point-fire contract in `ballistics-nouns.md` and `direct-control-nouns.md`.
@@ -15,7 +15,15 @@ Make one exact, already deployed Marine infantry member playable in the
 standalone battle. This slice proves the interaction before hero eligibility
 or a new campaign unlock is defined.
 
-## Plan
+## Remaining acceptance
+
+Run the live keyboard/mouse, camera, UI ownership, and lifecycle checks in
+`direct-control-live-acceptance.md` for the Marine adapter. Entry currently
+refuses terrain-overlapping AI poses and mission kit specialists, as defined
+in `direct-control-nouns.md`. Broader shared clearance and manual mission
+interactions remain outside this primary-control adapter.
+
+## Implementation scope
 
 1. Add a battle-owned one-body control session. Validate exact Marine identity
    on entry, consume immutable input at fixed ticks, and release through one

@@ -96,6 +96,7 @@ import com.dillon.starsectormarines.battle.combat.EngagementService;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.control.DirectControlSession;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
@@ -542,6 +543,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
     private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
     private boolean complete = false;
+    private final DirectControlSession directControl;
     private Faction winner;
     /** False for bounded non-mission hosts such as shipboard room previews. */
     private boolean missionCompletionEnabled = true;
@@ -769,7 +771,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     jx, jy, rubbleIdx, rng.nextFloat() * 360f, 1.10f));
         });
         fogOfWar.init(grid, 256);
+        this.directControl = new DirectControlSession(this, rosterService,
+                id -> transport.isRiding(id) || ambientTasks.isControlling(id), () -> complete);
     }
+
+    public DirectControlSession directControl() { return directControl; }
 
     public NavigationGrid getGrid() { return grid; }
     /** Published derived navigation geometry; exposed for battle diagnostics. */
@@ -1751,6 +1757,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
         systemFxSystem.beginFrame();
+        directControl.validate();
         if (complete) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
@@ -1763,6 +1770,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Releases battle-owned worker resources after the simulation leaves service. */
     @Override
     public void close() {
+        directControl.exit();
         commanderInfluence.close();
         if (asyncDefendTrackRoutes != null) asyncDefendTrackRoutes.close();
         unitUpdate.close();
@@ -1816,6 +1824,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // POSITION directly, so their movement remains visible to facing and
         // separation exactly like every other ground actor.
         movement().beginTick(TICK_DT);
+        directControl.validate();
         // Authored ambient work owns assigned actors only while its threat
         // policy remains quiet. It claims a destination, then advances through
         // ordinary navigation. Position first so occupancy, spatial indices,
@@ -1914,6 +1923,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Squad-level GOAP replan pass. See SquadReplanSystem class doc for
         // ordering + parallelism notes.
         long goapStageStart = System.nanoTime();
+        directControl.validate();
         squadReplan.tick(this);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_SQUAD_REPLAN,
                 System.nanoTime() - goapStageStart);
@@ -1944,6 +1954,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // whole authored duration instead of losing its first tick to this drain.
         mitigationSystem.tick(TICK_DT);
         integralSystemSystem.tick(TICK_DT, this);
+        directControl.tick();
         navigation.beginSharedGoalPathSnapshot();
         try {
             unitUpdate.tick(this);
@@ -1971,8 +1982,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Runs here (serial, after every UPDATE_UNITS position write has
         // landed) and before APPEARANCE (facingSystem/mechLocomotionSystem
         // read final POSITION). See SeparationSystem class doc.
-        swarmAvoidance.tick(TICK_DT);
-        separation.tick(TICK_DT);
+        swarmAvoidance.tick(TICK_DT, directControl.activeUnitId());
+        separation.tick(TICK_DT, directControl.activeUnitId());
         mechCollisionEscape.tick(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SEPARATION);
         // Mirror queued drone-hub spawns into the units list. Only callers
@@ -2215,7 +2226,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechLocomotionSystem.tick(TICK_DT);
         mechGaitSystem.tick(TICK_DT);
         mechTurretSystem.tick(TICK_DT);
-        facingSystem.tick();
+        directControl.validate();
+        facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
+                directControl.intent().aimY());
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
         // present on the tick of activation and gone on the tick the effect

@@ -87,9 +87,9 @@ canonical feature models. Their open boards own focused acceptance, cleanup,
 and extension stories. Start with `ai-nouns.md`, `fog-of-war-nouns.md`,
 `ballistics-nouns.md`, `combat-durability-nouns.md`,
 `battle-render-nouns.md`, and `ecs-nouns.md`.
-`direct-control-nouns.md` proposes a one-unit WASD and mouse mode for a named
-Marine, a combat Mech, or a deployed player vehicle, with physical point-aim
-fire and explicit AI handback; its story board sequences the playable slices.
+`direct-control-nouns.md` owns the one-unit WASD and mouse mode, with physical
+point-aim fire and explicit AI handback. The Marine adapter is ready for live
+acceptance; the story board sequences Mech and deployed-vehicle support.
 
 Air uses one hull-derived atmospheric motion model. Shuttles and fighters are
 both composed world entities flying the same sortie from two origins — a berth

@@ -142,6 +142,7 @@ public final class WorldStateBuilder {
         if (contacts.isEmpty()) return false;
         for (int mi = 0, n = sim.squadMemberCount(squad.id); mi < n; mi++) {
             long member = sim.squadMemberAt(squad.id, mi);
+            if (!squad.availableToPlan(member, sim)) continue;
             for (BelievedContact contact : contacts) {
                 if (!isActionableContact(squad, contact, sim)) continue;
                 float d = TacticalScoring.cellDistance(sim.world().x(member),
@@ -191,6 +192,7 @@ public final class WorldStateBuilder {
     private static boolean evalCanReposition(Squad squad, BattleView sim) {
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long u = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(u, sim)) continue;
             if (sim.world().repositionCooldown(u) <= 0f) return true;
         }
         return false;
@@ -201,6 +203,7 @@ public final class WorldStateBuilder {
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long u = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(u, sim)) continue;
             // Somebody aboard a vehicle is wherever the vehicle is, which is
             // not a thing the squad's own cohesion has an opinion about.
             if (sim.isRiding(u)) continue;

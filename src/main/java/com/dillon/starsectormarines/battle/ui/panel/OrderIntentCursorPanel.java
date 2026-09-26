@@ -54,7 +54,8 @@ public final class OrderIntentCursorPanel implements HudPanel {
     public void update(float dt) {
         BattleSimulation sim = ctx.getSim();
         BattleCamera camera = ctx.getCamera();
-        if (sim == null || camera == null || !camera.containsScreen(mouseX, mouseY)) {
+        if (sim == null || sim.directControl().active() || camera == null
+                || !camera.containsScreen(mouseX, mouseY)) {
             intent = TacticalOrderIntent.NONE;
             return;
         }
@@ -79,6 +80,7 @@ public final class OrderIntentCursorPanel implements HudPanel {
     @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null) return;
+        if (ctx.getSim() != null && ctx.getSim().directControl().active()) return;
         for (InputEventAPI event : events) {
             // Deliberately not consuming and not skipping consumed events: this
             // only watches where the pointer is. Swallowing a move would break

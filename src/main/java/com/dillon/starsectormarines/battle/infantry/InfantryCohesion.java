@@ -27,7 +27,7 @@ public final class InfantryCohesion {
      * over). Solo units — no squad, or squad of one alive — always return
      * null.
      *
-     * <p>The anchor is the {@link Squad#leader} cell when a live leader
+     * <p>The anchor is the {@link Squad#leaderId} cell when a live leader
      * exists and isn't {@code self}: every follower aims at the same
      * point, so route choice converges on one side of an obstacle
      * instead of bifurcating around it. Falls back to the others-centroid
@@ -97,7 +97,7 @@ public final class InfantryCohesion {
      * overstated distance there, which errs toward treating an arrival as late.
      */
     private static int[] pullTarget(long self, Squad squad, BattleView sim) {
-        long leader = sim.resolveUnit(squad.leaderId);
+        long leader = squad.autonomousLeader(sim);
         if (leader != 0L && leader != self) {
             if (withinCohesion(sim.world().x(self), sim.world().y(self),
                     sim.world().x(leader), sim.world().y(leader))) {
@@ -111,9 +111,23 @@ public final class InfantryCohesion {
         // Reconstruct the others-only centroid: (sum - self) / (count - 1).
         // squad.centroidX/Y are true-position (center-based), matching x()/y().
         int othersCount = squad.aliveMembers - 1;
-        if (othersCount <= 0) return null;
         float sumX = squad.centroidX * squad.aliveMembers - sim.world().x(self);
         float sumY = squad.centroidY * squad.aliveMembers - sim.world().y(self);
+        if (squad.controlledMemberId() != 0L) {
+            // Strength still counts the controlled marine; reconstructing this centroid
+            // from strength would pull the acting leader toward a body outside its plan.
+            othersCount = 0;
+            sumX = 0f;
+            sumY = 0f;
+            for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
+                long member = sim.squadMemberAt(squad.id, i);
+                if (member == self || !squad.availableToPlan(member, sim)) continue;
+                sumX += sim.world().x(member);
+                sumY += sim.world().y(member);
+                othersCount++;
+            }
+        }
+        if (othersCount <= 0) return null;
         float cx = sumX / othersCount;
         float cy = sumY / othersCount;
         if (withinCohesion(sim.world().x(self), sim.world().y(self), cx, cy)) return null;
@@ -141,7 +155,8 @@ public final class InfantryCohesion {
      * boundary.
      */
     public static int[] clampPursuitPath(int[] path, Squad squad) {
-        if (path.length == 0 || squad.aliveMembers <= 1) return path;
+        if (path.length == 0 || squad.aliveMembers <= 1
+                || (squad.controlledMemberId() != 0L && squad.aliveMembers <= 2)) return path;
         float radiusSquared = COHESION_RADIUS * COHESION_RADIUS;
         int cells = path.length / 2;
         int permittedCells = cells;

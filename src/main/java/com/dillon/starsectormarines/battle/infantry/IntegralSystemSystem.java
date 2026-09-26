@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatService;
@@ -70,6 +72,8 @@ import java.util.Random;
  * Path state ({@code MovementService.settled}) and the incoming-fire signal
  * ({@code CombatService.incomingPressure}, written by {@code SquadAlertSystem}
  * earlier in the same tick) both read the same from anywhere in the tick.
+ * A manually driven wearer has no path: its legal terrain-swept proposed step
+ * supplies movement and heading without publishing velocity or advancing gait.
  *
  * <p><b>Nothing here reads faction.</b> A defender in a system-carrying pattern
  * reaches this sweep through the same component the player's marines do and is
@@ -184,9 +188,16 @@ public final class IntegralSystemSystem {
             if (!systems.canActivate(id)) continue;
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;
+            ManualTerrainMotion.Result manualStep = null;
+            if (sim.directControl().isControlling(id)) {
+                ManualIntent intent = sim.directControl().intent();
+                manualStep = movement.previewDirect(id, sim.getGrid(), intent.moveX(),
+                        intent.moveY(), sim.physicalRadius(id), dt);
+            }
+            PolicyMotion motion = policyMotion(id, movement, manualStep, dt);
             switch (def.aiPolicy()) {
                 case EXPOSED_UNDER_FIRE -> {
-                    if (exposedUnderFire(id, def.exposedUnderFire(), sim, movement)) {
+                    if (exposedUnderFire(id, def.exposedUnderFire(), sim, motion)) {
                         systems.activate(id);
                     }
                 }
@@ -197,20 +208,18 @@ public final class IntegralSystemSystem {
                     }
                 }
                 case APPROACHING_DEAD_GROUND -> {
-                    // KNOWN DEAD: this reads applied velocity, which is always
-                    // the zero MovementService.beginTick wrote, because this
-                    // sweep runs ahead of the movement pass by design. Unlike
-                    // the crossing test above it cannot simply switch to path
-                    // state — it needs a heading, not a yes/no — so it is
-                    // pending the same treatment rather than fixed in passing.
+                    // AI still needs a pre-movement path heading; its applied
+                    // velocity was reset by beginTick. A controlled wearer's
+                    // legal proposed drive supplies that heading already.
                     ApproachingDeadGroundSpec ahead = def.approachingDeadGround();
-                    if (isMoving(id, movement)
-                            && deadGroundAhead(id, sim, movement, ahead.lookaheadCells())) {
+                    if ((Math.abs(motion.vx()) > MOVING_EPSILON
+                            || Math.abs(motion.vy()) > MOVING_EPSILON)
+                            && deadGroundAhead(id, sim, motion, ahead.lookaheadCells())) {
                         systems.activate(id);
                     }
                 }
                 case HOLDING_A_FIRING_POSITION -> {
-                    if (holdingFiringPosition(id, def.holdingFiringPosition(), sim, movement)) {
+                    if (holdingFiringPosition(id, def.holdingFiringPosition(), sim, motion)) {
                         systems.activate(id);
                     }
                 }
@@ -252,10 +261,10 @@ public final class IntegralSystemSystem {
      * bitmap. Fog is presentation, and a policy that read it would let what the
      * player has already been shown decide what a marine does.
      */
-    private boolean deadGroundAhead(long id, BattleSimulation sim, MovementService movement,
+    private boolean deadGroundAhead(long id, BattleSimulation sim, PolicyMotion motion,
                                     float lookaheadCells) {
-        float vx = movement.velX(id);
-        float vy = movement.velY(id);
+        float vx = motion.vx();
+        float vy = motion.vy();
         float speed = (float) Math.sqrt(vx * vx + vy * vy);
         if (speed <= MOVING_EPSILON) return false;
         World world = rosterService.world();
@@ -324,10 +333,19 @@ public final class IntegralSystemSystem {
         world.setHp(patient, Math.min(maximum, world.hp(patient) + aid.restoredHealth()));
     }
 
-    private static boolean isMoving(long id, MovementService movement) {
-        float vx = movement.velX(id);
-        float vy = movement.velY(id);
-        return Math.abs(vx) > MOVING_EPSILON || Math.abs(vy) > MOVING_EPSILON;
+    /** Facts for the early policy pass; manual preview never mutates movement. */
+    record PolicyMotion(boolean underway, float vx, float vy) {}
+
+    static PolicyMotion policyMotion(long id, MovementService movement,
+                                     ManualTerrainMotion.Result manualStep, float dt) {
+        if (manualStep == null) {
+            if (!movement.has(id)) return new PolicyMotion(false, 0f, 0f);
+            return new PolicyMotion(!movement.settled(id), movement.velX(id), movement.velY(id));
+        }
+        float vx = dt > 0f ? manualStep.dx() / dt : 0f;
+        float vy = dt > 0f ? manualStep.dy() / dt : 0f;
+        return new PolicyMotion(Math.abs(vx) > MOVING_EPSILON
+                || Math.abs(vy) > MOVING_EPSILON, vx, vy);
     }
 
     /**
@@ -343,7 +361,7 @@ public final class IntegralSystemSystem {
      * cheap part.
      */
     private boolean exposedUnderFire(long id, ExposedUnderFireSpec spec, BattleSimulation sim,
-                                     MovementService movement) {
+                                     PolicyMotion motion) {
         CombatService combat = rosterService.combat();
         if (!combat.has(id)) return false;
         switch (DEBUG_SCREEN_TRIGGER) {
@@ -367,13 +385,9 @@ public final class IntegralSystemSystem {
             return false;
         }
 
-        // Occasion one: crossing ground. Path state, not applied velocity —
-        // this sweep deliberately runs ahead of the movement pass so an
-        // activation's speed multiplier is in place before the wearer steps,
-        // which means every mover's velocity here is the zero beginTick just
-        // wrote. An unexhausted path is what "under way" actually means and it
-        // reads the same wherever in the tick it is asked.
-        if (!movement.settled(id)) return true;
+        // Occasion one: crossing ground. AI follows an unexhausted path;
+        // manual drive uses its legal proposed step before speed effects apply.
+        if (motion.underway()) return true;
 
         // Occasion two: outranged. They can reach the carrier and the carrier
         // cannot reach back, so there is no version of shooting first that
@@ -397,16 +411,13 @@ public final class IntegralSystemSystem {
      * break-off check is last because it is the only one that costs a spatial
      * query.
      *
-     * <p><b>Path state, never applied velocity.</b> This sweep runs ahead of the
-     * movement pass, so every mover's velocity here is the zero
-     * {@code MovementService.beginTick} just wrote — a stance keyed off it would
-     * fire on everybody, every tick, which is the same defect that made this
-     * policy's sibling never fire at all.
+     * <p>The early motion facts use AI path state or legal manual drive, since
+     * applied velocity is still zero before the movement pass.
      */
     private boolean holdingFiringPosition(long id, HoldingFiringPositionSpec spec,
-                                          BattleSimulation sim, MovementService movement) {
+                                          BattleSimulation sim, PolicyMotion motion) {
         if (spec == null) return false;
-        if (!movement.settled(id)) return false;
+        if (motion.underway()) return false;
 
         CombatService combat = rosterService.combat();
         if (!combat.has(id)) return false;

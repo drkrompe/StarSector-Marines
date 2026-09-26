@@ -32,4 +32,7 @@ public interface HudPanel {
 
     /** When false, the panel skips update/render/input for the frame. */
     boolean isVisible();
+
+    /** Opaque chrome blocks held world controls even without a fresh click. */
+    default boolean blocksWorldPointer(float x, float y) { return false; }
 }

@@ -214,7 +214,7 @@ public final class FrontageDefense implements Goal {
         if (threatened.isEmpty()) return null;
 
         started = profile == null ? 0L : System.nanoTime();
-        int alive = Math.max(1, squad.aliveMembers);
+        int alive = Math.max(1, squad.autonomousMemberCount(sim));
         int reserve = alive >= MIN_SQUAD_FOR_RESERVE
                 ? Math.max(1, Math.round(alive * RESERVE_FRACTION)) : 0;
         // The reserve is there so one threatened facing cannot strip the rest

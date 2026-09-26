@@ -153,13 +153,13 @@ public final class DefendTrack implements Action {
     private static int[] formationCell(long member, Squad squad,
                                        int anchorX, int anchorY,
                                        BattleView sim) {
-        int count = sim.squadMemberCount(squad.id);
+        int count = squad.autonomousMemberCount(sim);
         int ordinal = 0;
-        for (int i = 0; i < count; i++) {
-            if (sim.squadMemberAt(squad.id, i) == member) {
-                ordinal = i;
-                break;
-            }
+        for (int i = 0, size = sim.squadMemberCount(squad.id); i < size; i++) {
+            long candidate = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(candidate, sim)) continue;
+            if (candidate == member) break;
+            ordinal++;
         }
         int teamCount = Math.max(1, (count + Squad.FIRE_TEAM_SIZE - 1)
                 / Squad.FIRE_TEAM_SIZE);

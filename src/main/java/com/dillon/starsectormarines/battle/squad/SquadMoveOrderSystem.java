@@ -388,6 +388,10 @@ public final class SquadMoveOrderSystem {
     }
 
     private static long firstLiveMember(Squad squad, BattleSimulation sim) {
+        if (squad.controlledMemberId() != 0L) {
+            long actingLeader = squad.autonomousLeader(sim);
+            if (actingLeader != 0L) return actingLeader;
+        }
         long leader = sim.resolveUnit(squad.leaderId);
         if (leader != 0L) return leader;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {

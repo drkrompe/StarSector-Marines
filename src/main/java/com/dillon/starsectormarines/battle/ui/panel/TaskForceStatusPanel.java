@@ -77,6 +77,14 @@ public final class TaskForceStatusPanel implements HudPanel {
     }
 
     @Override
+    public boolean blocksWorldPointer(float x, float y) {
+        if (!isVisible() || ctx.getLayout() == null) return false;
+        float bottom = panelY();
+        return x >= panelX() && x < panelX() + PANEL_W
+                && y >= bottom && y < bottom + PANEL_H;
+    }
+
+    @Override
     public void handleInput(List<InputEventAPI> events) {
         if (events == null) return;
         float x = panelX();

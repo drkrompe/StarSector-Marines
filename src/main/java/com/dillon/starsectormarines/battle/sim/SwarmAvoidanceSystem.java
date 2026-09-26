@@ -50,11 +50,17 @@ public final class SwarmAvoidanceSystem {
 
     /** Applies one bounded avoidance steer to each live allied infantry unit. */
     public void tick(float dt) {
+        tick(dt, 0L);
+    }
+
+    /** Manual drive owns the controlled member's response to nearby threats. */
+    public void tick(float dt, long controlledUnitId) {
         if (dt <= 0f) return;
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
         for (int i = 0; i < liveCount; i++) {
             long marine = dense[i];
+            if (marine == controlledUnitId) continue;
             if (!avoidsAliens(marine)) continue;
             applyAvoidance(marine, dt);
         }

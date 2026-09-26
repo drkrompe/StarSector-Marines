@@ -106,20 +106,13 @@ public final class PatrolMotion {
         return ActionStatus.RUNNING;
     }
 
-    /**
-     * Whether THIS member counts down the shared dwell timer this tick. Normally
-     * only the leader does, so the timer decrements once per tick rather than
-     * once per member. But if the leader is dead or unset — {@code leaderId} is
-     * the {@code 0L} wipe sentinel, or resolves to no live unit (a death path
-     * that didn't promote) — no member would match and the dwell would never
-     * expire, parking the whole squad in {@link #onHold} forever (the SQ-96
-     * garrison stall). Fall back to letting every member tick it: the timer
-     * drains faster while leaderless (self-corrects on the next promotion) but
-     * the patrol never freezes.
-     */
+    /** Exactly one available member writes the dwell, including when the real leader is controlled. */
     private static boolean ticksDwell(long member, Squad squad, BattleView sim) {
-        if (member == squad.leaderId) return true;
-        return squad.leaderId == 0L || sim.resolveUnit(squad.leaderId) == 0L;
+        long writer = squad.autonomousLeader(sim);
+        if (writer != 0L) return member == writer;
+        // Preserve the leaderless recovery path for a squad whose roster membership
+        // has not been published yet. A controlled-only squad has no AI writer.
+        return squad.controlledMemberId() == 0L && squad.participatesInPlan(member);
     }
 
     public static boolean hasValidWaypoint(Squad squad) {

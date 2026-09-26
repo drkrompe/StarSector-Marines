@@ -132,7 +132,7 @@ public final class SquadRejoin {
                                          UnitRosterService roster) {
         World world = roster.world();
         long leader = squad.leaderId;
-        if (leader != 0L && leader != joining && roster.isAliveById(leader)) {
+        if (leader != 0L && leader != joining && squad.participatesInPlan(leader) && roster.isAliveById(leader)) {
             return new float[]{world.x(leader), world.y(leader)};
         }
         long[] members = roster.squadMemberArray(squad.id);
@@ -142,7 +142,7 @@ public final class SquadRejoin {
         int others = 0;
         for (int i = 0; i < count; i++) {
             long member = members[i];
-            if (member == joining) continue;
+            if (member == joining || !squad.participatesInPlan(member)) continue;
             sumX += world.x(member);
             sumY += world.y(member);
             others++;

@@ -127,7 +127,7 @@ public final class DefendArea implements Action {
     private int[] preparedPosition(long member, int threatX, int threatY,
                                    Squad squad, BattleView sim) {
         int ordinal = memberOrdinal(member, squad, sim);
-        int count = squad != null ? Math.max(1, sim.squadMemberCount(squad.id)) : 1;
+        int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         float axisX = threatX - centerX;
         float axisY = threatY - centerY;
         float length = (float) Math.sqrt(axisX * axisX + axisY * axisY);
@@ -148,7 +148,7 @@ public final class DefendArea implements Action {
 
     private int[] quietPosition(long member, Squad squad, BattleView sim) {
         int ordinal = memberOrdinal(member, squad, sim);
-        int count = squad != null ? Math.max(1, sim.squadMemberCount(squad.id)) : 1;
+        int count = squad != null ? Math.max(1, squad.autonomousMemberCount(sim)) : 1;
         int columns = Math.min(4, count);
         int x = centerX + ordinal % columns - (columns - 1) / 2;
         int y = centerY + ordinal / columns;
@@ -233,8 +233,12 @@ public final class DefendArea implements Action {
 
     private static int memberOrdinal(long member, Squad squad, BattleView sim) {
         if (squad == null) return 0;
+        int ordinal = 0;
         for (int i = 0, count = sim.squadMemberCount(squad.id); i < count; i++) {
-            if (sim.squadMemberAt(squad.id, i) == member) return i;
+            long candidate = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(candidate, sim)) continue;
+            if (candidate == member) return ordinal;
+            ordinal++;
         }
         return 0;
     }

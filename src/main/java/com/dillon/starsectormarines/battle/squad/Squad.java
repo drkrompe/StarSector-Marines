@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.squad;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -464,6 +465,90 @@ public final class Squad {
      */
     private final Set<Long> rejoining = ConcurrentHashMap.newKeySet();
 
+    /** Player input owns this member until released; membership and leader identity stay intact. */
+    private volatile long controlledMemberId;
+
+    public long controlledMemberId() {
+        return controlledMemberId;
+    }
+
+    /** Availability for plan roles and arrival checks; physical squad strength is unchanged. */
+    public boolean participatesInPlan(long member) {
+        return member != 0L && member != controlledMemberId && !isRejoining(member);
+    }
+
+    /** The live member who anchors autonomous movement and writes shared execution timers. */
+    public long autonomousLeader(BattleView sim) {
+        long leader = sim.resolveUnit(leaderId);
+        if (availableToPlan(leader, sim)) return leader;
+        for (int i = 0, count = sim.squadMemberCount(id); i < count; i++) {
+            long member = sim.resolveUnit(sim.squadMemberAt(id, i));
+            if (availableToPlan(member, sim)) return member;
+        }
+        return 0L;
+    }
+
+    public boolean availableToPlan(long member, BattleView sim) {
+        return participatesInPlan(member) && !sim.isRiding(member)
+                && (!sim.squad().hasSquad(member)
+                || !fireTeamBroken(sim.squad().fireTeamIndex(member)));
+    }
+
+    public int autonomousMemberCount(BattleView sim) {
+        int count = 0;
+        for (int i = 0, size = sim.squadMemberCount(id); i < size; i++) {
+            if (availableToPlan(sim.squadMemberAt(id, i), sim)) count++;
+        }
+        return count;
+    }
+
+    /**
+     * Serialized input-ownership boundary. A fresh plan is required on both entry and handback:
+     * retained role partitions and bound destinations describe the previous autonomous population.
+     * Passing zero releases control even when the old body has already died or left the roster.
+     */
+    public void setControlledMember(long member, BattleView sim) {
+        synchronized (lock) {
+            if (controlledMemberId == member) return;
+            controlledMemberId = member;
+            if (currentPlan != null) {
+                for (SquadPlan.Step step : currentPlan.steps()) step.assignments.clear();
+            }
+            currentPlan = null;
+            currentGoal = null;
+            clearBoundingOverwatch();
+            clearMechScreen();
+            clearSmokeReservation();
+            clearEngagementDisciplineHold();
+            breachStackupTimer = 0f;
+            chokePointPortalId = -1;
+            advanceEngageWeight = 0f;
+            advanceEngageCommitted = false;
+            advanceThreatTick = -1;
+            // Commands can run between aggregate passes. Publish the new movement anchor now.
+            float sumX = 0f;
+            float sumY = 0f;
+            int count = 0;
+            for (int i = 0, size = sim.squadMemberCount(id); i < size; i++) {
+                long candidate = sim.squadMemberAt(id, i);
+                if (candidate == controlledMemberId || sim.isRiding(candidate)) continue;
+                sumX += sim.world().x(candidate);
+                sumY += sim.world().y(candidate);
+                count++;
+            }
+            if (count > 0) {
+                centroidX = sumX / count;
+                centroidY = sumY / count;
+            } else if (sim.resolveUnit(controlledMemberId) != 0L) {
+                // A solo controlled marine has no autonomous geometry; retain a useful
+                // finite location for squad diagnostics until handback.
+                centroidX = sim.world().x(controlledMemberId);
+                centroidY = sim.world().y(controlledMemberId);
+            }
+        }
+    }
+
+
     /**
      * Whether {@code unitId} is closing on the squad rather than taking part in
      * its plan. Pure read, safe from the parallel dispatch, and never creates
@@ -487,9 +572,12 @@ public final class Squad {
     public int rejoiningCount() {
         return rejoining.size();
     }
-    /** Centroid X over alive members. Undefined when {@link #aliveMembers} is 0. */
+    /** Grounded bodies accumulated into the physical centroid by the serial awareness pass. */
+    int centroidMembers;
+
+    /** Tactical centroid X, excluding the player-controlled body while squadmates remain. */
     public float centroidX = 0f;
-    /** Centroid Y over alive members. Undefined when {@link #aliveMembers} is 0. */
+    /** Tactical centroid Y, excluding the player-controlled body while squadmates remain. */
     public float centroidY = 0f;
     /**
      * Internal flags filled mid-pass by {@code SquadAlertSystem}

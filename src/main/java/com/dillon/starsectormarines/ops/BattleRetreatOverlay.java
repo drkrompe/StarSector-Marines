@@ -119,6 +119,10 @@ final class BattleRetreatOverlay {
                 position.getY() + EDGE_INSET, width, height, scale);
     }
 
+    boolean confirmingRetreat() {
+        return presentation == BattleRetreatOverlayModel.Presentation.CONFIRM;
+    }
+
     boolean blocksWorldPointer(float x, float y) {
         if (viewport == null) return false;
         return x >= viewport.screenX() && x < viewport.screenX() + viewport.width()
