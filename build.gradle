@@ -121,9 +121,11 @@ tasks.withType(Test).configureEach {
     // runs would report a battle nobody can play.
     systemProperty 'marines.debug.screenTrigger', 'off'
     // Keep evidence and ordinary tests deterministic even though live battles
-    // use async rally routes. Profile A/B can opt in with -D...=true.
+    // use async rally routes and influence propagation. Profile A/B can opt in.
     systemProperty 'battle.pathfinding.asyncDefendTrack',
             System.getProperty('battle.pathfinding.asyncDefendTrack', 'false')
+    systemProperty 'battle.influence.async',
+            System.getProperty('battle.influence.async', 'false')
     forwardBattleSwitches(delegate)
 }
 
@@ -468,6 +470,8 @@ tasks.register('profileConquestTail', Test) {
             file('src/test/resources/battle-fixtures/conquest-full-strength-west-v3.json').absolutePath)
     systemProperty 'battle.pathfinding.asyncDefendTrack',
             System.getProperty('battle.pathfinding.asyncDefendTrack', 'true')
+    systemProperty 'battle.influence.async',
+            System.getProperty('battle.influence.async', 'true')
     systemProperty 'battle.unitUpdate.minimumParallelUnits',
             System.getProperty('battle.unitUpdate.minimumParallelUnits', '48')
     systemProperty 'battle.tail.outputDir', System.getProperty('battle.tail.outputDir',
@@ -520,6 +524,7 @@ tasks.register('createSnapshots', JavaExec) {
     mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {
@@ -547,6 +552,7 @@ tasks.register('sceneEvidence', JavaExec) {
     mainClass = 'com.dillon.starsectormarines.battle.scene.SceneEvidenceCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {
@@ -567,6 +573,7 @@ tasks.register('layerAuthoring', JavaExec) {
     mainClass = 'com.dillon.starsectormarines.tools.layerauthoring.LayerAuthoringWorkbench'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.influence.async', 'false'
     args projectDir.absolutePath
 }
 
@@ -611,7 +618,9 @@ tasks.register('installAuthoringTools') {
                 .collect { it.replace('\\', '/') }
                 .join(File.pathSeparator)
         File argsFile = new File(output, 'classpath.args')
-        argsFile.text = '-classpath "' + classpath + '"' + System.lineSeparator()
+        // These launchers can run the deterministic snapshot catalog in-process.
+        argsFile.text = ('-Dbattle.influence.async=false' + System.lineSeparator()
+                + '-classpath "' + classpath + '"' + System.lineSeparator())
 
         String java = javaExecutable.get()
         String argfile = '"@' + argsFile.absolutePath + '"'

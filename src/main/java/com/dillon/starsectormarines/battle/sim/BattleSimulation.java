@@ -607,7 +607,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // wire it with damageResolver::resolve as the applier method ref.
         this.rosterService = new UnitRosterService(unitIndex, null);
         this.commanderInfluence = new CommanderInfluenceService(grid, rosterService,
-                () -> navigation.getNavigationMesh().snapshot().revision());
+                () -> navigation.getNavigationMesh().snapshot().revision(),
+                Boolean.parseBoolean(System.getProperty(
+                        CommanderInfluenceService.ASYNC_PROPERTY, "true")));
         this.resupplySystem = new com.dillon.starsectormarines.battle.logistics.ResupplySystem(
                 resupply, rosterService);
         // The entity world + component registrations are owned by the roster
@@ -1607,10 +1609,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public CommanderInfluenceSnapshot getCommanderInfluence(Faction faction) {
-        // Influence is a read-only diagnostic today. Preserve its 15-tick
-        // immutable publication cadence for actual readers without spending
-        // four topology propagations in battles where no debug overlay or
-        // diagnostic consumer requested a snapshot.
+        // Production reads request a future refresh and keep the previous
+        // paired snapshot. Publication happens only at the serial tick boundary.
         commanderInfluence.tick(simTickIndex);
         return commanderInfluence.snapshot(faction);
     }
@@ -1618,6 +1618,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Non-advancing diagnostic read of the most recently published field. */
     public CommanderInfluenceSnapshot peekCommanderInfluence(Faction faction) {
         return commanderInfluence.snapshot(faction);
+    }
+
+    public CommanderInfluenceService.Metrics getCommanderInfluenceMetrics() {
+        return commanderInfluence.metrics();
     }
 
     /** Reinforcement service for trigger / means registration. {@code BattleSetup} populates this per mission. */
@@ -1758,6 +1762,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Releases battle-owned worker resources after the simulation leaves service. */
     @Override
     public void close() {
+        commanderInfluence.close();
         if (asyncDefendTrackRoutes != null) asyncDefendTrackRoutes.close();
         unitUpdate.close();
         // The host thread participates in profiling/LoS work outside the
@@ -1859,6 +1864,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // repath consults this, and a battle nobody is watching still has to
         // forget.
         commanderInfluence.advanceCasualties(simTickIndex);
+        commanderInfluence.advanceAsync(simTickIndex);
         // Divide a shared contact between the squads attacking it, after every
         // contact picture exists and before any of them plans against it — so
         // cooperating squads read one answer rather than each deciding it is

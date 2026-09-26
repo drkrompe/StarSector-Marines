@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
@@ -68,6 +69,7 @@ class BattleFixtureTailProfileTest {
                               GcCounters gcBefore, GcCounters gcAfter,
                               AsyncDefendTrackRoutes.Metrics routesBefore,
                               AsyncDefendTrackRoutes.Metrics routesAfter,
+                              CommanderInfluenceService.Metrics influence,
                               long gridChanges, long gridChangesConsumedByMesh,
                               boolean meshRefreshed,
                               int meshTilesCovered, int meshSeamsDerived,
@@ -146,6 +148,9 @@ class BattleFixtureTailProfileTest {
         long totalReplans = 0;
         AsyncDefendTrackRoutes.Metrics firstRoutes;
         AsyncDefendTrackRoutes.Metrics finalRoutes;
+        CommanderInfluenceService.Metrics firstInfluence = null;
+        CommanderInfluenceService.Metrics finalInfluence;
+        int maximumInfluenceAge = 0;
         ConvoyUncachedStages convoyUncachedStages = null;
         long nextDeadline = System.nanoTime();
         long paceNanos = paceMillis * 1_000_000L;
@@ -162,6 +167,9 @@ class BattleFixtureTailProfileTest {
                 recording.enable(TailTickEvent.class);
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
+            assertEquals(Boolean.parseBoolean(System.getProperty(
+                            CommanderInfluenceService.ASYNC_PROPERTY, "true")),
+                    sim.getCommanderInfluenceMetrics().asynchronous());
             setupPendingMeshChanges = sim.getNavigationMesh().pendingGridChanges();
             sim.getSquadReplanSystem().setDiagnosticsEnabled(true);
             sim.getUnitUpdateSystem().setDiagnosticsEnabled(true);
@@ -173,6 +181,9 @@ class BattleFixtureTailProfileTest {
             // before the first tick whose timing enters the report.
             int recordingStart = Math.max(0, warmupTicks - 30);
             for (int attempt = 0; attempt < totalTicks; attempt++) {
+                if (attempt == warmupTicks) {
+                    firstInfluence = sim.getCommanderInfluenceMetrics();
+                }
                 if (recording != null && attempt == recordingStart) recording.start();
                 assertFalse(sim.isComplete(), "fixture ended before tick " + (attempt + 1));
                 int beforeTick = sim.simTickIndex;
@@ -211,6 +222,11 @@ class BattleFixtureTailProfileTest {
                         - mesh.pendingGridChanges() : 0L;
 
                 if (sim.simTickIndex > warmupTicks) {
+                    CommanderInfluenceService.Metrics influence = sim.getCommanderInfluenceMetrics();
+                    if (influence.publishedCaptureTick() >= 0) {
+                        maximumInfluenceAge = Math.max(maximumInfluenceAge,
+                                sim.simTickIndex - influence.publishedCaptureTick());
+                    }
                     if (meshRefreshed) {
                         meshRefreshes++;
                         meshTilesCovered += mesh.lastTilesCovered();
@@ -266,6 +282,7 @@ class BattleFixtureTailProfileTest {
                                 sim.getUnitUpdateSystem().lastTickDiagnostics(),
                                 gcBefore, gcAfter,
                                 routesBefore, routesAfter,
+                                influence,
                                 gridChangesThisTick,
                                 gridChangesConsumedByMesh,
                                 meshRefreshed,
@@ -301,6 +318,7 @@ class BattleFixtureTailProfileTest {
             }
             assertEquals(totalTicks, sim.simTickIndex);
             finalRoutes = sim.asyncDefendTrackRoutes().metrics();
+            finalInfluence = sim.getCommanderInfluenceMetrics();
             if (recording != null) {
                 recording.stop();
                 recording.dump(jfrPath);
@@ -342,6 +360,19 @@ class BattleFixtureTailProfileTest {
                 meshRebuildNanos, meshRefreshSamples, totalReplans,
                 minimumUnits, maximumUnits, firstRoutes,
                 finalRoutes, jfrPath, convoyUncachedStages);
+        assertNotNull(firstInfluence);
+        assertEquals(0, finalInfluence.failed(), "influence worker failed during replay");
+        report.put("influence", new JSONObject()
+                .put("asynchronous", finalInfluence.asynchronous())
+                .put("submitted", finalInfluence.submitted() - firstInfluence.submitted())
+                .put("completed", finalInfluence.completed() - firstInfluence.completed())
+                .put("published", finalInfluence.published() - firstInfluence.published())
+                .put("discarded", finalInfluence.discarded() - firstInfluence.discarded())
+                .put("failed", finalInfluence.failed() - firstInfluence.failed())
+                .put("workerTotalMs", millis(finalInfluence.workerNanos() - firstInfluence.workerNanos()))
+                .put("maxWorkerMsIncludingWarmup", millis(finalInfluence.maxWorkerNanos()))
+                .put("maximumPublishedAgeTicks", maximumInfluenceAge)
+                .put("inFlightAtEnd", finalInfluence.inFlight()));
         assertEquals(Math.min(topLimit, durations.length),
                 report.getJSONArray("worstTicks").length());
         assertEquals(TickProfile.Phase.VALUES.length,
@@ -398,7 +429,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 6);
+        report.put("schemaVersion", 7);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -521,6 +552,12 @@ class BattleFixtureTailProfileTest {
         tick.put("totalMs", millis(sample.totalNanos()));
         tick.put("units", sample.units());
         tick.put("squads", sample.squads());
+        tick.put("influence", new JSONObject()
+                .put("inFlight", sample.influence().inFlight())
+                .put("publishedCaptureTick", sample.influence().publishedCaptureTick())
+                .put("workerTotalMsToDate", millis(sample.influence().workerNanos()))
+                .put("failedToDate", sample.influence().failed())
+                .put("discardedToDate", sample.influence().discarded()));
         tick.put("gcCollections", sample.gcAfter().collections()
                 - sample.gcBefore().collections());
         tick.put("gcCollectionMs", sample.gcAfter().collectionMillis()

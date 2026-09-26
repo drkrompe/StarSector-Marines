@@ -10,8 +10,78 @@ import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InfluenceTopologyNearestTest {
+
+    @Test
+    void sourceGridChangesDoNotAlterCapturedComponentsEdgesOrPropagation() {
+        ReadGuardGrid grid = new ReadGuardGrid(8, 4);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkable(3, 1, false);
+        InfluenceTopology topology = new InfluenceTopology(grid, 4);
+        int[] left = topology.componentsForCell(1, 1).clone();
+        int[] right = topology.componentsForCell(6, 1).clone();
+        int[] wallNearest = topology.componentsForCell(3, 1).clone();
+        int[] offMapNearest = topology.componentsForCell(8, 1).clone();
+        assertEquals(2, topology.componentCount());
+        assertArrayEquals(right, topology.neighbors(left[0]));
+        List<InfluenceSource> sources = List.of(new InfluenceSource(1, 1, 1f));
+        float[] propagated = InfluenceFieldBuilder.propagate(topology, sources);
+
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                grid.setWalkable(x, y, false);
+            }
+        }
+        assertEquals(0, new InfluenceTopology(grid, 4).componentCount(),
+                "a fresh topology must observe the mutation");
+        grid.rejectReads = true;
+        assertArrayEquals(left, topology.componentsForCell(1, 1));
+        assertArrayEquals(right, topology.componentsForCell(6, 1));
+        assertArrayEquals(wallNearest, topology.componentsForCell(3, 1));
+        assertArrayEquals(offMapNearest, topology.componentsForCell(8, 1));
+        assertArrayEquals(right, topology.neighbors(left[0]));
+        assertArrayEquals(left, topology.neighbors(right[0]));
+        assertArrayEquals(propagated, InfluenceFieldBuilder.propagate(topology, sources));
+    }
+
+    /** Once captured, even dimension/index queries must not reach the live grid. */
+    private static final class ReadGuardGrid extends NavigationGrid {
+        private boolean rejectReads;
+
+        private ReadGuardGrid(int width, int height) {
+            super(width, height);
+        }
+
+        @Override public int getWidth() {
+            requireReadable();
+            return super.getWidth();
+        }
+
+        @Override public int getHeight() {
+            requireReadable();
+            return super.getHeight();
+        }
+
+        @Override public boolean inBounds(int x, int y) {
+            requireReadable();
+            return super.inBounds(x, y);
+        }
+
+        @Override public int index(int x, int y) {
+            requireReadable();
+            return super.index(x, y);
+        }
+
+        private void requireReadable() {
+            if (rejectReads) throw new AssertionError("captured topology read its source grid");
+        }
+    }
 
     @Test
     void nearestComponentsAgreeWithFullMapScanIncludingTies() {
