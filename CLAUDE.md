@@ -217,6 +217,16 @@ Do not run builds or leave generated task files there.
   live dump is a tick-zero construction fixture, not
   an in-flight state snapshot, so replay need not reproduce the exact spike.
   Timings are machine-local diagnostic evidence, never a portable test gate.
+  `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
+  scheduling controls; omission retains the production processor-count policy.
+  The tail report separates sampled per-unit wall time from summed worker CPU
+  time across the dispatch. CPU excludes time off-CPU, not just useful work;
+  worker scheduling overhead is included, and `cpuMeasuredThreads` reports
+  counter availability. Both sums overlap across workers and are not tick wall
+  time. Use the custom tick event's `wallNanos` for JFR wall comparisons: on the
+  bundled Intel Java 17 running through Rosetta, JFR event duration was measured
+  at about 0.4 times `nanoTime`/real elapsed time. Event overlaps remain useful,
+  but uncalibrated JFR durations there are not milliseconds of wall time.
   This focused tail pass does not replace the proposed fixture performance
   matrix and its cross-run compatibility checks.
 - `gradlew.bat profileConvoyRoute` → isolated full-size Conquest route-proof

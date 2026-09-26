@@ -8,8 +8,32 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UnitUpdateDiagnosticsTest {
+
+    @Test
+    void parallelismOverrideLeavesTheDefaultPolicyUnchanged() {
+        assertEquals(17, UnitUpdateSystem.resolvePoolParallelism(18, null));
+        assertEquals(1, UnitUpdateSystem.resolvePoolParallelism(1, null));
+        assertEquals(8, UnitUpdateSystem.resolvePoolParallelism(18, "8"));
+        assertEquals(1, UnitUpdateSystem.resolvePoolParallelism(18, "1"));
+        assertThrows(IllegalArgumentException.class,
+                () -> UnitUpdateSystem.resolvePoolParallelism(18, "0"));
+        assertThrows(IllegalArgumentException.class,
+                () -> UnitUpdateSystem.resolvePoolParallelism(18, "32768"));
+        assertThrows(IllegalArgumentException.class,
+                () -> UnitUpdateSystem.resolvePoolParallelism(18, "invalid"));
+    }
+
+    @Test
+    void unsupportedOrResetCpuCountersAreNotReportedAsZeroWork() {
+        assertEquals(25L, UnitUpdateSystem.cpuDeltaNanos(100L, 125L));
+        assertEquals(0L, UnitUpdateSystem.cpuDeltaNanos(100L, 100L));
+        assertEquals(-1L, UnitUpdateSystem.cpuDeltaNanos(-1L, 125L));
+        assertEquals(-1L, UnitUpdateSystem.cpuDeltaNanos(100L, -1L));
+        assertEquals(-1L, UnitUpdateSystem.cpuDeltaNanos(100L, 99L));
+    }
 
     @Test
     void keepsOnlySlowestEightAcrossWorkerCollectors() {
