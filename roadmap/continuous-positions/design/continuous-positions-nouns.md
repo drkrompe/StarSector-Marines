@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — shared-goal reverse fields serve every converging-mover behavior, not only the swarm, above one shared density crossover.
+Updated: 2026-09-26 — defined continuous body-clearance route proofs and explicit endpoint tolerance.
 
 ## Vocabulary
 
@@ -14,6 +14,13 @@ Updated: 2026-08-28 — shared-goal reverse fields serve every converging-mover 
 - **Path** is a grid route: an ordered sequence of cell destinations connected
   by passable transitions. It guides a continuous mover but is not the mover's
   location.
+- A **clearance route** proves a circular body can follow continuous waypoints
+  through that same terrain. Its requested destination and its resolved legal
+  endpoint are distinct; accepting a nearby endpoint requires an explicit
+  tolerance. A half-cell graph can represent a wide body's centerline between
+  ordinary cell centers, but is still a discrete approximation of continuous
+  reachability. Its route proof does not replace current terrain checks during
+  motion. Runtime adoption for Mechs is tracked in `mech-terrain-clearance.md`.
 - **Navigation region** is a derived axis-aligned rectangle of compatible
   walkable cells joined by passable internal edges. Regions and their boundary
   intervals form the acceleration seam for higher-level routing; they never replace or modify the

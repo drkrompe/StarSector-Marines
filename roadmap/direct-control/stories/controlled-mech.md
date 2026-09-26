@@ -4,10 +4,10 @@ Status: PLANNED
 
 Written: 2026-09-23
 
-Updated: 2026-09-23 — specified Mech clearance and pivot collision gates.
+Updated: 2026-09-26 — separated shared body-clearance routing as a prerequisite.
 
 Read `direct-control-nouns.md` and `mechs-nouns.md` first.
-Depends on `controlled-marine.md`.
+Depends on `controlled-marine.md` and `mech-terrain-clearance.md`.
 
 ## Goal
 

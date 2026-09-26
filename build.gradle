@@ -516,6 +516,17 @@ tasks.register('profileConvoyRoute', Test) {
     testLogging { showStandardStreams = true }
 }
 
+tasks.register('profileClearanceRoute', JavaExec) {
+    group = 'verification'
+    description = 'Measure bounded circular-clearance route searches on production-size synthetic terrain.'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.battle.nav.ClearanceRouteEvidenceCli'
+    workingDir projectDir
+    outputs.upToDateWhen { false }
+    args layout.buildDirectory.dir('reports/performance/clearance-route').get().asFile.absolutePath
+}
+
 tasks.register('createSnapshots', JavaExec) {
     group = 'verification'
     description = 'Create deterministic visual snapshots without launching Starsector'
