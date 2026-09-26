@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 /**
  * <b>Squad posture: clear a zone.</b> Stays inside {@link #targetZoneId} and
@@ -38,6 +39,14 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
  * planner.
  */
 public final class ClearZone extends AbstractZoneAction implements SquadRouteGoalProvider {
+
+    private final boolean pruneTargetSelection = prunedTargetSelectionEnabled();
+
+    /** Same-build control for the original two-pass, unpruned target selection. */
+    public static boolean prunedTargetSelectionEnabled() {
+        return Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.pruneClearZoneSelection", "true"));
+    }
 
     @Override
     public Goal squadRouteGoal(Squad squad, BattleView sim) {
@@ -90,8 +99,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         if (target == 0L
                 || targetOutOfZone
                 || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            long inZone = pickInZoneTarget(member, sim);
-            if (inZone == 0L) inZone = pickNearestInZoneEnemy(member, sim);
+            long inZone = pickZoneTarget(member, sim);
             target = inZone != 0L ? inZone : sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
@@ -152,21 +160,78 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
     }
 
     /**
-     * Scans enemies of the squad's faction whose cell sits in the target zone
-     * and returns the closest visible one. Linear over the unit list — fine
-     * given typical squad-tick budgets. Returns {@code 0L} when no in-zone enemy
-     * exists (caller falls back to {@link #pickNearestInZoneEnemy}, then
-     * to the normal squad-aware picker).
+     * Closest visible in-zone enemy, or closest in-zone enemy when none is
+     * visible. A farther candidate cannot beat an existing visible winner,
+     * so distance rules it out before paying for its LOS ray. Both winners
+     * are maintained in one dense-roster pass, retaining the first exact tie.
+     * No sight-radius cap or snapshot-position assumption narrows the zone.
      */
-    private long pickInZoneTarget(long self, BattleView sim) {
+    long pickZoneTarget(long self, BattleView sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile == null ? 0L : System.nanoTime();
+        TargetScanWork work = profile == null ? null : new TargetScanWork();
+        try {
+            return pickZoneTarget(self, sim, work);
+        } finally {
+            if (profile != null) {
+                profile.record(TickInnerProfile.Bucket.CLEAR_ZONE_TARGET_SELECT,
+                        System.nanoTime() - started);
+                profile.recordCount(TickInnerProfile.Bucket.CLEAR_ZONE_TARGET_VISIT, work.visits);
+                profile.recordCount(TickInnerProfile.Bucket.CLEAR_ZONE_TARGET_RAY, work.rays);
+            }
+        }
+    }
+
+    private static final class TargetScanWork {
+        int visits;
+        int rays;
+    }
+
+    private long pickZoneTarget(long self, BattleView sim, TargetScanWork work) {
+        if (!pruneTargetSelection) {
+            long visible = pickInZoneTarget(self, sim, work);
+            return visible != 0L ? visible : pickNearestInZoneEnemy(self, sim, work);
+        }
+        Faction selfFaction = sim.identity().faction(self);
+        float selfX = sim.world().x(self), selfY = sim.world().y(self);
+        int selfCellX = sim.world().cellX(self), selfCellY = sim.world().cellY(self);
+        long nearest = 0L, visible = 0L;
+        float nearestDistance = Float.MAX_VALUE, visibleDistance = Float.MAX_VALUE;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            if (work != null) work.visits++;
+            long other = sim.liveUnitAt(i);
+            if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
+            if (!sim.identity().type(other).combatant) continue;
+            float distance = TacticalScoring.cellDistance(selfX, selfY,
+                    sim.world().x(other), sim.world().y(other));
+            if (!(distance < visibleDistance)) continue;
+            int otherX = sim.world().cellX(other), otherY = sim.world().cellY(other);
+            if (sim.getZoneGraph().zoneIdAt(otherX, otherY) != targetZoneId) continue;
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearest = other;
+            }
+            if (work != null) work.rays++;
+            if (sim.getGrid().hasLineOfSight(selfCellX, selfCellY, otherX, otherY)) {
+                visibleDistance = distance;
+                visible = other;
+            }
+        }
+        return visible != 0L ? visible : nearest;
+    }
+
+    /** Original visible-only selector, retained as the same-build control. */
+    private long pickInZoneTarget(long self, BattleView sim, TargetScanWork work) {
         Faction selfFaction = sim.identity().faction(self);
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            if (work != null) work.visits++;
             long other = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;
             if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(other), sim.world().cellY(other)) != targetZoneId) continue;
+            if (work != null) work.rays++;
             if (!sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self), sim.world().cellX(other), sim.world().cellY(other))) continue;
             float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(other), sim.world().y(other));
             if (d < bestDist) {
@@ -179,7 +244,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
 
     /**
      * Closest alive enemy combatant in the target zone, ignoring LOS. The
-     * fallback for {@link #pickInZoneTarget} when a wall blocks LOS to every
+     * fallback for the original visible-only selector when a wall blocks LOS to every
      * survivor in the zone — without this, the squad picks an out-of-zone
      * target via findBestTarget and freezes (the action refuses to chase
      * out-of-zone targets, see Story K). Linear scan; one zone-clearing
@@ -193,11 +258,12 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
      * is geometrically stuck — surfaced via clearZoneReachability in
      * {@link com.dillon.starsectormarines.battle.ui.debug.SquadStateDumper}).
      */
-    private long pickNearestInZoneEnemy(long self, BattleView sim) {
+    private long pickNearestInZoneEnemy(long self, BattleView sim, TargetScanWork work) {
         Faction selfFaction = sim.identity().faction(self);
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            if (work != null) work.visits++;
             long other = sim.liveUnitAt(i);
             if (!selfFaction.hostileTo(sim.identity().faction(other))) continue;
             if (!sim.identity().type(other).combatant) continue;

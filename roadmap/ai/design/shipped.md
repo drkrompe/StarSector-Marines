@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — folded stable execution decisions into the AI model.
+Updated: 2026-09-26 — folded bounded contact selection into the AI model.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `bounded-contact-selection.md` | 2026-09-26 | this change | `ai-nouns.md` (knowledge-bounded enumeration); selector/publication Javadoc and profiler controls in `CLAUDE.md` |
 | `stable-execution-decisions.md` | 2026-09-26 | this change | `ai-nouns.md` (priority-bounded deliberation and persistent execution firing positions); profiler controls in `CLAUDE.md` |
 | `spatial-planning-cost.md` | 2026-09-26 | this change; navigation parity, local-post unit coverage, and same-build paced controls | `ai-nouns.md` (capture-post locality); picker Javadoc and profiler controls in `CLAUDE.md` |
 | `allied-faction.md` | 2026-09-02 | `9fa08a408`, `b8935445d`, `b7f6d6ae2` | `ai-nouns.md` (Sides), `fog-of-war-nouns.md` law 2, `battle-render-nouns.md`, `polity-ground-doctrine.md` |

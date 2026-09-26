@@ -250,6 +250,18 @@ Do not run builds or leave generated task files there.
   lifecycle, GC pause and VM-operation events, and a `UnitDispatch` event around
   parallel submission/join. Its `wallNanos` is the real elapsed interval; the
   outer `awaitWorkers` metric includes useful execution as well as waiting.
+  `-Dbattle.targeting.boundKnownContactScan=false` restores target-ring expansion
+  beyond the sight/known-contact bound. `TARGET_SCAN_VISIT/RING/RAY` count its
+  candidates, completed rings, and visibility checks. Distant beliefs still
+  extend the default bound; unknown enemies cannot become eligible merely
+  because no visible winner was found nearby.
+  `-Dbattle.targeting.pruneClearZoneSelection=false` restores separate unpruned
+  visible/nearest room-target scans. `CLEAR_ZONE_TARGET_SELECT/VISIT/RAY` report
+  selection wall time, roster visits, and LOS checks. The default preserves exact
+  room scope and first-dense-roster ties without a visibility-radius cap.
+  `-Dbattle.squad.isolatedAdvanceThreat=false` restores the broad squad monitor
+  for route-threat publication. The default uses a dedicated once-per-tick
+  monitor, preserving complete current-tick decisions and hysteresis.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.

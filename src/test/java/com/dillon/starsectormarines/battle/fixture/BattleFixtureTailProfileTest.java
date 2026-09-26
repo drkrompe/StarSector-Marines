@@ -502,6 +502,12 @@ class BattleFixtureTailProfileTest {
                 "battle.goap.localBreachChecks", "true")));
         report.put("retainFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.retainFiringPositions", "true")));
+        report.put("boundKnownContactScan", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.boundKnownContactScan", "true")));
+        report.put("pruneClearZoneSelection", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.pruneClearZoneSelection", "true")));
+        report.put("isolatedAdvanceThreat", Boolean.parseBoolean(System.getProperty(
+                "battle.squad.isolatedAdvanceThreat", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",
