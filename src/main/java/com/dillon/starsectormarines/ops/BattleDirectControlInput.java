@@ -115,6 +115,9 @@ final class BattleDirectControlInput {
 
     void releaseHeld() { north = south = west = east = firing = toggleHeld = false; }
     boolean active() { return active; }
+    boolean pointerKnown() { return pointerKnown; }
+    float pointerX() { return pointerX; }
+    float pointerY() { return pointerY; }
 
     private void setMovement(int key, boolean down) {
         if (key == Keyboard.KEY_W) north = down;

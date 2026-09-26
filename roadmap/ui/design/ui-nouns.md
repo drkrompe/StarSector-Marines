@@ -357,9 +357,15 @@ center and owns the defensive behavior.
 The direct-control entry plate reserves a stable position above the taller of
 infantry and Mech/lance selection panels. It offers takeover of an exact eligible
 player Marine, combat Mech, or deployed APC. Its button or C enters; C or Escape
-returns authority to autonomous behavior. The camera follows the controlled body
-and retains wheel zoom; carrier-specific movement and firing obey
+returns authority to autonomous behavior. The action camera follows the controlled body with smooth, bounded cursor
+look-ahead beyond a dead zone and retains wheel zoom; carrier-specific movement and firing obey
 `direct-control-nouns.md`.
+
+Strategic and action views share the extended close-zoom range. Strategic
+wheel zoom anchors the cursor; action zoom preserves the controlled body’s
+framing and viewport-relative lead. All pointer aim uses the resulting camera
+projection. Look-ahead resets on takeover and eases back when the cursor enters
+chrome or leaves the battlefield.
 
 Active control uses a reduced HUD: a bottom-center return/pause strip and unit
 control hints, world health bars, the controlled bracket, and the aim crosshair.

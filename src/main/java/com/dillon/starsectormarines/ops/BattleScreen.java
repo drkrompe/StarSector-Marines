@@ -197,6 +197,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final BattleDirectControlInput directControlInput = new BattleDirectControlInput();
     private BattleSimulation directControlSimulation;
     private boolean directControlHudActive;
+    private final BattleActionCamera actionCamera = new BattleActionCamera();
     private BattleSimulation attachedSimulation;
     private WorldPicker worldPicker;
     private TurretAuthorPanel turretAuthor;
@@ -469,7 +470,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         submitDirectControlIntent();
         sim.advance(BattleSimulation.frameBudget(frameSimDt));
         syncDirectControl();
-        followControlledMarine();
+        followControlledUnit(dt);
+        submitDirectControlIntent();
         // Wall-collapse dust. Queued by whatever brought the wall down and
         // drained once here, so a collapse looks the same however it happened.
         for (float[] dust : sim.getWallDustsThisFrame()) {
@@ -1200,6 +1202,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 this::exitDirectControl, this::battleChromeBlocksWorldPointer);
         if (!directControlInput.active()) handleDebugDamageInput(events);
         handleCameraInput(events);
+        // Apply the current lead at the new zoom before aim is projected.
+        followControlledUnit(0f);
         submitDirectControlIntent();
         if (!directControlInput.active()) handleDebugZoneToggle(events);
     }
@@ -1219,7 +1223,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (worldPicker != null) worldPicker.cancel();
         if (commandPowerTargeting != null) commandPowerTargeting.cancel();
         if (squadDefendTargeting != null) squadDefendTargeting.cancel();
-        followControlledMarine();
+        actionCamera.reset();
+        followControlledUnit(0f);
         if (turretAuthor != null) turretAuthor.active = false;
         syncDirectControlHud();
     }
@@ -1227,6 +1232,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void exitDirectControl() {
         if (directControlSimulation != null) directControlSimulation.directControl().exit();
         directControlSimulation = null;
+        actionCamera.reset();
         speedMultiplier = directControlInput.exit(speedMultiplier);
         cameraControls.release();
         syncDirectControlHud();
@@ -1281,11 +1287,23 @@ public class BattleScreen implements Screen, BattleUiContext {
                 camera, speedMultiplier == 0f, this::battleChromeBlocksWorldPointer));
     }
 
-    private void followControlledMarine() {
+    private void followControlledUnit(float dt) {
         if (directControlSimulation == null || !directControlInput.active() || camera == null) return;
         long unit = directControlSimulation.directControl().activeUnitId();
-        if (unit != 0L) camera.centerOn(directControlSimulation.world().renderX(unit),
-                directControlSimulation.world().renderY(unit));
+        if (unit == 0L) return;
+        float pointerX = directControlInput.pointerX();
+        float pointerY = directControlInput.pointerY();
+        float radius = directControlSimulation.physicalRadius(unit);
+        if (directControlSimulation.directControl().controlledVehicleId() != 0L) {
+            var type = directControlSimulation.convoy().vehicleType(unit);
+            if (type != null) radius = .5f * (float) Math.hypot(
+                    type.visualLengthCells, type.visualWidthCells);
+        }
+        actionCamera.follow(camera, directControlSimulation.world().renderX(unit),
+                directControlSimulation.world().renderY(unit), radius,
+                pointerX, pointerY,
+                directControlInput.pointerKnown()
+                        && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt);
     }
 
     /**
