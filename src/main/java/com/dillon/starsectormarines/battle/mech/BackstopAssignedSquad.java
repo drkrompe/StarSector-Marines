@@ -213,7 +213,9 @@ public final class BackstopAssignedSquad implements Action {
         if (candidate.rescuePickupMech) return false;
         if (!candidate.isMechSquad()) {
             for (int i = 0, n = sim.squadMemberCount(candidate.id); i < n; i++) {
-                UnitType type = sim.identity().type(sim.squadMemberAt(candidate.id, i));
+                long member = sim.squadMemberAt(candidate.id, i);
+                if (!candidate.availableToPlan(member, sim)) continue;
+                UnitType type = sim.identity().type(member);
                 if (type == UnitType.MARINE || type == UnitType.MARINE_BLUE
                         || type == UnitType.MARINE_RED || type == UnitType.MILITIA) {
                     return true;
@@ -222,8 +224,9 @@ public final class BackstopAssignedSquad implements Action {
             return false;
         }
         for (int i = 0, n = sim.squadMemberCount(candidate.id); i < n; i++) {
-            MechLoadoutComponent loadout =
-                    sim.world().mechLoadout(sim.squadMemberAt(candidate.id, i));
+            long member = sim.squadMemberAt(candidate.id, i);
+            if (!candidate.availableToPlan(member, sim)) continue;
+            MechLoadoutComponent loadout = sim.world().mechLoadout(member);
             if (loadout != null
                     && loadout.effectiveRole() != MechRole.ARMORED_SUPPORT) {
                 return true;

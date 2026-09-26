@@ -69,7 +69,9 @@ final class BattleDirectControlOverlay {
         label.set(Strings.get(active ? "battleDirectExit" : "battleDirectEnter"));
         if (active) {
             String name = sim.identity().name(sim.directControl().activeUnitId());
-            hint.set((name == null ? "" : name + "  |  ") + Strings.get("battleDirectControls"));
+            boolean mech = sim.directControl().controlledMechId() != 0L;
+            hint.set((name == null ? "" : name + "  |  ")
+                    + Strings.get(mech ? "battleDirectMechControls" : "battleDirectControls"));
         } else {
             hint.set(Strings.get(eligible ? "battleDirectReady" : "battleDirectSelect"));
         }

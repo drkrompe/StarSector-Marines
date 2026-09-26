@@ -118,6 +118,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
+import com.dillon.starsectormarines.battle.mech.MechLocomotionSystem;
+import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -317,11 +319,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Presentation system that authors what a running integral system looks like — see {@link SystemFxSystem}. Ticked beside {@link #facingSystem} for the same reason. */
     private final SystemFxSystem systemFxSystem;
     /** Simulation-authoritative mech pivoting, settled before appearance authoring. */
-    private final com.dillon.starsectormarines.battle.mech.MechLocomotionSystem mechLocomotionSystem;
+    private final MechLocomotionSystem mechLocomotionSystem;
     /** Fixed-tick, presentation-only planted-foot and waist solver. */
     private final MechGaitSystem mechGaitSystem;
     /** Simulation-authoritative upper-torso traverse; gates mech weapons as well as their render heading. */
-    private final com.dillon.starsectormarines.battle.mech.MechTurretSystem mechTurretSystem;
+    private final MechTurretSystem mechTurretSystem;
     /** Mech-wreck system — death-event handler that drops a smoking wreck on a dead chassis unit's cell (replaces the former HeavyWeapons per-tick scan). Subscribed to {@link #deathDispatcher} in the constructor. */
     private final com.dillon.starsectormarines.battle.mech.MechWreckSystem mechWreckSystem;
     /** Broad by-id entity-access facade over {@link #entityWorld}; focused component owners remain separate Services. */
@@ -686,10 +688,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(this::recordCommandTraceCasualty);
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
         this.systemFxSystem = new SystemFxSystem(rosterService);
-        this.mechLocomotionSystem = new com.dillon.starsectormarines.battle.mech.MechLocomotionSystem(
+        this.mechLocomotionSystem = new MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechGaitSystem = new MechGaitSystem(entityWorld, battleComponents);
-        this.mechTurretSystem = new com.dillon.starsectormarines.battle.mech.MechTurretSystem(
+        this.mechTurretSystem = new MechTurretSystem(
                 entityWorld, battleComponents, rosterService);
         this.mechWreckSystem = new com.dillon.starsectormarines.battle.mech.MechWreckSystem(effects, rosterService);
         deathDispatcher.subscribe(mechWreckSystem::onDeath);
@@ -994,6 +996,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public MechDoctrineService getMechDoctrineService() { return mechDoctrines; }
     /** Player battle-only exact-mech move-order mailbox and active projection. */
     public MechMoveOrderService getMechMoveOrderService() { return mechMoveOrders; }
+
+    @Override public void cancelMechMoveOrder(long member) { mechMoveOrders.cancel(member); }
+
+    @Override public boolean canFireMechMount(long shooter, MechWeaponMount mount) {
+        return heavy.canFireMechMount(shooter, mount);
+    }
 
     /** Player move orders for exact ground vehicles; owned by {@code GroundSystem} beside the driver they use. */
     public VehicleMoveOrderService getVehicleMoveOrderService() {
@@ -2029,7 +2037,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // tick-down for all three tracks. New triggers (start a burst / salvo /
         // LRM) come from CombatantBehavior. (The dead-mech smoking wreck now
         // fires off the MechWreckSystem death handler, not this pass.)
-        heavy.tick();
+        heavy.tick(directControl.controlledMechId(), directControl.pointAim(), directControl.intent().firing());
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
@@ -2226,9 +2234,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // this tick's settled state — the tail placement is load-bearing: it
         // runs after every target/path/cooldown write and the air/ground
         // deboards above, and before any render read of SPRITE this frame.
-        mechLocomotionSystem.tick(TICK_DT);
+        mechLocomotionSystem.tick(TICK_DT, directControl.controlledMechId());
         mechGaitSystem.tick(TICK_DT);
-        mechTurretSystem.tick(TICK_DT);
+        mechTurretSystem.tick(TICK_DT, directControl.controlledMechId(), directControl.pointAim());
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
                 directControl.intent().aimY());

@@ -42,6 +42,7 @@ public final class BalancedContactGoal implements Goal {
 
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long member = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(member, sim)) continue;
             MechLoadoutComponent loadout = sim.world().mechLoadout(member);
             if (loadout != null && loadout.effectiveRole() == MechRole.BALANCED) {
                 return 1f;
