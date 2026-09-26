@@ -182,6 +182,9 @@ public final class PatrolMotion {
             int[] found = GridPathfinder.findPath(sim.getGrid(),
                     fromX, fromY, tx, ty, sim.getOccupancyMap());
             if (!ApproachBound.worthWalkingTo(fromX, fromY, tx, ty, found, boundDetour)) {
+                // Only this branch actually rejected a firing-position route;
+                // the false return below can also mean a throttled empty path.
+                if (boundDetour) sim.getTacticalScoring().forgetFiringPosition(member);
                 hold(member, sim);
                 return false;
             }

@@ -12,6 +12,14 @@ import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.LosCaches;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import jdk.jfr.Category;
+import jdk.jfr.Enabled;
+import jdk.jfr.Event;
+import jdk.jfr.EventType;
+import jdk.jfr.Label;
+import jdk.jfr.Name;
+import jdk.jfr.StackTrace;
+import jdk.jfr.Timespan;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -85,6 +93,26 @@ public final class UnitUpdateSystem implements AutoCloseable {
             "battle.unitUpdate.minimumParallelUnits";
     public static final String PARALLELISM_PROPERTY = "battle.unitUpdate.parallelism";
     private static final ThreadMXBean THREAD_CPU = ManagementFactory.getThreadMXBean();
+    private static final EventType DISPATCH_EVENT_TYPE =
+            EventType.getEventType(UnitDispatchEvent.class);
+
+    /**
+     * Worker submission through join, excluding mutation gates and profile merging.
+     * Serial ticks have no worker dispatch and emit no event. The separate nanoTime
+     * duration permits wall-clock calibration on runtimes whose JFR clock differs.
+     */
+    @Name("com.dillon.marines.UnitDispatch")
+    @Label("Unit Worker Dispatch")
+    @Category("Starsector Marines")
+    @Enabled(false)
+    @StackTrace(false)
+    public static final class UnitDispatchEvent extends Event {
+        public int tick;
+        public int parallelism;
+        public int liveUnits;
+        @Timespan(Timespan.NANOSECONDS)
+        public long wallNanos;
+    }
     /**
      * Profiled crossover on the fixed-slice battle-fixture matrix. The tuning
      * property accepts {@code 0} to force parallel and {@link Integer#MAX_VALUE}
@@ -205,6 +233,16 @@ public final class UnitUpdateSystem implements AutoCloseable {
 
     private long dispatchParallel(long[] snapshot, int liveCount, BattleSimulation sim,
                                   boolean captureDiagnostics) {
+        UnitDispatchEvent event = null;
+        long eventStart = 0L;
+        if (DISPATCH_EVENT_TYPE.isEnabled()) {
+            event = new UnitDispatchEvent();
+            event.tick = sim.getSimTickIndex();
+            event.parallelism = pool.getParallelism();
+            event.liveUnits = liveCount;
+            eventStart = System.nanoTime();
+            event.begin();
+        }
         try {
             ForkJoinTask<?> task = pool.submit(() -> IntStream.range(0, liveCount).parallel()
                     .forEach(i -> updateUnit(snapshot[i], sim, captureDiagnostics)));
@@ -218,6 +256,12 @@ public final class UnitUpdateSystem implements AutoCloseable {
             Throwable cause = ee.getCause();
             if (cause instanceof RuntimeException re) throw re;
             throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
+        } finally {
+            if (event != null) {
+                event.end();
+                event.wallNanos = System.nanoTime() - eventStart;
+                event.commit();
+            }
         }
     }
 

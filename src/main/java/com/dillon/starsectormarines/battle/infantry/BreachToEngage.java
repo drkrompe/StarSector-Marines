@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,6 +66,10 @@ public final class BreachToEngage implements Goal {
 
     public static final BreachToEngage INSTANCE = new BreachToEngage();
 
+    public static boolean localBreachChecksEnabled() {
+        return Boolean.parseBoolean(System.getProperty("battle.goap.localBreachChecks", "true"));
+    }
+
     /** Stack-up cell pre-pass radius — how far from the doorway we'll consider cells for the friendly-side stack zone. Small; the stack-up cells are deliberately near the door so the visual reads as "gathering." */
     private static final int STACKUP_SEARCH_RADIUS = 3;
     /** Forward search-box depth (in the threat direction) past the portal. */
@@ -79,20 +84,26 @@ public final class BreachToEngage implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        if (squad.holdsFireUntilKillZone) return 0f;
-        if (squad.moraleBroken) return 0f;
+        return route(squad, sim, true) == null ? 0f : 1f;
+    }
+
+    /** Portal connectivity is distinct from structural cell connectivity. */
+    private record BreachRoute(int squadZone, long target, List<Integer> path) {}
+
+    private static BreachRoute route(Squad squad, BattleView sim, boolean eligibility) {
+        if (eligibility && (squad.holdsFireUntilKillZone || squad.moraleBroken)) return null;
         int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
-        if (squadZone < 0) return 0f;
+        if (squadZone < 0) return null;
         long target = effectiveTarget(squad, sim);
-        if (target == 0L) return 0f;
+        if (target == 0L) return null;
         int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target));
-        if (targetZone < 0 || targetZone == squadZone) return 0f;
-        if (anyInZoneEnemyVisible(squad, squadZone, sim)) return 0f;
+        if (targetZone < 0 || targetZone == squadZone) return null;
+        if (eligibility && anyInZoneEnemyVisible(squad, squadZone, sim)) return null;
         // Reachability check — fall through to EliminateEnemies if the target
         // zone is disconnected (no walkable portal route). Two-element BFS
         // path means at least one portal hop is available.
-        if (ZoneQueries.zonePathBfs(squadZone, targetZone, sim).size() < 2) return 0f;
-        return 1.0f;
+        List<Integer> path = ZoneQueries.zonePathBfs(squadZone, targetZone, sim);
+        return path.size() < 2 ? null : new BreachRoute(squadZone, target, path);
     }
 
     @Override
@@ -106,14 +117,14 @@ public final class BreachToEngage implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
-        long target = effectiveTarget(squad, sim);
-        if (target == 0L || squadZone < 0) return null;
-        int targetZone = sim.getZoneGraph().zoneIdAt(sim.world().cellX(target), sim.world().cellY(target));
-        if (targetZone < 0 || targetZone == squadZone) return null;
+        BreachRoute route = route(squad, sim, false);
+        return route == null ? null : buildPlan(squad, sim, route);
+    }
 
-        List<Integer> path = ZoneQueries.zonePathBfs(squadZone, targetZone, sim);
-        if (path.size() < 2) return null;
+    private static SquadPlan buildPlan(Squad squad, BattleView sim, BreachRoute route) {
+        int squadZone = route.squadZone();
+        long target = route.target();
+        List<Integer> path = route.path();
         int nextZone = path.get(1);
         // The detector treats each doorway cell as its own 1-cell zone, so
         // the BFS path frequently reads [room, doorway, room, doorway, room].
@@ -142,9 +153,13 @@ public final class BreachToEngage implements Goal {
         // Member count — slot count matches alive members so each member has
         // a stack-up + forward cell pair. Slot 0 binds the closest member.
         int aliveCount = 0;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
-            if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id
-                    && squad.availableToPlan(u, sim)) aliveCount++;
+        if (localBreachChecksEnabled()) {
+            aliveCount = squad.autonomousMemberCount(sim);
+        } else {
+            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
+                if (sim.squad().hasSquad(u) && sim.squad().squadId(u) == squad.id
+                        && squad.availableToPlan(u, sim)) aliveCount++;
+            }
         }
         if (aliveCount <= 0) return null;
 
@@ -304,6 +319,12 @@ public final class BreachToEngage implements Goal {
      * targeting yet.
      */
     private static long effectiveTarget(Squad squad, BattleView sim) {
+        if (localBreachChecksEnabled()) {
+            long target = memberTarget(squad, sim);
+            if (target != 0L) return target;
+            return sim.getTacticalScoring().findBestTarget(
+                    squad.centroidX, squad.centroidY, squad.faction, squad.id, 0L);
+        }
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
             long t = sim.targetOf(u);
@@ -320,6 +341,7 @@ public final class BreachToEngage implements Goal {
      * per-unit zone-mismatch scoring bias.
      */
     private static boolean anyInZoneEnemyVisible(Squad squad, int squadZone, BattleView sim) {
+        if (localBreachChecksEnabled()) return anyLocalInZoneEnemyVisible(squad, squadZone, sim);
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         int liveN = sim.liveUnitCount();
@@ -335,5 +357,53 @@ public final class BreachToEngage implements Goal {
             }
         }
         return false;
+    }
+
+    /** Preserve the original dense-roster target priority despite stable squad-slice order. */
+    static long memberTarget(Squad squad, BattleView sim) {
+        long target = 0L;
+        int first = Integer.MAX_VALUE;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            int index = sim.liveUnitIndexOf(member);
+            if (index < 0 || index >= first) continue;
+            long candidate = sim.targetOf(member);
+            if (candidate != 0L) { first = index; target = candidate; }
+        }
+        return target;
+    }
+
+    /**
+     * Hostile-combatant buckets remove unrelated bodies; the inner walk is only
+     * this squad. LOS remains unlimited: neither sight range nor a centroid
+     * radius may discard the far in-zone contact the original gate could see.
+     */
+    static boolean anyLocalInZoneEnemyVisible(Squad squad, int squadZone, BattleView sim) {
+        final class VisibleEnemy implements UnitSpatialIndex.RingVisitor {
+            boolean found;
+
+            @Override public void accept(long enemy, float snapshotX, float snapshotY) {
+                if (found || sim.liveUnitIndexOf(enemy) < 0) return;
+                int ex = sim.world().cellX(enemy), ey = sim.world().cellY(enemy);
+                if (sim.getZoneGraph().zoneIdAt(ex, ey) != squadZone) return;
+                for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+                    long member = sim.squadMemberAt(squad.id, i);
+                    if (sim.isRiding(member)) continue;
+                    if (sim.getGrid().hasLineOfSight(sim.world().cellX(member),
+                            sim.world().cellY(member), ex, ey)) {
+                        found = true;
+                        return;
+                    }
+                }
+            }
+
+            @Override public boolean continueAfterRing(float nearestOutsideDistance) {
+                return !found;
+            }
+        }
+        VisibleEnemy probe = new VisibleEnemy();
+        sim.getUnitIndex().forEachHostileCombatantByRing(
+                squad.centroidX, squad.centroidY, squad.faction, probe);
+        return probe.found;
     }
 }

@@ -162,6 +162,9 @@ public final class TickInnerProfile {
         CONVOY_ROUTE_PROOF_STEP,
         TARGET_PICK,
         FIRING_POSITION,
+        FIRING_RETAIN_VALIDATE,
+        FIRING_RETAIN_HIT,
+        FIRING_RETAIN_SEARCH,
         /** Experimental shared geometry builds; time is nested within FIRING_POSITION. */
         FIRING_POOL_BUILD,
         FIRING_POOL_HIT,

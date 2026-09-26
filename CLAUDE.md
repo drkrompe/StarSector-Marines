@@ -236,6 +236,20 @@ Do not run builds or leave generated task files there.
   nearest-selected distances incrementally. `HOLD_POSITION` records total picker
   time, `HOLD_POSITION_CELL` inspected cells, and `HOLD_POSITION_FALLBACK` the
   exceptional nearest-zone-cell fallback when no local intersection exists.
+  `-Dbattle.goap.priorityOrderedEvaluation=false` evaluates every goal category
+  eagerly; the default descends only after higher-category goals cannot supply
+  a plan. `-Dbattle.goap.localBreachChecks=false` restores whole-roster breach
+  eligibility scans. `-Dbattle.targeting.retainFiringPositions=false` disables
+  positive execution-position retention. The default validates one chosen cell
+  and retains it for 300–360 ticks unless intent or legality changes; eligibility
+  probes and negative/vantage-only answers are not retained. `FIRING_RETAIN_*`
+  counters distinguish validation time, reuse, and fresh searches. The older
+  shared-pool experiment remains independent and off; enabling it bypasses the
+  per-member constrained retention path so controls remain separable.
+  JFR tail recordings explicitly capture 1 ms monitor/park waits, full safepoint
+  lifecycle, GC pause and VM-operation events, and a `UnitDispatch` event around
+  parallel submission/join. Its `wallNanos` is the real elapsed interval; the
+  outer `awaitWorkers` metric includes useful execution as well as waiting.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.

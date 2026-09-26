@@ -120,12 +120,14 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
             return ActionStatus.RUNNING;
         }
         if (sim.movement().mayRepath(member)) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
+            int[] dest = sim.getTacticalScoring().selectFiringPosition(
+                    member, target, squad, sim.getSimTickIndex(), false);
             int[] path = dest == null ? GridPathfinder.EMPTY_PATH
                     : GridPathfinder.findPath(sim.getGrid(),
                             sim.world().cellX(member), sim.world().cellY(member),
                             dest[0], dest[1], sim.getOccupancyMap());
             if (path.length == 0) {
+                sim.getTacticalScoring().forgetFiringPosition(member);
                 // No reachable firing cell for this in-zone target: either
                 // findFiringPosition found nothing, OR it returned a LOS+range
                 // cell the pathfinder can't route to. The latter is the trap —

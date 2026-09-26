@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — capture posts stay within the compound and exact capture
-zone even when a breach enlarges that zone; shared firing arrangements remain opt-in.
+Updated: 2026-09-26 — decision categories are evaluated only when needed;
+usable execution firing positions persist independently of periodic replanning.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -253,6 +253,11 @@ asked, down through the buckets to the idle floor — a declined goal does not
 speak for the ones beneath it. Only when every goal has either scored zero or
 declined is the squad genuinely idle. The categorical ordering is unaffected:
 descent is reached by a goal proving unworkable, never by one scoring poorly.
+
+The hierarchy also bounds deliberation: lower categories are not evaluated
+while a higher one can supply a plan. Declining that plan resumes the same
+decision pass through its remaining candidates, retaining already established
+evaluations and any explicit dependencies between goals.
 
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
@@ -1410,6 +1415,22 @@ footprint, but doorways, constrained navigation, authored posts, and a live
 contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
+
+A chosen **execution firing position** likewise persists while it remains
+usable. Ordinary periodic squad replanning, movement toward the position, or a
+small shift in the encounter need not choose a new place to stand. Changing the
+target, mission context, or goal retires that choice; live checks still enforce
+walkability, current weapon reach, line of fire, structural reachability, and
+the caller's current room and leash. A bounded, staggered lifetime eventually
+permits reconsideration even in a stable encounter. Changing crowding or a
+slightly better cover score alone does not compel a move.
+
+This is persistence of an execution choice, not a remembered answer to every
+question about combat. Hypothetical eligibility probes do not author it, and
+failed searches and vantage-only approaches do not acquire its lifetime.
+Rejecting the actual approach, including an excessive detour, retires the
+choice rather than committing the member to a route it never accepted. Movement
+and fire retain their own validation and authority.
 
 A casualty rebind replaces, rather than extends, every retained plan step's
 role map. A fire team below viable strength dissolves into the nearest sibling,
