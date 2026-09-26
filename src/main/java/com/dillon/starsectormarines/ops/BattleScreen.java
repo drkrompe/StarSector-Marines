@@ -461,8 +461,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.
+        // Handback during this advance can restore another playback rate. This
+        // frame's presentation must keep the rate its simulation actually used.
+        float frameSimDt = dt * speedMultiplier;
         submitDirectControlIntent();
-        sim.advance(BattleSimulation.frameBudget(dt * speedMultiplier));
+        sim.advance(BattleSimulation.frameBudget(frameSimDt));
         syncDirectControl();
         followControlledMarine();
         // Wall-collapse dust. Queued by whatever brought the wall down and
@@ -473,7 +476,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Impact FX: spawn at the moment the shot's visual reaches its endpoint
         // (instant for marine line tracers, on lifetime expiry for projectile
         // sprites), then advance particles on the same scaled clock.
-        renderer.getBeamFx().advance(dt * speedMultiplier);
+        renderer.getBeamFx().advance(frameSimDt);
         spawnImpactFx(sim);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
             renderer.getImpactFx().spawnHeavyImpact(impact[0], impact[1], impact[2]);
@@ -494,9 +497,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getImpactFx().spawnAmbientFire(burst[0], burst[1], burst[2]);
             renderer.getGroundLights().spawnFire(burst[0], burst[1], burst[2]);
         }
-        driveOrdnanceFx(sim, dt * speedMultiplier);
-        renderer.getImpactFx().advance(dt * speedMultiplier);
-        renderer.getGroundLights().advance(dt * speedMultiplier);
+        driveOrdnanceFx(sim, frameSimDt);
+        renderer.getImpactFx().advance(frameSimDt);
+        renderer.getGroundLights().advance(frameSimDt);
         renderer.getGroundLights().syncBoltLights(sim.getActiveShots());
         // Contrail trails — push the leading-edge sample for each in-flight
         // contrail shot and age the lot. Real (unscaled) dt, not sim-time, so
