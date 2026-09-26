@@ -1208,7 +1208,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         BattleSimulation sim = getSim();
         if (sim == null || sim.isComplete()
-                || !sim.directControl().enter(selection.getSelectedUnitEntityId())) return;
+                || !sim.directControl().enter(selection.hasVehicleSelection()
+                        ? selection.getSelectedVehicleId() : selection.getSelectedUnitEntityId())) return;
         directControlSimulation = sim;
         speedMultiplier = directControlInput.enter(speedMultiplier);
         cameraControls.release();

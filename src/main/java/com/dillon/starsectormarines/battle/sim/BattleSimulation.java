@@ -999,6 +999,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public void cancelMechMoveOrder(long member) { mechMoveOrders.cancel(member); }
 
+    @Override public boolean beginVehicleDirectControl(long vehicle) {
+        return groundSystem.beginDirectControl(vehicle);
+    }
+
+    @Override public void suspendVehicleDirectInput(long vehicle) {
+        groundSystem.suspendDirectInput(vehicle);
+    }
+
+    @Override public void endVehicleDirectControl(long vehicle) {
+        groundSystem.endDirectControl(vehicle);
+    }
+
+
     @Override public boolean canFireMechMount(long shooter, MechWeaponMount mount) {
         return heavy.canFireMechMount(shooter, mount);
     }
@@ -2186,7 +2199,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.AIR_SYSTEM);
         // Ground convoys ride the same ordering rule for the same reason —
         // deboarded militia join the roster between ticks, not mid-loop.
-        groundSystem.tick(TICK_DT);
+        groundSystem.tick(TICK_DT, directControl.controlledVehicleId(), directControl.intent());
         tickProfile.lap(TickProfile.Phase.GROUND_SYSTEM);
         // Ballistic-round impact clock — a resolved round's damage/hit-response
         // applies here, on its flight-time delay, rather than inline at fire

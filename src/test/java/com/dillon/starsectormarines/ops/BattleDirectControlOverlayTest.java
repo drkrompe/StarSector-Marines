@@ -43,15 +43,21 @@ class BattleDirectControlOverlayTest {
 
     static MarkupInstance fixture(Path modRoot, boolean active, boolean enabled,
                                   boolean mech, Runnable action) throws Exception {
+        return fixture(modRoot, active, enabled, mech, false, action);
+    }
+
+    static MarkupInstance fixture(Path modRoot, boolean active, boolean enabled,
+                                  boolean mech, boolean vehicle, Runnable action) throws Exception {
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(modRoot.resolve(path)),
                 List.of(BattleDirectControlOverlay.COMPONENT_PATH));
         loader.reload();
         return loader.build(new Reactor(), BattleDirectControlOverlay.COMPONENT, Map.of(
                 "label", active ? "Return to command [C / Esc]" : "Control selected unit [C]",
-                "hint", active ? mech ? "Bulwark 1  |  WASD pivot/walk | Mouse aim | LMB direct mounts"
+                "hint", active ? vehicle ? "heavy_apc-1  |  W/S drive | A/D steer | Mouse aim | LMB fire"
+                        : mech ? "Bulwark 1  |  WASD pivot/walk | Mouse aim | LMB direct mounts"
                         : "Rhea Voss  |  WASD move | Mouse aim | Hold LMB fire"
                         : enabled ? "Direct control uses pause or 1x speed"
-                        : "Select a ready Marine or combat Mech",
+                        : "Select a ready Marine, combat Mech, or deployed APC",
                 "disabled", !enabled, "toggle", action));
     }
 

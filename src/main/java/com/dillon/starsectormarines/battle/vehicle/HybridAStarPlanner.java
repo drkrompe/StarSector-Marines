@@ -173,13 +173,9 @@ public final class HybridAStarPlanner {
                 int ncy = (int) Math.floor(ny);
                 if (ncx < minX || ncx > maxX || ncy < minY || ncy > maxY) continue;
 
-                float midX = current.x + STEP_CELLS * 0.5f * (-(float) Math.sin(midHeadingRad));
-                float midY = current.y + STEP_CELLS * 0.5f * ((float) Math.cos(midHeadingRad));
-                float midHeadingDeg = (float) Math.toDegrees(midHeadingRad);
-                midHeadingDeg = ((midHeadingDeg % 360f) + 360f) % 360f;
-
-                if (!VehicleFootprint.isPoseFeasible(midX, midY, midHeadingDeg, vLen, vWid, grid)) continue;
-                if (!VehicleFootprint.isPoseFeasible(nx, ny, newHeadingDeg, vLen, vWid, grid)) continue;
+                if (!VehicleTerrainMotion.isSweepFeasible(
+                        new Pose(current.x, current.y, current.headingDeg),
+                        new Pose(nx, ny, newHeadingDeg), vLen, vWid, grid)) continue;
 
                 int nhb = headingBinFor(newHeadingDeg);
                 int nKey = stateIndex(ncx, ncy, nhb, gridW);
@@ -363,15 +359,8 @@ public final class HybridAStarPlanner {
                                             float turnRadius,
                                             float vLen, float vWid,
                                             NavigationGrid grid) {
-        float total = path.lengthCells(turnRadius);
-        for (float d = 0; d <= total; d += FOOTPRINT_SAMPLE_STEP) {
-            Pose p = ReedsShepp.sample(start, turnRadius, path, d);
-            if (!VehicleFootprint.isPoseFeasible(p.x, p.y, p.facingDeg, vLen, vWid, grid)) {
-                return false;
-            }
-        }
-        Pose end = ReedsShepp.sample(start, turnRadius, path, total);
-        return VehicleFootprint.isPoseFeasible(end.x, end.y, end.facingDeg, vLen, vWid, grid);
+        return VehicleTerrainMotion.isReedsSheppFeasible(start, path, turnRadius, 0f,
+                path.lengthCells(turnRadius), vLen, vWid, grid);
     }
 
     // -- Helpers ------------------------------------------------------------

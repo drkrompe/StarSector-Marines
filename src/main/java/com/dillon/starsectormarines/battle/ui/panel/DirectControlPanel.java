@@ -28,7 +28,7 @@ public final class DirectControlPanel implements HudPanel {
         long id = sim.directControl().activeUnitId();
         float x = camera.cellToScreenX(sim.world().renderX(id));
         float y = camera.cellToScreenY(sim.world().renderY(id));
-        float radius = Math.max(9f, camera.cellPxSize() * 0.7f);
+        float radius = Math.max(9f, camera.cellPxSize() * Math.max(0.7f, sim.physicalRadius(id) + 0.15f));
         HudDraw.prepBlend();
         HudDraw.borderRect(x - radius, y - radius, radius * 2f, radius * 2f,
                 CONTROLLED, alpha);

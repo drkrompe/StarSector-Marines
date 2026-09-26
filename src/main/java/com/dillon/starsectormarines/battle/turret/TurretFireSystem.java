@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -154,6 +155,31 @@ public final class TurretFireSystem implements TurretFireSink {
                 lifetime, structure, null, null));
     }
 
+    @Override
+    public boolean firePoint(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                              StructureDef structure, PointFireAim aim,
+                              float mountFacingDegrees, int releaseIndex) {
+        WeaponDef weapon = structure.mount.weapon;
+        if (aim == null || !aim.validFrom(fromX, fromY)
+                || !Float.isFinite(mountFacingDegrees)
+                || weapon.indirectFire || weapon.arcHeight != 0f
+                || weapon.projectileCellsPerSec() > 0f
+                || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
+        float dx = aim.x() - fromX;
+        float dy = aim.y() - fromY;
+        if (dx * dx + dy * dy < weapon.minRange * weapon.minRange) return false;
+        TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
+                fromX, fromY, mountFacingDegrees, structure.mount, releaseIndex);
+        if (!aim.validFrom(muzzle.x(), muzzle.y())) return false;
+        BallisticResolver.Source source = new BallisticResolver.Source(
+                shooterId, muzzle.x(), muzzle.y(), 0f, shooterFaction);
+        BallisticResolver.Resolution res = resolver.resolvePoint(source, aim.x(), aim.y(),
+                weapon.accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, rng);
+        telemetry.recordRoundFired(shooterId);
+        deliverGroundDirect(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
+        return true;
+    }
+
     /** Modeled ground-level path for Vulcan/Heavy-MG bursts and any future direct mount. */
     private void fireGroundDirect(long shooterId, float fromX, float fromY,
                                   Faction shooterFaction, StructureDef structure,
@@ -167,6 +193,14 @@ public final class TurretFireSystem implements TurretFireSink {
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
                 weapon.directRoundVelocity(), weapon.range, rng);
+
+        deliverGroundDirect(shooterId, fromX, fromY, shooterFaction, structure, res);
+    }
+
+    private void deliverGroundDirect(long shooterId, float fromX, float fromY,
+                                     Faction shooterFaction, StructureDef structure,
+                                     BallisticResolver.Resolution res) {
+        WeaponDef weapon = structure.mount.weapon;
 
         if (weapon.aoeRadius > 0f && res.impacts()) {
             queueGroundDetonation(shooterId, shooterFaction, structure, res);
