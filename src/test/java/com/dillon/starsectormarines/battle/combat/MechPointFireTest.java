@@ -56,10 +56,11 @@ class MechPointFireTest {
     }
 
     @Test
-    void burstFreezesPointAlternatesBarrelsAndDoesNotRestartWhileHeld() {
+    void burstTracksLivePointAlternatesBarrelsAndDoesNotRestartWhileHeld() {
         Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         f.fire(NORTH);
+        f.loadout.torsoFacingDegrees = -90f;
         int ticks = 1;
         while (arms.burstRemaining > 0 && ticks < 100) {
             f.weapons.tick(f.shooter, EAST, true);
@@ -68,8 +69,10 @@ class MechPointFireTest {
         assertEquals(12, f.shots.getActiveShots().size());
         assertEquals(0, arms.burstRemaining);
         assertNull(arms.burstPointAim);
-        assertTrue(f.shots.getActiveShots().stream().allMatch(s -> s.toY > s.fromY));
-        assertTrue(f.shots.getActiveShots().get(0).fromX < f.shots.getActiveShots().get(1).fromX);
+        assertTrue(f.shots.getActiveShots().get(0).toY > f.shots.getActiveShots().get(0).fromY);
+        assertTrue(f.shots.getActiveShots().subList(1, 12).stream().allMatch(s -> s.toX > s.fromX));
+        assertNotEquals(f.shots.getActiveShots().get(1).fromY, f.shots.getActiveShots().get(2).fromY,
+                "paired barrels still alternate after changing aim");
         assertEquals(arms.weaponDef().cooldown - ticks * BattleSimulation.TICK_DT, arms.cooldown, 0.00001f);
     }
 
@@ -90,14 +93,34 @@ class MechPointFireTest {
     }
 
     @Test
-    void queuedBurstWaitsForLivePoseAndClearPreservesAmmoCooldownAndReplenishment() {
+    void refusedManualReleasesExpireWithoutRefundingOrFiringAStaleBacklog() {
         Fixture f = new Fixture(null, MechWeaponComponent.SRM_5, null);
         MechWeaponMount mount = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         f.fire(NORTH);
         f.loadout.torsoFacingDegrees = 90f;
         for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false);
         assertEquals(1, f.shots.getActiveShots().size());
-        assertEquals(1, mount.burstRemaining);
+        assertEquals(0, mount.burstRemaining);
+        assertNull(mount.burstPointAim);
+        assertEquals(mount.component.ammoCapacity - 1, mount.ammo);
+        assertEquals(mount.weaponDef().cooldown - 13 * BattleSimulation.TICK_DT, mount.cooldown, 0.00001f);
+        assertTrue(mount.replenishmentProgressSeconds > 0f);
+        f.loadout.torsoFacingDegrees = 0f;
+        f.weapons.tick(f.shooter, NORTH, false);
+        assertEquals(1, f.shots.getActiveShots().size());
+    }
+
+    @Test
+    void blockedManualBarrelExpiresItsPacketAndClearPreservesResources() {
+        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
+        MechWeaponMount mount = f.loadout.mount(MechMountSlot.ARMS);
+        f.fire(NORTH);
+        f.roster.world().setPos(f.shooter, 20.5f, 20.35f);
+        for (int x = 0; x < 128; x++) f.grid.setWalkable(x, 21, false);
+        assertFalse(f.weapons.canFireMechMount(f.shooter, mount));
+        for (int i = 0; i < 30; i++) f.weapons.tick(f.shooter, NORTH, false);
+        assertEquals(1, f.shots.getActiveShots().size());
+        assertEquals(0, mount.burstRemaining);
         float cooldown = mount.cooldown;
         float replenishment = mount.replenishmentProgressSeconds;
         int ammo = mount.ammo;
@@ -105,25 +128,23 @@ class MechPointFireTest {
         assertEquals(cooldown, mount.cooldown);
         assertEquals(replenishment, mount.replenishmentProgressSeconds);
         assertEquals(ammo, mount.ammo);
-        assertNull(mount.burstPointAim);
-        assertEquals(0, mount.burstRemaining);
-        f.loadout.torsoFacingDegrees = 0f;
+        for (int x = 0; x < 128; x++) f.grid.setWalkableFloor(x, 21);
         f.weapons.tick(f.shooter, NORTH, false);
         assertEquals(1, f.shots.getActiveShots().size());
     }
 
     @Test
-    void torsoFollowsCommittedPointBeforeCursorAndNeverBorrowsTheAiTarget() {
+    void torsoFollowsCursorDuringCommittedBurstAndNeverBorrowsTheAiTarget() {
         Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
         f.fire(NORTH);
         long enemy = f.roster.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MARINE, 2, 20));
         f.roster.world().setTargetId(f.shooter, enemy);
         MechTurretSystem torso = new MechTurretSystem(f.roster.entityWorld(), f.roster.components(), f.roster);
         torso.tick(BattleSimulation.TICK_DT, f.shooter, EAST);
-        assertEquals(0f, f.loadout.torsoFacingDegrees);
+        assertTrue(f.loadout.torsoFacingDegrees < 0f, "live cursor wins while the north burst is pending");
         assertEquals(0L, f.loadout.torsoAimTargetId);
         assertFalse(f.loadout.torsoOnTarget);
-        f.loadout.clearQueuedFire();
+        assertTrue(f.loadout.mount(MechMountSlot.ARMS).burstRemaining > 0);
         torso.tick(BattleSimulation.TICK_DT, f.shooter, EAST);
         assertTrue(f.loadout.torsoFacingDegrees < 0f, "the manual east bearing wins over the AI west target");
     }

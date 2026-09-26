@@ -156,8 +156,9 @@ A controlled Mech interprets WASD as desired travel direction. Its hips accelera
 and brake toward that direction and may translate only within the existing
 eight-degree movement alignment gate. Neutral input brakes hip turning; mouse
 aim does not rotate the legs. The torso turns toward the aim point within the
-existing 145-degree limit to either side of the hips. A mount requires the same
-four-degree firing alignment used by autonomous fire. A blocked drive step may
+existing 145-degree limit to either side of the hips. Traversing between the
+two rear limits goes through the forward arc, never across the blind wedge.
+A mount requires the same four-degree firing alignment used by autonomous fire. A blocked drive step may
 still pivot, but its gait follows only the motion actually applied.
 
 A controlled APC must be a live Marine chassis in DEPLOYED state, with its
@@ -196,8 +197,8 @@ silhouette-based hit roll, and treating every body as an incidental contact
 must not erase the weapon's accuracy. A moving shooter retains the existing
 moving-fire penalty. Structural stops, smoke, cover catches, friendly-fire
 contacts, damage delay, telemetry, sound, and effects follow the ordinary
-shot pipeline. A primary burst retains the world point accepted at trigger pull for all its
-follow-up rounds; moving the cursor affects the next trigger, while moving the
+shot pipeline. A handheld primary burst retains the world point accepted at
+trigger pull for all its follow-up rounds; moving the cursor affects the next trigger, while moving the
 shooter changes its bearing to that frozen point. Follow-up spread uses the
 shooter’s actual applied movement. A held trigger cannot restart an unfinished
 burst. Releasing control cancels pending intent and burst work without
@@ -217,12 +218,13 @@ mount whose own arc, alignment, cooldown, ammunition, and burst gates permit
 it. There is no separate weapon selector in this adapter. Indirect mounts stay
 untriggered. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
-infantry training multiplier to Mech accuracy. Each accepted burst freezes its
-own world point. A committed burst has priority over the current cursor for
-torso aim, with installed-mount order breaking ties. Later triggers use the
-current cursor after that commitment ends. Entry, exit, and input suspension
-cancel queued rounds and aim while preserving ammunition, cooldowns, and
-replenishment progress.
+infantry training multiplier to Mech accuracy. The live cursor owns torso aim
+and each scheduled round of a manual Mech burst. A round still requires the
+actual torso and muzzle to align legally; a refused release consumes its
+scheduled slot without emitting a shot or refunding the accepted trigger pack.
+A blocked or unaimed mount cannot retain a backlog or steer the torso. Entry,
+exit, and input suspension cancel queued rounds and aim while preserving
+ammunition, cooldowns, and replenishment progress.
 
 AI and manual Mech direct rounds originate at the installed barrel's actual
 posed muzzle. The body-to-barrel structural segment must also be clear, so a

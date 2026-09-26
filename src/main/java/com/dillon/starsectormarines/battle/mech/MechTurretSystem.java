@@ -44,6 +44,7 @@ public final class MechTurretSystem {
     }
 
     public void tick(float dt, long controlledId, PointFireAim manualAim) {
+        if (dt <= 0f) return;
         for (ArchetypeTable table : world.matched(mechs)) {
             boolean hasCombat = table.has(components.COMBAT);
             boolean hasMovement = table.has(components.MOVEMENT);
@@ -62,8 +63,7 @@ public final class MechTurretSystem {
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 MechLoadoutComponent loadout = (MechLoadoutComponent) loadouts[row];
                 boolean controlled = table.entityAt(row) == controlledId;
-                PointFireAim point = controlled ? loadout.pointBurstAim() : null;
-                if (controlled && point == null) point = manualAim;
+                PointFireAim point = controlled ? manualAim : null;
                 long target = controlled ? 0L : aimTarget(loadout, hasCombat ? combatTargets[row] : 0L);
                 float desired = hipFacing[row];
                 boolean withinTraverse = false;
@@ -101,10 +101,9 @@ public final class MechTurretSystem {
                     }
                 }
 
-                MechLocomotion.AngularStep turn = MechLocomotion.dampedTurn(
+                MechLocomotion.AngularStep turn = traverseWithinHips(
                         loadout.torsoFacingDegrees, loadout.torsoAngularVelocityDegrees,
-                        desired, loadout.torsoTurnRateDegrees,
-                        MechLoadoutComponent.DEFAULT_TORSO_TURN_ACCELERATION_DEGREES, dt);
+                        hipFacing[row], desired, loadout.torsoTurnRateDegrees, dt);
                 loadout.torsoFacingDegrees = turn.facingDegrees();
                 loadout.torsoAngularVelocityDegrees = turn.angularVelocityDegrees();
                 loadout.torsoAimTargetId = target;
@@ -113,6 +112,45 @@ public final class MechTurretSystem {
                         - loadout.torsoFacingDegrees)) <= FIRE_ALIGNMENT_DEGREES;
             }
         }
+    }
+
+    /**
+     * The spine is a bounded joint, not a freely rotating turret. Integrate its
+     * signed hip-relative coordinate without wrapping the error: +145 to -145
+     * must travel through the front, never take a shortcut through the rear.
+     * Existing angular speed, acceleration and stopping-speed limits apply.
+     * A moving hip frame can carry the joint against a mechanical stop; project
+     * that pose into the envelope before motor motion, then arrest outward
+     * momentum at the stop rather than allowing penetration of the rear wedge.
+     */
+    static MechLocomotion.AngularStep traverseWithinHips(float current, float velocity,
+                                                        float hips, float desired, float turnRate, float dt) {
+        if (dt <= 0f) return new MechLocomotion.AngularStep(current, velocity);
+        float currentTwist = clampTwist(LayeredAppearance.wrapDegrees(current - hips));
+        float desiredTwist = clampTwist(LayeredAppearance.wrapDegrees(desired - hips));
+        float error = desiredTwist - currentTwist;
+        float rate = Math.max(0f, turnRate);
+        float acceleration = MechLoadoutComponent.DEFAULT_TORSO_TURN_ACCELERATION_DEGREES;
+        float stoppingSpeed = (float) Math.sqrt(2f * acceleration * Math.abs(error));
+        float desiredVelocity = Math.abs(error) < .0001f ? 0f
+                : Math.copySign(Math.min(rate, stoppingSpeed), error);
+        float velocityStep = acceleration * dt;
+        float nextVelocity = velocity + Math.max(-velocityStep, Math.min(velocityStep, desiredVelocity - velocity));
+        nextVelocity = Math.max(-rate, Math.min(rate, nextVelocity));
+        float step = nextVelocity * dt;
+        float nextTwist = currentTwist + step;
+        if (step != 0f && Math.signum(step) == Math.signum(error) && Math.abs(step) >= Math.abs(error)) {
+            nextTwist = desiredTwist;
+            nextVelocity = 0f;
+        }
+        float constrained = clampTwist(nextTwist);
+        if (constrained != nextTwist) nextVelocity = 0f;
+        return new MechLocomotion.AngularStep(LayeredAppearance.wrapDegrees(hips + constrained), nextVelocity);
+    }
+
+    private static float clampTwist(float twist) {
+        return Math.max(-LayeredMechAppearance.MAX_TORSO_TWIST_DEGREES,
+                Math.min(LayeredMechAppearance.MAX_TORSO_TWIST_DEGREES, twist));
     }
 
     private long aimTarget(MechLoadoutComponent loadout, long combatTarget) {

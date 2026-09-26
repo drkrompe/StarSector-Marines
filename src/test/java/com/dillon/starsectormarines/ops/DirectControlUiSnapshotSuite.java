@@ -1,14 +1,28 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
+import com.dillon.starsectormarines.ui.retained.UiViewport;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-/** Isolated production direct-control plate, without a battle simulation or live host. */
+/** Production control plates and composed host overlays, without a battle simulation or live host. */
 public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "direct-control-ui"; }
     @Override public String label() { return "Direct-control plate"; }
@@ -22,9 +36,97 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     context.modRoot(), state >= 2, state > 0, state == 3, state == 4, () -> {})) {
                 var document = BattleDirectControlOverlayTest.document(markup);
                 artifacts.add(new SnapshotArtifact(new String[]{"select", "ready", "active", "mech", "vehicle"}[state]
-                        + ".png", renderer.render(document, 440, 64)));
+                        + ".png", renderer.render(document,
+                        (int) BattleDirectControlOverlay.DOCUMENT_WIDTH,
+                        (int) BattleDirectControlOverlay.DOCUMENT_HEIGHT)));
             }
         }
+        artifacts.add(new SnapshotArtifact("selected-mech-1744x938-ui100.png",
+                composite(renderer, context.modRoot(), 1744, 938, 1f, true)));
+        artifacts.add(new SnapshotArtifact("selected-mech-1280x720-ui150.png",
+                composite(renderer, context.modRoot(), 1280, 720, 1.5f, true)));
+        artifacts.add(new SnapshotArtifact("selected-infantry-1366x768-ui125.png",
+                composite(renderer, context.modRoot(), 1366, 768, 1.25f, false)));
         return artifacts;
+    }
+
+    private static BufferedImage composite(HeadlessUiRenderer renderer, Path modRoot,
+                                            int width, int height, float uiScale,
+                                            boolean mech) throws Exception {
+        var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        try {
+            graphics.setColor(new Color(18, 25, 30));
+            graphics.fillRect(0, 0, width, height);
+            graphics.setColor(new Color(25, 34, 39));
+            for (int x = 0; x < width; x += 48) graphics.drawLine(x, 0, x, height);
+            for (int y = 0; y < height; y += 48) graphics.drawLine(0, y, width, y);
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            Reactor reactor = new Reactor();
+            var hud = new BattleHudOverlayModel(reactor, ignored -> {}, "Pause", "1x", "2x", "4x");
+            Map<String, Object> hudProps = hud.props();
+            hudProps.put("commandPanelClasses", "conquest-command-panel");
+            hudProps.put("commandPhase", "FRONT ADJUST");
+            hudProps.put("commandForce", "8 SQUADS  |  79 MARINES  |  1 RESERVE");
+            try (MarkupInstance markup = build(modRoot, reactor, BattleHudOverlay.COMPONENT_PATH,
+                    BattleHudOverlay.COMPONENT, hudProps)) {
+                BattleHudOverlay.wireLayout(markup);
+                draw(graphics, renderer, markup, layout.hud(), layout.host(), uiScale);
+            }
+            if (mech) {
+                var model = new BattleMechOverlayModel(reactor, () -> {}, (id, role) -> {},
+                        (id, order) -> {}, squadId -> {});
+                model.updateProjected(new BattleMechOverlayModel.MechState(3, 303L,
+                        "Bulwark Lead", "Bulwark", MechRole.BALANCED, MechRole.ASSAULT,
+                        MechLanceOrder.FORM_ON_LEAD, false, BattleMechOverlayModel.selectableRoles()));
+                try (MarkupInstance markup = build(modRoot, reactor, BattleMechOverlay.COMPONENT_PATH,
+                        BattleMechOverlay.COMPONENT, model.props())) {
+                    BattleMechOverlay.wireLayout(markup);
+                    draw(graphics, renderer, markup, layout.mech(), layout.host(), uiScale);
+                }
+            } else {
+                var model = new BattleSquadOverlayModel(reactor, () -> {});
+                List<BattleSquadOverlayModel.MemberState> members = new ArrayList<>();
+                for (int i = 0; i < 12; i++) {
+                    members.add(new BattleSquadOverlayModel.MemberState(i + 1L, i / 4, i == 0,
+                            i == 0 ? "Rhea Voss" : "Marine " + (i + 1), 100f, 100f,
+                            40f, 40f, 12f, "Assault rifle", "AR", new Color(140, 185, 210),
+                            "", "", "", "", "", "Regular", "Steady", UnitRole.COMBATANT));
+                }
+                model.updateProjected(new BattleSquadOverlayModel.SquadState("Squad 20", 12, 12,
+                        .72f, members));
+                try (MarkupInstance markup = build(modRoot, reactor, BattleSquadOverlay.COMPONENT_PATH,
+                        BattleSquadOverlay.COMPONENT, model.props())) {
+                    BattleSquadOverlay.wireLayout(markup);
+                    draw(graphics, renderer, markup, layout.squad(), layout.host(), uiScale);
+                }
+            }
+            try (MarkupInstance markup = BattleDirectControlOverlayTest.fixture(
+                    modRoot, false, true, mech, () -> {})) {
+                draw(graphics, renderer, markup, layout.control(), layout.host(), uiScale);
+            }
+        } finally {
+            graphics.dispose();
+        }
+        return image;
+    }
+
+    private static MarkupInstance build(Path modRoot, Reactor reactor, String path,
+                                         String component, Map<String, Object> props) throws Exception {
+        MarkupLoader loader = new MarkupLoader(file -> Files.readString(modRoot.resolve(file)), List.of(path));
+        loader.reload();
+        return loader.build(reactor, component, props);
+    }
+
+    private static void draw(Graphics2D graphics, HeadlessUiRenderer renderer, MarkupInstance markup,
+                             UiViewport viewport, UiViewport host, float uiScale) {
+        BufferedImage panel = renderer.render(BattleDirectControlOverlayTest.document(markup),
+                Math.round(viewport.documentWidth()), Math.round(viewport.documentHeight()));
+        int x = Math.round((viewport.screenX() - host.screenX()) * uiScale);
+        int y = Math.round((host.screenY() + host.height() - viewport.screenY() - viewport.height()) * uiScale);
+        graphics.drawImage(panel, x, y, Math.round(viewport.width() * uiScale),
+                Math.round(viewport.height() * uiScale), null);
     }
 }

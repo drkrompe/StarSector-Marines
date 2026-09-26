@@ -1,10 +1,10 @@
 # Direct control live acceptance
 
-Status: PLANNED
+Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-23 — added eyes-on collision checks for manual motion.
+Updated: 2026-09-26 — live play is underway; verify selection-panel clearance and continuous Mech cursor aim.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -15,6 +15,12 @@ Decide whether direct control is readable, fair, and useful in a real battle,
 including its transition back to autonomous play.
 
 ## Acceptance pass
+
+- Select infantry, a Mech lance, and an APC at supported UI scales. The control
+  button must remain visible and clickable outside the selected-unit panels.
+- Sweep the cursor during a Bulwark burst, including behind the hips and while
+  a barrel is blocked. The torso must follow current input within its physical
+  limits, without an old burst pulling aim back or crossing the rear blind wedge.
 
 - Use each eligible body under contact, behind cover, and near a friendly
   firing lane. Verify cursor direction, shot path and impact, moving fire,

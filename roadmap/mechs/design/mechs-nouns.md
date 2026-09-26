@@ -320,10 +320,12 @@ Terrain sweep, speed, separation, and gait remain the shared chassis rules.
 
 The primary trigger requests all installed ground-direct mounts, each spending
 its own ready ammunition and observing its cooldown and burst state. Indirect
-mounts are withheld. A burst retains the world point accepted by that mount at
-trigger pull; committed bursts own torso aim before the live cursor, with
-installed-mount order resolving simultaneous commitments. Entry, exit, and
-input suspension cancel queued rounds and aim without resetting mount clocks,
+mounts are withheld. The live cursor owns torso aim and every scheduled
+manual burst round. A refused release consumes its scheduled slot without
+emitting a shot or refunding the trigger pack, so blocked or unaimed mounts
+cannot hold a firing backlog or override current aim. Torso traversal between
+rear limits stays inside the forward arc rather than crossing the blind wedge.
+Entry, exit, and input suspension cancel queued rounds and aim without resetting mount clocks,
 ammunition, or replenishment progress. Mech accuracy uses its shared weapon
 calculation without infantry training multipliers.
 

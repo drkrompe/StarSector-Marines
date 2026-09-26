@@ -13,7 +13,7 @@ public final class MechWeaponMount {
     public int burstRemaining;
     public float burstTimer;
     public long burstTargetId;
-    /** A point burst keeps the accepted world point for every remaining round. */
+    /** Accepted manual trigger point; marks cursor-driven continuation instead of an AI target. */
     public PointFireAim burstPointAim;
     /** Accumulated onboard replenishment work toward the next trigger pack. */
     public float replenishmentProgressSeconds;

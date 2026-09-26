@@ -1,11 +1,16 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.SettingsAPI;
+import com.fs.starfarer.api.ui.PositionAPI;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -26,14 +31,88 @@ class BattleDirectControlOverlayTest {
                 var box = button.box().borderBox();
                 assertEquals(!enabled, button.disabled());
                 assertTrue(box.x() >= 0 && box.right() <= 440f);
-                assertTrue(box.y() >= 0 && box.bottom() <= 64f);
+                assertTrue(box.y() >= 0 && box.bottom() <= BattleDirectControlOverlay.DOCUMENT_HEIGHT);
                 assertTrue(markup.requireElement("battle-direct-control-hint")
-                        .box().borderBox().bottom() <= 64f);
+                        .box().borderBox().bottom() <= BattleDirectControlOverlay.DOCUMENT_HEIGHT);
                 document.pointerDown(box.x() + 20, box.y() + 12);
                 document.pointerUp(box.x() + 20, box.y() + 12);
                 assertEquals(enabled ? 1 : 0, actions.get());
             }
         }
+    }
+
+    @Test
+    void controlPlateClearsBothSelectionPanelsAndOtherChromeAcrossHostScales() throws Exception {
+        for (int[] size : List.of(new int[]{1744, 938}, new int[]{1920, 1080},
+                new int[]{1366, 768}, new int[]{1280, 720})) {
+            for (float uiScale : new float[]{1f, 1.25f, 1.5f}) {
+                OverlayLayout layout = layout(size[0], size[1], uiScale);
+                UiViewport plate = layout.control();
+                String context = size[0] + "x" + size[1] + " UI " + uiScale;
+                assertDisjoint(plate, layout.squad(), context + " infantry and hover");
+                assertDisjoint(plate, layout.mech(), context + " mech/lance");
+                assertDisjoint(plate, layout.powers(), context + " power tray");
+                assertDisjoint(plate, layout.retreat(), context + " retreat confirmation");
+                float commanderBottom = layout.host().screenY() + layout.host().height()
+                        - 12f - BattleHudOverlay.COMMAND_ONLY_HEIGHT * plate.documentScale();
+                assertTrue(plate.screenY() + plate.height() <= commanderBottom,
+                        context + " commander clearance");
+                assertTrue(plate.screenX() >= layout.host().screenX());
+                assertTrue(plate.screenX() + plate.width()
+                        <= layout.host().screenX() + layout.host().width());
+                AtomicInteger actions = new AtomicInteger();
+                try (MarkupInstance markup = fixture(Path.of("mod"), false, true,
+                        true, actions::incrementAndGet)) {
+                    UiDocument document = document(markup);
+                    document.layout(plate.documentWidth(), plate.documentHeight());
+                    var button = markup.requireElement("battle-direct-control-toggle").box().borderBox();
+                    float screenX = plate.screenXFor(button.x() + button.width() / 2f);
+                    float screenY = plate.screenTopFor(button.y() + button.height() / 2f);
+                    document.pointerDown(plate.documentX(screenX), plate.documentY(screenY));
+                    document.pointerUp(plate.documentX(screenX), plate.documentY(screenY));
+                    assertEquals(1, actions.get(), context + " control remains clickable");
+                    assertTrue(markup.requireElement("battle-direct-control-hint")
+                            .box().borderBox().bottom() <= plate.documentHeight());
+                }
+            }
+        }
+    }
+
+    static record OverlayLayout(UiViewport host, UiViewport control, UiViewport squad,
+                                UiViewport mech, UiViewport powers, UiViewport retreat,
+                                UiViewport hud) { }
+
+    /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
+    static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
+        SettingsAPI previous = Global.getSettings();
+        SettingsAPI settings = (SettingsAPI) Proxy.newProxyInstance(SettingsAPI.class.getClassLoader(),
+                new Class<?>[]{SettingsAPI.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("getScreenScaleMult")) return uiScale;
+                    throw new AssertionError("Unexpected settings query: " + method.getName());
+                });
+        PositionAPI position = (PositionAPI) Proxy.newProxyInstance(PositionAPI.class.getClassLoader(),
+                new Class<?>[]{PositionAPI.class}, (proxy, method, args) -> switch (method.getName()) {
+                    case "getX" -> 37f;
+                    case "getY" -> 29f;
+                    case "getWidth" -> physicalWidth / uiScale;
+                    case "getHeight" -> physicalHeight / uiScale;
+                    default -> throw new AssertionError("Unexpected position query: " + method.getName());
+                });
+        try {
+            Global.setSettings(settings);
+            return new OverlayLayout(MarineOpsUiViewport.from(position),
+                    BattleDirectControlOverlay.viewport(position), BattleSquadOverlay.viewport(position),
+                    BattleMechOverlay.viewport(position), BattlePowerOverlay.viewport(position, 5, true),
+                    BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
+                    BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)));
+        } finally {
+            Global.setSettings(previous);
+        }
+    }
+
+    private static void assertDisjoint(UiViewport a, UiViewport b, String context) {
+        assertTrue(a.screenX() + a.width() <= b.screenX() || b.screenX() + b.width() <= a.screenX()
+                || a.screenY() + a.height() <= b.screenY() || b.screenY() + b.height() <= a.screenY(), context);
     }
 
     static MarkupInstance fixture(Path modRoot, boolean active, boolean enabled,
@@ -65,7 +144,7 @@ class BattleDirectControlOverlayTest {
         UiDocument document = new UiDocument(markup.root());
         for (var style : markup.styles()) document.addStyleSheet(style);
         document.theme(MarineOpsThemes.standard());
-        document.layout(440f, 64f);
+        document.layout(BattleDirectControlOverlay.DOCUMENT_WIDTH, BattleDirectControlOverlay.DOCUMENT_HEIGHT);
         return document;
     }
 }
