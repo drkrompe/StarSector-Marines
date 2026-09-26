@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ManualTerrainMotionTest {
@@ -145,6 +146,15 @@ class ManualTerrainMotionTest {
             assertEquals(3.5f, result.x());
             assertEquals(0f, result.dx());
         }
+    }
+
+    @Test
+    void straightSweepDoesNotTreatSlidingAsAClearRouteSegment() {
+        NavigationGrid grid = floor(8, 8);
+        grid.setWalkable(4, 4, false);
+        assertFalse(ManualTerrainMotion.canSweepStraight(grid, 2.5f, 3.5f, 3f, 1f, 0.6f));
+        assertTrue(ManualTerrainMotion.canSweepStraight(grid, 2.5f, 2.5f, 3f, 0f, 0.6f));
+        assertFalse(ManualTerrainMotion.canSweepStraight(grid, 2.5f, 2.5f, -3f, 0f, 0.6f));
     }
 
     private static NavigationGrid floor(int width, int height) {

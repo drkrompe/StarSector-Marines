@@ -30,6 +30,20 @@ public final class ManualTerrainMotion {
                 && clear(grid, x, y, radius);
     }
 
+    /**
+     * Whether one complete straight displacement is clear, without sliding.
+     * Uses the same contacts as {@link #move}; a contact at the endpoint is
+     * conservatively rejected because move stops just short of that contact.
+     */
+    public static boolean canSweepStraight(NavigationGrid grid, float x, float y,
+                                            float dx, float dy, float radius) {
+        if (!Float.isFinite(dx) || !Float.isFinite(dy)
+                || !canStand(grid, x, y, radius)
+                || !canStand(grid, x + dx, y + dy, radius)) return false;
+        if (dx == 0f && dy == 0f) return true;
+        return sweep(grid, x, y, dx, dy, radius).time > 1d;
+    }
+
     public static Result move(NavigationGrid grid, float x, float y,
                               float dx, float dy, float radius) {
         if (!Float.isFinite(x) || !Float.isFinite(y)
