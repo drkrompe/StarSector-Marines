@@ -163,4 +163,10 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
      * doctrine step — and a reflex is handed this interface.
      */
     MechMoveOrderSystem getMechMoveOrderSystem();
+
+    /** Discard this chassis's queued and active one-shot moves at an ownership boundary. */
+    void cancelMechMoveOrder(long member);
+
+    /** The posed barrel must reach open space before a mount spends its trigger. */
+    boolean canFireMechMount(long shooter, MechWeaponMount mount);
 }

@@ -64,6 +64,22 @@ class MechRouteIntentTest {
             });
 
     @Test
+    void ownershipResetDiscardsPendingCandidateAndPreviousRefusals() {
+        MechRouteIntent route = MechRouteIntent.forMember(mech, "engage", 7, sim);
+        response = PathRequestStatus.FAILED;
+        route.moveToward(mech, 12, 4, sim);
+        response = PathRequestStatus.PENDING;
+        route.moveToward(mech, 13, 5, sim);
+        assertTrue(route.pending());
+        assertTrue(route.rejected(12, 4));
+        route.reset();
+        assertFalse(route.pending());
+        assertFalse(route.rejected(12, 4));
+        MechRouteIntent.forMember(mech, "engage", 7, sim).moveToward(mech, 12, 4, sim);
+        assertEquals(MechRouteIntent.cellKey(12, 4), requests.get(2));
+    }
+
+    @Test
     void pendingCandidateSurvivesNewScoresAndFailurePermitsAnAlternative() {
         MechRouteIntent route = MechRouteIntent.forMember(mech, "engage", 7, sim);
         assertEquals(PathRequestStatus.PENDING, route.moveToward(mech, 12, 4, sim));

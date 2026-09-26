@@ -20,7 +20,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.LongPredicate;
 
 /**
- * Battle-owned authority for one directly controlled Marine. UI publishes input;
+ * Battle-owned authority for one directly controlled Marine infantry member or Mech. UI publishes input;
  * the serial tick validates ownership, snapshots input and runs one movement and
  * primary intent pass. Ordinary unit dispatch skips only this identity. No health,
  * mission, damage, or equipment resource authority moves into the session.
@@ -46,6 +46,13 @@ public final class DirectControlSession {
     public boolean active() { return unitId != 0L; }
     public boolean isControlling(long id) { return id != 0L && id == unitId; }
     public ManualIntent intent() { return intent; }
+    public long controlledMechId() {
+        return active() && roster.world().hasMechLoadout(unitId) ? unitId : 0L;
+    }
+    public PointFireAim pointAim() {
+        return active() && Float.isFinite(intent.aimX()) && Float.isFinite(intent.aimY())
+                ? new PointFireAim(intent.aimX(), intent.aimY()) : null;
+    }
 
     /** Read-only entry check. Committed special actions finish under their original owner. */
     public boolean canEnter(long id) {
@@ -57,7 +64,9 @@ public final class DirectControlSession {
     private boolean eligible(long id) {
         if (id == 0L || complete.getAsBoolean() || !roster.isAliveById(id)) return false;
         World world = roster.world();
-        if (roster.identity().type(id) != UnitType.MARINE
+        UnitType type = roster.identity().type(id);
+        boolean mech = type.isMech();
+        if ((type != UnitType.MARINE && !mech)
                 || roster.identity().faction(id) != Faction.MARINE
                 || world.hp(id) <= 0f || !roster.movement().has(id)
                 || !roster.combat().has(id) || !world.hasAiState(id)
@@ -68,12 +77,17 @@ public final class DirectControlSession {
         if (role == UnitRole.PLANTER || role == UnitRole.KIT_RETRIEVER) return false;
         if (world.hasSecondaryWeapon(id) && world.secondaryActionTimer(id) > 0f) return false;
         Squad squad = battle.squadOf(id);
+        if (mech && (!world.hasMechLoadout(id) || squad == null
+                || squad.faction != Faction.MARINE || !squad.isMechSquad()
+                || squad.rescuePickupMech
+                || !roster.entityWorld().has(id, roster.components().MECH_LOCOMOTION))) return false;
         if (squad == null) return true;
         ObjectiveAssignment assignment = squad.assignedObjective;
         CommandDirective shelved = battle.getShelvedSquadDirective(squad.id);
         return (assignment == null || assignment.kind() != AssignmentKind.WITHDRAW)
                 && (shelved == null || shelved.assignment().kind() != AssignmentKind.WITHDRAW)
-                && !squad.moraleBroken && !squad.fireTeamBroken(battle.squad().fireTeamIndex(id));
+                && !squad.moraleBroken && !squad.fallbackInProgress
+                && !squad.fireTeamBroken(battle.squad().fireTeamIndex(id));
     }
 
     /** UI and scripted requests enter on the simulation host thread, outside worker dispatch. */
@@ -98,6 +112,7 @@ public final class DirectControlSession {
         intent = intent.neutralized();
         if (active() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
             roster.combat().clearPrimaryFire(unitId);
+            if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
         }
     }
 
@@ -118,6 +133,19 @@ public final class DirectControlSession {
         if (!roster.isAliveById(id)) return;
         if (roster.movement().has(id)) battle.clearPath(id);
         if (roster.combat().has(id)) roster.combat().clearPrimaryFire(id);
+        if (roster.world().hasMechLoadout(id)) {
+            battle.cancelMechMoveOrder(id);
+            var loadout = roster.world().mechLoadout(id);
+            loadout.clearQueuedFire();
+            loadout.routeIntent.reset();
+            loadout.collisionEscapeActive = false;
+            loadout.collisionStallSeconds = 0f;
+            loadout.collisionBestRemainingDistance = Float.POSITIVE_INFINITY;
+            loadout.collisionProgressDestX = Integer.MIN_VALUE;
+            loadout.collisionProgressDestY = Integer.MIN_VALUE;
+            loadout.collisionProgressPointX = Float.NaN;
+            loadout.collisionProgressPointY = Float.NaN;
+        }
     }
 
     /** Run before replanning and after lifecycle phases, including on paused advances. */
@@ -131,6 +159,11 @@ public final class DirectControlSession {
         if (!active()) return;
         long id = unitId;
         ManualIntent input = intent;
+        if (roster.identity().type(id).isMech()) {
+            roster.movement().moveDirectMech(id, battle.getGrid(), input.moveX(), input.moveY(),
+                    battle.physicalRadius(id), BattleSimulation.TICK_DT);
+            return; // HeavyWeapons owns every mount clock and trigger in its serial pass.
+        }
         InfantryUnitPrep.tickCooldowns(id, roster.world());
         roster.movement().moveDirect(id, battle.getGrid(), input.moveX(), input.moveY(),
                 battle.physicalRadius(id), BattleSimulation.TICK_DT);

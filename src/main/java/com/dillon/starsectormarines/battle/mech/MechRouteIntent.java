@@ -51,6 +51,19 @@ public final class MechRouteIntent {
 
     public void cancel() { pending = false; }
 
+    /** Discards tactical navigation ownership so handback starts from the current body position. */
+    public void reset() {
+        purpose = null;
+        context = 0L;
+        revision = 0L;
+        candidateBasis = Long.MIN_VALUE;
+        failureCount = 0;
+        pending = false;
+        pendingBoundDetour = false;
+        pendingX = 0;
+        pendingY = 0;
+    }
+
     /** A moved tactical anchor may make old refusals irrelevant, after its retained proof finishes. */
     public void refreshCandidates(long basis) {
         if (!pending && candidateBasis != basis) {

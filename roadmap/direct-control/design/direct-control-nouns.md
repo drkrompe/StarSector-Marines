@@ -1,10 +1,10 @@
 # Direct control nouns
 
-Status: ACTIVE — Marine control is implemented; live acceptance and other carriers remain open.
+Status: ACTIVE — Marine and Mech control are implemented; vehicle support and live acceptance remain open.
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — shared Mech clearance now supplies the terrain and handback contract for its pending control adapter.
+Updated: 2026-09-26 — Mech control shares chassis motion, installed direct mounts, and lance handback.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -26,16 +26,20 @@ fire intent; it does not turn the player into a second mission commander.
 - **Handback** releases the session and returns the body to its current AI
   assignment. It is not a new squad order and does not restore a stale plan.
 
-Only an exact player-owned, controllable ground body may enter. The first
-families are a named Marine infantry member, a deployed combat Mech, and a
-deployed Marine vehicle. Allied or enemy bodies, incapacitated or riding
+Only an exact player-owned, controllable ground body may enter. The implemented
+families are a Marine infantry member and a deployed combat Mech; a deployed
+Marine vehicle is the next planned adapter. Allied or enemy bodies, incapacitated or riding
 members, wrecks, and vehicles in a delivery leg are not eligible. Marine entry
 also waits for committed special-equipment actions and is unavailable to a
 mission planter or kit retriever. Those interactions need an explicit manual
 action contract; primary control cannot silently continue an objective-owned
-channel. A broken fire team, forced fallback, or hard withdrawal releases
-control to its existing survival authority. The exact
-eligibility of a future hero designation belongs to company/progression; the
+channel. A broken fire team, broken squad, forced fallback, structural squad
+retreat, or hard withdrawal releases control to its existing survival authority. A deployed
+Mech requires its combat loadout and locomotion components in a friendly
+non-rescue lance. An unfinished frame and a rescue pickup Mech cannot enter.
+Mech morale follows the existing squad survival decision; an individual
+chassis contributes to that decision without adding a stricter manual-only gate.
+The exact eligibility of a future hero designation belongs to company/progression; the
 control mechanism should not mint a second soldier identity or change the
 campaign's casualty accounting.
 
@@ -47,12 +51,19 @@ Entry, exit, and loss of eligibility prompt a fresh tactical allocation. Health,
 morale, unavoidable hazards, withdrawal, capture presence, equipment use,
 cooldowns, and campaign identity remain under their existing authorities.
 There is no position teleport, invulnerability, free ammunition, or hidden
-target knowledge.
+target knowledge. A controlled Mech retains its real lance membership, leader
+identity, and physical strength. It leaves autonomous role candidates, doctrine
+selection, formation anchors, and shared arrival work until handback. The
+remaining members choose an autonomous lead. Entry cancels both queued and
+active one-shot moves for the exact chassis; new one-shot moves cannot compete
+with manual ownership. Mission, doctrine, and lance orders remain current and
+may change while the player controls the body. Handback replans from that
+current context without restoring old movement or firing work.
 
 ## Input and time
 
-Selecting an exact Marine exposes an enter/exit control; C toggles takeover
-and Escape releases it. A bracket identifies the controlled body and a
+Selecting an exact eligible Marine infantry member or Mech exposes an enter/exit
+control; C toggles takeover and Escape releases it. A bracket identifies the controlled body and a
 crosshair shows its point aim. The battle screen owns the mode indicator and
 routes input before ordinary
 world picking, contextual orders, and camera keys. Retained UI chrome keeps
@@ -71,10 +82,10 @@ Entering while paused leaves the battle paused. Entering from 2x or 4x
 remembers that rate, and exiting restores it unless the player deliberately
 changed time while controlling. A follow camera uses the same screen-to-world
 projection as picking and shooting, with wheel zoom available during control.
-Temporary camera look is deferred; the Marine adapter keeps following the
+Temporary camera look is deferred; the camera keeps following the
 controlled body and reserves right-click without issuing a world order.
 
-The mode is proposed as a freely entered one-unit intervention. It consumes
+The mode is a freely entered one-unit intervention. It consumes
 the player's attention and excludes simultaneous control of another body.
 If play evidence calls for a duration, charge, or cooldown, that pacing must
 wrap the same control session. A command-power card would additionally need
@@ -120,7 +131,7 @@ an impassable edge. Entry requires a legal body envelope at the current
 position. A body already outside that envelope is refused for takeover rather than
 teleported or allowed to begin a motionless session. Mech AI routes, placement,
 translation, and separation use the same physical chassis clearance. This
-shared terrain authority does not itself enable the Mech control adapter.
+shared terrain authority applies equally during direct control and AI handback.
 
 Infantry and Mechs share the terrain/topology law but keep their own movement
 speed, body clearance, and Mech pivot behavior. The existing path follower
@@ -140,6 +151,14 @@ Other live bodies keep their shared separation rules. In particular, moving
 vehicle versus infantry occupancy still needs the cross-domain policy in
 `truck-infantry-interaction.md`; direct control must not invent a player-only
 collision outcome for it.
+
+A controlled Mech interprets WASD as desired travel direction. Its hips accelerate
+and brake toward that direction and may translate only within the existing
+eight-degree movement alignment gate. Neutral input brakes hip turning; mouse
+aim does not rotate the legs. The torso turns toward the aim point within the
+existing 145-degree limit to either side of the hips. A mount requires the same
+four-degree firing alignment used by autonomous fire. A blocked drive step may
+still pivot, but its gait follows only the motion actually applied.
 
 ## Fire and knowledge
 
@@ -166,19 +185,38 @@ resetting cooldown. The current handheld primary family has no ammunition
 counter; manual fire shares that resource contract rather than granting a
 separate ammunition supply.
 
-A point request is consumed once whether it fires or is held by a gate. It
-requires a live equipped direct primary, a finite noncoincident world bearing,
+A handheld point request is consumed once whether it fires or is held by a gate.
+It requires a live equipped direct primary, a finite noncoincident world bearing,
 positive weapon reach, a ready cooldown, and no active burst. The cursor is
 not a range limit: an unobstructed round travels to the weapon’s full modeled
 reach beyond it. Accuracy, falloff, spread, and smoke depth are calibrated at
 weapon range so placing the cursor nearer cannot improve distant accuracy.
 
+For a Mech, the held primary trigger requests every installed ground-direct
+mount whose own arc, alignment, cooldown, ammunition, and burst gates permit
+it. There is no separate weapon selector in this adapter. Indirect mounts stay
+untriggered. Every mount keeps one clock and resource stream under the ordinary
+heavy-weapon pass; manual control neither advances it twice nor applies an
+infantry training multiplier to Mech accuracy. Each accepted burst freezes its
+own world point. A committed burst has priority over the current cursor for
+torso aim, with installed-mount order breaking ties. Later triggers use the
+current cursor after that commitment ends. Entry, exit, and input suspension
+cancel queued rounds and aim while preserving ammunition, cooldowns, and
+replenishment progress.
+
+AI and manual Mech direct rounds originate at the installed barrel's actual
+posed muzzle. The body-to-barrel structural segment must also be clear, so a
+barrel protruding beyond a wall cannot launch a round through it. Direct area
+payloads detonate only at their committed physical terminal contact; the cursor
+and an unobstructed overshoot produce no blast. Direct SRMs retain their ordinary
+interception opportunity and delayed impact.
+
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved
 normally, but its identity is presented only when the player's observation
-rules allow it. Weapon families outside modeled ground direct fire, especially
-indirect missiles and area attacks, need their own ground-point targeting
-contract before they can be triggered manually. Mech mounts also retain their
+rules allow it. Weapon families outside modeled ground direct fire, including
+indirect missiles, need their own ground-point targeting contract before they can be
+triggered manually. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
 

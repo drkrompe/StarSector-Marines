@@ -257,6 +257,37 @@ public final class MovementService {
     }
 
     /**
+     * Manual mech drive owns both hip steering and translation for this tick.
+     * The hips retain their damped turn and pivot gate; only aligned input is
+     * passed to the shared full-body terrain sweep. Neutral input brakes hip
+     * momentum without consulting the AI's target or remembered contact.
+     * The normal locomotion pass must skip this actor after this call.
+     */
+    public void moveDirectMech(long id, NavigationGrid grid, float axisX, float axisY,
+                               float radius, float dt) {
+        if (!Float.isFinite(axisX) || !Float.isFinite(axisY)
+                || !Float.isFinite(radius) || radius <= 0f
+                || !Float.isFinite(dt) || dt < 0f) {
+            throw new IllegalArgumentException("Mech drive requires finite axes, positive radius and nonnegative time");
+        }
+        if (dt == 0f) {
+            moveDirect(id, grid, 0f, 0f, radius, 0f);
+            return;
+        }
+        if (axisX == 0f && axisY == 0f) {
+            MechLocomotion.stopTurning(entityWorld, components, id, dt);
+        } else {
+            float error = MechLocomotion.turnToward(entityWorld, components, id,
+                    MechLocomotion.continuousFacing(axisX, axisY), dt);
+            if (error > MechLocomotion.MOVE_ALIGNMENT_DEGREES) {
+                axisX = 0f;
+                axisY = 0f;
+            }
+        }
+        moveDirect(id, grid, axisX, axisY, radius, dt);
+    }
+
+    /**
      * The legal drive step at the current speed, without changing position,
      * velocity, gait, or path state. Early suit policies use this before their
      * speed effects are applied; the movement pass resolves again afterward.

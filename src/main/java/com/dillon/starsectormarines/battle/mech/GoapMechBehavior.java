@@ -106,7 +106,7 @@ public final class GoapMechBehavior implements UnitBehavior {
     @Override
     public void update(long unit, BattleSimulation sim) {
         Squad squad = sim.squadOf(unit);
-        if (squad == null) return;
+        if (squad == null || !squad.availableToPlan(unit, sim)) return;
 
         // Everything that outranks the doctrine step, in this arm's declared
         // order. One entry today; see MechReflexes for why it is a list.
@@ -169,10 +169,10 @@ public final class GoapMechBehavior implements UnitBehavior {
      * evaluate against squad members regardless of unit type.
      */
     public static void replanIfNeeded(Squad squad, BattleSimulation sim) {
-        if (squad.aliveMembers == 0) {
+        if (squad.aliveMembers == 0 || squad.autonomousMemberCount(sim) == 0) {
             squad.currentPlan = null;
             squad.currentGoal = null;
-            squad.aliveMembersAtLastPlan = 0;
+            squad.aliveMembersAtLastPlan = squad.aliveMembers;
             return;
         }
 
@@ -244,7 +244,8 @@ public final class GoapMechBehavior implements UnitBehavior {
         if (plan != null && !plan.isComplete()) {
             List<Long> aliveMembers = new ArrayList<>(squad.aliveMembers);
             for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
-                aliveMembers.add(sim.squadMemberAt(squad.id, i));
+                long member = sim.squadMemberAt(squad.id, i);
+                if (squad.availableToPlan(member, sim)) aliveMembers.add(member);
             }
             for (SquadPlan.Step step : plan.steps()) {
                 List<RoleAssigner.Slot<Long>> slots = step.action.roles(squad, sim);

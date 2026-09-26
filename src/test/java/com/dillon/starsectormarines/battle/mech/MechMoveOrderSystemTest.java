@@ -30,6 +30,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechMoveOrderSystemTest {
 
     @Test
+    void cancellationRemovesAcceptedAndQueuedIntentOnlyForTheSelectedBody() {
+        MechMoveOrderService service = new MechMoveOrderService();
+        ActiveOrder first = new ActiveOrder(8, 4, 8, 4);
+        ActiveOrder other = new ActiveOrder(9, 4, 9, 4);
+        service.activate(1L, first);
+        service.activate(2L, other);
+        service.requestMove(1L, 10, 4);
+        service.requestMove(2L, 11, 4);
+        service.cancel(1L);
+        assertNull(service.activeOrder(1L));
+        assertSame(other, service.activeOrder(2L));
+        var pending = service.drainPending();
+        assertEquals(1, pending.size());
+        assertEquals(2L, pending.get(0).mechId);
+    }
+
+    @Test
+    void manualOwnershipRejectsOrdersAndHandbackDoesNotReviveThem() {
+        BattleSimulation sim = openSimulation(20, 12);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        long mech = spawnMech(sim, squadId, Faction.MARINE, 3, 4);
+        Squad squad = finishSquad(sim, squadId, mech);
+        sim.getMechMoveOrderService().requestMove(mech, 12, 4);
+        sim.getMechMoveOrderSystem().tick(sim);
+        assertNotNull(sim.getMechMoveOrderService().activeOrder(mech));
+        squad.setControlledMember(mech, sim);
+        sim.getMechMoveOrderService().requestMove(mech, 14, 4);
+        sim.getMechMoveOrderSystem().tick(sim);
+        assertNull(sim.getMechMoveOrderService().activeOrder(mech));
+        assertFalse(sim.getMechMoveOrderSystem().executeIfActive(mech, squad, sim));
+        squad.setControlledMember(0L, sim);
+        sim.getMechMoveOrderSystem().tick(sim);
+        assertNull(sim.getMechMoveOrderService().activeOrder(mech));
+    }
+
+    @Test
     void commandSnapsBlockedClickToNearestReachableCellWithoutReplacingPlan() {
         BattleSimulation sim = openSimulation(16, 10);
         sim.getGrid().setWalkable(10, 5, false);
