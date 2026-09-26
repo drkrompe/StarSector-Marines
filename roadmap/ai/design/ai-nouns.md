@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — influence refreshes use captured inputs and asynchronous,
-paired tick-boundary publication; synchronous evidence remains available.
+Updated: 2026-09-26 — track and defended-site travel share asynchronous route
+ownership; readiness-based publication retains explicit synchronous evidence.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -262,6 +262,15 @@ that just replanned together do not all refresh on the same later tick. The
 ordinary interval is about two seconds, with a maximum of about 2.27 seconds;
 contact, assignment, casualty, completion, and other tactical interrupts remain
 immediate.
+
+Long travel to a track rally or a defended site may wait for an asynchronous
+route, including a boarding squad walking to its transport. Waiting for a
+route is not assignment failure and does not authorize an inline search when
+the worker queue is full. Workers read frozen navigation and occupancy inputs;
+only the member's own update may install a completed route after validating its
+assignment, plan epoch, starting cell, and topology. Changed intent or local
+contact retires obsolete work. Publication is readiness-based rather than a
+replay guarantee; forced-synchronous evidence remains an explicit control.
 
 An **ambient task assignment** is low-stakes authored world work for an existing
 battle actor: resting at a berth, inspecting a console, maintaining machinery,

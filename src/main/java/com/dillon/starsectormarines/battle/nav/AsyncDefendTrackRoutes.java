@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,12 +18,15 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Battle-owned asynchronous route searches for settled DEFEND_TRACK members.
+ * Battle-owned asynchronous route searches for DEFEND_TRACK and DEFEND_SITE
+ * members travelling to command-authored rallies.
  * Workers see only immutable navigation inputs and never mutate the battle.
  */
 public final class AsyncDefendTrackRoutes implements AutoCloseable {
     public static final String ENABLED_PROPERTY =
             "battle.pathfinding.asyncDefendTrack";
+    public static final String SITE_ENABLED_PROPERTY =
+            "battle.pathfinding.asyncDefendSite";
     public static final String QUEUE_CAPACITY_PROPERTY =
             "battle.pathfinding.asyncDefendTrack.queueCapacity";
     public static final String WORKERS_PROPERTY =
@@ -59,14 +63,24 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
 
     private record Key(Request request, long topologyRevision) { }
 
+    private static final class RouteTask extends FutureTask<int[]> {
+        private volatile boolean ready;
+
+        RouteTask(Callable<int[]> search) { super(search); }
+
+        // FutureTask.isDone() also observes COMPLETING, when get() may still
+        // park. Only publish after completion, so polling never waits for work.
+        @Override protected void done() { ready = true; }
+    }
+
     private static final class Entry {
         final Key key;
-        final FutureTask<int[]> task;
+        final RouteTask task;
         final int submittedTick;
         final AtomicInteger finishedTick;
         int retryAtTick;
 
-        Entry(Key key, FutureTask<int[]> task, int submittedTick,
+        Entry(Key key, RouteTask task, int submittedTick,
               AtomicInteger finishedTick) {
             this.key = key;
             this.task = task;
@@ -166,7 +180,7 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
             entry = null;
         }
         if (entry != null) {
-            if (!entry.task.isDone()) return Result.WAITING;
+            if (!entry.task.ready) return Result.WAITING;
             if (entry.retryAtTick > tick) return Result.WAITING;
             if (entry.retryAtTick != 0) {
                 remove(entry);
@@ -219,7 +233,7 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         NavigationGrid frozenGrid = topologySnapshot;
         byte[] frozenOccupancy = occupancySnapshot;
         AtomicInteger finishedTick = new AtomicInteger(tick);
-        FutureTask<int[]> task = new FutureTask<>(() -> {
+        RouteTask task = new RouteTask(() -> {
             int active = running.incrementAndGet();
             maxRunning.accumulateAndGet(active, Math::max);
             int queueAge = Math.max(0, currentTick.get() - tick);
