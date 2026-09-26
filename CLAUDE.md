@@ -224,6 +224,10 @@ Do not run builds or leave generated task files there.
   coverage controls. Slow flat-search samples include member, squad, stable
   action identity, and route reason; action totals span all measured ticks.
   Configurable orders such as DefendSite and DefendTrack are reported separately.
+  `-Dbattle.targeting.squadFiringPositions=true` enables the off-by-default
+  shared constrained firing-position experiment for patrol and zone-entry
+  execution. `FIRING_POOL_*` and `FIRING_INDIVIDUAL_*` inner counters expose
+  reuse and candidate/ray work (count-only counters have zero time).
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.
@@ -245,6 +249,11 @@ Do not run builds or leave generated task files there.
   the 560x336 map under `build/reports/performance/convoy-route/summary.json`.
   Use `-Dbattle.convoyRoute.outputDir=<absolute path>` to redirect the report.
   Its timings are diagnostic, not a cross-host gate.
+- `gradlew.bat profileSquadFiringPositions` → opt-in paired scorer evidence on
+  six mixed-weapon infantry, target motion and topology repair; writes
+  `build/reports/performance/squad-firing-positions/summary.json`.
+  `-Dbattle.squadFiringEvidence.outputDir=<path>` redirects it. This measures
+  selected-cell validity, spread and reachability, not autonomous combat outcomes.
 - `gradlew.bat crewEvidence` → crews a transport and a capital from their own
   room programs, runs each for four minutes of ship's time, and reports what the
   complement actually spent it doing: the idle share, the activity histogram, the

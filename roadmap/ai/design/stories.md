@@ -4,13 +4,12 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — the tiled navigation derivations shipped and left the
-board; two whole-map costs measured on the same day's Conquest are rows: the
-zone graph's 26 ms rebuild and the shared-goal field's 20 ms regrow every
-fifteen ticks.
+Updated: 2026-09-26 — shared squad firing positions are an opt-in experiment;
+adoption remains gated on work reduction and behavior evidence.
 
 | Story | State | Intent |
 |---|---|---|
+| `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
 | `commander-field-analysis.md` | DRAFT | Add optional read-only frontline/bulge diagnostics over faction-local snapshots without granting assignment authority. |
 | `retire-mech-combatant-behavior.md` | DRAFT | Remove the obsolete mech behavior shell while preserving the shared mech firing contract under an honest name. |

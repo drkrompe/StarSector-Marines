@@ -44,10 +44,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Pure scoring helpers used by behaviors to pick targets and positions.
- * Stateless; each call takes the sim plus the acting unit and computes a
- * fresh answer. Pulled out of {@code BattleSimulation} so behavior code
- * stays thin and the math is reusable / testable in isolation.
+ * Battle-owned scoring helpers used by behaviors to pick targets and positions.
+ * Ordinary calls compute fresh answers; the opt-in constrained firing search
+ * shares squad-owned proposals under a battle-wide refresh budget. Pulled out
+ * of {@code BattleSimulation} so behavior code stays thin.
  *
  * <p>Conventions:
  * <ul>
@@ -87,6 +87,10 @@ public final class TacticalScoring {
     private final AttackerIndexService attackerIndex;
     private final ShotService shots;
     private final DoodadService doodads;
+    public static final String SQUAD_FIRING_PROPERTY = "battle.targeting.squadFiringPositions";
+    private final boolean squadFiringPositions = Boolean.parseBoolean(
+            System.getProperty(SQUAD_FIRING_PROPERTY, "false"));
+    private final FiringPositionRefreshBudget firingRefreshBudget = new FiringPositionRefreshBudget(8);
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
                            AttackerIndexService attackerIndex, ShotService shots,
@@ -2462,6 +2466,165 @@ public final class TacticalScoring {
     /** Zone argument meaning "any cell will do" — the unconstrained search. */
     public static final int ANY_ZONE = -1;
 
+    public int[] findSquadFiringPositionWithin(long self, long target, Squad squad, int tick,
+            int anchorX, int anchorY, float leash) {
+        return findSquadFiringPositionWithin(self, target, squad, tick,
+                anchorX, anchorY, leash, ANY_ZONE);
+    }
+
+    /**
+     * Opt-in shared constrained search. Only execution calls participate;
+     * hypothetical target probes retain the independent scorer. A refused
+     * refresh is not permission to run the individual broad scan instead.
+     */
+    public int[] findSquadFiringPositionWithin(long self, long target, Squad squad, int tick,
+            int anchorX, int anchorY, float leash, int requiredZoneId) {
+        return selectSquadFiringPositionWithin(self, target, squad, tick,
+                anchorX, anchorY, leash, requiredZoneId).cell();
+    }
+
+    /** Pending refresh is distinct from a searched pool having no usable cell. */
+    public record FiringPositionSelection(int[] cell, boolean deferred) { }
+
+    public FiringPositionSelection selectSquadFiringPositionWithin(long self, long target,
+            Squad squad, int tick, int anchorX, int anchorY, float leash, int requiredZoneId) {
+        if (!squadFiringPositions) {
+            return new FiringPositionSelection(findFiringPositionWithin(self, target,
+                    anchorX, anchorY, leash, requiredZoneId), false);
+        }
+        long started = System.nanoTime();
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        try {
+            if (!roster.isAliveById(self) || !roster.isAliveById(target)) {
+                return new FiringPositionSelection(null, false);
+            }
+            World world = roster.world();
+            float range = effectiveAttackRange(self, target, world.attackRange(self));
+            float selfAir = roster.vision().airLosRadius(self);
+            float targetAir = targetAirLosRadius(target);
+            var key = new SquadFiringPositions.Key(target, range, selfAir, targetAir,
+                    anchorX, anchorY, leash, requiredZoneId);
+            float tx = world.x(target), ty = world.y(target);
+            int sx = world.cellX(self), sy = world.cellY(self);
+            var result = squad.firingPositions.request(self, tick, squad.routingEpoch,
+                    grid.topologyRevision(), tx, ty, squad.centroidX, squad.centroidY, key,
+                    () -> buildSquadFiringCandidates(key, tx, ty, squad.centroidX, squad.centroidY, profile),
+                    cell -> {
+                        if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_VALIDATION, 0L);
+                        return legalSquadFiringCell(key, cell.x(), cell.y(), tx, ty)
+                                && grid.arePathConnected(sx, sy, cell.x(), cell.y(),
+                                        GridPathfinder.USE_CARDINAL_NAVIGATION);
+                    },
+                    cell -> cellDistance(sx, sy, cell.x(), cell.y())
+                            + FIRING_OCCUPANCY_COST * occupantsExcludingSelf(self, sx, sy, cell.x(), cell.y())
+                            + FIRING_AOE_SPREAD_COST * alliesNearForSpread(self, cell.x(), cell.y()),
+                    () -> firingRefreshBudget.acquire(tick));
+            if (profile != null) {
+                switch (result.outcome()) {
+                    case HIT -> profile.record(TickInnerProfile.Bucket.FIRING_POOL_HIT, 0L);
+                    case NEGATIVE -> profile.record(TickInnerProfile.Bucket.FIRING_POOL_NEGATIVE, 0L);
+                    case DEFERRED -> profile.record(TickInnerProfile.Bucket.FIRING_POOL_DEFERRED, 0L);
+                    default -> { }
+                }
+                if (result.assigned()) profile.record(TickInnerProfile.Bucket.FIRING_POOL_ASSIGN, 0L);
+                if (result.built()) {
+                    TickInnerProfile.Bucket reason = switch (result.refreshReason()) {
+                        case TTL -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_TTL;
+                        case TARGET_MOVED -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_TARGET;
+                        case SQUAD_MOVED -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_SQUAD;
+                        case EPOCH -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_EPOCH;
+                        case TOPOLOGY -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_TOPOLOGY;
+                        case KEY_CHANGE -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_KEY;
+                        default -> TickInnerProfile.Bucket.FIRING_POOL_REFRESH_COLD;
+                    };
+                    profile.record(reason, 0L);
+                }
+            }
+            var cell = result.position();
+            return new FiringPositionSelection(cell == null ? null : new int[]{cell.x(), cell.y()},
+                    cell == null && result.outcome() == SquadFiringPositions.Outcome.DEFERRED);
+        } finally {
+            if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POSITION,
+                    System.nanoTime() - started);
+        }
+    }
+
+    /** Live selected-cell check, including true-point firing geometry after sub-cell target motion. */
+    private boolean legalSquadFiringCell(SquadFiringPositions.Key key, int x, int y,
+                                         float tx, float ty) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
+        if (cellDistance(key.anchorX(), key.anchorY(), x, y) > key.leash()) return false;
+        if (key.zone() >= 0 && zoneGraph.zoneIdAt(x, y) != key.zone()) return false;
+        float distance = cellDistance(x, y, (int) tx, (int) ty);
+        return distance <= key.range() && distance >= FIRING_MIN_DISTANCE
+                && canShootPair(grid, x + 0.5f, y + 0.5f, tx, ty, key.selfAir(), key.targetAir());
+    }
+
+    /**
+     * Bounded spatially diverse shortlist: best cell in each 2x2 tile, then
+     * best 64 tiles by centroid travel and directional cover. Large envelopes
+     * are sampled evenly (at most 4096 cells), never truncated at one map edge.
+     * This is intentionally approximate; ordinary per-member search is the control.
+     */
+    private List<SquadFiringPositions.Candidate> buildSquadFiringCandidates(
+            SquadFiringPositions.Key key, float tx, float ty, float centerX, float centerY,
+            TickInnerProfile profile) {
+        long started = System.nanoTime();
+        try {
+            int range = Math.max(1, (int) Math.floor(key.range()));
+            int leash = Math.max(0, (int) Math.floor(key.leash()));
+            int firstX = Math.max(0, Math.max((int) tx - range, key.anchorX() - leash));
+            int lastX = Math.min(grid.getWidth() - 1, Math.min((int) tx + range, key.anchorX() + leash));
+            int firstY = Math.max(0, Math.max((int) ty - range, key.anchorY() - leash));
+            int lastY = Math.min(grid.getHeight() - 1, Math.min((int) ty + range, key.anchorY() + leash));
+            if (firstX > lastX || firstY > lastY) return List.of();
+            int stride = 1;
+            while ((long) ((lastX - firstX) / stride + 1)
+                    * ((lastY - firstY) / stride + 1) > 4096) stride++;
+            var cells = new SquadFiringPositions.Candidate[64];
+            float[] ranks = new float[64];
+            int size = 0;
+            for (int y = firstY; y <= lastY; y += stride) {
+                for (int x = firstX; x <= lastX; x += stride) {
+                    if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_CELL, 0L);
+                    if (!grid.isWalkable(x, y)) continue;
+                    if (cellDistance(key.anchorX(), key.anchorY(), x, y) > key.leash()) continue;
+                    if (key.zone() >= 0 && zoneGraph.zoneIdAt(x, y) != key.zone()) continue;
+                    float distance = cellDistance(x, y, (int) tx, (int) ty);
+                    if (distance > key.range() || distance < FIRING_MIN_DISTANCE) continue;
+                    if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_RAY, 0L);
+                    if (!canShootPair(grid, x + 0.5f, y + 0.5f, tx, ty,
+                            key.selfAir(), key.targetAir())) continue;
+                    int dx = (int) tx - x, dy = (int) ty - y;
+                    float coverScore = -FIRING_COVER_BONUS * grid.getCoverAt(x, y, dx, dy)
+                            - FIRING_DOODAD_COVER_BONUS * doodads.getDoodadCoverAt(x, y, dx, dy);
+                    float rank = cellDistance(centerX, centerY, x, y) + coverScore;
+                    int slot = -1, worst = 0;
+                    for (int i = 0; i < size; i++) {
+                        if (cells[i].x() / 2 == x / 2 && cells[i].y() / 2 == y / 2) slot = i;
+                        if (ranks[i] > ranks[worst]) worst = i;
+                    }
+                    if (slot >= 0) {
+                        if (rank >= ranks[slot]) continue;
+                    } else if (size < cells.length) {
+                        slot = size++;
+                    } else {
+                        if (rank >= ranks[worst]) continue;
+                        slot = worst;
+                    }
+                    cells[slot] = new SquadFiringPositions.Candidate(x, y, coverScore);
+                    ranks[slot] = rank;
+                }
+            }
+            List<SquadFiringPositions.Candidate> result = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) result.add(cells[i]);
+            return result;
+        } finally {
+            if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POOL_BUILD,
+                    System.nanoTime() - started);
+        }
+    }
+
     public int[] findFiringPositionWithin(long self, long target,
                                           int anchorX, int anchorY, float maxDistFromAnchor) {
         return findFiringPositionWithin(self, target, anchorX, anchorY,
@@ -2532,10 +2695,12 @@ public final class TacticalScoring {
         int firstX = Math.max(tx - range, anchorX - leash);
         int lastX = Math.min(tx + range, anchorX + leash);
 
+        TickInnerProfile work = TickInnerProfile.currentIfBound();
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
         for (int cy = firstY; cy <= lastY; cy++) {
             for (int cx = firstX; cx <= lastX; cx++) {
+                if (work != null) work.record(TickInnerProfile.Bucket.FIRING_INDIVIDUAL_CELL, 0L);
                 int dx = cx - tx;
                 int dy = cy - ty;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
@@ -2549,6 +2714,7 @@ public final class TacticalScoring {
                 float distFromSelf = cellDistance(sx, sy, cx, cy);
                 if (distFromSelf - MAX_FIRING_SCORE_BONUS >= bestScore) continue;
 
+                if (work != null) work.record(TickInnerProfile.Bucket.FIRING_INDIVIDUAL_RAY, 0L);
                 if (!canShootPair(grid, cx + 0.5f, cy + 0.5f,
                         world.x(target), world.y(target), selfAir, targetAir)) continue;
 

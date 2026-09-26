@@ -403,8 +403,18 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (committed && target != 0L && threatAnchorX >= 0 && threatAnchorY >= 0) {
-            int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                    member, target, threatAnchorX, threatAnchorY, engageLeash);
+            var selection = sim.getTacticalScoring().selectSquadFiringPositionWithin(
+                    member, target, squad, sim.getSimTickIndex(), threatAnchorX,
+                    threatAnchorY, engageLeash, TacticalScoring.ANY_ZONE);
+            if (selection.deferred()) {
+                // A budget refusal says nothing about whether this commitment
+                // has a firing position. Pause locomotion without discarding
+                // the path or resuming the objective on an invented negative.
+                // Opportunity fire was already authored above. A validated
+                // incumbent is returned as a position, not as deferred.
+                return;
+            }
+            int[] firingPos = selection.cell();
             // The three refusals are different facts and get different
             // answers. No path at all means the commitment cannot be
             // prosecuted by walking, so the member holds and fights from
@@ -490,10 +500,12 @@ abstract class AbstractZoneAction implements Action {
         if (OBJECTIVE_FIRING_IN_ZONE
                 && haltOnContact && !committed && !inContact
                 && target != 0L && clearShotOnTarget && opportune == 0L) {
-            int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                    member, target, destX, destY, OBJECTIVE_FIRING_LEASH, targetZoneId);
+            int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
+                    member, target, squad, sim.getSimTickIndex(), destX, destY, OBJECTIVE_FIRING_LEASH, targetZoneId);
             // Uncommitted: this member was never told to fight here, so any
-            // refusal simply resumes the order it does have.
+            // refusal simply resumes the order it does have. This deliberately
+            // includes a deferred shared-pool refresh: an optional improvement
+            // must not stall travel toward the actual objective.
             if (advanceToReachableFiringPosition(member, sim, firingPos)
                     == FiringApproach.MOVED) return;
         } else if (haltOnContact && !committed && !inContact && targetZoneId < 0
@@ -502,8 +514,9 @@ abstract class AbstractZoneAction implements Action {
             // behaviour exactly as it shipped before containment, so a matrix
             // run can be compared against one on the same tree rather than
             // against an older commit carrying every other difference with it.
-            int[] firingPos = sim.getTacticalScoring().findFiringPositionWithin(
-                    member, target, destX, destY, OBJECTIVE_FIRING_LEASH);
+            int[] firingPos = sim.getTacticalScoring().findSquadFiringPositionWithin(
+                    member, target, squad, sim.getSimTickIndex(), destX, destY, OBJECTIVE_FIRING_LEASH);
+            // As above, a deferred optional improvement may resume the order.
             if (advanceToReachableFiringPosition(member, sim, firingPos)
                     == FiringApproach.MOVED) return;
         }

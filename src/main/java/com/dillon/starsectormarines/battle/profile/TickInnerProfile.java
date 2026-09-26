@@ -157,6 +157,25 @@ public final class TickInnerProfile {
         CONVOY_ROUTE_PROOF_STEP,
         TARGET_PICK,
         FIRING_POSITION,
+        /** Experimental shared geometry builds; time is nested within FIRING_POSITION. */
+        FIRING_POOL_BUILD,
+        FIRING_POOL_HIT,
+        FIRING_POOL_DEFERRED,
+        FIRING_POOL_ASSIGN,
+        /** Count-only work counters, not timed stages. */
+        FIRING_POOL_CELL,
+        FIRING_POOL_RAY,
+        FIRING_POOL_VALIDATION,
+        FIRING_POOL_NEGATIVE,
+        FIRING_POOL_REFRESH_COLD,
+        FIRING_POOL_REFRESH_TTL,
+        FIRING_POOL_REFRESH_TARGET,
+        FIRING_POOL_REFRESH_SQUAD,
+        FIRING_POOL_REFRESH_EPOCH,
+        FIRING_POOL_REFRESH_TOPOLOGY,
+        FIRING_POOL_REFRESH_KEY,
+        FIRING_INDIVIDUAL_CELL,
+        FIRING_INDIVIDUAL_RAY,
         FALLBACK_POSITION,
         /**
          * One bucket per entry of the infantry reflex chain, named after the

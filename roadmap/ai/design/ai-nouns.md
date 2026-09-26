@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — track and defended-site travel share asynchronous route
-ownership; readiness-based publication retains explicit synchronous evidence.
+Updated: 2026-09-26 — bounded shared firing arrangements remain an opt-in
+experiment; track and defended-site travel retain asynchronous route ownership.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1515,6 +1515,17 @@ Firing-line coverage, opportunistic acquisition, and firing-position selection
 all consume that stronger result; a cell-visible but physically occluded squad
 therefore maneuvers instead of publishing coverage and repeatedly shooting a
 wall.
+
+An experimental **squad firing arrangement** shares local candidate geometry
+without choosing a target for the squad. Only requests with compatible targets,
+weapon reach, firing geometry and mission bounds share candidates; members keep
+individual, exclusive positions rather than all inheriting one best cell. Live
+firing legality and caller-owned travel bounds remain authoritative. A short
+staggered lifetime and displacement from the geometry's original anchors limit
+staleness; changed plan or topology retires obsolete arrangements. Refresh work
+is admitted under a battle-tick bound, and a deferred refresh is not proof that
+no firing position exists. This does not yet replace ordinary individual
+scoring by default; `squad-firing-positions.md` owns the adoption experiment.
 
 In a coordinated flank, the fixing element does not remain passively parked
 once direct contact establishes the enemy line. It moves to reachable firing
