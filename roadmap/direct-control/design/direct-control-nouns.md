@@ -70,8 +70,9 @@ plays at 1x so a real-time hand has a stable movement and firing cadence.
 Entering while paused leaves the battle paused. Entering from 2x or 4x
 remembers that rate, and exiting restores it unless the player deliberately
 changed time while controlling. A follow camera uses the same screen-to-world
-projection as picking and shooting; zoom and temporary camera look remain view
-operations rather than locomotion.
+projection as picking and shooting, with wheel zoom available during control.
+Temporary camera look is deferred; the Marine adapter keeps following the
+controlled body and reserves right-click without issuing a world order.
 
 The mode is proposed as a freely entered one-unit intervention. It consumes
 the player's attention and excludes simultaneous control of another body.
