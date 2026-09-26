@@ -23,16 +23,46 @@ public final class ClearanceRouteEvidenceCli {
         for (int i = 0; i < 8; i++) planner.findRoute(floor, 4.5f, 4.5f,
                 40.5f, 25.5f, .6f, .75f, BUDGET);
         StringBuilder csv = new StringBuilder("case,queries,found,limited,expanded,clearance_checks,total_ms,worst_ms\n");
+        StringBuilder sliced = new StringBuilder("case,status,steps,expanded,worst_step_expanded,total_ms,worst_step_ms\n");
         measure(csv, "open-long", planner, floor, 4.5f, 4.5f, 550.5f, 325.5f, 1);
         for (int y = 0; y < HEIGHT - 12; y++) floor.setWalkable(280, y, false);
         measure(csv, "long-detour", planner, floor, 260.5f, 8.5f, 300.5f, 8.5f, 1);
+        measureSliced(sliced, "long-detour", planner, floor);
         for (int y = HEIGHT - 12; y < HEIGHT; y++) floor.setWalkable(280, y, false);
         measure(csv, "sealed-region", planner, floor, 260.5f, 8.5f, 300.5f, 8.5f, 1);
+        measureSliced(sliced, "sealed-region", planner, floor);
         measure(csv, "repeated-local-probes", planner, floor, 30.5f, 30.5f, 65.5f, 50.5f, 32);
         String report = csv.toString();
         Files.writeString(output.resolve("summary.csv"), report, StandardCharsets.UTF_8);
+        Files.writeString(output.resolve("sliced.csv"), sliced, StandardCharsets.UTF_8);
         System.out.print(report);
+        System.out.print(sliced);
         System.out.println("Timings are host-local diagnostics. Terrain is synthetic at Conquest dimensions; this is not a battle performance claim.");
+    }
+
+    private static void measureSliced(StringBuilder csv, String label,
+                                      ClearanceRoutePlanner planner, NavigationGrid grid) {
+        final int quantum = 256;
+        int steps = 0, previousExpanded = 0, worstExpanded = 0;
+        long total = 0, worst = 0;
+        try (var search = planner.begin(grid, 260.5f, 8.5f, 300.5f, 8.5f,
+                .6f, .75f, 1_000_000)) {
+            while (search.result().status() == ClearanceRoutePlanner.Status.PENDING) {
+                long started = System.nanoTime();
+                var result = search.step(quantum);
+                long elapsed = System.nanoTime() - started;
+                total += elapsed;
+                worst = Math.max(worst, elapsed);
+                int expanded = result.expandedNodes() - previousExpanded;
+                if (expanded > quantum) throw new AssertionError("Search exceeded its step budget");
+                previousExpanded = result.expandedNodes();
+                worstExpanded = Math.max(worstExpanded, expanded);
+                steps++;
+            }
+            csv.append(String.format(Locale.ROOT, "%s,%s,%d,%d,%d,%.3f,%.3f%n",
+                    label, search.result().status(), steps, previousExpanded, worstExpanded,
+                    total / 1e6, worst / 1e6));
+        }
     }
 
     private static void measure(StringBuilder csv, String label, ClearanceRoutePlanner planner,
