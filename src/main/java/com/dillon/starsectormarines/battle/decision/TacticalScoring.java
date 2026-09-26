@@ -477,6 +477,9 @@ public final class TacticalScoring {
     /** Per-worker scratch for fallback visibility checks; may run inside parallel unit updates. */
     private static final ThreadLocal<LongBucket> HIDDEN_ENEMY_CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
+    /** Dedicated to the leaf spread count; neither gather invokes another scoring query. */
+    private static final ThreadLocal<LongBucket> SPREAD_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
 
 
     /**
@@ -3498,7 +3501,7 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         int r2 = FIRING_AOE_SPREAD_RADIUS * FIRING_AOE_SPREAD_RADIUS;
         int count = 0;
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = SPREAD_CANDIDATES.get();
         // Pass 1 — units whose CURRENT cell is in the spread radius.
         unitIndex.gather(cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
@@ -3513,10 +3516,11 @@ public final class TacticalScoring {
         // against Pass 1 for moving units whose current happens to also
         // be near (cx, cy). The dest index is id-native — it gathers live
         // ids, and identity/position are read by id rather than off a handle.
-        LongBucket destScratch = new LongBucket();
-        destIndex.gather(roster, cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, destScratch);
-        for (int i = 0, n = destScratch.size; i < n; i++) {
-            long id = destScratch.ids[i];
+        // Pass 1 is consumed completely before gather clears and refills the
+        // same worker-owned buffer. No candidates escape this leaf query.
+        destIndex.gather(roster, cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, scratch);
+        for (int i = 0, n = scratch.size; i < n; i++) {
+            long id = scratch.ids[i];
             if (id == self
                     || !selfFaction.friendlyTo(roster.identity().faction(id))) continue;
             // Dedupe against Pass 1 on the unit's CURRENT cell. Small gathered
