@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mech.components;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -24,6 +25,8 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * same tick. Mechs do not borrow the infantry primary-weapon state.
  */
 public final class MechLoadoutComponent {
+
+    public final MechRouteIntent routeIntent = new MechRouteIntent();
 
     public static final int DEFAULT_SRM_AMMO_SALVOS = MechWeaponComponent.SRM_15.ammoCapacity;
     public static final int DEFAULT_LRM_AMMO_SALVOS = MechWeaponComponent.LRM_15.ammoCapacity;
@@ -56,6 +59,9 @@ public final class MechLoadoutComponent {
     public int collisionProgressDestX = Integer.MIN_VALUE;
     /** Destination used to establish {@link #collisionBestRemainingDistance}. */
     public int collisionProgressDestY = Integer.MIN_VALUE;
+    /** Exact endpoint used by the current stall measurement, including half-cell routes. */
+    public float collisionProgressPointX = Float.NaN;
+    public float collisionProgressPointY = Float.NaN;
     /** True while a stalled mech may pass through soft separation from other mechs. */
     public boolean collisionEscapeActive;
 
@@ -232,6 +238,8 @@ public final class MechLoadoutComponent {
         collisionBestRemainingDistance = Float.POSITIVE_INFINITY;
         collisionProgressDestX = Integer.MIN_VALUE;
         collisionProgressDestY = Integer.MIN_VALUE;
+        collisionProgressPointX = Float.NaN;
+        collisionProgressPointY = Float.NaN;
         collisionEscapeActive = false;
         torsoAimTargetId = 0L;
         torsoOnTarget = false;

@@ -84,6 +84,7 @@ class MechMoveOrderSystemTest {
         assertEquals(4, Paths.destY(sim.world().path(mech)));
 
         sim.world().setPos(mech, 12.5f, 4.5f);
+        sim.advanceMovement(mech); // consume the final physical waypoint and publish completion
         assertFalse(sim.getMechMoveOrderSystem().executeIfActive(mech, squad, sim));
         assertNull(sim.getMechMoveOrderService().activeOrder(mech));
         assertTrue(Paths.isEmpty(sim.world().path(mech)));

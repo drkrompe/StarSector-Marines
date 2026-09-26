@@ -343,10 +343,10 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             Gantry gantry = gantries.get(index);
             long mech = simulation.spawn(new EntitySpec(
                     "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
-                    gantry.centerX, gantry.centerY).mechVariant(variant));
+                    gantry.centerX, gantry.centerY).mechVariant(variant)
+                    .atPosition(gantry.worldCenterX(), gantry.worldCenterY()));
             simulation.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
-            simulation.world().setPos(mech, gantry.worldCenterX(), gantry.worldCenterY());
             // Parked machinery faces cardinally down the berth's long axis,
             // toward its mouth and the room's shared service lane.
             FacingSystem.faceStanding(simulation.getEntityWorld(),
@@ -377,11 +377,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             if (mech == 0L) {
                 mech = simulation.spawn(new EntitySpec(
                         "berthed mech " + (seat + 1), Faction.MARINE, UnitType.HEAVY_MECH,
-                        gantry.centerX, gantry.centerY).mechVariant(deployment.variant()));
+                        gantry.centerX, gantry.centerY).mechVariant(deployment.variant())
+                        .atPosition(gantry.worldCenterX(), gantry.worldCenterY()));
                 berthedMachines[index] = mech;
                 occupiedBerths[index] = true;
             }
-            simulation.world().setPos(mech, gantry.worldCenterX(), gantry.worldCenterY());
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, parkedFacing(gantry));
             MechLoadoutComponent loadout = new MechLoadoutComponent(deployment.variant(),

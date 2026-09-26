@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -543,7 +544,13 @@ public class SeparationSystemTest {
         int width = 24;
         int height = 7;
         NavigationGrid grid = new NavigationGrid(width, height);
-        for (int x = 1; x < width - 1; x++) grid.setWalkableFloor(x, 3);
+        // A Bulwark is 1.2 cells wide. The tight legal corridor is two
+        // cells, with its body on their shared centerline rather than either
+        // cell center; a one-cell fixture begins inside terrain.
+        for (int x = 1; x < width - 1; x++) {
+            grid.setWalkableFloor(x, 3);
+            grid.setWalkableFloor(x, 4);
+        }
         BattleSimulation sim = new BattleSimulation(
                 grid, new CellTopology(width, height));
         SeparationSystem separation = separationFor(sim);
@@ -552,6 +559,10 @@ public class SeparationSystemTest {
                 MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 7, 3);
         long second = spawnMech(sim, MechVariant.BULWARK,
                 MechRole.ARMORED_SUPPORT, Faction.MARINE, squadId, 8, 3);
+        sim.world().setPos(first, 7.5f, 4f);
+        sim.world().setPos(second, 8.5f, 4f);
+        assertTrue(ManualTerrainMotion.canStand(grid, 7.5f, 4f, MechVariant.BULWARK.radius));
+        assertTrue(ManualTerrainMotion.canStand(grid, 8.5f, 4f, MechVariant.BULWARK.radius));
 
         assertEquals(SeparationSystem.MECH_FORMATION_MIN_DISTANCE,
                 separation.preferredMechFormationSpacing(
@@ -570,8 +581,12 @@ public class SeparationSystemTest {
                         + compressedDistance + ", first=(" + sim.world().x(first)
                         + "," + sim.world().y(first) + "), second=("
                         + sim.world().x(second) + "," + sim.world().y(second) + ")");
-        assertEquals(3, sim.world().cellY(first));
-        assertEquals(3, sim.world().cellY(second));
+        assertEquals(4f, sim.world().y(first), 1e-5f);
+        assertEquals(4f, sim.world().y(second), 1e-5f);
+        assertTrue(ManualTerrainMotion.canStand(grid, sim.world().x(first), sim.world().y(first),
+                MechVariant.BULWARK.radius));
+        assertTrue(ManualTerrainMotion.canStand(grid, sim.world().x(second), sim.world().y(second),
+                MechVariant.BULWARK.radius));
     }
 
     @Test

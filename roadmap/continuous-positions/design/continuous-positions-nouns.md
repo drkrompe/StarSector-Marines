@@ -4,14 +4,14 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — defined continuous body-clearance route proofs and explicit endpoint tolerance.
+Updated: 2026-09-26 — shared Mech routing, movement, and separation use physical clearance and continuous arrival.
 
 ## Vocabulary
 
 - **Continuous position** is a point in cell space. Cell `(cx, cy)` occupies `[cx, cx + 1) × [cy, cy + 1)` and its center is `(cx + 0.5, cy + 0.5)`.
 - **Grid projection** is the derived cell containing a point: `floor(x), floor(y)`. It is not a second stored location.
-- **Cell center** is the canonical point for a cell-native destination, spawn, or completed path waypoint.
-- **Path** is a grid route: an ordered sequence of cell destinations connected
+- **Cell center** is the canonical point for a cell-native destination or spawn. A body-clearance destination may resolve to another legal point within its explicit destination boundary.
+- A **cell path** is a grid route: an ordered sequence of cell destinations connected
   by passable transitions. It guides a continuous mover but is not the mover's
   location.
 - A **clearance route** proves a circular body can follow continuous waypoints
@@ -22,16 +22,16 @@ Updated: 2026-09-26 — defined continuous body-clearance route proofs and expli
   reachability. Its route proof does not replace current terrain checks during
   motion. A pending proof is distinct from a failed route; spreading a search
   across work slices retains its frontier and never mixes terrain revisions.
-  Body owners share a work allowance, and abandoning an intent releases its
-  pending proof. Runtime adoption for Mechs is tracked in
-  `mech-terrain-clearance.md`.
+  Body owners share bounded worker capacity, and abandoning an intent releases
+  its pending proof. Mechs use clearance routes; cell-native movers retain
+  their own routing contract.
 - **Navigation region** is a derived axis-aligned rectangle of compatible
   walkable cells joined by passable internal edges. Regions and their boundary
   intervals form the acceleration seam for higher-level routing; they never replace or modify the
   authoritative cells and shared edges from which they were built.
-- **Arrival** means being within the arrival radius of a named cell center. **Settled** means the current path is exhausted. **Repath permission** is a throttle decision. These are distinct questions.
+- **Arrival** means reaching the named destination under its route contract: a cell center for a cell path, or the resolved endpoint of a completed clearance route. A retained **arrival witness** relates that endpoint to the requested destination after movement stops; it remains valid only while the body stays there on legal terrain. **Settled** means the current path is exhausted. **Repath permission** is a throttle decision. These are distinct questions.
 - **Footprint radius** is a unit type's physical extent in continuous space.
-  It applies to picking, blast reach, separation, and physical ballistic
+  It applies to Mech terrain clearance, picking, blast reach, separation, and physical ballistic
   contacts. Aim may name an entity, but the resolved ray can contact another
   body first.
 - **Separation** is the post-movement physical relaxation of overlapping ground footprints. **Formation steering** is a weaker, movement-scoped attempt to preserve useful allied spacing. Neither is a path planner or a hard reservation system.
@@ -39,7 +39,7 @@ Updated: 2026-09-26 — defined continuous body-clearance route proofs and expli
 
 ## Ownership and flow
 
-`POSITION` is the sole authoritative location for a ground combat entity and remains meaningful for its corpse presentation. Cell-native setup data is converted to a center when an entity enters the world; no render-only or mirrored grid coordinate is maintained.
+`POSITION` is the sole authoritative location for a ground combat entity and remains meaningful for its corpse presentation. Cell-native setup data is converted to a center when an entity enters the world. A clearance-aware placement may instead seed its legal continuous point directly; no render-only or mirrored grid coordinate is maintained.
 
 Navigation retains ownership of discrete map facts. A cell owns whether an
 agent may stand in its area, while a shared cardinal edge owns whether an agent
@@ -69,7 +69,36 @@ caches, and the greedy mesh publish one coherent replacement at the ordinary
 topology boundary, where newly compatible cells can merge into the largest
 deterministic rectangles again.
 
-The movement service follows the center-based path continuously, records the velocity actually applied this tick, and pins a completed route exactly to its final center. Appearance derives travel state from applied velocity, so it follows the same movement that simulation used. Post-movement separation may make a bounded, walkability-guarded adjustment; later combat, presentation, and proximity consumers see that final position.
+Cell-path movement follows its centers continuously and pins completion to the
+final center. Mech movement follows physical waypoints from its exact starting
+point, with each segment and each applied displacement clearing the current
+chassis radius. A route never snaps its actor onto the graph. If the body drifts
+while a proof is pending, joining the returned route needs a fresh legal segment
+from its actual position. The requested goal cell and resolved endpoint remain
+separate, including when an endpoint lies on a shared cell boundary; occupancy
+and display projections do not redefine arrival.
+
+Clearance searches use frozen terrain and bounded asynchronous work. A pending
+request preserves the chosen destination; it is not permission to choose a
+fallback or to resume an old point route. Only a completed, current proof may be
+installed. A failed or budget-limited proof grants no movement, and a changed
+wall or edge invalidates old geometric permission. Movement checks current
+terrain even after accepting a route; a newly blocked route stops and must be
+replanned rather than being reported as arrived.
+
+The execution bound includes retained search frontiers, not only running worker
+threads. An owner waiting for capacity keeps its candidate without starting a
+new workspace. The half-cell graph is a deliberate discrete approximation;
+refusal does not prove that every mathematically possible continuous route is
+absent. Route-cost evidence includes generated city terrain and competing
+requests, while live responsiveness and control feel remain separate acceptance
+questions in `direct-control-live-acceptance.md`.
+
+Applied velocity records the displacement actually achieved. Appearance derives
+travel from that velocity. Post-movement separation makes a bounded adjustment;
+for Mechs that adjustment uses the same circular terrain sweep as locomotion,
+so crowd pressure cannot push a chassis through a wall or closed edge. Later
+combat, presentation, and proximity consumers see that final position.
 
 Nearby-unit queries snapshot true positions once per tick. Point-space consumers use those positions and footprints: picking tests the cursor against an expanded unit extent, and explosions test their endpoint against each candidate's blast-expanded footprint. Grid consumers deliberately project through `floor` instead of rounding or retaining a stale cell.
 
@@ -77,9 +106,9 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
 
 1. A ground entity has one position. Rendering, audio, effects, range, proximity, and corpse presentation read that point; a cell is always derived or explicitly authored grid data.
 2. The cell-space convention is fixed: cells are half-open unit squares, centers end in `.5`, and the grid projection is `floor`. A new boundary must state which side of that conversion it owns.
-3. Grid algorithms remain grid algorithms. Continuous motion does not turn A*,
-   perception line of sight, fog, occupancy, zones, or map topology into
-   geometric systems. Navigation connectivity requires both a standable
+3. Cell-native routing, perception, fog, occupancy, zones, and map topology
+   retain their grid representations. Clearance routing derives physical
+   geometry from those same cells and edges. Navigation connectivity requires both a standable
    destination cell and a passable shared transition; zones must not infer
    connectivity from walkability alone. Direct fire may intersect a continuous
    segment with authored blocker shapes; it does not create a second terrain
@@ -93,11 +122,12 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    when its measured cost is no more than 25% above an admissible lower bound;
    stale, failed, overly broad, or overly indirect corridors fall back to
    unrestricted cell A*.
-5. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its final center so arrival and settling agree for its own destination.
+5. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its own final point. Clearing movement may retain its arrival witness, but neither an exhausted blocked route nor a nearby point across an impassable barrier satisfies the requested goal.
 6. A live spatial distance must use true positions. A bucket, cache key, destination cell, or map lookup may use projected cells only where the discrete abstraction is the intended authority.
-7. Radius is the shared interaction footprint. Direct-fire aim remains
-   entity-targeted, while ballistic resolution tests the physical ray against
-   unit radii and may contact an incidental body first.
+7. Radius is the shared interaction footprint and the Mech terrain envelope.
+   Direct-fire aim may name an entity or a world point; ballistic resolution
+   tests the physical ray against unit radii and may contact an incidental body
+   first.
 8. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, honors the same shared-edge and diagonal transitions as A*, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
 9. Formation steering may shape a coherent moving allied group, but it must
    remain weaker than physical separation and must yield in constrained

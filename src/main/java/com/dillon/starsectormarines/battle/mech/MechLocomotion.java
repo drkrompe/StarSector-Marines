@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -19,6 +20,11 @@ public final class MechLocomotion {
     /** Sprite heading for a non-zero grid delta. */
     public static float desiredFacing(float dx, float dy) {
         return LayeredAppearance.facingDegrees(Math.round(dx), Math.round(dy));
+    }
+
+    /** Exact sprite bearing for subcell movement; never rounds a small delta away. */
+    public static float continuousFacing(float dx, float dy) {
+        return LayeredAppearance.wrapDegrees(AirBody.facingToward(dx, dy));
     }
 
     /** Signed shortest turn from {@code current} to {@code desired}. */

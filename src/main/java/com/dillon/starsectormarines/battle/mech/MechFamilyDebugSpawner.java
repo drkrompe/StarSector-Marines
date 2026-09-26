@@ -19,9 +19,11 @@ public final class MechFamilyDebugSpawner {
 
     public static long[] spawn(BattleSimulation sim) {
         if (sim == null) return new long[0];
-        NavigationGrid grid = sim.getGrid();
-        int[][] cells = findCells(grid, sim.getOccupancyMap(), FAMILY.length);
-        if (cells.length < FAMILY.length) return new long[0];
+        MechSpawnPlacement.Point[] points = new MechSpawnPlacement.Point[FAMILY.length];
+        for (int i = 0; i < FAMILY.length; i++) {
+            points[i] = findPosition(sim, FAMILY[i], points, i);
+            if (points[i] == null) return new long[0];
+        }
 
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
         Squad squad = sim.getSquad(squadId);
@@ -29,7 +31,8 @@ public final class MechFamilyDebugSpawner {
         for (int i = 0; i < FAMILY.length; i++) {
             MechVariant variant = FAMILY[i];
             EntitySpec spec = new EntitySpec("debug-mech-" + variant.id,
-                    Faction.DEFENDER, UnitType.HEAVY_MECH, cells[i][0], cells[i][1])
+                    Faction.DEFENDER, UnitType.HEAVY_MECH, points[i].cellX(), points[i].cellY())
+                    .atPosition(points[i].x(), points[i].y())
                     .mechVariant(variant)
                     .role(UnitRole.PATROL)
                     .squad(squadId);
@@ -42,27 +45,30 @@ public final class MechFamilyDebugSpawner {
         return spawned;
     }
 
-    private static int[][] findCells(NavigationGrid grid, byte[] occupancy, int count) {
-        int[][] result = new int[count][2];
-        int found = 0;
+    private static MechSpawnPlacement.Point findPosition(BattleSimulation sim, MechVariant variant,
+                                                          MechSpawnPlacement.Point[] reserved, int count) {
+        NavigationGrid grid = sim.getGrid();
         int centerX = grid.getWidth() / 2;
         int centerY = grid.getHeight() / 2;
-        int maxRadius = grid.getWidth() + grid.getHeight();
-        for (int radius = 0; radius <= maxRadius && found < count; radius++) {
-            for (int y = 0; y < grid.getHeight() && found < count; y++) {
-                for (int x = 0; x < grid.getWidth() && found < count; x++) {
-                    if (Math.abs(x - centerX) + Math.abs(y - centerY) != radius) continue;
-                    int index = y * grid.getWidth() + x;
-                    if (!grid.isWalkable(x, y) || (occupancy[index] & 0xFF) > 0) continue;
-                    result[found][0] = x;
-                    result[found][1] = y;
-                    found++;
+        for (int distance = 0; distance <= grid.getWidth() + grid.getHeight(); distance++) {
+            for (int y = 0; y < grid.getHeight(); y++) {
+                for (int x = 0; x < grid.getWidth(); x++) {
+                    if (Math.abs(x - centerX) + Math.abs(y - centerY) != distance) continue;
+                    MechSpawnPlacement.Point point = MechSpawnPlacement.nearCell(grid, variant.radius, x, y,
+                            (px, py) -> true, (px, py) -> {
+                                if (!MechSpawnPlacement.unoccupied(sim.getRoster(), px, py, variant.radius, 0L)) return false;
+                                for (int i = 0; i < count; i++) {
+                                    float dx = px - reserved[i].x();
+                                    float dy = py - reserved[i].y();
+                                    float separation = variant.radius + FAMILY[i].radius;
+                                    if (dx * dx + dy * dy < separation * separation) return false;
+                                }
+                                return true;
+                            });
+                    if (point != null) return point;
                 }
             }
         }
-        if (found == count) return result;
-        int[][] partial = new int[found][2];
-        System.arraycopy(result, 0, partial, 0, found);
-        return partial;
+        return null;
     }
 }

@@ -78,22 +78,24 @@ public final class EngageAtCurrentBand implements Action {
                 u, squad, sim.world().cellX(target), sim.world().cellY(target), sim);
         boolean closeEngagement = inRange && visible
                 && dist <= preferredDirectRange && targetInsideCommand;
-        if (closeEngagement && !Paths.isEmpty(sim.world().path(u))) {
-            sim.clearPath(u);
-        } else if (!closeEngagement && sim.movement().mayRepath(u)) {
+        MechRouteIntent route = MechRouteIntent.forMember(u, EngageAtCurrentBand.class, target, sim);
+        route.refreshCandidates(MechRouteIntent.cellKey(sim.world().cellX(target), sim.world().cellY(target)));
+        route.rejectSettledPerch(u, sim.world().x(target), sim.world().y(target),
+                0f, preferredDirectRange, sim);
+        if (!closeEngagement && route.resume(u, sim)) return ActionStatus.RUNNING;
+        if (closeEngagement) {
+            if (route.pending() || !Paths.isEmpty(sim.world().path(u))) sim.clearPath(u);
+            route.cancel();
+        } else if (sim.movement().mayRepath(u)) {
             int[] dest = findMediumDirectPosition(
                     u, target, preferredDirectRange, sim);
             dest = MechAssignmentBoundary.constrain(u, squad, dest, sim);
             if (dest == null) {
-                // No reachable firing or vantage cell for the current target.
-                // Drop and let the mech's per-tick target acquisition re-pick.
-                // LRM indirect fire above already ran for this tick — chaingun /
-                // SRM stay quiet until a reachable target is acquired.
-                sim.world().setTargetId(u, 0L);
+                // Candidate/proof refusal is not evidence that the hostile
+                // disappeared. Keep the perceived target and hold this posture.
                 if (!Paths.isEmpty(sim.world().path(u))) sim.clearPath(u);
             } else {
-                MechAssignmentBoundary.moveToward(
-                        u, dest[0], dest[1], sim);
+                route.moveToward(u, dest[0], dest[1], sim);
                 return ActionStatus.RUNNING;
             }
         }
@@ -128,7 +130,8 @@ public final class EngageAtCurrentBand implements Action {
                 int x = centerX + ox;
                 int y = centerY + oy;
                 if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)
-                        || connected[grid.index(x, y)] != memberComponent) continue;
+                        || connected[grid.index(x, y)] != memberComponent
+                        || sim.world().mechLoadout(member).routeIntent.rejected(x, y)) continue;
                 float targetDx = x + 0.5f - targetX;
                 float targetDy = y + 0.5f - targetY;
                 float targetDistance =
@@ -138,7 +141,7 @@ public final class EngageAtCurrentBand implements Action {
                 float walk = TacticalScoring.cellDistance(
                         sim.world().x(member), sim.world().y(member), x + 0.5f, y + 0.5f);
                 float score = walk + (preferredRange - targetDistance) * 0.25f;
-                if (score < bestScore) {
+                if (score < bestScore && MechRouteIntent.candidate(member, x, y, sim)) {
                     bestScore = score;
                     best = new int[]{x, y};
                 }

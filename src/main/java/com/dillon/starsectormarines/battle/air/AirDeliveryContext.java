@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.infantry.SquadRejoin;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
@@ -89,6 +90,33 @@ public final class AirDeliveryContext {
                 int ny = p[1] + d[1];
                 if (!navigation.getGrid().inBounds(nx, ny) || !seen.add(key(nx, ny))) continue;
                 q.add(new int[]{nx, ny, p[2] + 1});
+            }
+        }
+        return null;
+    }
+
+    /** A Mech unload stays in the live LZ's ground zone and retains its payload if blocked. */
+    public MechSpawnPlacement.Point findOpenMechPosition(float radius) {
+        int lzX = (int) Math.floor(mission.lzX);
+        int lzY = (int) Math.floor(mission.lzY);
+        int zone = navigation.getZoneGraph().zoneIdAt(lzX, lzY);
+        if (zone < 0) return null;
+        MechSpawnPlacement.Domain domain = (x, y) -> {
+            int cx = (int) Math.floor(x);
+            int cy = (int) Math.floor(y);
+            return navigation.getGrid().inBounds(cx, cy)
+                    && navigation.getZoneGraph().zoneIdAt(cx, cy) == zone
+                    && Math.abs(cx - lzX) + Math.abs(cy - lzY) <= DEBOARD_SCAN_RADIUS;
+        };
+        for (int distance = 1; distance <= DEBOARD_SCAN_RADIUS; distance++) {
+            for (int y = lzY - distance; y <= lzY + distance; y++) {
+                for (int x = lzX - distance; x <= lzX + distance; x++) {
+                    if (Math.abs(x - lzX) + Math.abs(y - lzY) != distance) continue;
+                    MechSpawnPlacement.Point point = MechSpawnPlacement.nearCell(
+                            navigation.getGrid(), radius, x, y, domain,
+                            (px, py) -> MechSpawnPlacement.unoccupied(roster, px, py, radius, 0L));
+                    if (point != null) return point;
+                }
             }
         }
         return null;

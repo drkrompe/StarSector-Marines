@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -34,6 +35,31 @@ final class MechFacingIntent {
         PurePursuit.Carrot carrot = PurePursuit.pick(
                 x, y, path, pathIdx, PATH_LOOKAHEAD_CELLS);
         return new Point(carrot.x, carrot.y);
+    }
+
+    /** Continuous route horizon used by the torso; does not steer or skip route corners. */
+    static Point pathLookAhead(long mech, UnitRosterService roster) {
+        MovementService movement = roster.movement();
+        if (movement.continuousRoute(mech) == null) {
+            return pathLookAhead(roster.world().x(mech), roster.world().y(mech),
+                    movement.path(mech), movement.pathIdx(mech));
+        }
+        int count = movement.waypointCount(mech);
+        int index = movement.nextWaypointIndex(mech);
+        if (index >= count) return null;
+        float x = roster.world().x(mech), y = roster.world().y(mech);
+        float remaining = PATH_LOOKAHEAD_CELLS;
+        for (int i = index; i < count; i++) {
+            float nextX = movement.waypointX(mech, i), nextY = movement.waypointY(mech, i);
+            float distance = (float) Math.hypot(nextX - x, nextY - y);
+            if (distance >= remaining && distance > 0f) {
+                return new Point(x + (nextX - x) / distance * remaining,
+                        y + (nextY - y) / distance * remaining);
+            }
+            remaining -= distance;
+            x = nextX; y = nextY;
+        }
+        return new Point(x, y);
     }
 
     record Point(float x, float y) {}

@@ -4,7 +4,7 @@ Status: ACTIVE — Marine control is implemented; live acceptance and other carr
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — defined Marine takeover, safe entry, input ownership, and squad handback.
+Updated: 2026-09-26 — shared Mech clearance now supplies the terrain and handback contract for its pending control adapter.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -117,17 +117,20 @@ never animates forward progress or accumulates motion to be released later.
 A changing wall or door is read from current topology on the next tick.
 Physical body separation remains downstream and cannot push the unit across
 an impassable edge. Entry requires a legal body envelope at the current
-position. Existing AI crowd motion can place a body closer to terrain than
-that envelope permits; such a position is refused for takeover rather than
-teleported or allowed to begin a motionless session. Shared AI body-clearance
-reconciliation remains necessary before widening carrier support.
+position. A body already outside that envelope is refused for takeover rather than
+teleported or allowed to begin a motionless session. Mech AI routes, placement,
+translation, and separation use the same physical chassis clearance. This
+shared terrain authority does not itself enable the Mech control adapter.
 
 Infantry and Mechs share the terrain/topology law but keep their own movement
 speed, body clearance, and Mech pivot behavior. The existing path follower
 assumes a planned route and cannot serve as the manual collision check by
-itself. If a body-clearance rule makes a route that AI uses impassable under
-manual control, reconcile the shared pathing clearance rather than allowing
-the player-only mover to clip through a wall. Vehicles test their complete
+itself. Mech routes begin at the actual continuous position and retain a legal endpoint
+for their requested destination. On handback, an asynchronous proof may remain
+pending; that wait preserves the intended destination and grants no old
+point-route fallback. AI and manual translation must clear the same chassis
+radius, including centerlines between ordinary cell centers. An existing route
+never permits either owner to cross a newly closed wall or edge. Vehicles test their complete
 oriented footprint throughout translation and rotation, including intervening
 poses and crossed closed edges. A legal end pose alone does not prove that a
 chassis did not pass through an obstacle on the way there. A blocked drive

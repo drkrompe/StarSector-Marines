@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
+import com.dillon.starsectormarines.battle.nav.ContinuousRoute;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -59,6 +60,7 @@ public final class MovementService {
     private final EntityWorld entityWorld;
     private final BattleComponents components;
     private final Query movers;
+    private NavigationGrid terrain;
 
     /** Sim clock for the repath throttle — advanced once per tick by {@link #beginTick}. */
     private float now;
@@ -68,6 +70,9 @@ public final class MovementService {
         this.components = components;
         this.movers = entityWorld.query(new ComponentType[]{components.MOVEMENT}, null);
     }
+
+    /** Bind current terrain during roster setup for physical arrival checks. */
+    public void setNavigationGrid(NavigationGrid grid) { terrain = grid; }
 
     /**
      * Per-tick prologue, called exactly once per sim tick by
@@ -106,6 +111,16 @@ public final class MovementService {
      * a path to this cell always answers {@code true} on arrival.
      */
     public boolean atCell(long id, int cx, int cy) {
+        ContinuousRoute route = continuousRoute(id);
+        if (route != null && route.requestedCellX() == cx && route.requestedCellY() == cy) {
+            if (!route.completed()) return false;
+            float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+            float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+            if (terrain != null && !ManualTerrainMotion.canStand(terrain, x, y, route.radius())) return false;
+            float rx = x - route.endX();
+            float ry = y - route.endY();
+            return rx * rx + ry * ry <= ARRIVE_RADIUS * ARRIVE_RADIUS;
+        }
         float dx = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X) - (cx + 0.5f);
         float dy = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y) - (cy + 0.5f);
         return dx * dx + dy * dy <= ARRIVE_RADIUS * ARRIVE_RADIUS;
@@ -158,6 +173,57 @@ public final class MovementService {
 
     public int[] path(long id) { return (int[]) entityWorld.getObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH); }
     public void setPathRef(long id, int[] p) { entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, p); }
+
+    /** Nullable route geometry; a completed route may remain as an arrival witness. */
+    public ContinuousRoute continuousRoute(long id) {
+        return (ContinuousRoute) entityWorld.getObject(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_CONTINUOUS_ROUTE);
+    }
+
+    /** Raw state write; NavigationService owns atomic route/projection/occupancy installation. */
+    public void setContinuousRouteRef(long id, ContinuousRoute route) {
+        entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_CONTINUOUS_ROUTE, route);
+    }
+
+    /** Active projected path length; a cleared completed witness schedules no motion. */
+    public int waypointCount(long id) { return Paths.cellCount(path(id)); }
+
+    public float waypointX(long id, int index) {
+        ContinuousRoute route = continuousRoute(id);
+        return route == null ? Paths.cellX(path(id), index) + 0.5f : route.x(index);
+    }
+
+    public float waypointY(long id, int index) {
+        ContinuousRoute route = continuousRoute(id);
+        return route == null ? Paths.cellY(path(id), index) + 0.5f : route.y(index);
+    }
+
+    /** Read-only cursor lookahead over points already coincident with the body. */
+    public int nextWaypointIndex(long id) {
+        int index = pathIdx(id), count = waypointCount(id);
+        if (continuousRoute(id) == null) return index;
+        float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+        float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        while (index < count && Math.hypot(waypointX(id, index) - x, waypointY(id, index) - y) <= 1e-5f) index++;
+        return index;
+    }
+
+    public float destinationX(long id) {
+        ContinuousRoute route = continuousRoute(id);
+        return route != null ? route.endX() : Paths.isEmpty(path(id)) ? Float.NaN : Paths.destX(path(id)) + 0.5f;
+    }
+
+    public float destinationY(long id) {
+        ContinuousRoute route = continuousRoute(id);
+        return route != null ? route.endY() : Paths.isEmpty(path(id)) ? Float.NaN : Paths.destY(path(id)) + 0.5f;
+    }
+
+    public boolean pathTargetsCell(long id, int cx, int cy) {
+        if (Paths.isEmpty(path(id))) return false;
+        ContinuousRoute route = continuousRoute(id);
+        return route != null ? route.requestedCellX() == cx && route.requestedCellY() == cy
+                : Paths.destX(path(id)) == cx && Paths.destY(path(id)) == cy;
+    }
 
     public int pathIdx(long id) { return entityWorld.getInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX); }
     public void setPathIdx(long id, int v) { entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX, v); }
@@ -214,6 +280,86 @@ public final class MovementService {
         return ManualTerrainMotion.move(grid, x, y, dx, dy, radius);
     }
 
+    public enum MotionResult { IDLE, MOVED, HELD_FOR_TURN, ARRIVED, BLOCKED }
+
+    /**
+     * Ground-body route following against current terrain. Continuous points
+     * are followed segment by segment, with the same next-point bearing used
+     * by hip steering. A contact may apply a legal partial displacement but
+     * retires the attempted route through BLOCKED, never through arrival.
+     * Legacy mech paths are also swept while their callers migrate.
+     */
+    public MotionResult advanceAlongPath(World world, long id, float dt,
+                                         NavigationGrid grid, float radius) {
+        if (!Float.isFinite(dt) || dt < 0f || !Float.isFinite(radius) || radius <= 0f) {
+            throw new IllegalArgumentException("Finite nonnegative time and positive radius required");
+        }
+        setVelocity(id, 0f, 0f);
+        int count = waypointCount(id);
+        int index = pathIdx(id);
+        if (index >= count || dt == 0f) return MotionResult.IDLE;
+        ContinuousRoute route = continuousRoute(id);
+        if (route != null && (route.pointCount() != count || route.radius() != radius)) return MotionResult.BLOCKED;
+        if (!ManualTerrainMotion.canStand(grid, world.x(id), world.y(id), radius)) return MotionResult.BLOCKED;
+        float remaining = Math.max(0f, moveSpeed(id)) * dt;
+        float initialX = world.x(id), initialY = world.y(id);
+        float traveled = 0f;
+        MotionResult outcome = MotionResult.IDLE;
+        while (index < count) {
+            float px = world.x(id), py = world.y(id);
+            float dx = waypointX(id, index) - px, dy = waypointY(id, index) - py;
+            float distance = (float) Math.hypot(dx, dy);
+            if (distance <= 1e-5f) {
+                setPathIdx(id, ++index);
+                continue;
+            }
+            if (remaining <= 0f) break;
+            if (entityWorld.has(id, components.MECH_LOCOMOTION)) {
+                float bearingX = dx, bearingY = dy;
+                if (route == null) {
+                    bearingX = Paths.cellX(path(id), index) - world.cellX(id);
+                    bearingY = Paths.cellY(path(id), index) - world.cellY(id);
+                }
+                if (bearingX != 0f || bearingY != 0f) {
+                    float desired = route == null ? MechLocomotion.desiredFacing(bearingX, bearingY)
+                            : MechLocomotion.continuousFacing(bearingX, bearingY);
+                    float current = entityWorld.getFloat(id, components.MECH_LOCOMOTION,
+                            BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+                    if (Math.abs(MechLocomotion.deltaDegrees(current, desired)) > MechLocomotion.MOVE_ALIGNMENT_DEGREES) {
+                        outcome = traveled > 0f ? MotionResult.MOVED : MotionResult.HELD_FOR_TURN;
+                        break;
+                    }
+                }
+            }
+            float step = Math.min(remaining, distance);
+            float requestedX = dx / distance * step, requestedY = dy / distance * step;
+            ManualTerrainMotion.Result applied = ManualTerrainMotion.move(grid, px, py,
+                    requestedX, requestedY, radius);
+            world.setPos(id, applied.x(), applied.y());
+            float appliedDistance = (float) Math.hypot(applied.dx(), applied.dy());
+            traveled += appliedDistance;
+            remaining -= step;
+            if (Math.hypot(applied.x() - (px + requestedX), applied.y() - (py + requestedY)) > 1e-5f) {
+                outcome = MotionResult.BLOCKED;
+                break;
+            }
+            outcome = MotionResult.MOVED;
+            if (Math.hypot(waypointX(id, index) - applied.x(), waypointY(id, index) - applied.y()) <= 1e-5f) {
+                setPathIdx(id, ++index);
+            }
+        }
+        if (index >= count) {
+            if (route != null) setContinuousRouteRef(id, route.withCompleted());
+            outcome = MotionResult.ARRIVED;
+        }
+        setVelocity(id, (world.x(id) - initialX) / dt, (world.y(id) - initialY) / dt);
+        if (traveled > 0f) {
+            setGaitPhase(id, (gaitPhase(id) + traveled) % 1f);
+            setFormationMemoryTimer(id, FORMATION_MEMORY_SECONDS);
+        }
+        return outcome;
+    }
+
     /**
      * Advances a mover one tick of continuous carrot-following: picks a carrot
      * {@link #LOOKAHEAD} cells ahead on the cell polyline
@@ -228,6 +374,9 @@ public final class MovementService {
      * sole caller is {@code BattleSimulation.advanceMovement}.
      */
     public void advanceAlongPath(World world, long id, float dt) {
+        if (continuousRoute(id) != null) {
+            throw new IllegalStateException("Continuous routes require live terrain and body clearance");
+        }
         int[] path = path(id);
         int pathIdx = pathIdx(id);
         int count = Paths.cellCount(path);

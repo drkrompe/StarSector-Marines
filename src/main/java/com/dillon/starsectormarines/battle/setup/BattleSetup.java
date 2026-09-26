@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 
 import com.dillon.starsectormarines.battle.air.AirArmament;
 import com.dillon.starsectormarines.battle.air.AirCorridor;
@@ -3057,7 +3058,10 @@ public final class BattleSetup {
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
                 : Collections.emptyList();
         if (defenderNodes.isEmpty()) {
-            List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, roster.totalCount);
+            List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY,
+                    roster.mechVariants.isEmpty() ? roster.totalCount
+                            : (2 * DEFENDER_SPAWN_SCAN_RADIUS + 1) * (2 * DEFENDER_SPAWN_SCAN_RADIUS + 1),
+                    roster.mechVariants.isEmpty());
             spawnLegacyDefenderCluster(sim, cells, roster, groundRoster, rng);
             return;
         }
@@ -3100,6 +3104,14 @@ public final class BattleSetup {
             }
             int want = Math.min(node.garrisonSize,
                     Math.min(sourceSize, garrisonBudget));
+            if (spawningMechs) {
+                List<int[]> candidates = mechNodeCandidates(sim, node, GARRISON_SPAWN_RADIUS);
+                int spawned = spawnPlacedDefenderMechs(sim, candidates, mechQueue, want,
+                        roster, groundRoster, rng, node, UnitRole.GARRISON, defenderIdx);
+                defenderIdx += spawned;
+                if (spawned == 0) patrolAnchors.add(node);
+                continue;
+            }
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
                     node, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
@@ -3140,7 +3152,9 @@ public final class BattleSetup {
         // through the anchor list when defenders exceed
         // anchors * patrolSquadSize.
         if (mechQueue.isEmpty() && infQueue.isEmpty()) return;
-        List<TacticalNode> anchorPool = patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors;
+        List<TacticalNode> originalAnchors = new ArrayList<>(
+                patrolAnchors.isEmpty() ? defenderNodes : patrolAnchors);
+        List<TacticalNode> anchorPool = new ArrayList<>(originalAnchors);
         int anchorIdx = 0;
         while (!mechQueue.isEmpty() || !infQueue.isEmpty()) {
             if (anchorPool.isEmpty()) break;
@@ -3149,6 +3163,23 @@ public final class BattleSetup {
             anchorIdx++;
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             int want = Math.min(roster.patrolSquadSize, sourceSize);
+            if (spawningMechs) {
+                List<int[]> candidates = mechNodeCandidates(sim, anchor, GARRISON_SPAWN_RADIUS + 2);
+                int spawned = spawnPlacedDefenderMechs(sim, candidates, mechQueue, want,
+                        roster, groundRoster, rng, anchor, UnitRole.PATROL, defenderIdx);
+                defenderIdx += spawned;
+                if (spawned == 0) {
+                    anchorPool.remove(anchor);
+                    anchorIdx = 0;
+                    if (anchorPool.isEmpty()) {
+                        // This exact chassis found no legal room at any permitted anchor.
+                        // Omit only it, then let smaller chassis and the infantry use their rooms.
+                        mechQueue.poll();
+                        anchorPool.addAll(originalAnchors);
+                    }
+                }
+                continue;
+            }
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
                     anchor, GARRISON_SPAWN_RADIUS + 2, want);
             if (cells.isEmpty()) {
@@ -3218,6 +3249,13 @@ public final class BattleSetup {
 
         int defenderIdx = 0;
         int cellIdx = 0;
+        while (!mechQueue.isEmpty()) {
+            int spawned = spawnPlacedDefenderMechs(sim, cells, mechQueue,
+                    roster.patrolSquadSize, roster, groundRoster, rng, null,
+                    UnitRole.PATROL, defenderIdx);
+            defenderIdx += spawned;
+            if (spawned == 0) mechQueue.poll();
+        }
         while ((!mechQueue.isEmpty() || !infQueue.isEmpty()) && cellIdx < cells.size()) {
             boolean spawningMechs = !mechQueue.isEmpty();
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
@@ -3246,6 +3284,50 @@ public final class BattleSetup {
             }
             if (squad != null) squad.originalSize = spawned;
         }
+    }
+
+    private static List<int[]> mechNodeCandidates(BattleSimulation sim, TacticalNode node,
+                                                   int radius) {
+        int count = (2 * radius + 1) * (2 * radius + 1) + node.standPositions().size();
+        return pickCellsForNode(sim.getGrid(), sim.getZoneGraph(), node, radius, count);
+    }
+
+    /** Candidate membership retains the authored node/zone envelope; nothing snaps across rooms. */
+    private static int spawnPlacedDefenderMechs(BattleSimulation sim, List<int[]> candidates,
+                                                Deque<MechVariant> queue, int count,
+                                                DefenderRoster roster, GroundRosterProfile groundRoster,
+                                                Random rng, TacticalNode node, UnitRole role, int nameIndex) {
+        Set<Long> domain = new HashSet<>();
+        for (int[] cell : candidates) domain.add(key(cell[0], cell[1]));
+        Squad squad = null;
+        int spawned = 0;
+        while (spawned < count && !queue.isEmpty()) {
+            MechVariant variant = queue.peek();
+            MechSpawnPlacement.Point point = null;
+            for (int[] cell : candidates) {
+                point = MechSpawnPlacement.nearCell(sim.getGrid(), variant.radius, cell[0], cell[1],
+                        (x, y) -> domain.contains(key((int) Math.floor(x), (int) Math.floor(y))),
+                        (x, y) -> MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, variant.radius, 0L));
+                if (point != null) break;
+            }
+            if (point == null) break;
+            queue.poll();
+            EntitySpec unit = makeDefender("d" + (nameIndex + spawned), UnitType.HEAVY_MECH,
+                    point.cellX(), point.cellY(), roster.risk, groundRoster, null, rng, variant)
+                    .atPosition(point.x(), point.y()).role(role);
+            if (role == UnitRole.GARRISON) unit.home(point.cellX(), point.cellY());
+            if (squad == null) {
+                squad = sim.getSquad(sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH));
+                squad.assignedNode = node;
+                squad.holdsFireUntilKillZone = false;
+            }
+            unit.squad(squad.id);
+            long member = sim.spawn(unit);
+            attachMechLoadout(sim, member, variant, groundRoster);
+            spawned++;
+        }
+        if (squad != null) squad.originalSize = spawned;
+        return spawned;
     }
 
     /** Builds a bare defender {@code Entity}. Mech loadout (for mech types) is a
@@ -3654,6 +3736,11 @@ public final class BattleSetup {
      * from picking which cells they camp, not from stat asymmetry.
      */
     static List<int[]> pickDefensiveCluster(NavigationGrid grid, int cx, int cy, int count) {
+        return pickDefensiveCluster(grid, cx, cy, count, true);
+    }
+
+    private static List<int[]> pickDefensiveCluster(NavigationGrid grid, int cx, int cy,
+                                                    int count, boolean backfill) {
         List<int[]> pool = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
         Queue<int[]> q = new ArrayDeque<>();
@@ -3682,7 +3769,7 @@ public final class BattleSetup {
         }
         // Backfill if the scan didn't return enough — fall back to plain BFS from
         // the anchor so we never spawn fewer defenders than requested.
-        if (picked.size() < count) {
+        if (backfill && picked.size() < count) {
             picked.addAll(pickSpawnCluster(grid, cx, cy, count - picked.size()));
         }
         return picked;

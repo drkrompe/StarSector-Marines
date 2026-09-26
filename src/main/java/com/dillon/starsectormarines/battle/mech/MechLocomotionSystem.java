@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -51,6 +52,18 @@ public final class MechLocomotionSystem {
                 int rowCellX = (int) Math.floor(posX[row]);
                 int rowCellY = (int) Math.floor(posY[row]);
                 if (hasMovement && pathIdx[row] < Paths.cellCount((int[]) paths[row])) {
+                    MovementService movement = roster.movement();
+                    if (movement.continuousRoute(id) != null) {
+                        int next = movement.nextWaypointIndex(id);
+                        if (next < movement.waypointCount(id)) {
+                            MechLocomotion.turnToward(world, components, id,
+                                    MechLocomotion.continuousFacing(movement.waypointX(id, next) - posX[row],
+                                            movement.waypointY(id, next) - posY[row]), dt);
+                        } else {
+                            MechLocomotion.stopTurning(world, components, id, dt);
+                        }
+                        continue;
+                    }
                     int nextX = Paths.cellX((int[]) paths[row], pathIdx[row]);
                     int nextY = Paths.cellY((int[]) paths[row], pathIdx[row]);
                     int dx = nextX - rowCellX;
