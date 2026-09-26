@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-08-31 — authored body penetration lets a direct round retain ordered contacts before its terminal stop.
+Updated: 2026-09-26 — target-free point fire shares ground contact and arrival rules.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -37,10 +37,22 @@ projectile.
 
 ## Aim, travel, and contact
 
-Accuracy commits once before the contact walk. A successful aim samples inside
+Entity-target accuracy commits once before the contact walk. A successful aim samples inside
 the intended body's horizontal and vertical silhouette; a miss samples outside
 it. The intended target therefore cannot be visibly crossed and then rejected
 by another invisible accuracy roll.
+
+A **point aim** supplies a world bearing with no target identity, automatic
+lead, or silhouette-conditioned hit roll. Accuracy, equipment, stance, spread,
+and smoke change the size of a sampled angular error disk before contacts are
+traced. Dispersion and smoke depth are calibrated along the bearing at weapon
+range, so cursor distance cannot improve distant accuracy or shorten flight.
+A point round remains live to the same full modeled reach as a stray round;
+all body contacts are incidental and retain ordinary friendly-catch rules.
+Its trigger is allowed toward an obstructed or empty lane: a wall stops the
+emitted round at contact. Invalid or coincident aim consumes the request
+without emitting a round. Point aim does not register a threat or reveal an
+unobserved identity.
 
 The target chooses a direct round's trajectory, not a missed round's lifetime.
 Unless a physical contact stops it first, a miss remains live out to one and a

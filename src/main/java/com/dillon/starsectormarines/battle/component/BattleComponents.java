@@ -235,6 +235,10 @@ public final class BattleComponents {
      * arrived, from anywhere, seen or not.
      */
     public static final int COMBAT_LAST_DAMAGED_TICK = 23;
+    /** Nullable point-fire intent; mutually exclusive with FIRE_TARGET_ID. */
+    public static final int COMBAT_POINT_FIRE_AIM = 24;
+    /** Nullable frozen point aim for primary burst continuation. */
+    public static final int COMBAT_BURST_POINT_AIM = 25;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -601,7 +605,11 @@ public final class BattleComponents {
      * posture-specific pre-gate stay with the behavior; {@code
      * battle.combat.FiringSystem} consumes the intent every tick (clearing
      * {@code fireTargetId} whether or not it fired) and applies the uniform
-     * cooldown/range/LoS execution gate. See
+     * cooldown/range/LoS execution gate. Nullable {@code pointFireAim} is the
+     * mutually exclusive target-free alternative; nullable {@code burstPointAim}
+     * preserves that world point across follow-up rounds. Both intent forms
+     * share stance and cadence, but point fire lets physical obstacles stop the
+     * emitted round rather than rejecting the trigger for line of sight. See
      * {@code ecs-nouns.md}.
      */
     public final ComponentType COMBAT;
@@ -1162,7 +1170,7 @@ public final class BattleComponents {
                 FieldKind.LONG, FieldKind.FLOAT,
                 FieldKind.INT, FieldKind.INT,
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.INT,
-                FieldKind.INT);
+                FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);

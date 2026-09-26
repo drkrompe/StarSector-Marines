@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FireGate;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -301,6 +302,7 @@ public final class CombatService {
      */
     public void setFireIntent(long id, long targetId, FireStance stance, boolean repositionAfter) {
         registerThreat(id, targetId);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_POINT_FIRE_AIM, null);
         entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, targetId);
         entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE, stance.ordinal());
         entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION, repositionAfter ? 1 : 0);
@@ -328,10 +330,47 @@ public final class CombatService {
      * (identity-collapse Phase A).
      */
     public void beginBurst(long shooterId, long targetId) {
+        setBurstPointAim(shooterId, null);
         WeaponDef weapon = primaryWeaponDef(shooterId);
         if (weapon == null || weapon.burstCount <= 1) return;
         setBurstRemaining(shooterId, weapon.burstCount - 1);
         setBurstTimer(shooterId, weapon.burstSpacing);
         setBurstTargetId(shooterId, targetId);
     }
+
+    /** Queue a consume-once bearing without registering or revealing a target. */
+    public void setPointFireIntent(long id, PointFireAim aim, FireStance stance) {
+        entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, 0L);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_POINT_FIRE_AIM, aim);
+        entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE, stance.ordinal());
+        entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION, 0);
+    }
+
+    public PointFireAim pointFireAim(long id) {
+        return (PointFireAim) entityWorld.getObject(id, components.COMBAT, BattleComponents.COMBAT_POINT_FIRE_AIM);
+    }
+
+    public PointFireAim burstPointAim(long id) {
+        return (PointFireAim) entityWorld.getObject(id, components.COMBAT, BattleComponents.COMBAT_BURST_POINT_AIM);
+    }
+
+    public void setBurstPointAim(long id, PointFireAim aim) {
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_BURST_POINT_AIM, aim);
+    }
+
+    /** Follow-up rounds retain the trigger's world point, with no target tracking. */
+    public void beginPointBurst(long id, PointFireAim aim) {
+        beginBurst(id, 0L);
+        if (burstRemaining(id) > 0) setBurstPointAim(id, aim);
+    }
+
+    /** Cancel queued primary work when control changes hands or becomes ineligible. */
+    public void clearPrimaryFire(long id) {
+        setPointFireIntent(id, null, FireStance.STANCED);
+        setBurstRemaining(id, 0);
+        setBurstTimer(id, 0f);
+        setBurstTargetId(id, 0L);
+        setBurstPointAim(id, null);
+    }
+
 }
