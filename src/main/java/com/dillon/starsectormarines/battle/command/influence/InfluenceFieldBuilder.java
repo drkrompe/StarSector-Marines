@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.influence;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 
 /** Topology-aware additive propagation into tactical blocks. */
 final class InfluenceFieldBuilder {
@@ -28,6 +29,7 @@ final class InfluenceFieldBuilder {
         // remains exactly the same as source-major propagation.
         Map<PropagationKey, Integer> groups = new LinkedHashMap<>();
         for (InfluenceSource source : sources) {
+            if (Thread.currentThread().isInterrupted()) throw new CancellationException();
             if (source.magnitude() <= 0f) continue;
             int[] starts = topology.componentsForCell(source.cellX(), source.cellY());
             if (starts.length == 0) continue;
@@ -41,6 +43,7 @@ final class InfluenceFieldBuilder {
 
         int generation = 0;
         for (Map.Entry<PropagationKey, Integer> entry : groups.entrySet()) {
+            if (Thread.currentThread().isInterrupted()) throw new CancellationException();
             PropagationKey key = entry.getKey();
             float splitMagnitude = Float.intBitsToFloat(key.magnitudeBits());
             generation++;

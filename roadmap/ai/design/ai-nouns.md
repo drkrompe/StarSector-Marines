@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-22 — periodic squad refreshes are spread after common replan
-events; tactical interrupts still replan immediately.
+Updated: 2026-09-26 — influence refreshes use captured inputs and asynchronous,
+paired tick-boundary publication; synchronous evidence remains available.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -886,6 +886,19 @@ topology-aware tactical fields. The snapshot itself is read-only. A consumer
 may act on it only when a mission-specific command contract authorizes that
 action; diagnostics and heatmaps do not acquire assignment authority merely by
 reading the field.
+
+Influence refresh captures both factions' inputs on the simulation thread and
+propagates their fields off-thread, with at most one rebuild in flight. Readers
+keep the previous complete pair while work runs; completed fields publish
+together only at a tick boundary, and retain their input-capture age rather
+than claiming to describe the publication tick. Results from an obsolete
+topology are discarded. A read requests future work rather than forcing a
+rebuild inside planning. The first reader activates recurring refreshes with a
+fifteen-tick minimum submission interval, so sparse command pulses still receive
+a recent picture; readiness can change decisions between otherwise identical
+battles. A synchronous mode remains available for repeatable debugging and
+focused behavior evidence. Neither scheduling mode changes whose beliefs may
+enter a faction's field.
 
 A mission command may publish a mission-specific command picture that combines
 its authored assignments with honest influence-derived metrics. Conquest's
