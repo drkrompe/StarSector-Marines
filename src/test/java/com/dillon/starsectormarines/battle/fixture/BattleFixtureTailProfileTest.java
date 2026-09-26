@@ -20,6 +20,8 @@ import jdk.jfr.Event;
 import jdk.jfr.Label;
 import jdk.jfr.Name;
 import jdk.jfr.Recording;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordingFile;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
@@ -146,6 +148,9 @@ class BattleFixtureTailProfileTest {
         int maximumUnits = 0;
         int minimumUnits = Integer.MAX_VALUE;
         long totalReplans = 0;
+        long totalUnitWorkerCpuNanos = 0L;
+        long totalUnitWorkerWallNanos = 0L;
+        int ticksWithCompleteUnitCpu = 0;
         AsyncDefendTrackRoutes.Metrics firstRoutes;
         AsyncDefendTrackRoutes.Metrics finalRoutes;
         CommanderInfluenceService.Metrics firstInfluence = null;
@@ -222,6 +227,13 @@ class BattleFixtureTailProfileTest {
                         - mesh.pendingGridChanges() : 0L;
 
                 if (sim.simTickIndex > warmupTicks) {
+                    UnitUpdateSystem.TickDiagnostics unitDiagnostics =
+                            sim.getUnitUpdateSystem().lastTickDiagnostics();
+                    totalUnitWorkerCpuNanos += unitDiagnostics.workerCpuNanos();
+                    totalUnitWorkerWallNanos += unitDiagnostics.sampledUnitNanos();
+                    if (unitDiagnostics.cpuMeasuredThreads() == unitDiagnostics.activeThreads()) {
+                        ticksWithCompleteUnitCpu++;
+                    }
                     CommanderInfluenceService.Metrics influence = sim.getCommanderInfluenceMetrics();
                     if (influence.publishedCaptureTick() >= 0) {
                         maximumInfluenceAge = Math.max(maximumInfluenceAge,
@@ -361,6 +373,9 @@ class BattleFixtureTailProfileTest {
                 minimumUnits, maximumUnits, firstRoutes,
                 finalRoutes, jfrPath, convoyUncachedStages);
         assertNotNull(firstInfluence);
+        report.put("unitWorkerCpuTotalMs", millis(totalUnitWorkerCpuNanos));
+        report.put("unitWorkerSampledWallTotalMs", millis(totalUnitWorkerWallNanos));
+        report.put("ticksWithCompleteUnitCpu", ticksWithCompleteUnitCpu);
         assertEquals(0, finalInfluence.failed(), "influence worker failed during replay");
         report.put("influence", new JSONObject()
                 .put("asynchronous", finalInfluence.asynchronous())
@@ -380,7 +395,12 @@ class BattleFixtureTailProfileTest {
         assertEquals(TickProfile.Phase.VALUES.length,
                 report.getJSONArray("phaseTotals").length());
         assertTrue(report.getDouble("totalTickWallMs") > 0.0);
-        if (jfrEnabled) assertTrue(Files.size(jfrPath) > 0L);
+        if (jfrEnabled) {
+            assertTrue(Files.size(jfrPath) > 0L);
+            JSONObject clock = jfrClockJson(jfrPath);
+            assertEquals(durations.length, clock.getInt("ticks"));
+            report.put("jfrClock", clock);
+        }
         Path temporary = Files.createTempFile(outputDir, "tail-", ".tmp");
         Files.writeString(temporary, report.toString(2), StandardCharsets.UTF_8);
         Path destination = outputDir.resolve("summary.json");
@@ -429,7 +449,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 7);
+        report.put("schemaVersion", 8);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -544,6 +564,28 @@ class BattleFixtureTailProfileTest {
             millis += Math.max(0L, collector.getCollectionTime());
         }
         return new GcCounters(count, millis);
+    }
+
+    /** Compare clocks on the same events rather than assuming JFR duration is wall time. */
+    private static JSONObject jfrClockJson(Path path) throws Exception {
+        long wallNanos = 0L;
+        long eventNanos = 0L;
+        int ticks = 0;
+        try (RecordingFile recording = new RecordingFile(path)) {
+            while (recording.hasMoreEvents()) {
+                RecordedEvent event = recording.readEvent();
+                if (!event.getEventType().getName().equals(
+                        "com.dillon.starsectormarines.ConquestTailTick")) continue;
+                ticks++;
+                wallNanos += event.getLong("wallNanos");
+                eventNanos += event.getDuration().toNanos();
+            }
+        }
+        return new JSONObject().put("ticks", ticks)
+                .put("tickWallMs", millis(wallNanos))
+                .put("jfrEventDurationMs", millis(eventNanos))
+                .put("wallToJfrDurationRatio", eventNanos > 0L
+                        ? (double) wallNanos / eventNanos : JSONObject.NULL);
     }
 
     private static JSONObject tickJson(TickSample sample) throws Exception {
@@ -681,6 +723,9 @@ class BattleFixtureTailProfileTest {
                 .put("sampledUnitCount", units.sampledUnitCount())
                 .put("sampledUnitWorkerMs", millis(units.sampledUnitNanos()))
                 .put("maxThreadUnitMs", millis(units.maxThreadUnitNanos()))
+                .put("cpuMeasuredThreads", units.cpuMeasuredThreads())
+                .put("workerCpuMs", millis(units.workerCpuNanos()))
+                .put("maxThreadCpuMs", millis(units.maxThreadCpuNanos()))
                 .put("slowestUnits", slowUnits));
 
         AsyncDefendTrackRoutes.Metrics before = sample.routesBefore();

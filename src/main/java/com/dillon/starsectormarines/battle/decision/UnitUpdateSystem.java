@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.nav.LosCaches;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -81,6 +83,8 @@ public final class UnitUpdateSystem implements AutoCloseable {
 
     public static final String MINIMUM_PARALLEL_UNITS_PROPERTY =
             "battle.unitUpdate.minimumParallelUnits";
+    public static final String PARALLELISM_PROPERTY = "battle.unitUpdate.parallelism";
+    private static final ThreadMXBean THREAD_CPU = ManagementFactory.getThreadMXBean();
     /**
      * Profiled crossover on the fixed-slice battle-fixture matrix. The tuning
      * property accepts {@code 0} to force parallel and {@link Integer#MAX_VALUE}
@@ -115,11 +119,16 @@ public final class UnitUpdateSystem implements AutoCloseable {
      * unit time. Sampled unit time is summed across threads, so it can exceed
      * dispatch wall time when work overlaps. Skipped riders/ambient actors do
      * not enter the behavior timer.
+     * Worker CPU is sampled twice per participating thread across the dispatch,
+     * not per unit; it includes scheduler overhead but excludes off-CPU time.
+     * cpuMeasuredThreads distinguishes unavailable counters from zero CPU work.
      */
     public record TickDiagnostics(boolean parallel, int liveCount, int poolParallelism,
                                   long dispatchNanos, long awaitWorkersNanos,
                                   int activeThreads, int sampledUnitCount,
                                   long sampledUnitNanos, long maxThreadUnitNanos,
+                                  int cpuMeasuredThreads, long workerCpuNanos,
+                                  long maxThreadCpuNanos,
                                   List<UnitSample> slowestUnits) {}
 
     /** Enable only for dedicated profiling runs; the normal dispatch allocates no samples. */
@@ -219,28 +228,46 @@ public final class UnitUpdateSystem implements AutoCloseable {
         int sampledUnitCount = 0;
         long sampledUnitNanos = 0L;
         long maxThreadUnitNanos = 0L;
+        int cpuMeasuredThreads = 0;
+        long workerCpuNanos = 0L;
+        long maxThreadCpuNanos = 0L;
         for (WorkerDiagnostics thread : diagnosticThreads) {
             if (thread.sampledUnitCount == 0) continue;
             activeThreads++;
             sampledUnitCount += thread.sampledUnitCount;
             sampledUnitNanos += thread.sampledUnitNanos;
             maxThreadUnitNanos = Math.max(maxThreadUnitNanos, thread.sampledUnitNanos);
+            long cpu = cpuDeltaNanos(thread.cpuStartNanos, thread.cpuNow());
+            if (cpu >= 0L) {
+                cpuMeasuredThreads++;
+                workerCpuNanos += cpu;
+                maxThreadCpuNanos = Math.max(maxThreadCpuNanos, cpu);
+            }
             for (UnitSample sample : thread.slowest.samples()) slowest.offer(sample);
         }
         return new TickDiagnostics(parallel, liveCount, pool.getParallelism(),
                 dispatchNanos, awaitWorkersNanos, activeThreads, sampledUnitCount,
-                sampledUnitNanos, maxThreadUnitNanos, slowest.samples());
+                sampledUnitNanos, maxThreadUnitNanos, cpuMeasuredThreads,
+                workerCpuNanos, maxThreadCpuNanos, slowest.samples());
     }
 
     private final class WorkerDiagnostics {
+        private final long threadId = Thread.currentThread().getId();
+        private long cpuStartNanos = cpuNow();
         private final SlowUnitCollector slowest = new SlowUnitCollector();
         private int sampledUnitCount;
         private long sampledUnitNanos;
 
         private void reset() {
+            cpuStartNanos = cpuNow();
             sampledUnitCount = 0;
             sampledUnitNanos = 0L;
             slowest.clear();
+        }
+
+        private long cpuNow() {
+            return THREAD_CPU.isThreadCpuTimeSupported() && THREAD_CPU.isThreadCpuTimeEnabled()
+                    ? THREAD_CPU.getThreadCpuTime(threadId) : -1L;
         }
 
         private void record(long entityId, long durationNanos, BattleSimulation sim) {
@@ -300,7 +327,21 @@ public final class UnitUpdateSystem implements AutoCloseable {
     }
 
     public static int configuredPoolParallelism() {
-        return Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
+        return resolvePoolParallelism(Runtime.getRuntime().availableProcessors(),
+                System.getProperty(PARALLELISM_PROPERTY));
+    }
+
+    static int resolvePoolParallelism(int processors, String override) {
+        if (override == null) return Math.max(1, processors - 1);
+        int requested = Integer.parseInt(override);
+        if (requested < 1 || requested > 32767) {
+            throw new IllegalArgumentException(PARALLELISM_PROPERTY + " must be in [1, 32767]");
+        }
+        return requested;
+    }
+
+    static long cpuDeltaNanos(long start, long end) {
+        return start < 0L || end < start ? -1L : end - start;
     }
 
     /** Releases this battle's owned worker pool and worker-local registries. */
@@ -330,6 +371,13 @@ public final class UnitUpdateSystem implements AutoCloseable {
             super(pool);
             this.losCaches = losCaches;
             setDaemon(true);
+        }
+
+        @Override
+        protected void onStart() {
+            super.onStart();
+            // Pool indices are assigned after construction; naming there made
+            // every worker appear as Update-0 in JFR.
             setName("BattleSim-Update-" + getPoolIndex());
         }
 
@@ -365,6 +413,9 @@ public final class UnitUpdateSystem implements AutoCloseable {
         // rather than inferred from a missing POSITION, so a unit that lost its
         // position by accident still fails loudly instead of going quiet.
         if (sim.transport().isRiding(u)) return;
+        // First participation must capture CPU before the first behavior, not
+        // in its finally block; existing workers were sampled by tick's reset.
+        WorkerDiagnostics diagnostics = captureDiagnostics ? currentDiagnostics.get() : null;
         long t0 = System.nanoTime();
         UnitBehavior behavior;
         TickInnerProfile.Bucket bucket;
@@ -384,7 +435,7 @@ public final class UnitUpdateSystem implements AutoCloseable {
             profile.exitBehavior();
             long elapsed = System.nanoTime() - t0;
             profile.record(bucket, elapsed);
-            if (captureDiagnostics) currentDiagnostics.get().record(u, elapsed, sim);
+            if (diagnostics != null) diagnostics.record(u, elapsed, sim);
         }
         // Route through TickInnerProfile.current() so workers in the parallel
         // dispatch write to their per-thread profile (ThreadLocal auto-init),

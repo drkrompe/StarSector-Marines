@@ -324,6 +324,32 @@ public class TacticalScoringTest {
         assertEquals(0, count, "enemies don't contribute to ally-spread");
     }
 
+    @Test
+    public void spreadScratchReusePreservesBothPassesAndClearsPriorCandidates() {
+        try (BattleSimulation sim = openArena(20, 20)) {
+            long self = unit(sim, Faction.MARINE, 0, 0);
+            // Grow past the scratch bucket's initial capacity.
+            for (int i = 0; i < 12; i++) {
+                long nearby = unit(sim, Faction.ALLY, 4, 4);
+                sim.setPath(nearby, new int[]{4, 4, 5, 4});
+            }
+            long incoming = unit(sim, Faction.MARINE, 18, 18);
+            sim.setPath(incoming, new int[]{18, 18, 4, 5});
+
+            assertEquals(13, sim.getTacticalScoring().alliesNearForSpread(self, 4, 4),
+                    "nearby moving allies count once; the distant incoming ally also counts");
+            assertEquals(0, sim.getTacticalScoring().alliesNearForSpread(self, 15, 0),
+                    "the next empty query must not retain either pass's candidates");
+            assertEquals(13, sim.getTacticalScoring().alliesNearForSpread(self, 4, 4));
+        }
+        try (BattleSimulation other = openArena(20, 20)) {
+            long self = unit(other, Faction.MARINE, 0, 0);
+            unit(other, Faction.DEFENDER, 4, 4);
+            assertEquals(0, other.getTacticalScoring().alliesNearForSpread(self, 4, 4),
+                    "worker scratch holds ids, not candidates from a previous battle");
+        }
+    }
+
     // ---------------------------------------------------------------------
     // Part 3a — zone-mismatch target bias (Slice 3.5)
     // ---------------------------------------------------------------------

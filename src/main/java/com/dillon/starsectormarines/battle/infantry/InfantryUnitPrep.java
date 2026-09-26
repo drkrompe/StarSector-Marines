@@ -29,6 +29,14 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
  */
 public final class InfantryUnitPrep {
 
+    /**
+     * Private to the hardened scan, not shared with the scoring queries it
+     * calls while iterating. Those queries never re-enter this scan. Gather
+     * clears the primitive ids before reuse, including across simulations.
+     */
+    private static final ThreadLocal<LongBucket> HARDENED_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
+
     private InfantryUnitPrep() {}
 
     /**
@@ -243,7 +251,7 @@ public final class InfantryUnitPrep {
         // earn the shot if it's the nearest hardened threat.
         long bestHardened = 0L;
         float bestDistSq = Float.MAX_VALUE;
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = HARDENED_CANDIDATES.get();
         sim.getUnitIndex().gather(sim.world().x(unit), sim.world().y(unit), range, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];

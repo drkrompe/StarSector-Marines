@@ -81,6 +81,32 @@ public class InfantryUnitPrepTest {
     }
 
     @Test
+    public void hardenedScratchReuseKeepsNearestTargetAndClearsBetweenBattles() {
+        try (BattleSimulation sim = openArena(50, 10)) {
+            long marine = rocketeer(sim, Faction.MARINE, 5, 5);
+            // Force buffer growth while retaining the ordinary candidate order.
+            for (int i = 0; i < 16; i++) {
+                sim.spawn(new EntitySpec("soft" + i, Faction.DEFENDER,
+                        UnitType.MARINE, 6 + i, 3));
+            }
+            turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 30, 5);
+            long nearer = turret(sim, Faction.DEFENDER,
+                    TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 25, 5);
+            assertTrue(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
+            assertEquals(nearer, sim.world().secondaryAimTargetId(marine));
+            sim.world().setSecondaryActionTimer(marine, 0f);
+            assertTrue(InfantryUnitPrep.tryHardenedOpportunity(marine, sim));
+            assertEquals(nearer, sim.world().secondaryAimTargetId(marine));
+        }
+        try (BattleSimulation other = openArena(50, 10)) {
+            long marine = rocketeer(other, Faction.MARINE, 5, 5);
+            assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, other),
+                    "a new battle on the same thread must not resolve stale candidates");
+            assertEquals(0L, other.world().secondaryAimTargetId(marine));
+        }
+    }
+
+    @Test
     public void opportunityRocketNoOpsWithNoAmmo() {
         BattleSimulation sim = openArena(50, 10);
         long marine = rocketeer(sim, Faction.MARINE, 5, 5);
