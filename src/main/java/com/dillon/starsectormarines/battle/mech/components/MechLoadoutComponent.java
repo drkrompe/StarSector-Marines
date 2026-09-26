@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.battle.mech.components;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
@@ -68,6 +73,35 @@ public final class MechLoadoutComponent {
     /** Whether this state permits firing at {@code target}. */
     public boolean isAimedAt(long target) {
         return torsoOnTarget && torsoAimTargetId == target;
+    }
+
+    /** Alignment against the live pose, never a cached target or a hidden body's position. */
+    public boolean isPointAimedAt(PointFireAim aim, float fromX, float fromY, float hipFacing) {
+        if (aim == null || !aim.validFrom(fromX, fromY)) return false;
+        float bearing = LayeredAppearance.wrapDegrees(AirBody.facingToward(aim.x() - fromX, aim.y() - fromY));
+        return Math.abs(LayeredAppearance.wrapDegrees(bearing - hipFacing))
+                    <= LayeredMechAppearance.MAX_TORSO_TWIST_DEGREES
+                && Math.abs(LayeredAppearance.wrapDegrees(torsoFacingDegrees - hipFacing))
+                    <= LayeredMechAppearance.MAX_TORSO_TWIST_DEGREES
+                && Math.abs(LayeredAppearance.wrapDegrees(bearing - torsoFacingDegrees))
+                    <= MechTurretSystem.FIRE_ALIGNMENT_DEGREES;
+    }
+
+    /** Committed bursts own torso aim before the current cursor; mount order is deterministic. */
+    public PointFireAim pointBurstAim() {
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.burstRemaining > 0 && mount.burstPointAim != null) {
+                return mount.burstPointAim;
+            }
+        }
+        return null;
+    }
+
+    /** Release trigger work while preserving every mount's resources and current physical pose. */
+    public void clearQueuedFire() {
+        for (MechWeaponMount mount : mounts) if (mount != null) mount.clearBurst();
+        torsoAimTargetId = 0L;
+        torsoOnTarget = false;
     }
 
     /** Immutable doctrine frozen into this battle deployment. */

@@ -58,6 +58,7 @@ public final class BackstopAssignedSquadGoal implements Goal {
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long u = sim.squadMemberAt(squad.id, i);
+            if (!squad.availableToPlan(u, sim)) continue;
             MechLoadoutComponent m = sim.world().mechLoadout(u);
             if (m != null && m.effectiveRole() == MechRole.ARMORED_SUPPORT) {
                 return 1f;

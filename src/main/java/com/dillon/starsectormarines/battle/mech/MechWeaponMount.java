@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 
 /** Mutable firing state for one installed {@link MechWeaponComponent}. */
 public final class MechWeaponMount {
@@ -12,6 +13,8 @@ public final class MechWeaponMount {
     public int burstRemaining;
     public float burstTimer;
     public long burstTargetId;
+    /** A point burst keeps the accepted world point for every remaining round. */
+    public PointFireAim burstPointAim;
     /** Accumulated onboard replenishment work toward the next trigger pack. */
     public float replenishmentProgressSeconds;
 
@@ -68,6 +71,24 @@ public final class MechWeaponMount {
         if (!needsSupply()) return false;
         ammo++;
         return true;
+    }
+
+    /** Commits one emitted trigger; ammunition counts trigger packs, not individual rounds. */
+    public void commitTrigger(long target, PointFireAim point) {
+        consumeTrigger();
+        cooldown = weaponDef().cooldown;
+        burstRemaining = Math.max(0, component.projectilesPerTrigger - 1);
+        burstTimer = burstRemaining > 0 ? weaponDef().burstSpacing : 0f;
+        burstTargetId = burstRemaining > 0 && point == null ? target : 0L;
+        burstPointAim = burstRemaining > 0 ? point : null;
+    }
+
+    /** Cancels queued rounds without refunding ammunition or resetting clocks. */
+    public void clearBurst() {
+        burstRemaining = 0;
+        burstTimer = 0f;
+        burstTargetId = 0L;
+        burstPointAim = null;
     }
 
     public void consumeTrigger() {

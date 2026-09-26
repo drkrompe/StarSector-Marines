@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — target-free point fire shares ground contact and arrival rules.
+Updated: 2026-09-26 — Mech point fire shares posed muzzle sources and physical terminal payloads.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -112,6 +112,21 @@ sight and direct rounds while still supplying directional low cover at the
 adjacent body position. That cover remains an interception chance rather than
 a hard pane contact, and disappears with the feature when structural blast
 damage breaks it.
+
+A Mech direct source is the installed barrel's muzzle in its actual chassis and
+torso pose, for both autonomous entity aim and manual point aim. Its structural
+body-to-barrel segment is checked before launch: a muzzle reaching through a
+wall cannot bypass that wall by starting the contact walk on its far side.
+Ballistics, tracer origin, and muzzle presentation therefore describe the same
+shot. Mech accuracy retains the shared weapon calculation and receives no
+infantry training multiplier merely because its aim is a point.
+
+Manual ground-direct area weapons keep the same terminal-contact rule as other
+modeled direct fire. An empty cursor point is a bearing, never a detonation
+request; a round leaving modeled reach has no terminal blast. Direct SRMs remain
+interceptable in flight, and a surviving payload arrives on the ordinary delay.
+Indirect missiles retain their separate targeting contract and cannot be
+triggered through this point-fire adapter.
 
 ## Obscuration
 

@@ -32,6 +32,11 @@ public final class MechLocomotionSystem {
     }
 
     public void tick(float dt) {
+        tick(dt, 0L);
+    }
+
+    /** The manual movement pass has already authored the controlled actor's hips. */
+    public void tick(float dt, long controlledId) {
         for (ArchetypeTable table : world.matched(mechs)) {
             boolean hasMovement = table.has(components.MOVEMENT);
             boolean hasCombat = table.has(components.COMBAT);
@@ -46,6 +51,7 @@ public final class MechLocomotionSystem {
 
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 long id = table.entityAt(row);
+                if (id == controlledId) continue;
                 // Floored locally — the turn-toward math below needs an integer
                 // cell delta, not the continuous position. Identical to the old
                 // cell-index values this phase (units only ever sit on centers).

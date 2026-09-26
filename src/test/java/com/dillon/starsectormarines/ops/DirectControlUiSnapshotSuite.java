@@ -17,11 +17,11 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
-        for (int state = 0; state < 3; state++) {
+        for (int state = 0; state < 4; state++) {
             try (var markup = BattleDirectControlOverlayTest.fixture(
-                    context.modRoot(), state == 2, state > 0, () -> {})) {
+                    context.modRoot(), state >= 2, state > 0, state == 3, () -> {})) {
                 var document = BattleDirectControlOverlayTest.document(markup);
-                artifacts.add(new SnapshotArtifact(new String[]{"select", "ready", "active"}[state]
+                artifacts.add(new SnapshotArtifact(new String[]{"select", "ready", "active", "mech"}[state]
                         + ".png", renderer.render(document, 440, 64)));
             }
         }

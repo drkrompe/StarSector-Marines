@@ -4,4 +4,5 @@ com.dillon.starsectormarines.battle.decision.goap.action.ProsecutionHoldScene
 com.dillon.starsectormarines.battle.squad.LateArrivalScene
 com.dillon.starsectormarines.battle.combat.PointFireScene
 com.dillon.starsectormarines.battle.control.ControlledMarineScene
+com.dillon.starsectormarines.battle.control.ControlledMechScene
 com.dillon.starsectormarines.battle.mech.MechClearanceScene
