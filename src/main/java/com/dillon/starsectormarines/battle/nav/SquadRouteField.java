@@ -93,9 +93,9 @@ final class SquadRouteField {
          * Invalid, blocked, and outside-corridor starts are left for fallback.
          * Costs follow GridPathfinder's destination-cell multiplier contract.
          */
-        SquadRouteField build(int[] sortedCorridorCells, float[] costCells, int goal,
+        SquadRouteField build(int[] sortedCorridorCells, RouteCostField cost, int goal,
                               int[] requiredStartCells, boolean cardinalOnly) {
-            if (costCells != null && costCells.length != seen.length) {
+            if (cost != null && cost.size() != seen.length) {
                 throw new IllegalArgumentException("field dimensions must match navigation grid");
             }
             if (++generation == 0) {
@@ -146,6 +146,8 @@ final class SquadRouteField {
                 if (remaining == 0) break;
                 int x = current % width;
                 int y = current / width;
+                // Every predecessor enters this same cell; decode its block only once.
+                float multiplier = cost == null ? 1f : cost.costAt(current, x, y);
                 for (int direction = 0; direction < directionCount; direction++) {
                     int px = x - GridPathfinder.directionX(direction);
                     int py = y - GridPathfinder.directionY(direction);
@@ -157,7 +159,7 @@ final class SquadRouteField {
                     if (!GridPathfinder.canStep(predecessor, px, py, current,
                             direction, width, height, flags, edges, null)) continue;
                     float candidate = distance[current]
-                            + GridPathfinder.stepCost(direction, current, null, costCells);
+                            + GridPathfinder.stepCost(direction, current, null, multiplier);
                     boolean discovered = seen[predecessor] == generation;
                     if (discovered && candidate >= distance[predecessor]) continue;
                     seen[predecessor] = generation;

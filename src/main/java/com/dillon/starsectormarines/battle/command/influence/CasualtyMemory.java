@@ -92,12 +92,20 @@ public final class CasualtyMemory {
     private static final boolean ROUTE_COST_ENABLED = Boolean.parseBoolean(
             System.getProperty(ROUTE_COST_PROPERTY, "true"));
 
+    /** Same-build evidence control for storage and lookup cost, not routing behavior. */
+    public static final String COMPACT_ROUTE_COST_PROPERTY =
+            "battle.pathfinding.compactCasualtyRouteCost";
+
+    private static final boolean COMPACT_ROUTE_COST_ENABLED = Boolean.parseBoolean(
+            System.getProperty(COMPACT_ROUTE_COST_PROPERTY, "true"));
+
     private final UnitRosterService roster;
     private final int blockSize;
     private final int cellWidth;
     private final int cellHeight;
     private final int blockWidth;
     private final int blockHeight;
+    private final RouteCostField.BlockLayout routeCostLayout;
     private final Map<Faction, float[]> byFaction = new EnumMap<>(Faction.class);
     /**
      * Replaced wholesale rather than mutated, and volatile, because it is
@@ -114,8 +122,9 @@ public final class CasualtyMemory {
         this.blockSize = blockSize;
         this.cellWidth = cellWidth;
         this.cellHeight = cellHeight;
-        this.blockWidth = (cellWidth + blockSize - 1) / blockSize;
-        this.blockHeight = (cellHeight + blockSize - 1) / blockSize;
+        this.routeCostLayout = new RouteCostField.BlockLayout(cellWidth, cellHeight, blockSize);
+        this.blockWidth = routeCostLayout.blockWidth();
+        this.blockHeight = routeCostLayout.blockHeight();
     }
 
     public int blockWidth() { return blockWidth; }
@@ -180,9 +189,9 @@ public final class CasualtyMemory {
     }
 
     /**
-     * Expands the block memory into the per-cell multiplier the pathfinders
-     * read. The step at a block boundary is not smoothed: the block is the
-     * resolution at which this side actually knows where it lost people, and
+     * Publishes the block memory as immutable multipliers the pathfinders read
+     * at cell indices without expanding the map. The boundary is not smoothed:
+     * the block is the resolution at which this side knows where it lost people, and
      * interpolating would draw a confidence the knowledge does not have.
      */
     private RouteCostField buildRouteCost(Faction faction) {
@@ -193,15 +202,22 @@ public final class CasualtyMemory {
             if (weight > NEGLIGIBLE_WEIGHT) { any = true; break; }
         }
         if (!any) return null;
+        float[] multipliers = new float[blocks.length];
+        for (int i = 0; i < blocks.length; i++) multipliers[i] = multiplierFor(blocks[i]);
+        long revision = RouteCostField.nextRevision();
+        if (COMPACT_ROUTE_COST_ENABLED) return routeCostLayout.snapshot(multipliers, revision);
+
+        // Conservative dense control: it too derives each block's multiplier
+        // only once, isolating expansion/storage from repeated arithmetic.
         float[] cells = new float[cellWidth * cellHeight];
         for (int y = 0; y < cellHeight; y++) {
             int blockRow = (y / blockSize) * blockWidth;
             int row = y * cellWidth;
             for (int x = 0; x < cellWidth; x++) {
-                cells[row + x] = multiplierFor(blocks[blockRow + x / blockSize]);
+                cells[row + x] = multipliers[blockRow + x / blockSize];
             }
         }
-        return new RouteCostField(cells, RouteCostField.nextRevision());
+        return new RouteCostField(cells, revision);
     }
 
     /** Saturating penalty on remembered weight; see {@link #HALF_PENALTY_LOSSES}. */
