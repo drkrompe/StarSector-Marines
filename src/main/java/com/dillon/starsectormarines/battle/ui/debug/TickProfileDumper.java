@@ -214,6 +214,10 @@ public final class TickProfileDumper {
             item.put("found", search.found());
             item.put("pathCells", search.pathCells());
             item.put("expandedNodes", search.expandedNodes());
+            item.put("memberId", search.memberId());
+            item.put("squadId", search.squadId());
+            item.put("action", search.action());
+            item.put("routeReason", search.routeReason());
             samples.put(item);
         }
         root.put("slowFlatPathSearches", samples);

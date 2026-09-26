@@ -31,8 +31,11 @@ class TickProfileDumperTest {
     @Test
     void serializesBoundedSearchSamplesAndWorkerTimeWarning() throws Exception {
         TickInnerProfile profile = new TickInnerProfile();
+        profile.enterAction(48L, 9, "DEFEND_SITE");
+        profile.routeReason("rally");
         profile.recordPathSearch(1_250_000L, 4, 5, 60, 70,
                 true, 0, 231);
+        profile.exitAction();
         profile.recordPathSearch(750_000L, 6, 7, 8, 9,
                 false, 12, 28);
         JSONObject root = new JSONObject();
@@ -59,6 +62,15 @@ class TickProfileDumperTest {
         assertFalse(first.getBoolean("found"));
         assertEquals(0, first.getInt("pathCells"));
         assertEquals(231, first.getInt("expandedNodes"));
+        assertEquals(48L, first.getLong("memberId"));
+        assertEquals(9, first.getInt("squadId"));
+        assertEquals("DEFEND_SITE", first.getString("action"));
+        assertEquals("rally", first.getString("routeReason"));
+        JSONObject second = parsed.getJSONArray("slowFlatPathSearches").getJSONObject(1);
+        assertEquals(0L, second.getLong("memberId"));
+        assertEquals(-1, second.getInt("squadId"));
+        assertEquals("", second.getString("action"));
+        assertEquals("", second.getString("routeReason"));
         assertTrue(parsed.getJSONArray("slowFlatPathSearches").getJSONObject(1)
                 .getBoolean("found"));
         assertTrue(root.toString().length() < 2_000,

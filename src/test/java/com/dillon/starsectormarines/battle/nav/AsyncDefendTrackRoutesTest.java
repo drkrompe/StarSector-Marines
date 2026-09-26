@@ -202,6 +202,26 @@ class AsyncDefendTrackRoutesTest {
     }
 
     @Test
+    void unreachableFormationCellFallsBackToAnchorOnWorker() throws Exception {
+        NavigationGrid grid = openGrid();
+        // Keep the requested formation cell walkable but seal all approaches.
+        for (int y = 6; y <= 8; y++) {
+            for (int x = 6; x <= 8; x++) {
+                if (x != 7 || y != 7) grid.setWalkable(x, y, false);
+            }
+        }
+        AsyncDefendTrackRoutes.Request request = new AsyncDefendTrackRoutes.Request(
+                1L, 4, 1L, new Object(), 4, 4,
+                1, 1, 7, 7, 4, 4, false);
+        try (AsyncDefendTrackRoutes routes = new AsyncDefendTrackRoutes()) {
+            int[] path = awaitReady(routes, request, grid, new byte[100], 1);
+            assertEquals(4, Paths.destX(path));
+            assertEquals(4, Paths.destY(path));
+            assertEquals(1, routes.metrics().submitted());
+        }
+    }
+
+    @Test
     void emptyResultBacksOffAndCloseCancelsUnclaimedWork() throws Exception {
         NavigationGrid grid = openGrid();
         byte[] occupancy = new byte[100];
