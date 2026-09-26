@@ -6,8 +6,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.ActiveOrder;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService.PendingOrder;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.nav.ReachableCellResolver;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -89,14 +89,18 @@ public final class MechMoveOrderSystem {
         }
 
         fireWhileMoving(mech, sim);
-        moveToward(mech, order, sim);
+        if (moveToward(mech, order, sim) == PathRequestStatus.FAILED) {
+            service.release(mech, order);
+            sim.clearPath(mech);
+            return false;
+        }
         return true;
     }
 
     /**
-     * Resolves a click to the closest walkable cell in the mech's connected
-     * navigation component. Stable cell-index order breaks equal-distance
-     * ties, so replay does not depend on search traversal accidents.
+     * Selects a provisional click cell in the coarse navigation component.
+     * The later circular route proof must reach a legal point inside that cell;
+     * refusal releases the override. Coarse connectivity alone is insufficient.
      */
     static int[] nearestReachableCell(long mech, int requestedX, int requestedY,
                                       BattleSimulation sim) {
@@ -106,23 +110,11 @@ public final class MechMoveOrderSystem {
                 requestedX, requestedY);
     }
 
-    private static void moveToward(long mech, ActiveOrder order,
+    private static PathRequestStatus moveToward(long mech, ActiveOrder order,
                                    BattleControl sim) {
-        int[] path = sim.world().path(mech);
-        boolean wrongDestination = Paths.isEmpty(path)
-                || Paths.destX(path) != order.destinationX()
-                || Paths.destY(path) != order.destinationY();
-        if (wrongDestination && sim.movement().mayRepath(mech)) {
-            int[] replacement = GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(mech), sim.world().cellY(mech),
-                    order.destinationX(), order.destinationY(),
-                    sim.getOccupancyMap());
-            if (!Paths.isEmpty(replacement)) sim.setPath(mech, replacement);
-        }
-        if (sim.world().pathIdx(mech)
-                < Paths.cellCount(sim.world().path(mech))) {
-            sim.advanceMovement(mech);
-        }
+        return MechRouteIntent.forMember(mech, MechMoveOrderSystem.class,
+                MechRouteIntent.cellKey(order.destinationX(), order.destinationY()), sim)
+                .moveToward(mech, order.destinationX(), order.destinationY(), sim);
     }
 
     private static void fireWhileMoving(long mech, BattleControl sim) {

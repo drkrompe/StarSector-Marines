@@ -117,6 +117,7 @@ import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -1773,6 +1774,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         directControl.exit();
         commanderInfluence.close();
         if (asyncDefendTrackRoutes != null) asyncDefendTrackRoutes.close();
+        navigation.close();
         unitUpdate.close();
         // The host thread participates in profiling/LoS work outside the
         // parallel dispatch, so release its slots at the same ownership edge.
@@ -1945,6 +1947,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (asyncDefendTrackRoutes != null) {
             asyncDefendTrackRoutes.beginTick(simTickIndex);
         }
+        navigation.beginClearanceTick(simTickIndex);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
         // Ahead of the per-unit dispatch so an activation this tick is already
@@ -2303,6 +2306,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.setPath(u, newPath);
     }
 
+    @Override
+    public PathRequestStatus requestPath(long unit, int goalX, int goalY) {
+        return navigation.requestPath(unit, goalX, goalY);
+    }
+
     /** Occupancy-aware hierarchical route for ordinary one-off movement. */
     public int[] findPath(int startX, int startY, int goalX, int goalY) {
         return navigation.findPath(startX, startY, goalX, goalY);
@@ -2397,7 +2405,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     /** Delegates to {@link MovementService#advanceAlongPath(World, long, float)}. Kept so existing behavior call sites compile unchanged. */
     public void advanceMovement(long u) {
-        movement().advanceAlongPath(world, u, TICK_DT);
+        if (identity().type(u).isMech()) {
+            MovementService.MotionResult result = movement().advanceAlongPath(
+                    world, u, TICK_DT, grid, physicalRadius(u));
+            if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
+        } else {
+            movement().advanceAlongPath(world, u, TICK_DT);
+        }
     }
 
     /**

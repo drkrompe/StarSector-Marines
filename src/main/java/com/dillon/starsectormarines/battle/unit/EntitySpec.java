@@ -41,8 +41,11 @@ public final class EntitySpec {
     public final String name;
     public final Faction faction;
     public final UnitType type;
-    public final int cellX;
-    public final int cellY;
+    public int cellX;
+    public int cellY;
+    /** Exact initial center; defaults to the requested cell center. */
+    public float spawnX;
+    public float spawnY;
 
     // ---- optional capability seeds (default = absent) ----
     public int squadId = Squad.NO_SQUAD;
@@ -96,6 +99,8 @@ public final class EntitySpec {
         this.type = type;
         this.cellX = cellX;
         this.cellY = cellY;
+        this.spawnX = cellX + 0.5f;
+        this.spawnY = cellY + 0.5f;
         // Same archetype-default seeding the Entity ctor applied.
         this.moveSpeed = type.moveSpeed;
         this.hp = type.maxHp;
@@ -106,6 +111,18 @@ public final class EntitySpec {
         this.visionRange = type.visionRange > 0f ? type.visionRange : type.attackRange;
         this.attackCooldown = type.attackCooldown;
         if (type.isMech()) MechVariant.BULWARK.applyTo(this);
+    }
+
+    /** Sets an already validated position before adoption; never relocates a live body. */
+    public EntitySpec atPosition(float x, float y) {
+        if (!Float.isFinite(x) || !Float.isFinite(y)) {
+            throw new IllegalArgumentException("Finite spawn position required");
+        }
+        spawnX = x;
+        spawnY = y;
+        cellX = (int) Math.floor(x);
+        cellY = (int) Math.floor(y);
+        return this;
     }
 
     public EntitySpec squad(int squadId) { this.squadId = squadId; return this; }

@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
+import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
@@ -84,6 +86,16 @@ public final class DefendTrack implements Action {
         int[] formationCell = formationCell(member, squad, moveX, moveY, sim);
         moveX = formationCell[0];
         moveY = formationCell[1];
+        if (sim.world().hasMechLoadout(member)) {
+            MechRouteIntent route = MechRouteIntent.forMember(member, assignmentKind,
+                    MechRouteIntent.cellKey(anchorX, anchorY), sim);
+            if (route.resume(member, sim)) return ActionStatus.RUNNING;
+            PathRequestStatus status = route.moveToward(member, moveX, moveY, sim);
+            if (status == PathRequestStatus.FAILED && (moveX != anchorX || moveY != anchorY)) {
+                route.moveToward(member, anchorX, anchorY, sim);
+            }
+            return ActionStatus.RUNNING;
+        }
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
         boolean anchorFallback = !Paths.isEmpty(path)

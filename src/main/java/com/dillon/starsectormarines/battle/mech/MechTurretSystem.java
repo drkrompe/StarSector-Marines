@@ -53,12 +53,6 @@ public final class MechTurretSystem {
             long[] combatTargets = hasCombat
                     ? table.longs(components.COMBAT, BattleComponents.COMBAT_TARGET_ID).array()
                     : null;
-            Object[] paths = hasMovement
-                    ? table.objects(components.MOVEMENT, BattleComponents.MOVEMENT_PATH).array()
-                    : null;
-            int[] pathIdx = hasMovement
-                    ? table.ints(components.MOVEMENT, BattleComponents.MOVEMENT_PATH_IDX).array()
-                    : null;
 
             for (int row = 0, n = table.rowCount(); row < n; row++) {
                 MechLoadoutComponent loadout = (MechLoadoutComponent) loadouts[row];
@@ -79,8 +73,7 @@ public final class MechTurretSystem {
                     MechFacingIntent.Point intent = MechFacingIntent.rememberedContact(
                             table.entityAt(row), roster);
                     if (intent == null && hasMovement) {
-                        intent = MechFacingIntent.pathLookAhead(posX[row], posY[row],
-                                (int[]) paths[row], pathIdx[row]);
+                        intent = MechFacingIntent.pathLookAhead(table.entityAt(row), roster);
                     }
                     if (intent != null) {
                         float dx = intent.x() - posX[row];

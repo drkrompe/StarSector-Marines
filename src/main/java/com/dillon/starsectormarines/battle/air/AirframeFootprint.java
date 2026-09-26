@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
+import java.util.function.LongToDoubleFunction;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.StandingRoom;
@@ -69,7 +73,8 @@ final class AirframeFootprint {
      * battle, which is far worse than a hull with a gap in it.
      */
     static void settleWreck(NavigationGrid grid, CellTopology topology, World world,
-                            LongBucket nearby, int centerX, int centerY) {
+                            LongBucket nearby, int centerX, int centerY,
+                            IdentityService identity, LongToDoubleFunction radius) {
         LongArrayList caught = new LongArrayList();
         for (int i = 0; i < nearby.size; i++) {
             long u = nearby.ids[i];
@@ -81,13 +86,13 @@ final class AirframeFootprint {
             if (within(world.cellX(u), world.cellY(u), centerX, centerY)) caught.add(u);
         }
         for (int i = 0; i < caught.size(); i++) {
-            stepClear(grid, world, nearby, caught.getLong(i), centerX, centerY);
+            stepClear(grid, world, nearby, caught.getLong(i), centerX, centerY, identity, radius);
         }
 
         for (int y = centerY - HALF; y <= centerY + HALF; y++) {
             for (int x = centerX - HALF; x <= centerX + HALF; x++) {
                 if (!grid.inBounds(x, y)) continue;
-                if (occupied(world, nearby, x, y)) continue;
+                if (occupied(world, nearby, x, y) || mechOverlaps(world, nearby, identity, radius, x, y)) continue;
                 grid.setWalkable(x, y, false);
                 grid.setSeeThrough(x, y, true);
                 topology.setVehicle(x, y, true);
@@ -106,13 +111,72 @@ final class AirframeFootprint {
      * close that cell.
      */
     private static void stepClear(NavigationGrid grid, World world, LongBucket nearby,
-                                  long unit, int centerX, int centerY) {
+                                  long unit, int centerX, int centerY,
+                                  IdentityService identity, LongToDoubleFunction radius) {
+        if (identity.mechVariant(unit) != null) {
+            if (!world.hasMovement(unit)) return;
+            stepMechClear(grid, world, nearby, unit, centerX, centerY, identity, radius);
+            return;
+        }
         long cell = StandingRoom.nearest(world.cellX(unit), world.cellY(unit), STEP_CLEAR_RADIUS,
                 (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
                         && !within(x, y, centerX, centerY),
                 (x, y) -> occupied(world, nearby, x, y));
         if (cell == StandingRoom.NOWHERE) return;
         world.setCellPos(unit, StandingRoom.cellX(cell), StandingRoom.cellY(cell));
+    }
+
+    private static void stepMechClear(NavigationGrid grid, World world, LongBucket nearby,
+                                       long unit, int centerX, int centerY,
+                                       IdentityService identity, LongToDoubleFunction radii) {
+        float radius = (float) radii.applyAsDouble(unit);
+        int startX = world.cellX(unit);
+        int startY = world.cellY(unit);
+        for (int distance = 1; distance <= STEP_CLEAR_RADIUS; distance++) {
+            for (int y = startY - distance; y <= startY + distance; y++) {
+                for (int x = startX - distance; x <= startX + distance; x++) {
+                    if (Math.max(Math.abs(x - startX), Math.abs(y - startY)) != distance) continue;
+                    MechSpawnPlacement.Point point = MechSpawnPlacement.nearCell(grid, radius, x, y,
+                            (px, py) -> !within((int) Math.floor(px), (int) Math.floor(py), centerX, centerY),
+                            (px, py) -> ManualTerrainMotion.canSweepStraight(grid, world.x(unit), world.y(unit),
+                                    px - world.x(unit), py - world.y(unit), radius)
+                                    && clearOfBodies(world, nearby, identity, radii, unit, px, py, radius));
+                    if (point == null) continue;
+                    world.setPos(unit, point.x(), point.y());
+                    return;
+                }
+            }
+        }
+    }
+
+    private static boolean clearOfBodies(World world, LongBucket nearby, IdentityService identity,
+                                          LongToDoubleFunction radii, long excluded, float x, float y, float radius) {
+        for (int i = 0; i < nearby.size; i++) {
+            long other = nearby.ids[i];
+            if (other == excluded || !world.hasPosition(other) || !world.isAlive(other)) continue;
+            if (identity.airframe(other) != null) {
+                if ((int) Math.floor(x) == world.cellX(other)
+                        && (int) Math.floor(y) == world.cellY(other)) return false;
+                continue;
+            }
+            float dx = x - world.x(other);
+            float dy = y - world.y(other);
+            double separation = radius + radii.applyAsDouble(other);
+            if (dx * dx + dy * dy < separation * separation) return false;
+        }
+        return true;
+    }
+
+    /** A body that could not step clear keeps its entire envelope open, including adjacent cells. */
+    private static boolean mechOverlaps(World world, LongBucket nearby, IdentityService identity,
+                                         LongToDoubleFunction radius, int x, int y) {
+        for (int i = 0; i < nearby.size; i++) {
+            long unit = nearby.ids[i];
+            if (!world.hasPosition(unit) || identity.mechVariant(unit) == null) continue;
+            if (MechSpawnPlacement.overlapsCell(world.x(unit), world.y(unit),
+                    (float) radius.applyAsDouble(unit), x, y)) return true;
+        }
+        return false;
     }
 
     /**

@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
@@ -53,13 +52,9 @@ public final class MechBreakContact implements Action {
         boolean atDest = sim.movement().atCell(member, sim.world().fallbackCellX(member), sim.world().fallbackCellY(member));
         if (!atDest) {
             opportunisticMechFire(member, sim);
-            if (sim.movement().mayRepath(member)) {
-                sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member), sim.world().cellY(member),
-                        sim.world().fallbackCellX(member), sim.world().fallbackCellY(member),
-                        sim.getOccupancyMap()));
-            }
-            sim.advanceMovement(member);
+            MechRouteIntent.forMember(member, MechBreakContact.class, 0L, sim)
+                    .moveToward(member, sim.world().fallbackCellX(member),
+                            sim.world().fallbackCellY(member), sim);
         } else {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             opportunisticMechFire(member, sim);

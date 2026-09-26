@@ -124,6 +124,8 @@ tasks.withType(Test).configureEach {
     // use async rally routes and influence propagation. Profile A/B can opt in.
     systemProperty 'battle.pathfinding.asyncDefendTrack',
             System.getProperty('battle.pathfinding.asyncDefendTrack', 'false')
+    systemProperty 'battle.pathfinding.asyncClearance',
+            System.getProperty('battle.pathfinding.asyncClearance', 'false')
     systemProperty 'battle.influence.async',
             System.getProperty('battle.influence.async', 'false')
     forwardBattleSwitches(delegate)
@@ -470,6 +472,8 @@ tasks.register('profileConquestTail', Test) {
             file('src/test/resources/battle-fixtures/conquest-full-strength-west-v3.json').absolutePath)
     systemProperty 'battle.pathfinding.asyncDefendTrack',
             System.getProperty('battle.pathfinding.asyncDefendTrack', 'true')
+    systemProperty 'battle.pathfinding.asyncClearance',
+            System.getProperty('battle.pathfinding.asyncClearance', 'true')
     systemProperty 'battle.influence.async',
             System.getProperty('battle.influence.async', 'true')
     systemProperty 'battle.unitUpdate.minimumParallelUnits',
@@ -518,7 +522,7 @@ tasks.register('profileConvoyRoute', Test) {
 
 tasks.register('profileClearanceRoute', JavaExec) {
     group = 'verification'
-    description = 'Measure bounded circular-clearance route searches on production-size synthetic terrain.'
+    description = 'Measure circular-clearance routes and competing requests on synthetic and generated battle terrain.'
     dependsOn tasks.named('testClasses')
     classpath = sourceSets.test.runtimeClasspath
     mainClass = 'com.dillon.starsectormarines.battle.nav.ClearanceRouteEvidenceCli'
@@ -536,6 +540,7 @@ tasks.register('createSnapshots', JavaExec) {
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncClearance', 'false'
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {
@@ -564,6 +569,7 @@ tasks.register('sceneEvidence', JavaExec) {
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.influence.async', 'false'
+    systemProperty 'battle.pathfinding.asyncClearance', 'false'
     forwardBattleSwitches(delegate)
     outputs.upToDateWhen { false }
     doFirst {

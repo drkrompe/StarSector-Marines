@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.infantry.LaneSidestep;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -193,6 +194,11 @@ public final class DefendArea implements Action {
      */
     private void moveToward(long member, int x, int y, BattleControl sim,
                             boolean boundDetour) {
+        if (sim.world().hasMechLoadout(member)) {
+            MechRouteIntent.forMember(member, DefendArea.class,
+                    MechRouteIntent.cellKey(centerX, centerY), sim).moveToward(member, x, y, sim, boundDetour);
+            return;
+        }
         // Same exception, on the branch that re-paths rather than plants: a
         // path whose destination is not this member's own firing position is
         // normally stale and cleared, and a step-aside's is exactly that.

@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 /**
@@ -58,35 +57,16 @@ public final class MechCombatantBehavior implements UnitBehavior {
         // path above).
         float preferredDirectRange = m.preferredDirectRange();
         boolean closeEngagement = inRange && visible && dist <= preferredDirectRange;
+        MechRouteIntent route = MechRouteIntent.forMember(u, MechCombatantBehavior.class, target, sim);
+        route.refreshCandidates(MechRouteIntent.cellKey(sim.world().cellX(target), sim.world().cellY(target)));
+        route.rejectSettledPerch(u, sim.world().x(target), sim.world().y(target),
+                0f, preferredDirectRange, sim);
+        if (!closeEngagement && route.resume(u, sim)) return;
         if (!closeEngagement && sim.movement().mayRepath(u)) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(u, target);
-            if (dest == null) {
-                // No reachable firing or vantage cell. Drop the target; the
-                // mech's next acquisition cycle picks something it can engage.
-                // LRMs already fired indirectly this tick if range allowed.
-                sim.world().setTargetId(u, 0L);
-            } else {
-                int[] path = GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(u), sim.world().cellY(u),
-                        dest[0], dest[1], sim.getOccupancyMap());
-                if (Paths.isEmpty(path)) {
-                    // Stage 1 scores LOS and range without verifying
-                    // reachability; the stage 2 vantage probe pathfinds.
-                    // findReachableFiringPosition is the seam onto it, so
-                    // an empty path is a question for the probe rather
-                    // than a verdict on the target.
-                    dest = sim.getTacticalScoring().findReachableFiringPosition(u, target);
-                    path = dest == null ? GridPathfinder.EMPTY_PATH
-                            : GridPathfinder.findPath(sim.getGrid(),
-                                    sim.world().cellX(u), sim.world().cellY(u),
-                                    dest[0], dest[1], sim.getOccupancyMap());
-                }
-                if (Paths.isEmpty(path)) {
-                    // Both stages refuse: no approach exists from here.
-                    sim.world().setTargetId(u, 0L);
-                } else {
-                    sim.setPath(u, path);
-                }
+            int[] dest = EngageAtCurrentBand.findMediumDirectPosition(u, target, preferredDirectRange, sim);
+            if (dest != null) {
+                route.moveToward(u, dest[0], dest[1], sim);
+                return;
             }
         }
         if (sim.world().pathIdx(u) < Paths.cellCount(sim.world().path(u))) {

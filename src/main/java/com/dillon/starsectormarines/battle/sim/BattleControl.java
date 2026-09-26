@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 
 /**
  * Read + mutate window onto the battle, for code that runs during the
@@ -51,6 +52,11 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Replace a unit's path; queues the occupancy/destIndex delta. Pass an empty path (or {@link #clearPath}) to drop the current path. */
     void setPath(long u, int[] newPath);
+
+    /** Request terrain-proven movement; PENDING retains this intent instead of selecting a fallback. */
+    default PathRequestStatus requestPath(long unit, int goalX, int goalY) {
+        return PathRequestStatus.FAILED;
+    }
 
     /** Drop the unit's path. */
     void clearPath(long u);

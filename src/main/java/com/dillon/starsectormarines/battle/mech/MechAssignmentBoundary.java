@@ -6,9 +6,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -192,26 +190,9 @@ final class MechAssignmentBoundary {
     }
 
     static void moveToward(long member, int x, int y, BattleControl sim) {
-        if (sim.movement().atCell(member, x, y)) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            return;
-        }
-        int[] path = sim.world().path(member);
-        boolean shifted = Paths.isEmpty(path)
-                || Paths.destX(path) != x || Paths.destY(path) != y;
-        if (shifted && !Paths.isEmpty(path)) {
-            sim.clearPath(member);
-            path = sim.world().path(member);
-        }
-        if (shifted && sim.movement().mayRepath(member)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    x, y, sim.getOccupancyMap()));
-        }
-        if (sim.world().pathIdx(member)
-                < Paths.cellCount(sim.world().path(member))) {
-            sim.advanceMovement(member);
-        }
+        MechRouteIntent.forMember(member, MechAssignmentBoundary.class,
+                sim.squadOf(member) != null ? sim.squadOf(member).routingEpoch : 0L, sim)
+                .moveToward(member, x, y, sim);
     }
 
     private static int[] walkableNear(int targetX, int targetY,

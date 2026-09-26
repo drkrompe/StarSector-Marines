@@ -4,8 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — Mech Lab sockets and equipment use rectangular fitting-grid
-footprints, and the catalog projects the shipped equipment art over those footprints.
+Updated: 2026-09-26 — shared chassis clearance governs routes, placement, motion, and tactical arrival.
 
 ## Purpose
 
@@ -133,8 +132,10 @@ increasing an encounter's total armored threat.
 - A **tactical move order** is a one-shot, battle-local destination for one
   exact player Mech. It temporarily owns that chassis's locomotion without
   replacing the lance's mission directive, shared plan, doctrine, or contact
-  picture. The clicked ground resolves to the nearest reachable walkable cell;
-  arrival releases the order back to ordinary behavior.
+  picture. The clicked ground selects a provisional walkable cell in coarse
+  connectivity; the actual chassis must still prove a route to a legal point
+  within that cell. Arrival or proof refusal releases the order back to ordinary
+  behavior.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions
@@ -257,6 +258,50 @@ the feet, then the ordinary upper assembly and its equipment layers.
 This gait is fixed-tick presentation state only: it does not move collision,
 pathing, aim, or targeting authority.
 
+## Ground clearance and arrival
+
+A Mech moves as its actual circular chassis envelope through the map's solid
+cells, closed shared edges, and limits. The Bulwark cannot use a one-cell
+passage, but can use the centerline of a two-cell passage even where ordinary
+cell centers are too close to its walls. Walkable cover remains traversable.
+Doctrine, tactical orders, survival movement, and AI handback share that
+clearance law; manual control inherits it without gaining a smaller body.
+
+A physical route begins at the chassis's exact position. Its requested cell and
+resolved legal endpoint are distinct. Resolution stays within the requested
+cell's closed area, so a shared-boundary centerline may be valid without changing
+the requested goal. Reaching that endpoint completes the route and leaves an
+arrival witness while the chassis remains there on legal terrain. The coarse
+cell projection remains useful for display and occupancy but cannot authorize
+movement or claim arrival. Hip direction and route lookahead follow the physical
+waypoints; chassis pivot limits still govern whether it may translate.
+
+A proof may remain pending while bounded workers search frozen terrain. The
+mech keeps that exact candidate rather than repeatedly canceling it for another
+scored point or treating the wait as a failed route. Topology changes retire
+stale proofs, and any drift before installation needs a legal connection from
+the current body. Actual motion and downstream separation both sweep current
+terrain, so an old route or crowd pressure cannot carry the chassis through a
+newly closed obstacle. A blocked route stops and is reconsidered; it is not a
+completed order.
+
+Tactical selection ranks candidates using the existing perceived contact and
+mission boundary, checks local room for the chassis, then requests a route for
+the chosen candidate. Refused candidates are remembered within bounded tactical
+state; fallback selection follows refusal, never mere waiting. Search limits
+remain limits on what was proved, not evidence that a hostile disappeared. A
+firing perch scored at a cell center must also work from its resolved endpoint:
+if arrival loses the promised firing lane or weapon band, the candidate is
+refused and positioning continues. Actual firing legality remains authoritative
+throughout. Optional firing improvements retain their detour limit measured in
+physical travel; an exact mission destination may justify a longer route.
+
+Deployment chooses a legal continuous point inside the deployment's allowed
+area before constructing the body. It does not repair an existing chassis by
+teleporting it. A delivery or finished frame without room for its actual body
+must wait or decline placement under its owning system's rules. Spawn position,
+foot plants, spatial lookup, and visible chassis begin at the same point.
+
 ## Authority flow
 
 A spawn or delivery names a variant. The chassis profile supplies the body
@@ -291,11 +336,12 @@ applies each request at its serialized command boundary. Doctrine and lance
 changes invalidate the movement and planning state owned by the changed layer
 and replan immediately. Defend Area installs one player tactical assignment on
 the battle lance and gives its specialized bounded-defense plan precedence over
-the underlying mission until superseded. A move resolves the clicked ground to
-the nearest walkable cell connected to the selected Mech, clears only that
-member's old path, and leaves the shared plan in place. It keeps acquiring legal
-contacts and firing installed weapons while walking. Arrival removes the override before
-ordinary doctrine executes, so there is no planless handback tick. Broken-morale
+the underlying mission until superseded. A move selects a provisional cell from
+coarse connectivity, then waits for the selected chassis's physical route proof.
+It clears only that member's old path and leaves the shared plan in place. It
+keeps acquiring legal contacts and firing installed weapons while walking or
+waiting. Arrival or proof refusal removes the override before ordinary doctrine
+executes, so there is no planless handback tick. Broken-morale
 survival suspends rather than erases the move; a hard withdrawal cancels it.
 These interrupts preserve the mission assignment, legal contact picture,
 morale, damage, ammunition, cooldowns, and deployed role. They cannot target an
@@ -404,9 +450,10 @@ support sortie, subject only to practical runtime resources.
   assignment, never one chassis's doctrine or the Form on Lead / Free Reign
   coordination rule. Its center and radius constrain positioning without
   disclosing contacts or suspending ordinary weapons.
-- Tactical move arrival is a completion boundary, not a new hold posture. The
-  order releases immediately to the still-current squad plan and effective
-  doctrine. Broken-morale survival may suspend it, and withdrawal may cancel it.
+- Tactical move arrival is a completion boundary, not a new hold posture. A
+  refused physical route likewise releases the override instead of leaving an
+  impossible order stalled. The order returns to the still-current squad plan
+  and effective doctrine. Broken-morale survival may suspend it, and withdrawal may cancel it.
 - Mixed-role lances apply doctrine per live mech. One member's role may not
   starve another member's doctrine through a shared squad plan.
 - Every specialist loses a meaningful capability as well as durability; a

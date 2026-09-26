@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.nav.ContinuousRoute;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -40,6 +41,8 @@ public final class MechCollisionEscapeSystem {
                     BattleComponents.MECH_LOADOUT_STATE).array();
             Object[] paths = table.objects(components.MOVEMENT,
                     BattleComponents.MOVEMENT_PATH).array();
+            Object[] routes = table.objects(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_CONTINUOUS_ROUTE).array();
             int[] pathIdx = table.ints(components.MOVEMENT,
                     BattleComponents.MOVEMENT_PATH_IDX).array();
             float[] posX = table.floats(components.POSITION, BattleComponents.POSITION_X).array();
@@ -54,13 +57,20 @@ public final class MechCollisionEscapeSystem {
 
                 int destX = Paths.destX(path);
                 int destY = Paths.destY(path);
-                float dx = destX + 0.5f - posX[row];
-                float dy = destY + 0.5f - posY[row];
+                ContinuousRoute route = (ContinuousRoute) routes[row];
+                float pointX = route == null ? destX + 0.5f : route.endX();
+                float pointY = route == null ? destY + 0.5f : route.endY();
+                float dx = pointX - posX[row];
+                float dy = pointY - posY[row];
                 float remainingDistance = (float) Math.sqrt(dx * dx + dy * dy);
                 if (loadout.collisionProgressDestX != destX
-                        || loadout.collisionProgressDestY != destY) {
+                        || loadout.collisionProgressDestY != destY
+                        || loadout.collisionProgressPointX != pointX
+                        || loadout.collisionProgressPointY != pointY) {
                     loadout.collisionProgressDestX = destX;
                     loadout.collisionProgressDestY = destY;
+                    loadout.collisionProgressPointX = pointX;
+                    loadout.collisionProgressPointY = pointY;
                     loadout.collisionBestRemainingDistance = remainingDistance;
                     loadout.collisionStallSeconds = 0f;
                     loadout.collisionEscapeActive = false;
@@ -83,6 +93,8 @@ public final class MechCollisionEscapeSystem {
         loadout.collisionBestRemainingDistance = Float.POSITIVE_INFINITY;
         loadout.collisionProgressDestX = Integer.MIN_VALUE;
         loadout.collisionProgressDestY = Integer.MIN_VALUE;
+        loadout.collisionProgressPointX = Float.NaN;
+        loadout.collisionProgressPointY = Float.NaN;
         loadout.collisionEscapeActive = false;
     }
 }

@@ -7,7 +7,8 @@ Written: 2026-09-23
 Updated: 2026-09-26 — separated shared body-clearance routing as a prerequisite.
 
 Read `direct-control-nouns.md` and `mechs-nouns.md` first.
-Depends on `controlled-marine.md` and `mech-terrain-clearance.md`.
+Uses the Marine session from `controlled-marine.md` and the shared chassis
+clearance in `mechs-nouns.md` and `continuous-positions-nouns.md`.
 
 ## Goal
 

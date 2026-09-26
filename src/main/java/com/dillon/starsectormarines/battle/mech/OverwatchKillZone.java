@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
@@ -128,6 +129,15 @@ public final class OverwatchKillZone implements Action {
             return EngageAtCurrentBand.INSTANCE.execute(member, squad, sim);
         }
 
+        MechRouteIntent route = MechRouteIntent.forMember(member, OverwatchKillZone.class,
+                immediateTarget, sim);
+        route.refreshCandidates(MechRouteIntent.cellKey(threatX, threatY));
+        if (route.rejectSettledPerch(member, threatX + 0.5f, threatY + 0.5f,
+                band.minDistance(), band.maxDistance(), sim)) {
+            m.overwatchCellX = -1;
+            m.overwatchCellY = -1;
+        }
+
         // Refresh overwatch cell when threat axis shifts or we have no cached
         // pick yet. A transition between supplied LRM pressure and the
         // direct-fire fallback also invalidates the cache, even though the
@@ -158,7 +168,7 @@ public final class OverwatchKillZone implements Action {
             needsRepick = Math.floorMod(sim.getSimTickIndex() + Long.hashCode(member),
                     UNSCREENED_RECHECK_TICKS) == 0;
         }
-        if (needsRepick) {
+        if (needsRepick && !route.pending()) {
             OverwatchPosition position = pickOverwatchCell(
                     member, squad, band, threatX, threatY, sim);
             if (position == null) {
@@ -181,29 +191,12 @@ public final class OverwatchKillZone implements Action {
 
         // Path to the overwatch cell. Idempotent — only requests a new path
         // when the mech isn't already at the cell and isn't already moving.
-        int[] path = sim.world().path(member);
-        int pathIdx = sim.world().pathIdx(member);
-        boolean stalePath = !Paths.isEmpty(path)
-                && (Paths.destX(path) != m.overwatchCellX
-                || Paths.destY(path) != m.overwatchCellY);
-        if (stalePath) {
-            sim.clearPath(member);
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
+        if (route.moveToward(member, m.overwatchCellX, m.overwatchCellY, sim)
+                == PathRequestStatus.FAILED) {
+            m.overwatchCellX = -1;
+            m.overwatchCellY = -1;
         }
-        if (!sim.movement().atCell(member, m.overwatchCellX, m.overwatchCellY)
-                && sim.movement().mayRepath(member)
-                && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    m.overwatchCellX, m.overwatchCellY,
-                    sim.getOccupancyMap()));
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
-        }
-        if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
-        }
+
 
         // Fire pass — withhold SRM, allow LRM in its long band and whichever
         // direct-fire weapon is installed on the arms track in its own band.
@@ -241,17 +234,19 @@ public final class OverwatchKillZone implements Action {
                     member, loadout, target, distance, sim, visible);
         }
 
+        MechRouteIntent route = MechRouteIntent.forMember(member, "overwatch-escape", target, sim);
+        route.refreshCandidates(MechRouteIntent.cellKey(sim.world().cellX(target), sim.world().cellY(target)));
+        if (route.resume(member, sim)) return;
         if (sim.movement().mayRepath(member)) {
-            int[] escapePath = openingPath(member, squad, target, sim);
-            if (escapePath != null) sim.setPath(member, escapePath);
+            int[] destination = openingCell(member, squad, target, sim);
+            if (destination != null) route.moveToward(member, destination[0], destination[1], sim);
             else if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-        }
-        if (sim.world().pathIdx(member) < Paths.cellCount(sim.world().path(member))) {
+        } else if (sim.world().pathIdx(member) < Paths.cellCount(sim.world().path(member))) {
             sim.advanceMovement(member);
         }
     }
 
-    private static int[] openingPath(long member, Squad squad, long target,
+    private static int[] openingCell(long member, Squad squad, long target,
                                      BattleControl sim) {
         float memberX = sim.world().x(member);
         float memberY = sim.world().y(member);
@@ -279,10 +274,9 @@ public final class OverwatchKillZone implements Action {
                     if (targetDx * targetDx + targetDy * targetDy <= currentDistanceSq) continue;
                     if (!grid.hasLineOfFire(x + 0.5f, y + 0.5f,
                             sim.world().x(target), sim.world().y(target))) continue;
-                    int[] path = GridPathfinder.findPath(grid,
-                            sim.world().cellX(member), sim.world().cellY(member),
-                            x, y, sim.getOccupancyMap());
-                    if (!Paths.isEmpty(path)) return path;
+                    if (MechRouteIntent.candidate(member, x, y, sim)) {
+                        return new int[]{x, y};
+                    }
                 }
             }
         }
@@ -329,7 +323,8 @@ public final class OverwatchKillZone implements Action {
             for (int dx = -radius; dx <= radius; dx++) {
                 int cx = tx + dx;
                 int cy = ty + dy;
-                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)
+                        || sim.world().mechLoadout(member).routeIntent.rejected(cx, cy)) continue;
                 if (!MechAssignmentBoundary.permitsOverwatchCell(
                         member, squad, cx, cy, tx, ty, sim)) continue;
                 if (connected[grid.index(cx, cy)] != memberComponent) continue;
@@ -351,11 +346,11 @@ public final class OverwatchKillZone implements Action {
                         - OVERWATCH_COVER_WEIGHT * cover
                         - OVERWATCH_COVER_WEIGHT * doodadCover;
                 if (screen != 0L) {
-                    if (score < bestScreenedScore) {
+                    if (score < bestScreenedScore && MechRouteIntent.candidate(member, cx, cy, sim)) {
                         bestScreenedScore = score;
                         bestScreened = new OverwatchPosition(cx, cy, screen);
                     }
-                } else if (score < bestUnscreenedScore) {
+                } else if (score < bestUnscreenedScore && MechRouteIntent.candidate(member, cx, cy, sim)) {
                     bestUnscreenedScore = score;
                     bestUnscreened = new OverwatchPosition(cx, cy, 0L);
                 }

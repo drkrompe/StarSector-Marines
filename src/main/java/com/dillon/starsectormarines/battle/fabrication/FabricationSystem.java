@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.mech.FactionMechLoadouts;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -131,8 +132,10 @@ public final class FabricationSystem {
                          FabricationService.Works bay) {
         Gantry stocks = works.gantry(bay.stocks);
         MechVariant chassis = bay.chassis;
+        if (!legalBerth(sim, stocks, chassis, 0L)) return;
         EntitySpec frame = new EntitySpec("mf" + (nextFrame++), works.lastBuilder(),
-                UnitType.MACHINE_FRAME, stocks.centerX, stocks.centerY);
+                UnitType.MACHINE_FRAME, stocks.centerX, stocks.centerY)
+                .atPosition(stocks.worldCenterX(), stocks.worldCenterY());
         // The chassis it is going to be, so a half-built Hound is drawn as a
         // Hound and is the size and shape of one. What it does not get is a
         // loadout, and that alone is what keeps it out of the turret pass and
@@ -161,8 +164,7 @@ public final class FabricationSystem {
         for (FabricationService.Works bay : works.bays()) {
             if (!bay.hasFrame() || bay.chassis == null) continue;
             if (sim.world().hp(bay.frameId) < sim.world().maxHp(bay.frameId)) continue;
-            driveOut(sim, works, bay);
-            works.rollOut(bay.siteId);
+            if (driveOut(sim, works, bay)) works.rollOut(bay.siteId);
         }
     }
 
@@ -186,15 +188,17 @@ public final class FabricationSystem {
      * a shed under its own power is simply part of the garrison, and the side's
      * commander takes it like any other.
      */
-    private void driveOut(BattleSimulation sim, FabricationService works,
+    private boolean driveOut(BattleSimulation sim, FabricationService works,
                           FabricationService.Works bay) {
         Gantry stocks = works.gantry(bay.stocks);
         MechVariant chassis = bay.chassis;
+        if (!legalBerth(sim, stocks, chassis, bay.frameId)) return false;
         Faction builder = sim.identity().faction(bay.frameId);
         sim.takeOffTheField(bay.frameId);
 
         EntitySpec machine = new EntitySpec("f" + (nextMachine++), builder,
-                UnitType.HEAVY_MECH, stocks.centerX, stocks.centerY);
+                UnitType.HEAVY_MECH, stocks.centerX, stocks.centerY)
+                .atPosition(stocks.worldCenterX(), stocks.worldCenterY());
         machine.mechVariant(chassis);
         machine.role(UnitRole.PATROL);
         machine.home(stocks.centerX, stocks.centerY);
@@ -216,6 +220,18 @@ public final class FabricationSystem {
                 chassis, chassis.defaultRole, works.factionId()));
         LOG.info("FabricationSystem: " + builder + " " + chassis.displayName
                 + " rolled out of the bay at " + stocks.centerX + "," + stocks.centerY);
+        return true;
+    }
+
+    private static boolean legalBerth(BattleSimulation sim, Gantry stocks,
+                                      MechVariant chassis, long frame) {
+        float x = stocks.worldCenterX();
+        float y = stocks.worldCenterY();
+        return stocks.holds == Gantry.Holds.MACHINE
+                && MechSpawnPlacement.canPlace(sim.getGrid(), chassis.radius, x, y,
+                        (px, py) -> px >= stocks.left() && px <= stocks.right() + 1f
+                                && py >= stocks.bottom() && py <= stocks.top() + 1f)
+                && MechSpawnPlacement.unoccupied(sim.getRoster(), x, y, chassis.radius, frame);
     }
 
     /** The installation this shed belongs to, or null where none is near. */

@@ -242,6 +242,9 @@ class MechMissionLawTest {
         }
         grid.setWalkableFloor(6, 5);
         grid.setDoorway(6, 5, true);
+        // The mission law needs a passage the Bulwark's 1.2-cell body can use.
+        grid.setWalkableFloor(6, 6);
+        grid.setDoorway(6, 6, true);
         return new BattleSimulation(grid, new CellTopology(width, height));
     }
 }

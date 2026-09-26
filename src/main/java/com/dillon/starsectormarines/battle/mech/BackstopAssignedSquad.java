@@ -10,9 +10,9 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.Objects;
@@ -93,6 +93,9 @@ public final class BackstopAssignedSquad implements Action {
             return ActionStatus.RUNNING;
         }
 
+        MechRouteIntent route = MechRouteIntent.forMember(member, BackstopAssignedSquad.class, backed.id, sim);
+        route.refreshCandidates(MechRouteIntent.cellKey((int) backed.centroidX, (int) backed.centroidY));
+
         // Pick or refresh the frontline cell ahead of the backed squad's
         // centroid. Refresh when the centroid has drifted past the
         // re-pick threshold or we have no cached cell yet.
@@ -106,7 +109,7 @@ public final class BackstopAssignedSquad implements Action {
         int threatX = knownThreatX(squad);
         int threatY = knownThreatY(squad);
         needsRepick |= m.frontlineThreatX != threatX || m.frontlineThreatY != threatY;
-        if (needsRepick) {
+        if (needsRepick && !route.pending()) {
             int[] anchor = pickBackstopCell(member, squad, backed, sim);
             anchor = MechAssignmentBoundary.constrain(
                     member, squad, anchor, sim);
@@ -123,29 +126,12 @@ public final class BackstopAssignedSquad implements Action {
         }
 
         // Path to the backstop cell. Same idempotent pattern as overwatch.
-        int[] path = sim.world().path(member);
-        int pathIdx = sim.world().pathIdx(member);
-        boolean stalePath = !Paths.isEmpty(path)
-                && (Paths.destX(path) != m.overwatchCellX
-                || Paths.destY(path) != m.overwatchCellY);
-        if (stalePath) {
-            sim.clearPath(member);
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
+        if (route.moveToward(member, m.overwatchCellX, m.overwatchCellY, sim)
+                == PathRequestStatus.FAILED) {
+            m.overwatchCellX = -1;
+            m.overwatchCellY = -1;
         }
-        if (!sim.movement().atCell(member, m.overwatchCellX, m.overwatchCellY)
-                && sim.movement().mayRepath(member)
-                && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member),
-                    m.overwatchCellX, m.overwatchCellY,
-                    sim.getOccupancyMap()));
-            path = sim.world().path(member);
-            pathIdx = sim.world().pathIdx(member);
-        }
-        if (pathIdx < Paths.cellCount(path)) {
-            sim.advanceMovement(member);
-        }
+
 
         fireAtCurrentThreat(member, m, sim);
         return ActionStatus.RUNNING;
@@ -293,6 +279,7 @@ public final class BackstopAssignedSquad implements Action {
             int anchorX = (int) Math.floor(cx);
             int anchorY = (int) Math.floor(cy);
             return grid.inBounds(anchorX, anchorY) && grid.isWalkable(anchorX, anchorY)
+                    && MechRouteIntent.candidate(member, anchorX, anchorY, sim)
                     ? new int[]{anchorX, anchorY}
                     : null;
         }
@@ -308,7 +295,8 @@ public final class BackstopAssignedSquad implements Action {
                     int x = anchorX + dx;
                     int y = anchorY + dy;
                     if (!grid.inBounds(x, y)) continue;
-                    if (!grid.isWalkable(x, y)) continue;
+                    if (!grid.isWalkable(x, y)
+                            || !MechRouteIntent.candidate(member, x, y, sim)) continue;
                     return new int[]{x, y};
                 }
             }

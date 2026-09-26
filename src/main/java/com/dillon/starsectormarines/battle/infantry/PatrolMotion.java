@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
+import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 
 /**
  * Shared mechanics for the dwell-gated, squad-scoped waypoint patrol used by
@@ -167,6 +169,11 @@ public final class PatrolMotion {
      */
     public static boolean moveToward(long member, BattleControl sim, int tx, int ty,
                                      boolean boundDetour) {
+        if (sim.world().hasMechLoadout(member)) {
+            return MechRouteIntent.forMember(member, PatrolMotion.class,
+                    MechRouteIntent.cellKey(tx, ty), sim).moveToward(member, tx, ty, sim, boundDetour)
+                    != PathRequestStatus.FAILED;
+        }
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
         if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {

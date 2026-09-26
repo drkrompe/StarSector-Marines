@@ -106,7 +106,7 @@ public final class AirfieldSystem {
      */
     private void settleWreck(BattleControl sim, AirfieldService.Berth berth) {
         AirframeFootprint.settleWreck(sim.getGrid(), sim.getTopology(), sim.world(),
-                everyoneOnTheField(sim), berth.centerX, berth.centerY);
+                everyoneOnTheField(sim), berth.centerX, berth.centerY, sim.identity(), sim::physicalRadius);
     }
 
     /**

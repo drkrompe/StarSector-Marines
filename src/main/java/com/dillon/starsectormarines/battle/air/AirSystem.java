@@ -756,7 +756,7 @@ public class AirSystem {
         LongBucket nearby = new LongBucket();
         navigation.getUnitIndex().gather(body.x, body.y, GROUND_WRECK_GATHER_RADIUS_CELLS, nearby);
         AirframeFootprint.settleWreck(navigation.getGrid(), navigation.getTopology(), world,
-                nearby, wreck.cellX(), wreck.cellY());
+                nearby, wreck.cellX(), wreck.cellY(), roster.identity(), roster::radius);
     }
 
     /**

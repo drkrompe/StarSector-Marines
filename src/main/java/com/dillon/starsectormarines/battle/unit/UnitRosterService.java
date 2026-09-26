@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -265,6 +267,7 @@ public final class UnitRosterService {
     /** Binds the grid {@link #settleFooting} asks where a displaced body may stand. Once, during sim setup. */
     public void setNavigationGrid(NavigationGrid navigationGrid) {
         this.navigationGrid = navigationGrid;
+        movementService.setNavigationGrid(navigationGrid);
     }
 
     /**
@@ -721,14 +724,14 @@ public final class UnitRosterService {
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_AIRFRAME, spec.airframe);
-        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
-        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.spawnX);
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.spawnY);
         if (mechLayerDrawn) {
             MechVariant variant = spec.mechVariant != null
                     ? spec.mechVariant : MechVariant.BULWARK;
             entityWorld.setObject(id, components.MECH_GAIT_STATE,
                     BattleComponents.MECH_GAIT_STATE_STATE,
-                    MechGaitState.create(spec.cellX + 0.5f, spec.cellY + 0.5f,
+                    MechGaitState.create(spec.spawnX, spec.spawnY,
                             180f, variant));
         }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
@@ -908,10 +911,30 @@ public final class UnitRosterService {
      */
     private void settleFooting(long id, EntitySpec spec) {
         if (world.hasMovement(id)) return;
-        unitIndex.gather(spec.cellX + 0.5f, spec.cellY + 0.5f,
+        unitIndex.gather(spec.spawnX, spec.spawnY,
                 FOOTING_SCAN_RADIUS, footingScan);
         long incumbent = standingIn(spec.cellX, spec.cellY, id);
         if (incumbent == 0L || !world.hasMovement(incumbent)) return;
+        if (navigationGrid != null && identityService.mechVariant(incumbent) != null) {
+            float bodyRadius = radius(incumbent);
+            for (int distance = 1; distance <= FOOTING_STEP_RADIUS; distance++) {
+                for (int y = spec.cellY - distance; y <= spec.cellY + distance; y++) {
+                    for (int x = spec.cellX - distance; x <= spec.cellX + distance; x++) {
+                        if (Math.max(Math.abs(x - spec.cellX), Math.abs(y - spec.cellY)) != distance) continue;
+                        MechSpawnPlacement.Point point = MechSpawnPlacement.nearCell(navigationGrid,
+                                bodyRadius, x, y, (px, py) -> true,
+                                (px, py) -> MechSpawnPlacement.unoccupied(this, px, py, bodyRadius, incumbent)
+                                        && ManualTerrainMotion.canSweepStraight(navigationGrid,
+                                                world.x(incumbent), world.y(incumbent),
+                                                px - world.x(incumbent), py - world.y(incumbent), bodyRadius));
+                        if (point == null) continue;
+                        world.setPos(incumbent, point.x(), point.y());
+                        return;
+                    }
+                }
+            }
+            return;
+        }
         long cell = StandingRoom.nearest(spec.cellX, spec.cellY, FOOTING_STEP_RADIUS,
                 this::canStandIn, (x, y) -> standingIn(x, y, incumbent) != 0L);
         if (cell == StandingRoom.NOWHERE) return;

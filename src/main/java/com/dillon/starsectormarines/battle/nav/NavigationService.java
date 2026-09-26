@@ -44,7 +44,7 @@ import java.util.Map;
  * service's queue and the drain runs the same applier — preserves the
  * "service owns inline-vs-defer" pattern from {@link DamageService}.
  */
-public final class NavigationService {
+public final class NavigationService implements AutoCloseable {
 
     private final NavigationGrid grid;
     private final CellTopology topology;
@@ -109,8 +109,14 @@ public final class NavigationService {
      * null once the simulation is wired.
      */
     private UnitRosterService roster;
+    private final AsyncClearanceRoutes clearanceRoutes;
 
     public NavigationService(NavigationGrid grid, CellTopology topology) {
+        this(grid, topology, Boolean.parseBoolean(System.getProperty(AsyncClearanceRoutes.ENABLED_PROPERTY, "true")));
+    }
+
+    public NavigationService(NavigationGrid grid, CellTopology topology, boolean asynchronousClearance) {
+        clearanceRoutes = new AsyncClearanceRoutes(asynchronousClearance);
         this.grid = grid;
         this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
@@ -759,6 +765,68 @@ public final class NavigationService {
      * the sink call is elided entirely.
      */
     public void setPath(long id, int[] newPath) {
+        if (roster.isRiding(id) || !roster.movement().has(id)) return;
+        if (roster.identity().type(id).isMech() && newPath.length > 0) {
+            requestPath(id, Paths.destX(newPath), Paths.destY(newPath));
+            return;
+        }
+        clearanceRoutes.forget(id);
+        ContinuousRoute witness = roster.movement().continuousRoute(id);
+        replacePath(id, newPath, newPath.length == 0 && witness != null && witness.completed()
+                ? witness : null);
+    }
+
+    /** Requests one body's route; Mechs never receive a cell-center fallback. */
+    public PathRequestStatus requestPath(long id, int goalX, int goalY) {
+        if (roster.isRiding(id) || !roster.movement().has(id) || !grid.inBounds(goalX, goalY)) {
+            return PathRequestStatus.FAILED;
+        }
+        World world = roster.world();
+        if (!roster.identity().type(id).isMech()) {
+            int[] path = GridPathfinder.findPath(grid, world.cellX(id), world.cellY(id),
+                    goalX, goalY, occupancyMap);
+            if (Paths.isEmpty(path)) return PathRequestStatus.FAILED;
+            setPath(id, path);
+            return PathRequestStatus.READY;
+        }
+        float x = world.x(id), y = world.y(id), radius = roster.radius(id);
+        ContinuousRoute current = roster.movement().continuousRoute(id);
+        if (current != null && current.requestedCellX() == goalX && current.requestedCellY() == goalY
+                && current.topologyRevision() == grid.topologyRevision() && current.radius() == radius
+                && ManualTerrainMotion.canStand(grid, x, y, radius)
+                && ((!roster.movement().settled(id) && roster.movement().pathTargetsCell(id, goalX, goalY))
+                || (current.completed() && roster.movement().atCell(id, goalX, goalY)))) {
+            return PathRequestStatus.READY;
+        }
+        var request = new AsyncClearanceRoutes.Request(x, y, goalX, goalY, radius);
+        var reply = clearanceRoutes.pollOrSubmit(id, request, grid);
+        if (reply.status() != PathRequestStatus.READY) {
+            if (!Paths.isEmpty(world.path(id)) || current != null) replacePath(id, GridPathfinder.EMPTY_PATH, null);
+            return reply.status();
+        }
+        var points = reply.proof().waypoints();
+        var start = points.get(0);
+        if (!ManualTerrainMotion.canSweepStraight(grid, x, y, start.x() - x, start.y() - y, radius)) {
+            clearanceRoutes.forget(id);
+            replacePath(id, GridPathfinder.EMPTY_PATH, null);
+            return PathRequestStatus.PENDING;
+        }
+        // Crowd drift is accepted only through a fresh, physical attachment.
+        // No route installation changes POSITION or the original destination.
+        if (x != start.x() || y != start.y()) {
+            List<ClearanceRoutePlanner.Point> attached = new ArrayList<>(points.size() + 1);
+            attached.add(new ClearanceRoutePlanner.Point(x, y));
+            attached.addAll(points);
+            points = attached;
+        }
+        ContinuousRoute route = new ContinuousRoute(goalX, goalY, radius, reply.topologyRevision(), points);
+        replacePath(id, route.projection(), route);
+        clearanceRoutes.forget(id);
+        return PathRequestStatus.READY;
+    }
+
+    /** Install one route and its occupancy projection together, in its owner's update. */
+    private void replacePath(long id, int[] newPath, ContinuousRoute route) {
         World world = roster.world();
         // A unit riding in a vehicle has no MOVEMENT to hold a path, and
         // routing one is meaningless while it is not on the map. Giving it a
@@ -770,6 +838,7 @@ public final class NavigationService {
         int oldDestX = Paths.destX(oldPath);
         int oldDestY = Paths.destY(oldPath);
         world.setPathRef(id, newPath);
+        roster.movement().setContinuousRouteRef(id, route);
         // Multi-cell paths start the carrot cursor at waypoint 1 (waypoint 0 is
         // the cell the unit already stands in). A one-cell path (findPath with
         // start == goal) must start at 0, or it is born exhausted and the mover
@@ -804,6 +873,10 @@ public final class NavigationService {
     public void clearPath(long id) {
         setPath(id, GridPathfinder.EMPTY_PATH);
     }
+
+    public void beginClearanceTick(int tick) { clearanceRoutes.beginTick(tick); }
+
+    @Override public void close() { clearanceRoutes.close(); }
 
     /**
      * Begin-of-tick {@link LosCache} setup — sweeps every worker's slot on

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
@@ -54,6 +55,11 @@ public final class SweepSector implements Action {
             moveY = bearing.cellY();
         }
 
+        if (sim.world().hasMechLoadout(member)) {
+            MechRouteIntent.forMember(member, SweepSector.class,
+                    MechRouteIntent.cellKey(moveX, moveY), sim).moveToward(member, moveX, moveY, sim);
+            return ActionStatus.RUNNING;
+        }
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
         boolean stale = !Paths.isEmpty(path)

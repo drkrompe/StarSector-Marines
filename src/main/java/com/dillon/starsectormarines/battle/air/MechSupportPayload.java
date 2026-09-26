@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -21,8 +22,10 @@ public enum MechSupportPayload implements AirDeliveryPayload {
 
     @Override
     public boolean tryDeploy(AirDeliveryContext context) {
-        int[] cell = context.findOpenDeboardCell();
-        if (cell == null) return false;
+        MechDeploymentSpec deployment = deploymentForDeboard(context.mission);
+        MechVariant variant = deployment.variant();
+        MechSpawnPlacement.Point point = context.findOpenMechPosition(variant.radius);
+        if (point == null) return false;
         if (context.mission.squadId == Squad.NO_SQUAD) {
             context.mission.squadId = context.mintSquad(UnitType.HEAVY_MECH);
             context.claimSquadCommand(context.mission.squadId,
@@ -43,10 +46,9 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 }
             }
         }
-        MechDeploymentSpec deployment = deploymentForDeboard(context.mission);
-        MechVariant variant = deployment.variant();
         EntitySpec spec = new EntitySpec("support-" + context.nextUnitName(), context.faction,
-                UnitType.HEAVY_MECH, cell[0], cell[1])
+                UnitType.HEAVY_MECH, point.cellX(), point.cellY())
+                .atPosition(point.x(), point.y())
                 .mechVariant(variant)
                 .role(context.mission.rescuePickupMechTransport
                         ? UnitRole.GARRISON : UnitRole.COMBATANT)

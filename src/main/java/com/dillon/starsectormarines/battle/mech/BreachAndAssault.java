@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -337,24 +336,6 @@ public final class BreachAndAssault implements Action {
     }
 
     private static void moveToward(long member, int x, int y, BattleControl sim) {
-        if (sim.movement().atCell(member, x, y)) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            return;
-        }
-        int[] path = sim.world().path(member);
-        boolean destinationShifted = Paths.isEmpty(path)
-                || Paths.destX(path) != x || Paths.destY(path) != y;
-        if (destinationShifted && !Paths.isEmpty(path)) {
-            sim.clearPath(member);
-            path = sim.world().path(member);
-        }
-        if (sim.movement().mayRepath(member) && destinationShifted) {
-            sim.setPath(member, GridPathfinder.findPath(
-                    sim.getGrid(), sim.world().cellX(member), sim.world().cellY(member),
-                    x, y, sim.getOccupancyMap()));
-        }
-        if (sim.world().pathIdx(member) < Paths.cellCount(sim.world().path(member))) {
-            sim.advanceMovement(member);
-        }
+        MechAssignmentBoundary.moveToward(member, x, y, sim);
     }
 }

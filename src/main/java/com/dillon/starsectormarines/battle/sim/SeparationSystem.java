@@ -703,13 +703,12 @@ public final class SeparationSystem {
     }
 
     private void pathHeading(long member, float[] output) {
-        int[] path = world.path(member);
-        int count = Paths.cellCount(path);
+        int count = movement.waypointCount(member);
         float x = world.x(member);
         float y = world.y(member);
         for (int i = world.pathIdx(member); i < count; i++) {
-            float dx = Paths.cellX(path, i) + 0.5f - x;
-            float dy = Paths.cellY(path, i) + 0.5f - y;
+            float dx = movement.waypointX(member, i) - x;
+            float dy = movement.waypointY(member, i) - y;
             float length = (float) Math.sqrt(dx * dx + dy * dy);
             if (length > 0.25f) {
                 output[0] = dx / length;
@@ -721,8 +720,8 @@ public final class SeparationSystem {
         // sufficient to finish the formation correction without inventing a
         // new movement direction or keeping a permanent formation state.
         if (count >= 2 && movement.formationMemoryTimer(member) > 0f) {
-            float dx = Paths.cellX(path, count - 1) - Paths.cellX(path, count - 2);
-            float dy = Paths.cellY(path, count - 1) - Paths.cellY(path, count - 2);
+            float dx = movement.waypointX(member, count - 1) - movement.waypointX(member, count - 2);
+            float dy = movement.waypointY(member, count - 1) - movement.waypointY(member, count - 2);
             float length = (float) Math.sqrt(dx * dx + dy * dy);
             if (length > 1e-4f) {
                 output[0] = dx / length;
@@ -943,9 +942,10 @@ public final class SeparationSystem {
                 float nx = ax + ix;
                 float ny = ay + iy;
                 float appliedX, appliedY;
-                if (table.entityAt(row) == controlledUnitId) {
-                    // A manual mover can be stopped at sub-cell clearance.
-                    // The later relaxation may not undo that terrain contact.
+                boolean sweptBody = table.entityAt(row) == controlledUnitId || isMech(table.entityAt(row));
+                if (sweptBody) {
+                    // Mechs and manual movers share body clearance with their
+                    // route/drive step; relaxation cannot undo terrain contact.
                     ManualTerrainMotion.Result result = ManualTerrainMotion.move(
                             grid, ax, ay, ix, iy, collisionRadius[i]);
                     posX[row] = result.x();
@@ -975,7 +975,7 @@ public final class SeparationSystem {
                 }
                 velX[row] = velX[row] + appliedX / dt;
                 velY[row] = velY[row] + appliedY / dt;
-                if (table.entityAt(row) == controlledUnitId) {
+                if (sweptBody) {
                     gaitPhase[row] = (gaitPhase[row]
                             + (float) Math.hypot(appliedX, appliedY)) % 1f;
                 }
