@@ -136,7 +136,7 @@ public final class FlankApproach implements Action {
         }
 
         int[] destination = sim.getTacticalScoring()
-                .findReachableFiringPosition(member, primary);
+                .selectFiringPosition(member, primary, squad, sim.getSimTickIndex(), true);
         if (destination == null) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             return ActionStatus.RUNNING;
@@ -164,6 +164,7 @@ public final class FlankApproach implements Action {
                         sim.world().cellX(member), sim.world().cellY(member),
                         destination[0], destination[1]);
             }
+            if (Paths.isEmpty(next)) sim.getTacticalScoring().forgetFiringPosition(member);
             sim.setPath(member, next);
             path = sim.world().path(member);
             pathIdx = sim.world().pathIdx(member);

@@ -822,6 +822,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public int liveUnitCount() { return rosterService.liveCount(); }
     @Override public long liveUnitAt(int index) { return rosterService.get(index); }
+    @Override public int liveUnitIndexOf(long id) { return rosterService.indexOf(id); }
     @Override public int squadMemberCount(int squadId) { return rosterService.squadMemberCount(squadId); }
     @Override public long squadMemberAt(int squadId, int index) {
         return rosterService.squadMemberArray(squadId)[index];

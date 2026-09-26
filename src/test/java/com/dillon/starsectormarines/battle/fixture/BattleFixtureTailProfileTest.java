@@ -171,6 +171,17 @@ class BattleFixtureTailProfileTest {
                 recording.setName("conquest-tail-measured-ticks");
                 recording.enable("jdk.ExecutionSample")
                         .withPeriod(Duration.ofMillis(5));
+                // Default profile thresholds hide sub-tick contention, especially on
+                // the bundled Intel runtime under Rosetta. Diagnose, do not time-gate.
+                recording.enable("jdk.JavaMonitorEnter").withThreshold(Duration.ofMillis(1));
+                recording.enable("jdk.JavaMonitorWait").withThreshold(Duration.ofMillis(1));
+                recording.enable("jdk.ThreadPark").withThreshold(Duration.ofMillis(1));
+                recording.enable("jdk.SafepointBegin");
+                recording.enable("jdk.SafepointStateSynchronization");
+                recording.enable("jdk.SafepointEnd");
+                recording.enable("jdk.ExecuteVMOperation").withThreshold(Duration.ZERO);
+                recording.enable("jdk.GCPhasePause").withThreshold(Duration.ZERO);
+                recording.enable(UnitUpdateSystem.UnitDispatchEvent.class);
                 recording.enable(TailTickEvent.class);
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
@@ -485,6 +496,12 @@ class BattleFixtureTailProfileTest {
                 "battle.targeting.firingReachabilityComponents", "true")));
         report.put("localHoldPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.goap.localHoldPositions", "true")));
+        report.put("priorityOrderedEvaluation", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.priorityOrderedEvaluation", "true")));
+        report.put("localBreachChecks", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.localBreachChecks", "true")));
+        report.put("retainFiringPositions", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.retainFiringPositions", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",

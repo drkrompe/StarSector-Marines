@@ -106,6 +106,9 @@ public interface BattleView {
      */
     long liveUnitAt(int index);
 
+    /** Current dense-roster index, or -1 when the id is not a live roster unit. */
+    int liveUnitIndexOf(long id);
+
     /**
      * Every body in the battle that is not a row in the dense roster — a convoy
      * chassis, an aircraft on its wheels, whatever registers next.

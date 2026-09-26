@@ -630,8 +630,14 @@ abstract class AbstractZoneAction implements Action {
         int memberY = sim.world().cellY(member);
         int[] path = GridPathfinder.findPath(sim.getGrid(), memberX, memberY,
                 firingPos[0], firingPos[1], sim.getOccupancyMap());
-        if (Paths.isEmpty(path)) return FiringApproach.UNREACHABLE;
+        if (Paths.isEmpty(path)) {
+            sim.getTacticalScoring().forgetFiringPosition(member);
+            return FiringApproach.UNREACHABLE;
+        }
         if (!worthWalkingTo(memberX, memberY, firingPos, path)) {
+            // A geometrically usable cell is not an accepted execution choice
+            // when its approach fails the caller's travel bound.
+            sim.getTacticalScoring().forgetFiringPosition(member);
             return FiringApproach.NOT_WORTH_THE_WALK;
         }
         sim.setPath(member, path);

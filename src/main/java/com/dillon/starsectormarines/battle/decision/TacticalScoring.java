@@ -96,6 +96,9 @@ public final class TacticalScoring {
     private final boolean firingReachabilityComponents = Boolean.parseBoolean(
             System.getProperty(FIRING_REACHABILITY_COMPONENTS_PROPERTY, "true"));
     private final FiringPositionRefreshBudget firingRefreshBudget = new FiringPositionRefreshBudget(8);
+    private final boolean retainFiringPositions = Boolean.parseBoolean(
+            System.getProperty("battle.targeting.retainFiringPositions", "true"));
+    private final RetainedFiringPositions retainedFiringPositions = new RetainedFiringPositions(8192);
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
                            AttackerIndexService attackerIndex, ShotService shots,
@@ -2513,6 +2516,10 @@ public final class TacticalScoring {
 
     public FiringPositionSelection selectSquadFiringPositionWithin(long self, long target,
             Squad squad, int tick, int anchorX, int anchorY, float leash, int requiredZoneId) {
+        if (retainFiringPositions && !squadFiringPositions) {
+            return new FiringPositionSelection(selectRetainedFiringPosition(self, target, squad, tick,
+                    true, anchorX, anchorY, leash, requiredZoneId, false), false);
+        }
         if (!squadFiringPositions) {
             return new FiringPositionSelection(findFiringPositionWithin(self, target,
                     anchorX, anchorY, leash, requiredZoneId), false);
@@ -2572,6 +2579,67 @@ public final class TacticalScoring {
             if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_POSITION,
                     System.nanoTime() - started);
         }
+    }
+
+    /** Execution-only seam: eligibility probes keep using the fresh find methods. */
+    public int[] selectFiringPosition(long self, long target, Squad squad, int tick, boolean reachable) {
+        if (!retainFiringPositions) return reachable
+                ? findReachableFiringPosition(self, target) : findFiringPosition(self, target);
+        return selectRetainedFiringPosition(self, target, squad, tick,
+                false, 0, 0, 0f, ANY_ZONE, reachable);
+    }
+
+    public boolean retainedFiringPositionsEnabled() { return retainFiringPositions; }
+
+    /** A caller refused the actual approach: geometric validity is not route acceptance. */
+    public void forgetFiringPosition(long member) { retainedFiringPositions.forget(member); }
+
+    private int[] selectRetainedFiringPosition(long self, long target, Squad squad, int tick,
+            boolean constrained, int anchorX, int anchorY, float leash, int zone, boolean reachable) {
+        if (!roster.isAliveById(self) || !roster.isAliveById(target)) return null;
+        World world = roster.world();
+        float range = effectiveAttackRange(self, target, world.attackRange(self));
+        float selfAir = roster.vision().airLosRadius(self), targetAir = targetAirLosRadius(target);
+        var key = new RetainedFiringPositions.Key(target,
+                squad == null ? null : squad.assignmentForExecution(),
+                squad == null ? null : squad.currentGoal, constrained, zone, range,
+                selfAir, targetAir, GridPathfinder.USE_CARDINAL_NAVIGATION);
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile == null ? 0L : System.nanoTime();
+        var saved = retainedFiringPositions.lookup(self, key, tick, cell ->
+                usableRetainedFiringPosition(self, target, cell.x(), cell.y(), constrained,
+                        anchorX, anchorY, leash, zone, range, selfAir, targetAir));
+        if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_RETAIN_VALIDATE,
+                System.nanoTime() - started);
+        if (saved != null) {
+            if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_RETAIN_HIT, 0L);
+            return new int[]{saved.x(), saved.y()};
+        }
+        if (profile != null) profile.record(TickInnerProfile.Bucket.FIRING_RETAIN_SEARCH, 0L);
+        int[] picked = constrained
+                ? findFiringPositionWithin(self, target, anchorX, anchorY, leash, zone)
+                : reachable ? findReachableFiringPosition(self, target) : findFiringPosition(self, target);
+        // Vantage-only approaches, disconnected answers and negative results retain their
+        // existing caller-specific meaning. Only a usable positive firing cell is retained.
+        if (picked != null && usableRetainedFiringPosition(self, target, picked[0], picked[1],
+                constrained, anchorX, anchorY, leash, zone, range, selfAir, targetAir)) {
+            retainedFiringPositions.remember(self, key, tick, picked[0], picked[1]);
+        }
+        return picked;
+    }
+
+    private boolean usableRetainedFiringPosition(long self, long target, int x, int y,
+            boolean constrained, int anchorX, int anchorY, float leash, int zone,
+            float range, float selfAir, float targetAir) {
+        if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
+        if (constrained && cellDistance(anchorX, anchorY, x, y) > leash) return false;
+        if (zone >= 0 && zoneGraph.zoneIdAt(x, y) != zone) return false;
+        World world = roster.world();
+        float distance = cellDistance(x, y, world.cellX(target), world.cellY(target));
+        return distance <= range && distance >= FIRING_MIN_DISTANCE
+                && canShootPair(grid, x + 0.5f, y + 0.5f, world.x(target), world.y(target), selfAir, targetAir)
+                && grid.arePathConnected(world.cellX(self), world.cellY(self), x, y,
+                        GridPathfinder.USE_CARDINAL_NAVIGATION);
     }
 
     /** Live selected-cell check, including true-point firing geometry after sub-cell target motion. */
