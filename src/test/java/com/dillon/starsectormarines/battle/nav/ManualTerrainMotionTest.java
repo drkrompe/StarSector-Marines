@@ -64,6 +64,56 @@ class ManualTerrainMotionTest {
     }
 
     @Test
+    void nearlyParallelMovementAtALargeRoundedCoordinateRemainsLegal() {
+        NavigationGrid grid = floor(80, 12);
+        for (int y = 0; y < 12; y++) grid.setWalkable(64, y, false);
+        float radius = 0.6f;
+        float touchingX = 64f - radius;
+        assertTrue(ManualTerrainMotion.canStand(grid, touchingX, 3.5f, radius));
+        var result = ManualTerrainMotion.move(grid, touchingX, 3.5f, 0.001f, 0.1f, radius);
+        assertEquals(touchingX, result.x());
+        assertEquals(3.6f, result.y());
+        assertTrue(ManualTerrainMotion.canStand(grid, result.x(), result.y(), radius));
+
+        var away = ManualTerrainMotion.move(grid, touchingX, 3.5f, -0.001f, 0.1f, radius);
+        assertEquals(touchingX - 0.001f, away.x());
+        assertEquals(3.6f, away.y());
+    }
+
+    @Test
+    void roundedEndpointSkinUsesTheCurrentContactNormal() {
+        NavigationGrid grid = floor(80, 12);
+        grid.blockSharedEdge(63, 3, Direction.E);
+        float touchingX = 64f - 0.6f;
+        assertFalse(ManualTerrainMotion.canSweepStraight(grid, touchingX, 4f, 0.001f, 0.1f, 0.6f));
+        var result = ManualTerrainMotion.move(grid, touchingX, 4f, 0.001f, 0.1f, 0.6f);
+        assertEquals(touchingX, result.x());
+        assertEquals(4.1f, result.y());
+        assertTrue(ManualTerrainMotion.canStand(grid, result.x(), result.y(), 0.6f));
+    }
+
+    @Test
+    void nearlyParallelMovementAtARoundedMapBoundaryRemainsLegal() {
+        NavigationGrid grid = floor(64, 12);
+        float touchingX = 64f - 0.6f;
+        var result = ManualTerrainMotion.move(grid, touchingX, 3.5f, 0.001f, 0.1f, 0.6f);
+        assertEquals(touchingX, result.x());
+        assertEquals(3.6f, result.y());
+        assertTrue(ManualTerrainMotion.canStand(grid, result.x(), result.y(), 0.6f));
+    }
+
+    @Test
+    void motionBeyondAFiniteEdgeDoesNotCollideWithItsBackwardExtension() {
+        NavigationGrid grid = floor(80, 12);
+        grid.blockSharedEdge(63, 3, Direction.E);
+        float startX = 64f - 0.6f;
+        assertTrue(ManualTerrainMotion.canSweepStraight(grid, startX, 4.01f, 0.000001f, 0.1f, 0.6f));
+        var result = ManualTerrainMotion.move(grid, startX, 4.01f, 0.000001f, 0.1f, 0.6f);
+        assertEquals(startX + 0.000001f, result.x());
+        assertEquals(4.01f + 0.1f, result.y());
+    }
+
+    @Test
     void diagonalCannotCutBetweenTouchingSolidCorners() {
         NavigationGrid grid = floor(6, 6);
         grid.setWalkable(3, 2, false);

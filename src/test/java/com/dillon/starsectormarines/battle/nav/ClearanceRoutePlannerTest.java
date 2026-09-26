@@ -7,6 +7,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClearanceRoutePlannerTest {
@@ -129,6 +130,132 @@ class ClearanceRoutePlannerTest {
         grid.setWalkable(6, 4, false);
         var first = route(grid, 2f, 4f, 9f, 4f, 0.6f, 0f);
         assertEquals(first, route(grid, 2f, 4f, 9f, 4f, 0.6f, 0f));
+    }
+
+    @Test
+    void slicedSearchMatchesBatchRouteAndCountersForEverySliceSize() {
+        NavigationGrid grid = detour();
+        var batch = route(grid, 2f, 4f, 9f, 4f, 0.6f, 0f);
+        assertEquals(ClearanceRoutePlanner.Status.FOUND, batch.status());
+        assertTrue(batch.expandedNodes() > 1);
+        for (int slice : new int[]{1, 7, 64}) {
+            try (var search = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000)) {
+                assertEquals(ClearanceRoutePlanner.Status.PENDING, search.result().status());
+                assertEquals(0, search.result().clearanceChecks(), "begin does not enumerate terrain");
+                assertEquals(batch, complete(search, slice));
+            }
+        }
+    }
+
+    @Test
+    void slicedSearchRetainsItsCandidateCursorAcrossUnreachableNearerGoals() {
+        NavigationGrid grid = new NavigationGrid(8, 6);
+        floor(grid, 0, 0, 8, 6);
+        for (int y = 0; y < 6; y++) grid.blockSharedEdge(3, y, Direction.E);
+        var batch = route(grid, 5f, 3f, 3.5f, 3f, 0.48f, 1f);
+        assertEquals(ClearanceRoutePlanner.Status.FOUND, batch.status());
+        assertEquals(new ClearanceRoutePlanner.Point(4.5f, 3f), batch.resolved());
+        assertTrue(batch.expandedNodes() > 0, "the nearer disconnected candidates must be resolved first");
+        try (var search = planner.begin(grid, 5f, 3f, 3.5f, 3f, 0.48f, 1f, 4000)) {
+            assertEquals(batch, complete(search, 7));
+        }
+    }
+
+    @Test
+    void totalExpansionLimitIsIndependentOfSliceSize() {
+        NavigationGrid grid = detour();
+        var batch = planner.findRoute(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 5);
+        assertEquals(ClearanceRoutePlanner.Status.SEARCH_LIMIT, batch.status());
+        try (var search = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 5)) {
+            assertEquals(batch, complete(search, 2));
+            assertEquals(5, search.result().expandedNodes());
+        }
+    }
+
+    @Test
+    void changedTopologyRetiresThePendingProofBeforeFurtherExpansion() {
+        NavigationGrid grid = detour();
+        try (var search = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000)) {
+            var pending = search.step(1);
+            assertEquals(ClearanceRoutePlanner.Status.PENDING, pending.status());
+            grid.setWalkableFloor(6, 4);
+            var stale = search.step(10);
+            assertEquals(ClearanceRoutePlanner.Status.STALE, stale.status());
+            assertEquals(pending.expandedNodes(), stale.expandedNodes());
+            assertEquals(pending.clearanceChecks(), stale.clearanceChecks());
+            assertEquals(pending.topologyRevision(), stale.topologyRevision());
+            assertSame(stale, search.step(10));
+            assertSame(stale, search.cancel());
+        }
+        try (var search = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000)) {
+            grid.blockSharedEdge(1, 1, Direction.E);
+            assertEquals(ClearanceRoutePlanner.Status.STALE, search.step(1).status());
+            assertEquals(0, search.result().clearanceChecks());
+        }
+    }
+
+    @Test
+    void cancellationAndCompletionAreTerminalAndIdempotent() {
+        NavigationGrid grid = detour();
+        var search = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000);
+        var pending = search.step(1);
+        var cancelled = search.cancel();
+        assertEquals(ClearanceRoutePlanner.Status.CANCELLED, cancelled.status());
+        assertEquals(pending.expandedNodes(), cancelled.expandedNodes());
+        assertSame(cancelled, search.cancel());
+        assertSame(cancelled, search.step(10));
+        search.close();
+        assertSame(cancelled, search.result());
+
+        var unopened = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000);
+        unopened.close();
+        assertEquals(ClearanceRoutePlanner.Status.CANCELLED, unopened.result().status());
+        assertEquals(0, unopened.result().clearanceChecks());
+
+        try (var completed = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000)) {
+            var found = complete(completed, 7);
+            assertEquals(ClearanceRoutePlanner.Status.FOUND, found.status());
+            grid.setWalkable(2, 4, false);
+            assertSame(found, completed.step(1), "a completed immutable proof retains its original revision");
+            assertSame(found, completed.cancel());
+        }
+    }
+
+    @Test
+    void interleavedSearchesKeepIndependentFrontiers() {
+        NavigationGrid grid = detour();
+        NavigationGrid otherGrid = detour();
+        otherGrid.setWalkableFloor(6, 2);
+        var firstBatch = route(grid, 2f, 4f, 9f, 4f, 0.6f, 0f);
+        var secondBatch = route(otherGrid, 9f, 4f, 2f, 4f, 0.48f, 0f);
+        try (var first = planner.begin(grid, 2f, 4f, 9f, 4f, 0.6f, 0f, 4000);
+             var second = planner.begin(otherGrid, 9f, 4f, 2f, 4f, 0.48f, 0f, 4000)) {
+            while (first.result().status() == ClearanceRoutePlanner.Status.PENDING
+                    || second.result().status() == ClearanceRoutePlanner.Status.PENDING) {
+                first.step(3);
+                second.step(5);
+            }
+            assertEquals(firstBatch, first.result());
+            assertEquals(secondBatch, second.result());
+        }
+    }
+
+    private static ClearanceRoutePlanner.Result complete(ClearanceRoutePlanner.Search search, int slice) {
+        while (search.result().status() == ClearanceRoutePlanner.Status.PENDING) {
+            var before = search.result();
+            var after = search.step(slice);
+            assertTrue(after.expandedNodes() - before.expandedNodes() <= slice);
+            assertTrue(after.expandedNodes() >= before.expandedNodes());
+            assertTrue(after.clearanceChecks() >= before.clearanceChecks());
+        }
+        return search.result();
+    }
+
+    private static NavigationGrid detour() {
+        NavigationGrid grid = new NavigationGrid(12, 8);
+        floor(grid, 0, 0, 12, 8);
+        for (int y = 2; y < 7; y++) grid.setWalkable(6, y, false);
+        return grid;
     }
 
     private ClearanceRoutePlanner.Result route(NavigationGrid grid, float x, float y,
