@@ -99,6 +99,8 @@ public final class TacticalScoring {
     private final boolean retainFiringPositions = Boolean.parseBoolean(
             System.getProperty("battle.targeting.retainFiringPositions", "true"));
     private final RetainedFiringPositions retainedFiringPositions = new RetainedFiringPositions(8192);
+    private final boolean boundTargetScans = Boolean.parseBoolean(
+            System.getProperty("battle.targeting.boundKnownContactScan", "true"));
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
                            AttackerIndexService attackerIndex, ShotService shots,
@@ -628,12 +630,20 @@ public final class TacticalScoring {
                 selfSquadId, excludeFromCrowding, shooterAirRadius, allowNoLos,
                 minRange, maxRange);
         unitIndex.forEachHostileCombatantByRing(selfX, selfY, selfFaction, scan);
-        long best = scan.best;
-        float bestScore = scan.bestScore;
-        long bestAny = scan.bestAny;
-        float bestAnyDist = scan.bestAnyDist;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_VISIT, scan.visits);
+            profile.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_RING, scan.rings);
+            profile.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_RAY, scan.rays);
+        }
+        return scan.best != 0L ? scan.best : scan.bestAny;
+    }
 
-        return best != 0L ? best : bestAny;
+    /** Unknown contacts beyond sight cannot win, but remembered contacts retain their full reach. */
+    static float targetScanLimit(float maxRange, float perceptionRange, float farthestBelief,
+                                 boolean boundKnownContacts) {
+        return boundKnownContacts ? Math.min(maxRange, Math.max(perceptionRange, farthestBelief))
+                : maxRange;
     }
 
     /**
@@ -696,6 +706,8 @@ public final class TacticalScoring {
          * line from where the squad is standing.
          */
         private float perceptionRange;
+        private float scanLimit;
+        int visits, rings, rays;
         /** Ids this perceiver's squad believes in. Refilled once per scan. */
         private final LongOpenHashSet believed = new LongOpenHashSet();
         /**
@@ -737,16 +749,29 @@ public final class TacticalScoring {
             this.bestAnyDist = Float.MAX_VALUE;
             this.perceptionRange = resolvePerceptionRange(scoring, excludeFromCrowding, maxRange);
             this.friendliesGathered = false;
+            this.visits = this.rings = this.rays = 0;
             this.friendlies.clear();
             believed.clear();
+            float farthestBelief = 0f;
             if (selfSquadId != Squad.NO_SQUAD) {
                 Squad squad = scoring.roster.getSquad(selfSquadId);
                 if (squad != null) {
                     for (BelievedContact contact : squad.believedContacts()) {
                         believed.add(contact.unitId());
+                        // The existing scorer reads the live position of a believed identity.
+                        // Use that same position only to bound enumeration, not last-seen cells
+                        // (a remembered mover may already be far from its observation).
+                        if (scoring.boundTargetScans && PERCEPTION_GATED_TARGETS
+                                && scoring.roster.isAliveById(contact.unitId())
+                                && !scoring.roster.isRiding(contact.unitId())) {
+                            farthestBelief = Math.max(farthestBelief, cellDistance(selfX, selfY,
+                                    world.x(contact.unitId()), world.y(contact.unitId())));
+                        }
                     }
                 }
             }
+            this.scanLimit = targetScanLimit(maxRange, perceptionRange, farthestBelief,
+                    scoring.boundTargetScans && PERCEPTION_GATED_TARGETS);
         }
 
         /**
@@ -785,6 +810,7 @@ public final class TacticalScoring {
 
         @Override
         public void accept(long id, float snapshotX, float snapshotY) {
+            visits++;
             float d = cellDistance(selfX, selfY, world.x(id), world.y(id));
             if (d < minRange || d > maxRange) return;
             int ox = world.cellX(id);
@@ -802,6 +828,7 @@ public final class TacticalScoring {
             boolean visibilityResolved = false;
             if (PERCEPTION_GATED_TARGETS && !believed.contains(id)) {
                 if (d > perceptionRange) return;
+                rays++;
                 visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
                         shooterAirRadius, vision.targetAirLosRadius(id));
                 visibilityResolved = true;
@@ -817,6 +844,7 @@ public final class TacticalScoring {
 
             if (d - MAX_TARGET_SCORE_BONUS > bestScore) return;
             if (!visibilityResolved) {
+                rays++;
                 // A believed contact is still looked at before it is scored as
                 // a visible one: remembering where somebody was is not a line
                 // of fire to where they are.
@@ -837,8 +865,12 @@ public final class TacticalScoring {
 
         @Override
         public boolean continueAfterRing(float nearestOutsideDistance) {
+            rings++;
             float reachable = nearestOutsideDistance - SNAPSHOT_DRIFT_PADDING;
-            if (reachable > maxRange) return false;
+            // Even without an incumbent, no unknown unit outside sight is eligible.
+            // The farthest known identity extends the bound; drift padding retains
+            // the same snapshot/live movement allowance as score-based pruning.
+            if (reachable > scanLimit) return false;
             // The any-distance fallback owes the caller the nearest hostile
             // whether or not anything is visible, so an unsettled one keeps
             // the scan expanding on its own.

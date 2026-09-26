@@ -71,6 +71,9 @@ import java.util.Map;
  */
 abstract class AbstractZoneAction implements Action {
 
+    private static final boolean ISOLATED_ADVANCE_THREAT = Boolean.parseBoolean(
+            System.getProperty("battle.squad.isolatedAdvanceThreat", "true"));
+
     /**
      * Minimum sim-seconds since the last squad replan before a contact-halt is
      * allowed to force another. Without this throttle a pinned squad would
@@ -557,13 +560,6 @@ abstract class AbstractZoneAction implements Action {
     }
 
     /**
-     * Recomputes the squad-level route threat at most once per sim tick and
-     * applies commit/release hysteresis. The synchronized section is required
-     * because members of one squad can execute in parallel; the tally itself
-     * is member-independent, so whichever member arrives first may author the
-     * cache without making behavior order-dependent.
-     */
-    /**
      * Move toward {@code firingPos}, refusing a position the member cannot
      * actually walk to, and report whether a move was authored. A caller that
      * gets {@code false} must fall through to whatever it would have done with
@@ -656,11 +652,17 @@ abstract class AbstractZoneAction implements Action {
                 firingPos[0], firingPos[1], path, true);
     }
 
+    /**
+     * Once-per-tick route decision, isolated from unrelated bounding/plan locks.
+     * Contenders still await this tick's complete decision: this changes neither
+     * cadence nor hysteresis and does not duplicate scoring or use stale results.
+     * The tally reads immutable beliefs and a spatial snapshot, not state owned
+     * by squad.lock. Contact-onset publication has the same dedicated ownership.
+     */
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
-        synchronized (squad.lock) {
-            if (squad.advanceThreatTick == tick) return;
+        refreshAdvanceThreat(squad, tick, ISOLATED_ADVANCE_THREAT, () -> {
             TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
                     .assessAdvanceThreat(squad, destX, destY, tick);
             squad.advanceEngageWeight = threat.weight();
@@ -676,6 +678,17 @@ abstract class AbstractZoneAction implements Action {
             squad.advanceThreatAnchorY = threat.axisAnchorY();
             squad.advanceThreatRetreating = threat.primaryRetreating();
             applyContactOnset(squad, sim, tick);
+        });
+    }
+
+    /** Narrow publication seam, testable without a battle or timing-dependent scoring. */
+    static void refreshAdvanceThreat(Squad squad, int tick, boolean isolated, Runnable publish) {
+        if (squad.advanceThreatTick == tick) return;
+        synchronized (isolated ? squad.advanceThreatLock : squad.lock) {
+            if (squad.advanceThreatTick == tick) return;
+            publish.run();
+            // Volatile publication-last: the lock-free fast path must never
+            // observe this tick while any of its shared decision is unfinished.
             squad.advanceThreatTick = tick;
         }
     }

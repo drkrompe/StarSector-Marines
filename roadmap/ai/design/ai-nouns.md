@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — decision categories are evaluated only when needed;
+Updated: 2026-09-26 — target enumeration is bounded by existing sight and belief;
 usable execution firing positions persist independently of periodic replanning.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
@@ -841,6 +841,12 @@ because the alternative is somebody holding their fire while an enemy they could
 perfectly well hit shoots them to pieces. That floor is the standing invariant
 made real at the point that depends on it, rather than a property of the data
 that any writer of attack range could silently falsify.
+
+Enumeration obeys the same boundary as eligibility: finding no visible winner
+does not justify searching the unknown remainder of the map. Existing believed
+identities retain their full reach; a search bound cannot turn loss of direct
+sight into loss of remembered contact. Snapshot-based enumeration must allow
+for movement before applying live candidate checks.
 
 Acquisition did not always work this way, and neither departure was deliberate.
 A line of sight between two cells carries no distance with it, so anybody down an

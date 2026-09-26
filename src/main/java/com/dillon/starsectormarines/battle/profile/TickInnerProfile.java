@@ -161,6 +161,12 @@ public final class TickInnerProfile {
         CONVOY_PROGRESSIVE_SNAPSHOT,
         CONVOY_ROUTE_PROOF_STEP,
         TARGET_PICK,
+        TARGET_SCAN_VISIT,
+        TARGET_SCAN_RING,
+        TARGET_SCAN_RAY,
+        CLEAR_ZONE_TARGET_SELECT,
+        CLEAR_ZONE_TARGET_VISIT,
+        CLEAR_ZONE_TARGET_RAY,
         FIRING_POSITION,
         FIRING_RETAIN_VALIDATE,
         FIRING_RETAIN_HIT,
@@ -410,6 +416,12 @@ public final class TickInnerProfile {
                 && activeBehavior == Bucket.BEHAVIOR_SWARM_PRESSURE) {
             add(Bucket.SWARM_PATHFIND, deltaNanos);
         }
+    }
+
+    /** Aggregate work counts without a clock read or a method call per candidate. */
+    public void recordCount(Bucket bucket, int count) {
+        if (count < 0) throw new IllegalArgumentException("negative work count");
+        counts[bucket.ordinal()] += count;
     }
 
     /**

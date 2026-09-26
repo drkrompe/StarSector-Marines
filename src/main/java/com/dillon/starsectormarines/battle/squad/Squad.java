@@ -736,6 +736,15 @@ public final class Squad {
     /** Sim tick at which the cached score was computed. Prevents N members from repeating one squad-level tally in the same tick. */
     public volatile int advanceThreatTick = -1;
 
+    /**
+     * Single-flight monitor for the route-threat tally and its publication.
+     * By default, parallel writers of the advanceEngage/advanceThreat fields use this
+     * monitor, independently of the longer bounding/plan work under {@link #lock}.
+     * Control-entry resets run only on the host thread outside worker dispatch.
+     * Do not acquire {@code lock} while holding this monitor (or vice versa).
+     */
+    public final Object advanceThreatLock = new Object();
+
     // ---- The contact onset one member is in, published for the whole squad ----
 
     /**
@@ -857,6 +866,8 @@ public final class Squad {
      *
      * <p>Never hold this lock while acquiring another squad's lock — actions
      * that touch multiple squads must sort by {@link #id} before locking.
+     * The route-threat decision has its own {@link #advanceThreatLock}; its
+     * once-per-tick computation must not wait behind unrelated plan work here.
      */
     public final Object lock = new Object();
 
