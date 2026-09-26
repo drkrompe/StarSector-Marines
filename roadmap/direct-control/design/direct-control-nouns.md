@@ -1,10 +1,10 @@
 # Direct control nouns
 
-Status: ACTIVE — Marine and Mech control are implemented; vehicle support and live acceptance remain open.
+Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live acceptance remains open.
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — Mech control shares chassis motion, installed direct mounts, and lance handback.
+Updated: 2026-09-26 — deployed APC control shares vehicle motion, turret fire, and suspended-order handback.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -27,8 +27,8 @@ fire intent; it does not turn the player into a second mission commander.
   assignment. It is not a new squad order and does not restore a stale plan.
 
 Only an exact player-owned, controllable ground body may enter. The implemented
-families are a Marine infantry member and a deployed combat Mech; a deployed
-Marine vehicle is the next planned adapter. Allied or enemy bodies, incapacitated or riding
+families are a Marine infantry member, a deployed combat Mech, and a deployed
+Marine HEAVY_APC. Allied or enemy bodies, incapacitated or riding
 members, wrecks, and vehicles in a delivery leg are not eligible. Marine entry
 also waits for committed special-equipment actions and is unavailable to a
 mission planter or kit retriever. Those interactions need an explicit manual
@@ -62,7 +62,7 @@ current context without restoring old movement or firing work.
 
 ## Input and time
 
-Selecting an exact eligible Marine infantry member or Mech exposes an enter/exit
+Selecting an exact eligible Marine infantry member, Mech, or APC exposes an enter/exit
 control; C toggles takeover and Escape releases it. A bracket identifies the controlled body and a
 crosshair shows its point aim. The battle screen owns the mode indicator and
 routes input before ordinary
@@ -160,6 +160,26 @@ existing 145-degree limit to either side of the hips. A mount requires the same
 four-degree firing alignment used by autonomous fire. A blocked drive step may
 still pivot, but its gait follows only the motion actually applied.
 
+A controlled APC must be a live Marine chassis in DEPLOYED state, with its
+complete oriented footprint legal at the current pose. Incoming, landed,
+departing, gone, and wrecked delivery bodies cannot enter. W/S requests forward
+or reverse throttle and A/D steers the wheels through the existing bicycle
+kinematics. Braking and reversal remain physical; steering does not pivot the
+hull in place. The live full-footprint sweep checks intermediate translation
+and rotation against solid cells, reciprocal closed edges, and map limits.
+Blocked motion retains the last legal pose. The manual owner supplies recovery
+input without a retained AI maneuver moving the hull independently.
+
+Entry suspends an APC's one-shot move order and discards its route and recovery
+state while retaining the requested destination. An order received during
+control replaces that retained destination without driving or proving a route.
+It cannot unload passengers merely by pointing at the controlled hull. Exit
+stops manual drive and requests a fresh route from the actual pose to the latest
+destination, including requests still queued when control ends. No destination,
+or one already reached, leaves the deployed vehicle holding. Loss of live
+deployed eligibility drops retained and queued intent. Passengers, delivery
+payload, and mission state are unchanged by takeover and handback.
+
 ## Fire and knowledge
 
 Ground direct fire already resolves a physical path. `BallisticResolver`
@@ -210,6 +230,16 @@ barrel protruding beyond a wall cannot launch a round through it. Direct area
 payloads detonate only at their committed physical terminal contact; the cursor
 and an unobstructed overshoot produce no blast. Direct SRMs retain their ordinary
 interception opportunity and delayed impact.
+
+The APC's independent turret slews toward the mouse bearing at its authored
+traverse rate. The held primary trigger uses the existing magazine, cooldown,
+burst spacing, minimum range, and firing alignment. Each burst retains its accepted world
+point until completion. Manual and autonomous fire share one turret tick; AI
+acquisition and triggers are suppressed only for the controlled hull. Entry,
+exit, and input suspension clear target and queued burst work while preserving
+ammunition and cooldown. Point rounds use the actual hardpoint and barrel pose,
+with a body-to-barrel structural guard, and resolve through ordinary ground
+ballistics without turning the cursor into a target identity.
 
 The player may point at ground they can see without creating a squad belief
 or revealing an unseen enemy. A physically struck unknown body is resolved

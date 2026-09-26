@@ -59,17 +59,45 @@ public final class VehicleMoveOrderSystem {
         this.transport = transport;
     }
 
+    /** Transfers a deployed hull's locomotion without retaining its old route or moving its body. */
+    public boolean suspendForManual(long id) {
+        if (!manuallyCommandable(id)) return false;
+        if (!service.isSuspended(id)) {
+            service.suspend(id);
+            controlSystem.clearRoute(id);
+        }
+        return true;
+    }
+
+    /** Requeue the latest destination; the next fixed tick proves it from the actual handback pose. */
+    public void resumeFromManual(long id) {
+        if (!service.isSuspended(id)) return;
+        if (!manuallyCommandable(id)) {
+            service.forget(id);
+            return;
+        }
+        controlSystem.clearRoute(id);
+        service.resume(id);
+    }
+
     /** Resolves every queued request. Call once per tick, before driving. */
     public void tickPending() {
+        for (long id : new ArrayList<>(service.suspendedIds())) {
+            if (!manuallyCommandable(id)) service.forget(id);
+        }
         for (Map.Entry<Long, ActiveOrder> entry : new ArrayList<>(service.activeEntries())) {
             if (!commandable(entry.getKey())) service.forget(entry.getKey());
         }
         for (PendingOrder request : service.drainPending()) {
+            if (service.isSuspended(request.vehicleId)) {
+                service.retain(request.vehicleId, request.cellX, request.cellY);
+                continue;
+            }
             // Right-clicking a loaded transport on itself is "everybody out",
             // the way Red Alert 2 read it: the vehicle is the target, and what
             // it does depends on whether anybody is in it. Resolved before the
             // move, because a click on your own hull is not a destination.
-            if (commandable(request.vehicleId)
+            if (!request.destinationOnly && commandable(request.vehicleId)
                     && transport.pointsAt(request.vehicleId, request.cellX, request.cellY)
                     && !transport.manifest(request.vehicleId).isEmpty()) {
                 transport.dismountAll(request.vehicleId);
@@ -87,6 +115,10 @@ public final class VehicleMoveOrderSystem {
                         Refusal.NO_ROUTE);
                 continue;
             }
+            if (route[0].length == 0) {
+                service.complete(request.vehicleId);
+                continue;
+            }
             service.activate(request.vehicleId,
                     new ActiveOrder(request.cellX, request.cellY, route[0], route[1]));
         }
@@ -99,6 +131,11 @@ public final class VehicleMoveOrderSystem {
      *         state machine should not also drive it
      */
     public boolean executeIfActive(long id, float dt) {
+        if (service.isSuspended(id)) {
+            if (manuallyCommandable(id)) return true;
+            service.forget(id);
+            return false;
+        }
         ActiveOrder order = service.activeOrder(id);
         if (order == null) return false;
         if (!commandable(id)) {
@@ -132,6 +169,11 @@ public final class VehicleMoveOrderSystem {
      * id is all it takes — so the system that acts on them is where "this one
      * is not yours" has to be decided.
      */
+    private boolean manuallyCommandable(long id) {
+        return commandable(id) && convoy.structure(id) > 0f
+                && convoy.mission(id).state == VehicleState.DEPLOYED;
+    }
+
     private boolean commandable(long id) {
         if (!convoy.isVehicle(id)) return false;
         if (convoy.faction(id) != Faction.MARINE) return false;
@@ -164,7 +206,13 @@ public final class VehicleMoveOrderSystem {
                 (int) Math.floor(body.x), (int) Math.floor(body.y), SNAP_RADIUS);
         int[] to = VehicleRoutePlanner.snapToMask(clearance, cellX, cellY, SNAP_RADIUS);
         if (from == null || to == null) return null;
-        if (from[0] == to[0] && from[1] == to[1]) return null;   // already there
+        if (from[0] == to[0] && from[1] == to[1]) {
+            // Manual driving may already have fulfilled a retained destination.
+            // A distant snap is not arrival: the real body must be near the resolved point.
+            return body.distanceTo(to[0] + 0.5f, to[1] + 0.5f)
+                    <= VehicleLeg.MOVE_ORDER.arrivalFloorCells()
+                    ? new float[][]{new float[0], new float[0]} : null;
+        }
 
         return VehicleRoutePlanner.routeDrivable(from[0], from[1], to[0], to[1],
                 grid, cost, clearance, type);

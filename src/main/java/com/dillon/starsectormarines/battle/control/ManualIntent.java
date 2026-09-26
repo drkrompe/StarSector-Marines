@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.control;
 
-/** Immutable input snapshot, expressed in world axes and world aim coordinates. */
+/** Immutable input snapshot, with movement axes and world aim coordinates; the carrier interprets the axes. */
 public record ManualIntent(float moveX, float moveY, float aimX, float aimY, boolean firing) {
     public static final ManualIntent NEUTRAL = new ManualIntent(0f, 0f, Float.NaN, Float.NaN, false);
 

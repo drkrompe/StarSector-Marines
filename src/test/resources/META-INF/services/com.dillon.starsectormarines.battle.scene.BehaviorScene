@@ -6,3 +6,4 @@ com.dillon.starsectormarines.battle.combat.PointFireScene
 com.dillon.starsectormarines.battle.control.ControlledMarineScene
 com.dillon.starsectormarines.battle.control.ControlledMechScene
 com.dillon.starsectormarines.battle.mech.MechClearanceScene
+com.dillon.starsectormarines.battle.control.ControlledVehicleScene

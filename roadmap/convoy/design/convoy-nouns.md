@@ -1,11 +1,10 @@
 # Convoy
 
-Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defender `HEAVY_APC` as its operational, damageable variant and moving-vehicle interaction, variants, scale, and terminal recovery as extension paths.
+Status: ACTIVE — ground delivery, deployed APC orders, and direct control share vehicle authority; shared vehicle/infantry interaction and terminal recovery remain extension paths.
 
 Written: 2026-08-23
 
-Updated: 2026-09-23 — convoy route proofs derive clearance and terrain costs
-as bounded searches explore, with no full-map connectivity preparation.
+Updated: 2026-09-26 — deployed APC direct control suspends route orders and shares physical motion and turret authority.
 
 ## Purpose and boundary
 
@@ -25,8 +24,9 @@ It is the seam for later vehicle roles: a future vehicle may have a different
 body, payload, or parked behavior without changing the delivery lifecycle or
 treating roads as kinematic rails.
 
-The current operational variant is the defender `HEAVY_APC`: four
-faction-rostered infantry passengers and a roof weapon. The old `MILITIA_TRUCK`
+The current operational variant is the `HEAVY_APC`: a defender delivery carries
+four faction-rostered infantry passengers and a roof weapon; a deployed Marine
+APC uses the same chassis and may receive orders or direct control. The old `MILITIA_TRUCK`
 is retired. Parked map vehicles are separate static scenery and obstacles, not
 convoy actors.
 
@@ -281,6 +281,50 @@ ground is neither passable nor blocked until queried. Another convoy captures
 the current map; a vehicle wreck closes no navigation cell, so it does not
 change the next convoy's clearance.
 
+## Direct control of a deployed APC
+
+The session in `direct-control-nouns.md` may temporarily own an exact live
+Marine HEAVY_APC in DEPLOYED state. Delivery legs, non-Marine hulls, and terminal
+states remain outside that authority. Entry checks the complete oriented body
+against current terrain. A vehicle keeps its own ground kinematics, mission,
+and turret components; it does not acquire infantry position, movement, combat,
+or AI components to participate in the shared input mode.
+
+W/S supplies forward/reverse throttle and A/D wheel steering to the ordinary
+bicycle body. Acceleration, braking, steering rate, reverse speed, and turning
+radius remain physical. Both ordinary and manual vehicle motion check the full
+oriented footprint throughout translation and rotation, including closed edges
+between walkable cells. A blocked step ends at the last legal pose; neither an
+intermediate collision nor a newly changed wall is excused by legal endpoints.
+Manual ownership clears old corridor, trajectory, docking, and recovery work
+so only its accepted drive input can move the hull.
+
+A suspended move keeps its requested destination and relinquishes its old
+route. New orders received during control replace that request without a route
+proof or hull movement. They remain destination intent, so pointing at the
+loaded controlled hull does not unload it during control or at handback. Exit
+stops manual drive and queues fresh route construction from the actual pose to
+the latest request. A reached destination completes into deployed hold; an
+unreachable request keeps the ordinary visible refusal. Without a retained
+request the deployed hull holds. Loss of live deployed eligibility forgets
+suspension and queued intent. Ownership changes preserve both the passenger
+manifest and delivery payload rather than manufacturing a delivery transition.
+
+The independent roof turret keeps one magazine and cadence authority. Mouse
+bearing drives its authored traverse, and a held primary trigger fires only
+when ordinary alignment, cooldown, ammunition, and burst gates permit. A burst
+retains its world point; later cursor movement applies to the next trigger.
+Manual ownership suppresses this hull's autonomous acquisition and trigger,
+while other vehicle turrets remain autonomous. Entry, exit, and input
+suspension discard queued rounds and targets without resetting ammunition or
+cooldown. The actual posed hardpoint supplies the ground ballistic source, and
+the structural body-to-barrel check prevents launching beyond a wall.
+
+Vehicle-versus-infantry occupancy remains the shared unresolved interaction
+contract in `truck-infantry-interaction.md`. Direct control grants no special
+collision immunity, crushing rule, or infantry separation policy. The vehicle
+retains the same existing cross-domain behavior as an autonomous hull.
+
 ## Standing laws
 
 - Reinforcement orchestration, supply production, and request priority stay
@@ -485,8 +529,8 @@ airborne-specific targeting policy remains Air-owned.
 Future variants belong behind vehicle capabilities rather than another parallel
 convoy model: payload/deboard effect, chassis/body, clearance/handling profile,
 armed or unarmed parked behavior, and authority to affect reinforcement supply.
-Tanks and player-controlled vehicles are broader combat features, not simple
-APC enum additions. A vehicle-spawned squad normally enters the reinforcement
+Tanks and additional controllable vehicle families need their own hardware and
+handling contracts; sharing the APC input session does not supply those contracts. A vehicle-spawned squad normally enters the reinforcement
 assignment flow. Conquest is the explicit exception: its defender policy carries
 `conquest-defender` ownership through the vehicle mission, and the squad is born
 with the requested node-hold or zone-clear objective already under that commander.

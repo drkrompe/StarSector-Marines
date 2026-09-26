@@ -76,6 +76,30 @@ public final class VehicleControlSystem {
         advance(mission, body, type, s, xs, ys, dt, leg);
     }
 
+    /** Clear route/recovery state without changing the chassis pose, speed or wheel angle. */
+    public void clearRoute(long id) {
+        VehicleControlComponent s = convoy.control(id);
+        resetTracking(s, true);
+        s.corridor = null;
+        s.routeXs = null;
+        s.routeYs = null;
+        s.leg = null;
+        s.arrived = false;
+    }
+
+    /** Manual wheel/throttle input shares bicycle integration and the live whole-body sweep. */
+    public void tickManual(long id, float dt, float throttle, float steering) {
+        GroundBody body = convoy.body(id);
+        if (!(body instanceof BicycleBody bicycle)) throw new IllegalStateException("Manual vehicle drive requires a bicycle chassis");
+        VehicleType type = convoy.vehicleType(id);
+        float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
+        bicycle.tickManual(throttle, steering, dt);
+        if (dt == 0f) return;
+        boolean blocked = applySweep(body, type, prevX, prevY, prevFacing, false);
+        VehicleControlComponent s = convoy.control(id);
+        s.wallStuckTime = blocked ? s.wallStuckTime + dt : 0f;
+    }
+
     /**
      * Returns {@code true} (exactly once) if vehicle {@code id} reached its terminal
      * waypoint since the last call, then clears the flag. {@link GroundSystem} uses
@@ -99,6 +123,11 @@ public final class VehicleControlSystem {
         s.corridor = new ReferenceCorridor(xs, ys, 1);
         s.routeXs = xs;
         s.routeYs = ys;
+        resetTracking(s, clearRescueFirstSteps);
+    }
+
+    private void resetTracking(VehicleControlComponent s, boolean clearRescueFirstSteps) {
+        s.arrived = false;
         s.trajectory = null;
         s.trajProgress = 0f;
         s.sinceReplan = 0f;
@@ -106,9 +135,14 @@ public final class VehicleControlSystem {
         s.localPlanFailureTime = 0f;
         s.localPlanFailureRerouteAttempted = false;
         s.dockingPath = null;
+        s.dockingStartPose = null;
+        s.dockingProgressCells = 0f;
+        s.dockingTurnRadius = 0f;
+        s.dockingGoalFacingDeg = 0f;
         s.dockingIsDeparture = false;
         s.turnaroundsUsed = 0;
         s.recovery = VehicleControlComponent.Recovery.NONE;
+        s.reverseRemaining = 0f;
         s.recoveryAttempts = 0;
         s.recoveryBestRemaining = Float.MAX_VALUE;
         s.wallStuckTime = 0f;
@@ -166,10 +200,10 @@ public final class VehicleControlSystem {
         // --- Reeds-Shepp maneuver phase ------------------------------------
         // A running maneuver owns the pose whichever direction it serves: an
         // arrival dock inbound, a departure turnaround outbound.
-        if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
+        if (s.dockingPath != null) { advanceDocking(mission, body, type, s, dt); return; }
         if (leg.docksOnArrival()) {
             tryEngageDocking(mission, body, type, s, xs, ys);
-            if (s.dockingPath != null) { advanceDocking(mission, body, s, dt); return; }
+            if (s.dockingPath != null) { advanceDocking(mission, body, type, s, dt); return; }
         }
 
         // --- Arrival -------------------------------------------------------
@@ -181,7 +215,18 @@ public final class VehicleControlSystem {
         float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
         float threshold = VehicleController.arrivalDist(leg.arrivalFloorCells(), body, dt);
         if (distToLast < threshold) {
-            if (leg.snapsToEndpoint()) body.teleport(xs[lastIdx], ys[lastIdx], body.facingDegrees);
+            if (leg.snapsToEndpoint()) {
+                Pose from = new Pose(body.x, body.y, body.facingDegrees);
+                var step = VehicleTerrainMotion.sweep(from, new Pose(xs[lastIdx], ys[lastIdx], body.facingDegrees),
+                        type.visualLengthCells, type.visualWidthCells, navigation.getGrid(), false);
+                applyPose(body, step.pose());
+                body.speed = 0f;
+                if (step.blocked()) {
+                    s.trajectory = null;
+                    s.localPlanFailureTime += dt;
+                    return;
+                }
+            }
             s.arrived = true;
             return;
         }
@@ -223,7 +268,7 @@ public final class VehicleControlSystem {
             // instead — the same Reeds-Shepp maneuver docking already uses.
             if (leg.mayTurnAroundOntoRoute() && tryEngageDepartureTurnaround(body, type, s)) {
                 s.localPlanFailureTime = 0f;
-                advanceDocking(mission, body, s, dt);
+                advanceDocking(mission, body, type, s, dt);
                 return;
             }
             s.localPlanFailureTime += dt;
@@ -308,22 +353,14 @@ public final class VehicleControlSystem {
         }
 
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
-        if (s.trajectory != null) {
-            s.trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
-        }
+        // Only delivery entry/exit tails may cross the map bounds; their
+        // on-map terrain and edges still receive the same physical sweep.
+        boolean deliveryTail = leg != VehicleLeg.MOVE_ORDER && (!VehicleFootprint.isPoseWithinGrid(
+                prevX, prevY, prevFacing, type.visualLengthCells, type.visualWidthCells, navigation.getGrid())
+                || !navigation.getGrid().inBounds((int) Math.floor(carrot.x), (int) Math.floor(carrot.y)));
+        wallStuckRecovery(body, type, s, prevX, prevY, prevFacing, dt, deliveryTail);
+        if (s.trajectory != null) s.trajProgress += (float) Math.hypot(body.x - prevX, body.y - prevY);
 
-        // Skip the footprint gate while the carrot is pulling the body across
-        // the map edge. The inbound staging waypoint (spawn) and the outbound
-        // exit waypoint (GONE) are off-grid by design — there are no walls out
-        // there. Without this, the gate reverts every move at the perimeter and
-        // a departing truck oscillates at the edge instead of driving off (the
-        // old playback fork drove off un-gated; this restores the exit, not the
-        // rails).
-        boolean exitingOffMap = !navigation.getGrid().inBounds(
-                (int) Math.floor(carrot.x), (int) Math.floor(carrot.y));
-        if (!exitingOffMap) {
-            wallStuckRecovery(body, type, s, prevX, prevY, prevFacing, dt);
-        }
     }
 
     /**
@@ -368,28 +405,18 @@ public final class VehicleControlSystem {
      * coarse-corridor fallback (where the planner found no forward plan).
      */
     private void wallStuckRecovery(GroundBody body, VehicleType type, VehicleControlComponent s,
-                                   float prevX, float prevY, float prevFacing, float dt) {
-        NavigationGrid grid = navigation.getGrid();
+                                   float prevX, float prevY, float prevFacing, float dt, boolean allowOffMap) {
 
         // (Net-progress tracking that resets recoveryAttempts now lives at the top
         // of advance(), so it runs every tick — including the open-space orbit
         // where this wall-contact path never fires.)
 
-        boolean prevOnGrid = VehicleFootprint.isPoseFeasible(prevX, prevY, prevFacing,
-                type.visualLengthCells, type.visualWidthCells, grid);
-        boolean newFeasible = VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells, type.visualWidthCells, grid);
-
-        if (prevOnGrid && !newFeasible) {
+        if (applySweep(body, type, prevX, prevY, prevFacing, allowOffMap)) {
             if (s.wallStuckTime == 0f) {
                 s.stuckOriginX = prevX;
                 s.stuckOriginY = prevY;
             }
             s.wallStuckTime += dt;
-            body.x = prevX;
-            body.y = prevY;
-            body.facingDegrees = prevFacing;
-            body.speed = 0f;
             if (s.wallStuckTime > VehicleController.WALL_REVERSE_DELAY) {
                 beginReverseRecovery(body, type, s);
             }
@@ -442,15 +469,7 @@ public final class VehicleControlSystem {
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;
         body.tick(ahead.x, ahead.y, -VehicleController.WALL_REVERSE_SPEED, dt);
 
-        if (!VehicleFootprint.isPoseFeasible(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells, type.visualWidthCells, grid)) {
-            // Backed into something — this is as far as we get. (The march budget
-            // is a straight-line estimate; the steered reverse can curve into a
-            // wall the march didn't sample, so the per-tick gate is the backstop.)
-            body.x = prevX;
-            body.y = prevY;
-            body.facingDegrees = prevFacing;
-            body.speed = 0f;
+        if (applySweep(body, type, prevX, prevY, prevFacing, false)) {
             endReverseRecovery(s);
             return;
         }
@@ -645,32 +664,47 @@ public final class VehicleControlSystem {
      * tick along its Reeds-Shepp path, set the body's pose from the sampled point,
      * and flag arrival when the path's total length is consumed.
      */
-    private void advanceDocking(VehicleMission mission, GroundBody body, VehicleControlComponent s, float dt) {
-        s.dockingProgressCells += VehicleController.DOCKING_SPEED * dt;
-        float totalCells = s.dockingPath.lengthCells(s.dockingTurnRadius);
-        if (s.dockingProgressCells >= totalCells) {
-            if (s.dockingIsDeparture) {
-                // A turnaround ends wherever the path ends and hands the pose
-                // straight back to corridor tracking. Nothing has arrived.
-                Pose end = ReedsShepp.sample(s.dockingStartPose, s.dockingTurnRadius,
-                        s.dockingPath, totalCells);
-                body.x = end.x;
-                body.y = end.y;
-                body.facingDegrees = end.facingDeg;
-                body.speed = 0f;
-                s.dockingPath = null;
-                s.dockingIsDeparture = false;
-                return;
-            }
-            body.teleport(mission.lzX, mission.lzY, s.dockingGoalFacingDeg);
+    private void advanceDocking(VehicleMission mission, GroundBody body, VehicleType type,
+                                VehicleControlComponent s, float dt) {
+        float total = s.dockingPath.lengthCells(s.dockingTurnRadius);
+        float next = Math.min(total, s.dockingProgressCells + VehicleController.DOCKING_SPEED * dt);
+        var step = VehicleTerrainMotion.sweepReedsShepp(s.dockingStartPose, s.dockingPath,
+                s.dockingTurnRadius, s.dockingProgressCells, next,
+                type.visualLengthCells, type.visualWidthCells, navigation.getGrid());
+        applyPose(body, step.pose());
+        s.dockingProgressCells += (next - s.dockingProgressCells) * step.fraction();
+        if (step.blocked()) {
+            body.speed = 0f;
             s.dockingPath = null;
-            s.arrived = true;
+            s.dockingIsDeparture = false;
+            s.trajectory = null;
+            s.sinceReplan = VehicleController.REPLAN_INTERVAL_SEC;
+            s.wallStuckTime += dt;
             return;
         }
-        Pose p = ReedsShepp.sample(s.dockingStartPose, s.dockingTurnRadius,
-                s.dockingPath, s.dockingProgressCells);
-        body.x = p.x;
-        body.y = p.y;
-        body.facingDegrees = p.facingDeg;
+        if (next >= total) {
+            body.speed = 0f;
+            boolean departing = s.dockingIsDeparture;
+            s.dockingPath = null;
+            s.dockingIsDeparture = false;
+            // The RS endpoint was physically reached; no unchecked final snap.
+            if (!departing) s.arrived = true;
+        }
+    }
+
+    private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,
+                               boolean allowOffMap) {
+        var step = VehicleTerrainMotion.sweep(new Pose(x, y, facing),
+                new Pose(body.x, body.y, body.facingDegrees), type.visualLengthCells,
+                type.visualWidthCells, navigation.getGrid(), allowOffMap);
+        applyPose(body, step.pose());
+        if (step.blocked()) body.speed = 0f;
+        return step.blocked();
+    }
+
+    private static void applyPose(GroundBody body, Pose pose) {
+        body.x = pose.x;
+        body.y = pose.y;
+        body.facingDegrees = pose.facingDeg;
     }
 }

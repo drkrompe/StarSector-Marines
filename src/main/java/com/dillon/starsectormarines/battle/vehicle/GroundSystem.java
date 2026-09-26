@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
+import com.dillon.starsectormarines.battle.control.ManualIntent;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -11,14 +14,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
-import com.dillon.starsectormarines.battle.turret.StructureDef;
-import com.dillon.starsectormarines.battle.turret.TurretMountDef;
-import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
-import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
@@ -69,9 +67,6 @@ public class GroundSystem {
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
-    private final com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring;
-    private final World world;
-    private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<EntitySpec> addUnitSink;
     private final SquadDirectiveControl commandControl;
@@ -84,6 +79,7 @@ public class GroundSystem {
     private final VehicleTransportService transport;
     private final VehicleMoveOrderService moveOrders = new VehicleMoveOrderService();
     private final VehicleMoveOrderSystem moveOrderSystem;
+    private final GroundVehicleTurretSystem turrets;
 
     /** The backbone: world entity ids of live convoy vehicles. The {@link VehicleMission} bags
      *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#mission},
@@ -91,15 +87,12 @@ public class GroundSystem {
     private final EffectsService effects;
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
-                        com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
+                        TacticalScoring tacticalScoring,
                         World world, TurretFireSink fireSink, Random rng,
                         Consumer<EntitySpec> addUnitSink, SquadDirectiveControl commandControl,
                         EffectsService effects, VehicleTransportService transport) {
         this.navigation = navigation;
         this.roster = roster;
-        this.tacticalScoring = tacticalScoring;
-        this.world = world;
-        this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
         this.commandControl = commandControl;
@@ -109,6 +102,8 @@ public class GroundSystem {
         this.controlSystem = new VehicleControlSystem(convoy, navigation);
         this.moveOrderSystem = new VehicleMoveOrderSystem(
                 moveOrders, convoy, navigation, controlSystem, transport);
+        this.turrets = new GroundVehicleTurretSystem(convoy, roster, tacticalScoring,
+                navigation.getGrid(), world, fireSink);
     }
 
     /** The mailbox the interface queues move requests into. */
@@ -136,16 +131,42 @@ public class GroundSystem {
         convoy.spawn(type, faction, mission);
     }
 
+    /** Suspend the current movement destination and clear queued turret fire. */
+    public boolean beginDirectControl(long id) {
+        if (!moveOrderSystem.suspendForManual(id)) return false;
+        turrets.cancelQueuedFire(id);
+        return true;
+    }
+
+    public void suspendDirectInput(long id) { turrets.cancelQueuedFire(id); }
+
+    public void endDirectControl(long id) {
+        turrets.cancelQueuedFire(id);
+        GroundBody body = convoy.body(id);
+        if (body != null) body.speed = 0f;
+        moveOrderSystem.resumeFromManual(id);
+    }
+
     /**
      * Advances every ground vehicle one tick by {@code dt} seconds. Same
      * fixed-tick contract as {@link com.dillon.starsectormarines.battle.air.AirSystem#tick}
      * — caller is responsible for matching {@code dt} to its tick cadence.
      */
-    public void tick(float dt) {
+    public void tick(float dt) { tick(dt, 0L, ManualIntent.NEUTRAL); }
+
+    public void tick(float dt, long controlledId, ManualIntent input) {
+        if (!Float.isFinite(dt) || dt <= 0f) return;
         moveOrderSystem.tickPending();
         for (long id : convoy.entityIds()) {
             VehicleMission m = convoy.mission(id);
             VehicleType type = convoy.vehicleType(id);
+            if (id == controlledId && m.state == VehicleState.DEPLOYED
+                    && convoy.isTargetable(id) && convoy.faction(id) == Faction.MARINE) {
+                // Key axes represent throttle and steering for this carrier.
+                controlSystem.tickManual(id, dt, input.moveY(), -input.moveX());
+                m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
+                continue;
+            }
             // An order owns the chassis's locomotion while it lasts. The errand
             // is not cancelled — it is standing still — so nothing else in the
             // state machine runs for this vehicle, deboarding included.
@@ -221,7 +242,9 @@ public class GroundSystem {
                 m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
             }
         }
-        tickVehicleTurrets(dt);
+        PointFireAim aim = Float.isFinite(input.aimX()) && Float.isFinite(input.aimY())
+                ? new PointFireAim(input.aimX(), input.aimY()) : null;
+        turrets.tick(dt, controlledId, aim, input.firing());
         reapGoneVehicles();
     }
 
@@ -268,12 +291,7 @@ public class GroundSystem {
         // stops within the tick that killed it rather than at the next rebuild.
         roster.unindexVehicle(id);
         body.speed = 0f;
-        GroundTurret turret = convoy.turret(id);
-        if (turret != null) {
-            turret.targetId = 0L;
-            turret.burstTargetId = 0L;
-            turret.burstRemaining = 0;
-        }
+        turrets.cancelQueuedFire(id);
         resolveOnboardPassengers(id, mission, type, body);
         resolveOnboardRiders(id, body);
         effects.spawnSmokingWreck((int) Math.floor(body.x), (int) Math.floor(body.y));
@@ -428,83 +446,4 @@ public class GroundSystem {
         return null;
     }
 
-    private void tickVehicleTurrets(float dt) {
-        for (long id : convoy.entityIds()) {
-            if (!convoy.isTargetable(id)) continue;
-            VehicleType type = convoy.vehicleType(id);
-            if (!type.hasTurretWeapon()) continue;
-            // Armed ⟹ GROUND_TURRET present (seeded at spawn), so gt is non-null. Turret
-            // state lives in the world's GROUND_TURRET component, read by id.
-            GroundTurret gt = convoy.turret(id);
-            if (gt.ammo <= 0) continue;
-
-            GroundBody body = convoy.body(id);
-            Faction faction = convoy.faction(id);
-            StructureDef structure = type.turretStructure();
-            TurretMountDef mount = structure.mount;
-            WeaponDef weapon = mount.weapon;
-
-            float chassisRad = (float) Math.toRadians(body.facingDegrees);
-            float cc = (float) Math.cos(chassisRad);
-            float cs = (float) Math.sin(chassisRad);
-            float mountWorldX = body.x + type.turretMountX * cc - type.turretMountY * cs;
-            float mountWorldY = body.y + type.turretMountX * cs + type.turretMountY * cc;
-
-            long currentBurstTarget = roster.isAliveById(gt.burstTargetId) ? gt.burstTargetId : 0L;
-
-            // Burst continuation fires ahead of fresh acquisition — the turret
-            // commits to its salvo target, matching shuttle turret behavior.
-            if (gt.burstRemaining > 0) {
-                gt.burstTimer -= dt;
-                if (gt.burstTimer <= 0f && currentBurstTarget != 0L && world.isAlive(gt.burstTargetId)) {
-                    int releaseIndex = TurretMountGeometry.releaseIndex(
-                            weapon.burstCount, gt.burstRemaining);
-                    fireSink.fire(id, mountWorldX, mountWorldY, faction, structure,
-                            currentBurstTarget, /*aerialShooter*/ false, /*hasLos*/ true,
-                            gt.facingDeg, releaseIndex);
-                    gt.ammo--;
-                    gt.burstRemaining--;
-                    gt.burstTimer = weapon.burstSpacing;
-                    if (gt.burstRemaining == 0) gt.burstTargetId = 0L;
-                }
-                if (currentBurstTarget == 0L || !world.isAlive(gt.burstTargetId)) {
-                    gt.burstRemaining = 0;
-                    gt.burstTargetId = 0L;
-                }
-                continue;
-            }
-
-            TurretAim.State aim = new TurretAim.State();
-            aim.originCellX = (int) Math.floor(mountWorldX);
-            aim.originCellY = (int) Math.floor(mountWorldY);
-            aim.originX = mountWorldX;
-            aim.originY = mountWorldY;
-            aim.faction = faction;
-            aim.facingDegrees = gt.facingDeg;
-            aim.turnRateDegPerSec = mount.turnRateDegPerSec;
-            aim.attackRange = weapon.range;
-            aim.minRange = weapon.minRange;
-            aim.cooldownTimer = gt.cooldownTimer;
-            aim.attackCooldown = weapon.cooldown;
-            aim.target = roster.isAliveById(gt.targetId) ? gt.targetId : 0L;
-
-            TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
-
-            gt.facingDeg = aim.facingDegrees;
-            gt.cooldownTimer = aim.cooldownTimer;
-            gt.targetId = aim.target;
-
-            if (aim.fireThisTick && aim.target != 0L) {
-                fireSink.fire(id, mountWorldX, mountWorldY, faction, structure, aim.target,
-                        /*aerialShooter*/ false, aim.lastFireHadLos,
-                        gt.facingDeg, 0);
-                gt.ammo--;
-                if (weapon.burstCount > 1 && world.isAlive(aim.target)) {
-                    gt.burstRemaining = weapon.burstCount - 1;
-                    gt.burstTimer = weapon.burstSpacing;
-                    gt.burstTargetId = aim.target;
-                }
-            }
-        }
-    }
 }
