@@ -274,17 +274,20 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
     }
 
-    /** The step's {@code execute}, attributed to its action class in the tick's inner profile. */
+    /** The step's execute and nested searches, attributed to its stable action identity. */
     public static ActionStatus executeTimed(SquadPlan.Step step, long unit, Squad squad,
                                             BattleSimulation sim) {
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
         if (profile == null) return step.action.execute(unit, squad, sim);
+        String action = step.action.profilingName();
+        profile.enterAction(unit, squad.id, action);
         long t0 = System.nanoTime();
         try {
             return step.action.execute(unit, squad, sim);
         } finally {
-            profile.recordAction(step.action.getClass().getSimpleName(),
-                    System.nanoTime() - t0);
+            long elapsed = System.nanoTime() - t0;
+            profile.exitAction();
+            profile.recordAction(action, elapsed);
         }
     }
 

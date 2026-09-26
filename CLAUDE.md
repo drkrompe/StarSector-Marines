@@ -219,6 +219,11 @@ Do not run builds or leave generated task files there.
   `-Dbattle.pathfinding.compactCasualtyRouteCost=false` is the dense-storage
   control for casualty routing costs. Both representations calculate the same
   block multipliers; the control additionally expands them across the map.
+  `-Dbattle.pathfinding.asyncDefendSite=false` keeps defended-site travel on
+  synchronous A* while leaving track rallies asynchronous, for same-build
+  coverage controls. Slow flat-search samples include member, squad, stable
+  action identity, and route reason; action totals span all measured ticks.
+  Configurable orders such as DefendSite and DefendTrack are reported separately.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.

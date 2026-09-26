@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HexFormat;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -127,6 +128,7 @@ class BattleFixtureTailProfileTest {
         long[] phaseTotals = new long[TickProfile.Phase.VALUES.length];
         long[] innerTotals = new long[TickInnerProfile.Bucket.VALUES.length];
         long[] innerCounts = new long[TickInnerProfile.Bucket.VALUES.length];
+        Map<String, long[]> actionTotals = new HashMap<>();
         long[] convoyWorkTotals = new long[4];
         Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
                 "build/reports/performance/conquest-tail"));
@@ -253,6 +255,7 @@ class BattleFixtureTailProfileTest {
                     maximumUnits = Math.max(maximumUnits, units);
                     minimumUnits = Math.min(minimumUnits, units);
                     TickInnerProfile inner = sim.getTickInnerProfile();
+                    inner.accumulateActionTotals(actionTotals);
                     for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
                         int index = bucket.ordinal();
                         innerTotals[index] += inner.nanosOf(bucket);
@@ -376,6 +379,15 @@ class BattleFixtureTailProfileTest {
         report.put("unitWorkerCpuTotalMs", millis(totalUnitWorkerCpuNanos));
         report.put("unitWorkerSampledWallTotalMs", millis(totalUnitWorkerWallNanos));
         report.put("ticksWithCompleteUnitCpu", ticksWithCompleteUnitCpu);
+        JSONArray actionTime = new JSONArray();
+        List<Map.Entry<String, long[]>> orderedActions = new ArrayList<>(actionTotals.entrySet());
+        orderedActions.sort((a, b) -> Long.compare(b.getValue()[0], a.getValue()[0]));
+        for (Map.Entry<String, long[]> entry : orderedActions) {
+            actionTime.put(new JSONObject().put("name", entry.getKey())
+                    .put("totalMs", millis(entry.getValue()[0]))
+                    .put("count", entry.getValue()[1]));
+        }
+        report.put("actionTotals", actionTime);
         assertEquals(0, finalInfluence.failed(), "influence worker failed during replay");
         report.put("influence", new JSONObject()
                 .put("asynchronous", finalInfluence.asynchronous())
@@ -449,7 +461,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 8);
+        report.put("schemaVersion", 9);
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -464,6 +476,8 @@ class BattleFixtureTailProfileTest {
         report.put("availableProcessors", Runtime.getRuntime().availableProcessors());
         report.put("renderSink", "none");
         report.put("asyncDefendTrack", true);
+        report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",
                 UnitUpdateSystem.configuredMinimumParallelUnits());
         report.put("unitUpdateParallelism",
@@ -532,6 +546,21 @@ class BattleFixtureTailProfileTest {
                 - firstRoutes.rejected());
         report.put("asyncRouteWorkerTotalMs", millis(finalRoutes.searchNanos()
                 - firstRoutes.searchNanos()));
+        report.put("asyncRouteWorkerCpuTotalMs", millis(finalRoutes.searchCpuNanos()
+                - firstRoutes.searchCpuNanos()));
+        report.put("asyncRouteSnapshotTotalMs", millis(finalRoutes.snapshotNanos()
+                - firstRoutes.snapshotNanos()));
+        report.put("asyncRouteNoPath", finalRoutes.noPath() - firstRoutes.noPath());
+        // Histograms/maxima belong to the service lifetime, including warmup.
+        // They cannot be differenced like cumulative time and event counters.
+        report.put("asyncRouteLatencyToDate", new JSONObject()
+                .put("queueWaitP95Ticks", finalRoutes.queueWaitP95Ticks())
+                .put("queueWaitMaxTicks", finalRoutes.queueWaitMaxTicks())
+                .put("deliveryP95Ticks", finalRoutes.deliveryP95Ticks())
+                .put("deliveryMaxTicks", finalRoutes.deliveryMaxTicks())
+                .put("finishedWaitP95Ticks", finalRoutes.finishedWaitP95Ticks())
+                .put("maxQueueDepth", finalRoutes.maxQueueDepth())
+                .put("pendingMembersAtEnd", finalRoutes.pendingMembers()));
         if (convoyUncachedStages != null) {
             report.put("isolatedConvoyUncachedStages", new JSONObject()
                     .put("cells", convoyUncachedStages.cells())
@@ -650,6 +679,8 @@ class BattleFixtureTailProfileTest {
                     .put("startX", search.startX()).put("startY", search.startY())
                     .put("goalX", search.goalX()).put("goalY", search.goalY())
                     .put("expandedNodes", search.expandedNodes())
+                    .put("memberId", search.memberId()).put("squadId", search.squadId())
+                    .put("action", search.action()).put("routeReason", search.routeReason())
                     .put("usesOccupancy", search.usesOccupancy())
                     .put("found", search.found()));
         }
@@ -737,6 +768,8 @@ class BattleFixtureTailProfileTest {
                 .put("rejected", after.rejected() - before.rejected())
                 .put("searchWorkerMs", millis(after.searchNanos()
                         - before.searchNanos()))
+                .put("snapshotMs", millis(after.snapshotNanos() - before.snapshotNanos()))
+                .put("noPath", after.noPath() - before.noPath())
                 .put("queueDepth", after.queueDepth())
                 .put("pendingMembers", after.pendingMembers())
                 .put("maxQueueDepthSoFar", after.maxQueueDepth()));

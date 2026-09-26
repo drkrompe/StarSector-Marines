@@ -9,9 +9,11 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
@@ -22,6 +24,7 @@ import java.util.List;
 /** Moves a squad to its command-authored track rally and holds there. */
 public final class DefendTrack implements Action {
     private final AssignmentKind assignmentKind;
+    private final boolean asyncRoutes;
     private final int targetX;
     private final int targetY;
 
@@ -39,6 +42,10 @@ public final class DefendTrack implements Action {
             throw new IllegalArgumentException("exact-cell command kind required");
         }
         this.assignmentKind = assignmentKind;
+        this.asyncRoutes = assignmentKind == AssignmentKind.DEFEND_TRACK
+                || (assignmentKind == AssignmentKind.DEFEND_SITE
+                && Boolean.parseBoolean(System.getProperty(
+                        AsyncDefendTrackRoutes.SITE_ENABLED_PROPERTY, "true")));
         this.targetX = targetX;
         this.targetY = targetY;
     }
@@ -54,13 +61,14 @@ public final class DefendTrack implements Action {
         };
     }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
+    @Override public String profilingName() { return name(); }
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState state, Squad squad, BattleView sim) { return 1f; }
     @Override public int requiredMembers() { return 1; }
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        AsyncDefendTrackRoutes async = assignmentKind == AssignmentKind.DEFEND_TRACK
+        AsyncDefendTrackRoutes async = usesAsyncRoutes()
                 ? sim.asyncDefendTrackRoutes() : null;
         ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != assignmentKind
@@ -114,35 +122,23 @@ public final class DefendTrack implements Action {
         int destinationY = anchorFallback ? anchorY : moveY;
         if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)
                 && !sim.movement().atCell(member, destinationX, destinationY)) {
-            int[] next;
-            if (async != null && bearing == null) {
-                AsyncDefendTrackRoutes.Request request =
-                        new AsyncDefendTrackRoutes.Request(member, squad.id,
-                                squad.routingEpoch, this, targetX, targetY,
-                                sim.world().cellX(member), sim.world().cellY(member),
-                                moveX, moveY, anchorX, anchorY,
-                                GridPathfinder.USE_CARDINAL_NAVIGATION);
-                AsyncDefendTrackRoutes.Result result = async.pollOrSubmit(request,
-                        sim.getSimTickIndex(), sim.getGrid(), sim.getOccupancyMap());
-                if (!result.ready()) {
-                    // The mover's velocity was zeroed at tick start. An
-                    // exhausted old path needs one clear, not a setPath write
-                    // on every waiting tick.
-                    if (!Paths.isEmpty(path)) sim.clearPath(member);
-                    return ActionStatus.RUNNING;
-                }
-                next = result.path();
-            } else {
-                next = GridPathfinder.findPath(sim.getGrid(),
-                        sim.world().cellX(member), sim.world().cellY(member),
-                        moveX, moveY, sim.getOccupancyMap());
-                if (Paths.isEmpty(next) && (moveX != anchorX || moveY != anchorY)) {
-                    next = GridPathfinder.findPath(sim.getGrid(),
+            AsyncDefendTrackRoutes.Request request =
+                    new AsyncDefendTrackRoutes.Request(member, squad.id,
+                            squad.routingEpoch, this, targetX, targetY,
                             sim.world().cellX(member), sim.world().cellY(member),
-                            anchorX, anchorY, sim.getOccupancyMap());
-                }
+                            moveX, moveY, anchorX, anchorY,
+                            GridPathfinder.USE_CARDINAL_NAVIGATION);
+            AsyncDefendTrackRoutes.Result result = acquireRoute(async, request,
+                    sim.getSimTickIndex(), sim.getGrid(), sim.getOccupancyMap(),
+                    bearing != null);
+            if (!result.ready()) {
+                // The mover's velocity was zeroed at tick start. An
+                // exhausted old path needs one clear, not a setPath write
+                // on every waiting tick.
+                if (!Paths.isEmpty(path)) sim.clearPath(member);
+                return ActionStatus.RUNNING;
             }
-            sim.setPath(member, next);
+            sim.setPath(member, result.path());
             path = sim.world().path(member);
             pathIdx = sim.world().pathIdx(member);
         } else if (async != null) {
@@ -160,6 +156,36 @@ public final class DefendTrack implements Action {
     public AssignmentKind assignmentKind() { return assignmentKind; }
     public int targetX() { return targetX; }
     public int targetY() { return targetY; }
+
+    boolean usesAsyncRoutes() {
+        return asyncRoutes;
+    }
+
+    /** One acquisition policy for execution: pending or rejected never runs A* inline. */
+    static AsyncDefendTrackRoutes.Result acquireRoute(AsyncDefendTrackRoutes async,
+            AsyncDefendTrackRoutes.Request request, int tick, NavigationGrid grid,
+            byte[] occupancy, boolean audible) {
+        if (async != null && !audible) {
+            return async.pollOrSubmit(request, tick, grid, occupancy);
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        try {
+            if (profile != null) profile.routeReason(audible
+                    ? "audible-formation" : "assignment-formation");
+            int[] next = GridPathfinder.findPath(grid, request.startX(),
+                    request.startY(), request.goalX(), request.goalY(), occupancy);
+            if (Paths.isEmpty(next) && (request.goalX() != request.anchorX()
+                    || request.goalY() != request.anchorY())) {
+                if (profile != null) profile.routeReason(audible
+                        ? "audible-anchor" : "assignment-anchor");
+                next = GridPathfinder.findPath(grid, request.startX(),
+                        request.startY(), request.anchorX(), request.anchorY(), occupancy);
+            }
+            return new AsyncDefendTrackRoutes.Result(true, next);
+        } finally {
+            if (profile != null) profile.routeReason("");
+        }
+    }
 
     /** Small deterministic fireteam footprint around the coarse squad rally. */
     private static int[] formationCell(long member, Squad squad,
