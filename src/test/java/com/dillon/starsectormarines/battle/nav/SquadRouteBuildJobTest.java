@@ -9,6 +9,71 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SquadRouteBuildJobTest {
     @Test
+    void shortSharedRoutePreparationDoesNotEnumerateSelectedAreaOrRemoteRegions() {
+        long[] work = new long[2];
+        int[] widths = {64, 560};
+        int[] heights = {64, 336};
+        for (int i = 0; i < widths.length; i++) {
+            NavigationGrid grid = openGrid(widths[i], heights[i]);
+            GreedyNavigationMesh.Snapshot mesh = new GreedyNavigationMesh(grid).snapshot();
+            SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
+            job.begin(request(grid, 10, 10, null, 9, 10, 10, 11), mesh, true);
+            finish(job, 7);
+            assertEquals(3072, job.corridorCells());
+            assertEquals(1, job.seedSearches());
+            assertPath(grid, job.field().extract(9, 10), 10, 10);
+            assertPath(grid, job.field().extract(10, 11), 10, 10);
+            work[i] = job.workUnits();
+            System.out.printf("Region-backed short route %dx%d: work=%d, seed=%d, reverse=%d%n",
+                    widths[i], heights[i], work[i], job.seedExpanded(), job.reverseExpanded());
+            // The old explicit mask charged 3,110 / 3,304 units here, despite
+            // just two seed expansions and five reverse expansions in either.
+            assertTrue(work[i] < 100, "Preparation must not visit all 3,072 corridor cells");
+        }
+        assertEquals(work[0], work[1], "Remote mesh regions must not add route work");
+    }
+
+    @Test
+    void selectedRegionMembershipPreservesEveryLegacySuccessorOnWeightedSplitTerrain() {
+        boolean cardinalBefore = GridPathfinder.USE_CARDINAL_NAVIGATION;
+        try {
+            for (boolean cardinal : new boolean[]{true, false}) {
+                GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
+                NavigationGrid grid = openGrid(70, 14);
+                for (int y = 0; y < 11; y++) grid.setWalkable(31, y, false);
+                grid.setSharedEdgePassable(20, 6, Direction.E, false);
+                grid.setWalkable(64, 10, false);
+                float[] values = new float[70 * 14];
+                Arrays.fill(values, 1f);
+                for (int x = 40; x < 61; x++) values[grid.index(x, 11)] = 7f;
+                values[grid.index(65, 11)] = 3f;
+                RouteCostField cost = new RouteCostField(values, RouteCostField.nextRevision());
+                GreedyNavigationMesh.Snapshot mesh = new GreedyNavigationMesh(grid).snapshot();
+                SquadRouteRequest request = request(grid, 65, 11, cost, 1, 2, 2, 12, 68, 0);
+                SquadRouteField expected = legacyField(grid, mesh, request);
+                SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
+                job.begin(request, mesh, true);
+                finish(job, 3);
+                assertEquals(expected.corridorCellCount(), job.corridorCells());
+                assertEquals(expected.settledCellCount(), job.field().settledCellCount());
+                for (int cell = 0; cell < values.length; cell++) {
+                    assertEquals(expected.covers(cell), job.field().covers(cell),
+                            "Changed coverage at " + cell + ", cardinal=" + cardinal);
+                    if (!expected.covers(cell)) continue;
+                    int x = cell % 70, y = cell / 70;
+                    int[] expectedPath = expected.extract(x, y);
+                    int[] actualPath = job.field().extract(x, y);
+                    assertArrayEquals(expectedPath, actualPath, "Changed successor at " + cell);
+                    assertEquals(pathCost(expectedPath, grid, cost), pathCost(actualPath, grid, cost));
+                    assertPath(grid, actualPath, 65, 11);
+                }
+            }
+        } finally {
+            GridPathfinder.USE_CARDINAL_NAVIGATION = cardinalBefore;
+        }
+    }
+
+    @Test
     void everyStageHonorsTinyBudgetsAndBothStartsEventuallyReachTheGoal() {
         NavigationGrid grid = openGrid(70, 9);
         SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
@@ -152,6 +217,39 @@ class SquadRouteBuildJobTest {
         assertEquals(fresh.reverseExpanded(), reused.reverseExpanded());
         assertArrayEquals(fresh.field().extract(39, 2), reused.field().extract(39, 2));
         assertArrayEquals(fresh.field().extract(38, 4), reused.field().extract(38, 4));
+    }
+
+    /** Independent old representation: seed-region union, padded once, then sorted cell mask. */
+    private static SquadRouteField legacyField(NavigationGrid grid,
+                                                GreedyNavigationMesh.Snapshot mesh,
+                                                SquadRouteRequest request) {
+        boolean[] route = new boolean[mesh.regions().size()];
+        boolean[] selected = new boolean[route.length];
+        for (int start : request.startCells()) {
+            int region = mesh.regionIdAt(start % grid.getWidth(), start / grid.getWidth());
+            if (region < 0 || selected[region]) continue;
+            int[] seed = GridPathfinder.findSquadRouteSeed(grid,
+                    start % grid.getWidth(), start / grid.getWidth(),
+                    request.goalX(), request.goalY(), GridPathfinder.USE_CARDINAL_NAVIGATION,
+                    request.cost());
+            for (int i = 0; i < seed.length; i += 2) {
+                route[mesh.regionIdAt(seed[i], seed[i + 1])] = true;
+            }
+            System.arraycopy(route, 0, selected, 0, route.length);
+            for (GreedyNavigationMesh.Transition transition : mesh.transitions()) {
+                if (route[transition.regionA()]) selected[transition.regionB()] = true;
+                if (route[transition.regionB()]) selected[transition.regionA()] = true;
+            }
+        }
+        int[] cells = new int[grid.getWidth() * grid.getHeight()];
+        int count = 0;
+        for (int cell = 0; cell < cells.length; cell++) {
+            int region = mesh.regionIdAt(cell % grid.getWidth(), cell / grid.getWidth());
+            if (region >= 0 && selected[region]) cells[count++] = cell;
+        }
+        return new SquadRouteField.Builder(grid).build(Arrays.copyOf(cells, count),
+                request.cost(), grid.index(request.goalX(), request.goalY()),
+                request.startCells(), GridPathfinder.USE_CARDINAL_NAVIGATION);
     }
 
     private static void finish(SquadRouteBuildJob job, int budget) {

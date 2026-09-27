@@ -27,12 +27,15 @@ import com.dillon.starsectormarines.battle.decision.ReflexContext;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.LongSupplier;
 
 /**
  * Per-unit GOAP dispatch for infantry. Pairs with the squad-level replan
@@ -122,7 +125,11 @@ public final class GoapInfantryBehavior implements UnitBehavior {
     /** Hard cap on planner-search node expansions. 256 is comfortably above what Stage 1's tiny action library needs; Stage 2 may bump as the action surface grows. */
     public static final int PLAN_NODE_LIMIT = 256;
 
-    /** Captured only by the opt-in Conquest profiler, never on the normal tick path. */
+    /**
+     * Captured only by the opt-in Conquest profiler, never on the normal tick path.
+     * CPU envelopes are host-thread CPU, not individual goal attribution; -1
+     * means disabled, unavailable, or not sampled. Selection is nested in actual replan.
+     */
     public record ReplanBreakdown(long worldStateNanos, long selectionNanos,
                                   long relevanceNanos, int relevanceCalls,
                                   String slowestRelevanceGoal, long slowestRelevanceNanos,
@@ -130,18 +137,63 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                                   long roleAssignmentNanos, String slowestRoleAction,
                                   long slowestRoleNanos, int roleCandidates,
                                   int planSteps, int planAttempts,
-                                  int declinedGoals, String selectedGoal) {
+                                  int declinedGoals, String selectedGoal,
+                                  long actualReplanNanos, long actualReplanCpuNanos,
+                                  long selectionCpuNanos) {
         public static final ReplanBreakdown EMPTY = new ReplanBreakdown(
-                0L, 0L, 0L, 0, "", 0L, 0L, 0L, 0L, "", 0L, 0, 0, 0, 0, "");
+                0L, 0L, 0L, 0, "", 0L, 0L, 0L, 0L, "", 0L, 0, 0, 0, 0, "",
+                0L, -1L, -1L);
     }
 
     public static final class ReplanTiming implements Goal.RelevanceProbe {
+        private static final boolean CPU_ENABLED = Boolean.getBoolean("battle.tail.replanCpu");
         private long worldStateNanos, selectionNanos, relevanceNanos;
         private long slowestRelevanceNanos, customPlanNanos, searchNanos;
         private long roleAssignmentNanos;
         private long slowestRoleNanos;
         private int relevanceCalls, planAttempts, declinedGoals, roleCandidates, planSteps;
         private String slowestRelevanceGoal = "", slowestRoleAction = "", selectedGoal = "";
+        private final LongSupplier cpuClock;
+        private long actualReplanNanos, actualReplanCpuNanos = -1L, selectionCpuNanos = -1L;
+        private boolean selectionCpuUnavailable;
+
+        public ReplanTiming() {
+            this(CPU_ENABLED ? ReplanTiming::currentCpuNanos : null);
+        }
+
+        ReplanTiming(LongSupplier cpuClock) { this.cpuClock = cpuClock; }
+
+        private static final class CpuClock {
+            private static final ThreadMXBean BEAN = ManagementFactory.getThreadMXBean();
+        }
+
+        private static long currentCpuNanos() {
+            try {
+                ThreadMXBean bean = CpuClock.BEAN;
+                return bean.isCurrentThreadCpuTimeSupported() && bean.isThreadCpuTimeEnabled()
+                        ? bean.getCurrentThreadCpuTime() : -1L;
+            } catch (UnsupportedOperationException | SecurityException ignored) {
+                return -1L;
+            }
+        }
+
+        long cpuNow() { return cpuClock == null ? -1L : cpuClock.getAsLong(); }
+
+        void finishReplan(long wallStarted, long cpuStarted) {
+            actualReplanCpuNanos = cpuDelta(cpuStarted, cpuNow());
+            actualReplanNanos = System.nanoTime() - wallStarted;
+        }
+
+        void finishSelection(long cpuStarted) {
+            long delta = cpuDelta(cpuStarted, cpuNow());
+            if (delta < 0L) selectionCpuUnavailable = true;
+            selectionCpuNanos = selectionCpuUnavailable ? -1L
+                    : Math.max(0L, selectionCpuNanos) + delta;
+        }
+
+        private static long cpuDelta(long started, long ended) {
+            return started >= 0L && ended >= started ? ended - started : -1L;
+        }
 
         @Override
         public void record(Goal goal, long nanos) {
@@ -159,7 +211,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                     slowestRelevanceNanos, customPlanNanos, searchNanos,
                     roleAssignmentNanos, slowestRoleAction, slowestRoleNanos,
                     roleCandidates, planSteps, planAttempts, declinedGoals,
-                    selectedGoal);
+                    selectedGoal, actualReplanNanos, actualReplanCpuNanos, selectionCpuNanos);
         }
     }
 
@@ -377,6 +429,17 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             return;
         }
 
+        long actualStarted = timing == null ? 0L : System.nanoTime();
+        long cpuStarted = timing == null ? -1L : timing.cpuNow();
+        try {
+            replan(squad, sim, timing, memberCountChanged, executableAssignment);
+        } finally {
+            if (timing != null) timing.finishReplan(actualStarted, cpuStarted);
+        }
+    }
+
+    private static void replan(Squad squad, BattleSimulation sim, ReplanTiming timing,
+                               boolean memberCountChanged, ObjectiveAssignment executableAssignment) {
         squad.routingEpoch++;
 
         // A live-member change invalidates both the role partition and any
@@ -404,7 +467,13 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         Set<Goal> declined = Set.of();
         while (true) {
             stageStart = timing == null ? 0L : System.nanoTime();
-            Goal.Choice choice = pickGoal(squad, sim, declined, evaluations);
+            long selectionCpuStarted = timing == null ? -1L : timing.cpuNow();
+            Goal.Choice choice;
+            try {
+                choice = pickGoal(squad, sim, declined, evaluations);
+            } finally {
+                if (timing != null) timing.finishSelection(selectionCpuStarted);
+            }
             if (timing != null) timing.selectionNanos += System.nanoTime() - stageStart;
             if (choice == null) {
                 goal = null;

@@ -316,6 +316,19 @@ Do not run builds or leave generated task files there.
   build counts remain separate. Legacy `slowSquadRouteBuilds` applies to the
   whole-build control. Inspect wait and cancellation alongside frame timings:
   pending means postponed objective travel, not successful movement.
+  Corridor membership reads the mesh's existing cell-to-region index; it no
+  longer stamps selected rectangles into a second per-cell mask. Coverage and
+  route search are unchanged, while those redundant writes no longer consume
+  the work allowance.
+  `-Dbattle.tail.replanCpu=true` adds opt-in current-host-thread CPU around
+  actual infantry replans and their goal-selection envelopes. Tail samples
+  keep disabled/unsupported/incomplete CPU readings as -1; selection is nested
+  within replanning and must not be added to it. Individual goal probes remain
+  wall-only. Wall minus CPU is a scheduling/runtime clue, not proof of lock
+  contention. `ALERT_*` buckets split squad alert into noise-mailbox drain,
+  belief maintenance, awareness, noise detection, incoming fire and final
+  publication; candidate and LOS counts describe visited entries and actual
+  visibility calls, not cache misses or ray steps.
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
   terminal crowding toll in flat A*. By default only that additive constant is
   omitted during search; intermediate crowding and terrain costs still rank

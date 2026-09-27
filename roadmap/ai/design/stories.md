@@ -9,6 +9,7 @@ firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
+| `route-region-membership.md` | IN PROGRESS | Remove redundant per-cell corridor preparation and distinguish replan CPU from wall-time stalls. |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
