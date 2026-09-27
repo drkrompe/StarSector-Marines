@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — grenade avoidance distinguishes imminent route danger
-from current exposure and bounds local escape deliberation.
+Updated: 2026-09-27 — optional quiet guard travel has finite effort and retained
+refusal, distinct from required homeward or investigative movement.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1726,6 +1726,16 @@ room-clear objective, and removing the live post context returns its squad to
 an ordinary local hold. Whether a wiped garrison is replaced or a defender
 force is strategically recommitted belongs to mission command, not the local
 guard plan.
+
+A quiet guard-post waypoint is optional local activity, not an obligation to
+prove a route across the map. Its route may be refused when local travel would
+require disproportionate effort or detour. A refusal starts a squad dwell
+before choosing another waypoint and survives routine plan refresh; concurrent
+members cannot publish a route for a waypoint a sibling has already retired.
+Only complete terrain-legal routes are usable. This allowance belongs to each
+member's attempt, not a battle-wide work scheduler. Returning to an assigned
+home, investigating evidence and maneuvering under contact retain their own
+distinct travel policies.
 
 When a tactical place supplies authored stand positions, initial allocation
 and structural fallback assign those cells as member homes before deriving

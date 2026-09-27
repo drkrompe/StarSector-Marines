@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 /**
  * Shared mechanics for the dwell-gated, squad-scoped waypoint patrol used by
@@ -28,6 +29,7 @@ import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
  * waypoint write is lock-guarded, matching the GOAP action concurrency contract.
  */
 public final class PatrolMotion {
+    public static final String BOUND_GUARD_PATROL_PROPERTY = "battle.pathfinding.boundGuardPatrol";
 
     /** Sim-seconds a squad rests at a waypoint before picking a new one. Long enough that the foot-traffic reads as patrol-pausing-to-look-around, not march-step. */
     public static final float DWELL_SECONDS = 4.0f;
@@ -46,6 +48,9 @@ public final class PatrolMotion {
      * isn't reset on a posture switch.
      */
     public interface WaypointSource {
+        /** Optional local wandering may decline costly routes; authored district/room tours do not. */
+        default boolean optionalLocalRouting() { return false; }
+
         /** Next waypoint {@code {x,y}}, or null to keep the current one and dwell. */
         int[] next(long member, Squad squad, BattleView sim);
 
@@ -65,7 +70,12 @@ public final class PatrolMotion {
      */
     public static ActionStatus advance(long member, Squad squad, BattleControl sim,
                                        WaypointSource source, boolean fireWhilePatrolling) {
+        boolean boundedQuiet = source.optionalLocalRouting()
+                && Boolean.parseBoolean(System.getProperty(BOUND_GUARD_PATROL_PROPERTY, "true"))
+                && !sim.world().hasMechLoadout(member);
         if (squad.patrolDwellTimer > 0f) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            if (boundedQuiet && profile != null) profile.recordCount(TickInnerProfile.Bucket.GUARD_PATROL_BACKOFF, 1);
             if (ticksDwell(member, squad, sim)) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
             onHold(member, sim, fireWhilePatrolling);
             return ActionStatus.RUNNING;
@@ -88,6 +98,10 @@ public final class PatrolMotion {
             onHold(member, sim, fireWhilePatrolling);
             return ActionStatus.RUNNING;
         }
+        if (boundedQuiet) {
+            advanceOptionalQuiet(member, squad, sim, fireWhilePatrolling);
+            return ActionStatus.RUNNING;
+        }
         boolean moving = onMove(member, sim, squad.patrolWaypointX, squad.patrolWaypointY, fireWhilePatrolling);
         if (!moving) {
             // The waypoint is unreachable from here — GridPathfinder found no
@@ -106,6 +120,40 @@ public final class PatrolMotion {
             }
         }
         return ActionStatus.RUNNING;
+    }
+
+    /** Search outside the squad monitor; only a still-current waypoint may receive the answer. */
+    private static void advanceOptionalQuiet(long member, Squad squad, BattleControl sim, boolean fire) {
+        if (fire) fireIfAble(member, sim);
+        int tx = squad.patrolWaypointX;
+        int ty = squad.patrolWaypointY;
+        if (tx < 0 || ty < 0 || squad.patrolDwellTimer > 0f) {
+            hold(member, sim);
+            return;
+        }
+        int[] path = sim.world().path(member);
+        if (sim.movement().pathTargetsCell(member, tx, ty)
+                && sim.world().pathIdx(member) < Paths.cellCount(path)) {
+            sim.advanceMovement(member);
+            return;
+        }
+        // A throttled callback is waiting, not a failed waypoint. In particular
+        // it must not keep walking an old combat/mission path while waiting.
+        boolean mayRepath = sim.movement().mayRepath(member);
+        hold(member, sim);
+        if (!mayRepath) return;
+        int[] found = QuietPatrolRoute.find(sim.getGrid(), sim.world().cellX(member),
+                sim.world().cellY(member), tx, ty, GridPathfinder.USE_CARDINAL_NAVIGATION);
+        if (Paths.isEmpty(found)) {
+            QuietPatrolRoute.refuse(squad, tx, ty);
+            return;
+        }
+        synchronized (squad.lock) {
+            if (squad.patrolWaypointX == tx && squad.patrolWaypointY == ty
+                    && squad.patrolDwellTimer <= 0f) sim.setPath(member, found);
+        }
+        // Start following on the next tick. A sibling may refuse this waypoint
+        // after this publication; the next callback checks dwell before moving.
     }
 
     /** Exactly one available member writes the dwell, including when the real leader is controlled. */

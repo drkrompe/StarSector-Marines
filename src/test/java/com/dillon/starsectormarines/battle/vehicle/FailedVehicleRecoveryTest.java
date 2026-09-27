@@ -186,7 +186,7 @@ class FailedVehicleRecoveryTest {
         mission.routeFields = request.fields;
         long id = convoy.spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         convoy.body(id).teleport(5.5f, 8.5f, -90f);
-        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation, false, 2048);
         VehicleControlComponent state = convoy.control(id);
         TickInnerProfile profile = new TickInnerProfile();
         TickInnerProfile.setCurrent(profile);

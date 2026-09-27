@@ -10,6 +10,11 @@ import java.util.Arrays;
  * answer for identical frozen inputs. Owned by the vehicle control component.
  */
 public final class FailedVehicleRecovery {
+    /** Malformed geometry must never acquire a reusable failed answer. */
+    static boolean cacheable(float facing, float radius) {
+        return Float.isFinite(facing) && Float.isFinite(radius) && radius >= 0f;
+    }
+
     private final ProgressiveVehicleField fields;
     private final long topologyRevision;
     private final VehicleType type;

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -66,6 +67,17 @@ public final class DrivableRouteSearch {
     private GridPathfinder.OnDemandSearch exhaustedBaseSearch;
     private int attemptsStarted;
     private int expandedNodesThisAdvance;
+    private boolean profileRecoverySetup;
+
+    /** Recovery admits at most one fresh attempt per tick, including zero-expansion refusals. */
+    Status advanceRecovery(RouteSearchBudget budget, int maxExpandedNodes) {
+        profileRecoverySetup = true;
+        try {
+            return advance(budget, 1, maxExpandedNodes);
+        } finally {
+            profileRecoverySetup = false;
+        }
+    }
 
     /**
      * A search over {@code clearance} for a body of {@code type}. The mask is
@@ -183,9 +195,14 @@ public final class DrivableRouteSearch {
                 && expandedNodesThisAdvance < maxExpandedNodes) {
             if (pendingSearch == null) {
                 if (!budget.claim()) return status;
-                pendingSearch = GridPathfinder.beginOnDemand(grid,
-                        startX, startY, goalX, goalY,
-                        indexedCost, workingPassable);
+                long started = profileRecoverySetup ? VehicleWorkProfile.start() : 0L;
+                try {
+                    pendingSearch = GridPathfinder.beginOnDemand(grid,
+                            startX, startY, goalX, goalY,
+                            indexedCost, workingPassable);
+                } finally {
+                    if (profileRecoverySetup) VehicleWorkProfile.finish(Bucket.VEHICLE_RECOVERY_SETUP, started);
+                }
                 attemptsStarted++;
             }
             attempted++;

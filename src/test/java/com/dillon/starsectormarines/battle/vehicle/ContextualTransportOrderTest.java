@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -116,15 +116,20 @@ class ContextualTransportOrderTest {
 
     @Test
     void pointingAnEmptyApcAtItselfIsStillAMoveOrder() {
-        // Nothing to unload, so the click keeps its ordinary meaning rather
-        // than silently doing nothing.
+        // Nothing to unload: this is an ordinary move whose destination has
+        // already been reached. Clearing an earlier refusal proves it resolved.
         BattleSimulation sim = arena();
         long apc = apcAt(sim, 40.5f, 40.5f);
+        sim.getVehicleMoveOrderService().refuse(apc, 0, 0,
+                VehicleMoveOrderService.Refusal.NO_ROUTE);
 
         sim.getVehicleMoveOrderService().requestMove(apc, 40, 40);
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertNotNull(sim.getVehicleMoveOrderService().refusal(apc),
-                "a move onto the cell it already occupies is refused, not ignored");
+        assertNull(sim.getVehicleMoveOrderService().refusal(apc),
+                "the completed self-move clears the previous refusal rather than being ignored");
+        assertNull(sim.getVehicleMoveOrderService().activeOrder(apc));
+        assertEquals(40.5f, sim.convoy().body(apc).x);
+        assertEquals(40.5f, sim.convoy().body(apc).y);
     }
 }

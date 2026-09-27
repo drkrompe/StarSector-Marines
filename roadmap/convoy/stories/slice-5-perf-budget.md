@@ -4,7 +4,7 @@ Status: IN PROGRESS — bound first-attempt recovery work and investigate planne
 
 Written: 2026-06-02
 
-Updated: 2026-09-27 — narrow remaining scope to first-attempt cost and physical-versus-planning clearance.
+Updated: 2026-09-27 — implement retained, expansion-sliced recovery after attributing the fresh proof burst.
 
 Read `convoy-nouns.md` before implementing this story.
 
@@ -23,6 +23,14 @@ The report is `/tmp/marines-route-admission-experiment.md`; these are distinct
 costs and must not be credited to one optimization.
 
 ## Remaining scope
+
+The latest paced capture on `0aae587bf` attributes 76.243 ms to one fresh
+recovery: 16 attempts and 85,675 expansions, followed by 24 exact failed-result
+reuses. Retain direction enumeration and the active on-demand search across
+ticks, with a finite expansion slice and at most one newly allocated search
+per vehicle per tick. Pending must not enter the failure memo; changed request
+identity must cancel rather than publish obsolete recovery. This is a
+per-vehicle limit, not yet a battle-wide scheduler or a bound on turn refinement.
 
 - Measure fresh recovery separately from exact failed-result reuse. A fresh
   query still evaluates departure bearings synchronously, with a separate
