@@ -22,6 +22,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * inline, the fixture only fits on its own, the fixture fits nowhere.
  */
 class TickProfileDumperTest {
+    @Test
+    void serializesFrozenSquadRouteBuildDiagnostics() throws Exception {
+        TickInnerProfile profile = new TickInnerProfile();
+        profile.recordSquadRouteBuild(2_000_000, 17, "COST", 6, 120,
+                2, 310, 150, 600, 1100, 950);
+        TickInnerProfile.Snapshot snapshot = profile.snapshot();
+        profile.reset();
+        JSONObject json = new JSONObject();
+        TickProfileDumper.putSquadRouteBuilds(json, snapshot.slowSquadRouteBuilds);
+        JSONObject sample = json.getJSONArray("slowSquadRouteBuilds").getJSONObject(0);
+        assertEquals(2.0, sample.getDouble("ms"));
+        assertEquals(17, sample.getInt("squadId"));
+        assertEquals("COST", sample.getString("reason"));
+        assertEquals(310, sample.getInt("seedExpanded"));
+        assertEquals(600, sample.getInt("unpaddedCells"));
+        assertEquals(1100, sample.getInt("corridorCells"));
+        assertEquals(950, sample.getInt("settledCells"));
+        assertTrue(json.getString("squadRouteBuildSemantics").contains("bounded-age"));
+    }
 
     private static final String PATH = "starsector_marines/debug/tick_profile_1.json";
     private static final String FIXTURE_PATH =

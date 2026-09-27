@@ -654,6 +654,20 @@ public final class GridPathfinder {
                 cardinalOnly, occupancy, null, null, cost, null, true, false);
     }
 
+    /** Serial squad preparation owns timing; keep its expansions separate from member A*. */
+    static int[] findSquadRouteSeed(NavigationGrid grid, int startX, int startY,
+                                   int goalX, int goalY, boolean cardinalOnly,
+                                   RouteCostField cost) {
+        WORKSPACE.get().expandedNodes = 0;
+        return findPathWithCostUnprofiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, null, cost);
+    }
+
+    /** Read immediately after a squad seed, before another search reuses this thread's scratch. */
+    static int squadSeedExpandedNodes() {
+        return WORKSPACE.get().expandedNodes;
+    }
+
     /** Records search detail without double-counting its caller's PATHFIND scope. */
     static int[] findPathWithCostSampled(NavigationGrid grid,
                                          int startX, int startY, int goalX, int goalY,

@@ -28,6 +28,30 @@ final class SquadRouteField {
     }
 
     /**
+     * Checks only successor chains members would actually follow, not the
+     * settled corridor or the map. Null costing is the baseline multiplier.
+     * Costs elsewhere can improve alternatives; bounded reconsideration owns
+     * those opportunities instead of making every decay a fresh optimization.
+     */
+    boolean hasMaterialCostIncrease(int[] starts, RouteCostField builtCost,
+                                    RouteCostField currentCost, float threshold) {
+        for (int start : starts) {
+            int cursor = start;
+            int visited = 0;
+            while (true) {
+                int local = Arrays.binarySearch(cells, cursor);
+                if (local < 0 || ++visited > cells.length) return true;
+                float before = builtCost == null ? 1f : builtCost.costAt(cursor);
+                float now = currentCost == null ? 1f : currentCost.costAt(cursor);
+                if (now - before >= threshold) return true;
+                if (cursor == goal) break;
+                cursor = next[local];
+            }
+        }
+        return false;
+    }
+
+    /**
      * Returns ordinary interleaved x/y path cells, including both endpoints.
      * An empty result means this field does not cover the start, not that the
      * destination is globally unreachable. The owner must try ordinary routing.

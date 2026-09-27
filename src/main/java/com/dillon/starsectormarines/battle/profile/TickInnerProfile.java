@@ -118,6 +118,16 @@ public final class TickInnerProfile {
     }
 
     public enum Bucket {
+        SQUAD_ROUTE_BUILD_NEW,
+        SQUAD_ROUTE_BUILD_GOAL,
+        SQUAD_ROUTE_BUILD_TOPOLOGY,
+        SQUAD_ROUTE_BUILD_COVERAGE,
+        SQUAD_ROUTE_BUILD_COST,
+        SQUAD_ROUTE_COST_CHECK,
+        SQUAD_ROUTE_COST_REUSE,
+        SQUAD_ROUTE_SEED_SEARCH,
+        SQUAD_ROUTE_SEED_EXPANDED,
+        SQUAD_ROUTE_SEED_PATH_CELL,
         SQUAD_TRAFFIC_PREPARE,
         SQUAD_TRAFFIC_MOVE,
         SQUAD_TRAFFIC_RETURN,
@@ -412,6 +422,9 @@ public final class TickInnerProfile {
     private long convoySearchesStarted;
     private final MutablePathSearch[] slowPathSearches = new MutablePathSearch[SLOW_PATH_SEARCH_LIMIT];
     private int slowPathSearchCount;
+    private final long[][] squadBuildValues = new long[8][10];
+    private final String[] squadBuildReasons = new String[8];
+    private int squadBuildCount;
     private Bucket activeBehavior;
     private long activeMemberId;
     private int activeSquadId = -1;
@@ -445,6 +458,8 @@ public final class TickInnerProfile {
         convoyExpandedNodes = 0L;
         convoySearchesStarted = 0L;
         slowPathSearchCount = 0;
+        squadBuildCount = 0;
+        Arrays.fill(squadBuildReasons, null);
         activeBehavior = null;
         clearUnitAction();
         exitAction();
@@ -593,6 +608,73 @@ public final class TickInnerProfile {
         if (slowPathSearchCount < SLOW_PATH_SEARCH_LIMIT) slowPathSearchCount++;
     }
 
+    /** Aggregate build causes and seed work, with allocation-free top-eight retention. */
+    public void recordSquadRouteBuild(long durationNanos, int squadId, String reason,
+                                     int startCount, int maxStartGoalManhattan,
+                                     int seedSearches, int seedExpanded, int seedPathCells,
+                                     int unpaddedCells, int corridorCells, int settledCells) {
+        Bucket cause = switch (reason) {
+            case "NEW" -> Bucket.SQUAD_ROUTE_BUILD_NEW;
+            case "GOAL" -> Bucket.SQUAD_ROUTE_BUILD_GOAL;
+            case "TOPOLOGY" -> Bucket.SQUAD_ROUTE_BUILD_TOPOLOGY;
+            case "COVERAGE" -> Bucket.SQUAD_ROUTE_BUILD_COVERAGE;
+            case "COST" -> Bucket.SQUAD_ROUTE_BUILD_COST;
+            default -> throw new IllegalArgumentException("Unknown squad route build reason: " + reason);
+        };
+        record(cause, durationNanos);
+        recordCount(Bucket.SQUAD_ROUTE_SEED_SEARCH, seedSearches);
+        recordCount(Bucket.SQUAD_ROUTE_SEED_EXPANDED, seedExpanded);
+        recordCount(Bucket.SQUAD_ROUTE_SEED_PATH_CELL, seedPathCells);
+        retainSquadRouteBuild(durationNanos, squadId, reason, startCount,
+                maxStartGoalManhattan, seedSearches, seedExpanded, seedPathCells,
+                unpaddedCells, corridorCells, settledCells);
+    }
+
+    private void retainSquadRouteBuild(long durationNanos, int squadId, String reason,
+                                      int startCount, int maxStartGoalManhattan,
+                                      int seedSearches, int seedExpanded, int seedPathCells,
+                                      int unpaddedCells, int corridorCells, int settledCells) {
+        int index = 0;
+        while (index < squadBuildCount && squadBuildValues[index][0] >= durationNanos) index++;
+        if (index == squadBuildValues.length) return;
+        int last = Math.min(squadBuildCount, squadBuildValues.length - 1);
+        long[] slot = squadBuildValues[last];
+        for (int i = last; i > index; i--) {
+            squadBuildValues[i] = squadBuildValues[i - 1];
+            squadBuildReasons[i] = squadBuildReasons[i - 1];
+        }
+        squadBuildValues[index] = slot;
+        squadBuildReasons[index] = reason;
+        slot[0] = durationNanos;
+        slot[1] = squadId;
+        slot[2] = startCount;
+        slot[3] = maxStartGoalManhattan;
+        slot[4] = seedSearches;
+        slot[5] = seedExpanded;
+        slot[6] = seedPathCells;
+        slot[7] = unpaddedCells;
+        slot[8] = corridorCells;
+        slot[9] = settledCells;
+        if (squadBuildCount < squadBuildValues.length) squadBuildCount++;
+    }
+
+    /** NEW means no prior entry (including after a flush); COST also includes age refresh. */
+    public record SquadRouteBuild(long nanos, int squadId, String reason,
+                                  int startCount, int maxStartGoalManhattan,
+                                  int seedSearches, int seedExpanded, int seedPathCells,
+                                  int unpaddedCells, int corridorCells, int settledCells) {}
+
+    public List<SquadRouteBuild> slowSquadRouteBuilds() {
+        List<SquadRouteBuild> samples = new ArrayList<>(squadBuildCount);
+        for (int i = 0; i < squadBuildCount; i++) {
+            long[] v = squadBuildValues[i];
+            samples.add(new SquadRouteBuild(v[0], (int) v[1], squadBuildReasons[i],
+                    (int) v[2], (int) v[3], (int) v[4], (int) v[5], (int) v[6],
+                    (int) v[7], (int) v[8], (int) v[9]));
+        }
+        return List.copyOf(samples);
+    }
+
     /** Cell-volume evidence for each compact squad field built this tick. */
     public void recordSquadRouteFieldShape(int corridorCells,
                                            int settledCells) {
@@ -642,6 +724,12 @@ public final class TickInnerProfile {
         convoyCostEvaluations += other.convoyCostEvaluations;
         convoyExpandedNodes += other.convoyExpandedNodes;
         convoySearchesStarted += other.convoySearchesStarted;
+        for (int i = 0; i < other.squadBuildCount; i++) {
+            long[] v = other.squadBuildValues[i];
+            retainSquadRouteBuild(v[0], (int) v[1], other.squadBuildReasons[i],
+                    (int) v[2], (int) v[3], (int) v[4], (int) v[5], (int) v[6],
+                    (int) v[7], (int) v[8], (int) v[9]);
+        }
         for (int i = 0; i < other.slowPathSearchCount; i++) {
             MutablePathSearch sample = other.slowPathSearches[i];
             retainSlowPathSearch(sample.nanos, sample.startX, sample.startY,
@@ -765,7 +853,7 @@ public final class TickInnerProfile {
                 squadRouteCorridorCells, squadRouteSettledCells,
                 pathfindExpandedNodes, slowPathSearches(),
                 convoyClearanceEvaluations, convoyCostEvaluations,
-                convoyExpandedNodes, convoySearchesStarted);
+                convoyExpandedNodes, convoySearchesStarted, slowSquadRouteBuilds());
     }
 
     /** Immutable frozen bucket state — what spike dumps carry forward past the next tick's reset. */
@@ -782,6 +870,7 @@ public final class TickInnerProfile {
         public final long convoyExpandedNodes;
         public final long convoySearchesStarted;
         public final List<PathSearch> slowPathSearches;
+        public final List<SquadRouteBuild> slowSquadRouteBuilds;
         public Snapshot(long[] nanos, int[] counts) {
             this(nanos, counts, Collections.emptyMap(), 0L, 0L);
         }
@@ -802,6 +891,16 @@ public final class TickInnerProfile {
                         long convoyCostEvaluations,
                         long convoyExpandedNodes,
                         long convoySearchesStarted) {
+            this(nanos, counts, actions, squadRouteCorridorCells, squadRouteSettledCells,
+                    pathfindExpandedNodes, slowPathSearches, convoyClearanceEvaluations,
+                    convoyCostEvaluations, convoyExpandedNodes, convoySearchesStarted, List.of());
+        }
+        public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions,
+                        long squadRouteCorridorCells, long squadRouteSettledCells,
+                        long pathfindExpandedNodes, List<PathSearch> slowPathSearches,
+                        long convoyClearanceEvaluations, long convoyCostEvaluations,
+                        long convoyExpandedNodes, long convoySearchesStarted,
+                        List<SquadRouteBuild> slowSquadRouteBuilds) {
             this.nanos = nanos;
             this.counts = counts;
             this.actions = actions;
@@ -809,6 +908,7 @@ public final class TickInnerProfile {
             this.squadRouteSettledCells = squadRouteSettledCells;
             this.pathfindExpandedNodes = pathfindExpandedNodes;
             this.slowPathSearches = List.copyOf(slowPathSearches);
+            this.slowSquadRouteBuilds = List.copyOf(slowSquadRouteBuilds);
             this.convoyClearanceEvaluations = convoyClearanceEvaluations;
             this.convoyCostEvaluations = convoyCostEvaluations;
             this.convoyExpandedNodes = convoyExpandedNodes;

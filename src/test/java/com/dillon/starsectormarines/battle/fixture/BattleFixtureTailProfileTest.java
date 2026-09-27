@@ -499,7 +499,10 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 15);
+        report.put("schemaVersion", 16);
+        report.put("squadRouteBuildSemantics", "top eight builds by wall duration; NEW means no prior entry, including after a flush; COST includes bounded-age refresh; seedPathCells sums seed lengths; cell volumes may overlap between builds");
+        report.put("retainSquadRouteCosts", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.retainSquadRouteCosts", "true")));
         report.put("flankStepGate", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.flankStepGate", "true")));
         report.put("retainFlankPlans", Boolean.parseBoolean(System.getProperty(
@@ -763,6 +766,20 @@ class BattleFixtureTailProfileTest {
         tick.put("squadFieldSettledCells",
                 sample.inner().squadRouteSettledCells);
         tick.put("squadRouteAdmission", sample.admission().json());
+        JSONArray builds = new JSONArray();
+        for (TickInnerProfile.SquadRouteBuild build : sample.inner().slowSquadRouteBuilds) {
+            builds.put(new JSONObject().put("ms", millis(build.nanos()))
+                    .put("squadId", build.squadId()).put("reason", build.reason())
+                    .put("startCount", build.startCount())
+                    .put("maxStartGoalManhattan", build.maxStartGoalManhattan())
+                    .put("seedSearches", build.seedSearches())
+                    .put("seedExpanded", build.seedExpanded())
+                    .put("seedPathCells", build.seedPathCells())
+                    .put("unpaddedCells", build.unpaddedCells())
+                    .put("corridorCells", build.corridorCells())
+                    .put("settledCells", build.settledCells()));
+        }
+        tick.put("slowSquadRouteBuilds", builds);
         tick.put("convoyRouteWork", convoyWorkJson(new long[]{
                 sample.inner().convoyClearanceEvaluations,
                 sample.inner().convoyCostEvaluations,
