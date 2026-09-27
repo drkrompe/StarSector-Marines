@@ -4,9 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-09-01 — a player's tactical squad order is a lease taken through
-the assignment arbiter at `PLAYER_INTERVENTION`; the commander's directive is
-shelved beneath it and is what the squad resumes.
+Updated: 2026-09-27 — strategic-resolution evidence separates propagation
+connectivity, scalar spatial precision, rebuild wall stages and host CPU.
 Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
 the underlying directive remains authoritative and resumes on release.
@@ -157,6 +156,18 @@ topology, source aggregation, and propagation publish their own refresh counts
 and costs; they may be triggered by command frame capture or tactical GOAP and
 must not be added to the enclosing phase. These are timing diagnostics, not
 commander facts, and never enter deterministic traces.
+
+Strategic field resolution and navigation legality are separate concerns.
+Coarser influence blocks may reduce propagation work, but must not invent
+connections through walls or change individual movement clearance. Propagation
+attenuation is calibrated against physical block width, rather than letting a
+larger block silently extend the influence horizon. A block's published scalar
+can still aggregate disconnected local regions; this spatial aliasing is not
+evidence that the regions connect. Resolution experiments compare identical
+frozen geometry and faction-local knowledge, report that information loss
+alongside computation, and do not by themselves establish combat outcomes.
+The production influence and casualty-memory resolution remains unchanged
+until such an experiment justifies a separate adoption decision.
 
 A **casualty memory** is a side's record of where it recently lost people, at
 influence-block resolution and decaying with a half-life. It is own-force

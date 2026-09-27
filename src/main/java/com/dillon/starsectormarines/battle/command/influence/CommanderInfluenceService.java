@@ -318,7 +318,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
         if (worker != null) worker.shutdownNow();
     }
 
-    private List<InfluenceSource> friendlySources(Faction faction) {
+    List<InfluenceSource> friendlySources(Faction faction) {
         List<InfluenceSource> sources = new ArrayList<>();
         World world = roster.world();
         IdentityService identity = roster.identity();
@@ -331,7 +331,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
         return sources;
     }
 
-    private List<CommanderContact> aggregateContacts(Faction faction) {
+    List<CommanderContact> aggregateContacts(Faction faction) {
         Map<Long, CommanderContact> merged = new LinkedHashMap<>();
         IdentityService identity = roster.identity();
         for (Squad squad : roster.getSquads()) {

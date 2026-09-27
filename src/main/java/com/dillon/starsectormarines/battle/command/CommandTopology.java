@@ -4,14 +4,28 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /** Frozen public topology with no live-simulation or mutation surface. */
 public final class CommandTopology {
+
+    private static final String CPU_PROFILE_PROPERTY = "battle.profile.commandTopologyCpu";
+
+    private static final class CpuClock {
+        private static final ThreadMXBean BEAN = ManagementFactory.getThreadMXBean();
+
+        static long now() {
+            return BEAN.isCurrentThreadCpuTimeSupported() && BEAN.isThreadCpuTimeEnabled()
+                    ? BEAN.getCurrentThreadCpuTime() : -1L;
+        }
+    }
 
     public record Zone(int id, int[] cells, List<Integer> adjacentZones) {
         public Zone {
@@ -38,30 +52,75 @@ public final class CommandTopology {
     private final int[] componentByZone;
 
     private CommandTopology(NavigationGrid grid, int[] zoneByCell,
-                            List<Zone> zones, int[] componentByCell) {
+                            List<Zone> zones, int[] componentByCell,
+                            TickInnerProfile profile) {
+        long started = profile != null ? System.nanoTime() : 0L;
         this.grid = grid;
         this.zoneByCell = zoneByCell;
         this.zones = List.copyOf(zones);
         this.componentByCell = componentByCell;
+        if (profile != null) profile.record(
+                TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_PUBLICATION,
+                System.nanoTime() - started);
+        started = profile != null ? System.nanoTime() : 0L;
         this.componentByZone = labelZoneComponents(this.zones);
+        if (profile != null) profile.record(
+                TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_ZONE_COMPONENTS,
+                System.nanoTime() - started);
     }
 
     public static CommandTopology freeze(BattleView sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long cpuStarted = profile != null && Boolean.getBoolean(CPU_PROFILE_PROPERTY)
+                ? CpuClock.now() : -1L;
+        try {
+            return freeze(sim, profile);
+        } finally {
+            if (cpuStarted >= 0L) {
+                long cpuEnded = CpuClock.now();
+                if (cpuEnded >= cpuStarted) profile.record(
+                        TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_CPU,
+                        cpuEnded - cpuStarted);
+            }
+        }
+    }
+
+    private static CommandTopology freeze(BattleView sim, TickInnerProfile profile) {
+        long started = profile != null ? System.nanoTime() : 0L;
         NavigationGrid live = sim.getGrid();
         NavigationGrid copy = live.copyNavigationTopology();
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_GRID_COPY,
+                    System.nanoTime() - started);
+            profile.recordCount(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_MAP_CELLS,
+                    live.getWidth() * live.getHeight());
+        }
 
+        started = profile != null ? System.nanoTime() : 0L;
         ZoneGraph graph = sim.getZoneGraph();
         int[] zoneByCell = new int[live.getWidth() * live.getHeight()];
-        java.util.Arrays.fill(zoneByCell, -1);
+        Arrays.fill(zoneByCell, -1);
         List<Zone> zones = new ArrayList<>(graph.getZones().size());
+        int zoneCells = 0;
         for (NavigationZone zone : graph.getZones()) {
             int[] cells = zone.getCellIndices().clone();
+            zoneCells += cells.length;
             for (int cell : cells) zoneByCell[cell] = zone.getZoneId();
             zones.add(new Zone(zone.getZoneId(), cells,
                     graph.adjacentZones(zone.getZoneId())));
         }
-        return new CommandTopology(copy, zoneByCell, zones,
-                GridPathfinder.labelConnectedComponents(copy));
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_ZONE_COPY,
+                    System.nanoTime() - started);
+            profile.recordCount(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_ZONE_CELLS, zoneCells);
+            profile.recordCount(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_ZONES, zones.size());
+        }
+        started = profile != null ? System.nanoTime() : 0L;
+        int[] components = GridPathfinder.labelConnectedComponents(copy);
+        if (profile != null) profile.record(
+                TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_CELL_COMPONENTS,
+                System.nanoTime() - started);
+        return new CommandTopology(copy, zoneByCell, zones, components, profile);
     }
 
     public int width() { return grid.getWidth(); }
