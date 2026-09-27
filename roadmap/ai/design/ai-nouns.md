@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — shared route preparation yields under per-request and
-per-tick work budgets; budget refusal waits rather than implying unreachability.
+Updated: 2026-09-27 — required route preparation yields under work budgets;
+optional flank selection may give up under its own allowance with explicit handback.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
