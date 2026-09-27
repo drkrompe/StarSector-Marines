@@ -1,10 +1,10 @@
 # Slice 5 — Planner Performance Budget
 
-Status: IN PROGRESS — production-paced captures establish repeated local setup and synchronous recovery cost.
+Status: IN PROGRESS — bound first-attempt recovery work and investigate planner-start failures.
 
 Written: 2026-06-02
 
-Updated: 2026-09-27 — contract exact invalid-start rejection first; investigate recovery reuse separately.
+Updated: 2026-09-27 — narrow remaining scope to first-attempt cost and physical-versus-planning clearance.
 
 Read `convoy-nouns.md` before implementing this story.
 
@@ -22,24 +22,22 @@ separate recovery call consumed 51.255 ms for 16 attempts and 85,602 nodes.
 The report is `/tmp/marines-route-admission-experiment.md`; these are distinct
 costs and must not be credited to one optimization.
 
-## Current scope
+## Remaining scope
 
-- Check the exact padded starting footprint before local heuristic allocation.
-  An invalid padded start already rejects every first successor, so preserve
-  the same null result without setup. Keep window-entry, off-map-tail, docking,
-  physical clearance, and recovery policies unchanged.
-- Classify refusals as actual-chassis-invalid versus planning-padding-only,
-  and bounds versus terrain/closed-edge failure. Retain a same-build control.
-- Prove refusal parity and zero heuristic work on focused inputs; measure
-  classification and remaining recovery cost in the production-paced fixture.
-- Reuse a completed failed bounded recovery only for an identical request
-  against the same frozen routing inputs, including snapped endpoints,
-  exclusions, type, and tried-bearing policy. Changed requests retry; successful
-  answers are not negative entries. Control/route reset releases the entry.
-  Keep the legacy live-input branch unchanged and provide an independent control.
-- Progressive recovery remains separate: exact reuse removes repeated bursts,
-  not the cost of a first attempt. A future pending route must not be treated
-  as failure or installed after its intent changes.
+- Measure fresh recovery separately from exact failed-result reuse. A fresh
+  query still evaluates departure bearings synchronously, with a separate
+  bounded route-search allowance per bearing and no per-tick node ceiling.
+- Investigate ranking departure bearings before proving their routes. The
+  current winner depends on forward alignment and stable direction order,
+  not route length; a lower-ranked feasible route cannot replace a higher-ranked
+  feasible one. Pin selection parity before short-circuiting those proofs.
+- Bound unavoidable fresh recovery across ticks if it remains a spike source.
+  Pending is neither failure nor a route: retain the frontier, hold safely,
+  share a per-tick allowance, and discard work when its request changes.
+- Use invalid-start classifications to distinguish physical overlap from a
+  physically legal pose rejected only by planning padding. Making rejection
+  cheap does not restore progress. Any escape behavior needs separate motion
+  acceptance, including map edges, walls, docking, and off-map departure.
 
 ## Candidate levers
 
@@ -50,16 +48,17 @@ costs and must not be credited to one optimization.
 
 ## Acceptance
 
-The first change preserves local-plan outcomes while avoiding heuristic and
-lattice work for a proved invalid start; valid starts still plan, including
-starts outside the supplied window that can move into it. Counters distinguish
-the rejection causes and the control. This does not close the independent
-recovery spike or the broader planner-budget story.
+Show fresh recovery's actual per-tick searches, expanded nodes and wall time,
+not just lower cumulative cost from reuse. A resumed search must make progress
+under its allowance, including when its lifetime attempt budget is spent but
+an already-paid frontier remains. Preserve route selection unless a deliberate
+behavior change is explicitly measured.
 
-Any later cache or resumed search needs an explicit identity/invalidation rule
-for changed pose, route, exclusions, and navigation inputs. Vehicle wrecks do
-not mutate terrain; real topology changes must be handled by the owning
-routing contract.
+Any resumed search needs an explicit identity/invalidation rule for changed
+pose, route, exclusions, and navigation inputs. Vehicle wrecks do not mutate
+terrain; real topology changes must be handled by the owning routing contract.
+Keep physical collision and safe on-grid holding intact. Do not loosen the
+planner's padding globally to make a failure counter disappear.
 
 ## Out of scope
 
