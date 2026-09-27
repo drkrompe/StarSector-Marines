@@ -212,6 +212,13 @@ public final class DrivableRouteSearch {
     /** How the search stands, without spending anything. */
     public Status status() { return status; }
 
+    /**
+     * An already-paid A* frontier can resume even when the lifetime budget is
+     * exhausted. A PENDING wrapper alone is insufficient: turn rejection can
+     * leave it waiting to claim a new attempt with no frontier to advance.
+     */
+    public boolean hasActiveAttempt() { return pendingSearch != null; }
+
     /** The drivable polyline, or {@code null} until {@link #status} is {@link Status#ROUTED}. */
     public float[][] route() { return route; }
 
