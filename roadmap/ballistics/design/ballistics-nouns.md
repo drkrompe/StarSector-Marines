@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — Mech point fire shares posed muzzle sources and physical terminal payloads.
+Updated: 2026-09-26 — launch intents publish after member join without delaying physical flight.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -179,6 +179,15 @@ than solving friendly fire by making experienced soldiers fire less.
 for delayed impacts. A direct damage payload or contact-fused detonation
 arrives at the committed flight time; an overshoot leaves the modeled segment
 without a phantom impact.
+
+During parallel member updates, the active projectile population is host-owned
+and stable. Members publish launch intents; only a successful join authorizes
+the host to collect them into the active population. Collection precedes
+point defence and projectile aging, preserving launch-tick interception and
+flight timing. Hazard decisions use the update-start population, while damage
+and throw reservations may also inspect fresh launch commitments. This is a
+decision-observation delay, not an extra tick of physical flight. An unfinished
+or failed update phase cannot publish partial launches or advance their clocks.
 
 `ShotEvent` and the render path observe the same flight. Traveling bolts and
 sprites advance to arrival, while a non-traveling tracer remains a presentation

@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — target enumeration is bounded by existing sight and belief;
-usable execution firing positions persist independently of periodic replanning.
+Updated: 2026-09-26 — member-owned route intents publish after join; projectile
+hazard observations remain stable during member updates.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -276,6 +276,21 @@ only the member's own update may install a completed route after validating its
 assignment, plan epoch, starting cell, and topology. Changed intent or local
 contact retires obsolete work. Publication is readiness-based rather than a
 replay guarantee; forced-synchronous evidence remains an explicit control.
+
+During member updates, route intent belongs to that member alone. Registry
+changes, cancellation of obsolete jobs, input freezing, and new submissions
+belong to the joined host phase. Members can consume already-ready results;
+new requests begin searching after the update phase and can first deliver in a
+later update. A failed dispatch is not a join and grants no authority to publish
+or reuse its unfinished intents.
+
+Projectile hazard decisions share the projectile population present at the
+start of member updates. New launches become hazard observations on the next
+update, rather than changing sibling decisions midway through dispatch.
+Damage and throw coordination also observe fresh launch commitments, so the
+observation delay does not erase spent ammunition from reservation checks.
+Concurrent reservation decisions may still race; they are coordination hints,
+not an atomic promise that only one member will fire.
 
 An **ambient task assignment** is low-stakes authored world work for an existing
 battle actor: resting at a berth, inspecting a console, maintaining machinery,

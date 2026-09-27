@@ -207,8 +207,11 @@ public interface BattleView {
     /** Live projectiles in flight. */
     List<Projectile> getActiveProjectiles();
 
-    /** Thread-safe projectile snapshot for planning and opportunity-fire scoring. */
+    /** Phase-start projectile hazard view; fresh member launches become visible next phase. */
     List<Projectile> snapshotActiveProjectiles();
+
+    /** Coordination view including fresh launch intents; not for hazard perception. */
+    default Iterable<Projectile> committedProjectiles() { return snapshotActiveProjectiles(); }
 
     /** Resolve any held live roster entity or targetable convoy vehicle, else {@code 0L}. */
     long resolveUnit(long id);

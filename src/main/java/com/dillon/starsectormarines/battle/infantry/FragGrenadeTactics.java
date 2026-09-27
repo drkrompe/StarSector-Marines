@@ -185,7 +185,7 @@ public final class FragGrenadeTactics {
                                                      float radius, String weaponId,
                                                      Faction faction,
                                                      BattleView sim) {
-        for (Projectile projectile : sim.snapshotActiveProjectiles()) {
+        for (Projectile projectile : sim.committedProjectiles()) {
             if (projectile.shooterFaction != faction
                     || !weaponId.equals(projectile.sourceWeaponId)) continue;
             float reach = radius + (projectile.onArrival != null

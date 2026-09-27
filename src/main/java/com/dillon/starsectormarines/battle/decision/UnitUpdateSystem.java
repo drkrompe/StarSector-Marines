@@ -9,7 +9,9 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.nav.LosCaches;
+import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import jdk.jfr.Category;
@@ -208,6 +210,16 @@ public final class UnitUpdateSystem implements AutoCloseable {
         }
         boolean parallel = shouldDispatchInParallel(
                 liveCount, minimumParallelUnits, pool.getParallelism());
+        AsyncDefendTrackRoutes routes = sim.asyncDefendTrackRoutes();
+        long prepareStart = System.nanoTime();
+        boolean memberRoutePhase = routes != null && routes.beginMemberUpdates(snapshot, liveCount);
+        if (memberRoutePhase) tickInnerProfile.record(
+                TickInnerProfile.Bucket.RALLY_REQUEST_PREPARE, System.nanoTime() - prepareStart);
+        ShotService shots = sim.getShots();
+        prepareStart = System.nanoTime();
+        boolean projectilePhase = shots.beginMemberUpdates();
+        if (projectilePhase) tickInnerProfile.record(
+                TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_PREPARE, System.nanoTime() - prepareStart);
         long dispatchStart = captureDiagnostics ? System.nanoTime() : 0L;
         long awaitWorkersNanos = 0L;
         damageService.enterParallel();
@@ -220,10 +232,28 @@ public final class UnitUpdateSystem implements AutoCloseable {
                     updateUnit(snapshot[i], sim, captureDiagnostics);
                 }
             }
+        } catch (RuntimeException | Error failure) {
+            if (projectilePhase) shots.abandonMemberUpdates();
+            throw failure;
         } finally {
             damageService.exitParallel();
         }
         long dispatchNanos = captureDiagnostics ? System.nanoTime() - dispatchStart : 0L;
+        // Only normal return establishes the worker join. Never drain mutable
+        // member inboxes from finally: failed/interrupted dispatch can leave
+        // child work running. A failed phase remains abandoned until close.
+        if (memberRoutePhase) {
+            long commitStart = System.nanoTime();
+            routes.finishMemberUpdates(sim.getGrid(), sim.getOccupancyMap());
+            tickInnerProfile.record(TickInnerProfile.Bucket.RALLY_REQUEST_COMMIT,
+                    System.nanoTime() - commitStart);
+        }
+        if (projectilePhase) {
+            long commitStart = System.nanoTime();
+            shots.finishMemberUpdates();
+            tickInnerProfile.record(TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_COMMIT,
+                    System.nanoTime() - commitStart);
+        }
         TickInnerProfile.mergeAllInto(tickInnerProfile);
         if (captureDiagnostics) {
             lastTickDiagnostics = collectDiagnostics(

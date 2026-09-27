@@ -508,6 +508,10 @@ class BattleFixtureTailProfileTest {
                 "battle.targeting.pruneClearZoneSelection", "true")));
         report.put("isolatedAdvanceThreat", Boolean.parseBoolean(System.getProperty(
                 "battle.squad.isolatedAdvanceThreat", "true")));
+        report.put("phaseOwnedRallyRequests", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.phaseOwnedRallyRequests", "true")));
+        report.put("phaseOwnedProjectiles", Boolean.parseBoolean(System.getProperty(
+                "battle.projectiles.phaseOwnedPublication", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",
@@ -583,6 +587,9 @@ class BattleFixtureTailProfileTest {
         report.put("asyncRouteSnapshotTotalMs", millis(finalRoutes.snapshotNanos()
                 - firstRoutes.snapshotNanos()));
         report.put("asyncRouteNoPath", finalRoutes.noPath() - firstRoutes.noPath());
+        report.put("asyncRoutePollCalls", finalRoutes.pollCalls() - firstRoutes.pollCalls());
+        report.put("asyncRouteCancelCalls", finalRoutes.cancelCalls() - firstRoutes.cancelCalls());
+        report.put("asyncRouteNoOpCancels", finalRoutes.noOpCancels() - firstRoutes.noOpCancels());
         // Histograms/maxima belong to the service lifetime, including warmup.
         // They cannot be differenced like cumulative time and event counters.
         report.put("asyncRouteLatencyToDate", new JSONObject()
@@ -802,6 +809,9 @@ class BattleFixtureTailProfileTest {
                         - before.searchNanos()))
                 .put("snapshotMs", millis(after.snapshotNanos() - before.snapshotNanos()))
                 .put("noPath", after.noPath() - before.noPath())
+                .put("pollCalls", after.pollCalls() - before.pollCalls())
+                .put("cancelCalls", after.cancelCalls() - before.cancelCalls())
+                .put("noOpCancels", after.noOpCancels() - before.noOpCancels())
                 .put("queueDepth", after.queueDepth())
                 .put("pendingMembers", after.pendingMembers())
                 .put("maxQueueDepthSoFar", after.maxQueueDepth()));
