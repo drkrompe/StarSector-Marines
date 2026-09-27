@@ -499,7 +499,11 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 14);
+        report.put("schemaVersion", 15);
+        report.put("flankStepGate", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.flankStepGate", "true")));
+        report.put("retainFlankPlans", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.retainFlankPlans", "true")));
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
         report.put("squadRouteAdmissionEnabled", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.squadRouteAdmission", "true")));

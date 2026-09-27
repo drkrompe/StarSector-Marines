@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.drone.DroneHub;
+import com.dillon.starsectormarines.battle.infantry.RetainedFlankWaypoint;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
@@ -375,6 +376,10 @@ public final class Squad {
      * per tick rather than once per member. See {@link FlankAimMemo}.
      */
     public final FlankAimMemo flankAim = new FlankAimMemo();
+    /** Serial plan-time choice; never read or written by member callbacks. */
+    public final RetainedFlankWaypoint retainedFlankWaypoint;
+    /** Exact plan that owns the retained choice; replacement retires its authority. */
+    public SquadPlan retainedFlankPlan;
 
     // ---- Per-tick cached aggregates ----
     // Refreshed once per sim tick by SquadAlertSystem, so
@@ -1136,6 +1141,7 @@ public final class Squad {
         this.id = id;
         this.faction = faction;
         this.firingPositions = new SquadFiringPositions(id);
+        this.retainedFlankWaypoint = new RetainedFlankWaypoint(id);
     }
 
     /**
