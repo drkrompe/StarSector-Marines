@@ -3,11 +3,14 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.BoundedStepReachability;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -59,6 +62,11 @@ public final class ReinforceContact implements Goal {
     public static final String PRUNE_FLANK_CANDIDATES_PROPERTY = "battle.pathfinding.pruneFlankCandidates";
     /** Same-build control for detour-bounded route proofs, independent of candidate pruning. */
     public static final String BOUND_FLANK_PROOFS_PROPERTY = "battle.pathfinding.boundFlankProofs";
+    /** Independent control for shared, rejection-only minimum-step proofs. */
+    public static final String FLANK_STEP_GATE_PROPERTY = "battle.pathfinding.flankStepGate";
+    public static final String RETAIN_FLANK_PLANS_PROPERTY = "battle.goap.retainFlankPlans";
+    private static final ThreadLocal<BoundedStepReachability> STEP_GATE =
+            ThreadLocal.withInitial(BoundedStepReachability::new);
 
     private ReinforceContact() {}
 
@@ -113,13 +121,30 @@ public final class ReinforceContact implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        int[] wp = computeFlankWaypoint(squad, sim);
-        return new SquadPlan(List.of(new SquadPlan.Step(new FlankApproach(wp[0], wp[1]))));
+        boolean retain = Boolean.parseBoolean(System.getProperty(RETAIN_FLANK_PLANS_PROPERTY, "true"));
+        if (!retain || squad.currentGoal != INSTANCE || squad.currentPlan == null
+                || squad.currentPlan.isComplete() || squad.currentPlan != squad.retainedFlankPlan) {
+            squad.retainedFlankWaypoint.clear();
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) profile.enterAction(0L, squad.id, "ReinforceContact");
+        try {
+            int[] wp = computeFlankWaypoint(squad, sim, retain);
+            SquadPlan plan = new SquadPlan(List.of(new SquadPlan.Step(new FlankApproach(wp[0], wp[1]))));
+            squad.retainedFlankPlan = retain ? plan : null;
+            return plan;
+        } finally {
+            if (profile != null) profile.exitAction();
+        }
     }
 
     // ---- Flanking waypoint algorithm ----
 
     static int[] computeFlankWaypoint(Squad squad, BattleView sim) {
+        return computeFlankWaypoint(squad, sim, false);
+    }
+
+    private static int[] computeFlankWaypoint(Squad squad, BattleView sim, boolean retain) {
         int contactX = squad.lastSeenEnemyX;
         int contactY = squad.lastSeenEnemyY;
         // Vector math runs in continuous space: the contact CELL's center vs
@@ -139,7 +164,10 @@ public final class ReinforceContact implements Goal {
         }
 
         float len = (float) Math.sqrt(axisX * axisX + axisY * axisY);
-        if (len < 0.01f) return new int[]{contactX, contactY};
+        if (len < 0.01f) {
+            squad.retainedFlankWaypoint.clear();
+            return new int[]{contactX, contactY};
+        }
         axisX /= len;
         axisY /= len;
 
@@ -157,7 +185,39 @@ public final class ReinforceContact implements Goal {
         int rawX = (int) Math.floor(contactCX + perpX * FLANK_RADIUS);
         int rawY = (int) Math.floor(contactCY + perpY * FLANK_RADIUS);
 
-        return snapToReachable(rawX, rawY, squad, sim);
+        NavigationGrid grid = sim.getGrid();
+        int[] origin = squadOrigin(squad, sim);
+        long contactId = projectedContactId(squad);
+        int tick = sim.getSimTickIndex();
+        boolean cardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        RetainedFlankWaypoint.Cell saved = retain ? squad.retainedFlankWaypoint.lookup(
+                grid, squad.assignmentForExecution(), contactId, contactX, contactY,
+                origin[0], origin[1], rawX, rawY, cardinal, tick) : null;
+        if (saved != null) {
+            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FLANK_PLAN_REUSE, 1);
+            return new int[]{saved.x(), saved.y()};
+        }
+        if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FLANK_PLAN_SELECT, 1);
+        int[] waypoint = snapToReachable(rawX, rawY, grid, origin[0], origin[1],
+                Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")),
+                Boolean.parseBoolean(System.getProperty(BOUND_FLANK_PROOFS_PROPERTY, "true")),
+                Boolean.parseBoolean(System.getProperty(FLANK_STEP_GATE_PROPERTY, "true")));
+        if (retain) squad.retainedFlankWaypoint.remember(grid, squad.assignmentForExecution(),
+                contactId, contactX, contactY, origin[0], origin[1], rawX, rawY, cardinal, tick,
+                waypoint[0], waypoint[1]);
+        return waypoint;
+    }
+
+    /** Match the freshest belief/audio projection that supplies lastSeenEnemy, not a different primary. */
+    private static long projectedContactId(Squad squad) {
+        BelievedContact freshest = null;
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (freshest == null || contact.lastSeenTick() > freshest.lastSeenTick()) freshest = contact;
+        }
+        AudibleBearing heard = squad.audibleBearing();
+        return freshest != null && (heard == null || freshest.lastSeenTick() >= heard.heardTick())
+                ? freshest.unitId() : heard == null ? 0L : heard.sourceUnitId();
     }
 
     private static Squad findEngagedFriendlyNearContact(Squad self, BattleView sim) {
@@ -225,7 +285,8 @@ public final class ReinforceContact implements Goal {
         int[] origin = squadOrigin(squad, sim);
         return snapToReachable(x, y, grid, origin[0], origin[1],
                 Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")),
-                Boolean.parseBoolean(System.getProperty(BOUND_FLANK_PROOFS_PROPERTY, "true")));
+                Boolean.parseBoolean(System.getProperty(BOUND_FLANK_PROOFS_PROPERTY, "true")),
+                Boolean.parseBoolean(System.getProperty(FLANK_STEP_GATE_PROPERTY, "true")));
     }
 
     /**
@@ -242,9 +303,20 @@ public final class ReinforceContact implements Goal {
 
     static int[] snapToReachable(int x, int y, NavigationGrid grid,
                                  int originX, int originY, boolean prune, boolean boundProofs) {
+        return snapToReachable(x, y, grid, originX, originY, prune, boundProofs, false);
+    }
+
+    static int[] snapToReachable(int x, int y, NavigationGrid grid,
+                                 int originX, int originY, boolean prune, boolean boundProofs,
+                                 boolean stepGate) {
         int bestX = originX;
         int bestY = originY;
         float bestScore = Float.MAX_VALUE;
+        int proofs = 0;
+        BoundedStepReachability gate = null;
+        int maximumSteps = Math.max(Math.abs(x - originX), Math.abs(y - originY))
+                + WALKABLE_SNAP_RADIUS + MAX_FLANK_EXTRA_STEPS;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
         for (int r = 0; r <= WALKABLE_SNAP_RADIUS; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
@@ -259,13 +331,30 @@ public final class ReinforceContact implements Goal {
                             Math.abs(candidateY - originY));
                     float rawDistance2 = dx * dx + dy * dy;
                     if (prune && rawDistance2 * 1000f + directSteps >= bestScore) continue;
-                    TickInnerProfile profile = TickInnerProfile.currentIfBound();
+                    int maxSteps = Math.min(directSteps + MAX_FLANK_EXTRA_STEPS,
+                            (int) Math.floor(directSteps * MAX_FLANK_DETOUR_RATIO
+                                    + MAX_FLANK_DETOUR_SLACK));
+                    // Ordinary open-ground queries finish before this gate is needed.
+                    // Cap both radius and expansion work: an incomplete proof may
+                    // reject only completed BFS depths, never unknown territory.
+                    if (stepGate && gate == null && proofs >= 4 && maximumSteps <= 96) {
+                        gate = STEP_GATE.get();
+                        long started = profile == null ? 0L : System.nanoTime();
+                        gate.prepare(grid, originX, originY, GridPathfinder.USE_CARDINAL_NAVIGATION,
+                                maximumSteps, 8192);
+                        if (profile != null) {
+                            profile.record(TickInnerProfile.Bucket.FLANK_STEP_FIELD, System.nanoTime() - started);
+                            profile.recordCount(TickInnerProfile.Bucket.FLANK_STEP_EXPANDED, gate.expandedNodes());
+                        }
+                    }
+                    if (gate != null && gate.canReject(candidateX, candidateY, maxSteps)) {
+                        if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FLANK_STEP_REJECT, 1);
+                        continue;
+                    }
+                    proofs++;
                     if (profile != null) profile.routeReason("FLANK_SNAP");
                     int[] path;
                     try {
-                        int maxSteps = Math.min(directSteps + MAX_FLANK_EXTRA_STEPS,
-                                (int) Math.floor(directSteps * MAX_FLANK_DETOUR_RATIO
-                                        + MAX_FLANK_DETOUR_SLACK));
                         path = boundProofs
                                 ? GridPathfinder.findPathWithinStepEnvelope(grid,
                                         originX, originY, candidateX, candidateY,

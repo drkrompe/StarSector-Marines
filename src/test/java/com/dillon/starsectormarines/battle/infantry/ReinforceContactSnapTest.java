@@ -48,12 +48,53 @@ class ReinforceContactSnapTest {
                                 rawX, rawY, grid, 2, 7, prune, true));
                         assertArrayEquals(oracle, ReinforceContact.snapToReachable(
                                 rawX, rawY, grid, 2, 7, prune, false));
+                        assertArrayEquals(oracle, ReinforceContact.snapToReachable(
+                                rawX, rawY, grid, 2, 7, prune, true, true));
                     }
                 }
             }
         } finally {
             GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
         }
+    }
+
+    @Test
+    void sharedStepGateRejectsImpossibleDoglegsBeforeRepeatedAStar() {
+        NavigationGrid grid = openGrid(60, 70);
+        for (int y = 2; y < 70; y++) grid.setWalkable(30, y, false);
+        boolean previousCardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
+        try {
+            for (boolean cardinal : new boolean[]{true, false}) {
+                GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
+                TickInnerProfile control = new TickInnerProfile();
+                TickInnerProfile.setCurrent(control);
+                int[] old = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, true, false);
+                TickInnerProfile subject = new TickInnerProfile();
+                TickInnerProfile.setCurrent(subject);
+                int[] result = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, true, true);
+                assertArrayEquals(old, result);
+                assertEquals(4, subject.countOf(TickInnerProfile.Bucket.PATHFIND));
+                assertEquals(117, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_REJECT));
+                assertEquals(1, subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
+                long allExpanded = subject.pathfindExpandedNodes()
+                        + subject.countOf(TickInnerProfile.Bucket.FLANK_STEP_EXPANDED);
+                assertTrue(allExpanded < control.pathfindExpandedNodes() / 4,
+                        () -> "control=" + control.pathfindExpandedNodes() + ", all subject=" + allExpanded);
+            }
+        } finally {
+            GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
+        }
+    }
+
+    @Test
+    void sharedStepGateIsNotBuiltForTheOrdinaryOneProofChoice() {
+        NavigationGrid grid = openGrid(30, 30);
+        TickInnerProfile profile = new TickInnerProfile();
+        TickInnerProfile.setCurrent(profile);
+        assertArrayEquals(new int[]{15, 15}, ReinforceContact.snapToReachable(
+                15, 15, grid, 3, 3, true, true, true));
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
+        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.FLANK_STEP_FIELD));
     }
 
     @Test

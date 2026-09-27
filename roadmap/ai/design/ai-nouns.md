@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — shared squad-route preparation has explicit fair admission;
-waiting for computation is distinct from route failure and tactical intent.
+Updated: 2026-09-27 — an accepted plan-time reinforcement flank has a bounded
+lifetime across routine replans; permission to maneuver remains live.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1635,6 +1635,16 @@ or vantage positions and holds there while the maneuver element advances. An
 unreachable maneuver waypoint completes the maneuver attempt and hands control
 back to ordinary contact doctrine; it must not trap the squad in an endless
 approach/replan loop.
+
+An accepted reinforcement-flank destination is a squad decision rather than a
+fresh optimization problem on every routine replan. It may persist for a bounded,
+staggered lifetime while the same plan context and contact remain applicable.
+Meaningful displacement of the squad's route origin, contact, or proposed flank
+bearing, changed terrain or assignment, plan completion, or leaving the goal
+retires that choice. Reuse does not renew its age or move its original anchors.
+Goal eligibility and execution's route legality still apply; a refused flank
+does not acquire the accepted destination's lifetime. This serial plan-time
+decision is separate from member-side attack-move flank preparation.
 
 Assigned defense stays bounded to its authored place. A compound garrison
 re-clears and patrols eligible rooms inside the compound footprint; a live

@@ -242,6 +242,16 @@ Do not run builds or leave generated task files there.
   the independent flank-proof ceiling: by default A* stops when its minimum
   frontier cost exceeds every route allowed by the existing detour-step limit.
   Accepted route ordering is unchanged; this is not a per-tick work budget.
+  `-Dbattle.pathfinding.flankStepGate=false` disables the independent shared
+  minimum-step rejection gate. Difficult flank selections may build one local,
+  expansion-capped flood after four candidate proofs; it rejects impossible
+  detour budgets, leaving unknown candidates and winner selection to ordinary
+  A*. `FLANK_STEP_FIELD/EXPANDED/REJECT` separates this work from saved searches.
+  `-Dbattle.goap.retainFlankPlans=false` disables positive ReinforceContact
+  waypoint retention across routine replans. The default retains a choice for
+  300–360 ticks with four-cell anchor-displacement and intent/terrain/plan
+  invalidation. `FLANK_PLAN_REUSE/SELECT` records reuse and fresh choices. This
+  does not extend the separate worker-side AttackMove memo's lifetime.
   `GROUND_*` and `VEHICLE_*` counters separate ground stages, local trajectory
   heuristic/lattice work, and synchronous recovery searches from convoy
   dispatch proofs. These nested elapsed times overlap; expansion, failed-plan,

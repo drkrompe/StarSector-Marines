@@ -154,6 +154,14 @@ public final class TickInnerProfile {
         /** Count-only inspected cells and exceptional nonlocal fallback calls. */
         HOLD_POSITION_CELL,
         HOLD_POSITION_FALLBACK,
+        /** One bounded minimum-step flood shared by a flank candidate search. */
+        FLANK_STEP_FIELD,
+        /** Count-only flood expansions and candidate A* proofs avoided. */
+        FLANK_STEP_EXPANDED,
+        FLANK_STEP_REJECT,
+        /** Count-only retained/fresh ReinforceContact waypoint decisions. */
+        FLANK_PLAN_REUSE,
+        FLANK_PLAN_SELECT,
         // Nested FrontageDefense relevance stages; selection still owns the total.
         FRONTAGE_SCOPE,
         FRONTAGE_CLAIMS,
