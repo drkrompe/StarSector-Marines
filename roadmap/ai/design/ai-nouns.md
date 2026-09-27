@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — bounded shared firing arrangements remain an opt-in
-experiment; track and defended-site travel retain asynchronous route ownership.
+Updated: 2026-09-26 — zone clearing distinguishes live combat validation from
+bounded target reconsideration and unsuccessful-approach retry.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -254,6 +254,11 @@ speak for the ones beneath it. Only when every goal has either scored zero or
 declined is the squad genuinely idle. The categorical ordering is unaffected:
 descent is reached by a goal proving unworkable, never by one scoring poorly.
 
+The hierarchy also bounds deliberation: lower categories are not evaluated
+while a higher one can supply a plan. Declining that plan resumes the same
+decision pass through its remaining candidates, retaining already established
+evaluations and any explicit dependencies between goals.
+
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
 support that extension, but parallel behavior is not implied by their shape.
@@ -271,6 +276,21 @@ only the member's own update may install a completed route after validating its
 assignment, plan epoch, starting cell, and topology. Changed intent or local
 contact retires obsolete work. Publication is readiness-based rather than a
 replay guarantee; forced-synchronous evidence remains an explicit control.
+
+During member updates, route intent belongs to that member alone. Registry
+changes, cancellation of obsolete jobs, input freezing, and new submissions
+belong to the joined host phase. Members can consume already-ready results;
+new requests begin searching after the update phase and can first deliver in a
+later update. A failed dispatch is not a join and grants no authority to publish
+or reuse its unfinished intents.
+
+Projectile hazard decisions share the projectile population present at the
+start of member updates. New launches become hazard observations on the next
+update, rather than changing sibling decisions midway through dispatch.
+Damage and throw coordination also observe fresh launch commitments, so the
+observation delay does not erase spent ammunition from reservation checks.
+Concurrent reservation decisions may still race; they are coordination hints,
+not an atomic promise that only one member will fire.
 
 An **ambient task assignment** is low-stakes authored world work for an existing
 battle actor: resting at a berth, inspecting a console, maintaining machinery,
@@ -836,6 +856,12 @@ because the alternative is somebody holding their fire while an enemy they could
 perfectly well hit shoots them to pieces. That floor is the standing invariant
 made real at the point that depends on it, rather than a property of the data
 that any writer of attack range could silently falsify.
+
+Enumeration obeys the same boundary as eligibility: finding no visible winner
+does not justify searching the unknown remainder of the map. Existing believed
+identities retain their full reach; a search bound cannot turn loss of direct
+sight into loss of remembered contact. Snapshot-based enumeration must allow
+for movement before applying live candidate checks.
 
 Acquisition did not always work this way, and neither departure was deliberate.
 A line of sight between two cells carries no distance with it, so anybody down an
@@ -1411,6 +1437,40 @@ contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
 
+A chosen **execution firing position** likewise persists while it remains
+usable. Ordinary periodic squad replanning, movement toward the position, or a
+small shift in the encounter need not choose a new place to stand. Changing the
+target, mission context, or goal retires that choice; live checks still enforce
+walkability, current weapon reach, line of fire, structural reachability, and
+the caller's current room and leash. A bounded, staggered lifetime eventually
+permits reconsideration even in a stable encounter. Changing crowding or a
+slightly better cover score alone does not compel a move.
+
+This is persistence of an execution choice, not a remembered answer to every
+question about combat. Hypothetical eligibility probes do not author it, and
+failed searches and vantage-only approaches do not acquire its lifetime.
+Rejecting the actual approach, including an excessive detour, retires the
+choice rather than committing the member to a route it never accepted. Movement
+and fire retain their own validation and authority.
+
+**Reconsideration has a cadence; permission to act stays live.** Zone clearing
+may keep pursuing a valid hostile briefly instead of re-running target choice
+every tick. An unsuccessful approach may likewise defer another expensive
+search for a shorter interval; that is a retry budget, not a retained firing
+position or a claim that the target cannot be attacked. Death, hostility or
+zone changes, a changed mission or goal, changed navigation topology, and
+meaningful displacement invalidate the relevant decision early. A newly legal
+shot need not wait for the retry interval. A live hostile can prove that a zone
+is not yet clear, but declaring success always requires a fresh clearance
+check. These decisions belong to each member's execution context and do not
+publish target or movement authority to a sibling.
+
+Candidate scoring may share one local crowding observation across a single
+position search. Nearby current positions and intended destinations need not
+be re-read for each candidate cell. This is short-lived search input, not a
+cross-tick occupancy guarantee; accepting and using the chosen position still
+obeys the live validation above.
+
 A casualty rebind replaces, rather than extends, every retained plan step's
 role map. A fire team below viable strength dissolves into the nearest sibling,
 and no old slot may keep dead members or duplicate its survivors. Any active
@@ -1768,6 +1828,13 @@ threshold, clears the capture room, and holds it. Reaching the marker or capture
 cell does not finish the order; only the compound state reaching `MARINE_HELD`
 does. A captured compound is ordinary ground again, and an unreachable
 contextual target is refused without clearing a still-effective player order.
+
+Capture hold posts belong to both the exact capture zone and the authored
+compound footprint. A breach can merge the room with open ground; that enlarges
+connectivity, not the place the squad was sent to occupy. If those two geometries
+have no usable intersection, a single nearest legal capture-zone post preserves
+presence rather than spreading the squad over unrelated ground. Capture
+authority and completion still belong to the objective, not to post selection.
 
 A selected Marine infantry squad may instead receive a persistent **defend
 area** context through a deliberate two-step command. Its clicked center snaps

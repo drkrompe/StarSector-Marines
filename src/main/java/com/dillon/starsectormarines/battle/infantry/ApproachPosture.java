@@ -68,7 +68,8 @@ public final class ApproachPosture implements Action {
         if (sim.movement().mayRepath(member)) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);
             boolean genericPursuit = dest == null;
-            if (genericPursuit) dest = sim.getTacticalScoring().findFiringPosition(member, target);
+            if (genericPursuit) dest = sim.getTacticalScoring().selectFiringPosition(
+                    member, target, squad, sim.getSimTickIndex(), false);
             if (dest == null) {
                 // No reachable firing position OR vantage point exists for the
                 // current target — geometrically unreachable from here. Drop
@@ -82,6 +83,7 @@ public final class ApproachPosture implements Action {
             int[] path = GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), dest[0], dest[1], sim.getOccupancyMap());
             if (Paths.isEmpty(path)) {
+                sim.getTacticalScoring().forgetFiringPosition(member);
             // Stage 1 of findFiringPosition scores LOS and range and does
             // not verify reachability, so a walled-off cell is an ordinary
             // answer from it. Its stage 2 vantage probe does pathfind, and
@@ -89,7 +91,8 @@ public final class ApproachPosture implements Action {
             // it -- so an empty path here is a question for the probe, not
             // a verdict. Dropping the target on it discards approaches that
             // exist, which is a squad refusing to walk round a building.
-                dest = sim.getTacticalScoring().findReachableFiringPosition(member, target);
+                dest = sim.getTacticalScoring().selectFiringPosition(
+                        member, target, squad, sim.getSimTickIndex(), true);
                 path = dest == null ? GridPathfinder.EMPTY_PATH
                         : GridPathfinder.findPath(sim.getGrid(),
                                 sim.world().cellX(member), sim.world().cellY(member),
@@ -97,6 +100,7 @@ public final class ApproachPosture implements Action {
             }
             if (Paths.isEmpty(path)) {
                 // Both stages refuse: no approach exists from here.
+                sim.getTacticalScoring().forgetFiringPosition(member);
                 sim.world().setTargetId(member, 0L);
                 return ActionStatus.RUNNING;
             }

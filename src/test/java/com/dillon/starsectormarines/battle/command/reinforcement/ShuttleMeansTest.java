@@ -44,6 +44,22 @@ public class ShuttleMeansTest {
     private static final int W = 12;
     private static final int H = 12;
 
+    @Test
+    public void dispatchMessagePreservesCoordinatesAndOrigin() {
+        assertEquals("ShuttleMeans: dispatched AEROSHUTTLE side=DEFENDER"
+                        + " lz=(3,9) entry=(-8.0,9.5) from=offmap",
+                ShuttleMeans.dispatchMessage(Faction.DEFENDER, 3, 9, -8f, 9.5f,
+                        false, false));
+        assertEquals("ShuttleMeans: dispatched AEROSHUTTLE side=DEFENDER"
+                        + " lz=(3,9) entry=(5.5,12.5) from=airfield-embark",
+                ShuttleMeans.dispatchMessage(Faction.DEFENDER, 3, 9, 5.5f, 12.5f,
+                        true, true));
+        assertEquals("ShuttleMeans: dispatched AEROSHUTTLE side=DEFENDER"
+                        + " lz=(3,9) entry=(5.5,12.5) from=airfield",
+                ShuttleMeans.dispatchMessage(Faction.DEFENDER, 3, 9, 5.5f, 12.5f,
+                        true, false));
+    }
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {

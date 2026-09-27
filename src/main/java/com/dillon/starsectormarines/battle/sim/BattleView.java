@@ -106,6 +106,9 @@ public interface BattleView {
      */
     long liveUnitAt(int index);
 
+    /** Current dense-roster index, or -1 when the id is not a live roster unit. */
+    int liveUnitIndexOf(long id);
+
     /**
      * Every body in the battle that is not a row in the dense roster — a convoy
      * chassis, an aircraft on its wheels, whatever registers next.
@@ -204,8 +207,11 @@ public interface BattleView {
     /** Live projectiles in flight. */
     List<Projectile> getActiveProjectiles();
 
-    /** Thread-safe projectile snapshot for planning and opportunity-fire scoring. */
+    /** Phase-start projectile hazard view; fresh member launches become visible next phase. */
     List<Projectile> snapshotActiveProjectiles();
+
+    /** Coordination view including fresh launch intents; not for hazard perception. */
+    default Iterable<Projectile> committedProjectiles() { return snapshotActiveProjectiles(); }
 
     /** Resolve any held live roster entity or targetable convoy vehicle, else {@code 0L}. */
     long resolveUnit(long id);

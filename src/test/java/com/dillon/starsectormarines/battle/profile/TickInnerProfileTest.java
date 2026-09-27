@@ -17,6 +17,34 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TickInnerProfileTest {
 
     @Test
+    void callbackActionSurvivesScopeExitButNeverLeaksIntoAnotherCallback() {
+        TickInnerProfile profile = new TickInnerProfile();
+        profile.clearUnitAction();
+        assertEquals("", profile.lastUnitAction());
+        profile.enterAction(7, 2, "EnterZone");
+        profile.exitAction();
+        assertEquals("EnterZone", profile.lastUnitAction());
+        profile.clearUnitAction();
+        assertEquals("", profile.lastUnitAction());
+        profile.enterAction(8, 3, "ClearZone");
+        profile.reset();
+        assertEquals("", profile.lastUnitAction());
+    }
+
+    @Test
+    void aggregateWorkCountsMergeAndResetWithoutAddingTime() {
+        TickInnerProfile worker = new TickInnerProfile();
+        TickInnerProfile aggregate = new TickInnerProfile();
+        worker.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_VISIT, 37);
+        aggregate.recordCount(TickInnerProfile.Bucket.TARGET_SCAN_VISIT, 5);
+        aggregate.addFrom(worker);
+        assertEquals(42, aggregate.countOf(TickInnerProfile.Bucket.TARGET_SCAN_VISIT));
+        assertEquals(0L, aggregate.nanosOf(TickInnerProfile.Bucket.TARGET_SCAN_VISIT));
+        aggregate.reset();
+        assertEquals(0, aggregate.countOf(TickInnerProfile.Bucket.TARGET_SCAN_VISIT));
+    }
+
+    @Test
     void swarmPathfindingRetainsAggregateAndCallerAttribution() {
         TickInnerProfile profile = new TickInnerProfile();
 

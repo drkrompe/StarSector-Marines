@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,7 +52,12 @@ import java.util.List;
  */
 public final class HoldZone extends AbstractZoneAction {
 
+    public static boolean localHoldPositionsEnabled() {
+        return Boolean.parseBoolean(System.getProperty("battle.goap.localHoldPositions", "true"));
+    }
+
     private final TacticalNode compoundNode;
+    private final boolean localHoldPositions = localHoldPositionsEnabled();
     /**
      * Per-member hold cells, distinct and spread across the compound's capture
      * room (parallel x/y arrays). Picked once at plan-synthesis time
@@ -76,7 +82,7 @@ public final class HoldZone extends AbstractZoneAction {
      * the nearest member claims each cell and crossings are minimized), plus a
      * lowest-priority {@code "hold:overflow"} catch-all so a squad with more
      * members than cells (a cramped room) still binds everyone — overflow
-     * members hold on the anchor. The large-negative overflow score keeps it
+     * members share the first legal post. The large-negative overflow score keeps it
      * below every distinct-cell slot in {@link RoleAssigner}'s mean-score
      * ordering, so the spread cells fill first.
      */
@@ -105,17 +111,9 @@ public final class HoldZone extends AbstractZoneAction {
             return ActionStatus.SUCCESS;
         }
 
-        // This member's assigned post — a distinct cell inside the compound, or
-        // the anchor for an overflow/unslotted member.
-        int postX, postY;
+        // Overflow shares the first legal post, not a possibly out-of-zone anchor.
         int slot = assignedSlot(member, squad);
-        if (slot >= 0 && holdX != null && slot < holdX.length) {
-            postX = holdX[slot];
-            postY = holdY[slot];
-        } else {
-            postX = compoundNode.anchorX;
-            postY = compoundNode.anchorY;
-        }
+        int postX = postX(slot), postY = postY(slot);
 
         // Zone-entry rule (AbstractZoneAction): pull a member standing outside
         // the zone in toward its post before it holds/engages. Without it the
@@ -147,7 +145,23 @@ public final class HoldZone extends AbstractZoneAction {
         return ActionStatus.RUNNING;
     }
 
-    /** This member's hold-cell index from its {@code "hold:i"} role slot, or {@code -1} for the overflow slot / no binding (→ hold on the anchor). */
+    int postX(int slot) {
+        if (holdX != null && holdX.length > 0) {
+            if (slot >= 0 && slot < holdX.length) return holdX[slot];
+            if (localHoldPositions) return holdX[0];
+        }
+        return compoundNode.anchorX;
+    }
+
+    int postY(int slot) {
+        if (holdY != null && holdY.length > 0) {
+            if (slot >= 0 && slot < holdY.length) return holdY[slot];
+            if (localHoldPositions) return holdY[0];
+        }
+        return compoundNode.anchorY;
+    }
+
+    /** This member's hold-cell index, or {@code -1} for overflow / no binding. */
     private static int assignedSlot(long member, Squad squad) {
         SquadPlan plan = squad.currentPlan;
         SquadPlan.Step step = plan != null && !plan.isComplete() ? plan.currentStep() : null;
@@ -200,7 +214,8 @@ public final class HoldZone extends AbstractZoneAction {
             return ActionStatus.RUNNING;
         }
         if (sim.movement().mayRepath(member)) {
-            int[] dest = sim.getTacticalScoring().findFiringPosition(member, target);
+            int[] dest = sim.getTacticalScoring().selectFiringPosition(
+                    member, target, squad, sim.getSimTickIndex(), false);
             if (dest == null) {
                 sim.world().setTargetId(member, 0L);
                 hold(member, sim);
@@ -210,6 +225,7 @@ public final class HoldZone extends AbstractZoneAction {
                     sim.world().cellX(member), sim.world().cellY(member),
                     dest[0], dest[1], sim.getOccupancyMap());
             if (Paths.isEmpty(path)) {
+                sim.getTacticalScoring().forgetFiringPosition(member);
             // Stage 1 of findFiringPosition scores LOS and range and does
             // not verify reachability, so a walled-off cell is an ordinary
             // answer from it. Its stage 2 vantage probe does pathfind, and
@@ -217,7 +233,8 @@ public final class HoldZone extends AbstractZoneAction {
             // it -- so an empty path here is a question for the probe, not
             // a verdict. Dropping the target on it discards approaches that
             // exist, which is a squad refusing to walk round a building.
-                dest = sim.getTacticalScoring().findReachableFiringPosition(member, target);
+                dest = sim.getTacticalScoring().selectFiringPosition(
+                        member, target, squad, sim.getSimTickIndex(), true);
                 path = dest == null ? GridPathfinder.EMPTY_PATH
                         : GridPathfinder.findPath(sim.getGrid(),
                                 sim.world().cellX(member), sim.world().cellY(member),
@@ -225,6 +242,7 @@ public final class HoldZone extends AbstractZoneAction {
             }
             if (Paths.isEmpty(path)) {
                 // Both stages refuse: no approach exists from here.
+                sim.getTacticalScoring().forgetFiringPosition(member);
                 sim.world().setTargetId(member, 0L);
                 hold(member, sim);
                 return ActionStatus.RUNNING;
@@ -259,27 +277,43 @@ public final class HoldZone extends AbstractZoneAction {
 
     /**
      * Pick up to {@code count} distinct, spread-out hold cells inside the
-     * compound. Candidates are the walkable cells of the compound's
-     * {@link GarrisonArea garrison rooms} — AABB-gated, so the open exterior and
-     * 1-cell doorway zones are excluded; falls back to the target zone, then to
-     * the anchor, so the result is never empty.
+     * compound footprint AND exact capture zone. A breach merging that room
+     * into the exterior must not spread the squad across the whole map.
+     * With no local cells, use the nearest legal target-zone cell; only a
+     * missing/empty zone falls back to the anchor.
      *
      * <p>Spread is farthest-point sampling: seed with the candidate nearest the
      * anchor (keep a presence on the objective cell), then repeatedly add the
      * candidate that maximizes the minimum distance to everything already
-     * picked. Squads cap ~8 and a room has tens of cells, so the O(count·cells)
-     * scan is cheap. Result is two parallel x/y arrays; pass straight into the
+     * picked. Incremental minimum distances make this O(count·local cells).
+     * Result is two parallel x/y arrays; pass straight into the
      * {@link HoldZone} constructor.
      */
     public static int[][] pickHoldCells(TacticalNode node, int targetZone, int count, BattleView sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile == null ? 0L : System.nanoTime();
+        try {
+            return localHoldPositionsEnabled()
+                    ? HoldPositionPicker.pick(node, targetZone, count, sim.getGrid(), sim.getZoneGraph())
+                    : pickLegacyHoldCells(node, targetZone, count, sim);
+        } finally {
+            if (profile != null) profile.record(TickInnerProfile.Bucket.HOLD_POSITION,
+                    System.nanoTime() - started);
+        }
+    }
+
+    /** Whole-zone allocation-heavy control retained for same-build profiling. */
+    private static int[][] pickLegacyHoldCells(TacticalNode node, int targetZone, int count, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         ZoneGraph zones = sim.getZoneGraph();
         int width = grid.getWidth();
 
         List<int[]> cand = new ArrayList<>();
         NavigationZone z = zones.zoneById(targetZone);
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
         if (z != null) {
             for (int idx : z.getCellIndices()) {
+                if (profile != null) profile.record(TickInnerProfile.Bucket.HOLD_POSITION_CELL, 0L);
                 cand.add(new int[]{ idx % width, idx / width });
             }
         }

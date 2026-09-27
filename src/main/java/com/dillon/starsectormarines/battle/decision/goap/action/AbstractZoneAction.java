@@ -71,6 +71,9 @@ import java.util.Map;
  */
 abstract class AbstractZoneAction implements Action {
 
+    private static final boolean ISOLATED_ADVANCE_THREAT = Boolean.parseBoolean(
+            System.getProperty("battle.squad.isolatedAdvanceThreat", "true"));
+
     /**
      * Minimum sim-seconds since the last squad replan before a contact-halt is
      * allowed to force another. Without this throttle a pinned squad would
@@ -557,13 +560,6 @@ abstract class AbstractZoneAction implements Action {
     }
 
     /**
-     * Recomputes the squad-level route threat at most once per sim tick and
-     * applies commit/release hysteresis. The synchronized section is required
-     * because members of one squad can execute in parallel; the tally itself
-     * is member-independent, so whichever member arrives first may author the
-     * cache without making behavior order-dependent.
-     */
-    /**
      * Move toward {@code firingPos}, refusing a position the member cannot
      * actually walk to, and report whether a move was authored. A caller that
      * gets {@code false} must fall through to whatever it would have done with
@@ -630,8 +626,14 @@ abstract class AbstractZoneAction implements Action {
         int memberY = sim.world().cellY(member);
         int[] path = GridPathfinder.findPath(sim.getGrid(), memberX, memberY,
                 firingPos[0], firingPos[1], sim.getOccupancyMap());
-        if (Paths.isEmpty(path)) return FiringApproach.UNREACHABLE;
+        if (Paths.isEmpty(path)) {
+            sim.getTacticalScoring().forgetFiringPosition(member);
+            return FiringApproach.UNREACHABLE;
+        }
         if (!worthWalkingTo(memberX, memberY, firingPos, path)) {
+            // A geometrically usable cell is not an accepted execution choice
+            // when its approach fails the caller's travel bound.
+            sim.getTacticalScoring().forgetFiringPosition(member);
             return FiringApproach.NOT_WORTH_THE_WALK;
         }
         sim.setPath(member, path);
@@ -650,28 +652,48 @@ abstract class AbstractZoneAction implements Action {
                 firingPos[0], firingPos[1], path, true);
     }
 
+    /**
+     * Once-per-tick route decision, isolated from unrelated bounding/plan locks.
+     * Contenders still await this tick's complete decision: this changes neither
+     * cadence nor hysteresis and does not duplicate scoring or use stale results.
+     * The tally reads immutable beliefs and a spatial snapshot, not state owned
+     * by squad.lock. Contact-onset publication has the same dedicated ownership.
+     */
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
+        updateAdvanceThreat(squad, sim, destX, destY, ISOLATED_ADVANCE_THREAT);
+    }
+
+    /** Same production path with explicit monitor selection for focused controls. */
+    static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY,
+                                    boolean isolated) {
         int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
-        synchronized (squad.lock) {
+        synchronized (isolated ? squad.advanceThreatLock : squad.lock) {
             if (squad.advanceThreatTick == tick) return;
-            TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
-                    .assessAdvanceThreat(squad, destX, destY, tick);
-            squad.advanceEngageWeight = threat.weight();
-            squad.advanceEngageCommitted = shouldCommitAdvance(
-                    squad.advanceEngageCommitted, threat.weight());
-            squad.advanceEngageLeash = squad.advanceEngageCommitted
-                    ? Math.max(ADVANCE_LEASH_MIN, ADVANCE_LEASH_MAX * threat.weight())
-                    : 0f;
-            squad.advanceThreatId = threat.primaryThreatId();
-            squad.advanceThreatFoes = threat.foes();
-            squad.advanceThreatFriends = threat.friends();
-            squad.advanceThreatAnchorX = threat.axisAnchorX();
-            squad.advanceThreatAnchorY = threat.axisAnchorY();
-            squad.advanceThreatRetreating = threat.primaryRetreating();
-            applyContactOnset(squad, sim, tick);
+            computeAdvanceThreat(squad, sim, destX, destY, tick);
+            // Volatile publication-last: the lock-free fast path must never
+            // observe this tick while any of its shared decision is unfinished.
             squad.advanceThreatTick = tick;
         }
+    }
+
+    private static void computeAdvanceThreat(Squad squad, BattleControl sim,
+                                            int destX, int destY, int tick) {
+        TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
+                .assessAdvanceThreat(squad, destX, destY, tick);
+        squad.advanceEngageWeight = threat.weight();
+        squad.advanceEngageCommitted = shouldCommitAdvance(
+                squad.advanceEngageCommitted, threat.weight());
+        squad.advanceEngageLeash = squad.advanceEngageCommitted
+                ? Math.max(ADVANCE_LEASH_MIN, ADVANCE_LEASH_MAX * threat.weight())
+                : 0f;
+        squad.advanceThreatId = threat.primaryThreatId();
+        squad.advanceThreatFoes = threat.foes();
+        squad.advanceThreatFriends = threat.friends();
+        squad.advanceThreatAnchorX = threat.axisAnchorX();
+        squad.advanceThreatAnchorY = threat.axisAnchorY();
+        squad.advanceThreatRetreating = threat.primaryRetreating();
+        applyContactOnset(squad, sim, tick);
     }
 
     /**

@@ -359,14 +359,26 @@ public class RecaptureTargetServiceTest {
         ReinforcementDispatchReservation stale = reg.reserveDispatch(target);
         target.dispatched = false; // models timeout/arrival reopening the target
         ReinforcementDispatchReservation current = reg.reserveDispatch(target);
+        target.dispatchAgeTicks = 12;
 
         stale.release();
 
         assertTrue(target.isDispatched());
+        assertEquals(12, target.dispatchAgeTicks,
+                "stale release must not reset the newer dispatch timeout");
         assertTrue(reg.eligibleTargets().isEmpty(),
                 "stale request must not release the newer reservation");
         current.release();
         assertEquals(1, reg.eligibleTargets().size());
+        assertEquals(0, target.dispatchAgeTicks);
+        current.release();
+        assertEquals(1, reg.eligibleTargets().size(), "releasing twice is harmless");
+
+        reg.markDispatched(target);
+        target.dispatchAgeTicks = 7;
+        current.release();
+        assertTrue(target.isDispatched(), "an already-released token cannot clear a later dispatch");
+        assertEquals(7, target.dispatchAgeTicks);
     }
 
     @Test

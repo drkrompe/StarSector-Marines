@@ -171,9 +171,28 @@ class BattleFixtureTailProfileTest {
                 recording.setName("conquest-tail-measured-ticks");
                 recording.enable("jdk.ExecutionSample")
                         .withPeriod(Duration.ofMillis(5));
+                // Default profile thresholds hide sub-tick contention, especially on
+                // the bundled Intel runtime under Rosetta. Diagnose, do not time-gate.
+                recording.enable("jdk.JavaMonitorEnter").withThreshold(Duration.ofMillis(1));
+                recording.enable("jdk.JavaMonitorWait").withThreshold(Duration.ofMillis(1));
+                recording.enable("jdk.ThreadPark").withThreshold(Duration.ofMillis(1));
+                recording.enable("jdk.SafepointBegin");
+                recording.enable("jdk.SafepointStateSynchronization");
+                recording.enable("jdk.SafepointEnd");
+                recording.enable("jdk.ExecuteVMOperation").withThreshold(Duration.ZERO);
+                recording.enable("jdk.GCPhasePause").withThreshold(Duration.ZERO);
+                recording.enable(UnitUpdateSystem.UnitDispatchEvent.class);
+                if (Boolean.getBoolean("battle.tail.workerTimeline")) {
+                    recording.enable(UnitUpdateSystem.UnitCallbackEvent.class);
+                    recording.enable("jdk.ExecutionSample").withPeriod(Duration.ofMillis(1));
+                    recording.enable("jdk.JavaMonitorEnter").withThreshold(Duration.ZERO);
+                }
                 recording.enable(TailTickEvent.class);
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
+            assertEquals(Boolean.parseBoolean(System.getProperty(
+                            "battle.targeting.firingReachabilityComponents", "true")),
+                    sim.getTacticalScoring().firingReachabilityComponentsEnabled());
             assertEquals(Boolean.parseBoolean(System.getProperty(
                             CommanderInfluenceService.ASYNC_PROPERTY, "true")),
                     sim.getCommanderInfluenceMetrics().asynchronous());
@@ -475,9 +494,34 @@ class BattleFixtureTailProfileTest {
         report.put("osArch", System.getProperty("os.arch"));
         report.put("availableProcessors", Runtime.getRuntime().availableProcessors());
         report.put("renderSink", "none");
+        report.put("workerTimeline", jfrPath != null && Boolean.getBoolean("battle.tail.workerTimeline"));
         report.put("asyncDefendTrack", true);
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
+        report.put("firingReachabilityComponents", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.firingReachabilityComponents", "true")));
+        report.put("localHoldPositions", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.localHoldPositions", "true")));
+        report.put("priorityOrderedEvaluation", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.priorityOrderedEvaluation", "true")));
+        report.put("localBreachChecks", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.localBreachChecks", "true")));
+        report.put("retainFiringPositions", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.retainFiringPositions", "true")));
+        report.put("boundKnownContactScan", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.boundKnownContactScan", "true")));
+        report.put("pruneClearZoneSelection", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.pruneClearZoneSelection", "true")));
+        report.put("clearZoneDecisionCadence", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.clearZoneDecisionCadence", "true")));
+        report.put("localFiringSpread", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.localFiringSpread", "true")));
+        report.put("isolatedAdvanceThreat", Boolean.parseBoolean(System.getProperty(
+                "battle.squad.isolatedAdvanceThreat", "true")));
+        report.put("phaseOwnedRallyRequests", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.phaseOwnedRallyRequests", "true")));
+        report.put("phaseOwnedProjectiles", Boolean.parseBoolean(System.getProperty(
+                "battle.projectiles.phaseOwnedPublication", "true")));
         report.put("asyncDefendSite", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.asyncDefendSite", "true")));
         report.put("minimumParallelUnits",
@@ -553,6 +597,9 @@ class BattleFixtureTailProfileTest {
         report.put("asyncRouteSnapshotTotalMs", millis(finalRoutes.snapshotNanos()
                 - firstRoutes.snapshotNanos()));
         report.put("asyncRouteNoPath", finalRoutes.noPath() - firstRoutes.noPath());
+        report.put("asyncRoutePollCalls", finalRoutes.pollCalls() - firstRoutes.pollCalls());
+        report.put("asyncRouteCancelCalls", finalRoutes.cancelCalls() - firstRoutes.cancelCalls());
+        report.put("asyncRouteNoOpCancels", finalRoutes.noOpCancels() - firstRoutes.noOpCancels());
         // Histograms/maxima belong to the service lifetime, including warmup.
         // They cannot be differenced like cumulative time and event counters.
         report.put("asyncRouteLatencyToDate", new JSONObject()
@@ -772,6 +819,9 @@ class BattleFixtureTailProfileTest {
                         - before.searchNanos()))
                 .put("snapshotMs", millis(after.snapshotNanos() - before.snapshotNanos()))
                 .put("noPath", after.noPath() - before.noPath())
+                .put("pollCalls", after.pollCalls() - before.pollCalls())
+                .put("cancelCalls", after.cancelCalls() - before.cancelCalls())
+                .put("noOpCancels", after.noOpCancels() - before.noOpCancels())
                 .put("queueDepth", after.queueDepth())
                 .put("pendingMembers", after.pendingMembers())
                 .put("maxQueueDepthSoFar", after.maxQueueDepth()));
