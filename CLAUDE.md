@@ -236,6 +236,14 @@ Do not run builds or leave generated task files there.
   candidate A* fan-out. The default skips candidates whose admissible score
   bound cannot improve the incumbent, preserving the selected cell and tie order;
   actual proofs are labelled `FLANK_SNAP` in slow-search samples. Tail reports
+  also include squad-field fallback searches, with their miss cause, expanded
+  nodes, and unsigned destination occupancy (including path reservations).
+  `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
+  terminal crowding toll in flat A*. By default only that additive constant is
+  omitted during search; intermediate crowding and terrain costs still rank
+  routes. Equal-cost path ties need not match the control. The switch is
+  recorded in tail reports so same-build comparisons remain identifiable.
+  Tail reports
   record this and the squad-traffic switches, include counts at 30/40/50 ms,
   and exclude warmup from async-route cumulative deltas. Pass
   `-Dbattle.tail.sourceRevision=<commit>` to retain an explicit source revision;

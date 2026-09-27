@@ -160,16 +160,20 @@ class TickInnerProfileTest {
             worker.enterAction(500L, 8, "DEFEND_SITE");
             worker.routeReason("entrance");
             worker.recordPathSearch(600L, 2, 3, 10, 11,
-                    true, 9, 40);
+                    true, 9, 40, 255, "UNCOVERED_START");
             TickInnerProfile.mergeAllInto(destination);
 
             assertEquals(40L, destination.pathfindExpandedNodes());
             assertEquals(600L, destination.slowPathSearches().get(0).nanos());
+            assertEquals(255, destination.slowPathSearches().get(0).goalOccupancy());
+            assertEquals("UNCOVERED_START", destination.slowPathSearches().get(0).fallbackReason());
             assertContext(destination.slowPathSearches().get(0),
                     500L, 8, "DEFEND_SITE", "entrance");
             assertEquals(0L, worker.pathfindExpandedNodes());
             assertTrue(worker.slowPathSearches().isEmpty());
             worker.recordPathSearch(1L, 0, 0, 1, 1, false, 2, 1);
+            assertEquals(-1, worker.slowPathSearches().get(0).goalOccupancy());
+            assertEquals("", worker.slowPathSearches().get(0).fallbackReason());
             assertContext(worker.slowPathSearches().get(0), 0L, -1, "", "");
         } finally {
             TickInnerProfile.releaseCurrentThread();

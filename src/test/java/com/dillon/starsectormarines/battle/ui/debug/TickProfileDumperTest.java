@@ -34,7 +34,7 @@ class TickProfileDumperTest {
         profile.enterAction(48L, 9, "DEFEND_SITE");
         profile.routeReason("rally");
         profile.recordPathSearch(1_250_000L, 4, 5, 60, 70,
-                true, 0, 231);
+                true, 0, 231, 128, "MISSING_FIELD");
         profile.exitAction();
         profile.recordPathSearch(750_000L, 6, 7, 8, 9,
                 false, 12, 28);
@@ -66,11 +66,15 @@ class TickProfileDumperTest {
         assertEquals(9, first.getInt("squadId"));
         assertEquals("DEFEND_SITE", first.getString("action"));
         assertEquals("rally", first.getString("routeReason"));
+        assertEquals(128, first.getInt("goalOccupancy"));
+        assertEquals("MISSING_FIELD", first.getString("fallbackReason"));
         JSONObject second = parsed.getJSONArray("slowFlatPathSearches").getJSONObject(1);
         assertEquals(0L, second.getLong("memberId"));
         assertEquals(-1, second.getInt("squadId"));
         assertEquals("", second.getString("action"));
         assertEquals("", second.getString("routeReason"));
+        assertEquals(-1, second.getInt("goalOccupancy"));
+        assertEquals("", second.getString("fallbackReason"));
         assertTrue(parsed.getJSONArray("slowFlatPathSearches").getJSONObject(1)
                 .getBoolean("found"));
         assertTrue(root.toString().length() < 2_000,
