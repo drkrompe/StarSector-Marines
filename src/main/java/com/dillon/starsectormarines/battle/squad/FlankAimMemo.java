@@ -7,20 +7,22 @@ package com.dillon.starsectormarines.battle.squad;
  * actually walk to?
  *
  * <p>The question is per-squad but the call is per-member per-tick, and
- * answering it costs an A* fan-out — {@code ReinforceContact.snapToReachable}
- * pathfinds to every candidate over a radius-5 square, up to a hundred and
- * twenty-one routes. Six members of a maneuvering squad therefore paid for the
+ * answering it can cost an A* fan-out — {@code ReinforceContact.selectReachableFlank}
+ * considers a radius-5 square, pruning proofs and sharing an expansion budget.
+ * Six members of a maneuvering squad previously paid for the
  * same search six times a tick, thirty times a second, and a profile of the
  * conquest matrix put two thirds of the whole tick in pathfinding with almost
  * all of {@code GridPathfinder.findPath} reached this way.
  *
  * <p>The answer only moves when the contact does, so it is keyed on the
  * contact's id and the raw flank cell — both integers — and expires after
- * {@link #REFRESH_TICKS}. Nothing here reads a clock or a hash, so a replay
- * stays byte-stable.
+ * {@link #REFRESH_TICKS}. This memo does not establish a parallel replay or
+ * once-per-squad execution guarantee.
  *
  * <p>Mutable, allocation-free, and owned by exactly one {@link Squad}; it is
- * read and written on the sim thread inside the squad's own behavior tick.
+ * read and written by its member updates. Under parallel dispatch readers
+ * may miss concurrently and duplicate selection; reuse is best-effort, not a
+ * synchronized publication boundary.
  */
 public final class FlankAimMemo {
 
@@ -29,7 +31,7 @@ public final class FlankAimMemo {
      * a within-tick cache and nothing more.
      *
      * <p>Every input to the search is squad-scoped — the raw bearing, the
-     * squad centroid the refusal is measured against, and the origin
+     * explicit refusal result, and the origin
      * {@code snapToReachable} routes from, which is the leader's cell or the
      * first member's, never the calling member's. So within one tick every
      * member was already computing the identical answer, and collapsing them
@@ -57,10 +59,10 @@ public final class FlankAimMemo {
     private int aimX;
     private int aimY;
     /**
-     * True when the search refused — the flank came back on the squad's own
-     * ground, which is a "the building will not support this" answer rather
-     * than a destination. Memoised alongside the aim so the refusal costs the
-     * fan-out once too.
+     * True when selection explicitly refused, including when its work allowance
+     * expired without a verified candidate. This is not a destination or a
+     * structural-disconnection claim. Same-tick readers may reuse the refusal
+     * without repeating its proofs.
      */
     private boolean refused;
     /** False until the first {@link #store}, so nothing is ever fresh by accident. */

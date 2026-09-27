@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.mesh.GreedyNavigationMesh;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
@@ -519,7 +520,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 20);
+        report.put("schemaVersion", 21);
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
         report.put("filteredSquadAwareness", Boolean.parseBoolean(System.getProperty(
                 "battle.perception.filteredSquadAwareness", "true")));
@@ -539,6 +540,10 @@ class BattleFixtureTailProfileTest {
                 "battle.pathfinding.retainSquadRouteCosts", "true")));
         report.put("flankStepGate", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.flankStepGate", "true")));
+        report.put("budgetFlankSelection", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.budgetFlankSelection", "true")));
+        report.put("flankSelectionExpansionAllowance", ReinforceContact.FLANK_SELECTION_EXPANSIONS);
+        report.put("flankSelectionWorkSemantics", "Per-selection A* plus shared step-gate expansions; not a per-squad or per-tick limit. FLANK_SELECTION_LIMIT counts selections consuming the entire allowance, including a last-node success; the result is the best verified candidate or origin fallback, not a disconnection proof. Counts aggregate all callers, including parallel AttackMove selections. Allocation, scratch reset, heap operations and runtime scheduling are not time-bounded by this count.");
         report.put("retainFlankPlans", Boolean.parseBoolean(System.getProperty(
                 "battle.goap.retainFlankPlans", "true")));
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));

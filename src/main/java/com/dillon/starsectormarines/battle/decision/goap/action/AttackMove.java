@@ -213,7 +213,7 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
      * squads arrive on the enemy from different directions instead of stacking
      * on one.
      */
-    private int[] maneuverAim(Squad squad, SquadAssaultPicture assault, BattleView sim) {
+    int[] maneuverAim(Squad squad, SquadAssaultPicture assault, BattleView sim) {
         if (!assault.isManeuvering()) return new int[]{destX, destY};
         long contact = sim.resolveUnit(assault.sharedContactId());
         if (contact == 0L) return new int[]{destX, destY};
@@ -235,25 +235,24 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
 
         // Every input below is squad-scoped, so all six members were computing
         // the identical answer — and snapToReachable costs an A* per candidate
-        // over a radius-5 square. Ask once per squad per tick; see FlankAimMemo,
-        // which also records why the window is not wider than a tick.
+        // over a radius-5 square. FlankAimMemo provides best-effort within-tick
+        // reuse; parallel readers may both miss and repeat selection. Its docs
+        // record why the window is not wider than a tick.
         int tick = sim.getSimTickIndex();
         if (squad.flankAim.isFresh(contact, rawX, rawY, tick)) {
             if (squad.flankAim.refused()) return new int[]{destX, destY};
             return new int[]{squad.flankAim.aimX(), squad.flankAim.aimY()};
         }
-        int[] flank = ReinforceContact.snapToReachable(rawX, rawY, squad, sim);
+        ReinforceContact.FlankSelection flank = ReinforceContact.selectReachableFlank(
+                rawX, rawY, squad, sim);
 
-        // snapToReachable answers with the squad's own ground when the building
-        // will not support a flank. That is a refusal, not a destination: fall
-        // back to the objective rather than ordering the squad to stand still.
-        boolean refused = TacticalScoring.cellDistance(flank[0] + 0.5f, flank[1] + 0.5f,
-                squad.centroidX, squad.centroidY) <= 1f;
-        squad.flankAim.store(contact, rawX, rawY, tick, flank[0], flank[1], refused);
-        if (refused) {
+        // Refusal is explicit: the route origin is the leader's cell, which
+        // need not be anywhere near a dispersed squad's centroid.
+        squad.flankAim.store(contact, rawX, rawY, tick, flank.x(), flank.y(), flank.refused());
+        if (flank.refused()) {
             return new int[]{destX, destY};
         }
-        return flank;
+        return new int[]{flank.x(), flank.y()};
     }
 
     /**

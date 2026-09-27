@@ -194,6 +194,13 @@ public final class TickInnerProfile {
         /** Count-only flood expansions and candidate A* proofs avoided. */
         FLANK_STEP_EXPANDED,
         FLANK_STEP_REJECT,
+        /** Count-only selections, including both plan-time and worker-side callers. */
+        FLANK_SELECTION,
+        /** Count-only total A* plus step-gate expansions, and selections consuming their allowance. */
+        FLANK_SELECTION_EXPANDED,
+        FLANK_SELECTION_LIMIT,
+        /** Allowance-consuming selections that returned the origin refusal rather than an incumbent. */
+        FLANK_SELECTION_LIMIT_REFUSAL,
         /** Count-only retained/fresh ReinforceContact waypoint decisions. */
         FLANK_PLAN_REUSE,
         FLANK_PLAN_SELECT,
