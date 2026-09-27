@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -32,6 +34,18 @@ import java.util.WeakHashMap;
  * commands retain their old direct tick temporarily while missions migrate.
  */
 public final class CommanderService {
+
+    /** Shares the opt-in host CPU diagnostic with public-topology freezing. */
+    private static final String CPU_PROFILE_PROPERTY = "battle.profile.commandTopologyCpu";
+
+    private static final class CpuClock {
+        private static final ThreadMXBean BEAN = ManagementFactory.getThreadMXBean();
+
+        static long now() {
+            return BEAN.isCurrentThreadCpuTimeSupported() && BEAN.isThreadCpuTimeEnabled()
+                    ? BEAN.getCurrentThreadCpuTime() : -1L;
+        }
+    }
 
     /**
      * Sim-seconds between commander-tier slow ticks. The squad-GOAP replan
@@ -160,20 +174,30 @@ public final class CommanderService {
         record(profile, TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_LOOKUP, stageStart);
 
         stageStart = System.nanoTime();
-        CommandAssignmentSnapshot assignmentFrame = assignments.snapshot();
-
+        long frameCpuStarted = profile != null && Boolean.getBoolean(CPU_PROFILE_PROPERTY)
+                ? CpuClock.now() : -1L;
         List<FrozenCommand> frozen = new ArrayList<>();
         List<MissionCommand> legacy = new ArrayList<>();
-        for (Registration registration : commanders.values()) {
-            if (registration.strategy()
-                    instanceof AutonomousMissionCommand<?, ?> autonomous) {
-                frozen.add(freeze(autonomous, registration.disclosure(), sim,
-                        topology, assignmentFrame));
-            } else {
-                legacy.add((MissionCommand) registration.strategy());
+        try {
+            CommandAssignmentSnapshot assignmentFrame = assignments.snapshot();
+            for (Registration registration : commanders.values()) {
+                if (registration.strategy()
+                        instanceof AutonomousMissionCommand<?, ?> autonomous) {
+                    frozen.add(freeze(autonomous, registration.disclosure(), sim,
+                            topology, assignmentFrame));
+                } else {
+                    legacy.add((MissionCommand) registration.strategy());
+                }
+            }
+        } finally {
+            record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME, stageStart);
+            if (frameCpuStarted >= 0L) {
+                long cpuEnded = CpuClock.now();
+                if (cpuEnded >= frameCpuStarted) profile.record(
+                        TickInnerProfile.Bucket.COMMANDER_FRAME_CPU,
+                        cpuEnded - frameCpuStarted);
             }
         }
-        record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME, stageStart);
 
         stageStart = System.nanoTime();
         List<PreparedCommand> prepared = new ArrayList<>(frozen.size());

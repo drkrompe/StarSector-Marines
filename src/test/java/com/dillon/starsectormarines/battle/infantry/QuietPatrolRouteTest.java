@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -34,6 +35,23 @@ class QuietPatrolRouteTest {
         GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
         if (previousControl == null) System.clearProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY);
         else System.setProperty(PatrolMotion.BOUND_GUARD_PATROL_PROPERTY, previousControl);
+    }
+
+    @Test
+    void districtActionAttributesQuietAndInvestigationWithoutLeakingTheReason() {
+        for (boolean investigate : new boolean[]{false, true}) {
+            Fixture fixture = new Fixture(openGrid(20, 20), 2, 3, 15, 3);
+            fixture.squad.alertLevel = investigate ? SquadAlertLevel.SUSPICIOUS : SquadAlertLevel.UNAWARE;
+            fixture.squad.lastSeenEnemyX = 15;
+            fixture.squad.lastSeenEnemyY = 3;
+            TickInnerProfile profile = bindProfile();
+            profile.routeReason("outer");
+            PatrolRoute.INSTANCE.execute(fixture.member, fixture.squad, fixture.sim);
+            assertEquals("outer", profile.routeReason());
+            assertEquals(1, profile.slowPathSearches().size());
+            assertEquals(investigate ? "district-investigate" : "district-quiet-waypoint",
+                    profile.slowPathSearches().get(0).routeReason());
+        }
     }
 
     @Test

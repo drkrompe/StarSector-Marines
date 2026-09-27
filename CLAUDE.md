@@ -436,6 +436,12 @@ Do not run builds or leave generated task files there.
   disabled or unavailable, not zero CPU. Tail reports retain every measured-tick
   rebuild, including those outside the worst-tick samples; revision context is
   observed after the tick.
+  Command-frame freeze separates `COMMANDER_FRAME_ASSIGNMENTS`, `SQUADS`,
+  `INFLUENCE` and Conquest `FACTS` wall stages, nested under FRAME. They do not
+  include every frame operation. The same `commandTopologyCpu` switch adds
+  `COMMANDER_FRAME_CPU` around the whole frame stage, including the initial
+  assignment snapshot and all perspectives, not topology or strategy planning.
+  CPU and wall are overlapping readings, not additive work.
   `-Dbattle.pathfinding.compactPublicTopology=false` restores full combat-grid
   storage for commander and asynchronous route snapshots. By default these
   private navigation-only copies store flags and edges without allocating unused
@@ -467,6 +473,8 @@ Do not run builds or leave generated task files there.
   Projectile enumeration and observation remain separate work. Guard-post route samples label
   fallback, engagement, investigation, quiet patrol and disengagement so a
   shared action name cannot hide which obligation requested an expensive path.
+  District PatrolRoute samples likewise label quiet waypoints separately from
+  investigation; a RoutinePatrol goal alone does not establish the branch.
   `-Dbattle.pathfinding.boundGuardPatrol=false` restores legacy quiet guard
   waypoint routing. The default bounds optional infantry patrol proofs to 1024
   expansions and the existing detour envelope, holding a squad dwell after

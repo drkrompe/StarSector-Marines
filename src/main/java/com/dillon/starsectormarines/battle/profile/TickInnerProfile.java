@@ -186,6 +186,12 @@ public final class TickInnerProfile {
         COMMANDER_TOPOLOGY_ZONE_CELLS,
         COMMANDER_TOPOLOGY_ZONES,
         COMMANDER_FRAME,
+        COMMANDER_FRAME_ASSIGNMENTS,
+        COMMANDER_FRAME_SQUADS,
+        COMMANDER_FRAME_INFLUENCE,
+        COMMANDER_FRAME_FACTS,
+        /** Optional host CPU for the complete frame stage, not additive to its wall time. */
+        COMMANDER_FRAME_CPU,
         COMMANDER_PLAN,
         COMMANDER_COMMIT,
         INFLUENCE_TOPOLOGY_LOOKUP,
