@@ -354,6 +354,13 @@ class BattleFixtureTailProfileTest {
                     }
                 }
 
+                // Outside the measured tick: quiet full-length runs still need
+                // a progress marker to distinguish slow work from a stuck tick.
+                if (sim.simTickIndex % 3000 == 0) {
+                    System.out.printf("Conquest tail progress: %d/%d ticks (%s)%n",
+                            sim.simTickIndex, totalTicks,
+                            sim.simTickIndex <= warmupTicks ? "warmup" : "measured");
+                }
                 if (paceNanos > 0L) {
                     nextDeadline += paceNanos;
                     long remaining = nextDeadline - System.nanoTime();
@@ -492,10 +499,14 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 13);
+        report.put("schemaVersion", 14);
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
         report.put("squadRouteAdmissionEnabled", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.squadRouteAdmission", "true")));
+        report.put("rejectInvalidPlannerStart", Boolean.parseBoolean(System.getProperty(
+                "battle.vehicle.rejectInvalidPlannerStart", "true")));
+        report.put("reuseFailedRecovery", Boolean.parseBoolean(System.getProperty(
+                "battle.vehicle.reuseFailedRecovery", "true")));
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));

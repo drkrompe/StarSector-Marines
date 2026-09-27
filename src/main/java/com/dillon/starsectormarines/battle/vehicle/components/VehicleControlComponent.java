@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle.components;
 
 import com.dillon.starsectormarines.battle.vehicle.Pose;
+import com.dillon.starsectormarines.battle.vehicle.FailedVehicleRecovery;
 import com.dillon.starsectormarines.battle.vehicle.ReedsShepp;
 import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
 import com.dillon.starsectormarines.battle.vehicle.ReferenceCorridor;
@@ -105,6 +106,8 @@ public final class VehicleControlComponent {
     public final int[] rerouteAvoidX = new int[8];
     public final int[] rerouteAvoidY = new int[8];
     public int rerouteAvoidCount;
+    /** Exact failed rescue request against a frozen routing world; cleared with control tracking. */
+    public FailedVehicleRecovery failedRecovery;
 
     /** Set true the tick the vehicle reaches its terminal waypoint; cleared by the control system's {@code consumeArrived}. */
     public boolean arrived;

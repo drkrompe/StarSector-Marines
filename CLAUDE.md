@@ -246,6 +246,16 @@ Do not run builds or leave generated task files there.
   heuristic/lattice work, and synchronous recovery searches from convoy
   dispatch proofs. These nested elapsed times overlap; expansion, failed-plan,
   recovery-attempt, and heuristic-storage-cell counters are count-only.
+  `-Dbattle.vehicle.rejectInvalidPlannerStart=false` restores local heuristic
+  setup for a padded starting footprint that already rejects every successor.
+  Invalid-start counters distinguish actual-chassis versus padding-only failure
+  and bounds versus terrain/closed-edge failure. Both arms classify the input;
+  the default skips the already-doomed heuristic and lattice work.
+  `-Dbattle.vehicle.reuseFailedRecovery=false` repeats identical failed bounded
+  recovery queries. The default reuses only completed failures against the same
+  frozen routing inputs and exact request; changed requests and control resets
+  require a fresh answer. Recovery failure/reuse counters separate actual work
+  from reuse. Neither control changes physical clearance or terminal policy.
   Tail reports
   also include squad-field fallback searches, with their miss cause, expanded
   nodes, and unsigned destination occupancy (including path reservations).
