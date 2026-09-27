@@ -229,7 +229,10 @@ Do not run builds or leave generated task files there.
   queued/prepared sums are request-ticks, not unique requests. Oldest-age sums
   are not latency; use the reported maximum. Age survives topology restarts
   and may originate before warmup. READY/FAILED count completed searches, not
-  delivered vehicles. The test fork prefers the game's bundled Java 17 when
+  delivered vehicles. `CONVOY_PROOF_TIMED_OUT` records refusal after 900 ticks
+  of preparation age (including queueing/restarts); timeout retirement shares
+  the one-per-tick admission allowance to avoid burst fallback dispatches.
+  The test fork prefers the game's bundled Java 17 when
   present; `-Dbattle.tail.javaExecutable=<absolute path>` overrides it. The
   live dump is a tick-zero construction fixture, not
   an in-flight state snapshot, so replay need not reproduce the exact spike.

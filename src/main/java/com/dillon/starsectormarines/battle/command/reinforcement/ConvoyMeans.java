@@ -83,6 +83,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
     static final int PROOFS_STARTED_PER_TICK = 1;
     /** Includes finished results until dispatch consumes them. */
     static final int MAX_PREPARED_PROOFS = 4;
+    /** Thirty seconds including queueing and topology restarts, then try another means. */
+    static final int MAX_PENDING_TICKS = 900;
 
     /**
      * Sim-seconds a proof may go untouched by a dispatch before it is
@@ -283,6 +285,20 @@ public final class ConvoyMeans implements ReinforcementMeans {
         int startsLeft = PROOFS_STARTED_PER_TICK;
         TickInnerProfile admissionProfile = TickInnerProfile.currentIfBound();
         for (InFlightProof proof : proofOrder) {
+            if (!proof.rejected && proof.ageTicks >= MAX_PENDING_TICKS) {
+                // Retirement can cause a fallback dispatch too: meter it with
+                // admissions instead of releasing an entire expired wave at once.
+                if (startsLeft > 0) {
+                    startsLeft--;
+                    if (proof.job != null) prepared--;
+                    proof.job = null;
+                    proof.rejected = true;
+                    finishedSomething = true;
+                    if (admissionProfile != null) admissionProfile.recordCount(
+                            TickInnerProfile.Bucket.CONVOY_PROOF_TIMED_OUT, 1);
+                }
+                continue;
+            }
             if (proof.job == null && !proof.rejected
                     && prepared < MAX_PREPARED_PROOFS && startsLeft > 0) {
                 startsLeft--;

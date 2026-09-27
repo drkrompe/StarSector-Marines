@@ -20,6 +20,76 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Admission and request lifecycle only: one real gate, no possible drop junction. */
 class ConvoyProofAdmissionTest {
     @Test
+    void repeatedDispatchAndTopologyRestartsCannotRenewTheTerminalDeadline() {
+        Fixture fixture = new Fixture();
+        ReinforcementRequest request = request();
+        for (int tick = 1; tick < ConvoyMeans.MAX_PENDING_TICKS; tick++) {
+            assertEquals(ReinforcementDispatchResult.RETRYABLE, fixture.dispatch(request));
+            fixture.changeRemoteTopology();
+            assertFalse(fixture.means.advance(1f / 30f, fixture.sim));
+            assertEquals(tick, fixture.means.routeFieldCaptures(),
+                    "each invalidation restarts only the admitted proof, not its age");
+        }
+        // Dispatch touches only abandonment age. It cannot grant another
+        // lifetime even immediately before the deadline is processed.
+        assertEquals(ReinforcementDispatchResult.RETRYABLE, fixture.dispatch(request));
+        fixture.changeRemoteTopology();
+        int captures = fixture.means.routeFieldCaptures();
+        assertTrue(fixture.means.advance(1f / 30f, fixture.sim));
+        assertEquals(captures, fixture.means.routeFieldCaptures());
+        assertEquals(0, fixture.means.queuedProofCount());
+        assertEquals(0, fixture.means.preparedProofCount());
+        assertEquals(ReinforcementDispatchResult.REJECTED, fixture.dispatch(request));
+        assertFalse(fixture.means.advance(0f, fixture.sim), "consumed timeout is retired");
+    }
+
+    @Test
+    void expiredBurstRetiresOnePerAdvanceAndSharesAdmissionAllowanceWithNewWork() {
+        Fixture fixture = new Fixture();
+        List<ReinforcementRequest> expired = new ArrayList<>();
+        for (int i = 0; i < 104; i++) {
+            ReinforcementRequest request = request();
+            expired.add(request);
+            assertEquals(ReinforcementDispatchResult.RETRYABLE, fixture.dispatch(request));
+        }
+        for (int tick = 1; tick < ConvoyMeans.MAX_PENDING_TICKS; tick++) {
+            // The oldest is invalidated before its first search every time;
+            // younger requests wait without ever acquiring a snapshot.
+            fixture.changeRemoteTopology();
+            fixture.means.advance(0f, fixture.sim);
+        }
+        assertEquals(1, fixture.means.preparedProofCount());
+        assertEquals(103, fixture.means.queuedProofCount());
+        int capturesBeforeExpiry = fixture.means.routeFieldCaptures();
+        ReinforcementRequest younger = request();
+        assertEquals(ReinforcementDispatchResult.RETRYABLE, fixture.dispatch(younger));
+        fixture.changeRemoteTopology();
+
+        for (int index = 0; index < expired.size(); index++) {
+            assertTrue(fixture.means.advance(0f, fixture.sim));
+            assertEquals(capturesBeforeExpiry, fixture.means.routeFieldCaptures(),
+                    "timeout and fresh admission must share their one transition allowance");
+            assertEquals(0, fixture.means.preparedProofCount(),
+                    "expired pending jobs must not resume searching or acquire snapshots");
+            assertEquals(ReinforcementDispatchResult.REJECTED, fixture.dispatch(expired.get(index)));
+            if (index + 1 < expired.size()) {
+                assertEquals(ReinforcementDispatchResult.RETRYABLE,
+                        fixture.dispatch(expired.get(index + 1)),
+                        "dispatch must not mass-expire requests outside the advance budget");
+            }
+            assertEquals(ReinforcementDispatchResult.RETRYABLE, fixture.dispatch(younger));
+            assertEquals(expired.size() - index, fixture.means.queuedProofCount());
+        }
+        assertFalse(fixture.means.advance(0f, fixture.sim));
+        assertEquals(capturesBeforeExpiry + 1, fixture.means.routeFieldCaptures());
+        assertEquals(1, fixture.means.preparedProofCount());
+        assertTrue(fixture.means.advance(0f, fixture.sim));
+        assertEquals(ReinforcementDispatchResult.REJECTED, fixture.dispatch(younger));
+        assertEquals(0, fixture.means.queuedProofCount());
+        assertEquals(0, fixture.means.preparedProofCount());
+    }
+
+    @Test
     void burstQueuesWithoutSnapshotsAndBoundsPreparedResultsUntilConsumed() {
         Fixture fixture = new Fixture();
         List<ReinforcementRequest> requests = new ArrayList<>();
@@ -178,6 +248,10 @@ class ConvoyProofAdmissionTest {
 
         ReinforcementDispatchResult dispatch(ReinforcementRequest request) {
             return means.dispatch(sim, request);
+        }
+
+        void changeRemoteTopology() {
+            grid.setWalkable(0, 0, !grid.isWalkable(0, 0));
         }
     }
 }
