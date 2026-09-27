@@ -132,7 +132,7 @@ class BattleFixtureTailProfileTest {
         long[] innerCounts = new long[TickInnerProfile.Bucket.VALUES.length];
         Map<String, long[]> actionTotals = new HashMap<>();
         long[] convoyWorkTotals = new long[4];
-        long[] convoyAdmissionMaxima = new long[5];
+        long[] convoyAdmissionMaxima = new long[6];
         TailSquadRouteAdmission.Totals admissionTotals =
                 new TailSquadRouteAdmission.Totals(warmupTicks + 1);
         TailSquadRouteWork routeWorkTotals = new TailSquadRouteWork(warmupTicks + 1,
@@ -293,6 +293,9 @@ class BattleFixtureTailProfileTest {
                             inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_PREPARED));
                     convoyAdmissionMaxima[4] = Math.max(convoyAdmissionMaxima[4],
                             inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_OLDEST_PENDING_AGE));
+                    convoyAdmissionMaxima[5] = Math.max(convoyAdmissionMaxima[5],
+                            inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_ADMITTED)
+                                    + inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_TIMED_OUT));
                     TailSquadRouteAdmission admission = TailSquadRouteAdmission.capture(inner,
                             sim.lastSquadRouteDeferred(), sim.lastSquadRouteOldestWaitTicks(),
                             sim.lastSquadRouteAdmittedWaitTicks());
@@ -660,6 +663,7 @@ class BattleFixtureTailProfileTest {
                 .put("maximumQueued", convoyAdmissionMaxima[2])
                 .put("maximumPrepared", convoyAdmissionMaxima[3])
                 .put("maximumPendingAgeTicks", convoyAdmissionMaxima[4])
+                .put("maximumAdmissionTransitionsPerTick", convoyAdmissionMaxima[5])
                 .put("semantics", "All measured ticks, excluding warmup. Queue and prepared "
                         + "counts observed after admission, before search and dispatch. "
                         + "Counters aggregate registered convoy means; each means admits at most "

@@ -250,6 +250,7 @@ public final class TickInnerProfile {
         CONVOY_PROOF_OLDEST_PENDING_AGE,
         CONVOY_PROOF_READY,
         CONVOY_PROOF_FAILED,
+        CONVOY_PROOF_TIMED_OUT,
         CONVOY_ROUTE_PROOF_STEP,
         // Ground-system stages are nested wall times, not additive to the phase.
         GROUND_PENDING_ORDERS,

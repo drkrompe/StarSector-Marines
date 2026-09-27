@@ -399,7 +399,12 @@ retains the same existing cross-domain behavior as an autonomous hull.
   one proof per tick and retains at most four prepared proofs, including
   finished results awaiting dispatch. Topology invalidation releases obsolete
   prepared state without renewing queue seniority. Waiting is retryable, not a
-  route rejection or permission to consume a ticket. An admitted proof copies
+  route rejection or permission to consume a ticket. Queueing and topology
+  restarts share one 900-tick preparation deadline. On expiry the means refuses
+  the attempt so another provider can answer; this is an effort policy, not
+  proof of geometric unreachability. Deadline retirements share the one-per-tick
+  admission allowance, so an expired wave cannot all fall through at once.
+  An admitted proof copies
   raw map inputs but
   neither erodes every footprint nor prices every terrain cell nor labels all
   connectivity. Its first search begins on a later tick. A proof nobody has
