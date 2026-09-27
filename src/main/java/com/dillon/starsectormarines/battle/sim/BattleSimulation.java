@@ -1968,7 +1968,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_COLLECTION,
                 System.nanoTime() - goapStageStart);
         goapStageStart = System.nanoTime();
-        navigation.prepareSquadRoutes(routeRequests);
+        navigation.prepareSquadRoutes(routeRequests, simTickIndex);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION,
                 System.nanoTime() - goapStageStart);
         if (squadTraffic != null) {
@@ -2376,6 +2376,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return navigation.findSquadPathToGoal(squadId, routingEpoch, routeToken,
                 startX, startY, goalX, goalY, cost);
     }
+
+    @Override
+    public boolean isSquadRoutePending(int squadId, long routingEpoch, Object routeToken,
+                                       int goalX, int goalY) {
+        return navigation.isSquadRoutePending(squadId, routingEpoch, routeToken, goalX, goalY);
+    }
+
+    public int lastSquadRouteOldestWaitTicks() { return navigation.lastSquadRouteOldestWaitTicks(); }
+
+    public int lastSquadRouteAdmittedWaitTicks() { return navigation.lastSquadRouteAdmittedWaitTicks(); }
+
+    public int lastSquadRouteDeferred() { return navigation.lastSquadRouteDeferred(); }
 
     /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */
     private void flushPendingOccupancyDeltas() {

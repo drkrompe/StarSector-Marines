@@ -168,6 +168,17 @@ public interface BattleView {
     }
 
     /**
+     * Whether this exact prepared intent awaits squad-route admission. A
+     * pending request is neither unreachable nor permission to follow an old
+     * path. Callers retain live combat handling but defer objective travel.
+     * Unprepared or mismatched requests return false and retain normal routing.
+     */
+    default boolean isSquadRoutePending(int squadId, long routingEpoch, Object routeToken,
+                                        int goalX, int goalY) {
+        return false;
+    }
+
+    /**
      * What this faction's own recent losses make ground cost to cross, or
      * {@code null} while it has lost nobody worth routing around. Published on
      * a fixed cadence, so it is a frozen snapshot that may be held for the

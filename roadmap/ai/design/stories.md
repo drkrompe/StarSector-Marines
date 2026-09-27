@@ -9,7 +9,7 @@ case; local traffic and shared firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
-| `squad-route-admission.md` | DRAFT | Make budget-deferred squad routes wait fairly instead of launching unbounded member A* fallbacks. |
+| `squad-route-admission.md` | IN PROGRESS | Exact pending admission and fair service; paired late-battle evidence remains. |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |

@@ -1,10 +1,10 @@
 # Squad route admission
 
-Status: DRAFT
+Status: IN PROGRESS
 
 Written: 2026-09-27
 
-Updated: 2026-09-27 — missing-field fan-out remains expensive with fixed-goal occupancy omission enabled.
+Updated: 2026-09-27 — implementing exact pending admission and fairness; paired late-battle evidence remains.
 
 ## Problem
 

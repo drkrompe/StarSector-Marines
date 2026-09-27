@@ -249,6 +249,14 @@ Do not run builds or leave generated task files there.
   Tail reports
   also include squad-field fallback searches, with their miss cause, expanded
   nodes, and unsigned destination occupancy (including path reservations).
+  `-Dbattle.pathfinding.squadRouteAdmission=false` restores member A* when
+  shared squad preparation defers an intent. The default publishes exact pending
+  intents and admits older waits first; pending objective travel does not mutate
+  or advance an old path. Failed, uncovered, mismatched, and intentionally
+  unprepared queries retain their ordinary fallbacks. Tail reports separate
+  pending requests/calls, admissions, successful resumptions, and wait age.
+  A zero `battle.pathfinding.maxSquadRouteBuildsPerTick` keeps legacy fallback
+  instead of creating a queue that cannot make progress.
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
   terminal crowding toll in flat A*. By default only that additive constant is
   omitted during search; intermediate crowding and terrain costs still rank

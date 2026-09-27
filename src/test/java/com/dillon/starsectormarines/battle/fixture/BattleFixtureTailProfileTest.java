@@ -67,6 +67,7 @@ class BattleFixtureTailProfileTest {
 
     private record TickSample(int tick, long totalNanos, long[] phases,
                               TickInnerProfile.Snapshot inner,
+                              TailSquadRouteAdmission admission,
                               List<TailPathContext> pathContexts,
                               SquadReplanSystem.TickDiagnostics replans,
                               UnitUpdateSystem.TickDiagnostics unitUpdate,
@@ -131,6 +132,8 @@ class BattleFixtureTailProfileTest {
         long[] innerCounts = new long[TickInnerProfile.Bucket.VALUES.length];
         Map<String, long[]> actionTotals = new HashMap<>();
         long[] convoyWorkTotals = new long[4];
+        TailSquadRouteAdmission.Totals admissionTotals =
+                new TailSquadRouteAdmission.Totals(warmupTicks + 1);
         Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
                 "build/reports/performance/conquest-tail"));
         Files.createDirectories(outputDir);
@@ -276,6 +279,10 @@ class BattleFixtureTailProfileTest {
                     maximumUnits = Math.max(maximumUnits, units);
                     minimumUnits = Math.min(minimumUnits, units);
                     TickInnerProfile inner = sim.getTickInnerProfile();
+                    TailSquadRouteAdmission admission = TailSquadRouteAdmission.capture(inner,
+                            sim.lastSquadRouteDeferred(), sim.lastSquadRouteOldestWaitTicks(),
+                            sim.lastSquadRouteAdmittedWaitTicks());
+                    admissionTotals.observe(sim.simTickIndex, admission);
                     inner.accumulateActionTotals(actionTotals);
                     for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
                         int index = bucket.ordinal();
@@ -314,7 +321,7 @@ class BattleFixtureTailProfileTest {
                             || duration > worst.peek().totalNanos()) {
                         TickInnerProfile.Snapshot innerSnapshot = inner.snapshot();
                         TickSample sample = new TickSample(sim.simTickIndex, duration,
-                                phases, innerSnapshot,
+                                phases, innerSnapshot, admission,
                                 TailPathContext.capture(innerSnapshot.slowPathSearches, sim),
                                 sim.getSquadReplanSystem().lastTickDiagnostics(),
                                 sim.getUnitUpdateSystem().lastTickDiagnostics(),
@@ -399,6 +406,7 @@ class BattleFixtureTailProfileTest {
                 minimumUnits, maximumUnits, firstRoutes,
                 finalRoutes, jfrPath, convoyUncachedStages);
         assertNotNull(firstInfluence);
+        report.put("squadRouteAdmission", admissionTotals.json());
         report.put("unitWorkerCpuTotalMs", millis(totalUnitWorkerCpuNanos));
         report.put("unitWorkerSampledWallTotalMs", millis(totalUnitWorkerWallNanos));
         report.put("ticksWithCompleteUnitCpu", ticksWithCompleteUnitCpu);
@@ -484,8 +492,10 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 12);
+        report.put("schemaVersion", 13);
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
+        report.put("squadRouteAdmissionEnabled", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.squadRouteAdmission", "true")));
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -737,6 +747,7 @@ class BattleFixtureTailProfileTest {
                 sample.inner().squadRouteCorridorCells);
         tick.put("squadFieldSettledCells",
                 sample.inner().squadRouteSettledCells);
+        tick.put("squadRouteAdmission", sample.admission().json());
         tick.put("convoyRouteWork", convoyWorkJson(new long[]{
                 sample.inner().convoyClearanceEvaluations,
                 sample.inner().convoyCostEvaluations,

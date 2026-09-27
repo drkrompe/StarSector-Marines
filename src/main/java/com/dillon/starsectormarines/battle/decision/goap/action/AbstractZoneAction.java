@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -524,7 +525,24 @@ abstract class AbstractZoneAction implements Action {
                     == FiringApproach.MOVED) return;
         }
 
-        if (sim.movement().mayRepath(member)) {
+        SquadPlan plan = squad.currentPlan;
+        SquadPlan.Step step = plan == null ? null : plan.currentStep();
+        // Another member can advance the shared plan during execution.
+        // Only a matching prepared step may serve this action's route.
+        Object routeToken = step != null && step.action == this ? step : null;
+        boolean squadRouting = SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount());
+        if (squadRouting && sim.isSquadRoutePending(squad.id, squad.routingEpoch,
+                routeToken, destX, destY)) {
+            // Combat above retains its own movement/fire authority. The old
+            // objective path is not proven to belong to this pending intent,
+            // even while its repath throttle is active: neither walk nor mutate it.
+            sim.movement().requireObjectiveRouteRefresh(member);
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_PENDING_CALL, 1);
+            return;
+        }
+
+        if (sim.movement().needsObjectiveRouteRefresh(member) || sim.movement().mayRepath(member)) {
             // Every member ordered into this zone walks to the same interior
             // cell, so this is the dense same-destination case a shared
             // reverse field exists for: one field per zone serves the whole
@@ -539,13 +557,8 @@ abstract class AbstractZoneAction implements Action {
             // biasing that would move somebody off cover for a reason having
             // nothing to do with the shot in front of them.
             RouteCostField losses = sim.getRouteCostField(squad.faction);
-            SquadPlan plan = squad.currentPlan;
-            SquadPlan.Step step = plan == null ? null : plan.currentStep();
-            // Another member can advance the shared plan during execution.
-            // Only a matching prepared step may serve this action's route.
-            Object routeToken = step != null && step.action == this ? step : null;
             sim.setPath(member,
-                    SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount())
+                    squadRouting
                             ? sim.findSquadPathToGoal(squad.id, squad.routingEpoch,
                                     routeToken, memberX, memberY, destX, destY, losses)
                             : SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
@@ -555,6 +568,9 @@ abstract class AbstractZoneAction implements Action {
                                     memberX, memberY, destX, destY,
                                     GridPathfinder.USE_CARDINAL_NAVIGATION,
                                     sim.getOccupancyMap(), losses));
+            // Admission alone did not authorize the pre-wait path. The new
+            // current-intent installation does, including an empty failed route.
+            sim.movement().objectiveRouteRefreshed(member);
         }
         sim.advanceSquadTravel(member, squad, destX, destY);
     }
