@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +55,8 @@ public final class ReinforceContact implements Goal {
     static final int MAX_FLANK_DETOUR_SLACK = 4;
     /** Absolute dogleg allowance; prevents a farther candidate gaming the ratio denominator. */
     static final int MAX_FLANK_EXTRA_STEPS = 8;
+    /** Same-build exhaustive candidate-search control; pruning preserves the winning cell exactly. */
+    public static final String PRUNE_FLANK_CANDIDATES_PROPERTY = "battle.pathfinding.pruneFlankCandidates";
 
     private ReinforceContact() {}
 
@@ -196,8 +199,8 @@ public final class ReinforceContact implements Goal {
     /**
      * Selects the closest practical flank cell, not merely the first open
      * tile. Structure walls can make two adjacent-looking cells belong to
-     * very different routes; every candidate therefore needs an A* route
-     * from a live squad member and that route must not be an extreme detour.
+     * very different routes; a candidate that can improve the incumbent needs
+     * an A* route from a live squad member, without an extreme detour.
      * When the building cannot support a flank, returning the squad's own
      * cell makes {@link FlankApproach} complete and hand control back to the
      * ordinary engagement planner instead of orbiting the structure.
@@ -205,17 +208,31 @@ public final class ReinforceContact implements Goal {
      * <p>Two callers read that refusal differently. {@link #computeFlankWaypoint}
      * asks once per squad at plan time and lets the action complete on it.
      * {@code AttackMove.maneuverAim} asks per member per tick, treats the
-     * squad's own ground as "no flank here" and aims at the objective instead,
-     * and pays for the fan-out once per squad per tick through the squad's
-     * {@code FlankAimMemo} — this method costs an A* per candidate over a
-     * radius-{@value #WALKABLE_SNAP_RADIUS} square, so a caller that can ask
-     * it per member must not.
+     * squad's own ground as "no flank here" and aims at the objective instead.
+     * Its {@code FlankAimMemo} provides best-effort same-tick reuse, not
+     * once-per-squad execution: parallel readers may both miss and compute.
+     * Candidate work remains inside a
+     * radius-{@value #WALKABLE_SNAP_RADIUS} square, and an admissible score
+     * bound avoids route proofs that cannot improve the current winner.
      */
     public static int[] snapToReachable(int x, int y, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int[] origin = squadOrigin(squad, sim);
-        int bestX = origin[0];
-        int bestY = origin[1];
+        return snapToReachable(x, y, grid, origin[0], origin[1],
+                Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")));
+    }
+
+    /**
+     * Grid-only decision seam. The original score and ring tie order remain
+     * authoritative: every route has at least its Chebyshev number of steps,
+     * so a candidate whose lower bound ties or exceeds the incumbent cannot
+     * win the strict-less comparison. Pruning neither asserts reachability nor
+     * relaxes detour rejection; an absent incumbent still requires proof.
+     */
+    static int[] snapToReachable(int x, int y, NavigationGrid grid,
+                                 int originX, int originY, boolean prune) {
+        int bestX = originX;
+        int bestY = originY;
         float bestScore = Float.MAX_VALUE;
         for (int r = 0; r <= WALKABLE_SNAP_RADIUS; r++) {
             for (int dy = -r; dy <= r; dy++) {
@@ -226,17 +243,25 @@ public final class ReinforceContact implements Goal {
                     if (!grid.inBounds(candidateX, candidateY)
                             || !grid.isWalkable(candidateX, candidateY)
                             || grid.isDoorway(candidateX, candidateY)) continue;
-                    int[] path = GridPathfinder.findPath(grid,
-                            origin[0], origin[1], candidateX, candidateY);
+                    int directSteps = Math.max(
+                            Math.abs(candidateX - originX),
+                            Math.abs(candidateY - originY));
+                    float rawDistance2 = dx * dx + dy * dy;
+                    if (prune && rawDistance2 * 1000f + directSteps >= bestScore) continue;
+                    TickInnerProfile profile = TickInnerProfile.currentIfBound();
+                    if (profile != null) profile.routeReason("FLANK_SNAP");
+                    int[] path;
+                    try {
+                        path = GridPathfinder.findPath(grid,
+                                originX, originY, candidateX, candidateY);
+                    } finally {
+                        if (profile != null) profile.routeReason(null);
+                    }
                     if (Paths.isEmpty(path)) continue;
                     int routeSteps = Math.max(0, Paths.cellCount(path) - 1);
-                    int directSteps = Math.max(
-                            Math.abs(candidateX - origin[0]),
-                            Math.abs(candidateY - origin[1]));
                     if (routeSteps > directSteps * MAX_FLANK_DETOUR_RATIO
                             + MAX_FLANK_DETOUR_SLACK
                             || routeSteps - directSteps > MAX_FLANK_EXTRA_STEPS) continue;
-                    float rawDistance2 = dx * dx + dy * dy;
                     float score = rawDistance2 * 1000f + routeSteps;
                     if (score < bestScore) {
                         bestScore = score;
