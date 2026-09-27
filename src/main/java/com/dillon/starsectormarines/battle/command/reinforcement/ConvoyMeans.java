@@ -79,6 +79,10 @@ public final class ConvoyMeans implements ReinforcementMeans {
      * permanently monopolize the shared per-tick allowance.
      */
     static final int SEARCHES_PER_TICK = 4;
+    /** Snapshot allocation is preparation work too, before any search runs. */
+    static final int PROOFS_STARTED_PER_TICK = 1;
+    /** Includes finished results until dispatch consumes them. */
+    static final int MAX_PREPARED_PROOFS = 4;
 
     /**
      * Sim-seconds a proof may go untouched by a dispatch before it is
@@ -111,6 +115,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
      */
     private final Map<ReinforcementRequest, InFlightProof> proofs =
             new IdentityHashMap<>();
+    /** FIFO admission, independent of the identity map's iteration order. */
+    private final List<InFlightProof> proofOrder = new ArrayList<>();
     private int nextProofIndex;
     /** Static road-gate candidates; footprint viability is checked against the live grid. */
     private int perimeterWidth = -1;
@@ -255,18 +261,55 @@ public final class ConvoyMeans implements ReinforcementMeans {
         if (proofs.isEmpty()) return false;
         long revision = sim.getNavigationGridRevision();
         boolean finishedSomething = false;
+        int oldestPendingAge = 0;
         List<InFlightProof> running = new ArrayList<>();
-        Iterator<Map.Entry<ReinforcementRequest, InFlightProof>> it =
-                proofs.entrySet().iterator();
+        Iterator<InFlightProof> it = proofOrder.iterator();
         while (it.hasNext()) {
-            InFlightProof proof = it.next().getValue();
+            InFlightProof proof = it.next();
+            proof.ageTicks++;
             proof.untouchedSeconds += dt;
-            if (proof.untouchedSeconds > ABANDON_AFTER_SECONDS
-                    || proof.job.gridRevision() != revision) {
+            if (proof.untouchedSeconds > ABANDON_AFTER_SECONDS) {
+                proofs.remove(proof.request);
                 it.remove();
                 continue;
             }
-            if (proof.job.state() == RouteProofJob.State.RUNNING) running.add(proof);
+            oldestPendingAge = Math.max(oldestPendingAge, proof.ageTicks);
+            if (proof.job != null && proof.job.gridRevision() != revision) {
+                // Keep seniority, but never keep a frontier about obsolete ground.
+                proof.job = null;
+            }
+        }
+        int prepared = preparedProofCount();
+        int startsLeft = PROOFS_STARTED_PER_TICK;
+        TickInnerProfile admissionProfile = TickInnerProfile.currentIfBound();
+        for (InFlightProof proof : proofOrder) {
+            if (proof.job == null && !proof.rejected
+                    && prepared < MAX_PREPARED_PROOFS && startsLeft > 0) {
+                startsLeft--;
+                // Resolve current delivery policy and terrain only on admission.
+                proof.job = startProof(sim, deploymentFor(proof.request), revision);
+                if (admissionProfile != null) admissionProfile.recordCount(
+                        TickInnerProfile.Bucket.CONVOY_PROOF_ADMITTED, 1);
+                if (proof.job == null) {
+                    proof.rejected = true;
+                    finishedSomething = true;
+                } else {
+                    prepared++;
+                    // Do not stack first-search work onto snapshot construction.
+                    continue;
+                }
+            }
+            if (proof.job != null && proof.job.state() == RouteProofJob.State.RUNNING) {
+                running.add(proof);
+            }
+        }
+        if (admissionProfile != null) {
+            admissionProfile.recordCount(TickInnerProfile.Bucket.CONVOY_PROOF_QUEUED,
+                    queuedProofCount());
+            admissionProfile.recordCount(TickInnerProfile.Bucket.CONVOY_PROOF_PREPARED,
+                    prepared);
+            admissionProfile.recordCount(TickInnerProfile.Bucket.CONVOY_PROOF_OLDEST_PENDING_AGE,
+                    oldestPendingAge);
         }
         int searchesLeft = SEARCHES_PER_TICK;
         int expansionsLeft = RouteProofJob.EXPANSIONS_PER_TICK;
@@ -294,6 +337,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
             expansionsLeft -= proof.job.expandedNodesThisStep();
             if (state != RouteProofJob.State.RUNNING) {
                 finishedSomething = true;
+                if (profile != null) profile.recordCount(state == RouteProofJob.State.PROVED
+                        ? TickInnerProfile.Bucket.CONVOY_PROOF_READY
+                        : TickInnerProfile.Bucket.CONVOY_PROOF_FAILED, 1);
             }
         }
         if (count > 0) nextProofIndex = (startIndex + 1) % count;
@@ -310,29 +356,28 @@ public final class ConvoyMeans implements ReinforcementMeans {
         int gh = sim.getGrid().getHeight();
         long revision = sim.getNavigationGridRevision();
         InFlightProof proof = proofs.get(req);
-        if (proof != null && proof.job.gridRevision() != revision) {
-            proofs.remove(req);
-            proof = null;
+        if (proof != null && proof.job != null && proof.job.gridRevision() != revision) {
+            proof.job = null;
         }
         if (proof == null) {
-            RouteProofJob job = startProof(sim, deployment, revision);
-            if (job == null) {
+            if (entryNode(sim, deployment) == null) {
                 LOG.warn("ConvoyMeans: no eligible "
                         + (deployment.strictDefenderRearEntry() ? "defender rear" : "perimeter")
                         + " entry for hint=(" + rx + "," + ry + ")");
                 return ReinforcementDispatchResult.REJECTED;
             }
-            proof = new InFlightProof(job);
+            proof = new InFlightProof(req);
             proofs.put(req, proof);
-            // The raw routing snapshot is this tick's preparation. Its
-            // clearance and cost cells remain unexamined until search steps on
-            // later ticks, so the first step still waits for the next tick.
+            proofOrder.add(proof);
         }
         proof.untouchedSeconds = 0f;
-        if (proof.job.state() == RouteProofJob.State.RUNNING) {
+        if (!proof.rejected && (proof.job == null
+                || proof.job.state() == RouteProofJob.State.RUNNING)) {
             return ReinforcementDispatchResult.RETRYABLE;
         }
         proofs.remove(req);
+        proofOrder.remove(proof);
+        if (proof.rejected) return ReinforcementDispatchResult.REJECTED;
         RoutePlan route = proof.job.plan();
         if (route == null) {
             LOG.warn("ConvoyMeans: no complete HEAVY_APC route from "
@@ -567,6 +612,22 @@ public final class ConvoyMeans implements ReinforcementMeans {
     /** Captures of raw route inputs; an entrance probe never makes one. */
     int routeFieldCaptures() { return routeFieldCaptures; }
 
+    int queuedProofCount() {
+        int count = 0;
+        for (InFlightProof proof : proofOrder) {
+            if (proof.job == null && !proof.rejected) count++;
+        }
+        return count;
+    }
+
+    int preparedProofCount() {
+        int count = 0;
+        for (InFlightProof proof : proofOrder) {
+            if (proof.job != null) count++;
+        }
+        return count;
+    }
+
     private static boolean isMarineEntryEdge(TraversalAxis axis, RoadGraph.Node n, int gw, int gh) {
         if (axis == TraversalAxis.SOUTH_TO_NORTH) return n.cellY == 0;
         if (axis == TraversalAxis.WEST_TO_EAST)   return n.cellX == 0;
@@ -604,9 +665,12 @@ public final class ConvoyMeans implements ReinforcementMeans {
 
     /** One route proof and how long it has gone without a dispatch asking after it. */
     private static final class InFlightProof {
-        final RouteProofJob job;
+        final ReinforcementRequest request;
+        RouteProofJob job;
+        boolean rejected;
         float untouchedSeconds;
+        int ageTicks;
 
-        InFlightProof(RouteProofJob job) { this.job = job; }
+        InFlightProof(ReinforcementRequest request) { this.request = request; }
     }
 }

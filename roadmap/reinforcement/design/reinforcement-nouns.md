@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — a means may prepare a delivery across ticks, answering retryable while it works, and the dispatcher drains on the tick it finishes rather than on the next cadence.
+Updated: 2026-09-27 — retryable preparation includes admission before expensive proof allocation; its wait is not a fixed search-attempt quotient.
 
 Earlier 2026-09-03 — a derived lift is floored at the shape it replaces, so sizing it can never hand back less than the standing ferry.
 
@@ -80,9 +80,12 @@ still working. The existing law holds unchanged and for a better reason than
 before: a retryable attempt refunds its ticket, requeues the request, and does
 *not* fall through to a slower means, because a means that is merely still
 thinking has not lost the selection it won on arrival estimate. Handing the
-request down the ladder would deliver later on purpose. The wait is bounded by
-whatever bounds the preparation — for the convoy, its search budget divided by
-what it spends per tick, which is eight ticks and then a commit or a rejection.
+request down the ladder would deliver later on purpose. The wait depends on
+the means' admission and work policy. Convoy admission bounds snapshot starts
+and prepared jobs before its shared search/expansion budget; a disconnected
+search or a busy queue can span many ticks. Search-attempt limits alone do not
+guarantee a fixed dispatch latency, and queue waiting must be measured alongside
+frame cost.
 
 **What the per-tick hook buys is that the wait is measured in ticks rather than
 in cadences.** A means reports when preparation it had in progress finished on

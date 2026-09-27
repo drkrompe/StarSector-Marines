@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — repeated recovery failures may be reused only for the same bounded request against frozen routing inputs.
+Updated: 2026-09-27 — proof admission bounds snapshot preparation as well as search work.
 
 ## Purpose and boundary
 
@@ -393,7 +393,14 @@ retains the same existing cross-domain behavior as an autonomous hull.
   pair are the obvious ones, but so is which entry is
   being tried and how many drops beneath it have already been refused. Beginning
   again each tick would spend the whole budget on the first candidate forever.
-- **Standing a proof up still costs a snapshot.** It copies raw map inputs but
+- **Standing a proof up still costs a snapshot, so admission precedes that
+  allocation.** A selected request first waits as lightweight intent in FIFO
+  order; repeated dispatches retain its place. Each convoy means starts at most
+  one proof per tick and retains at most four prepared proofs, including
+  finished results awaiting dispatch. Topology invalidation releases obsolete
+  prepared state without renewing queue seniority. Waiting is retryable, not a
+  route rejection or permission to consume a ticket. An admitted proof copies
+  raw map inputs but
   neither erodes every footprint nor prices every terrain cell nor labels all
   connectivity. Its first search begins on a later tick. A proof nobody has
   asked after for two dispatch cadences is abandoned: the request was dropped
