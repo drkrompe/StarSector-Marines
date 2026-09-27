@@ -492,6 +492,50 @@ public final class UnitSpatialIndex {
         gather(cx, cy, radius, -1, out);
     }
 
+    /** Reusable primitive query results, including the indexed bucket and point. */
+    public static final class PointBuffer {
+        public long[] ids = new long[16];
+        public float[] x = new float[16], y = new float[16];
+        public int[] bucketX = new int[16], bucketY = new int[16];
+        public int size;
+
+        public void clear() { size = 0; }
+
+        void add(long id, float px, float py, int bx, int by) {
+            if (size == ids.length) {
+                int capacity = size * 2;
+                ids = Arrays.copyOf(ids, capacity);
+                x = Arrays.copyOf(x, capacity); y = Arrays.copyOf(y, capacity);
+                bucketX = Arrays.copyOf(bucketX, capacity); bucketY = Arrays.copyOf(bucketY, capacity);
+            }
+            ids[size] = id; x[size] = px; y[size] = py;
+            bucketX[size] = bx; bucketY[size] = by;
+            size++;
+        }
+    }
+
+    /** Same candidates/order as {@link #gather(float, float, float, LongBucket)},
+     * with snapshot coordinates, never live ECS coordinates. */
+    public void gather(float cx, float cy, float radius, PointBuffer out) {
+        out.clear();
+        if (radius <= 0f) return;
+        int x0 = Math.max(0, Math.floorDiv((int) Math.floor(cx - radius), BUCKET));
+        int x1 = Math.min(bucketsX - 1, Math.floorDiv((int) Math.floor(cx + radius), BUCKET));
+        int y0 = Math.max(0, Math.floorDiv((int) Math.floor(cy - radius), BUCKET));
+        int y1 = Math.min(bucketsY - 1, Math.floorDiv((int) Math.floor(cy + radius), BUCKET));
+        float r2 = radius * radius;
+        for (int by = y0; by <= y1; by++) for (int bx = x0; bx <= x1; bx++) {
+            Bucket bucket = buckets[by * bucketsX + bx];
+            if (bucket == null) continue;
+            for (int i = 0; i < bucket.size; i++) {
+                float dx = bucket.posX[i] - cx, dy = bucket.posY[i] - cy;
+                if (dx * dx + dy * dy <= r2) {
+                    out.add(bucket.ids[i], bucket.posX[i], bucket.posY[i], bx, by);
+                }
+            }
+        }
+    }
+
     /**
      * Every body whose <em>own circle</em> touches the circle
      * ({@code cx}, {@code cy}, {@code radius}) — the query to ask when the

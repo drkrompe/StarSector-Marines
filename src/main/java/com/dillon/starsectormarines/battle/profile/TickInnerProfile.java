@@ -171,10 +171,17 @@ public final class TickInnerProfile {
         CLEAR_ZONE_TARGET_SELECT,
         CLEAR_ZONE_TARGET_VISIT,
         CLEAR_ZONE_TARGET_RAY,
+        /** Count-only target decision and unsuccessful-search retry reuse. */
+        CLEAR_ZONE_DECISION_REUSE,
+        CLEAR_ZONE_NEGATIVE_REUSE,
         FIRING_POSITION,
         FIRING_RETAIN_VALIDATE,
         FIRING_RETAIN_HIT,
         FIRING_RETAIN_SEARCH,
+        /** Count-only spread neighborhood query pairs, candidates, and gathered points. */
+        FIRING_SPREAD_QUERY,
+        FIRING_SPREAD_CANDIDATE,
+        FIRING_SPREAD_VISIT,
         /** Experimental shared geometry builds; time is nested within FIRING_POSITION. */
         FIRING_POOL_BUILD,
         FIRING_POOL_HIT,
