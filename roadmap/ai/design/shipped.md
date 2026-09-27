@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — folded bounded optional flank selection.
+Updated: 2026-09-27 — folded bounded local grenade avoidance.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `local-hazard-avoidance.md` | 2026-09-27 | `0aae587bf`; 380 focused tests, same-input legacy control and 6000-tick paced capture | `ai-nouns.md` (imminent hazard avoidance and owned escape retention); controls and diagnostic semantics in `CLAUDE.md` |
 | `flank-selection-work-budget.md` | 2026-09-27 | `c10a51d38`; 335 focused tests and 6000-tick paced capture | `ai-nouns.md` (optional flank allowance and explicit refusal); controls and diagnostic semantics in `CLAUDE.md` |
 | `route-region-membership.md` | 2026-09-27 | `9334c7199`, `9cc18023e`; exact route/perception equivalence tests and production-paced tail captures | Existing `ai-nouns.md` route-admission and contact rules unchanged; controls and diagnostic semantics in `CLAUDE.md` |
 | `squad-route-work-budget.md` | 2026-09-27 | this change; tiny-budget progress, cancellation, fairness, backoff and immutable-publication tests | `ai-nouns.md` (shared route admission); controls and diagnostic semantics in `CLAUDE.md` |

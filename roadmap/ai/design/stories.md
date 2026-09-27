@@ -4,12 +4,11 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — bounded optional flank selection is folded; local traffic and shared
+Updated: 2026-09-27 — bounded local grenade avoidance is folded; local traffic and shared
 firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
-| `local-hazard-avoidance.md` | IN PROGRESS | Bound grenade reactions to imminent local danger and retain legal escape decisions without repeated global search. |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
