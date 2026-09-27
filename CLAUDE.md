@@ -236,6 +236,17 @@ Do not run builds or leave generated task files there.
   candidate A* fan-out. The default skips candidates whose admissible score
   bound cannot improve the incumbent, preserving the selected cell and tie order;
   actual proofs are labelled `FLANK_SNAP` in slow-search samples. Tail reports
+  retain immutable post-tick goal, assignment, objective footprint, zone extent,
+  and member/target positions alongside slow searches. This context is not a
+  query-time snapshot. `-Dbattle.pathfinding.boundFlankProofs=false` disables
+  the independent flank-proof ceiling: by default A* stops when its minimum
+  frontier cost exceeds every route allowed by the existing detour-step limit.
+  Accepted route ordering is unchanged; this is not a per-tick work budget.
+  `GROUND_*` and `VEHICLE_*` counters separate ground stages, local trajectory
+  heuristic/lattice work, and synchronous recovery searches from convoy
+  dispatch proofs. These nested elapsed times overlap; expansion, failed-plan,
+  recovery-attempt, and heuristic-storage-cell counters are count-only.
+  Tail reports
   also include squad-field fallback searches, with their miss cause, expanded
   nodes, and unsigned destination occupancy (including path reservations).
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable

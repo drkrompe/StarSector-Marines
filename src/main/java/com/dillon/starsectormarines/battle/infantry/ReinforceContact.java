@@ -57,6 +57,8 @@ public final class ReinforceContact implements Goal {
     static final int MAX_FLANK_EXTRA_STEPS = 8;
     /** Same-build exhaustive candidate-search control; pruning preserves the winning cell exactly. */
     public static final String PRUNE_FLANK_CANDIDATES_PROPERTY = "battle.pathfinding.pruneFlankCandidates";
+    /** Same-build control for detour-bounded route proofs, independent of candidate pruning. */
+    public static final String BOUND_FLANK_PROOFS_PROPERTY = "battle.pathfinding.boundFlankProofs";
 
     private ReinforceContact() {}
 
@@ -213,13 +215,17 @@ public final class ReinforceContact implements Goal {
      * once-per-squad execution: parallel readers may both miss and compute.
      * Candidate work remains inside a
      * radius-{@value #WALKABLE_SNAP_RADIUS} square, and an admissible score
-     * bound avoids route proofs that cannot improve the current winner.
+     * bound avoids route proofs that cannot improve the current winner. Each
+     * remaining proof stops once its geometric-cost frontier exceeds every
+     * route the existing detour-step limit could accept; rejected candidates
+     * do not need a complete route around a distant end of the same wall.
      */
     public static int[] snapToReachable(int x, int y, Squad squad, BattleView sim) {
         NavigationGrid grid = sim.getGrid();
         int[] origin = squadOrigin(squad, sim);
         return snapToReachable(x, y, grid, origin[0], origin[1],
-                Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")));
+                Boolean.parseBoolean(System.getProperty(PRUNE_FLANK_CANDIDATES_PROPERTY, "true")),
+                Boolean.parseBoolean(System.getProperty(BOUND_FLANK_PROOFS_PROPERTY, "true")));
     }
 
     /**
@@ -231,6 +237,11 @@ public final class ReinforceContact implements Goal {
      */
     static int[] snapToReachable(int x, int y, NavigationGrid grid,
                                  int originX, int originY, boolean prune) {
+        return snapToReachable(x, y, grid, originX, originY, prune, true);
+    }
+
+    static int[] snapToReachable(int x, int y, NavigationGrid grid,
+                                 int originX, int originY, boolean prune, boolean boundProofs) {
         int bestX = originX;
         int bestY = originY;
         float bestScore = Float.MAX_VALUE;
@@ -252,8 +263,15 @@ public final class ReinforceContact implements Goal {
                     if (profile != null) profile.routeReason("FLANK_SNAP");
                     int[] path;
                     try {
-                        path = GridPathfinder.findPath(grid,
-                                originX, originY, candidateX, candidateY);
+                        int maxSteps = Math.min(directSteps + MAX_FLANK_EXTRA_STEPS,
+                                (int) Math.floor(directSteps * MAX_FLANK_DETOUR_RATIO
+                                        + MAX_FLANK_DETOUR_SLACK));
+                        path = boundProofs
+                                ? GridPathfinder.findPathWithinStepEnvelope(grid,
+                                        originX, originY, candidateX, candidateY,
+                                        GridPathfinder.USE_CARDINAL_NAVIGATION, maxSteps)
+                                : GridPathfinder.findPath(grid,
+                                        originX, originY, candidateX, candidateY);
                     } finally {
                         if (profile != null) profile.routeReason(null);
                     }

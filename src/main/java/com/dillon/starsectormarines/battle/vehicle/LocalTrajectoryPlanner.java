@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 
 /**
  * Rolling-horizon local planner — the heart of the navigation rework. Turns a
@@ -69,6 +70,18 @@ public final class LocalTrajectoryPlanner {
      */
     public static Trajectory plan(Pose start, ReferenceCorridor corridor,
                                   VehicleType type, NavigationGrid grid) {
+        long started = VehicleWorkProfile.start();
+        try {
+            Trajectory result = planInner(start, corridor, type, grid);
+            if (result == null) VehicleWorkProfile.count(Bucket.VEHICLE_LOCAL_NO_TRAJECTORY, 1);
+            return result;
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_LOCAL_PLAN, started);
+        }
+    }
+
+    private static Trajectory planInner(Pose start, ReferenceCorridor corridor,
+                                        VehicleType type, NavigationGrid grid) {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return null;
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();

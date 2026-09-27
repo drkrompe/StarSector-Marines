@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 
@@ -499,6 +500,16 @@ public final class VehicleControlSystem {
      */
     private boolean attemptReroute(VehicleMission mission, GroundBody body, VehicleType type,
                                    VehicleControlComponent s) {
+        long started = VehicleWorkProfile.start();
+        try {
+            return attemptRerouteInner(mission, body, type, s);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_RECOVERY_SEARCH, started);
+        }
+    }
+
+    private boolean attemptRerouteInner(VehicleMission mission, GroundBody body, VehicleType type,
+                                        VehicleControlComponent s) {
         TerrainCostField cost = mission.routeCostField;
         VehicleClearance clr = mission.routeClearance;
         ProgressiveVehicleField fields = mission.routeFields;
@@ -593,6 +604,16 @@ public final class VehicleControlSystem {
     private void tryEngageDocking(VehicleMission mission, GroundBody body, VehicleType type,
                                   VehicleControlComponent s,
                                   float[] xs, float[] ys) {
+        long started = VehicleWorkProfile.start();
+        try {
+            tryEngageDockingInner(mission, body, type, s, xs, ys);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_DOCKING_PROBE, started);
+        }
+    }
+
+    private void tryEngageDockingInner(VehicleMission mission, GroundBody body, VehicleType type,
+                                      VehicleControlComponent s, float[] xs, float[] ys) {
         if (!(body instanceof BicycleBody)) return;
         int lastIdx = xs.length - 1;
         float lzX = xs[lastIdx];
@@ -632,6 +653,16 @@ public final class VehicleControlSystem {
      */
     private boolean tryEngageDepartureTurnaround(GroundBody body, VehicleType type,
                                                  VehicleControlComponent s) {
+        long started = VehicleWorkProfile.start();
+        try {
+            return tryEngageDepartureTurnaroundInner(body, type, s);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_TURNAROUND_PROBE, started);
+        }
+    }
+
+    private boolean tryEngageDepartureTurnaroundInner(GroundBody body, VehicleType type,
+                                                      VehicleControlComponent s) {
         if (!(body instanceof BicycleBody)) return false;
         if (s.turnaroundsUsed >= VehicleController.MAX_DEPARTURE_TURNAROUNDS) return false;
 

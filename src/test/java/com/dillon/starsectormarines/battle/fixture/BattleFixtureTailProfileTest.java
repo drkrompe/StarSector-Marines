@@ -67,6 +67,7 @@ class BattleFixtureTailProfileTest {
 
     private record TickSample(int tick, long totalNanos, long[] phases,
                               TickInnerProfile.Snapshot inner,
+                              List<TailPathContext> pathContexts,
                               SquadReplanSystem.TickDiagnostics replans,
                               UnitUpdateSystem.TickDiagnostics unitUpdate,
                               GcCounters gcBefore, GcCounters gcAfter,
@@ -311,8 +312,10 @@ class BattleFixtureTailProfileTest {
                     }
                     if (phaseRecord || worst.size() < topLimit
                             || duration > worst.peek().totalNanos()) {
+                        TickInnerProfile.Snapshot innerSnapshot = inner.snapshot();
                         TickSample sample = new TickSample(sim.simTickIndex, duration,
-                                phases, inner.snapshot(),
+                                phases, innerSnapshot,
+                                TailPathContext.capture(innerSnapshot.slowPathSearches, sim),
                                 sim.getSquadReplanSystem().lastTickDiagnostics(),
                                 sim.getUnitUpdateSystem().lastTickDiagnostics(),
                                 gcBefore, gcAfter,
@@ -481,7 +484,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 11);
+        report.put("schemaVersion", 12);
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
@@ -503,6 +506,8 @@ class BattleFixtureTailProfileTest {
                 "battle.squad.trafficYield", "true")));
         report.put("pruneFlankCandidates", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.pruneFlankCandidates", "true")));
+        report.put("boundFlankProofs", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.boundFlankProofs", "true")));
         report.put("omitFixedGoalOccupancy", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.omitFixedGoalOccupancy", "true")));
         report.put("pathSearchTimingSemantics", "Flat search samples and expansion totals include squad-field fallbacks; worker elapsed times overlap. goalOccupancy is the unsigned destination reservation count, -1 when unknown.");
@@ -738,6 +743,7 @@ class BattleFixtureTailProfileTest {
                 sample.inner().convoyExpandedNodes,
                 sample.inner().convoySearchesStarted}));
         JSONArray paths = new JSONArray();
+        int pathIndex = 0;
         for (TickInnerProfile.PathSearch search : sample.inner().slowPathSearches) {
             paths.put(new JSONObject().put("ms", millis(search.nanos()))
                     .put("startX", search.startX()).put("startY", search.startY())
@@ -748,7 +754,8 @@ class BattleFixtureTailProfileTest {
                     .put("goalOccupancy", search.goalOccupancy())
                     .put("fallbackReason", search.fallbackReason())
                     .put("usesOccupancy", search.usesOccupancy())
-                    .put("found", search.found()));
+                    .put("found", search.found())
+                    .put("postTickContext", sample.pathContexts().get(pathIndex++).json()));
         }
         tick.put("slowFlatPathSearches", paths);
         tick.put("navigationMesh", new JSONObject()
