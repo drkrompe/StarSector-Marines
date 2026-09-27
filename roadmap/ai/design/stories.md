@@ -4,11 +4,12 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — local traffic adoption and phase-owned flank preparation
-remain open; shared firing positions remain an opt-in experiment.
+Updated: 2026-09-27 — squad route admission now has a measured budget-bypass
+case; local traffic and shared firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
+| `squad-route-admission.md` | DRAFT | Make budget-deferred squad routes wait fairly instead of launching unbounded member A* fallbacks. |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
