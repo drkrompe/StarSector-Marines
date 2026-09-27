@@ -512,6 +512,10 @@ class BattleFixtureTailProfileTest {
                 "battle.targeting.boundKnownContactScan", "true")));
         report.put("pruneClearZoneSelection", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.pruneClearZoneSelection", "true")));
+        report.put("clearZoneDecisionCadence", Boolean.parseBoolean(System.getProperty(
+                "battle.goap.clearZoneDecisionCadence", "true")));
+        report.put("localFiringSpread", Boolean.parseBoolean(System.getProperty(
+                "battle.targeting.localFiringSpread", "true")));
         report.put("isolatedAdvanceThreat", Boolean.parseBoolean(System.getProperty(
                 "battle.squad.isolatedAdvanceThreat", "true")));
         report.put("phaseOwnedRallyRequests", Boolean.parseBoolean(System.getProperty(

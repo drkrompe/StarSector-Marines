@@ -660,37 +660,40 @@ abstract class AbstractZoneAction implements Action {
      * by squad.lock. Contact-onset publication has the same dedicated ownership.
      */
     protected static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY) {
-        int tick = sim.getSimTickIndex();
-        if (squad.advanceThreatTick == tick) return;
-        refreshAdvanceThreat(squad, tick, ISOLATED_ADVANCE_THREAT, () -> {
-            TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
-                    .assessAdvanceThreat(squad, destX, destY, tick);
-            squad.advanceEngageWeight = threat.weight();
-            squad.advanceEngageCommitted = shouldCommitAdvance(
-                    squad.advanceEngageCommitted, threat.weight());
-            squad.advanceEngageLeash = squad.advanceEngageCommitted
-                    ? Math.max(ADVANCE_LEASH_MIN, ADVANCE_LEASH_MAX * threat.weight())
-                    : 0f;
-            squad.advanceThreatId = threat.primaryThreatId();
-            squad.advanceThreatFoes = threat.foes();
-            squad.advanceThreatFriends = threat.friends();
-            squad.advanceThreatAnchorX = threat.axisAnchorX();
-            squad.advanceThreatAnchorY = threat.axisAnchorY();
-            squad.advanceThreatRetreating = threat.primaryRetreating();
-            applyContactOnset(squad, sim, tick);
-        });
+        updateAdvanceThreat(squad, sim, destX, destY, ISOLATED_ADVANCE_THREAT);
     }
 
-    /** Narrow publication seam, testable without a battle or timing-dependent scoring. */
-    static void refreshAdvanceThreat(Squad squad, int tick, boolean isolated, Runnable publish) {
+    /** Same production path with explicit monitor selection for focused controls. */
+    static void updateAdvanceThreat(Squad squad, BattleControl sim, int destX, int destY,
+                                    boolean isolated) {
+        int tick = sim.getSimTickIndex();
         if (squad.advanceThreatTick == tick) return;
         synchronized (isolated ? squad.advanceThreatLock : squad.lock) {
             if (squad.advanceThreatTick == tick) return;
-            publish.run();
+            computeAdvanceThreat(squad, sim, destX, destY, tick);
             // Volatile publication-last: the lock-free fast path must never
             // observe this tick while any of its shared decision is unfinished.
             squad.advanceThreatTick = tick;
         }
+    }
+
+    private static void computeAdvanceThreat(Squad squad, BattleControl sim,
+                                            int destX, int destY, int tick) {
+        TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
+                .assessAdvanceThreat(squad, destX, destY, tick);
+        squad.advanceEngageWeight = threat.weight();
+        squad.advanceEngageCommitted = shouldCommitAdvance(
+                squad.advanceEngageCommitted, threat.weight());
+        squad.advanceEngageLeash = squad.advanceEngageCommitted
+                ? Math.max(ADVANCE_LEASH_MIN, ADVANCE_LEASH_MAX * threat.weight())
+                : 0f;
+        squad.advanceThreatId = threat.primaryThreatId();
+        squad.advanceThreatFoes = threat.foes();
+        squad.advanceThreatFriends = threat.friends();
+        squad.advanceThreatAnchorX = threat.axisAnchorX();
+        squad.advanceThreatAnchorY = threat.axisAnchorY();
+        squad.advanceThreatRetreating = threat.primaryRetreating();
+        applyContactOnset(squad, sim, tick);
     }
 
     /**

@@ -101,6 +101,10 @@ public final class TacticalScoring {
     private final RetainedFiringPositions retainedFiringPositions = new RetainedFiringPositions(8192);
     private final boolean boundTargetScans = Boolean.parseBoolean(
             System.getProperty("battle.targeting.boundKnownContactScan", "true"));
+    private final boolean localFiringSpread = Boolean.parseBoolean(
+            System.getProperty("battle.targeting.localFiringSpread", "true"));
+    private static final ThreadLocal<LocalFiringSpread> LOCAL_FIRING_SPREAD =
+            ThreadLocal.withInitial(LocalFiringSpread::new);
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
                            AttackerIndexService attackerIndex, ShotService shots,
@@ -2820,6 +2824,8 @@ public final class TacticalScoring {
         int firstX = Math.max(tx - range, anchorX - leash);
         int lastX = Math.min(tx + range, anchorX + leash);
 
+        LocalFiringSpread spread = prepareFiringSpread(firstX, firstY, lastX, lastY);
+
         TickInnerProfile work = TickInnerProfile.currentIfBound();
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
@@ -2844,7 +2850,7 @@ public final class TacticalScoring {
                         world.x(target), world.y(target), selfAir, targetAir)) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
-                int alliesNear = alliesNearForSpread(self, cx, cy);
+                int alliesNear = firingSpreadAt(spread, self, cx, cy);
                 // Cover lookup is directional against the target (the
                 // upcoming threat from this firing position) — Story G.
                 int fdx = tx - cx;
@@ -2889,6 +2895,7 @@ public final class TacticalScoring {
         // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
         float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self));
         int range = Math.max(1, (int) Math.floor(effectiveRange));
+        LocalFiringSpread spread = prepareFiringSpread(tx - range, ty - range, tx + range, ty + range);
 
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
@@ -2910,7 +2917,7 @@ public final class TacticalScoring {
                         world.x(target), world.y(target), selfAir, targetAir)) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
-                int alliesNear = alliesNearForSpread(self, cx, cy);
+                int alliesNear = firingSpreadAt(spread, self, cx, cy);
                 // Per-facing cover against the target (Story G).
                 int fdx = tx - cx;
                 int fdy = ty - cy;
@@ -3769,6 +3776,50 @@ public final class TacticalScoring {
         units.size = write;
     }
 
+    /** Reserve bounded worker scratch; zeroing and gathering wait for a scored cell. */
+    private LocalFiringSpread prepareFiringSpread(int x0, int y0, int x1, int y1) {
+        if (!localFiringSpread) return null;
+        LocalFiringSpread spread = LOCAL_FIRING_SPREAD.get();
+        return spread.reset(Math.max(0, x0), Math.max(0, y0),
+                Math.min(grid.getWidth() - 1, x1), Math.min(grid.getHeight() - 1, y1)) ? spread : null;
+    }
+
+    private int firingSpreadAt(LocalFiringSpread spread, long self, int cx, int cy) {
+        if (spread == null) return alliesNearForSpread(self, cx, cy);
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) profile.recordCount(TickInnerProfile.Bucket.FIRING_SPREAD_CANDIDATE, 1);
+        if (!spread.built) {
+            spread.beginBuild();
+            Faction selfFaction = roster.identity().faction(self);
+            UnitSpatialIndex.PointBuffer points = spread.points;
+            float centerX = spread.centerX(), centerY = spread.centerY(), radius = spread.gatherRadius();
+            unitIndex.gather(centerX, centerY, radius, points);
+            int visits = points.size;
+            for (int i = 0; i < points.size; i++) {
+                long id = points.ids[i];
+                if (id != self && selfFaction.friendlyTo(roster.identity().faction(id))) {
+                    spread.stampCurrent(points.x[i], points.y[i]);
+                }
+            }
+            destIndex.gather(roster, centerX, centerY, radius, points);
+            visits += points.size;
+            World world = roster.world();
+            for (int i = 0; i < points.size; i++) {
+                long id = points.ids[i];
+                if (id != self && selfFaction.friendlyTo(roster.identity().faction(id))) {
+                    spread.stampDestination(points.x[i], points.y[i], world.x(id), world.y(id),
+                            points.bucketX[i], points.bucketY[i]);
+                }
+            }
+            spread.built = true;
+            if (profile != null) {
+                profile.recordCount(TickInnerProfile.Bucket.FIRING_SPREAD_QUERY, 1);
+                profile.recordCount(TickInnerProfile.Bucket.FIRING_SPREAD_VISIT, visits);
+            }
+        }
+        return spread.countAt(cx, cy);
+    }
+
     /**
      * Counts same-faction allies (excluding {@code self}) whose <em>current
      * cell or path destination</em> sits within {@link #FIRING_AOE_SPREAD_RADIUS}
@@ -3797,6 +3848,7 @@ public final class TacticalScoring {
         LongBucket scratch = SPREAD_CANDIDATES.get();
         // Pass 1 — units whose CURRENT cell is in the spread radius.
         unitIndex.gather(cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, scratch);
+        int visits = scratch.size;
         for (int i = 0, n = scratch.size; i < n; i++) {
             long u = scratch.ids[i];
             if (u == self
@@ -3812,6 +3864,7 @@ public final class TacticalScoring {
         // Pass 1 is consumed completely before gather clears and refills the
         // same worker-owned buffer. No candidates escape this leaf query.
         destIndex.gather(roster, cx + 0.5f, cy + 0.5f, FIRING_AOE_SPREAD_RADIUS, scratch);
+        visits += scratch.size;
         for (int i = 0, n = scratch.size; i < n; i++) {
             long id = scratch.ids[i];
             if (id == self
@@ -3823,6 +3876,12 @@ public final class TacticalScoring {
             float dy = world.y(id) - (cy + 0.5f);
             if (dx * dx + dy * dy <= r2) continue; // already counted via Pass 1
             count++;
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.FIRING_SPREAD_QUERY, 1);
+            profile.recordCount(TickInnerProfile.Bucket.FIRING_SPREAD_CANDIDATE, 1);
+            profile.recordCount(TickInnerProfile.Bucket.FIRING_SPREAD_VISIT, visits);
         }
         return count;
     }

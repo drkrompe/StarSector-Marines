@@ -16,6 +16,52 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class UnitSpatialIndexTest {
 
+    @Test void pointGatherRetainsSnapshotCoordinatesOrderGrowthAndClearing() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        long moved = roster.spawn(unit("moved", 14, 10));
+        for (int i = 0; i < 35; i++) roster.spawn(unit("near" + i, 10, 10));
+        roster.world().setPos(moved, 40.5f, 40.5f);
+        LongBucket ids = new LongBucket();
+        UnitSpatialIndex.PointBuffer points = new UnitSpatialIndex.PointBuffer();
+        index.gather(10.5f, 10.5f, 4, ids);
+        index.gather(10.5f, 10.5f, 4, points);
+        assertEquals(36, points.size);
+        for (int i = 0; i < ids.size; i++) assertEquals(ids.ids[i], points.ids[i]);
+        assertEquals(moved, points.ids[0]);
+        assertEquals(14.5f, points.x[0]);
+        assertEquals(10.5f, points.y[0]);
+        assertEquals(0, points.bucketX[0]);
+        index.gather(10.5f, 10.5f, 0, points);
+        assertEquals(0, points.size);
+        index.gather(-1.5f, 10.5f, 1, points);
+        assertEquals(0, points.size);
+    }
+
+    @Test void destinationPointsKeepLiveEndpointAndOldBucketUntilRebuild() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        UnitDestinationSpatialIndex destinations = new UnitDestinationSpatialIndex(64, 64);
+        long id = roster.spawn(unit("moving", 3, 10));
+        roster.world().setPathRef(id, new int[]{15, 10});
+        destinations.rebuild(roster);
+        roster.world().setPathRef(id, new int[]{18, 10});
+        UnitSpatialIndex.PointBuffer points = new UnitSpatialIndex.PointBuffer();
+        destinations.gather(roster, 16.5f, 10.5f, 6, points);
+        assertEquals(1, points.size);
+        assertEquals(id, points.ids[0]);
+        assertEquals(18.5f, points.x[0]);
+        assertEquals(0, points.bucketX[0]);
+        LongBucket narrow = new LongBucket();
+        destinations.gather(roster, 17.5f, 10.5f, 2, narrow);
+        assertEquals(1, narrow.size);
+        destinations.gather(roster, 18.5f, 10.5f, 2, narrow);
+        assertEquals(0, narrow.size);
+        roster.world().setPathRef(id, new int[0]);
+        destinations.gather(roster, 16.5f, 10.5f, 6, points);
+        assertEquals(0, points.size);
+    }
+
     private static EntitySpec unit(String label, int cellX, int cellY) {
         return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, cellX, cellY);
     }

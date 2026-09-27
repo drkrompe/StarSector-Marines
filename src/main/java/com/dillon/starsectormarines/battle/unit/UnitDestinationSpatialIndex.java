@@ -183,6 +183,35 @@ public final class UnitDestinationSpatialIndex {
         return bucket;
     }
 
+    /** Captures each live endpoint once and retains its index bucket for exact
+     * subquery filtering when paths have changed since the host index rebuild. */
+    public void gather(UnitRosterService roster, float cx, float cy, float radius,
+                       UnitSpatialIndex.PointBuffer out) {
+        out.clear();
+        if (radius <= 0f) return;
+        World world = roster.world();
+        int x0 = Math.max(0, Math.floorDiv((int) Math.floor(cx - radius), UnitSpatialIndex.BUCKET));
+        int x1 = Math.min(bucketsX - 1, Math.floorDiv((int) Math.floor(cx + radius), UnitSpatialIndex.BUCKET));
+        int y0 = Math.max(0, Math.floorDiv((int) Math.floor(cy - radius), UnitSpatialIndex.BUCKET));
+        int y1 = Math.min(bucketsY - 1, Math.floorDiv((int) Math.floor(cy + radius), UnitSpatialIndex.BUCKET));
+        float r2 = radius * radius;
+        for (int by = y0; by <= y1; by++) for (int bx = x0; bx <= x1; bx++) {
+            LongBucket bucket = buckets[by * bucketsX + bx];
+            if (bucket == null) continue;
+            for (int i = 0; i < bucket.size; i++) {
+                long id = bucket.ids[i];
+                if (!roster.isAliveById(id)) continue;
+                int[] path = world.path(id);
+                int cells = Paths.cellCount(path);
+                if (cells <= 0) continue;
+                float x = Paths.cellX(path, cells - 1) + 0.5f;
+                float y = Paths.cellY(path, cells - 1) + 0.5f;
+                float dx = x - cx, dy = y - cy;
+                if (dx * dx + dy * dy <= r2) out.add(id, x, y, bx, by);
+            }
+        }
+    }
+
     /**
      * Appends the id of every <em>alive</em> unit whose <em>destination</em>
      * cell sits within {@code radius} cells (Euclidean) of the continuous

@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — member-owned route intents publish after join; projectile
-hazard observations remain stable during member updates.
+Updated: 2026-09-26 — zone clearing distinguishes live combat validation from
+bounded target reconsideration and unsuccessful-approach retry.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1452,6 +1452,24 @@ failed searches and vantage-only approaches do not acquire its lifetime.
 Rejecting the actual approach, including an excessive detour, retires the
 choice rather than committing the member to a route it never accepted. Movement
 and fire retain their own validation and authority.
+
+**Reconsideration has a cadence; permission to act stays live.** Zone clearing
+may keep pursuing a valid hostile briefly instead of re-running target choice
+every tick. An unsuccessful approach may likewise defer another expensive
+search for a shorter interval; that is a retry budget, not a retained firing
+position or a claim that the target cannot be attacked. Death, hostility or
+zone changes, a changed mission or goal, changed navigation topology, and
+meaningful displacement invalidate the relevant decision early. A newly legal
+shot need not wait for the retry interval. A live hostile can prove that a zone
+is not yet clear, but declaring success always requires a fresh clearance
+check. These decisions belong to each member's execution context and do not
+publish target or movement authority to a sibling.
+
+Candidate scoring may share one local crowding observation across a single
+position search. Nearby current positions and intended destinations need not
+be re-read for each candidate cell. This is short-lived search input, not a
+cross-tick occupancy guarantee; accepting and using the chosen position still
+obeys the live validation above.
 
 A casualty rebind replaces, rather than extends, every retained plan step's
 role map. A fire team below viable strength dissolves into the nearest sibling,
