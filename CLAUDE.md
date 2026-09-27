@@ -481,6 +481,12 @@ Do not run builds or leave generated task files there.
   refusal. Required home, investigation and engagement routes are unchanged.
   `GUARD_PATROL_SEARCH/EXPANDED/REFUSAL/BACKOFF` distinguish proof and refusal;
   BACKOFF includes ordinary quiet dwell, not only refusal reuse.
+  `-Dbattle.pathfinding.boundDistrictPatrol=false` independently restores legacy
+  quiet district waypoint routing. The same optional proof and dwell policy
+  applies by default, with separate `DISTRICT_PATROL_SEARCH/EXPANDED/REFUSAL/BACKOFF`
+  counters. Random district waypoints are not a mandatory authored room tour;
+  GarrisonPatrol remains outside both optional policies. These are per-member
+  search ceilings, not per-squad, whole-tick, allocation or wall-time guarantees.
   `-Dbattle.vehicle.progressiveRecovery=false` restores whole-proof frozen-field
   vehicle recovery. By default each vehicle retains its recovery frontier across
   ticks, admits at most one new A* attempt per tick, and expands at most

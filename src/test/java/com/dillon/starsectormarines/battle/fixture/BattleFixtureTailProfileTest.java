@@ -556,6 +556,8 @@ class BattleFixtureTailProfileTest {
                 "battle.pathfinding.mechReachabilityComponents", "true")));
         report.put("boundGuardPatrol", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.boundGuardPatrol", "true")));
+        report.put("boundDistrictPatrol", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.boundDistrictPatrol", "true")));
         report.put("progressiveVehicleRecovery", Boolean.parseBoolean(System.getProperty(
                 "battle.vehicle.progressiveRecovery", "true")));
         report.put("vehicleRecoveryExpansionsPerTick", Math.max(1,

@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 
 /**
  * Shared mechanics for the dwell-gated, squad-scoped waypoint patrol used by
@@ -30,6 +31,31 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
  */
 public final class PatrolMotion {
     public static final String BOUND_GUARD_PATROL_PROPERTY = "battle.pathfinding.boundGuardPatrol";
+    public static final String BOUND_DISTRICT_PATROL_PROPERTY = "battle.pathfinding.boundDistrictPatrol";
+
+    /** Separate controls and attribution over the same optional-travel mechanism. */
+    public enum OptionalRoutePolicy {
+        NONE(null, null, null, null, null),
+        GUARD(BOUND_GUARD_PATROL_PROPERTY, Bucket.GUARD_PATROL_SEARCH, Bucket.GUARD_PATROL_EXPANDED,
+                Bucket.GUARD_PATROL_REFUSAL, Bucket.GUARD_PATROL_BACKOFF),
+        DISTRICT(BOUND_DISTRICT_PATROL_PROPERTY, Bucket.DISTRICT_PATROL_SEARCH, Bucket.DISTRICT_PATROL_EXPANDED,
+                Bucket.DISTRICT_PATROL_REFUSAL, Bucket.DISTRICT_PATROL_BACKOFF);
+
+        private final String property;
+        final Bucket search, expanded, refusal, backoff;
+
+        OptionalRoutePolicy(String property, Bucket search, Bucket expanded, Bucket refusal, Bucket backoff) {
+            this.property = property;
+            this.search = search;
+            this.expanded = expanded;
+            this.refusal = refusal;
+            this.backoff = backoff;
+        }
+
+        boolean enabled() {
+            return this != NONE && Boolean.parseBoolean(System.getProperty(property, "true"));
+        }
+    }
 
     /** Sim-seconds a squad rests at a waypoint before picking a new one. Long enough that the foot-traffic reads as patrol-pausing-to-look-around, not march-step. */
     public static final float DWELL_SECONDS = 4.0f;
@@ -48,8 +74,8 @@ public final class PatrolMotion {
      * isn't reset on a posture switch.
      */
     public interface WaypointSource {
-        /** Optional local wandering may decline costly routes; authored district/room tours do not. */
-        default boolean optionalLocalRouting() { return false; }
+        /** Quiet wandering may decline costly routes; required room tours retain ordinary routing. */
+        default OptionalRoutePolicy optionalRoutePolicy() { return OptionalRoutePolicy.NONE; }
 
         /** Next waypoint {@code {x,y}}, or null to keep the current one and dwell. */
         int[] next(long member, Squad squad, BattleView sim);
@@ -70,12 +96,12 @@ public final class PatrolMotion {
      */
     public static ActionStatus advance(long member, Squad squad, BattleControl sim,
                                        WaypointSource source, boolean fireWhilePatrolling) {
-        boolean boundedQuiet = source.optionalLocalRouting()
-                && Boolean.parseBoolean(System.getProperty(BOUND_GUARD_PATROL_PROPERTY, "true"))
+        OptionalRoutePolicy policy = source.optionalRoutePolicy();
+        boolean boundedQuiet = policy.enabled()
                 && !sim.world().hasMechLoadout(member);
         if (squad.patrolDwellTimer > 0f) {
             TickInnerProfile profile = TickInnerProfile.currentIfBound();
-            if (boundedQuiet && profile != null) profile.recordCount(TickInnerProfile.Bucket.GUARD_PATROL_BACKOFF, 1);
+            if (boundedQuiet && profile != null) profile.recordCount(policy.backoff, 1);
             if (ticksDwell(member, squad, sim)) squad.patrolDwellTimer -= BattleSimulation.TICK_DT;
             onHold(member, sim, fireWhilePatrolling);
             return ActionStatus.RUNNING;
@@ -99,7 +125,7 @@ public final class PatrolMotion {
             return ActionStatus.RUNNING;
         }
         if (boundedQuiet) {
-            advanceOptionalQuiet(member, squad, sim, fireWhilePatrolling);
+            advanceOptionalQuiet(member, squad, sim, fireWhilePatrolling, policy);
             return ActionStatus.RUNNING;
         }
         boolean moving = onMove(member, sim, squad.patrolWaypointX, squad.patrolWaypointY, fireWhilePatrolling);
@@ -123,7 +149,8 @@ public final class PatrolMotion {
     }
 
     /** Search outside the squad monitor; only a still-current waypoint may receive the answer. */
-    private static void advanceOptionalQuiet(long member, Squad squad, BattleControl sim, boolean fire) {
+    private static void advanceOptionalQuiet(long member, Squad squad, BattleControl sim, boolean fire,
+                                             OptionalRoutePolicy policy) {
         if (fire) fireIfAble(member, sim);
         int tx = squad.patrolWaypointX;
         int ty = squad.patrolWaypointY;
@@ -143,9 +170,9 @@ public final class PatrolMotion {
         hold(member, sim);
         if (!mayRepath) return;
         int[] found = QuietPatrolRoute.find(sim.getGrid(), sim.world().cellX(member),
-                sim.world().cellY(member), tx, ty, GridPathfinder.USE_CARDINAL_NAVIGATION);
+                sim.world().cellY(member), tx, ty, GridPathfinder.USE_CARDINAL_NAVIGATION, policy);
         if (Paths.isEmpty(found)) {
-            QuietPatrolRoute.refuse(squad, tx, ty);
+            QuietPatrolRoute.refuse(squad, tx, ty, policy);
             return;
         }
         synchronized (squad.lock) {
