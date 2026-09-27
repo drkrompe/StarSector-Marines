@@ -442,6 +442,14 @@ Do not run builds or leave generated task files there.
   `COMMANDER_FRAME_CPU` around the whole frame stage, including the initial
   assignment snapshot and all perspectives, not topology or strategy planning.
   CPU and wall are overlapping readings, not additive work.
+  `-Dbattle.profile.commandFrameDetail=true` additionally accumulates disjoint
+  per-row `COMMANDER_FRAME_SQUAD_ROSTER`, `MEMBERS`, `CONTACT` and `PUBLICATION`
+  wall slices within SQUADS; publication includes final sorting. Sample counts
+  are perspective freezes, while `SQUAD_ROWS`, `MEMBER_INPUTS` and `BELIEF_INPUTS`
+  report input volumes. Belief input is retained list size, not contacts visited
+  before a short-circuit. Tail reports retain every measured command-frame
+  sample, including pulses outside the worst whole ticks. Detailed timing is
+  off by default and does not change the frozen frame contents.
   `-Dbattle.pathfinding.compactPublicTopology=false` restores full combat-grid
   storage for commander and asynchronous route snapshots. By default these
   private navigation-only copies store flags and edges without allocating unused
