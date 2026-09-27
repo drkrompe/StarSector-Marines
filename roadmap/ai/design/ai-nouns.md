@@ -4,9 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — zone clearing distinguishes live combat validation from
-bounded target reconsideration and unsuccessful-approach retry; optional local
-squad traffic remains an off-by-default execution experiment.
+Updated: 2026-09-27 — shared squad-route preparation has explicit fair admission;
+waiting for computation is distinct from route failure and tactical intent.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -268,6 +267,25 @@ that just replanned together do not all refresh on the same later tick. The
 ordinary interval is about two seconds, with a maximum of about 2.27 seconds;
 contact, assignment, casualty, completion, and other tactical interrupts remain
 immediate.
+
+Shared squad travel has a separate **route admission** boundary. The serial
+preparation phase admits bounded work and publishes both completed fields and
+the exact intents it deferred before members execute. A deferred intent waits
+for preparation rather than multiplying into independent member searches.
+Older waiting intents take precedence over newer requests in the same priority
+group; compatible existing fields can continue serving while their refresh is
+deferred. Changed squad, plan epoch, step, destination, or topology cannot consume
+another intent's waiting state.
+
+Waiting is neither unreachable nor a failed or completed action. Live combat
+decisions continue, but the deferred objective route authors no path, clears no
+path, and advances no old objective path of uncertain ownership. Before resuming
+objective travel after a wait, the member obtains a route for its current
+intent even if the old path's ordinary repath throttle has not expired. A genuine
+failed build, an uncovered start in a usable field, or an intentionally
+unprepared query remains a different condition with its existing fallback.
+Admission bounds a wave of new shared work; it does not promise that one
+admitted search has a fixed expansion cost.
 
 Long travel to a track rally or a defended site may wait for an asynchronous
 route, including a boarding squad walking to its transport. Waiting for a

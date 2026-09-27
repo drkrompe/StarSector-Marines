@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,9 @@ import java.util.Map;
  */
 public final class NavigationService implements AutoCloseable {
 
+    public static final String SQUAD_ROUTE_ADMISSION_PROPERTY =
+            "battle.pathfinding.squadRouteAdmission";
+
     private final NavigationGrid grid;
     private final CellTopology topology;
     private final ZoneGraph zoneGraph;
@@ -58,12 +62,18 @@ public final class NavigationService implements AutoCloseable {
     /** Serial builder scratch; prepared fields retain only their settled corridor cells. */
     private final SquadRouteField.Builder squadRouteBuilder;
     /** Immutable batch published immediately before the parallel unit-update window. */
-    private volatile Map<Integer, PreparedSquadRoute> preparedSquadRoutes = Map.of();
+    private volatile SquadRouteBatch squadRouteBatch = SquadRouteBatch.empty();
+    private int squadRoutePreparationTick;
     private int lastSquadRouteBuilds;
     private int lastSquadRouteReuses;
     private int lastSquadRouteDeferred;
     private int lastSquadRouteCorridorCells;
     private int lastSquadRouteSettledCells;
+    private int lastSquadRoutePending;
+    private int lastSquadRouteAdmissions;
+    private int lastSquadRouteResumed;
+    private int lastSquadRouteOldestWaitTicks;
+    private int lastSquadRouteAdmittedWaitTicks;
 
     /** Bucketed spatial index over alive units. Rebuilt once per tick by {@link #rebuildSpatialIndices}. */
     private final UnitSpatialIndex unitIndex;
@@ -271,7 +281,7 @@ public final class NavigationService implements AutoCloseable {
         grid.preparePathComponents(GridPathfinder.USE_CARDINAL_NAVIGATION);
         vantagePointsByTargetCell.clear();
         sharedGoalPathfinder.invalidateAll();
-        preparedSquadRoutes = Map.of();
+        squadRouteBatch = SquadRouteBatch.empty();
     }
 
     /** Compatibility name; prefer {@link #flushNavigationTopologyIfDirty()}. */
@@ -405,14 +415,38 @@ public final class NavigationService implements AutoCloseable {
      * then published as one immutable map for worker reads.
      */
     public void prepareSquadRoutes(List<SquadRouteRequest> requests) {
-        Map<Integer, PreparedSquadRoute> previous = preparedSquadRoutes;
+        prepareSquadRoutes(requests, squadRoutePreparationTick + 1);
+    }
+
+    /** Production preparation uses the simulation clock; workers only read the final batch. */
+    public void prepareSquadRoutes(List<SquadRouteRequest> requests, int tick) {
+        prepareSquadRoutes(requests, tick, SharedGoalPolicy.maximumSquadRouteBuildsPerTick());
+    }
+
+    /** Explicit allowance seam for focused admission tests. */
+    void prepareSquadRoutes(List<SquadRouteRequest> requests, int tick, int maximumBuilds) {
+        if (maximumBuilds < 0) throw new IllegalArgumentException("maximumBuilds must be nonnegative");
+        squadRoutePreparationTick = tick;
+        SquadRouteBatch previousBatch = squadRouteBatch;
+        Map<Integer, PreparedSquadRoute> previous = previousBatch.prepared;
         Map<Integer, PreparedSquadRoute> next = new HashMap<>();
+        Map<Integer, DeferredSquadRoute> deferred = new HashMap<>();
         GreedyNavigationMesh.Snapshot mesh = navigationMesh.snapshot();
+        // Zero is an existing legal configuration meaning no shared builds.
+        // It cannot admit waiting work, so preserve its synchronous fallbacks
+        // instead of publishing requests that would remain pending forever.
+        boolean admissionEnabled = maximumBuilds > 0 && SharedGoalPolicy.squadRouteCorridorsEnabled()
+                && Boolean.parseBoolean(System.getProperty(SQUAD_ROUTE_ADMISSION_PROPERTY, "true"));
         lastSquadRouteBuilds = 0;
         lastSquadRouteReuses = 0;
         lastSquadRouteDeferred = 0;
         lastSquadRouteCorridorCells = 0;
         lastSquadRouteSettledCells = 0;
+        lastSquadRoutePending = 0;
+        lastSquadRouteAdmissions = 0;
+        lastSquadRouteResumed = 0;
+        lastSquadRouteOldestWaitTicks = 0;
+        lastSquadRouteAdmittedWaitTicks = 0;
         List<RouteCandidate> pending = new ArrayList<>();
         for (SquadRouteRequest request : requests) {
             PreparedSquadRoute retained = previous.get(request.squadId());
@@ -434,9 +468,20 @@ public final class NavigationService implements AutoCloseable {
                 lastSquadRouteReuses++;
                 continue;
             }
-            pending.add(new RouteCandidate(request, retained, compatible));
+            DeferredSquadRoute waiting = previousBatch.deferred.get(request.squadId());
+            if (!admissionEnabled || waiting == null || !waiting.matches(request.squadId(),
+                    request.routingEpoch(), request.routeToken(), request.goalX(), request.goalY(),
+                    mesh.revision(), grid.topologyRevision())) waiting = null;
+            pending.add(new RouteCandidate(request, retained, compatible,
+                    waiting == null ? tick : waiting.firstDeferredTick, waiting != null));
         }
-        int buildBudget = SharedGoalPolicy.maximumSquadRouteBuildsPerTick();
+        if (admissionEnabled) {
+            // Stable age beats low-id churn, but only within the existing
+            // new/uncovered priority group. Input motion/cost does not renew age.
+            pending.sort(Comparator.comparingInt(RouteCandidate::firstDeferredTick)
+                    .thenComparingInt(candidate -> candidate.request.squadId()));
+        }
+        int buildBudget = maximumBuilds;
         // New/uncovered intents go first. Compatible older fields can serve
         // safely for another tick while their casualty-cost snapshot refreshes.
         for (int pass = 0; pass < 2; pass++) {
@@ -447,6 +492,11 @@ public final class NavigationService implements AutoCloseable {
                 boolean attempted = false;
                 if (buildBudget > 0) {
                     attempted = true;
+                    lastSquadRouteAdmissions++;
+                    if (candidate.wasPending) {
+                        lastSquadRouteAdmittedWaitTicks = Math.max(lastSquadRouteAdmittedWaitTicks,
+                                Math.max(0, tick - candidate.firstDeferredTick));
+                    }
                     long started = System.nanoTime();
                     built = buildSquadRoute(candidate.request, mesh);
                     TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -459,6 +509,7 @@ public final class NavigationService implements AutoCloseable {
                 if (built != null) {
                     next.put(candidate.request.squadId(), built);
                     lastSquadRouteBuilds++;
+                    if (candidate.wasPending) lastSquadRouteResumed++;
                     lastSquadRouteCorridorCells += built.field.corridorCellCount();
                     lastSquadRouteSettledCells += built.field.settledCellCount();
                     TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -478,10 +529,25 @@ public final class NavigationService implements AutoCloseable {
                     next.put(candidate.request.squadId(),
                             PreparedSquadRoute.failure(candidate.request,
                                     mesh.revision(), grid.getWidth()));
+                } else if (admissionEnabled) {
+                    deferred.put(candidate.request.squadId(), new DeferredSquadRoute(
+                            candidate.request.squadId(), candidate.request.routingEpoch(),
+                            candidate.request.routeToken(), candidate.request.goalX(),
+                            candidate.request.goalY(), mesh.revision(), grid.topologyRevision(),
+                            candidate.firstDeferredTick));
+                    lastSquadRoutePending++;
+                    lastSquadRouteOldestWaitTicks = Math.max(lastSquadRouteOldestWaitTicks,
+                            Math.max(0, tick - candidate.firstDeferredTick));
                 }
             }
         }
-        preparedSquadRoutes = Map.copyOf(next);
+        squadRouteBatch = new SquadRouteBatch(Map.copyOf(next), Map.copyOf(deferred));
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_PENDING_REQUEST, lastSquadRoutePending);
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_ADMITTED, lastSquadRouteAdmissions);
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_RESUMED, lastSquadRouteResumed);
+        }
     }
 
     private PreparedSquadRoute buildSquadRoute(
@@ -577,10 +643,26 @@ public final class NavigationService implements AutoCloseable {
     }
 
     /**
+     * Exact intent deferred by the last serial preparation, not a general
+     * missing-field test. Call before any repath throttle or old-path travel.
+     * This pure preflight never searches or mutates movement state; execution
+     * may keep firing while postponing travel. Intentionally unprepared,
+     * failed, uncovered, mismatched, and compatible reused fields return false.
+     */
+    public boolean isSquadRoutePending(int squadId, long routingEpoch,
+                                       Object routeToken, int goalX, int goalY) {
+        DeferredSquadRoute deferred = squadRouteBatch.deferred.get(squadId);
+        return deferred != null && deferred.matches(squadId, routingEpoch, routeToken,
+                goalX, goalY, navigationMesh.snapshot().revision(), grid.topologyRevision());
+    }
+
+    /**
      * Reads a serially prepared squad field. A missing/mismatched intent or an
      * uncovered start is a cache miss, never an unreachable verdict: exact A*
      * remains the correctness fallback. Occupancy is intentionally excluded
      * from retained fields so ordinary crowd motion cannot invalidate them.
+     * Admission-aware execution checks {@link #isSquadRoutePending} before
+     * calling; this legacy synchronous API never disguises pending as no path.
      */
     public int[] findSquadPathToGoal(
             int squadId, long routingEpoch, Object routeToken,
@@ -593,7 +675,7 @@ public final class NavigationService implements AutoCloseable {
         long started = System.nanoTime();
         boolean extracted = false;
         try {
-            PreparedSquadRoute prepared = preparedSquadRoutes.get(squadId);
+            PreparedSquadRoute prepared = squadRouteBatch.prepared.get(squadId);
             boolean matches = prepared != null
                     && prepared.routingEpoch == routingEpoch
                     && prepared.routeToken == routeToken
@@ -630,12 +712,37 @@ public final class NavigationService implements AutoCloseable {
         }
     }
 
-    public int preparedSquadRouteCount() { return preparedSquadRoutes.size(); }
+    public int preparedSquadRouteCount() { return squadRouteBatch.prepared.size(); }
     public int lastSquadRouteBuilds() { return lastSquadRouteBuilds; }
     public int lastSquadRouteReuses() { return lastSquadRouteReuses; }
     public int lastSquadRouteDeferred() { return lastSquadRouteDeferred; }
     public int lastSquadRouteCorridorCells() { return lastSquadRouteCorridorCells; }
     public int lastSquadRouteSettledCells() { return lastSquadRouteSettledCells; }
+    /** Exact intents still deferred without a compatible field after preparation. */
+    public int lastSquadRoutePending() { return lastSquadRoutePending; }
+    /** Build attempts, including failures; each consumes one admission slot. */
+    public int lastSquadRouteAdmissions() { return lastSquadRouteAdmissions; }
+    /** Previously pending exact intents that now have a successfully built field. */
+    public int lastSquadRouteResumed() { return lastSquadRouteResumed; }
+    /** Maximum age of requests still pending in the published batch. */
+    public int lastSquadRouteOldestWaitTicks() { return lastSquadRouteOldestWaitTicks; }
+    /** Maximum age of previously pending requests admitted this preparation, even if build failed. */
+    public int lastSquadRouteAdmittedWaitTicks() { return lastSquadRouteAdmittedWaitTicks; }
+
+    private record SquadRouteBatch(Map<Integer, PreparedSquadRoute> prepared,
+                                   Map<Integer, DeferredSquadRoute> deferred) {
+        static SquadRouteBatch empty() { return new SquadRouteBatch(Map.of(), Map.of()); }
+    }
+
+    private record DeferredSquadRoute(int squadId, long routingEpoch, Object routeToken,
+                                      int goalX, int goalY, long meshRevision,
+                                      long topologyRevision, int firstDeferredTick) {
+        private boolean matches(int requestedSquad, long epoch, Object token,
+                                int x, int y, long mesh, long topology) {
+            return squadId == requestedSquad && routingEpoch == epoch && routeToken == token
+                    && goalX == x && goalY == y && meshRevision == mesh && topologyRevision == topology;
+        }
+    }
 
     private static final class PreparedSquadRoute {
         private final long routingEpoch;
@@ -710,7 +817,8 @@ public final class NavigationService implements AutoCloseable {
 
     private record RouteCandidate(SquadRouteRequest request,
                                   PreparedSquadRoute retained,
-                                  boolean compatible) { }
+                                  boolean compatible, int firstDeferredTick,
+                                  boolean wasPending) { }
 
     public void beginSharedGoalPathSnapshot() {
         sharedGoalPathfinder.beginSnapshot();
@@ -878,7 +986,12 @@ public final class NavigationService implements AutoCloseable {
 
     public void beginClearanceTick(int tick) { clearanceRoutes.beginTick(tick); }
 
-    @Override public void close() { clearanceRoutes.close(); }
+    @Override public void close() {
+        squadRouteBatch = SquadRouteBatch.empty();
+        lastSquadRoutePending = 0;
+        lastSquadRouteOldestWaitTicks = 0;
+        clearanceRoutes.close();
+    }
 
     /**
      * Begin-of-tick {@link LosCache} setup — sweeps every worker's slot on

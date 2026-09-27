@@ -272,6 +272,8 @@ public final class BattleComponents {
     public static final int MOVEMENT_CONTINUOUS_ROUTE = 9;
     /** Former traffic displacement still requires terrain-checked cell-path return (INT, 0/1). */
     public static final int MOVEMENT_TRAFFIC_RETURN_GUARD = 10;
+    /** Paused objective travel must install a fresh route before resuming (INT, 0/1). */
+    public static final int MOVEMENT_OBJECTIVE_ROUTE_REFRESH = 11;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -1181,7 +1183,7 @@ public final class BattleComponents {
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT);
+                FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.INT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.OBJECT, FieldKind.FLOAT);

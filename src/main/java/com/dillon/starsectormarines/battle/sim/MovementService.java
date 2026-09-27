@@ -154,6 +154,21 @@ public final class MovementService {
         entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_LAST_REPATH_TIME, now);
     }
 
+    /** Member-owned admission handback; independent of the path and repath clock. */
+    public void requireObjectiveRouteRefresh(long id) {
+        entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_OBJECTIVE_ROUTE_REFRESH, 1);
+    }
+
+    public boolean needsObjectiveRouteRefresh(long id) {
+        return entityWorld.getInt(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_OBJECTIVE_ROUTE_REFRESH) != 0;
+    }
+
+    /** Clear only after this member installs its current objective route. */
+    public void objectiveRouteRefreshed(long id) {
+        entityWorld.setInt(id, components.MOVEMENT, BattleComponents.MOVEMENT_OBJECTIVE_ROUTE_REFRESH, 0);
+    }
+
     /** Per-unit movement speed in cells/sec (seed-only mover stat). Fail-loud on a non-mover; gate on {@link #has}. */
     public float moveSpeed(long id) { return entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED); }
 

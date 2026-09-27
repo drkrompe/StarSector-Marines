@@ -174,6 +174,14 @@ public final class TickInnerProfile {
         SQUAD_PATH_FIELD_REVERSE,
         SQUAD_PATH_FIELD_EXTRACT,
         SQUAD_PATH_FIELD_FALLBACK,
+        /** Count-only admission work: requests are per-tick observations, not unique squads. */
+        SQUAD_ROUTE_PENDING_REQUEST,
+        /** Member callbacks that defer travel without a synchronous fallback. */
+        SQUAD_ROUTE_PENDING_CALL,
+        /** Build attempts admitted this tick, including failed builds. */
+        SQUAD_ROUTE_ADMITTED,
+        /** Previously pending exact intents that now have a successful field; not motion. */
+        SQUAD_ROUTE_RESUMED,
         CONVOY_CLEARANCE_BUILD,
         CONVOY_CLEARANCE_CATCHUP,
         CONVOY_COMPONENT_BUILD,
