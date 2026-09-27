@@ -6,8 +6,8 @@ are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-28 — defined commander/GOAP cadence measurements and command
-subphase counters on the opt-in JFR handoff.
+Updated: 2026-09-27 — automatic live spike capture is opt-in, independent of
+the live counters and manual profile dump.
 
 ## Vocabulary
 
@@ -66,6 +66,13 @@ For supported scenarios, the flow is:
 The active battle context retains the highest-fidelity available fixture as
 cold diagnostic metadata. The existing tick-profile capture may embed it
 without making the simulation or fixture codec depend on Starsector file APIs.
+
+Automatic live spike capture is off for each new battle. The battle DEBUG
+toggle arms a bounded batch of automatic dumps and switches off when that
+batch fills; switching it off also stops automatic snapshot allocation.
+Live phase timing and deliberate manual profile dumps remain available
+independently. Capture serialization and host file writes are diagnostic work,
+not part of the measured simulation tick.
 
 ## Laws
 

@@ -75,7 +75,7 @@ public final class TickProfileDebugPanel implements HudPanel {
     /** Sim-seconds the post-dump status banner persists below the panel header. */
     private static final float DUMP_STATUS_DURATION  = 3.0f;
 
-    /** Max auto-dumps per battle. Manual DUMP keeps working past this cap — only the spike-driven dispatch is throttled. Sized so a thrashy mission still doesn't flood the common-folder with 200 files. */
+    /** Max auto-dumps per armed batch, then capture switches off. Manual DUMP is independent. */
     private static final int AUTO_DUMP_LIMIT = 15;
     /** Seconds between auto-dumps. A sustained burst of spike ticks otherwise emits one file per tick — wasted I/O when the dumps would be near-identical anyway. */
     private static final float AUTO_DUMP_COOLDOWN_SEC = 0.5f;
@@ -100,13 +100,32 @@ public final class TickProfileDebugPanel implements HudPanel {
     private String dumpStatusMessage;
     private float dumpStatusRemaining;
 
-    /** Count of auto-spike dumps written this battle. Hits {@link #AUTO_DUMP_LIMIT} → spike consumption keeps draining but stops writing. Tracked for the status banner ("auto X/15"). */
+    /** Count in this armed batch. Re-arming starts a fresh batch and cooldown. */
     private int autoDumpCount;
     /** Seconds remaining on the post-dump cooldown — spike consumption is dropped (without writing) while this is positive, so back-to-back spike ticks don't emit duplicate files. */
     private float autoDumpCooldownRemaining;
 
     public TickProfileDebugPanel(BattleUiContext ctx) {
         this.ctx = ctx;
+    }
+
+    /** State for the DEBUG checkbox; owned by this battle's profile, not a global flag. */
+    public boolean isAutoDumpEnabled() {
+        BattleSimulation sim = ctx.getSim();
+        return sim != null && sim.getTickProfile().isAutoSpikeCaptureEnabled();
+    }
+
+    /** Arms a bounded new batch or stops capture without hiding counters or manual DUMP. */
+    public void toggleAutoDump() {
+        BattleSimulation sim = ctx.getSim();
+        if (sim == null) return;
+        TickProfile profile = sim.getTickProfile();
+        boolean enabled = !profile.isAutoSpikeCaptureEnabled();
+        profile.setAutoSpikeCaptureEnabled(enabled);
+        autoDumpCount = 0;
+        autoDumpCooldownRemaining = 0f;
+        dumpStatusMessage = enabled ? "auto capture armed (max 15)" : "auto capture off";
+        dumpStatusRemaining = DUMP_STATUS_DURATION;
     }
 
     @Override
@@ -134,9 +153,11 @@ public final class TickProfileDebugPanel implements HudPanel {
         // ready for the next than to hold a stale entry forever. At higher sim
         // speeds (×4, ×8) multiple ticks may land per frame; the latch keeps
         // the first/freshest spike per frame, which is fine for diagnostics.
-        TickProfile.Spike spike = sim.getTickProfile().consumeSpike();
+        TickProfile profile = sim.getTickProfile();
+        TickProfile.Spike spike = profile.consumeSpike();
         if (spike == null) return;
-        if (autoDumpCount >= AUTO_DUMP_LIMIT || autoDumpCooldownRemaining > 0f) return;
+        if (!profile.isAutoSpikeCaptureEnabled()
+                || autoDumpCount >= AUTO_DUMP_LIMIT || autoDumpCooldownRemaining > 0f) return;
         String path = TickProfileDumper.dump(sim, ctx.getBattleFixture(), spike);
         if (path != null) {
             autoDumpCount++;
@@ -144,6 +165,8 @@ public final class TickProfileDebugPanel implements HudPanel {
             dumpStatusMessage = String.format("auto-dump %d/%d: tick %d (%.1fx)",
                     autoDumpCount, AUTO_DUMP_LIMIT, spike.tickIndex, spike.ratio());
             dumpStatusRemaining = DUMP_STATUS_DURATION;
+            // Don't keep allocating snapshots only to discard them after the cap.
+            if (autoDumpCount >= AUTO_DUMP_LIMIT) profile.setAutoSpikeCaptureEnabled(false);
         }
     }
 
