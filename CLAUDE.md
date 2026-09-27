@@ -495,6 +495,11 @@ Do not run builds or leave generated task files there.
   counters. Random district waypoints are not a mandatory authored room tour;
   GarrisonPatrol remains outside both optional policies. These are per-member
   search ceilings, not per-squad, whole-tick, allocation or wall-time guarantees.
+  Clearance-job cancellation follows immutable body identity: only mech path
+  clears enter the async clearance coordinator. Infantry path set/clear/request
+  cannot own those proofs and bypasses its monitor. Mech clears still cancel
+  unpublished proofs even without a loadout; snapshot preparation and admission
+  among actual clearance owners remain synchronized and are separate work.
   `-Dbattle.vehicle.progressiveRecovery=false` restores whole-proof frozen-field
   vehicle recovery. By default each vehicle retains its recovery frontier across
   ticks, admits at most one new A* attempt per tick, and expands at most

@@ -139,7 +139,12 @@ public final class NavigationService implements AutoCloseable {
     }
 
     public NavigationService(NavigationGrid grid, CellTopology topology, boolean asynchronousClearance) {
-        clearanceRoutes = new AsyncClearanceRoutes(asynchronousClearance);
+        this(grid, topology, new AsyncClearanceRoutes(asynchronousClearance));
+    }
+
+    /** Takes ownership of the coordinator, including closing it with this service. */
+    NavigationService(NavigationGrid grid, CellTopology topology, AsyncClearanceRoutes clearanceRoutes) {
+        this.clearanceRoutes = clearanceRoutes;
         this.grid = grid;
         this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
@@ -1315,11 +1320,14 @@ public final class NavigationService implements AutoCloseable {
      */
     public void setPath(long id, int[] newPath) {
         if (roster.isRiding(id) || !roster.movement().has(id)) return;
-        if (roster.identity().type(id).isMech() && newPath.length > 0) {
+        boolean mech = roster.identity().type(id).isMech();
+        if (mech && newPath.length > 0) {
             requestPath(id, Paths.destX(newPath), Paths.destY(newPath));
             return;
         }
-        clearanceRoutes.forget(id);
+        // Only immutable Mech identities can submit clearance jobs. Infantry
+        // path changes must not contend on that coordinator's snapshot lock.
+        if (mech) clearanceRoutes.forget(id);
         ContinuousRoute witness = roster.movement().continuousRoute(id);
         replacePath(id, newPath, newPath.length == 0 && witness != null && witness.completed()
                 ? witness : null);
