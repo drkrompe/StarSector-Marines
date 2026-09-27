@@ -1,10 +1,10 @@
 # Slice 5 — Planner Performance Budget
 
-Status: IN PROGRESS — bound first-attempt recovery work and investigate planner-start failures.
+Status: IN PROGRESS — measure remaining recovery slices, fleet-wide admission and planner-start failures.
 
 Written: 2026-06-02
 
-Updated: 2026-09-27 — implement retained, expansion-sliced recovery after attributing the fresh proof burst.
+Updated: 2026-09-27 — per-vehicle recovery slices are bounded; fleet-wide and physical-progress questions remain.
 
 Read `convoy-nouns.md` before implementing this story.
 
@@ -24,24 +24,21 @@ costs and must not be credited to one optimization.
 
 ## Remaining scope
 
-The latest paced capture on `0aae587bf` attributes 76.243 ms to one fresh
-recovery: 16 attempts and 85,675 expansions, followed by 24 exact failed-result
-reuses. Retain direction enumeration and the active on-demand search across
-ticks, with a finite expansion slice and at most one newly allocated search
-per vehicle per tick. Pending must not enter the failure memo; changed request
-identity must cancel rather than publish obsolete recovery. This is a
-per-vehicle limit, not yet a battle-wide scheduler or a bound on turn refinement.
+Recovery now retains its direction enumeration and active on-demand search
+across ticks, with finite expansion slices and at most one newly allocated
+search per vehicle per tick. Pending does not enter the failure memo; changed
+request identity cancels obsolete work. This is a per-vehicle limit, not a
+battle-wide scheduler or a bound on allocation and turn refinement.
 
-- Measure fresh recovery separately from exact failed-result reuse. A fresh
-  query still evaluates departure bearings synchronously, with a separate
-  bounded route-search allowance per bearing and no per-tick node ceiling.
+- Attribute expensive slices separately from search allocation, completed-path
+  refinement and exact failed-result reuse. A bounded node count alone does
+  not bound wall time; compare cancellation with completion to detect starvation.
 - Investigate ranking departure bearings before proving their routes. The
   current winner depends on forward alignment and stable direction order,
   not route length; a lower-ranked feasible route cannot replace a higher-ranked
   feasible one. Pin selection parity before short-circuiting those proofs.
-- Bound unavoidable fresh recovery across ticks if it remains a spike source.
-  Pending is neither failure nor a route: retain the frontier, hold safely,
-  share a per-tick allowance, and discard work when its request changes.
+- Share a battle-wide allowance if simultaneous vehicle slices remain a spike
+  source, preserving safe tracking/holding and fair progress of retained proofs.
 - Use invalid-start classifications to distinguish physical overlap from a
   physically legal pose rejected only by planning padding. Making rejection
   cheap does not restore progress. Any escape behavior needs separate motion

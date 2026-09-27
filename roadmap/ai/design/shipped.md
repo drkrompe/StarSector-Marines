@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — folded bounded local grenade avoidance.
+Updated: 2026-09-27 — folded bounded quiet patrol and explicit support-lance coverage.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `patrol-tail-and-mech-coverage.md` | 2026-09-27 | `100dcfa3f`, `0d65eea5b`; 612 focused tests, 154 legacy-control mech tests, zero-input and paired eight-mech paced captures (6000 ticks each) | `ai-nouns.md` (optional quiet guard travel); existing mech connectivity/clearance authority unchanged; controls and coverage semantics in `CLAUDE.md` |
 | `local-hazard-avoidance.md` | 2026-09-27 | `0aae587bf`; 380 focused tests, same-input legacy control and 6000-tick paced capture | `ai-nouns.md` (imminent hazard avoidance and owned escape retention); controls and diagnostic semantics in `CLAUDE.md` |
 | `flank-selection-work-budget.md` | 2026-09-27 | `c10a51d38`; 335 focused tests and 6000-tick paced capture | `ai-nouns.md` (optional flank allowance and explicit refusal); controls and diagnostic semantics in `CLAUDE.md` |
 | `route-region-membership.md` | 2026-09-27 | `9334c7199`, `9cc18023e`; exact route/perception equivalence tests and production-paced tail captures | Existing `ai-nouns.md` route-admission and contact rules unchanged; controls and diagnostic semantics in `CLAUDE.md` |
