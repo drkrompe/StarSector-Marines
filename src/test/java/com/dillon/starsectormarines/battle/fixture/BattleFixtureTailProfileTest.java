@@ -182,6 +182,11 @@ class BattleFixtureTailProfileTest {
                 recording.enable("jdk.ExecuteVMOperation").withThreshold(Duration.ZERO);
                 recording.enable("jdk.GCPhasePause").withThreshold(Duration.ZERO);
                 recording.enable(UnitUpdateSystem.UnitDispatchEvent.class);
+                if (Boolean.getBoolean("battle.tail.workerTimeline")) {
+                    recording.enable(UnitUpdateSystem.UnitCallbackEvent.class);
+                    recording.enable("jdk.ExecutionSample").withPeriod(Duration.ofMillis(1));
+                    recording.enable("jdk.JavaMonitorEnter").withThreshold(Duration.ZERO);
+                }
                 recording.enable(TailTickEvent.class);
             }
             assertNotNull(sim.asyncDefendTrackRoutes());
@@ -489,6 +494,7 @@ class BattleFixtureTailProfileTest {
         report.put("osArch", System.getProperty("os.arch"));
         report.put("availableProcessors", Runtime.getRuntime().availableProcessors());
         report.put("renderSink", "none");
+        report.put("workerTimeline", jfrPath != null && Boolean.getBoolean("battle.tail.workerTimeline"));
         report.put("asyncDefendTrack", true);
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
