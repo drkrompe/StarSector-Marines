@@ -17,6 +17,10 @@ then add an explicitly labelled opt-in support activation through the real
 command-power/delivery path. Report requested and realized coverage by faction
 and chassis so an unused power or failed landing cannot masquerade as a mech
 behavior test. Keep zero-input and support-enabled measurements separate.
+Replace duplicate whole-map connectivity floods in mech position scoring with
+the existing revision-owned raw-navigation proof; preserve candidate ordering
+and the separate chassis-clearance route authority. Pin equivalence and terrain
+invalidation with small direct inputs and retain a same-build control.
 
 Vehicle recovery is a separate measured synchronous proof. Investigate its
 actual work and preserve physical clearance and delivery semantics before

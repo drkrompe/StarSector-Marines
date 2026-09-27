@@ -249,6 +249,10 @@ Do not run builds or leave generated task files there.
   run can still contain construction/defender mechs. `MECH_DOCTRINE_*` times
   doctrine execution, nested inside the GOAP action; it excludes planning and
   reflexes and does not prove coverage of roles absent from the payload.
+  `-Dbattle.pathfinding.mechReachabilityComponents=false` restores per-position-
+  selection whole-map component floods in mech overwatch and medium-range
+  positioning. The default reuses navigation's revision-cached raw-cell
+  connectivity, preserving candidate order and separate body-clearance proof.
   `-Dbattle.pathfinding.compactCasualtyRouteCost=false` is the dense-storage
   control for casualty routing costs. Both representations calculate the same
   block multipliers; the control additionally expands them across the map.
