@@ -4,10 +4,11 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — folded phase-owned route intents and projectile observations.
+Updated: 2026-09-27 — folded shared squad-route admission after paired late-battle evidence.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `squad-route-admission.md` | 2026-09-27 | `9756d8ec2`, `d365b08f6`; exact pending/fairness/resumption tests and paired 16,000-tick capture | `ai-nouns.md` (shared route admission); diagnostics and control in `CLAUDE.md` |
 | `bounded-contact-selection.md` | 2026-09-26 | this change | `ai-nouns.md` (knowledge-bounded enumeration); selector/publication Javadoc and profiler controls in `CLAUDE.md` |
 | `phase-owned-worker-requests.md` | 2026-09-26 | this change | `ai-nouns.md` (route intent ownership and projectile observation); `ballistics-nouns.md` (joined launch publication) |
 | `stable-execution-decisions.md` | 2026-09-26 | this change | `ai-nouns.md` (priority-bounded deliberation and persistent execution firing positions); profiler controls in `CLAUDE.md` |

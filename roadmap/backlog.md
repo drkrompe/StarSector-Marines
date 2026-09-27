@@ -65,6 +65,12 @@ ledger, code, tests, and Git.
 
 ## Architecture candidates
 
+- **Shared squad-route coverage repair** — distinguish members displaced beyond
+  a retained field from admission waits. Select this work from remaining fallback
+  evidence; any repair must remember attempted starts, avoid repeatedly rebuilding
+  for unreachable members, preserve usable field portions while deferred, and
+  retain epoch-pinned costing. A bounded legal neighbor join is another option
+  with an explicit route-quality tradeoff. See `ai-nouns.md`.
 - **Shared combat FX and sound presentation** — extract a frame-parameterized
   presenter only after standalone and vanilla-host weapon dispatch demonstrably
   diverge.
