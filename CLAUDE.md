@@ -419,6 +419,12 @@ Do not run builds or leave generated task files there.
   disabled or unavailable, not zero CPU. Tail reports retain every measured-tick
   rebuild, including those outside the worst-tick samples; revision context is
   observed after the tick.
+  `-Dbattle.pathfinding.compactPublicTopology=false` restores full combat-grid
+  storage for commander and asynchronous route snapshots. By default these
+  private navigation-only copies store flags and edges without allocating unused
+  cover, wall-health, smoke and barrier-object arrays. The copied navigation
+  data and exact route rules are unchanged; the generic full-copy API remains
+  available for consumers needing full grid storage.
   `-Dbattle.tail.influenceResolution=true` adds an opt-in paired 8/16-cell influence
   experiment after the timed replay and JFR recording. Both resolutions use
   identical frozen geometry and current faction-local sources, with attenuation

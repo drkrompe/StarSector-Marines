@@ -50,6 +50,10 @@ import java.util.List;
  */
 public class NavigationGrid {
 
+    /** Same-build storage control for commander and async infantry topology snapshots. */
+    public static final String COMPACT_PUBLIC_TOPOLOGY_PROPERTY =
+            "battle.pathfinding.compactPublicTopology";
+
     /**
      * Tags the pathfinder + zone graph care about. Strictly nav concerns —
      * rendering / categorization tags (FLOOR, STREET, RUBBLE, WALL, VEHICLE,
@@ -229,7 +233,7 @@ public class NavigationGrid {
     public int getHeight() { return height; }
     public long topologyRevision() { return topologyRevision; }
 
-    /** Independent public-navigation snapshot for commander planning. */
+    /** Independent navigation snapshot retaining full ancillary grid storage. */
     public NavigationGrid copyNavigationTopology() {
         NavigationGrid copy = new NavigationGrid(width, height);
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
@@ -239,16 +243,21 @@ public class NavigationGrid {
     }
 
     /**
-     * Compact frozen view for A* and vehicle footprint/turn checks. Only cell
+     * Compact frozen view for routing and connectivity checks. Only cell
      * flags and edge passability are present; do not use this as a battle grid
      * for cover, damage, barriers, or transient-opacity operations.
      */
-    public NavigationGrid copyVehicleRoutingTopology() {
+    public NavigationGrid copyRoutingTopology() {
         NavigationGrid copy = new NavigationGrid(width, height, true);
         System.arraycopy(cellFlags, 0, copy.cellFlags, 0, cellFlags.length);
         System.arraycopy(edgePassability, 0, copy.edgePassability, 0,
                 edgePassability.length);
         return copy;
+    }
+
+    /** Compatibility name for vehicle footprint/turn routing snapshots. */
+    public NavigationGrid copyVehicleRoutingTopology() {
+        return copyRoutingTopology();
     }
 
     /**

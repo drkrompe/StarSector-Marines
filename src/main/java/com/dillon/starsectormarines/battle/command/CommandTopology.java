@@ -88,7 +88,9 @@ public final class CommandTopology {
     private static CommandTopology freeze(BattleView sim, TickInnerProfile profile) {
         long started = profile != null ? System.nanoTime() : 0L;
         NavigationGrid live = sim.getGrid();
-        NavigationGrid copy = live.copyNavigationTopology();
+        NavigationGrid copy = Boolean.parseBoolean(System.getProperty(
+                NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY, "true"))
+                ? live.copyRoutingTopology() : live.copyNavigationTopology();
         if (profile != null) {
             profile.record(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_GRID_COPY,
                     System.nanoTime() - started);
