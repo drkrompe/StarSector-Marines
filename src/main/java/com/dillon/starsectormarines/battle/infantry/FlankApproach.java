@@ -47,10 +47,16 @@ public final class FlankApproach implements Action {
 
     private final int waypointX;
     private final int waypointY;
+    private final boolean refused;
 
     public FlankApproach(int waypointX, int waypointY) {
+        this(waypointX, waypointY, false);
+    }
+
+    public FlankApproach(int waypointX, int waypointY, boolean refused) {
         this.waypointX = waypointX;
         this.waypointY = waypointY;
+        this.refused = refused;
     }
 
     public int waypointX() { return waypointX; }
@@ -80,6 +86,9 @@ public final class FlankApproach implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        // An abandoned optional maneuver is not an order to regroup on its
+        // proof origin. In particular, fixing members must not start movement.
+        if (refused) return ActionStatus.SUCCESS;
         SquadPlan.Step step = squad.currentPlan != null
                 ? squad.currentPlan.currentStep() : null;
         String role = step != null ? step.slotOf(member) : null;
@@ -202,6 +211,6 @@ public final class FlankApproach implements Action {
 
     @Override
     public List<int[]> highlightCells(Squad squad, BattleView sim) {
-        return List.of(new int[]{waypointX, waypointY});
+        return refused ? List.of() : List.of(new int[]{waypointX, waypointY});
     }
 }

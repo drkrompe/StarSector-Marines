@@ -257,6 +257,55 @@ public final class GridPathfinder {
     }
 
     /**
+     * Step-envelope proof with a hard A* expansion allowance. Skips the whole-map
+     * component shortcut, so a cold connectivity cache cannot escape that allowance.
+     * Returns a complete route or empty, never a partial frontier path. Empty can
+     * mean budget exhaustion and is not a proof of structural disconnection.
+     * A zero allowance returns empty even when the endpoints are identical.
+     */
+    public static int[] findPathWithinStepEnvelope(NavigationGrid grid,
+                                                   int startX, int startY,
+                                                   int goalX, int goalY,
+                                                   boolean cardinalOnly, int maxSteps,
+                                                   int maxExpandedNodes) {
+        WORKSPACE.get().expandedNodes = 0;
+        if (maxSteps < 0) throw new IllegalArgumentException("maxSteps must be nonnegative");
+        if (maxExpandedNodes < 0) {
+            throw new IllegalArgumentException("maxExpandedNodes must be nonnegative");
+        }
+        float maximumCost = maxSteps * (cardinalOnly ? 1f : SQRT2);
+        float ceiling = maximumCost + (maxSteps + 2f) * Math.ulp(maximumCost);
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, null, null, null, null, null, false, ceiling,
+                maxExpandedNodes);
+    }
+
+    /**
+     * Geometric A* with only an expansion allowance, independent of a step envelope.
+     * Uses the same complete-or-empty and zero-budget rules as the capped envelope
+     * overload, and never constructs component labels. The allowance counts popped
+     * search nodes, including the goal; it does not bound workspace allocation.
+     */
+    public static int[] findPathWithinExpansionBudget(NavigationGrid grid,
+                                                      int startX, int startY,
+                                                      int goalX, int goalY,
+                                                      boolean cardinalOnly,
+                                                      int maxExpandedNodes) {
+        WORKSPACE.get().expandedNodes = 0;
+        if (maxExpandedNodes < 0) {
+            throw new IllegalArgumentException("maxExpandedNodes must be nonnegative");
+        }
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, null, null, null, null, null, false, INF,
+                maxExpandedNodes);
+    }
+
+    /** Read immediately after a search, before another search reuses this thread's scratch. */
+    public static int lastSearchExpandedNodes() {
+        return WORKSPACE.get().expandedNodes;
+    }
+
+    /**
      * Labels every walkable cell with the id of its connected component, using
      * the same {@link #canStep} rule (and the same {@link #USE_CARDINAL_NAVIGATION}
      * setting) the search itself expands with. Non-walkable cells get {@code -1}.
@@ -605,6 +654,19 @@ public final class GridPathfinder {
                                           IndexedCost indexedCost,
                                           IndexedPassability indexedPassable,
                                           boolean checkComponents, float costCeiling) {
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, costField, passable, indexedCost,
+                indexedPassable, checkComponents, costCeiling, Integer.MAX_VALUE);
+    }
+
+    private static int[] findPathProfiled(NavigationGrid grid,
+                                          int startX, int startY, int goalX, int goalY,
+                                          boolean cardinalOnly, byte[] occupancy,
+                                          float[] costField, boolean[] passable,
+                                          IndexedCost indexedCost,
+                                          IndexedPassability indexedPassable,
+                                          boolean checkComponents, float costCeiling,
+                                          int maxExpandedNodes) {
         long _profT0 = System.nanoTime();
         Workspace profileWorkspace = WORKSPACE.get();
         profileWorkspace.expandedNodes = 0;
@@ -612,7 +674,8 @@ public final class GridPathfinder {
         try {
             result = findPathInner(grid, startX, startY, goalX, goalY,
                     cardinalOnly, occupancy, costField, passable,
-                    indexedCost, indexedPassable, checkComponents, false, costCeiling);
+                    indexedCost, indexedPassable, checkComponents, false, costCeiling,
+                    maxExpandedNodes);
             return result;
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
@@ -739,6 +802,21 @@ public final class GridPathfinder {
                                         IndexedPassability indexedPassable,
                                         boolean checkComponents,
                                         boolean cancelable, float costCeiling) {
+        return findPathInner(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, costField, passable, indexedCost,
+                indexedPassable, checkComponents, cancelable, costCeiling,
+                Integer.MAX_VALUE);
+    }
+
+    private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                        boolean cardinalOnly, byte[] occupancy,
+                                        float[] costField, boolean[] passable,
+                                        IndexedCost indexedCost,
+                                        IndexedPassability indexedPassable,
+                                        boolean checkComponents,
+                                        boolean cancelable, float costCeiling,
+                                        int maxExpandedNodes) {
+        if (maxExpandedNodes == 0) return EMPTY_PATH;
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
             return EMPTY_PATH;
         }
@@ -801,6 +879,7 @@ public final class GridPathfinder {
                 System.getProperty(OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY, "true"));
 
         while (heapSize > 0) {
+            if (ws.expandedNodes >= maxExpandedNodes) return EMPTY_PATH;
             // Do not prune individual neighbors: preserving the heap's exact
             // contents/order keeps ordinary A* route ties below the bound.
             if (fCost[heap[0]] > costCeiling) return EMPTY_PATH;

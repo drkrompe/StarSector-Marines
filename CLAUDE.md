@@ -258,6 +258,19 @@ Do not run builds or leave generated task files there.
   expansion-capped flood after four candidate proofs; it rejects impossible
   detour budgets, leaving unknown candidates and winner selection to ordinary
   A*. `FLANK_STEP_FIELD/EXPANDED/REJECT` separates this work from saved searches.
+  `-Dbattle.pathfinding.budgetFlankSelection=false` restores unlimited total
+  flank-selection expansion work. By default each selection shares 8192 node
+  expansions across candidate A* and its optional step gate, without triggering
+  cold whole-map connectivity labeling. Exhaustion keeps a verified incumbent
+  or uses the origin refusal; it may change the tactical choice. This is not
+  a shared squad/tick allowance or a wall-time guarantee. `FLANK_SELECTION_EXPANDED`
+  counts both kinds of work, and `FLANK_SELECTION_LIMIT` counts selections using
+  the entire allowance (including success on the last node). `FLANK_SELECTION`
+  counts all fresh selections; `FLANK_SELECTION_LIMIT_REFUSAL` isolates those
+  exhausting the allowance and returning the origin rather than an incumbent.
+  Parallel attack-move
+  callers may still duplicate selection. Allocation and scratch reset are not
+  charged as node expansions. The other flank controls remain independent.
   `-Dbattle.goap.retainFlankPlans=false` disables positive ReinforceContact
   waypoint retention across routine replans. The default retains a choice for
   300–360 ticks with four-cell anchor-displacement and intent/terrain/plan

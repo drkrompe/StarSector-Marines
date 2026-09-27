@@ -1678,6 +1678,20 @@ unreachable maneuver waypoint completes the maneuver attempt and hands control
 back to ordinary contact doctrine; it must not trap the squad in an endless
 approach/replan loop.
 
+Choosing a reinforcement flank is optional tactical work, not an exhaustive
+search obligation. Optional flank selection shares a finite
+search-effort allowance across candidate proofs and auxiliary reachability work.
+If exhausted, it keeps the best fully verified candidate found so far or gives
+up the flank and returns to ordinary contact behavior. Refusal is not proof of
+disconnection; neither a partial route nor an unverified destination is accepted.
+Refusal is explicit at execution: a dispersed maneuver team does not first
+regroup at the route origin, and attack-move resumes its objective rather than
+mistaking the leader's cell for a flank destination.
+This deliberately trades globally best candidate selection for bounded effort;
+it is a per-selection allowance, not a shared per-tick scheduler or wall-time
+guarantee. Member-side attack-move selection uses the same rule but can still
+have concurrent duplicate requests until squad-owned preparation replaces it.
+
 An accepted reinforcement-flank destination is a squad decision rather than a
 fresh optimization problem on every routine replan. It may persist for a bounded,
 staggered lifetime while the same plan context and contact remain applicable.
