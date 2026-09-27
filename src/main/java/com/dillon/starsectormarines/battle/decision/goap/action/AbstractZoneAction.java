@@ -556,7 +556,7 @@ abstract class AbstractZoneAction implements Action {
                                     GridPathfinder.USE_CARDINAL_NAVIGATION,
                                     sim.getOccupancyMap(), losses));
         }
-        sim.advanceMovement(member);
+        sim.advanceSquadTravel(member, squad, destX, destY);
     }
 
     /**

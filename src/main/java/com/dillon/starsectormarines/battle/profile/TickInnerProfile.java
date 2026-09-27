@@ -102,6 +102,11 @@ public final class TickInnerProfile {
     }
 
     public enum Bucket {
+        SQUAD_TRAFFIC_PREPARE,
+        SQUAD_TRAFFIC_MOVE,
+        SQUAD_TRAFFIC_RETURN,
+        SQUAD_TRAFFIC_SQUAD,
+        SQUAD_TRAFFIC_CANDIDATE,
         // ---- Per-behavior buckets — what updateUnit's dispatch went into. ----
         BEHAVIOR_FALLBACK,
         BEHAVIOR_COMBATANT,

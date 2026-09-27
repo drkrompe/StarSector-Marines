@@ -4,7 +4,8 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — shared Mech routing, movement, and separation use physical clearance and continuous arrival.
+Updated: 2026-09-26 — shared Mech routing uses physical clearance and continuous
+arrival; optional infantry traffic preserves terrain and cell-path authority.
 
 ## Vocabulary
 
@@ -135,6 +136,17 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    already share one authored destination; it expires and never applies across
    distinct posts. Formation does not grant units a shared destination or
    override individual orders.
+
+The optional squad-traffic experiment extends that preference across nearby
+friendly infantry squads during quiet travel. A retained lateral route offset
+may guide movement without rewriting the cell path, its destination, or its
+arrival witness. Both the shifted join and the return to the ordinary route
+must cross current legal grid transitions. Compression releases the offset
+before tight terrain and arrival releases it at the original destination.
+After displacement, losing traffic eligibility restores ordinary speed and
+intent immediately but retains the terrain check until a route finishes.
+This is cell-native steering, not physical-radius routing for Mechs or a
+second collision authority. `squad-traffic.md` owns the adoption experiment.
 
 ## Boundaries and extension points
 

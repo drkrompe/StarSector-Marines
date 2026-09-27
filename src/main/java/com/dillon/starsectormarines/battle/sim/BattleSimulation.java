@@ -541,6 +541,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final TaskPointService taskPoints;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
+    /** Off-by-default, bounded quiet-infantry spreading/yielding experiment. */
+    private final SquadTrafficSystem squadTraffic;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
     private final SwarmAvoidanceSystem swarmAvoidance;
     /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
@@ -718,6 +720,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
+        this.squadTraffic = Boolean.getBoolean(SquadTrafficSystem.PROPERTY)
+                ? new SquadTrafficSystem(grid, rosterService) : null;
         this.mechCollisionEscape = new com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem(
                 entityWorld, battleComponents);
         this.hitResponse = new HitResponseSystem(
@@ -1967,6 +1971,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.prepareSquadRoutes(routeRequests);
         tickInnerProfile.record(TickInnerProfile.Bucket.GOAP_ROUTE_PREPARATION,
                 System.nanoTime() - goapStageStart);
+        if (squadTraffic != null) {
+            goapStageStart = System.nanoTime();
+            squadTraffic.prepare(this, directControl.activeUnitId(), TICK_DT);
+            tickInnerProfile.record(TickInnerProfile.Bucket.SQUAD_TRAFFIC_PREPARE,
+                    System.nanoTime() - goapStageStart);
+        }
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         if (asyncDefendTrackRoutes != null) {
             asyncDefendTrackRoutes.beginTick(simTickIndex);
@@ -2435,6 +2445,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             if (result == MovementService.MotionResult.BLOCKED) navigation.clearPath(u);
         } else {
             movement().advanceAlongPath(world, u, TICK_DT);
+        }
+    }
+
+    @Override
+    public void advanceSquadTravel(long member, Squad squad, int goalX, int goalY) {
+        if (squadTraffic == null || !squadTraffic.advance(member, squad, goalX, goalY, TICK_DT)) {
+            advanceMovement(member);
         }
     }
 

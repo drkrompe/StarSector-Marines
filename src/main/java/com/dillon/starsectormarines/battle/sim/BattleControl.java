@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
+import com.dillon.starsectormarines.battle.squad.Squad;
 
 /**
  * Read + mutate window onto the battle, for code that runs during the
@@ -63,6 +64,11 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Advance the unit (by entity id) one tick along its current path. */
     void advanceMovement(long u);
+
+    /** Optional local traffic applies only to ordinary squad objective travel. */
+    default void advanceSquadTravel(long member, Squad squad, int goalX, int goalY) {
+        advanceMovement(member);
+    }
 
     /** Stanced-fire convenience (STANCED). */
     void fireShot(long shooter, long target);
