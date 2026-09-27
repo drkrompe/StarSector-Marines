@@ -16,12 +16,12 @@ class SnapshotDiscoveryTest {
                 .map(SnapshotSuite::id)
                 .toList();
 
-        assertEquals(List.of("airfield-sortie", "armory", "deployable-cover", "durability-bars",
+        assertEquals(List.of("airfield-sortie", "armory", "deployable-cover", "direct-control-ui", "durability-bars",
                 "firing-line", "frontage-scene",
                 "integral-system-fx", "killing-ground", "late-arrival", "layers", "mech-doctrine",
                 "perception-sweep",
                 "player-order", "point-defence", "prosecution-hold", "runway-sortie", "ship-decks",
-                "ships-boats", "sun-shadows",
+                "ships-boats", "squad-traffic", "sun-shadows",
                 "swarm-overkill",
                 "turrets", "ui", "yield-freeze"), ids);
     }

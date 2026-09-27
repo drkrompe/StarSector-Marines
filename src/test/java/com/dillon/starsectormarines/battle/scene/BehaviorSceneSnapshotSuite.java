@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.scene;
 
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
+import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -45,6 +47,11 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
 
     @Override public String label() { return scene.label(); }
 
+    /** Optional, read-only diagnostic marks over the same production frame. */
+    protected ReviewAnnotations annotations(BattleSimulation simulation) {
+        return ReviewAnnotations.NONE;
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
@@ -54,7 +61,7 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         List<SceneReport> reports = scene.play((loopId, sim, tick, caption) -> {
             try {
                 byLoop.computeIfAbsent(loopId, id -> new ArrayList<>())
-                        .add(renderer.render(sim, caption));
+                        .add(renderer.render(sim, caption, annotations(sim)));
             } catch (IOException failure) {
                 throw new UncheckedIOException(failure);
             }

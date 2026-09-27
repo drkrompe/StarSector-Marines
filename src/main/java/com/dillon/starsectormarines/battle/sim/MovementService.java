@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.ContinuousRoute;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -316,6 +317,136 @@ public final class MovementService {
     public enum MotionResult { IDLE, MOVED, HELD_FOR_TURN, ARRIVED, BLOCKED }
 
     /**
+     * Optional infantry traffic shaping over the existing cell path. The offset
+     * translates the pursuit corridor, not the authored path or its destination;
+     * the caller owns traffic eligibility and terrain anticipation. Both the
+     * shifted join and any return to the original corridor must cross legal
+     * current grid transitions. A refused join holds rather than searching or
+     * clearing the route. This preserves the ordinary repath clock.
+     *
+     * <p>Speed is capped at the ordinary mover's budget. Near the destination
+     * the offset fades to zero, and only the original final center can settle
+     * the path. Mech/continuous routing and manual movement use other methods.
+     * A successfully applied shifted step leaves a member-owned safety guard:
+     * subsequent ordinary cell-path motion remains terrain-checked until arrival,
+     * including when contact or changed intent bypasses traffic coordination.
+     */
+    public void advanceAlongPath(World world, long id, float dt,
+                                 float offsetX, float offsetY, float speedScale) {
+        if (terrain == null) throw new IllegalStateException("Traffic movement requires bound terrain");
+        if (!Float.isFinite(dt) || dt < 0f || !Float.isFinite(offsetX)
+                || !Float.isFinite(offsetY) || !Float.isFinite(speedScale)) {
+            throw new IllegalArgumentException("Traffic movement requires finite inputs and nonnegative time");
+        }
+        if (continuousRoute(id) != null || entityWorld.has(id, components.MECH_LOCOMOTION)) {
+            throw new IllegalArgumentException("Traffic shaping is cell-native infantry movement");
+        }
+        setVelocity(id, 0f, 0f);
+        int[] path = path(id);
+        int index = pathIdx(id), count = Paths.cellCount(path);
+        if (index >= count || dt == 0f) return;
+        float step = Math.max(0f, moveSpeed(id)) * dt * Math.max(0f, Math.min(1f, speedScale));
+        if (step == 0f) return;
+        float px = world.x(id), py = world.y(id);
+        float goalX = Paths.destX(path) + 0.5f, goalY = Paths.destY(path) + 0.5f;
+        float goalDistance = (float) Math.hypot(goalX - px, goalY - py);
+        float taper = Math.max(0f, Math.min(1f, (goalDistance - 2f) / 4f));
+        offsetX *= taper;
+        offsetY *= taper;
+        PurePursuit.Carrot carrot = PurePursuit.pick(
+                px - offsetX, py - offsetY, path, index, LOOKAHEAD);
+        float tx = carrot.atEnd ? goalX : carrot.x + offsetX;
+        float ty = carrot.atEnd ? goalY : carrot.y + offsetY;
+        boolean shifted = !carrot.atEnd && (offsetX != 0f || offsetY != 0f);
+        if (!trafficSegmentClear(terrain, px, py, tx, ty)) {
+            shifted = false;
+            carrot = PurePursuit.pick(px, py, path, index, LOOKAHEAD);
+            tx = carrot.x;
+            ty = carrot.y;
+            if (!trafficSegmentClear(terrain, px, py, tx, ty)) return;
+        }
+        float dx = tx - px, dy = ty - py;
+        float distance = (float) Math.hypot(dx, dy);
+        if (distance <= 1e-6f) {
+            if (carrot.atEnd && goalDistance <= 1e-6f) {
+                setPathIdx(id, count);
+                setTrafficReturnGuard(id, false);
+            }
+            return;
+        }
+        float travel = Math.min(step, distance);
+        float nx = px + dx / distance * travel;
+        float ny = py + dy / distance * travel;
+        // Validate the actual float-rounded displacement as well as its join.
+        if (!trafficSegmentClear(terrain, px, py, nx, ny)) return;
+        boolean arrived = carrot.atEnd && distance <= step;
+        world.setPos(id, arrived ? goalX : nx, arrived ? goalY : ny);
+        setPathIdx(id, arrived ? count : carrot.nextIdx);
+        float appliedX = world.x(id) - px, appliedY = world.y(id) - py;
+        float appliedDistance = (float) Math.hypot(appliedX, appliedY);
+        if (arrived) setTrafficReturnGuard(id, false);
+        else if (shifted && appliedDistance > 0f) setTrafficReturnGuard(id, true);
+        setVelocity(id, appliedX / dt, appliedY / dt);
+        setGaitPhase(id, arrived ? 0f : (gaitPhase(id) + appliedDistance) % 1f);
+        setFormationMemoryTimer(id, FORMATION_MEMORY_SECONDS);
+    }
+
+    /** Member-owned terrain obligation, not a retained traffic steering or speed hint. */
+    private void setTrafficReturnGuard(long id, boolean active) {
+        entityWorld.setInt(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_TRAFFIC_RETURN_GUARD, active ? 1 : 0);
+    }
+
+    /**
+     * Exact local point-segment traversal, capped at 32 cells of displacement.
+     * Cell-native infantry has no added body-clearance rule. Package-visible
+     * so preparation and execution use the same wall/edge legality test.
+     */
+    static boolean trafficSegmentClear(NavigationGrid terrain,
+                                       float x0, float y0, float x1, float y1) {
+        if (!Float.isFinite(x0) || !Float.isFinite(y0)
+                || !Float.isFinite(x1) || !Float.isFinite(y1)) return false;
+        double dx = (double) x1 - x0, dy = (double) y1 - y0;
+        if (dx * dx + dy * dy > 32d * 32d) return false;
+        int cx = (int) Math.floor(x0), cy = (int) Math.floor(y0);
+        int ex = (int) Math.floor(x1), ey = (int) Math.floor(y1);
+        if (!terrain.inBounds(cx, cy) || !terrain.inBounds(ex, ey)
+                || !terrain.isWalkable(cx, cy) || !terrain.isWalkable(ex, ey)) return false;
+        int sx = Double.compare(dx, 0d), sy = Double.compare(dy, 0d);
+        double deltaX = sx == 0 ? Double.POSITIVE_INFINITY : Math.abs(1d / dx);
+        double deltaY = sy == 0 ? Double.POSITIVE_INFINITY : Math.abs(1d / dy);
+        double crossX = sx == 0 ? Double.POSITIVE_INFINITY
+                : ((sx > 0 ? cx + 1d : cx) - x0) / dx;
+        double crossY = sy == 0 ? Double.POSITIVE_INFINITY
+                : ((sy > 0 ? cy + 1d : cy) - y0) / dy;
+        while (cx != ex || cy != ey) {
+            int nx = cx, ny = cy;
+            if (cx == ex) {
+                ny += sy;
+                crossY += deltaY;
+            } else if (cy == ey) {
+                nx += sx;
+                crossX += deltaX;
+            } else if (Math.abs(crossX - crossY) <= 1e-10) {
+                nx += sx;
+                ny += sy;
+                crossX += deltaX;
+                crossY += deltaY;
+            } else if (crossX < crossY) {
+                nx += sx;
+                crossX += deltaX;
+            } else {
+                ny += sy;
+                crossY += deltaY;
+            }
+            if (!terrain.canTraverseCellStep(cx, cy, nx, ny)) return false;
+            cx = nx;
+            cy = ny;
+        }
+        return true;
+    }
+
+    /**
      * Ground-body route following against current terrain. Continuous points
      * are followed segment by segment, with the same next-point bearing used
      * by hip steering. A contact may apply a legal partial displacement but
@@ -409,6 +540,21 @@ public final class MovementService {
     public void advanceAlongPath(World world, long id, float dt) {
         if (continuousRoute(id) != null) {
             throw new IllegalStateException("Continuous routes require live terrain and body clearance");
+        }
+        if (entityWorld.getInt(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_TRAFFIC_RETURN_GUARD) != 0) {
+            // Contact, a reflex, or a replacement route can take movement back
+            // without passing through the squad traffic seam. Keep only the
+            // terrain obligation; stale spacing and yielding have no authority.
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long start = profile == null ? 0L : System.nanoTime();
+            try {
+                advanceAlongPath(world, id, dt, 0f, 0f, 1f);
+            } finally {
+                if (profile != null) profile.record(TickInnerProfile.Bucket.SQUAD_TRAFFIC_RETURN,
+                        System.nanoTime() - start);
+            }
+            return;
         }
         int[] path = path(id);
         int pathIdx = pathIdx(id);

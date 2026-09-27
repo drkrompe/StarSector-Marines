@@ -4,11 +4,12 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — shared squad firing positions are an opt-in experiment;
-adoption remains gated on work reduction and behavior evidence.
+Updated: 2026-09-26 — shared firing positions and local squad traffic are opt-in
+experiments; adoption remains gated on cost and behavior evidence.
 
 | Story | State | Intent |
 |---|---|---|
+| `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
 | `commander-field-analysis.md` | DRAFT | Add optional read-only frontline/bulge diagnostics over faction-local snapshots without granting assignment authority. |

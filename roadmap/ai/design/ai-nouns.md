@@ -5,7 +5,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 Written: 2026-08-23
 
 Updated: 2026-09-26 — zone clearing distinguishes live combat validation from
-bounded target reconsideration and unsuccessful-approach retry.
+bounded target reconsideration and unsuccessful-approach retry; optional local
+squad traffic remains an off-by-default execution experiment.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -1436,6 +1437,29 @@ footprint, but doorways, constrained navigation, authored posts, and a live
 contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
+
+An experimental **local traffic preference** coordinates nearby friendly
+infantry squads during quiet objective travel. It spreads coherent parallel
+travel sideways on open ground, releases that spacing before constrained
+terrain, and gently slows a lower-priority conflicting flow. It is neither a
+new objective nor a rigid squad footprint: ordinary body separation remains
+soft, and contact, survival, authored posts, and direct control keep their
+existing authority. Preference is retained rather than randomly exchanged each
+tick; accumulated yielding can change local precedence, but no global queue or
+physical starvation guarantee is implied. Arrival taper removes lateral
+movement without treating an open destination as a bottleneck.
+
+Traffic inputs are prepared before member dispatch and read without worker
+negotiation. Local neighbor work is explicitly bounded even in a dense stack;
+overflow loses precision rather than launching a whole-roster comparison or a
+path search. Route replacement rebases a retained lane rather than adding the
+same offset again. Current terrain validates every shaped displacement and
+return to the unshifted route; a refused join does not clear the route or reset
+the repath clock. Losing traffic eligibility drops the steering and speed
+preference, but a displaced member retains terrain-checked cell-path following
+until it finishes a route. New combat intent does not make an unsafe return
+legal. This remains off by default pending late-battle cost and
+behavior evidence; `squad-traffic.md` owns adoption.
 
 A chosen **execution firing position** likewise persists while it remains
 usable. Ordinary periodic squad replanning, movement toward the position, or a
