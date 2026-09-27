@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — required route preparation yields under work budgets;
-optional flank selection may give up under its own allowance with explicit handback.
+Updated: 2026-09-27 — grenade avoidance distinguishes imminent route danger
+from current exposure and bounds local escape deliberation.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -352,6 +352,23 @@ Damage and throw coordination also observe fresh launch commitments, so the
 observation delay does not erase spent ammunition from reservation checks.
 Concurrent reservation decisions may still race; they are coordination hints,
 not an atomic promise that only one member will fire.
+
+A known grenade is an immediate movement hazard, not a new destination. A
+crossing on a distant future portion of a route does not require an escape
+now: route danger is limited by how far the member could move before impact.
+A member already outside the dangerous footprint may pause its existing
+route rather than approaching the grenade to reach an escape ring. That pause
+ends when the known imminent conflict no longer applies; it does not cancel
+the squad's mission or establish that its destination is unreachable.
+
+A member inside danger seeks a terrain-legal local escape under a finite
+search allowance. The purpose is to leave the blast, not to exhaustively rank
+every possible refuge or prove global disconnection. A chosen escape belongs
+to that member and may persist while the hazard, terrain and owned path remain
+compatible, finishing its safety margin rather than releasing on the first
+fractional step outside danger. Live hazard checks still apply, and losing the cause or path
+ownership retires the retained answer. None of these shortcuts reveals an
+unobserved hostile grenade or changes reflex priority.
 
 An **ambient task assignment** is low-stakes authored world work for an existing
 battle actor: resting at a berth, inspecting a console, maintaining machinery,

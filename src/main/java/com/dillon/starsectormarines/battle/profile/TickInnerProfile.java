@@ -359,6 +359,13 @@ public final class TickInnerProfile {
         REFLEX_COOLDOWNS,
         REFLEX_FRIENDLY_CHARGE,
         REFLEX_KNOWN_GRENADE,
+        /** Known path-only hazard: consume the tick without replacing the mission route. */
+        GRENADE_PATH_HOLD,
+        /** Local bounded BFS wall time and call count; not a flat A* search. */
+        GRENADE_ESCAPE_SEARCH,
+        GRENADE_ESCAPE_EXPANDED,
+        GRENADE_ESCAPE_REUSE,
+        GRENADE_ESCAPE_NO_ROUTE,
         REFLEX_REJOIN,
         REFLEX_OPPORTUNITY_SPECIAL,
         REFLEX_HARDENED_OPPORTUNITY,
@@ -579,6 +586,9 @@ public final class TickInnerProfile {
     public void routeReason(String reason) {
         activeRouteReason = reason != null ? reason : "";
     }
+
+    /** Current route label, for nested diagnostic scopes that restore their caller. */
+    public String routeReason() { return activeRouteReason; }
 
     /**
      * Adds {@code deltaNanos} to {@code bucket}'s nanos sum and increments its

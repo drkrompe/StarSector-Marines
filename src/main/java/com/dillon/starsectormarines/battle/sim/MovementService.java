@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.LocalGrenadeEscape;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.nav.ContinuousRoute;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
@@ -98,6 +99,16 @@ public final class MovementService {
 
     /** Presence check — true iff {@code id} carries MOVEMENT (is a mover). Gate field reads on this. */
     public boolean has(long id) { return entityWorld.has(id, components.MOVEMENT); }
+
+    /** Only this member's grenade reflex reads or writes its retained escape. */
+    public LocalGrenadeEscape.Retained grenadeEscape(long id) {
+        return (LocalGrenadeEscape.Retained) entityWorld.getObject(id, components.MOVEMENT,
+                BattleComponents.MOVEMENT_GRENADE_ESCAPE);
+    }
+
+    public void setGrenadeEscape(long id, LocalGrenadeEscape.Retained escape) {
+        entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_GRENADE_ESCAPE, escape);
+    }
 
     // ---- movement-semantic gates ----
     //

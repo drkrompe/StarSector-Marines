@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
@@ -17,6 +18,8 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+
+import static com.dillon.starsectormarines.battle.sim.BattleSimulation.TICK_DT;
 
 /** Honest-contact cluster scoring, reservations, safety, and observed-hazard response. */
 public final class FragGrenadeTactics {
@@ -74,7 +77,85 @@ public final class FragGrenadeTactics {
 
     /** Evades a known friendly grenade or a hostile grenade honestly observed by the squad. */
     public static boolean evadeKnownGrenade(long unit, BattleControl sim) {
-        Projectile hazard = nearestKnownHazard(unit, sim);
+        return evadeKnownGrenade(unit, sim, localGrenadeAvoidanceEnabled());
+    }
+
+    public static boolean localGrenadeAvoidanceEnabled() {
+        return Boolean.parseBoolean(System.getProperty("battle.infantry.localGrenadeAvoidance", "true"));
+    }
+
+    static boolean evadeKnownGrenade(long unit, BattleControl sim, boolean local) {
+        if (!local) {
+            if (sim.world().hasMovement(unit)) retireEscape(unit, sim);
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            Squad squad = sim.squadOf(unit);
+            if (profile != null) profile.enterAction(unit, squad == null ? -1 : squad.id,
+                    "REFLEX_KNOWN_GRENADE");
+            try {
+                return evadeKnownGrenadeLegacy(unit, sim);
+            } finally {
+                if (profile != null) profile.exitAction();
+            }
+        }
+        if (!sim.world().hasMovement(unit)) return false;
+        Projectile hazard = nearestKnownHazard(unit, sim, true);
+        if (hazard == null) {
+            retireEscape(unit, sim);
+            return false;
+        }
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        NavigationGrid grid = sim.getGrid();
+        float dangerRadius = hazard.onArrival.aoeRadius + SAFETY_MARGIN;
+        LocalGrenadeEscape.Retained retained = sim.movement().grenadeEscape(unit);
+        int fromX = sim.world().cellX(unit);
+        int fromY = sim.world().cellY(unit);
+        if (retained != null && retained.usable(hazard, grid, sim.world().path(unit),
+                sim.world().pathIdx(unit), fromX, fromY)) {
+            // Finish the short safety-margin escape rather than handing back
+            // on the first fractional step outside the danger radius.
+            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GRENADE_ESCAPE_REUSE, 1);
+            sim.advanceMovement(unit);
+            return true;
+        }
+        if (distanceSq(sim.world().x(unit), sim.world().y(unit), hazard.toX, hazard.toY)
+                > dangerRadius * dangerRadius) {
+            // This route leads into danger soon; stopping is sufficient. Preserve
+            // its owner's route, and ask again next tick rather than latch a hold.
+            retireEscape(unit, sim);
+            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GRENADE_PATH_HOLD, 1);
+            return true;
+        }
+        retireEscape(unit, sim);
+        long started = profile != null ? System.nanoTime() : 0L;
+        LocalGrenadeEscape.Result result = LocalGrenadeEscape.find(grid, fromX, fromY,
+                hazard.toX, hazard.toY, dangerRadius + 0.75f,
+                GridPathfinder.USE_CARDINAL_NAVIGATION);
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.GRENADE_ESCAPE_SEARCH, System.nanoTime() - started);
+            profile.recordCount(TickInnerProfile.Bucket.GRENADE_ESCAPE_EXPANDED, result.expanded());
+        }
+        if (result.path().length == 0) {
+            // Budget exhaustion is not proof of disconnection. Hold this tick;
+            // no partial unsafe path or map-wide fallback is authorized.
+            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.GRENADE_ESCAPE_NO_ROUTE, 1);
+            return true;
+        }
+        sim.setPath(unit, result.path());
+        sim.movement().setGrenadeEscape(unit, new LocalGrenadeEscape.Retained(hazard, grid,
+                grid.topologyRevision(), GridPathfinder.USE_CARDINAL_NAVIGATION, result.path()));
+        sim.advanceMovement(unit);
+        return true;
+    }
+
+    private static void retireEscape(long unit, BattleControl sim) {
+        LocalGrenadeEscape.Retained retained = sim.movement().grenadeEscape(unit);
+        if (retained == null) return;
+        if (sim.world().path(unit) == retained.path()) sim.clearPath(unit);
+        sim.movement().setGrenadeEscape(unit, null);
+    }
+
+    private static boolean evadeKnownGrenadeLegacy(long unit, BattleControl sim) {
+        Projectile hazard = nearestKnownHazard(unit, sim, false);
         if (hazard == null || hazard.onArrival == null) return false;
         NavigationGrid grid = sim.getGrid();
         float safeRadius = hazard.onArrival.aoeRadius + SAFETY_MARGIN + 0.75f;
@@ -196,24 +277,44 @@ public final class FragGrenadeTactics {
         return false;
     }
 
-    private static Projectile nearestKnownHazard(long unit, BattleView sim) {
+    private static Projectile nearestKnownHazard(long unit, BattleView sim, boolean local) {
         Faction faction = sim.identity().faction(unit);
         Squad squad = sim.squadOf(unit);
         Projectile nearest = null;
         float nearestSq = Float.MAX_VALUE;
+        boolean nearestCurrent = false;
+        LocalGrenadeEscape.Retained retained = local ? sim.movement().grenadeEscape(unit) : null;
         for (Projectile projectile : sim.snapshotActiveProjectiles()) {
             if (!isArcExplosiveWeapon(projectile.sourceWeaponId)
                     || projectile.onArrival == null) continue;
+            if (local && (projectile.intercepted || projectile.isExpired())) continue;
             if (projectile.shooterFaction != faction
                     && !squadObservesProjectile(squad, unit, projectile, sim)) continue;
             float reach = projectile.onArrival.aoeRadius + SAFETY_MARGIN;
-            if (!unitOrPathThreatened(unit, projectile.toX, projectile.toY,
+            if (local) {
+                boolean finishingEscape = retained != null && retained.hazard() == projectile
+                        && retained.usable(projectile, sim.getGrid(), sim.world().path(unit),
+                        sim.world().pathIdx(unit), sim.world().cellX(unit), sim.world().cellY(unit));
+                if (distanceSq(sim.world().x(unit), sim.world().y(unit), projectile.toX,
+                        projectile.toY) > reach * reach
+                        && !finishingEscape
+                        && !LocalGrenadeEscape.pathThreatened(sim.world().x(unit),
+                        sim.world().y(unit), sim.world().path(unit), sim.world().pathIdx(unit),
+                        Math.max(0f, sim.world().moveSpeed(unit))
+                                // Movement precedes projectile expiry: conservatively
+                                // include the final full movement tick before impact.
+                                * (projectile.remainingTime + TICK_DT),
+                        projectile.toX, projectile.toY, reach)) continue;
+            } else if (!unitOrPathThreatened(unit, projectile.toX, projectile.toY,
                     reach * reach, sim)) continue;
             float distanceSq = distanceSq(sim.world().x(unit), sim.world().y(unit),
                     projectile.toX, projectile.toY);
-            if (distanceSq < nearestSq) {
+            boolean current = distanceSq <= reach * reach;
+            if (nearest == null || local && current && !nearestCurrent
+                    || (!local || current == nearestCurrent) && distanceSq < nearestSq) {
                 nearest = projectile;
                 nearestSq = distanceSq;
+                nearestCurrent = current;
             }
         }
         return nearest;

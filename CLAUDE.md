@@ -439,6 +439,17 @@ Do not run builds or leave generated task files there.
   hazard view and collects launch intents before projectile physics; fresh
   launches remain visible to reservation checks. `PROJECTILE_PUBLICATION_*`
   records host preparation and collection rather than hiding moved work.
+  `-Dbattle.infantry.localGrenadeAvoidance=false` restores the old full-route
+  danger scan and grenade-centered A* fan-out. By default grenade avoidance
+  considers only imminent travel before impact: a safe unit pauses its path,
+  while an exposed unit seeks a bounded local escape and reuses it while the
+  hazard, terrain and owned path remain compatible. `GRENADE_PATH_HOLD` and
+  `GRENADE_ESCAPE_SEARCH/EXPANDED/REUSE/NO_ROUTE` distinguish decisions and
+  work. Escape search uses fixed local scratch rather than full-map route
+  preparation; its work ceiling is not a whole-reflex or wall-clock guarantee.
+  Projectile enumeration and observation remain separate work. Guard-post route samples label
+  fallback, engagement, investigation, quiet patrol and disengagement so a
+  shared action name cannot hide which obligation requested an expensive path.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.
