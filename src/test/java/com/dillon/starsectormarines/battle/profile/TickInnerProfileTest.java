@@ -17,6 +17,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TickInnerProfileTest {
 
     @Test
+    void callbackActionSurvivesScopeExitButNeverLeaksIntoAnotherCallback() {
+        TickInnerProfile profile = new TickInnerProfile();
+        profile.clearUnitAction();
+        assertEquals("", profile.lastUnitAction());
+        profile.enterAction(7, 2, "EnterZone");
+        profile.exitAction();
+        assertEquals("EnterZone", profile.lastUnitAction());
+        profile.clearUnitAction();
+        assertEquals("", profile.lastUnitAction());
+        profile.enterAction(8, 3, "ClearZone");
+        profile.reset();
+        assertEquals("", profile.lastUnitAction());
+    }
+
+    @Test
     void aggregateWorkCountsMergeAndResetWithoutAddingTime() {
         TickInnerProfile worker = new TickInnerProfile();
         TickInnerProfile aggregate = new TickInnerProfile();

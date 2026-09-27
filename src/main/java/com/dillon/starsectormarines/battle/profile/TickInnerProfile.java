@@ -339,6 +339,11 @@ public final class TickInnerProfile {
     private long activeMemberId;
     private int activeSquadId = -1;
     private String activeAction = "";
+    private String lastUnitAction = "";
+
+    /** Optional callback diagnostics; empty means no GOAP action was entered. */
+    public void clearUnitAction() { lastUnitAction = ""; }
+    public String lastUnitAction() { return lastUnitAction; }
     private String activeRouteReason = "";
     /** Per profiling identity {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}. */
     private final Map<String, long[]> actions = new HashMap<>();
@@ -364,6 +369,7 @@ public final class TickInnerProfile {
         convoySearchesStarted = 0L;
         slowPathSearchCount = 0;
         activeBehavior = null;
+        clearUnitAction();
         exitAction();
         actions.clear();
     }
@@ -392,6 +398,7 @@ public final class TickInnerProfile {
         activeMemberId = memberId;
         activeSquadId = squadId;
         activeAction = action != null ? action : "";
+        lastUnitAction = activeAction;
         activeRouteReason = "";
     }
 

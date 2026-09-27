@@ -204,6 +204,15 @@ Do not run builds or leave generated task files there.
   execution-sample recording and one event per measured tick in the same output directory;
   JFR adds overhead, so use the ordinary run for timing magnitude and the
   recording for code-path attribution. Add
+  `-Dbattle.tail.workerTimeline=true` together with JFR to retain every unit
+  callback's worker identity, last entered GOAP action, nanoTime interval and
+  thread-CPU delta for dispatches lasting at least 10 ms. Includes early-return
+  callbacks. Separate dispatch markers identify stream-root completion and host
+  wakeup: the latest callback is not assumed to be the join's completion. Callback
+  events are emitted by the host after join; use their explicit timestamps and
+  worker identity, not the JFR emission timestamp/thread. This diagnostic adds
+  per-callback CPU reads, 1 ms stack sampling, and zero-threshold monitor events;
+  do not use it for ordinary performance comparisons. Add
   `-Dbattle.tail.convoyUncachedStages=true` to measure isolated terrain-cost,
   APC-clearance, connectivity-label construction, and a frozen progressive
   route-input snapshot on the same grid after the timed replay; this does not
