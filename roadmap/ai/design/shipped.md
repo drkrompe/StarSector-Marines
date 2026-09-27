@@ -4,10 +4,12 @@ Status: SHIPPED — folded legacy AI implementation stories.
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — folded bounded quiet patrol and explicit support-lance coverage.
+Updated: 2026-09-27 — folded bounded district patrol and clearance-owner isolation.
 
 | Retired story | Ship date | Evidence | Fold destination |
 |---|---|---|---|
+| `district-patrol-work-budget.md` | 2026-09-27 | `2372adc75`, `de08ea3bb`; 199 focused tests, independently controlled JFR pair and paced eight-mech replay; bounded work verified, not a general tail-latency guarantee | `ai-nouns.md` (optional district waypoints); independent controls and counters in `CLAUDE.md` |
+| `clearance-owner-isolation.md` | 2026-09-27 | `64a7d5de5`; JFR monitor evidence, 509 focused tests including real-coordinator monitor isolation and mech proof invalidation, 6000-tick paced eight-mech replay | Existing route ownership unchanged; immutable-identity cancellation boundary in `CLAUDE.md` |
 | `patrol-tail-and-mech-coverage.md` | 2026-09-27 | `100dcfa3f`, `0d65eea5b`; 612 focused tests, 154 legacy-control mech tests, zero-input and paired eight-mech paced captures (6000 ticks each) | `ai-nouns.md` (optional quiet guard travel); existing mech connectivity/clearance authority unchanged; controls and coverage semantics in `CLAUDE.md` |
 | `local-hazard-avoidance.md` | 2026-09-27 | `0aae587bf`; 380 focused tests, same-input legacy control and 6000-tick paced capture | `ai-nouns.md` (imminent hazard avoidance and owned escape retention); controls and diagnostic semantics in `CLAUDE.md` |
 | `flank-selection-work-budget.md` | 2026-09-27 | `c10a51d38`; 335 focused tests and 6000-tick paced capture | `ai-nouns.md` (optional flank allowance and explicit refusal); controls and diagnostic semantics in `CLAUDE.md` |

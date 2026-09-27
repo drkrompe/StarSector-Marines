@@ -4,13 +4,11 @@ Status: ACTIVE — squad doctrine, contact reasoning, and tactical AI extensions
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — bounded quiet patrol and mech coverage are folded; local traffic and shared
+Updated: 2026-09-27 — bounded district patrol and clearance-owner isolation are folded; local traffic and shared
 firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
-| `district-patrol-work-budget.md` | IN PROGRESS | Attribute district patrol branches and bound optional waypoint proofs without weakening investigation. |
-| `clearance-owner-isolation.md` | IN PROGRESS | Keep infantry path replacement out of mech-only clearance cancellation while preserving owner invalidation. |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |
