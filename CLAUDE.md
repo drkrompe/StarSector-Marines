@@ -277,6 +277,16 @@ Do not run builds or leave generated task files there.
   pending requests/calls, admissions, successful resumptions, and wait age.
   A zero `battle.pathfinding.maxSquadRouteBuildsPerTick` keeps legacy fallback
   instead of creating a queue that cannot make progress.
+  `-Dbattle.pathfinding.retainSquadRouteCosts=false` restores cost-object identity
+  as the cross-replan reuse requirement. By default covered, same-goal fields
+  tolerate soft cost changes until the first replan at age 300–360 ticks;
+  a route-local multiplier increase of 0.25 against original build costs asks
+  for earlier refresh. Same-epoch freshness and compatible refresh deferral
+  remain unchanged. `SQUAD_ROUTE_COST_CHECK/REUSE` separates validation from
+  avoided builds. Build samples report causes, actual seed searches/expansions,
+  and unpadded/padded/settled areas. `NEW` means no prior entry, including after
+  a topology flush; `COST` also includes age refresh. Seed counts are separate
+  from flat member A* counts. These diagnostics do not impose an expansion cap.
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
   terminal crowding toll in flat A*. By default only that additive constant is
   omitted during search; intermediate crowding and terrain costs still rank

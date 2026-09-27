@@ -105,7 +105,7 @@ class NavigationServiceSquadRouteTest {
     }
 
     @Test
-    void replannedSameRouteAdoptsCoveredFieldButNewCostOrStartRebuilds() {
+    void replannedSameRouteAdoptsCoveredFieldThroughEquivalentCostsButNewStartRebuilds() {
         NavigationGrid grid = openGrid(160, 160);
         NavigationService navigation = new NavigationService(grid,
                 new CellTopology(160, 160));
@@ -136,8 +136,9 @@ class NavigationServiceSquadRouteTest {
         Object costChangeToken = new Object();
         navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 3L,
                 costChangeToken, 158, 1, new int[]{grid.index(3, 1)}, newerCost)));
-        assertEquals(1, navigation.lastSquadRouteBuilds(),
-                "a new epoch must adopt the current casualty costing");
+        assertEquals(0, navigation.lastSquadRouteBuilds(),
+                "an equivalent casualty publication does not require optimizing this route again");
+        assertEquals(1, navigation.lastSquadRouteReuses());
 
         navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7, 4L,
                 new Object(), 158, 1, new int[]{grid.index(1, 150)}, newerCost)));

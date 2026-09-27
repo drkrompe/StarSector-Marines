@@ -15,6 +15,45 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TickInnerProfileTest {
+    @Test
+    void squadBuildSamplesStayBoundedFreezeAndReset() {
+        TickInnerProfile profile = new TickInnerProfile();
+        for (int i = 1; i <= 12; i++) {
+            profile.recordSquadRouteBuild(i, i, "NEW", 6, 120, 2, 300, 140, 500, 900, 800);
+        }
+        TickInnerProfile.Snapshot frozen = profile.snapshot();
+        assertEquals(8, frozen.slowSquadRouteBuilds.size());
+        assertEquals(12, frozen.slowSquadRouteBuilds.get(0).squadId());
+        assertEquals(5, frozen.slowSquadRouteBuilds.get(7).squadId());
+        assertEquals(12, frozen.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_BUILD_NEW));
+        assertEquals(24, frozen.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_SEED_SEARCH));
+        assertEquals(3600, frozen.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_SEED_EXPANDED));
+        assertEquals(1680, frozen.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_SEED_PATH_CELL));
+        profile.reset();
+        profile.recordSquadRouteBuild(100, 99, "COST", 1, 2, 3, 4, 5, 6, 7, 8);
+        assertEquals(12, frozen.slowSquadRouteBuilds.get(0).squadId());
+        assertEquals(1, profile.slowSquadRouteBuilds().size());
+        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_BUILD_NEW));
+    }
+
+    @Test
+    void mergedSquadBuildSamplesDoNotDoubleCountAndKeepStableTies() {
+        TickInnerProfile aggregate = new TickInnerProfile();
+        TickInnerProfile worker = new TickInnerProfile();
+        aggregate.recordSquadRouteBuild(20, 1, "GOAL", 1, 2, 1, 4, 5, 6, 7, 8);
+        worker.recordSquadRouteBuild(20, 2, "TOPOLOGY", 2, 3, 2, 5, 6, 7, 8, 9);
+        worker.recordSquadRouteBuild(30, 3, "COVERAGE", 3, 4, 3, 6, 7, 8, 9, 10);
+        aggregate.addFrom(worker);
+        worker.reset();
+        assertEquals(List.of(3, 1, 2), aggregate.slowSquadRouteBuilds().stream()
+                .map(TickInnerProfile.SquadRouteBuild::squadId).toList());
+        assertEquals(6, aggregate.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_SEED_SEARCH));
+        assertEquals(1, aggregate.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_BUILD_GOAL));
+        assertEquals(1, aggregate.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_BUILD_TOPOLOGY));
+        assertEquals(1, aggregate.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_BUILD_COVERAGE));
+        TickInnerProfile.SquadRouteBuild sample = aggregate.slowSquadRouteBuilds().get(0);
+        assertEquals(new TickInnerProfile.SquadRouteBuild(30, 3, "COVERAGE", 3, 4, 3, 6, 7, 8, 9, 10), sample);
+    }
 
     @Test
     void callbackActionSurvivesScopeExitButNeverLeaksIntoAnotherCallback() {

@@ -160,6 +160,10 @@ public final class TickProfileDumper {
                 actionsArr.put(ao);
             }
             root.put("actions", actionsArr);
+            root.put("retainSquadRouteCosts", Boolean.parseBoolean(System.getProperty(
+                    "battle.pathfinding.retainSquadRouteCosts", "true")));
+            putSquadRouteBuilds(root, innerSnap != null
+                    ? innerSnap.slowSquadRouteBuilds : liveInner.slowSquadRouteBuilds());
 
             // These are individual searches, not sums across workers. In a
             // parallel unit phase, their total PATHFIND nanos can exceed the
@@ -193,6 +197,26 @@ public final class TickProfileDumper {
             LOG.warn("TickProfileDumper: dump failed", ex);
             return null;
         }
+    }
+
+    static void putSquadRouteBuilds(JSONObject root,
+                                   List<TickInnerProfile.SquadRouteBuild> builds)
+            throws JSONException {
+        root.put("squadRouteBuildSemantics", "top eight builds by wall duration; NEW means no prior entry, including after a flush; COST includes bounded-age refresh; seedPathCells sums seed lengths; cell volumes may overlap between builds");
+        JSONArray samples = new JSONArray();
+        for (TickInnerProfile.SquadRouteBuild build : builds) {
+            samples.put(new JSONObject().put("ms", build.nanos() / 1_000_000.0)
+                    .put("squadId", build.squadId()).put("reason", build.reason())
+                    .put("startCount", build.startCount())
+                    .put("maxStartGoalManhattan", build.maxStartGoalManhattan())
+                    .put("seedSearches", build.seedSearches())
+                    .put("seedExpanded", build.seedExpanded())
+                    .put("seedPathCells", build.seedPathCells())
+                    .put("unpaddedCells", build.unpaddedCells())
+                    .put("corridorCells", build.corridorCells())
+                    .put("settledCells", build.settledCells()));
+        }
+        root.put("slowSquadRouteBuilds", samples);
     }
 
     static void putPathSearches(JSONObject root, long totalExpandedNodes,

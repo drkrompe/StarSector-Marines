@@ -49,6 +49,9 @@ public final class NavigationService implements AutoCloseable {
 
     public static final String SQUAD_ROUTE_ADMISSION_PROPERTY =
             "battle.pathfinding.squadRouteAdmission";
+    /** Same-build control for bounded reuse across soft casualty-cost publications. */
+    public static final String RETAIN_SQUAD_ROUTE_COSTS_PROPERTY =
+            "battle.pathfinding.retainSquadRouteCosts";
 
     private final NavigationGrid grid;
     private final CellTopology topology;
@@ -61,6 +64,7 @@ public final class NavigationService implements AutoCloseable {
     private final SharedGoalPathfinder sharedGoalPathfinder;
     /** Serial builder scratch; prepared fields retain only their settled corridor cells. */
     private final SquadRouteField.Builder squadRouteBuilder;
+    private final SquadRouteBuildWork squadRouteBuildWork = new SquadRouteBuildWork();
     /** Immutable batch published immediately before the parallel unit-update window. */
     private volatile SquadRouteBatch squadRouteBatch = SquadRouteBatch.empty();
     private int squadRoutePreparationTick;
@@ -437,6 +441,8 @@ public final class NavigationService implements AutoCloseable {
         // instead of publishing requests that would remain pending forever.
         boolean admissionEnabled = maximumBuilds > 0 && SharedGoalPolicy.squadRouteCorridorsEnabled()
                 && Boolean.parseBoolean(System.getProperty(SQUAD_ROUTE_ADMISSION_PROPERTY, "true"));
+        boolean retainCosts = Boolean.parseBoolean(System.getProperty(
+                RETAIN_SQUAD_ROUTE_COSTS_PROPERTY, "true"));
         lastSquadRouteBuilds = 0;
         lastSquadRouteReuses = 0;
         lastSquadRouteDeferred = 0;
@@ -459,13 +465,17 @@ public final class NavigationService implements AutoCloseable {
             boolean compatible = retained != null
                     && retained.isCompatible(request, mesh.revision(),
                     grid.getWidth());
-            // Replanning changes the epoch and step token even when the route
-            // itself has not changed. An immutable field is still exact for
-            // this intent when its goal, topology, costing, and every member
-            // start match; publish it under the new token without rebuilding.
-            if (compatible && retained.cost == request.cost()) {
+            // Replanning need not optimize the same route again for a small
+            // casualty-cost decay. Geometry and start coverage stay exact;
+            // changed costs have a fixed age and route-local increase bound.
+            if (compatible && (retained.cost == request.cost()
+                    || retainCosts && retained.canRetainCosts(request, tick))) {
                 next.put(request.squadId(), retained.adoptFresh(request));
                 lastSquadRouteReuses++;
+                TickInnerProfile profile = TickInnerProfile.currentIfBound();
+                if (profile != null && retained.cost != request.cost()) {
+                    profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_COST_REUSE, 1);
+                }
                 continue;
             }
             DeferredSquadRoute waiting = previousBatch.deferred.get(request.squadId());
@@ -498,7 +508,12 @@ public final class NavigationService implements AutoCloseable {
                                 Math.max(0, tick - candidate.firstDeferredTick));
                     }
                     long started = System.nanoTime();
-                    built = buildSquadRoute(candidate.request, mesh);
+                    String reason = candidate.retained == null ? "NEW"
+                            : candidate.retained.goal != candidate.request.goalY() * grid.getWidth()
+                                    + candidate.request.goalX() ? "GOAL"
+                            : candidate.retained.meshRevision != mesh.revision() ? "TOPOLOGY"
+                            : !candidate.compatible ? "COVERAGE" : "COST";
+                    built = buildSquadRoute(candidate.request, mesh, reason);
                     TickInnerProfile profile = TickInnerProfile.currentIfBound();
                     if (profile != null) {
                         profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_BUILD,
@@ -528,7 +543,7 @@ public final class NavigationService implements AutoCloseable {
                     // whole budget on every tick and starve every later one.
                     next.put(candidate.request.squadId(),
                             PreparedSquadRoute.failure(candidate.request,
-                                    mesh.revision(), grid.getWidth()));
+                                    mesh.revision(), grid.getWidth(), tick));
                 } else if (admissionEnabled) {
                     deferred.put(candidate.request.squadId(), new DeferredSquadRoute(
                             candidate.request.squadId(), candidate.request.routingEpoch(),
@@ -550,6 +565,38 @@ public final class NavigationService implements AutoCloseable {
         }
     }
 
+    private PreparedSquadRoute buildSquadRoute(SquadRouteRequest request,
+            GreedyNavigationMesh.Snapshot mesh, String reason) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        SquadRouteBuildWork work = squadRouteBuildWork;
+        work.reset();
+        long started = profile == null ? 0L : System.nanoTime();
+        PreparedSquadRoute result = null;
+        try {
+            result = buildSquadRoute(request, mesh);
+            return result;
+        } finally {
+            if (profile != null) {
+                profile.recordSquadRouteBuild(System.nanoTime() - started,
+                        request.squadId(), reason, work.startCount, work.maxStartGoalManhattan,
+                        work.seedSearches, work.seedExpanded, work.seedPathCells,
+                        work.unpaddedCells, result == null ? 0 : result.field.corridorCellCount(),
+                        result == null ? 0 : result.field.settledCellCount());
+            }
+        }
+    }
+
+    /** Scratch owned by the serial preparation phase, never published to unit workers. */
+    private static final class SquadRouteBuildWork {
+        int startCount, maxStartGoalManhattan, seedSearches, seedExpanded;
+        int seedPathCells, unpaddedCells;
+
+        void reset() {
+            startCount = maxStartGoalManhattan = seedSearches = seedExpanded = 0;
+            seedPathCells = unpaddedCells = 0;
+        }
+    }
+
     private PreparedSquadRoute buildSquadRoute(
             SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh) {
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -559,6 +606,7 @@ public final class NavigationService implements AutoCloseable {
             return null;
         }
         int[] starts = request.startCells();
+        squadRouteBuildWork.startCount = starts.length;
         if (starts.length == 0 || mesh.regions().isEmpty()) return null;
         int goal = grid.index(request.goalX(), request.goalY());
         int goalRegion = mesh.regionIdAt(request.goalX(), request.goalY());
@@ -571,15 +619,21 @@ public final class NavigationService implements AutoCloseable {
             if (start < 0 || start >= grid.getWidth() * grid.getHeight()) continue;
             int startX = start % grid.getWidth();
             int startY = start / grid.getWidth();
+            squadRouteBuildWork.maxStartGoalManhattan = Math.max(
+                    squadRouteBuildWork.maxStartGoalManhattan,
+                    Math.abs(startX - request.goalX()) + Math.abs(startY - request.goalY()));
             int startRegion = mesh.regionIdAt(startX, startY);
             if (startRegion < 0) continue;
             if (hasRoute) {
                 padRouteRegions(mesh, routeRegions, selectedRegions);
                 if (selectedRegions[startRegion]) continue;
             }
-            int[] seed = GridPathfinder.findPathWithCostUnprofiled(grid,
+            int[] seed = GridPathfinder.findSquadRouteSeed(grid,
                     startX, startY, request.goalX(), request.goalY(),
-                    GridPathfinder.USE_CARDINAL_NAVIGATION, null, costs);
+                    GridPathfinder.USE_CARDINAL_NAVIGATION, costs);
+            squadRouteBuildWork.seedSearches++;
+            squadRouteBuildWork.seedExpanded += GridPathfinder.squadSeedExpandedNodes();
+            squadRouteBuildWork.seedPathCells += Paths.cellCount(seed);
             if (Paths.isEmpty(seed)) continue;
             for (int cell = 0; cell < Paths.cellCount(seed); cell++) {
                 int region = mesh.regionIdAt(Paths.cellX(seed, cell),
@@ -598,6 +652,7 @@ public final class NavigationService implements AutoCloseable {
         padRouteRegions(mesh, routeRegions, selectedRegions);
         int corridorCount = 0;
         for (GreedyNavigationMesh.Region region : mesh.regions()) {
+            if (routeRegions[region.id()]) squadRouteBuildWork.unpaddedCells += region.cellCount();
             if (selectedRegions[region.id()]) corridorCount += region.cellCount();
         }
         int[] corridor = new int[corridorCount];
@@ -624,7 +679,8 @@ public final class NavigationService implements AutoCloseable {
                     System.nanoTime() - stageStart);
         }
         return new PreparedSquadRoute(request.routingEpoch(),
-                request.routeToken(), goal, mesh.revision(), request.cost(), field);
+                request.routeToken(), goal, mesh.revision(), request.cost(), field,
+                squadRoutePreparationTick);
     }
 
     private static void padRouteRegions(
@@ -745,19 +801,29 @@ public final class NavigationService implements AutoCloseable {
     }
 
     private static final class PreparedSquadRoute {
+        private static final int BASE_COST_RETENTION_TICKS = 300;
+        /** Absolute multiplier increase from the built snapshot; small decays do not trigger rebuilding. */
+        private static final float MATERIAL_COST_INCREASE = 0.25f;
         private final long routingEpoch;
         private final long builtEpoch;
+        private final int builtTick;
         private final Object routeToken;
         private final int goal;
         private final long meshRevision;
         private final RouteCostField cost;
         private final SquadRouteField field;
+        // Serial preparation metadata only: workers read cost/field, never this
+        // memo. Failed comparisons need not walk the same routes while deferred.
+        private RouteCostField checkedCost;
+        private boolean costChecked;
+        private boolean checkedCostRetainable;
 
         private PreparedSquadRoute(long routingEpoch, Object routeToken,
                                    int goal, long meshRevision,
-                                   RouteCostField cost, SquadRouteField field) {
+                                   RouteCostField cost, SquadRouteField field, int builtTick) {
             this.routingEpoch = routingEpoch;
             this.builtEpoch = routingEpoch;
+            this.builtTick = builtTick;
             this.routeToken = routeToken;
             this.goal = goal;
             this.meshRevision = meshRevision;
@@ -766,18 +832,19 @@ public final class NavigationService implements AutoCloseable {
         }
 
         private static PreparedSquadRoute failure(
-                SquadRouteRequest request, long meshRevision, int width) {
+                SquadRouteRequest request, long meshRevision, int width, int tick) {
             return new PreparedSquadRoute(request.routingEpoch(),
                     request.routeToken(), request.goalY() * width
-                    + request.goalX(), meshRevision, request.cost(), null);
+                    + request.goalX(), meshRevision, request.cost(), null, tick);
         }
 
-        private PreparedSquadRoute(long routingEpoch, long builtEpoch,
+        private PreparedSquadRoute(long routingEpoch, long builtEpoch, int builtTick,
                                    Object routeToken, int goal,
                                    long meshRevision, RouteCostField cost,
                                    SquadRouteField field) {
             this.routingEpoch = routingEpoch;
             this.builtEpoch = builtEpoch;
+            this.builtTick = builtTick;
             this.routeToken = routeToken;
             this.goal = goal;
             this.meshRevision = meshRevision;
@@ -805,13 +872,43 @@ public final class NavigationService implements AutoCloseable {
         }
 
         private PreparedSquadRoute adopt(SquadRouteRequest request) {
-            return new PreparedSquadRoute(request.routingEpoch(), builtEpoch,
-                    request.routeToken(), goal, meshRevision, cost, field);
+            return rebind(request, builtEpoch);
         }
 
         private PreparedSquadRoute adoptFresh(SquadRouteRequest request) {
-            return new PreparedSquadRoute(request.routingEpoch(),
-                    request.routeToken(), goal, meshRevision, cost, field);
+            return rebind(request, request.routingEpoch());
+        }
+
+        private PreparedSquadRoute rebind(SquadRouteRequest request, long freshEpoch) {
+            PreparedSquadRoute rebound = new PreparedSquadRoute(request.routingEpoch(), freshEpoch,
+                    builtTick, request.routeToken(), goal, meshRevision, cost, field);
+            rebound.checkedCost = checkedCost;
+            rebound.costChecked = costChecked;
+            rebound.checkedCostRetainable = checkedCostRetainable;
+            return rebound;
+        }
+
+        /** Evaluated only when ordinary epoch freshness has ended, never on every cost publication. */
+        private boolean canRetainCosts(SquadRouteRequest request, int tick) {
+            long age = (long) tick - builtTick;
+            if (age < 0 || age >= BASE_COST_RETENTION_TICKS + Math.floorMod(request.squadId(), 61)) {
+                return false;
+            }
+            // Positive comparisons are scoped to these starts: a later replan
+            // may introduce a different covered route. A negative result stays
+            // conservatively negative until this cost publication changes.
+            if (costChecked && checkedCost == request.cost() && !checkedCostRetainable) return false;
+            checkedCost = request.cost();
+            costChecked = true;
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long started = profile == null ? 0L : System.nanoTime();
+            checkedCostRetainable = !field.hasMaterialCostIncrease(request.startCells(),
+                    cost, request.cost(), MATERIAL_COST_INCREASE);
+            if (profile != null) {
+                profile.record(TickInnerProfile.Bucket.SQUAD_ROUTE_COST_CHECK,
+                        System.nanoTime() - started);
+            }
+            return checkedCostRetainable;
         }
     }
 

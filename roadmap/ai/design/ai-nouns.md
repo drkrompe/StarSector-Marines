@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — an accepted plan-time reinforcement flank has a bounded
-lifetime across routine replans; permission to maneuver remains live.
+Updated: 2026-09-27 — shared travel separates route legality from bounded
+soft-cost reconsideration across routine replans.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -276,6 +276,16 @@ Older waiting intents take precedence over newer requests in the same priority
 group; compatible existing fields can continue serving while their refresh is
 deferred. Changed squad, plan epoch, step, destination, or topology cannot consume
 another intent's waiting state.
+
+A routine replan need not optimize an otherwise valid route again merely
+because remembered casualty costs decayed or changed elsewhere. A covered
+route may survive small soft-cost changes for a bounded lifetime measured
+from its original construction, not from the latest replan. Material increases
+along the paths members would follow request earlier reconsideration against
+that original cost baseline. Destination, terrain compatibility, and coverage
+remain strict; cost preferences are not physical obstacles. Existing compatible
+routes remain usable while an admitted refresh waits, so this is bounded
+reconsideration rather than an immediate guarantee of minimum casualty exposure.
 
 Waiting is neither unreachable nor a failed or completed action. Live combat
 decisions continue, but the deferred objective route authors no path, clears no
