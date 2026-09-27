@@ -313,6 +313,9 @@ destination on unchanged terrain, without renewing its work allowance or age.
 Its waiting publication belongs only to the current plan identity. Changed
 action, destination or terrain retires the proof; ordinary member motion does
 not restart it every tick.
+The same compatible replan preserves queue seniority before a construction
+slot is acquired; replanning alone cannot repeatedly push a waiting squad
+behind fresh arrivals.
 Before publication, new starting positions must be covered or request bounded
 additional preparation. Partial construction is not a usable field and cannot
 silently turn uncovered members into independent synchronous searches.
