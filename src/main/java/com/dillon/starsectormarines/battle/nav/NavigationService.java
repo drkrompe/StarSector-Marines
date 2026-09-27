@@ -607,9 +607,12 @@ public final class NavigationService implements AutoCloseable {
                 }
             }
             RouteCostField fallbackCost = matches ? prepared.cost : currentCost;
-            return GridPathfinder.findPathWithCostUnprofiled(grid, startX, startY,
+            String fallbackReason = prepared == null ? "MISSING_FIELD"
+                    : !matches ? "INTENT_MISMATCH"
+                    : prepared.field == null ? "BUILD_FAILED" : "UNCOVERED_START";
+            return GridPathfinder.findPathWithCostSampled(grid, startX, startY,
                     goalX, goalY, GridPathfinder.USE_CARDINAL_NAVIGATION,
-                    occupancyMap, fallbackCost);
+                    occupancyMap, fallbackCost, fallbackReason);
         } finally {
             TickInnerProfile profile = TickInnerProfile.currentIfBound();
             if (profile != null) {

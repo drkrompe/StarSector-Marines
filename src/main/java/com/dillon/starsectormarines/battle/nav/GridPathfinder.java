@@ -60,6 +60,10 @@ public final class GridPathfinder {
      */
     public static final float OCCUPANCY_PENALTY = 2f;
 
+    /** Same-build control retaining the unavoidable terminal occupancy toll. */
+    public static final String OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY =
+            "battle.pathfinding.omitFixedGoalOccupancy";
+
     private static final float SQRT2 = (float) Math.sqrt(2.0);
     private static final float INF = Float.MAX_VALUE;
 
@@ -308,7 +312,12 @@ public final class GridPathfinder {
      * {@link NavigationGrid#index(int, int)}. The pathfinder adds
      * {@link #OCCUPANCY_PENALTY} × {@code occupancy[idx]} to the cost of
      * stepping into each cell, so A* routes around stacked allies when a
-     * reasonable detour exists. Pass {@code null} for vanilla pathing.
+     * reasonable detour exists. For a fixed goal, its unavoidable additive
+     * occupancy toll is omitted from the search objective by default: every
+     * complete route pays it once, so it cannot favor one route over another.
+     * Intermediate occupancy and direction-sensitive goal terrain are retained.
+     * Float-rounding and equal-cost route ties may differ from the control.
+     * Pass {@code null} for vanilla pathing.
      */
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
                                   byte[] occupancy) {
@@ -575,7 +584,8 @@ public final class GridPathfinder {
                 p.record(TickInnerProfile.Bucket.PATHFIND, durationNanos);
                 p.recordPathSearch(durationNanos, startX, startY, goalX, goalY,
                         occupancy != null, result.length / 2,
-                        profileWorkspace.expandedNodes);
+                        profileWorkspace.expandedNodes,
+                        goalOccupancy(grid, goalX, goalY, occupancy), "");
                 if (PROFILE_PATH_REQUESTS) {
                     p.recordPathfindRequest(startX, startY, goalX, goalY,
                             occupancy != null);
@@ -605,6 +615,35 @@ public final class GridPathfinder {
                                             RouteCostField cost) {
         return findPathInner(grid, startX, startY, goalX, goalY,
                 cardinalOnly, occupancy, null, null, cost, null, true, false);
+    }
+
+    /** Records search detail without double-counting its caller's PATHFIND scope. */
+    static int[] findPathWithCostSampled(NavigationGrid grid,
+                                         int startX, int startY, int goalX, int goalY,
+                                         boolean cardinalOnly, byte[] occupancy,
+                                         RouteCostField cost, String fallbackReason) {
+        long started = System.nanoTime();
+        Workspace workspace = WORKSPACE.get();
+        workspace.expandedNodes = 0;
+        int[] result = EMPTY_PATH;
+        try {
+            result = findPathWithCostUnprofiled(grid, startX, startY, goalX, goalY,
+                    cardinalOnly, occupancy, cost);
+            return result;
+        } finally {
+            TickInnerProfile profile = TickInnerProfile.current();
+            if (profile != null) {
+                profile.recordPathSearch(System.nanoTime() - started,
+                        startX, startY, goalX, goalY, occupancy != null,
+                        result.length / 2, workspace.expandedNodes,
+                        goalOccupancy(grid, goalX, goalY, occupancy), fallbackReason);
+            }
+        }
+    }
+
+    private static int goalOccupancy(NavigationGrid grid, int x, int y, byte[] occupancy) {
+        if (x < 0 || x >= grid.getWidth() || y < 0 || y >= grid.getHeight()) return -1;
+        return occupancy == null ? 0 : occupancy[grid.index(x, y)] & 0xFF;
     }
 
     /** Cancelable unprofiled search used only by the battle-owned async worker. */
@@ -683,6 +722,15 @@ public final class GridPathfinder {
         long[] cellFlags = grid.getCellFlagsArray();
         byte[] edgePass  = grid.getEdgePassabilityArray();
 
+        // Every completed route enters this fixed goal exactly once, so its
+        // additive occupancy toll cannot affect which route is cheapest. Keeping
+        // it in g while omitting it from the heuristic needlessly floods the
+        // frontier before the goal can win. Omit only that toll, not terrain
+        // (whose diagonal multiplier depends on the approach) or intermediate
+        // occupancy. This changes float rounding/ties, not the real cost model.
+        boolean omitGoalOccupancy = occupancy != null && Boolean.parseBoolean(
+                System.getProperty(OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY, "true"));
+
         while (heapSize > 0) {
             int currentIdx = heap[0];
             heapSize--;
@@ -721,9 +769,10 @@ public final class GridPathfinder {
 
                 if (heapPos[nIdx] == CLOSED) continue;
 
+                byte[] stepOccupancy = omitGoalOccupancy && nIdx == goalIdx ? null : occupancy;
                 float stepCost = indexedCost == null
-                        ? stepCost(dirI, nIdx, occupancy, costField)
-                        : stepCost(dirI, nIdx, occupancy, indexedCost.costAt(nIdx, nx, ny));
+                        ? stepCost(dirI, nIdx, stepOccupancy, costField)
+                        : stepCost(dirI, nIdx, stepOccupancy, indexedCost.costAt(nIdx, nx, ny));
                 float tentativeG = gCost[currentIdx] + stepCost;
 
                 if (tentativeG < gCost[nIdx]) {

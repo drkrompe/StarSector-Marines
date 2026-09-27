@@ -481,7 +481,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 10);
+        report.put("schemaVersion", 11);
         report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
@@ -503,6 +503,9 @@ class BattleFixtureTailProfileTest {
                 "battle.squad.trafficYield", "true")));
         report.put("pruneFlankCandidates", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.pruneFlankCandidates", "true")));
+        report.put("omitFixedGoalOccupancy", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.omitFixedGoalOccupancy", "true")));
+        report.put("pathSearchTimingSemantics", "Flat search samples and expansion totals include squad-field fallbacks; worker elapsed times overlap. goalOccupancy is the unsigned destination reservation count, -1 when unknown.");
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
         report.put("firingReachabilityComponents", Boolean.parseBoolean(System.getProperty(
@@ -742,6 +745,8 @@ class BattleFixtureTailProfileTest {
                     .put("expandedNodes", search.expandedNodes())
                     .put("memberId", search.memberId()).put("squadId", search.squadId())
                     .put("action", search.action()).put("routeReason", search.routeReason())
+                    .put("goalOccupancy", search.goalOccupancy())
+                    .put("fallbackReason", search.fallbackReason())
                     .put("usesOccupancy", search.usesOccupancy())
                     .put("found", search.found()));
         }

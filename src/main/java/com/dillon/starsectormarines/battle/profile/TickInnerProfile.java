@@ -59,7 +59,17 @@ public final class TickInnerProfile {
                              int goalX, int goalY, boolean usesOccupancy,
                              boolean found, int pathCells, int expandedNodes,
                              long memberId, int squadId, String action,
-                             String routeReason) {
+                             String routeReason, int goalOccupancy,
+                             String fallbackReason) {
+        public PathSearch(long nanos, int startX, int startY,
+                          int goalX, int goalY, boolean usesOccupancy,
+                          boolean found, int pathCells, int expandedNodes,
+                          long memberId, int squadId, String action,
+                          String routeReason) {
+            this(nanos, startX, startY, goalX, goalY, usesOccupancy,
+                    found, pathCells, expandedNodes, memberId, squadId,
+                    action, routeReason, -1, "");
+        }
         public PathSearch(long nanos, int startX, int startY,
                           int goalX, int goalY, boolean usesOccupancy,
                           boolean found, int pathCells, int expandedNodes) {
@@ -75,10 +85,13 @@ public final class TickInnerProfile {
         long memberId;
         int squadId;
         String action, routeReason;
+        int goalOccupancy;
+        String fallbackReason;
 
         void set(long nanos, int startX, int startY, int goalX, int goalY,
                  boolean usesOccupancy, int pathCells, int expandedNodes,
-                 long memberId, int squadId, String action, String routeReason) {
+                 long memberId, int squadId, String action, String routeReason,
+                 int goalOccupancy, String fallbackReason) {
             this.nanos = nanos;
             this.startX = startX;
             this.startY = startY;
@@ -92,12 +105,15 @@ public final class TickInnerProfile {
             this.squadId = squadId;
             this.action = action;
             this.routeReason = routeReason;
+            this.goalOccupancy = goalOccupancy;
+            this.fallbackReason = fallbackReason;
         }
 
         PathSearch freeze() {
             return new PathSearch(nanos, startX, startY, goalX, goalY,
                     usesOccupancy, found, pathCells, expandedNodes,
-                    memberId, squadId, action, routeReason);
+                    memberId, squadId, action, routeReason,
+                    goalOccupancy, fallbackReason);
         }
     }
 
@@ -488,17 +504,29 @@ public final class TickInnerProfile {
                                  int startX, int startY, int goalX, int goalY,
                                  boolean usesOccupancy, int pathCells,
                                  int expandedNodes) {
+        recordPathSearch(durationNanos, startX, startY, goalX, goalY,
+                usesOccupancy, pathCells, expandedNodes, -1, "");
+    }
+
+    /** Actual goal reservation count and shared-field miss cause, when known. */
+    public void recordPathSearch(long durationNanos,
+                                 int startX, int startY, int goalX, int goalY,
+                                 boolean usesOccupancy, int pathCells,
+                                 int expandedNodes, int goalOccupancy,
+                                 String fallbackReason) {
         pathfindExpandedNodes += expandedNodes;
         retainSlowPathSearch(durationNanos, startX, startY, goalX, goalY,
                 usesOccupancy, pathCells, expandedNodes,
-                activeMemberId, activeSquadId, activeAction, activeRouteReason);
+                activeMemberId, activeSquadId, activeAction, activeRouteReason,
+                goalOccupancy, fallbackReason);
     }
 
     private void retainSlowPathSearch(long durationNanos,
                                       int startX, int startY, int goalX, int goalY,
                                       boolean usesOccupancy, int pathCells,
                                       int expandedNodes, long memberId,
-                                      int squadId, String action, String routeReason) {
+                                      int squadId, String action, String routeReason,
+                                      int goalOccupancy, String fallbackReason) {
         int index = 0;
         while (index < slowPathSearchCount
                 && slowPathSearches[index].nanos >= durationNanos) index++;
@@ -511,7 +539,8 @@ public final class TickInnerProfile {
         slowPathSearches[index] = slot;
         slot.set(durationNanos, startX, startY, goalX, goalY,
                 usesOccupancy, pathCells, expandedNodes,
-                memberId, squadId, action, routeReason);
+                memberId, squadId, action, routeReason,
+                goalOccupancy, fallbackReason);
         if (slowPathSearchCount < SLOW_PATH_SEARCH_LIMIT) slowPathSearchCount++;
     }
 
@@ -569,7 +598,8 @@ public final class TickInnerProfile {
             retainSlowPathSearch(sample.nanos, sample.startX, sample.startY,
                     sample.goalX, sample.goalY, sample.usesOccupancy,
                     sample.pathCells, sample.expandedNodes, sample.memberId,
-                    sample.squadId, sample.action, sample.routeReason);
+                    sample.squadId, sample.action, sample.routeReason,
+                    sample.goalOccupancy, sample.fallbackReason);
         }
         for (Map.Entry<String, long[]> entry : other.actions.entrySet()) {
             long[] sample = actions.get(entry.getKey());

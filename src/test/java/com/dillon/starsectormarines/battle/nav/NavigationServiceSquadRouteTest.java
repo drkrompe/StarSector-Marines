@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.nav;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -13,6 +14,60 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NavigationServiceSquadRouteTest {
+
+    @Test
+    void fallbackSamplesExplainMissesWithoutDoubleCountingPathfind() {
+        NavigationGrid grid = openGrid(8, 3);
+        try (NavigationService navigation = new NavigationService(grid,
+                new CellTopology(8, 3))) {
+            TickInnerProfile profile = new TickInnerProfile();
+            TickInnerProfile.setCurrent(profile);
+            Object token = new Object();
+            navigation.getOccupancyMap()[grid.index(6, 1)] = (byte) 255;
+            assertFallback(navigation, profile, token, 1, 1, "MISSING_FIELD");
+
+            navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7,
+                    1L, token, 6, 1, new int[]{grid.index(5, 1)}, null)));
+            assertFallback(navigation, profile, new Object(), 1, 1, "INTENT_MISMATCH");
+            assertFallback(navigation, profile, token, 0, 1, "UNCOVERED_START");
+
+            profile.reset();
+            navigation.findSquadPathToGoal(7, 1L, token, 5, 1, 6, 1, null);
+            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
+            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_EXTRACT));
+            assertTrue(profile.slowPathSearches().isEmpty(), "extraction is not an A* search");
+
+            grid.setWalkable(6, 1, false);
+            navigation.rebuildDerivedNavigation();
+            navigation.prepareSquadRoutes(List.of(new SquadRouteRequest(7,
+                    1L, token, 6, 1, new int[]{grid.index(5, 1)}, null)));
+            assertFallback(navigation, profile, token, 1, 1, "BUILD_FAILED");
+            assertEquals(0, profile.pathfindExpandedNodes(),
+                    "an early rejection must not repeat the preceding search's expansions");
+        } finally {
+            TickInnerProfile.releaseCurrentThread();
+        }
+    }
+
+    private static void assertFallback(NavigationService navigation,
+                                       TickInnerProfile profile, Object token,
+                                       int x, int y, String reason) {
+        profile.reset();
+        profile.enterAction(42L, 7, "EnterZone");
+        profile.routeReason("objective");
+        navigation.findSquadPathToGoal(7, 1L, token, x, y, 6, 1, null);
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.PATHFIND));
+        assertEquals(1, profile.countOf(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_FALLBACK));
+        assertEquals(1, profile.slowPathSearches().size());
+        TickInnerProfile.PathSearch search = profile.slowPathSearches().get(0);
+        assertEquals(reason, search.fallbackReason());
+        assertEquals(255, search.goalOccupancy());
+        assertEquals(42L, search.memberId());
+        assertEquals(7, search.squadId());
+        assertEquals("EnterZone", search.action());
+        assertEquals("objective", search.routeReason());
+        assertEquals(search.expandedNodes(), profile.pathfindExpandedNodes());
+    }
 
     @Test
     void greedyRegionsBoundTheFieldAndUnchangedIntentReusesIt() {

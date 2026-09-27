@@ -200,7 +200,7 @@ public final class TickProfileDumper {
             throws JSONException {
         root.put("flatPathfindExpandedNodes", totalExpandedNodes);
         root.put("pathSearchTimingSemantics",
-                "entries and expanded-node total cover public flat GridPathfinder searches only, not nested hierarchical refinements; each entry is ranked by elapsed wall duration, which can include safepoint or thread scheduling waits; PATHFIND bucket nanos sum parallel workers and may overlap phase wall time");
+                "entries and expanded-node total cover public flat GridPathfinder searches and squad-field fallbacks, not nested hierarchical refinements; goalOccupancy is the unsigned destination reservation count (-1 when unknown); each entry is ranked by elapsed wall duration, which can include safepoint or thread scheduling waits; PATHFIND bucket nanos sum parallel workers and may overlap phase wall time");
         JSONArray samples = new JSONArray();
         for (TickInnerProfile.PathSearch search : searches) {
             JSONObject item = new JSONObject();
@@ -218,6 +218,8 @@ public final class TickProfileDumper {
             item.put("squadId", search.squadId());
             item.put("action", search.action());
             item.put("routeReason", search.routeReason());
+            item.put("goalOccupancy", search.goalOccupancy());
+            item.put("fallbackReason", search.fallbackReason());
             samples.put(item);
         }
         root.put("slowFlatPathSearches", samples);
