@@ -329,6 +329,10 @@ Do not run builds or leave generated task files there.
   belief maintenance, awareness, noise detection, incoming fire and final
   publication; candidate and LOS counts describe visited entries and actual
   visibility calls, not cache misses or ray steps.
+  `-Dbattle.perception.filteredSquadAwareness=false` restores broad all-body
+  gathering for squad awareness. The default uses the existing hostile-combatant
+  projection before live range and visibility checks. Candidate counts measure
+  returned entries, not every primitive entry visited inside the spatial index.
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
   terminal crowding toll in flat A*. By default only that additive constant is
   omitted during search; intermediate crowding and terrain costs still rank

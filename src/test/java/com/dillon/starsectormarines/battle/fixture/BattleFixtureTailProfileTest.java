@@ -506,6 +506,8 @@ class BattleFixtureTailProfileTest {
         JSONObject report = new JSONObject();
         report.put("schemaVersion", 19);
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
+        report.put("filteredSquadAwareness", Boolean.parseBoolean(System.getProperty(
+                "battle.perception.filteredSquadAwareness", "true")));
         report.put("replanCpuSemantics", "Opt-in current-host-thread CPU for actual infantry replans and their goal-selection envelopes. Selection CPU accumulates across declined goals; individual goal probes remain wall-only. Actual replan excludes idle eligibility checks. CPU milliseconds are -1 when disabled, unsupported, or incomplete; wall minus CPU is not proof of lock contention. Selection is nested in actual replan and must not be added to it.");
         report.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.squadRouteWorkBudget", "true")));

@@ -19,6 +19,10 @@ Split squad-alert profiling into belief maintenance, awareness, noise,
 incoming-fire and publication stages with aggregate work counts. The previous
 capture attributes 8.35 seconds to that phase but cannot say which work owns it.
 
+The instrumented replay locates 94% of alert time in awareness, with 384 million
+returned candidates. Use the existing hostile-combatant spatial projection at
+that caller, preserving its candidate order, range gates and live checks.
+
 ## Acceptance
 
 - Identical coverage and extracted paths against the existing corridor builder
@@ -28,6 +32,8 @@ capture attributes 8.35 seconds to that phase but cannot say which work owns it.
 - A short shared route does not enumerate distant regions or selected-region
   area merely to reconstruct membership.
 - Unavailable CPU readings remain distinct from zero. No per-goal CPU probes.
+- Filtered awareness matches broad-gather observations and alert transitions
+  for allies, civilians, same-faction crowds and vision/kill-zone boundaries.
 - Focused tests and a production-paced tail capture report route progress,
   wait ages, work limits and wall/CPU attribution without claiming replay
   identity or treating wall-clock changes alone as causal evidence.
