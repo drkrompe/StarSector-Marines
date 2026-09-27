@@ -542,7 +542,9 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 22);
+        report.put("schemaVersion", 23);
+        report.put("localGrenadeAvoidance", Boolean.parseBoolean(System.getProperty(
+                "battle.infantry.localGrenadeAvoidance", "true")));
         report.put("compactPublicTopology", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.compactPublicTopology", "true")));
         report.put("commandTopologyCpu", Boolean.getBoolean("battle.profile.commandTopologyCpu"));

@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.Random;
 
@@ -113,9 +114,21 @@ public final class GuardPostPatrol implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        String previousReason = profile == null ? null : profile.routeReason();
+        try {
+            return executeWithRouteAttribution(member, squad, sim, profile);
+        } finally {
+            if (profile != null) profile.routeReason(previousReason);
+        }
+    }
+
+    private ActionStatus executeWithRouteAttribution(long member, Squad squad, BattleControl sim,
+                                                     TickInnerProfile profile) {
         // Retreating to a new post — every member walks home regardless of alert.
         // updateSquadFallback drops the flag once everyone arrives.
         if (squad.fallbackInProgress) {
+            if (profile != null) profile.routeReason("guardpost-fallback-home");
             boolean hasHome = sim.home().hasHome(member);
             int homeX = hasHome ? sim.home().homeCellX(member) : sim.world().cellX(member);
             int homeY = hasHome ? sim.home().homeCellY(member) : sim.world().cellY(member);
@@ -123,23 +136,30 @@ public final class GuardPostPatrol implements Action {
         }
 
         if (squad.contactPicture.doctrine() == Doctrine.DISENGAGE) {
+            if (profile != null) profile.routeReason("guardpost-disengage");
             return BreakContact.INSTANCE.execute(member, squad, sim);
         }
 
+        if (profile != null) profile.routeReason("guardpost-target-acquisition");
         long target = sim.targetOf(member);
         if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
             target = sim.getTacticalScoring().findBestTarget(member);
             sim.world().setTargetId(member, target);
         }
         if (target != 0L) {
+            // Covers the firing-position picker and any reachability probes,
+            // not merely the final walk after a position was selected.
+            if (profile != null) profile.routeReason("guardpost-engage-position");
             return engage(member, target, squad, sim);
         }
 
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
                 && squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
+            if (profile != null) profile.routeReason("guardpost-investigate");
             return investigateClamped(member, sim, squad);
         }
 
+        if (profile != null) profile.routeReason("guardpost-quiet-waypoint");
         return PatrolMotion.advance(member, squad, sim, waypointSource, /*fireWhilePatrolling*/ true);
     }
 
