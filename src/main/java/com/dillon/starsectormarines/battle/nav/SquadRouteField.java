@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.nav;
 
 import java.util.Arrays;
 
-/** Immutable, partially settled reverse route for one squad's navigation corridor. */
+/** Immutable successor routes, from a settled corridor or a single exact seed. */
 final class SquadRouteField {
     private final int width;
     private final int height;
@@ -19,6 +19,39 @@ final class SquadRouteField {
         this.corridorCellCount = corridorCellCount;
         this.cells = cells;
         this.next = next;
+    }
+
+    /**
+     * Retains a proven, loop-free cell path without solving a reverse field.
+     * Only cells on that path are covered. The caller owns terrain validation;
+     * this method copies the path so neither it nor extraction can mutate storage.
+     */
+    static SquadRouteField fromSeed(int width, int height, int[] path) {
+        if (width <= 0 || height <= 0 || path.length == 0 || (path.length & 1) != 0) {
+            throw new IllegalArgumentException("Expected dimensions and a nonempty cell path");
+        }
+        int count = path.length / 2;
+        int[] cells = new int[count];
+        for (int i = 0; i < count; i++) {
+            int x = path[i * 2];
+            int y = path[i * 2 + 1];
+            if (x < 0 || x >= width || y < 0 || y >= height) {
+                throw new IllegalArgumentException("Seed cell outside grid");
+            }
+            cells[i] = y * width + x;
+        }
+        int goal = cells[count - 1];
+        Arrays.sort(cells);
+        for (int i = 1; i < count; i++) {
+            if (cells[i] == cells[i - 1]) throw new IllegalArgumentException("Seed contains a cycle");
+        }
+        int[] successors = new int[count];
+        for (int i = 0; i < count; i++) {
+            int cell = path[i * 2 + 1] * width + path[i * 2];
+            successors[Arrays.binarySearch(cells, cell)] = i + 1 == count ? goal
+                    : path[i * 2 + 3] * width + path[i * 2 + 2];
+        }
+        return new SquadRouteField(width, height, goal, count, cells, successors);
     }
 
     int corridorCellCount() { return corridorCellCount; }

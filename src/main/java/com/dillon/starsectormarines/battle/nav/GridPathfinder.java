@@ -684,7 +684,13 @@ public final class GridPathfinder {
         } finally {
             TickInnerProfile profile = TickInnerProfile.current();
             if (profile != null) {
-                profile.recordPathSearch(System.nanoTime() - started,
+                long elapsed = System.nanoTime() - started;
+                if ("UNCOVERED_START".equals(fallbackReason)) {
+                    profile.record(TickInnerProfile.Bucket.SQUAD_ROUTE_UNCOVERED_FALLBACK, elapsed);
+                    profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_UNCOVERED_EXPANDED,
+                            workspace.expandedNodes);
+                }
+                profile.recordPathSearch(elapsed,
                         startX, startY, goalX, goalY, occupancy != null,
                         result.length / 2, workspace.expandedNodes,
                         goalOccupancy(grid, goalX, goalY, occupancy), fallbackReason);

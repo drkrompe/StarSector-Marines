@@ -52,6 +52,8 @@ public final class NavigationService implements AutoCloseable {
     /** Same-build control for bounded reuse across soft casualty-cost publications. */
     public static final String RETAIN_SQUAD_ROUTE_COSTS_PROPERTY =
             "battle.pathfinding.retainSquadRouteCosts";
+    public static final String RETAIN_SINGLETON_SEEDS_PROPERTY =
+            "battle.pathfinding.retainSingletonSeeds";
 
     private final NavigationGrid grid;
     private final CellTopology topology;
@@ -414,9 +416,10 @@ public final class NavigationService implements AutoCloseable {
     /**
      * Builds or retains one immutable local reverse field per requested squad
      * route. This method is serial-only and must run before UPDATE_UNITS. The
-     * route seed is an exact, cost-aware cell path; its greedy-mesh regions
-     * plus one neighboring region ring form the corridor. Compact fields are
-     * then published as one immutable map for worker reads.
+     * route seed is an exact, cost-aware cell path. Singleton demand retains
+     * that path directly; for shared demand its greedy-mesh regions plus one
+     * neighboring ring form a reverse-search corridor. Compact fields are
+     * published as one immutable map for worker reads.
      */
     public void prepareSquadRoutes(List<SquadRouteRequest> requests) {
         prepareSquadRoutes(requests, squadRoutePreparationTick + 1);
@@ -611,6 +614,30 @@ public final class NavigationService implements AutoCloseable {
         int goal = grid.index(request.goalX(), request.goalY());
         int goalRegion = mesh.regionIdAt(request.goalX(), request.goalY());
         if (goalRegion < 0) return null;
+        if (starts.length == 1 && Boolean.parseBoolean(System.getProperty(
+                RETAIN_SINGLETON_SEEDS_PROPERTY, "true"))) {
+            int start = starts[0];
+            if (start < 0 || start >= grid.getWidth() * grid.getHeight()) return null;
+            int startX = start % grid.getWidth();
+            int startY = start / grid.getWidth();
+            squadRouteBuildWork.maxStartGoalManhattan = Math.abs(startX - request.goalX())
+                    + Math.abs(startY - request.goalY());
+            int[] seed = GridPathfinder.findSquadRouteSeed(grid, startX, startY,
+                    request.goalX(), request.goalY(), GridPathfinder.USE_CARDINAL_NAVIGATION,
+                    request.cost());
+            squadRouteBuildWork.seedSearches = 1;
+            squadRouteBuildWork.seedExpanded = GridPathfinder.squadSeedExpandedNodes();
+            squadRouteBuildWork.seedPathCells = Paths.cellCount(seed);
+            if (profile != null) profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_SEED,
+                    System.nanoTime() - stageStart);
+            if (Paths.isEmpty(seed)) return null;
+            stageStart = profile == null ? 0L : System.nanoTime();
+            SquadRouteField field = SquadRouteField.fromSeed(grid.getWidth(), grid.getHeight(), seed);
+            if (profile != null) profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_DIRECT,
+                    System.nanoTime() - stageStart);
+            return new PreparedSquadRoute(request.routingEpoch(), request.routeToken(), goal,
+                    mesh.revision(), request.cost(), field, squadRoutePreparationTick);
+        }
         boolean[] routeRegions = new boolean[mesh.regions().size()];
         boolean[] selectedRegions = new boolean[mesh.regions().size()];
         RouteCostField costs = request.cost();

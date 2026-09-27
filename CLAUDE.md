@@ -287,6 +287,13 @@ Do not run builds or leave generated task files there.
   and unpadded/padded/settled areas. `NEW` means no prior entry, including after
   a topology flush; `COST` also includes age refresh. Seed counts are separate
   from flat member A* counts. These diagnostics do not impose an expansion cap.
+  `-Dbattle.pathfinding.retainSingletonSeeds=false` restores corridor/reverse
+  construction for one-member requests. The default retains the exact seed
+  directly, with only its cells covered. `SQUAD_PATH_FIELD_DIRECT` measures
+  conversion/storage; corridor/settled cell counts then describe stored seed
+  coverage, not reverse expansions. `SQUAD_ROUTE_UNCOVERED_FALLBACK/EXPANDED`
+  measures off-field fallback work for both singleton and shared fields, so
+  narrower coverage cannot hide searches displaced into member execution.
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
   terminal crowding toll in flat A*. By default only that additive constant is
   omitted during search; intermediate crowding and terrain costs still rank
