@@ -43,6 +43,7 @@ final class InfluenceTopology {
         neighbors = buildCrossBlockEdges(grid);
     }
 
+    int blockSize() { return blockSize; }
     int blockWidth() { return blockWidth; }
     int blockHeight() { return blockHeight; }
     int blockCount() { return blockWidth * blockHeight; }

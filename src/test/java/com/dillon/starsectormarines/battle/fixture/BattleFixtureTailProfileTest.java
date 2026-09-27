@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
+import com.dillon.starsectormarines.battle.command.influence.InfluenceResolutionEvidence;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.infantry.ReinforceContact;
@@ -134,6 +135,8 @@ class BattleFixtureTailProfileTest {
         Map<String, long[]> actionTotals = new HashMap<>();
         long[] convoyWorkTotals = new long[4];
         long[] convoyAdmissionMaxima = new long[6];
+        JSONArray commandTopologyRebuilds = new JSONArray();
+        JSONObject influenceResolution = null;
         TailSquadRouteAdmission.Totals admissionTotals =
                 new TailSquadRouteAdmission.Totals(warmupTicks + 1);
         TailSquadRouteWork routeWorkTotals = new TailSquadRouteWork(warmupTicks + 1,
@@ -284,6 +287,19 @@ class BattleFixtureTailProfileTest {
                     maximumUnits = Math.max(maximumUnits, units);
                     minimumUnits = Math.min(minimumUnits, units);
                     TickInnerProfile inner = sim.getTickInnerProfile();
+                    if (inner.countOf(TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_REBUILD) > 0) {
+                        JSONObject rebuild = new JSONObject().put("tick", sim.simTickIndex)
+                                .put("postTickGridRevision", sim.getNavigationGridRevision())
+                                .put("postTickDerivedRevision", sim.getNavigationTopologyRevision());
+                        for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
+                            if (bucket.name().startsWith("COMMANDER_TOPOLOGY_")) {
+                                rebuild.put(bucket.name(), new JSONObject()
+                                        .put("count", inner.countOf(bucket))
+                                        .put("ms", millis(inner.nanosOf(bucket))));
+                            }
+                        }
+                        commandTopologyRebuilds.put(rebuild);
+                    }
                     convoyAdmissionMaxima[0] = Math.max(convoyAdmissionMaxima[0],
                             inner.countOf(TickInnerProfile.Bucket.CONVOY_PROGRESSIVE_SNAPSHOT));
                     convoyAdmissionMaxima[1] = Math.max(convoyAdmissionMaxima[1],
@@ -394,6 +410,9 @@ class BattleFixtureTailProfileTest {
                 recording.stop();
                 recording.dump(jfrPath);
             }
+            if (Boolean.getBoolean("battle.tail.influenceResolution")) {
+                influenceResolution = InfluenceResolutionEvidence.capture(sim);
+            }
             if (Boolean.getBoolean("battle.tail.convoyUncachedStages")) {
                 int radius = VehicleClearance.radiusForWidth(
                         VehicleType.HEAVY_APC.visualWidthCells);
@@ -432,6 +451,9 @@ class BattleFixtureTailProfileTest {
                 minimumUnits, maximumUnits, firstRoutes,
                 finalRoutes, jfrPath, convoyUncachedStages);
         assertNotNull(firstInfluence);
+        report.put("commandTopologyRebuilds", commandTopologyRebuilds);
+        report.put("commandTopologyStageSemantics", "Every measured-tick topology rebuild, excluding warmup. GRID_COPY, ZONE_COPY, CELL_COMPONENTS, ZONE_COMPONENTS and PUBLICATION are disjoint wall stages nested within REBUILD and LOOKUP. CPU overlaps these stages and is current-host-thread time, not wall time; count zero means disabled/unavailable, not zero CPU. MAP_CELLS is input area, ZONE_CELLS counts zone membership entries, ZONES counts copied zones. Revisions are observed after the tick, not captured at query time.");
+        if (influenceResolution != null) report.put("influenceResolution", influenceResolution);
         report.put("squadRouteAdmission", admissionTotals.json());
         report.put("squadRouteWorkTotals", routeWorkTotals.json());
         report.put("unitWorkerCpuTotalMs", millis(totalUnitWorkerCpuNanos));
@@ -520,7 +542,8 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 21);
+        report.put("schemaVersion", 22);
+        report.put("commandTopologyCpu", Boolean.getBoolean("battle.profile.commandTopologyCpu"));
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
         report.put("filteredSquadAwareness", Boolean.parseBoolean(System.getProperty(
                 "battle.perception.filteredSquadAwareness", "true")));

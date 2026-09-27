@@ -173,6 +173,18 @@ public final class TickInnerProfile {
         COMMANDER_SYNC,
         COMMANDER_TOPOLOGY_LOOKUP,
         COMMANDER_TOPOLOGY_REBUILD,
+        /** Disjoint freeze stages nested within COMMANDER_TOPOLOGY_REBUILD. */
+        COMMANDER_TOPOLOGY_GRID_COPY,
+        COMMANDER_TOPOLOGY_ZONE_COPY,
+        COMMANDER_TOPOLOGY_CELL_COMPONENTS,
+        COMMANDER_TOPOLOGY_ZONE_COMPONENTS,
+        COMMANDER_TOPOLOGY_PUBLICATION,
+        /** Opt-in current-thread CPU, overlapping all freeze wall stages. */
+        COMMANDER_TOPOLOGY_CPU,
+        /** Count-only input map area, copied zone-cell entries and zones. */
+        COMMANDER_TOPOLOGY_MAP_CELLS,
+        COMMANDER_TOPOLOGY_ZONE_CELLS,
+        COMMANDER_TOPOLOGY_ZONES,
         COMMANDER_FRAME,
         COMMANDER_PLAN,
         COMMANDER_COMMIT,

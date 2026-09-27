@@ -411,6 +411,23 @@ Do not run builds or leave generated task files there.
   synchronized route requests. The default publishes member-owned intents after
   join; `RALLY_REQUEST_PREPARE/COMMIT` separates host work from worker dispatch,
   and route poll/cancel/no-op counters quantify the former contention surface.
+  Commander topology snapshots report disjoint `COMMANDER_TOPOLOGY_GRID_COPY`,
+  `ZONE_COPY`, `CELL_COMPONENTS`, `ZONE_COMPONENTS`, and `PUBLICATION` wall stages
+  nested under the existing rebuild/lookup timers. `MAP_CELLS`, `ZONE_CELLS`,
+  and `ZONES` are count-only inputs. `-Dbattle.profile.commandTopologyCpu=true`
+  adds current-host-thread CPU for the whole freeze; a zero sample count means
+  disabled or unavailable, not zero CPU. Tail reports retain every measured-tick
+  rebuild, including those outside the worst-tick samples; revision context is
+  observed after the tick.
+  `-Dbattle.tail.influenceResolution=true` adds an opt-in paired 8/16-cell influence
+  experiment after the timed replay and JFR recording. Both resolutions use
+  identical frozen geometry and current faction-local sources, with attenuation
+  scaled by block width relative to the 8-cell reference. It measures graph and
+  field costs and spatial differences, not commander decisions or combat outcome.
+  Precise movement, casualty routing costs, and the production 8-cell resolution
+  remain unchanged. Graph connectivity and block-value aliasing are different:
+  disconnected rooms within one block may share its displayed scalar value
+  without becoming connected in propagation.
   `-Dbattle.projectiles.phaseOwnedPublication=false` restores per-reader copies
   and synchronized projectile appends. The default shares an update-start
   hazard view and collects launch intents before projectile physics; fresh

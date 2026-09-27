@@ -10,11 +10,30 @@ final class InfluenceFieldBuilder {
 
     static final float ATTENUATION = 0.85f;
     static final float MIN_PROPAGATED_VALUE = 0.05f;
-    private static final float[] ATTENUATION_BY_DISTANCE = attenuationByDistance();
+    private static final int BASELINE_BLOCK_SIZE = 8;
+    private static final float[] ATTENUATION_BY_DISTANCE = attenuationByDistance(BASELINE_BLOCK_SIZE);
+    private static final float[] ATTENUATION_BY_DISTANCE_16 = attenuationByDistance(16);
 
     private InfluenceFieldBuilder() {}
 
     static float[] propagate(InfluenceTopology topology, List<InfluenceSource> sources) {
+        return propagate(topology, sources, null);
+    }
+
+    /** Optional caller-owned totals; no recording or synchronization on the ordinary path. */
+    static final class Work {
+        long sourceGroups;
+        /** Dequeued graph components, including visits rejected by the propagation cutoff. */
+        long visitedComponents;
+    }
+
+    static float[] propagate(InfluenceTopology topology, List<InfluenceSource> sources, Work work) {
+        int blockSize = topology.blockSize();
+        // Preserve the default's original float lookup exactly. A larger graph
+        // step covers proportionally more cells, not a longer physical influence
+        // radius. Source placement and intra-block distance remain quantized.
+        float[] attenuation = blockSize == BASELINE_BLOCK_SIZE ? ATTENUATION_BY_DISTANCE
+                : blockSize == 16 ? ATTENUATION_BY_DISTANCE_16 : attenuationByDistance(blockSize);
         float[] result = new float[topology.blockCount()];
         int[] distance = new int[topology.componentCount()];
         int[] visitedGeneration = new int[topology.componentCount()];
@@ -42,6 +61,7 @@ final class InfluenceFieldBuilder {
         }
 
         int generation = 0;
+        if (work != null) work.sourceGroups += groups.size();
         for (Map.Entry<PropagationKey, Integer> entry : groups.entrySet()) {
             if (Thread.currentThread().isInterrupted()) throw new CancellationException();
             PropagationKey key = entry.getKey();
@@ -56,7 +76,7 @@ final class InfluenceFieldBuilder {
             while (head < tail) {
                 int component = queue[head++];
                 int steps = distance[component];
-                float value = splitMagnitude * attenuationAt(steps);
+                float value = splitMagnitude * attenuationAt(steps, blockSize, attenuation);
                 if (value < MIN_PROPAGATED_VALUE) continue;
                 int block = topology.blockForComponent(component);
                 if (sourceBlocks[block] == 0f) touchedBlocks[touchedCount++] = block;
@@ -68,6 +88,7 @@ final class InfluenceFieldBuilder {
                     queue[tail++] = neighbor;
                 }
             }
+            if (work != null) work.visitedComponents += head;
             int emitterCount = entry.getValue();
             for (int i = 0; i < touchedCount; i++) {
                 int block = touchedBlocks[i];
@@ -78,18 +99,21 @@ final class InfluenceFieldBuilder {
         return result;
     }
 
-    private static float[] attenuationByDistance() {
+    private static float[] attenuationByDistance(int blockSize) {
         float[] values = new float[64];
         for (int i = 0; i < values.length; i++) {
-            values[i] = (float) Math.pow(ATTENUATION, i);
+            values[i] = (float) Math.pow(ATTENUATION, baselineDistance(i, blockSize));
         }
         return values;
     }
 
-    private static float attenuationAt(int steps) {
-        return steps < ATTENUATION_BY_DISTANCE.length
-                ? ATTENUATION_BY_DISTANCE[steps]
-                : (float) Math.pow(ATTENUATION, steps);
+    private static float attenuationAt(int steps, int blockSize, float[] attenuation) {
+        return steps < attenuation.length ? attenuation[steps]
+                : (float) Math.pow(ATTENUATION, baselineDistance(steps, blockSize));
+    }
+
+    private static double baselineDistance(int steps, int blockSize) {
+        return (double) steps * blockSize / BASELINE_BLOCK_SIZE;
     }
 
     private record PropagationKey(int component, int magnitudeBits) { }
