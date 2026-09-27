@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.List;
 import java.util.Random;
@@ -58,12 +59,20 @@ public final class PatrolRoute implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
-                && squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
-            PatrolMotion.moveToward(member, sim, squad.lastSeenEnemyX, squad.lastSeenEnemyY);
-            return ActionStatus.RUNNING;
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        String previous = profile == null ? null : profile.routeReason();
+        try {
+            if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS
+                    && squad.lastSeenEnemyX >= 0 && squad.lastSeenEnemyY >= 0) {
+                if (profile != null) profile.routeReason("district-investigate");
+                PatrolMotion.moveToward(member, sim, squad.lastSeenEnemyX, squad.lastSeenEnemyY);
+                return ActionStatus.RUNNING;
+            }
+            if (profile != null) profile.routeReason("district-quiet-waypoint");
+            return PatrolMotion.advance(member, squad, sim, waypointSource, /*fireWhilePatrolling*/ false);
+        } finally {
+            if (profile != null) profile.routeReason(previous);
         }
-        return PatrolMotion.advance(member, squad, sim, waypointSource, /*fireWhilePatrolling*/ false);
     }
 
     /**

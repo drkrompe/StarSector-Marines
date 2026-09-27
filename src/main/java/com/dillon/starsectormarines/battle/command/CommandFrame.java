@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceS
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
@@ -43,8 +44,12 @@ public class CommandFrame {
     public static CommandFrame freeze(BattleView sim, Faction perspective,
                                       CommandTopology topology,
                                       CommandAssignmentSnapshot assignments) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long stageStarted = profile != null ? System.nanoTime() : 0L;
         CommandAssignmentSnapshot ownAssignments =
                 assignments.forPerspective(perspective);
+        record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME_ASSIGNMENTS, stageStarted);
+        stageStarted = profile != null ? System.nanoTime() : 0L;
         List<CommandSquadState> rows = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != perspective) continue;
@@ -119,9 +124,17 @@ public class CommandFrame {
                     memberZoneIds, memberCellXs, memberCellYs));
         }
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));
-        return new CommandFrame(sim.getSimTickIndex(), perspective, rows,
-                sim.getCommanderInfluence(perspective), topology,
-                ownAssignments);
+        record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME_SQUADS, stageStarted);
+        stageStarted = profile != null ? System.nanoTime() : 0L;
+        CommanderInfluenceSnapshot influence = sim.getCommanderInfluence(perspective);
+        record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME_INFLUENCE, stageStarted);
+        return new CommandFrame(sim.getSimTickIndex(), perspective, rows, influence,
+                topology, ownAssignments);
+    }
+
+    private static void record(TickInnerProfile profile, TickInnerProfile.Bucket bucket,
+                               long started) {
+        if (profile != null) profile.record(bucket, System.nanoTime() - started);
     }
 
     public int tick() { return tick; }

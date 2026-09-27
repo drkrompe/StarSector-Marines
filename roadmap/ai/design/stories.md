@@ -9,6 +9,7 @@ firing positions remain opt-in experiments.
 
 | Story | State | Intent |
 |---|---|---|
+| `district-patrol-work-budget.md` | IN PROGRESS | Attribute district patrol branches and bound optional waypoint proofs without weakening investigation. |
 | `squad-traffic.md` | EXPERIMENT | Compare local lateral spreading, terrain compression, and soft yielding without replacing squad goals or routes. |
 | `squad-flank-preparation.md` | DRAFT | Publish one coherent squad flank answer before parallel member execution; retire the legacy worker-written memo. |
 | `squad-firing-positions.md` | EXPERIMENT | Compare bounded shared firing geometry and stable individual reservations against repeated member searches. |

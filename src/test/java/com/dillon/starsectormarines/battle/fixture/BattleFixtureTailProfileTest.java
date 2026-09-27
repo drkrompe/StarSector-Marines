@@ -551,7 +551,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 25);
+        report.put("schemaVersion", 26);
         report.put("mechReachabilityComponents", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.mechReachabilityComponents", "true")));
         report.put("boundGuardPatrol", Boolean.parseBoolean(System.getProperty(

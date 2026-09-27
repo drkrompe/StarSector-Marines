@@ -14,6 +14,7 @@ implementation story.
 
 | Story | State | Intent |
 |---|---|---|
+| `command-frame-costs.md` | IN PROGRESS | Attribute command-frame freeze and remove redundant work without weakening perspective isolation. |
 | `autonomous-mission-command-foundation.md` | IN PROGRESS | Close assignment-writer ownership and live acceptance around the shared frame/plan/commit contract. |
 | `commander-trace-and-balance-harness.md` | IN PROGRESS | Replace construction-only Conquest evidence with launch-faithful fixtures and later compare bounded intervention. |
 | `player-command-interventions.md` | PLANNED | Tactical squad orders lease through the arbiter and hand back (shipped 2026-09-01). Add the strategic priority/rally/reserve/fallback vocabulary, refuse a lease over a higher authority, and bound pacing. |

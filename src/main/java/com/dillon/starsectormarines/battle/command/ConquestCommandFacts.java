@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
 import java.util.ArrayList;
@@ -36,6 +37,17 @@ public final class ConquestCommandFacts {
 
     /** Sole live objective-state projection used by migrated Conquest strategies. */
     static ConquestCommandFacts freeze(BattleView sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile != null ? System.nanoTime() : 0L;
+        try {
+            return freezeFacts(sim);
+        } finally {
+            if (profile != null) profile.record(TickInnerProfile.Bucket.COMMANDER_FRAME_FACTS,
+                    System.nanoTime() - started);
+        }
+    }
+
+    private static ConquestCommandFacts freezeFacts(BattleView sim) {
         List<Compound> facts = new ArrayList<>();
         for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
             TacticalNode node = CommandFrameCopies.node(record.node);
