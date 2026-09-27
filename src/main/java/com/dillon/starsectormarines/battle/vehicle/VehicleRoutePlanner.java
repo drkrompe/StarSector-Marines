@@ -45,7 +45,7 @@ import java.util.Set;
 public final class VehicleRoutePlanner {
 
     /** Alternate macro corridors tried after a statically valid bend fails minimum-radius refinement — the default {@link RouteSearchBudget} for one endpoint pair, where the caller does not bring its own. */
-    private static final int MAX_KINEMATIC_ROUTE_ATTEMPTS = 8;
+    static final int MAX_KINEMATIC_ROUTE_ATTEMPTS = 8;
     /** Disc placed on a failed bend before the next cost-field search. */
     static final float FAILED_TURN_AVOID_RADIUS = 2f;
 
@@ -253,7 +253,7 @@ public final class VehicleRoutePlanner {
         return new float[][]{xs, ys};
     }
 
-    private static void addDisc(Set<Integer> blocked, int w, int h,
+    static void addDisc(Set<Integer> blocked, int w, int h,
                                 int centerX, int centerY, float radius) {
         int r = (int) Math.ceil(radius);
         float radiusSq = radius * radius;

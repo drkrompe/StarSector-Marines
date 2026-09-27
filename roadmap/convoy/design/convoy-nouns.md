@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — proof admission bounds snapshot preparation as well as search work.
+Updated: 2026-09-27 — fresh recovery proofs retain progress under per-vehicle tick allowances.
 
 ## Purpose and boundary
 
@@ -280,6 +280,16 @@ inputs remain unchanged, avoiding repeated identical proofs. A different
 request, exclusion set, routing snapshot, or control intent requires a fresh
 answer. This reuse neither suppresses ordinary physical tracking nor grants
 permission to cross terrain; it only replaces an identical failed computation.
+
+Fresh recovery against frozen on-demand routing inputs likewise retains its
+departure candidates, failed-turn exclusions and active frontier across ticks.
+A per-vehicle expansion allowance and admission of at most one fresh search
+per tick spread the proof without restarting it or changing its bearing
+preference. Pending is neither a route nor a failed result to memoize. Safe
+tracking and braking remain authoritative while it waits; changed route,
+terrain, exclusions, control or starting context retires obsolete work before
+installation. This is not a shared fleet budget or a hard wall-time bound:
+search storage and final kinematic refinement still cost work of their own.
 
 An actual convoy proof retains a frozen routing view: raw navigation and ground
 kinds are copied once, while footprint clearance and terrain cost are evaluated

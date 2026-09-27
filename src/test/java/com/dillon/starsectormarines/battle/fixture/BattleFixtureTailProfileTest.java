@@ -120,6 +120,7 @@ class BattleFixtureTailProfileTest {
         int topLimit = Integer.getInteger("battle.tail.topTicks", DEFAULT_TOP_TICKS);
         int paceMillis = Integer.getInteger("battle.tail.paceMillis", 33);
         boolean jfrEnabled = Boolean.getBoolean("battle.tail.jfr");
+        TailMechSupport mechSupport = TailMechSupport.configured(warmupTicks);
         assertTrue(totalTicks > warmupTicks && warmupTicks >= 0);
         assertTrue(topLimit > 0 && paceMillis >= 0);
         assertEquals("true", System.getProperty(
@@ -179,6 +180,7 @@ class BattleFixtureTailProfileTest {
         try (BattleSimulation sim = fixture.build();
              Recording recording = jfrEnabled
                      ? new Recording(Configuration.getConfiguration("profile")) : null) {
+            mechSupport.initialize(sim);
             if (recording != null) {
                 recording.setName("conquest-tail-measured-ticks");
                 recording.enable("jdk.ExecutionSample")
@@ -198,6 +200,8 @@ class BattleFixtureTailProfileTest {
                     recording.enable(UnitUpdateSystem.UnitCallbackEvent.class);
                     recording.enable("jdk.ExecutionSample").withPeriod(Duration.ofMillis(1));
                     recording.enable("jdk.JavaMonitorEnter").withThreshold(Duration.ZERO);
+                    recording.enable("jdk.ClassLoad").withThreshold(Duration.ZERO);
+                    recording.enable("jdk.Compilation").withThreshold(Duration.ZERO);
                 }
                 recording.enable(TailTickEvent.class);
             }
@@ -225,6 +229,7 @@ class BattleFixtureTailProfileTest {
                 }
                 if (recording != null && attempt == recordingStart) recording.start();
                 assertFalse(sim.isComplete(), "fixture ended before tick " + (attempt + 1));
+                mechSupport.beforeTick(sim, sim.simTickIndex + 1);
                 int beforeTick = sim.simTickIndex;
                 long gridChangeBefore = sim.getGrid().changeCount();
                 GreedyNavigationMesh mesh = sim.getNavigationMesh();
@@ -250,6 +255,7 @@ class BattleFixtureTailProfileTest {
                 GcCounters gcAfter = gcCounters(garbageCollectors);
                 assertEquals(beforeTick + 1, sim.simTickIndex,
                         "one advance must execute exactly one fixed tick");
+                mechSupport.afterTick(sim, sim.simTickIndex);
                 AsyncDefendTrackRoutes.Metrics routesAfter =
                         sim.asyncDefendTrackRoutes().metrics();
                 boolean meshRefreshed = mesh.snapshot().revision()
@@ -451,6 +457,7 @@ class BattleFixtureTailProfileTest {
                 minimumUnits, maximumUnits, firstRoutes,
                 finalRoutes, jfrPath, convoyUncachedStages);
         assertNotNull(firstInfluence);
+        report.put("mechSupport", mechSupport.json());
         report.put("commandTopologyRebuilds", commandTopologyRebuilds);
         report.put("commandTopologyStageSemantics", "Every measured-tick topology rebuild, excluding warmup. GRID_COPY, ZONE_COPY, CELL_COMPONENTS, ZONE_COMPONENTS and PUBLICATION are disjoint wall stages nested within REBUILD and LOOKUP. CPU overlaps these stages and is current-host-thread time, not wall time; count zero means disabled/unavailable, not zero CPU. MAP_CELLS is input area, ZONE_CELLS counts zone membership entries, ZONES counts copied zones. Revisions are observed after the tick, not captured at query time.");
         if (influenceResolution != null) report.put("influenceResolution", influenceResolution);
@@ -503,6 +510,8 @@ class BattleFixtureTailProfileTest {
                 durations.length, report.getDouble("maxMs"),
                 report.getDouble("p99Ms"), report.getInt("overBudgetTicks"),
                 commanderPulses, destination.toAbsolutePath());
+        assertTrue(mechSupport.insufficientCoverage().isEmpty(),
+                mechSupport.insufficientCoverage() + "; evidence retained in " + destination);
     }
 
     private static JSONObject report(String fixturePath, byte[] fixtureBytes,
@@ -542,7 +551,13 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 23);
+        report.put("schemaVersion", 24);
+        report.put("boundGuardPatrol", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.boundGuardPatrol", "true")));
+        report.put("progressiveVehicleRecovery", Boolean.parseBoolean(System.getProperty(
+                "battle.vehicle.progressiveRecovery", "true")));
+        report.put("vehicleRecoveryExpansionsPerTick", Math.max(1,
+                Integer.getInteger("battle.vehicle.recoveryExpansionsPerTick", 2048)));
         report.put("localGrenadeAvoidance", Boolean.parseBoolean(System.getProperty(
                 "battle.infantry.localGrenadeAvoidance", "true")));
         report.put("compactPublicTopology", Boolean.parseBoolean(System.getProperty(

@@ -49,10 +49,21 @@ public final class VehicleControlSystem {
 
     private final ConvoyService convoy;
     private final NavigationService navigation;
+    private final boolean progressiveRecovery;
+    private final int recoveryExpansionsPerTick;
 
     public VehicleControlSystem(ConvoyService convoy, NavigationService navigation) {
+        this(convoy, navigation, Boolean.parseBoolean(System.getProperty(
+                "battle.vehicle.progressiveRecovery", "true")),
+                Math.max(1, Integer.getInteger("battle.vehicle.recoveryExpansionsPerTick", 2048)));
+    }
+
+    VehicleControlSystem(ConvoyService convoy, NavigationService navigation,
+                         boolean progressiveRecovery, int recoveryExpansionsPerTick) {
         this.convoy = convoy;
         this.navigation = navigation;
+        this.progressiveRecovery = progressiveRecovery;
+        this.recoveryExpansionsPerTick = Math.max(1, recoveryExpansionsPerTick);
     }
 
     /**
@@ -94,6 +105,7 @@ public final class VehicleControlSystem {
     /** Manual wheel/throttle input shares bicycle integration and the live whole-body sweep. */
     public void tickManual(long id, float dt, float throttle, float steering) {
         convoy.control(id).failedRecovery = null;
+        cancelPending(convoy.control(id));
         GroundBody body = convoy.body(id);
         if (!(body instanceof BicycleBody bicycle)) throw new IllegalStateException("Manual vehicle drive requires a bicycle chassis");
         VehicleType type = convoy.vehicleType(id);
@@ -133,6 +145,7 @@ public final class VehicleControlSystem {
 
     static void resetTracking(VehicleControlComponent s, boolean clearRescueFirstSteps) {
         s.failedRecovery = null;
+        cancelPending(s);
         s.arrived = false;
         s.trajectory = null;
         s.trajProgress = 0f;
@@ -179,9 +192,17 @@ public final class VehicleControlSystem {
         // clock is paused while a committed maneuver is in progress (a reverse
         // moves away from the goal, which must not itself read as "stalled").
         if (s.recovery == VehicleControlComponent.Recovery.REVERSING) {
+            cancelPending(s);
             advanceReverse(body, type, s, dt);
             return;
         }
+
+        // A proof already admitted resumes every tick, not every stall retry.
+        // Safe ordinary tracking may continue while it is pending. Changing its
+        // start cell, bearing preference, terrain or ownership cancels it.
+        boolean recoveryWorked = s.pendingRecovery != null;
+        if (s.dockingPath != null) cancelPending(s);
+        else if (recoveryWorked && resumeRecovery(mission, body, type, s)) return;
 
         // --- Non-convergence detection (runs every forward tick, so it catches
         // an open-space orbit as well as wall contact). Progress = corridor
@@ -196,8 +217,10 @@ public final class VehicleControlSystem {
             s.rescueFirstStepTriedMask = 0;
         } else {
             s.timeSinceProgress += dt;
-            if (s.timeSinceProgress > VehicleController.STALL_SECONDS) {
+            if (!recoveryWorked && s.pendingRecovery == null
+                    && s.timeSinceProgress > VehicleController.STALL_SECONDS) {
                 boolean rerouted = attemptReroute(mission, body, type, s);
+                recoveryWorked = true;
                 s.timeSinceProgress = 0f; // rate-limit retries whether or not it took
                 if (rerouted) return;   // next tick drives the fresh corridor cleanly
             }
@@ -233,6 +256,7 @@ public final class VehicleControlSystem {
                     return;
                 }
             }
+            cancelPending(s);
             s.arrived = true;
             return;
         }
@@ -262,6 +286,7 @@ public final class VehicleControlSystem {
                     here, s.corridor, type)) {
                 s.localPlanFailureTime = 0f;
                 body.speed = 0f;
+                cancelPending(s);
                 s.arrived = true;
                 return;
             }
@@ -279,7 +304,7 @@ public final class VehicleControlSystem {
             }
             s.localPlanFailureTime += dt;
             body.speed = 0f;
-            if (!s.localPlanFailureRerouteAttempted
+            if (!recoveryWorked && s.pendingRecovery == null && !s.localPlanFailureRerouteAttempted
                     && s.localPlanFailureTime >= VehicleController.LOCAL_PLAN_FAILURE_REROUTE_SEC) {
                 s.localPlanFailureRerouteAttempted = true;
                 attemptReroute(mission, body, type, s);
@@ -453,6 +478,7 @@ public final class VehicleControlSystem {
                 type, navigation.getGrid());
         s.recoveryAttempts++;
         if (achievable < VehicleController.MIN_USEFUL_REVERSE_CELLS) return false; // boxed in — can't gain room
+        cancelPending(s);
         s.reverseRemaining = achievable;
         s.recovery = VehicleControlComponent.Recovery.REVERSING;
         s.trajectory = null; // the forward plan is stale; replan after backing up
@@ -552,6 +578,20 @@ public final class VehicleControlSystem {
         int avoidX = (int) Math.floor(ahead.x);
         int avoidY = (int) Math.floor(ahead.y);
         rememberFailedArea(s, avoidX, avoidY);
+        if (fields != null && progressiveRecovery) {
+            if (REUSE_FAILED_RECOVERY && FailedVehicleRecovery.cacheable(body.facingDegrees,
+                    VehicleController.REROUTE_AVOID_RADIUS) && s.failedRecovery != null
+                    && s.failedRecovery.matches(s, fields, type, cur[0], cur[1], goal[0], goal[1],
+                    body.facingDegrees, VehicleController.REROUTE_AVOID_RADIUS)) {
+                VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_FAILED_REUSE, 1);
+                return false;
+            }
+            s.failedRecovery = null;
+            s.pendingRecovery = new ProgressiveVehicleRecovery(s, mission, body, type,
+                    navigation.getGrid(), fields, cur[0], cur[1], goal[0], goal[1],
+                    VehicleController.REROUTE_AVOID_RADIUS);
+            return advanceRecovery(mission, body, s);
+        }
         VehicleRoutePlanner.RescueRoute rescue = fields != null
                 ? frozenRescue(s, fields, type, cur[0], cur[1], goal[0], goal[1],
                 body.facingDegrees, VehicleController.REROUTE_AVOID_RADIUS, REUSE_FAILED_RECOVERY)
@@ -561,6 +601,13 @@ public final class VehicleControlSystem {
                 s.rerouteAvoidX, s.rerouteAvoidY, s.rerouteAvoidCount,
                 VehicleController.REROUTE_AVOID_RADIUS, type);
         if (rescue == null) return false; // boxed in or every first step already exhausted — hold (rung 4)
+        return installRescue(mission, body, s, rescue, goalIdx);
+    }
+
+    private boolean installRescue(VehicleMission mission, GroundBody body, VehicleControlComponent s,
+                                  VehicleRoutePlanner.RescueRoute rescue, int goalIdx) {
+        float[] xs = s.routeXs;
+        float[] ys = s.routeYs;
         s.rescueFirstStepTriedMask |= 1 << rescue.firstStepDirectionBit();
         float[][] re = rescue.points();
 
@@ -584,12 +631,50 @@ public final class VehicleControlSystem {
         return true;
     }
 
+    private boolean resumeRecovery(VehicleMission mission, GroundBody body, VehicleType type,
+                                   VehicleControlComponent s) {
+        if (!s.pendingRecovery.matches(s, mission, body, type, navigation.getGrid())) {
+            cancelPending(s);
+            return false;
+        }
+        long started = VehicleWorkProfile.start();
+        try {
+            return advanceRecovery(mission, body, s);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_RECOVERY_SEARCH, started);
+        }
+    }
+
+    private boolean advanceRecovery(VehicleMission mission, GroundBody body, VehicleControlComponent s) {
+        ProgressiveVehicleRecovery job = s.pendingRecovery;
+        job.advance(recoveryExpansionsPerTick);
+        if (!job.complete()) {
+            VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_PENDING, 1);
+            return false;
+        }
+        s.pendingRecovery = null;
+        VehicleRoutePlanner.RescueRoute rescue = job.route();
+        if (rescue == null) {
+            VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_FAILED_RESULT, 1);
+            if (REUSE_FAILED_RECOVERY && FailedVehicleRecovery.cacheable(body.facingDegrees,
+                    VehicleController.REROUTE_AVOID_RADIUS)) s.failedRecovery = job.failedKey();
+            return false;
+        }
+        return installRescue(mission, body, s, rescue, job.goalIndex(s.routeXs, s.routeYs));
+    }
+
+    private static void cancelPending(VehicleControlComponent s) {
+        if (s.pendingRecovery == null) return;
+        s.pendingRecovery = null;
+        VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_CANCEL, 1);
+    }
+
     /** Only committed frozen route fields qualify; the eager/live-grid branch must always retry. */
     static VehicleRoutePlanner.RescueRoute frozenRescue(
             VehicleControlComponent s, ProgressiveVehicleField fields, VehicleType type,
             int startX, int startY, int goalX, int goalY, float facing, float radius,
             boolean reuseFailed) {
-        boolean cacheable = reuseFailed && Float.isFinite(facing) && Float.isFinite(radius) && radius >= 0f;
+        boolean cacheable = reuseFailed && FailedVehicleRecovery.cacheable(facing, radius);
         if (cacheable && s.failedRecovery != null
                 && s.failedRecovery.matches(s, fields, type, startX, startY, goalX, goalY, facing, radius)) {
             VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_FAILED_REUSE, 1);
@@ -724,6 +809,7 @@ public final class VehicleControlSystem {
      */
     private void advanceDocking(VehicleMission mission, GroundBody body, VehicleType type,
                                 VehicleControlComponent s, float dt) {
+        cancelPending(s);
         float total = s.dockingPath.lengthCells(s.dockingTurnRadius);
         float next = Math.min(total, s.dockingProgressCells + VehicleController.DOCKING_SPEED * dt);
         var step = VehicleTerrainMotion.sweepReedsShepp(s.dockingStartPose, s.dockingPath,

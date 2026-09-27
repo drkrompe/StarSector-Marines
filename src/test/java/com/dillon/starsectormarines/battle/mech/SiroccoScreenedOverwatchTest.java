@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -268,7 +269,12 @@ class SiroccoScreenedOverwatchTest {
 
     @Test
     void rushedSupportMayOpenDistanceIntoTheBoundedZonePerimeter() {
-        BattleSimulation sim = twoRoomSimulation();
+        // The 1.2-cell-wide Bulwark cannot cross the one-cell Sirocco doorway.
+        // This test asks about the permitted retreat perimeter, not refusal of
+        // a physically impossible passage, so give it a two-cell opening.
+        BattleSimulation sim = twoRoomSimulation(2);
+        assertTrue(ManualTerrainMotion.canStand(sim.getGrid(), 40.5f, 31f,
+                MechVariant.BULWARK.radius), "the actual chassis fits the doorway centerline");
         long bulwark = spawnMech(sim, Faction.MARINE,
                 MechVariant.BULWARK, 43, 30);
         Squad squad = sim.squadOf(bulwark);
@@ -597,6 +603,10 @@ class SiroccoScreenedOverwatchTest {
     }
 
     private static BattleSimulation twoRoomSimulation() {
+        return twoRoomSimulation(1);
+    }
+
+    private static BattleSimulation twoRoomSimulation(int doorwayHeight) {
         int width = 96;
         int height = 64;
         NavigationGrid grid = new NavigationGrid(width, height);
@@ -605,8 +615,10 @@ class SiroccoScreenedOverwatchTest {
                 if (x != 40) grid.setWalkableFloor(x, y);
             }
         }
-        grid.setWalkableFloor(40, 30);
-        grid.setDoorway(40, 30, true);
+        for (int y = 30; y < 30 + doorwayHeight; y++) {
+            grid.setWalkableFloor(40, y);
+            grid.setDoorway(40, y, true);
+        }
         return new BattleSimulation(grid, new CellTopology(width, height));
     }
 

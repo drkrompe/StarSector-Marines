@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -34,7 +36,23 @@ public final class ExecuteMechDoctrine implements Action {
         MechLoadoutComponent loadout = sim.world().mechLoadout(member);
         if (loadout == null) return ActionStatus.FAILURE;
         MechAssignmentBoundary.observeAssignment(member, squad, sim);
-        return actionFor(loadout.effectiveRole()).execute(member, squad, sim);
+        MechRole role = loadout.effectiveRole();
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long started = profile == null ? 0L : System.nanoTime();
+        try {
+            return actionFor(role).execute(member, squad, sim);
+        } finally {
+            if (profile != null) profile.record(bucketFor(role), System.nanoTime() - started);
+        }
+    }
+
+    static Bucket bucketFor(MechRole role) {
+        return switch (role) {
+            case ASSAULT -> Bucket.MECH_DOCTRINE_ASSAULT;
+            case ARMORED_SUPPORT -> Bucket.MECH_DOCTRINE_ARMORED_SUPPORT;
+            case LR_SUPPORT -> Bucket.MECH_DOCTRINE_LR_SUPPORT;
+            case BALANCED -> Bucket.MECH_DOCTRINE_BALANCED;
+        };
     }
 
     static Action actionFor(MechRole role) {

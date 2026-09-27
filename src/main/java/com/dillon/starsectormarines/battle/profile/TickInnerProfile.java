@@ -284,6 +284,11 @@ public final class TickInnerProfile {
         VEHICLE_TURNAROUND_PROBE,
         /** Entire controller recovery call: endpoint snapping, proof, and route publication. */
         VEHICLE_RECOVERY_SEARCH,
+        VEHICLE_RECOVERY_SETUP,
+        VEHICLE_RECOVERY_PENDING,
+        VEHICLE_RECOVERY_CANCEL,
+        VEHICLE_RECOVERY_CLEARANCE_CELL,
+        VEHICLE_RECOVERY_COST_CELL,
         // Count-only work; heuristic storage can exceed its bounded flood.
         VEHICLE_HEURISTIC_STORAGE_CELL,
         VEHICLE_LOCAL_EXPANDED,
@@ -366,6 +371,16 @@ public final class TickInnerProfile {
         GRENADE_ESCAPE_EXPANDED,
         GRENADE_ESCAPE_REUSE,
         GRENADE_ESCAPE_NO_ROUTE,
+        /** Optional quiet guard travel only; search is elapsed, remaining buckets count work/decisions. */
+        GUARD_PATROL_SEARCH,
+        GUARD_PATROL_EXPANDED,
+        GUARD_PATROL_REFUSAL,
+        GUARD_PATROL_BACKOFF,
+        /** Nested execution wall time by effective mech doctrine; excludes shared planning and reflexes. */
+        MECH_DOCTRINE_ASSAULT,
+        MECH_DOCTRINE_ARMORED_SUPPORT,
+        MECH_DOCTRINE_LR_SUPPORT,
+        MECH_DOCTRINE_BALANCED,
         REFLEX_REJOIN,
         REFLEX_OPPORTUNITY_SPECIAL,
         REFLEX_HARDENED_OPPORTUNITY,

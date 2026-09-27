@@ -211,7 +211,8 @@ Do not run builds or leave generated task files there.
   wakeup: the latest callback is not assumed to be the join's completion. Callback
   events are emitted by the host after join; use their explicit timestamps and
   worker identity, not the JFR emission timestamp/thread. This diagnostic adds
-  per-callback CPU reads, 1 ms stack sampling, and zero-threshold monitor events;
+  per-callback CPU reads, 1 ms stack sampling, and zero-threshold monitor,
+  class-loading and compilation events;
   do not use it for ordinary performance comparisons. Add
   `-Dbattle.tail.convoyUncachedStages=true` to measure isolated terrain-cost,
   APC-clearance, connectivity-label construction, and a frozen progressive
@@ -236,6 +237,18 @@ Do not run builds or leave generated task files there.
   present; `-Dbattle.tail.javaExecutable=<absolute path>` overrides it. The
   live dump is a tick-zero construction fixture, not
   an in-flight state snapshot, so replay need not reproduce the exact spike.
+  Playback does not normally activate player powers. Add
+  `-Dbattle.tail.mechSupportActivations=2` to request real mech-support sorties
+  from the fixture's frozen payload, using normal charge, readiness and landing
+  checks. `-Dbattle.tail.mechSupportFirstTick=N` defaults to warmup + 1;
+  `-Dbattle.tail.mechSupportIntervalTicks=N` defaults to 240. The report distinguishes
+  requests, committed charge debits, carrier delivery and observed live mechs by
+  faction, chassis and doctrine. Requested coverage fails after writing evidence
+  if activations did not commit or no delivered support mech was observed;
+  partial delivery is reported, not treated as complete delivery. A zero-input
+  run can still contain construction/defender mechs. `MECH_DOCTRINE_*` times
+  doctrine execution, nested inside the GOAP action; it excludes planning and
+  reflexes and does not prove coverage of roles absent from the payload.
   `-Dbattle.pathfinding.compactCasualtyRouteCost=false` is the dense-storage
   control for casualty routing costs. Both representations calculate the same
   block multipliers; the control additionally expands them across the map.
@@ -450,6 +463,21 @@ Do not run builds or leave generated task files there.
   Projectile enumeration and observation remain separate work. Guard-post route samples label
   fallback, engagement, investigation, quiet patrol and disengagement so a
   shared action name cannot hide which obligation requested an expensive path.
+  `-Dbattle.pathfinding.boundGuardPatrol=false` restores legacy quiet guard
+  waypoint routing. The default bounds optional infantry patrol proofs to 1024
+  expansions and the existing detour envelope, holding a squad dwell after
+  refusal. Required home, investigation and engagement routes are unchanged.
+  `GUARD_PATROL_SEARCH/EXPANDED/REFUSAL/BACKOFF` distinguish proof and refusal;
+  BACKOFF includes ordinary quiet dwell, not only refusal reuse.
+  `-Dbattle.vehicle.progressiveRecovery=false` restores whole-proof frozen-field
+  vehicle recovery. By default each vehicle retains its recovery frontier across
+  ticks, admits at most one new A* attempt per tick, and expands at most
+  `battle.vehicle.recoveryExpansionsPerTick` nodes (default 2048). Pending is not
+  failure; incompatible ownership, terrain, cell or bearing cancels the job.
+  `VEHICLE_RECOVERY_SETUP` measures new frontier allocation inside SEARCH;
+  PENDING/CANCEL and CLEARANCE_CELL/COST_CELL expose progress and invalidation.
+  This is per vehicle, not a fleet-wide or wall-time bound: allocation, completed
+  path refinement and ordinary tracking remain separate sources of work.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.
