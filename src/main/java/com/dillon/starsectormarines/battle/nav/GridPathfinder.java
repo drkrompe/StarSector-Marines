@@ -232,6 +232,31 @@ public final class GridPathfinder {
     }
 
     /**
+     * Geometric A* with a conservative cost ceiling derived from a caller's
+     * eventual step-count limit. Every route of at most {@code maxSteps} has
+     * cost at most {@code maxSteps * sqrt(2)} (or {@code maxSteps} for cardinal
+     * movement). Once the minimum frontier estimate exceeds that ceiling no
+     * route the caller would accept can remain. Expansion order below the
+     * ceiling is unchanged, including ties; the returned route must still be
+     * checked against the caller's step limit because diagonals cost more.
+     *
+     * <p>An empty answer means no acceptable bounded proof, not necessarily
+     * structural disconnection. No occupancy or terrain multipliers are used.
+     */
+    public static int[] findPathWithinStepEnvelope(NavigationGrid grid,
+                                                   int startX, int startY,
+                                                   int goalX, int goalY,
+                                                   boolean cardinalOnly, int maxSteps) {
+        if (maxSteps < 0) throw new IllegalArgumentException("maxSteps must be nonnegative");
+        float maximumCost = maxSteps * (cardinalOnly ? 1f : SQRT2);
+        // Accumulated g and heuristic addition each round in float. A generous
+        // per-step ULP allowance can only do extra work, never tighten refusal.
+        float ceiling = maximumCost + (maxSteps + 2f) * Math.ulp(maximumCost);
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, null, null, null, null, null, true, ceiling);
+    }
+
+    /**
      * Labels every walkable cell with the id of its connected component, using
      * the same {@link #canStep} rule (and the same {@link #USE_CARDINAL_NAVIGATION}
      * setting) the search itself expands with. Non-walkable cells get {@code -1}.
@@ -568,6 +593,18 @@ public final class GridPathfinder {
                                           IndexedCost indexedCost,
                                           IndexedPassability indexedPassable,
                                           boolean checkComponents) {
+        return findPathProfiled(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, costField, passable,
+                indexedCost, indexedPassable, checkComponents, INF);
+    }
+
+    private static int[] findPathProfiled(NavigationGrid grid,
+                                          int startX, int startY, int goalX, int goalY,
+                                          boolean cardinalOnly, byte[] occupancy,
+                                          float[] costField, boolean[] passable,
+                                          IndexedCost indexedCost,
+                                          IndexedPassability indexedPassable,
+                                          boolean checkComponents, float costCeiling) {
         long _profT0 = System.nanoTime();
         Workspace profileWorkspace = WORKSPACE.get();
         profileWorkspace.expandedNodes = 0;
@@ -575,7 +612,7 @@ public final class GridPathfinder {
         try {
             result = findPathInner(grid, startX, startY, goalX, goalY,
                     cardinalOnly, occupancy, costField, passable,
-                    indexedCost, indexedPassable, checkComponents, false);
+                    indexedCost, indexedPassable, checkComponents, false, costCeiling);
             return result;
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
@@ -670,6 +707,18 @@ public final class GridPathfinder {
                                         IndexedPassability indexedPassable,
                                         boolean checkComponents,
                                         boolean cancelable) {
+        return findPathInner(grid, startX, startY, goalX, goalY,
+                cardinalOnly, occupancy, costField, passable, indexedCost,
+                indexedPassable, checkComponents, cancelable, INF);
+    }
+
+    private static int[] findPathInner(NavigationGrid grid, int startX, int startY, int goalX, int goalY,
+                                        boolean cardinalOnly, byte[] occupancy,
+                                        float[] costField, boolean[] passable,
+                                        IndexedCost indexedCost,
+                                        IndexedPassability indexedPassable,
+                                        boolean checkComponents,
+                                        boolean cancelable, float costCeiling) {
         if (!grid.isWalkable(startX, startY) || !grid.isWalkable(goalX, goalY)) {
             return EMPTY_PATH;
         }
@@ -732,6 +781,9 @@ public final class GridPathfinder {
                 System.getProperty(OMIT_FIXED_GOAL_OCCUPANCY_PROPERTY, "true"));
 
         while (heapSize > 0) {
+            // Do not prune individual neighbors: preserving the heap's exact
+            // contents/order keeps ordinary A* route ties below the bound.
+            if (fCost[heap[0]] > costCeiling) return EMPTY_PATH;
             int currentIdx = heap[0];
             heapSize--;
             if (heapSize > 0) {

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -237,7 +238,10 @@ public final class VehicleRoutePlanner {
         }
         DrivableRouteSearch search = DrivableRouteSearch.overOnDemand(
                 viaX, viaY, goalX, goalY, grid, cost, passable, type);
-        search.advance(new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS), Integer.MAX_VALUE);
+        RouteSearchBudget budget = new RouteSearchBudget(MAX_KINEMATIC_ROUTE_ATTEMPTS);
+        search.advance(budget, Integer.MAX_VALUE);
+        VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_EXPANDED, search.expandedNodesThisAdvance());
+        VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_ATTEMPT, budget.spent());
         float[][] tail = search.route();
         if (tail == null) return null;
         float[] xs = new float[tail[0].length + 1];

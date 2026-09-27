@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.fs.starfarer.api.Global;
@@ -156,7 +157,9 @@ public class GroundSystem {
 
     public void tick(float dt, long controlledId, ManualIntent input) {
         if (!Float.isFinite(dt) || dt <= 0f) return;
+        long stageStart = VehicleWorkProfile.start();
         moveOrderSystem.tickPending();
+        VehicleWorkProfile.finish(Bucket.GROUND_PENDING_ORDERS, stageStart);
         for (long id : convoy.entityIds()) {
             VehicleMission m = convoy.mission(id);
             VehicleType type = convoy.vehicleType(id);
@@ -170,7 +173,10 @@ public class GroundSystem {
             // An order owns the chassis's locomotion while it lasts. The errand
             // is not cancelled — it is standing still — so nothing else in the
             // state machine runs for this vehicle, deboarding included.
-            if (moveOrderSystem.executeIfActive(id, dt)) {
+            stageStart = VehicleWorkProfile.start();
+            boolean orderActive = moveOrderSystem.executeIfActive(id, dt);
+            VehicleWorkProfile.finish(Bucket.GROUND_ORDER_EXECUTION, stageStart);
+            if (orderActive) {
                 if (m.isVisible()) {
                     m.recordTick(convoy.body(id), convoy.control(id).wallStuckTime());
                 }
@@ -183,8 +189,10 @@ public class GroundSystem {
                     break;
 
                 case INCOMING:
+                    stageStart = VehicleWorkProfile.start();
                     controlSystem.tick(id, dt, m.inboundX, m.inboundY,
                             VehicleLeg.DELIVERY_RUN);
+                    VehicleWorkProfile.finish(Bucket.GROUND_DELIVERY_MOTION, stageStart);
                     if (controlSystem.consumeArrived(id)) {
                         m.state = VehicleState.LANDED;
                         m.deboardCountdown = type.deboardInterval;
@@ -195,7 +203,10 @@ public class GroundSystem {
                     m.deboardCountdown -= dt;
                     if (m.marinesRemaining > 0) m.unloadStalledFor += dt;
                     if (m.deboardCountdown <= 0f && m.marinesRemaining > 0) {
-                        if (tryDeboardMarine(id, m, type)) {
+                        stageStart = VehicleWorkProfile.start();
+                        boolean deboarded = tryDeboardMarine(id, m, type);
+                        VehicleWorkProfile.finish(Bucket.GROUND_DEBOARD, stageStart);
+                        if (deboarded) {
                             m.marinesRemaining--;
                             m.unloadStalledFor = 0f;
                         }
@@ -221,8 +232,10 @@ public class GroundSystem {
                     break;
 
                 case DEPARTING:
+                    stageStart = VehicleWorkProfile.start();
                     controlSystem.tick(id, dt, m.outboundX, m.outboundY,
                             VehicleLeg.DEPARTURE_RUN);
+                    VehicleWorkProfile.finish(Bucket.GROUND_DELIVERY_MOTION, stageStart);
                     if (controlSystem.consumeArrived(id)) {
                         m.state = VehicleState.GONE;  // reaped end-of-tick by reapGoneVehicles()
                     }
@@ -244,7 +257,9 @@ public class GroundSystem {
         }
         PointFireAim aim = Float.isFinite(input.aimX()) && Float.isFinite(input.aimY())
                 ? new PointFireAim(input.aimX(), input.aimY()) : null;
+        stageStart = VehicleWorkProfile.start();
         turrets.tick(dt, controlledId, aim, input.firing());
+        VehicleWorkProfile.finish(Bucket.GROUND_TURRETS, stageStart);
         reapGoneVehicles();
     }
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -89,9 +90,17 @@ public final class HybridAStarPlanner {
         if (goalCellX < minX || goalCellX > maxX || goalCellY < minY || goalCellY > maxY) {
             return null;
         }
-        float[] gridDist = computeGridDistance(goalCellX, goalCellY, grid, gridW, gridH,
-                minX, minY, maxX, maxY);
+        long heuristicStarted = VehicleWorkProfile.start();
+        float[] gridDist;
+        try {
+            gridDist = computeGridDistance(goalCellX, goalCellY, grid, gridW, gridH,
+                    minX, minY, maxX, maxY);
+        } finally {
+            VehicleWorkProfile.finish(Bucket.VEHICLE_LOCAL_HEURISTIC, heuristicStarted);
+            VehicleWorkProfile.count(Bucket.VEHICLE_HEURISTIC_STORAGE_CELL, gridW * gridH);
+        }
 
+        long latticeStarted = VehicleWorkProfile.start();
         float[] steerAngles = new float[NUM_STEER_SAMPLES];
         for (int i = 0; i < NUM_STEER_SAMPLES; i++) {
             steerAngles[i] = -maxSteerRad + (2f * maxSteerRad * i / (NUM_STEER_SAMPLES - 1));
@@ -197,6 +206,8 @@ public final class HybridAStarPlanner {
             }
         }
 
+        VehicleWorkProfile.finish(Bucket.VEHICLE_LOCAL_LATTICE, latticeStarted);
+        VehicleWorkProfile.count(Bucket.VEHICLE_LOCAL_EXPANDED, iterations);
         if (goalNode == null && analyticPath == null) return null;
         return extractLocal(goalNode, analyticFrom, analyticPath, best, goal, turnRadius);
     }

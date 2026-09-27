@@ -24,6 +24,66 @@ class ReinforceContactSnapTest {
     void releaseProfile() { TickInnerProfile.releaseCurrentThread(); }
 
     @Test
+    void boundedProofsPreserveBothMovementModesAndIndependentPruningControls() {
+        boolean previousCardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
+        try {
+            for (boolean cardinal : new boolean[]{true, false}) {
+                GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
+                Random random = new Random(7321);
+                for (int trial = 0; trial < 24; trial++) {
+                    NavigationGrid grid = openGrid(18, 15);
+                    for (int y = 0; y < 15; y++) {
+                        for (int x = 0; x < 18; x++) {
+                            if (random.nextInt(6) == 0) grid.setWalkable(x, y, false);
+                            if (random.nextInt(13) == 0) grid.blockEdge(x, y, Direction.E);
+                            if (random.nextInt(13) == 0) grid.blockSharedEdge(x, y, Direction.N);
+                            if (random.nextInt(23) == 0) grid.setDoorway(x, y, true);
+                        }
+                    }
+                    grid.setWalkableFloor(2, 7);
+                    int rawX = 6 + random.nextInt(12), rawY = random.nextInt(15);
+                    int[] oracle = exhaustiveOracle(grid, rawX, rawY, 2, 7);
+                    for (boolean prune : new boolean[]{false, true}) {
+                        assertArrayEquals(oracle, ReinforceContact.snapToReachable(
+                                rawX, rawY, grid, 2, 7, prune, true));
+                        assertArrayEquals(oracle, ReinforceContact.snapToReachable(
+                                rawX, rawY, grid, 2, 7, prune, false));
+                    }
+                }
+            }
+        } finally {
+            GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
+        }
+    }
+
+    @Test
+    void nearbyButLongDoglegCandidatesStopBeforeProvingRoutesWeWouldReject() {
+        NavigationGrid grid = openGrid(60, 70);
+        for (int y = 2; y < 70; y++) grid.setWalkable(30, y, false);
+        boolean previousCardinal = GridPathfinder.USE_CARDINAL_NAVIGATION;
+        try {
+            for (boolean cardinal : new boolean[]{true, false}) {
+                GridPathfinder.USE_CARDINAL_NAVIGATION = cardinal;
+                TickInnerProfile control = new TickInnerProfile();
+                TickInnerProfile.setCurrent(control);
+                int[] unbounded = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, false);
+                TickInnerProfile subject = new TickInnerProfile();
+                TickInnerProfile.setCurrent(subject);
+                int[] bounded = ReinforceContact.snapToReachable(36, 50, grid, 25, 50, true, true);
+                assertArrayEquals(new int[]{25, 50}, unbounded);
+                assertArrayEquals(unbounded, bounded);
+                assertEquals(control.countOf(TickInnerProfile.Bucket.PATHFIND),
+                        subject.countOf(TickInnerProfile.Bucket.PATHFIND));
+                assertTrue(subject.pathfindExpandedNodes() < control.pathfindExpandedNodes() / 3,
+                        () -> "bounded=" + subject.pathfindExpandedNodes()
+                                + ", control=" + control.pathfindExpandedNodes());
+            }
+        } finally {
+            GridPathfinder.USE_CARDINAL_NAVIGATION = previousCardinal;
+        }
+    }
+
+    @Test
     void openGroundMakesOneSearchInsteadOf121AndPreservesAttribution() {
         NavigationGrid grid = openGrid(30, 30);
         TickInnerProfile profile = new TickInnerProfile();
