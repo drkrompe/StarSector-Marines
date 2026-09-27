@@ -197,12 +197,26 @@ public final class RecaptureTargetService {
     /** Reserve one target and return its idempotent terminal-rejection release. */
     ReinforcementDispatchReservation reserveDispatch(RecaptureTarget target) {
         markDispatched(target);
-        long generation = target.dispatchReservationGeneration;
-        return () -> {
+        return new DispatchReservation(target, target.dispatchReservationGeneration);
+    }
+
+    // A cold reinforcement can arrive well into a battle. Keep its release
+    // token ordinary data instead of linking a capturing lambda on that tick.
+    private static final class DispatchReservation implements ReinforcementDispatchReservation {
+        private final RecaptureTarget target;
+        private final long generation;
+
+        private DispatchReservation(RecaptureTarget target, long generation) {
+            this.target = target;
+            this.generation = generation;
+        }
+
+        @Override
+        public void release() {
             if (target.dispatchReservationGeneration != generation) return;
             target.dispatched = false;
             target.dispatchAgeTicks = 0;
-        };
+        }
     }
 
     /** All recapture targets, regardless of state. */

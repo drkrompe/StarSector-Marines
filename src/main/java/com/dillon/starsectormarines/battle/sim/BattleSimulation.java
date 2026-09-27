@@ -822,6 +822,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override public int liveUnitCount() { return rosterService.liveCount(); }
     @Override public long liveUnitAt(int index) { return rosterService.get(index); }
+    @Override public int liveUnitIndexOf(long id) { return rosterService.indexOf(id); }
     @Override public int squadMemberCount(int squadId) { return rosterService.squadMemberCount(squadId); }
     @Override public long squadMemberAt(int squadId, int index) {
         return rosterService.squadMemberArray(squadId)[index];
@@ -1126,8 +1127,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<ShotEvent> getShotsExpiredThisFrame() { return shots.getShotsExpiredThisFrame(); }
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Renderer reads positions for sprite + contrail drawing. */
     public List<Projectile> getActiveProjectiles() { return shots.getActiveProjectiles(); }
-    /** Thread-safe snapshot of active projectiles for callers iterating during the parallel UPDATE_UNITS dispatch (today: squad-coordination scorers checking projected rocket damage). See {@link com.dillon.starsectormarines.battle.combat.ShotService#snapshotActiveProjectiles()}. */
+    /** Phase-start hazard view during member updates. See {@link ShotService#snapshotActiveProjectiles()}. */
     public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
+    /** Fresh launches remain visible to coordination without changing hazard perception mid-phase. */
+    public Iterable<Projectile> committedProjectiles() { return shots.committedProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
     /**

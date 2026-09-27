@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.infantry.EliminateEnemiesGoal;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -152,7 +154,140 @@ public class GoalTest {
         assertSame(prepared, goal.customPlan(choice.evaluation(), null, null));
     }
 
+    @Test
+    public void orderedEvaluationSkipsLowerBucketsButScoresEveryMissionContender() {
+        withPriorityOrder(true, () -> {
+            List<String> evaluated = new ArrayList<>();
+            Goal engagement = stubGoal("engagement", Goal.Priority.ENGAGEMENT, 1f);
+            Goal first = stubGoal("first", Goal.Priority.MISSION, 0.2f);
+            Goal winner = stubGoal("winner", Goal.Priority.MISSION, 0.8f);
+            Goal tied = stubGoal("tied", Goal.Priority.MISSION, 0.8f);
+            Goal survival = stubGoal("survival", Goal.Priority.SURVIVAL, 1f);
+            Goal.EvaluationContext context = contextRecording(evaluated);
+
+            assertSame(winner, Goal.pickMostRelevantPrepared(
+                    List.of(engagement, first, winner, survival, tied), context, Set.of()).goal());
+            assertEquals(List.of("first", "winner", "tied"), evaluated,
+                    "registration order breaks ties; lower categories do no work");
+        });
+    }
+
+    @Test
+    public void declinedWinnersDescendLazilyWithoutRepeatingAnyEvaluation() {
+        withPriorityOrder(true, () -> {
+            List<String> evaluated = new ArrayList<>();
+            Goal mission = stubGoal("mission", Goal.Priority.MISSION, 1f);
+            Goal sibling = stubGoal("sibling", Goal.Priority.MISSION, 0.5f);
+            Goal disabled = stubGoal("disabled", Goal.Priority.SURVIVAL, 0f);
+            Goal engagement = stubGoal("engagement", Goal.Priority.ENGAGEMENT, 1f);
+            Goal idle = stubGoal("idle", Goal.Priority.IDLE, 1f);
+            List<Goal> goals = List.of(idle, engagement, disabled, sibling, mission);
+            Goal.EvaluationContext context = contextRecording(evaluated);
+            Set<Goal> declined = new HashSet<>();
+            for (Goal expected : List.of(mission, sibling, engagement, idle)) {
+                assertSame(expected, Goal.pickMostRelevantPrepared(goals, context, declined).goal());
+                declined.add(expected);
+                if (expected == sibling) assertEquals(List.of("sibling", "mission"), evaluated);
+            }
+            assertNull(Goal.pickMostRelevantPrepared(goals, context, declined));
+            assertEquals(List.of("sibling", "mission", "disabled", "engagement", "idle"), evaluated);
+        });
+    }
+
+    @Test
+    public void eagerControlStillEvaluatesAllGoalsInRegistrationOrder() {
+        withPriorityOrder(false, () -> {
+            List<String> evaluated = new ArrayList<>();
+            Goal engagement = stubGoal("engagement", Goal.Priority.ENGAGEMENT, 1f);
+            Goal mission = stubGoal("mission", Goal.Priority.MISSION, 0.1f);
+            Goal idle = stubGoal("idle", Goal.Priority.IDLE, 1f);
+            assertSame(mission, Goal.pickMostRelevantPrepared(List.of(engagement, mission, idle),
+                    contextRecording(evaluated), Set.of()).goal());
+            assertEquals(List.of("engagement", "mission", "idle"), evaluated);
+        });
+    }
+
+    @Test
+    public void orderedAndEagerModesChooseTheSameCompleteFallbackLadder() {
+        Goal firstTie = stubGoal("firstTie", Goal.Priority.ENGAGEMENT, 0.8f);
+        Goal secondTie = stubGoal("secondTie", Goal.Priority.ENGAGEMENT, 0.8f);
+        Goal survival = stubGoal("survival", Goal.Priority.SURVIVAL, 0.1f);
+        Goal mission = stubGoal("mission", Goal.Priority.MISSION, 0.01f);
+        Goal disabled = stubGoal("disabled", Goal.Priority.MISSION, -1f);
+        Goal idle = stubGoal("idle", Goal.Priority.IDLE, 1f);
+        List<Goal> goals = List.of(firstTie, idle, survival, disabled, secondTie, mission);
+        List<Goal> expected = List.of(mission, survival, firstTie, secondTie, idle);
+        for (boolean ordered : List.of(false, true)) {
+            withPriorityOrder(ordered, () -> {
+                Goal.EvaluationContext context = contextRecording(new ArrayList<>());
+                Set<Goal> declined = new HashSet<>();
+                for (Goal next : expected) {
+                    assertSame(next, Goal.pickMostRelevantPrepared(goals, context, declined).goal());
+                    declined.add(next);
+                }
+                assertNull(Goal.pickMostRelevantPrepared(goals, context, declined));
+            });
+        }
+    }
+
+    @Test
+    public void explicitLowerPriorityDependencyKeepsItsPreparedPlanForFallback() {
+        withPriorityOrder(true, () -> {
+            List<String> evaluated = new ArrayList<>();
+            SquadPlan prepared = new SquadPlan(List.of());
+            Goal dependency = new Goal() {
+                @Override public String name() { return "dependency"; }
+                @Override public float relevance(WorldState s, Squad sq, BattleView sim) {
+                    throw new AssertionError("use the combined evaluation");
+                }
+                @Override public Evaluation evaluate(WorldState s, Squad sq,
+                                                     BattleView sim, EvaluationContext context) {
+                    return new Evaluation(1f, prepared);
+                }
+                @Override public WorldState desiredState(Squad sq, BattleView sim) {
+                    return WorldState.EMPTY;
+                }
+            };
+            Goal mission = new Goal() {
+                @Override public String name() { return "mission"; }
+                @Override public Priority priority() { return Priority.MISSION; }
+                @Override public float relevance(WorldState s, Squad sq, BattleView sim) { return 1f; }
+                @Override public Evaluation evaluate(WorldState s, Squad sq,
+                                                     BattleView sim, EvaluationContext context) {
+                    return new Evaluation(context.evaluate(dependency).relevance(), null);
+                }
+                @Override public WorldState desiredState(Squad sq, BattleView sim) {
+                    return WorldState.EMPTY;
+                }
+            };
+            List<Goal> goals = List.of(dependency, mission);
+            Goal.EvaluationContext context = contextRecording(evaluated);
+            assertSame(mission, Goal.pickMostRelevantPrepared(goals, context, Set.of()).goal());
+            Goal.Choice fallback = Goal.pickMostRelevantPrepared(goals, context, Set.of(mission));
+            assertSame(dependency, fallback.goal());
+            assertSame(prepared, dependency.customPlan(fallback.evaluation(), null, null));
+            assertEquals(List.of("dependency", "mission"), evaluated);
+        });
+    }
+
     // --- stubs -----------------------------------------------------------
+
+    private static Goal.EvaluationContext contextRecording(List<String> evaluated) {
+        return new Goal.EvaluationContext(WorldState.EMPTY, null, null,
+                (goal, nanos) -> evaluated.add(goal.name()));
+    }
+
+    private static void withPriorityOrder(boolean enabled, Runnable assertion) {
+        String property = "battle.goap.priorityOrderedEvaluation";
+        String previous = System.getProperty(property);
+        System.setProperty(property, Boolean.toString(enabled));
+        try {
+            assertion.run();
+        } finally {
+            if (previous == null) System.clearProperty(property);
+            else System.setProperty(property, previous);
+        }
+    }
 
     private static Goal stubGoal(String name, Goal.Priority priority, float relevance) {
         return new Goal() {

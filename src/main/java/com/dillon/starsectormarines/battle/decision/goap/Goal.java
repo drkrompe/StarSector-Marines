@@ -12,8 +12,8 @@ import java.util.Set;
  * What a squad wants to be true. The planner's per-replan flow:
  * <ol>
  *   <li>Snapshot the current world state.</li>
- *   <li>Score every registered goal's {@link #relevance}; pick the highest
- *       within the highest-occupied {@link Priority} bucket.</li>
+ *   <li>Score goals in priority order; pick the highest relevance within the
+ *       first occupied {@link Priority} bucket.</li>
  *   <li>Backward-chain from {@link #desiredState} until the current state
  *       satisfies the regressed preconditions.</li>
  *   <li>Fall back to the next-most-relevant goal if no plan is reachable
@@ -139,9 +139,40 @@ public interface Goal {
 
     record Choice(Goal goal, Evaluation evaluation) {}
 
+    /** Same-build control for eager evaluation of every priority bucket. */
+    static boolean priorityOrderedEvaluationEnabled() {
+        return Boolean.parseBoolean(System.getProperty(
+                "battle.goap.priorityOrderedEvaluation", "true"));
+    }
+
     static Choice pickMostRelevantPrepared(List<Goal> goals,
                                            EvaluationContext context,
                                            Set<Goal> declined) {
+        if (!priorityOrderedEvaluationEnabled()) {
+            return pickMostRelevantExhaustive(goals, context, declined);
+        }
+        // Relevance competes only within a bucket. Lower buckets cannot change
+        // this choice, and are evaluated only if planning declines every winner
+        // above them. The caller retains this context throughout that descent.
+        for (Priority priority : Priority.values()) {
+            Choice best = null;
+            for (Goal goal : goals) {
+                if (goal.priority() != priority || declined.contains(goal)) continue;
+                Evaluation evaluation = context.evaluate(goal);
+                float relevance = evaluation.relevance();
+                if (relevance <= 0f) continue;
+                if (best == null || relevance > best.evaluation().relevance()) {
+                    best = new Choice(goal, evaluation);
+                }
+            }
+            if (best != null) return best;
+        }
+        return null;
+    }
+
+    private static Choice pickMostRelevantExhaustive(List<Goal> goals,
+                                                    EvaluationContext context,
+                                                    Set<Goal> declined) {
         Priority[] buckets = Priority.values();
         Choice[] best = new Choice[buckets.length];
         for (Goal goal : goals) {
@@ -170,10 +201,10 @@ public interface Goal {
      *
      * <p>Algorithm:
      * <ol>
-     *   <li>For each goal with {@code relevance > 0}, track the best (max
-     *       relevance) entry per {@link Priority} bucket.</li>
-     *   <li>Return the bucket-winner from the highest-priority bucket
-     *       (lowest ordinal) that has any entry.</li>
+     *   <li>Visit buckets in priority order, scoring every non-declined goal
+     *       within each visited bucket.</li>
+     *   <li>Return the first bucket's highest positive-relevance entry without
+     *       scoring the lower buckets.</li>
      * </ol>
      *
      * <p>Ties within a bucket keep the first goal seen (strictly-greater

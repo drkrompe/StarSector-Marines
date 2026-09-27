@@ -9,9 +9,19 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.nav.LosCaches;
+import com.dillon.starsectormarines.battle.nav.AsyncDefendTrackRoutes;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import jdk.jfr.Category;
+import jdk.jfr.Enabled;
+import jdk.jfr.Event;
+import jdk.jfr.EventType;
+import jdk.jfr.Label;
+import jdk.jfr.Name;
+import jdk.jfr.StackTrace;
+import jdk.jfr.Timespan;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -85,6 +95,53 @@ public final class UnitUpdateSystem implements AutoCloseable {
             "battle.unitUpdate.minimumParallelUnits";
     public static final String PARALLELISM_PROPERTY = "battle.unitUpdate.parallelism";
     private static final ThreadMXBean THREAD_CPU = ManagementFactory.getThreadMXBean();
+    private static final EventType DISPATCH_EVENT_TYPE =
+            EventType.getEventType(UnitDispatchEvent.class);
+    private static final EventType CALLBACK_EVENT_TYPE =
+            EventType.getEventType(UnitCallbackEvent.class);
+
+    /**
+     * Worker submission through join, excluding mutation gates and profile merging.
+     * Serial ticks have no worker dispatch and emit no event. The separate nanoTime
+     * duration permits wall-clock calibration on runtimes whose JFR clock differs.
+     */
+    @Name("com.dillon.marines.UnitDispatch")
+    @Label("Unit Worker Dispatch")
+    @Category("Starsector Marines")
+    @Enabled(false)
+    @StackTrace(false)
+    public static final class UnitDispatchEvent extends Event {
+        public int tick;
+        public int parallelism;
+        public int liveUnits;
+        /** Same nanoTime origin as callback intervals; not a JFR-clock timestamp. */
+        public long startNanos;
+        public long rootStartNanos;
+        public long rootCompletedNanos;
+        public long getReturnedNanos;
+        public String rootWorkerName;
+        @Timespan(Timespan.NANOSECONDS)
+        public long wallNanos;
+    }
+
+    /** Emitted by the joined host for slow dispatches, NOT on the worker hot path. */
+    @Name("com.dillon.marines.UnitCallback")
+    @Label("Unit callback timeline")
+    @Category("Starsector Marines")
+    @Enabled(false)
+    @StackTrace(false)
+    public static final class UnitCallbackEvent extends Event {
+        public int tick;
+        public long workerId;
+        public String workerName;
+        public long entityId;
+        /** Last entered GOAP action; callback time also includes reflex/prep work. */
+        public String action;
+        public long startNanos;
+        public long endNanos;
+        /** -1 means unavailable, not zero CPU. */
+        public long cpuNanos;
+    }
     /**
      * Profiled crossover on the fixed-slice battle-fixture matrix. The tuning
      * property accepts {@code 0} to force parallel and {@link Integer#MAX_VALUE}
@@ -109,6 +166,10 @@ public final class UnitUpdateSystem implements AutoCloseable {
             });
     private volatile boolean diagnosticsEnabled;
     private volatile TickDiagnostics lastTickDiagnostics;
+    private boolean captureCallbackTimeline;
+    private long rootStartNanos;
+    private long rootCompletedNanos;
+    private String rootWorkerName;
 
     /** Individual unit wall time is the existing behavior-bucket timer, including role dispatch. */
     public record UnitSample(long entityId, UnitRole role, long durationNanos) {}
@@ -175,11 +236,22 @@ public final class UnitUpdateSystem implements AutoCloseable {
         long[] snapshot = roster.denseArray();
         int liveCount = roster.liveCount();
         boolean captureDiagnostics = diagnosticsEnabled;
+        captureCallbackTimeline = captureDiagnostics && CALLBACK_EVENT_TYPE.isEnabled();
         if (captureDiagnostics) {
             for (WorkerDiagnostics thread : diagnosticThreads) thread.reset();
         }
         boolean parallel = shouldDispatchInParallel(
                 liveCount, minimumParallelUnits, pool.getParallelism());
+        AsyncDefendTrackRoutes routes = sim.asyncDefendTrackRoutes();
+        long prepareStart = System.nanoTime();
+        boolean memberRoutePhase = routes != null && routes.beginMemberUpdates(snapshot, liveCount);
+        if (memberRoutePhase) tickInnerProfile.record(
+                TickInnerProfile.Bucket.RALLY_REQUEST_PREPARE, System.nanoTime() - prepareStart);
+        ShotService shots = sim.getShots();
+        prepareStart = System.nanoTime();
+        boolean projectilePhase = shots.beginMemberUpdates();
+        if (projectilePhase) tickInnerProfile.record(
+                TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_PREPARE, System.nanoTime() - prepareStart);
         long dispatchStart = captureDiagnostics ? System.nanoTime() : 0L;
         long awaitWorkersNanos = 0L;
         damageService.enterParallel();
@@ -192,10 +264,31 @@ public final class UnitUpdateSystem implements AutoCloseable {
                     updateUnit(snapshot[i], sim, captureDiagnostics);
                 }
             }
+        } catch (RuntimeException | Error failure) {
+            if (projectilePhase) shots.abandonMemberUpdates();
+            throw failure;
         } finally {
             damageService.exitParallel();
         }
         long dispatchNanos = captureDiagnostics ? System.nanoTime() - dispatchStart : 0L;
+        if (captureCallbackTimeline && dispatchNanos >= 10_000_000L) {
+            publishCallbackTimeline(sim.getSimTickIndex());
+        }
+        // Only normal return establishes the worker join. Never drain mutable
+        // member inboxes from finally: failed/interrupted dispatch can leave
+        // child work running. A failed phase remains abandoned until close.
+        if (memberRoutePhase) {
+            long commitStart = System.nanoTime();
+            routes.finishMemberUpdates(sim.getGrid(), sim.getOccupancyMap());
+            tickInnerProfile.record(TickInnerProfile.Bucket.RALLY_REQUEST_COMMIT,
+                    System.nanoTime() - commitStart);
+        }
+        if (projectilePhase) {
+            long commitStart = System.nanoTime();
+            shots.finishMemberUpdates();
+            tickInnerProfile.record(TickInnerProfile.Bucket.PROJECTILE_PUBLICATION_COMMIT,
+                    System.nanoTime() - commitStart);
+        }
         TickInnerProfile.mergeAllInto(tickInnerProfile);
         if (captureDiagnostics) {
             lastTickDiagnostics = collectDiagnostics(
@@ -205,11 +298,37 @@ public final class UnitUpdateSystem implements AutoCloseable {
 
     private long dispatchParallel(long[] snapshot, int liveCount, BattleSimulation sim,
                                   boolean captureDiagnostics) {
+        rootStartNanos = rootCompletedNanos = 0L;
+        rootWorkerName = "";
+        UnitDispatchEvent event = null;
+        long eventStart = 0L;
+        if (DISPATCH_EVENT_TYPE.isEnabled()) {
+            event = new UnitDispatchEvent();
+            event.tick = sim.getSimTickIndex();
+            event.parallelism = pool.getParallelism();
+            event.liveUnits = liveCount;
+            eventStart = System.nanoTime();
+            event.startNanos = eventStart;
+            event.begin();
+        }
         try {
-            ForkJoinTask<?> task = pool.submit(() -> IntStream.range(0, liveCount).parallel()
-                    .forEach(i -> updateUnit(snapshot[i], sim, captureDiagnostics)));
+            ForkJoinTask<?> task = pool.submit(() -> {
+                if (captureCallbackTimeline) {
+                    rootStartNanos = System.nanoTime();
+                    rootWorkerName = Thread.currentThread().getName();
+                }
+                IntStream.range(0, liveCount).parallel()
+                        .forEach(i -> updateUnit(snapshot[i], sim, captureDiagnostics));
+                if (captureCallbackTimeline) rootCompletedNanos = System.nanoTime();
+            });
             long awaitStart = captureDiagnostics ? System.nanoTime() : 0L;
             task.get();
+            if (event != null && captureCallbackTimeline) {
+                event.getReturnedNanos = System.nanoTime();
+                event.rootStartNanos = rootStartNanos;
+                event.rootCompletedNanos = rootCompletedNanos;
+                event.rootWorkerName = rootWorkerName;
+            }
             return captureDiagnostics ? System.nanoTime() - awaitStart : 0L;
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
@@ -218,6 +337,30 @@ public final class UnitUpdateSystem implements AutoCloseable {
             Throwable cause = ee.getCause();
             if (cause instanceof RuntimeException re) throw re;
             throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
+        } finally {
+            if (event != null) {
+                event.end();
+                event.wallNanos = System.nanoTime() - eventStart;
+                event.commit();
+            }
+        }
+    }
+
+    private void publishCallbackTimeline(int tick) {
+        for (WorkerDiagnostics worker : diagnosticThreads) {
+            UnitWorkTimeline timeline = worker.timeline;
+            for (int i = 0; i < timeline.size(); i++) {
+                UnitCallbackEvent event = new UnitCallbackEvent();
+                event.tick = tick;
+                event.workerId = worker.threadId;
+                event.workerName = worker.threadName;
+                event.entityId = timeline.entityId(i);
+                event.action = timeline.action(i);
+                event.startNanos = timeline.startNanos(i);
+                event.endNanos = timeline.endNanos(i);
+                event.cpuNanos = timeline.cpuNanos(i);
+                event.commit();
+            }
         }
     }
 
@@ -253,12 +396,15 @@ public final class UnitUpdateSystem implements AutoCloseable {
 
     private final class WorkerDiagnostics {
         private final long threadId = Thread.currentThread().getId();
+        private final String threadName = Thread.currentThread().getName();
+        private final UnitWorkTimeline timeline = new UnitWorkTimeline();
         private long cpuStartNanos = cpuNow();
         private final SlowUnitCollector slowest = new SlowUnitCollector();
         private int sampledUnitCount;
         private long sampledUnitNanos;
 
         private void reset() {
+            timeline.reset();
             cpuStartNanos = cpuNow();
             sampledUnitCount = 0;
             sampledUnitNanos = 0L;
@@ -403,6 +549,25 @@ public final class UnitUpdateSystem implements AutoCloseable {
      * static {@code INSTANCE} singletons.
      */
     private void updateUnit(long u, BattleSimulation sim, boolean captureDiagnostics) {
+        if (!captureCallbackTimeline) {
+            updateUnitBody(u, sim, captureDiagnostics);
+            return;
+        }
+        WorkerDiagnostics diagnostics = currentDiagnostics.get();
+        TickInnerProfile profile = TickInnerProfile.current();
+        profile.clearUnitAction();
+        long cpuStart = diagnostics.cpuNow();
+        long start = System.nanoTime();
+        try {
+            updateUnitBody(u, sim, captureDiagnostics);
+        } finally {
+            long end = System.nanoTime();
+            long cpu = cpuDeltaNanos(cpuStart, diagnostics.cpuNow());
+            diagnostics.timeline.record(u, start, end, cpu, profile.lastUnitAction());
+        }
+    }
+
+    private void updateUnitBody(long u, BattleSimulation sim, boolean captureDiagnostics) {
         // Ambient work is exclusive while active. The battle-owned service
         // releases interrupted actors before this phase, so their existing
         // role resumes here without a role swap or a second actor model.

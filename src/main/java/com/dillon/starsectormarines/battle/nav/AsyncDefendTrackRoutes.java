@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
@@ -31,6 +33,8 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
             "battle.pathfinding.asyncDefendTrack.queueCapacity";
     public static final String WORKERS_PROPERTY =
             "battle.pathfinding.asyncDefendTrack.workers";
+    public static final String PHASE_OWNED_PROPERTY =
+            "battle.pathfinding.phaseOwnedRallyRequests";
     private static final int MAX_QUEUED = 512;
     private static final int REQUEST_TTL_TICKS = 120;
     private static final int NO_PATH_RETRY_TICKS = 30;
@@ -54,7 +58,8 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
                           int deliveryP95Ticks, int deliveryMaxTicks,
                           int finishedWaitP95Ticks, int finishedWaitMaxTicks,
                           long snapshotNanos, long maxSnapshotNanos,
-                          long topologyCopies, long occupancyCopies) { }
+                          long topologyCopies, long occupancyCopies,
+                          long pollCalls, long cancelCalls, long noOpCancels) { }
 
     @FunctionalInterface
     interface Search {
@@ -89,9 +94,56 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         }
     }
 
+    /** One member is the sole writer during dispatch; the host reads only after join. */
+    private static final class MemberInbox {
+        final Long member; // Reuse the host HashMap key instead of boxing every phase.
+        long generation;
+        Entry original;
+        Entry entry;
+        int retryAtTick;
+        Request request;
+        int requestTick;
+        long requestRevision;
+        int deliveryAge;
+        int finishedAge;
+        long noPath;
+        long polls;
+        long cancels;
+        long noOpCancels;
+
+        MemberInbox(long member) { this.member = member; }
+
+        void prepare(long generation, Entry entry) {
+            this.generation = generation;
+            this.original = entry;
+            this.entry = entry;
+            retryAtTick = entry == null ? 0 : entry.retryAtTick;
+            request = null;
+            deliveryAge = -1;
+            finishedAge = 0;
+            noPath = polls = cancels = noOpCancels = 0L;
+        }
+    }
+
+    /** Lookup and membership remain frozen until a successful join, including on failure. */
+    private record MemberPhase(Thread owner, Long2ObjectOpenHashMap<MemberInbox> lookup,
+                               MemberInbox[] members, int count) {
+        MemberInbox inbox(long member) {
+            MemberInbox inbox = lookup.get(member);
+            if (inbox == null) throw new IllegalStateException(
+                    "member is outside the rally update phase: " + member);
+            return inbox;
+        }
+    }
+
     private final ThreadPoolExecutor executor;
     private final Search search;
     private final Map<Long, Entry> byMember = new HashMap<>();
+    private final boolean phaseOwned;
+    private final Long2ObjectOpenHashMap<MemberInbox> inboxes = new Long2ObjectOpenHashMap<>();
+    private MemberInbox[] memberBuffer = new MemberInbox[0];
+    private long inboxGeneration;
+    private volatile MemberPhase memberPhase;
     private final AtomicLong completed = new AtomicLong();
     private final AtomicLong searchNanos = new AtomicLong();
     private final AtomicLong searchCpuNanos = new AtomicLong();
@@ -118,11 +170,14 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
     private long maxSnapshotNanos;
     private long topologyCopies;
     private long occupancyCopies;
+    private long pollCalls;
+    private long cancelCalls;
+    private long noOpCancels;
     private NavigationGrid topologySnapshot;
     private long topologyRevision = Long.MIN_VALUE;
     private byte[] occupancySnapshot;
     private int occupancyTick = Integer.MIN_VALUE;
-    private boolean closed;
+    private volatile boolean closed;
 
     public AsyncDefendTrackRoutes() {
         this(Math.max(1, Integer.getInteger(WORKERS_PROPERTY, 2)),
@@ -143,6 +198,12 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
     }
 
     AsyncDefendTrackRoutes(int workers, int queueCapacity, Search search) {
+        this(workers, queueCapacity, search, Boolean.parseBoolean(
+                System.getProperty(PHASE_OWNED_PROPERTY, "true")));
+    }
+
+    AsyncDefendTrackRoutes(int workers, int queueCapacity, Search search, boolean phaseOwned) {
+        this.phaseOwned = phaseOwned;
         this.search = search;
         executor = new ThreadPoolExecutor(workers, workers, 0L,
                 TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(queueCapacity),
@@ -156,6 +217,7 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
     /** Retires jobs for dead or re-planned members that never poll again. */
     public synchronized void beginTick(int tick) {
         if (closed) return;
+        requireNoMemberPhase();
         currentTick.set(tick);
         List<Long> stale = new ArrayList<>();
         for (Map.Entry<Long, Entry> row : byMember.entrySet()) {
@@ -167,11 +229,135 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         if (occupancyTick != tick) occupancySnapshot = null;
     }
 
+    public boolean phaseOwnedRequestsEnabled() { return phaseOwned; }
+
+    /**
+     * Host boundary immediately before dispatch. Each listed member has exactly
+     * one writer until join. Polling/cancellation then touch only that member's
+     * inbox; no global map, metrics, executor or snapshot is mutated by a unit.
+     * Returns false for the same-build legacy control or a closed service.
+     */
+    public synchronized boolean beginMemberUpdates(long[] ids, int count) {
+        if (closed) return false;
+        requireNoMemberPhase();
+        if (!phaseOwned) return false;
+        if (count < 0 || count > ids.length) throw new IllegalArgumentException("invalid member count");
+        if (memberBuffer.length < count) memberBuffer = new MemberInbox[Math.max(count, memberBuffer.length * 2 + 8)];
+        long generation = ++inboxGeneration;
+        for (int i = 0; i < count; i++) {
+            long member = ids[i];
+            if (member == 0L) throw new IllegalArgumentException("zero member id");
+            MemberInbox inbox = inboxes.get(member);
+            if (inbox == null) {
+                inbox = new MemberInbox(member);
+                inboxes.put(member, inbox);
+            } else if (inbox.generation == generation) {
+                throw new IllegalArgumentException("duplicate member id: " + member);
+            }
+            inbox.prepare(generation, byMember.get(inbox.member));
+            memberBuffer[i] = inbox;
+        }
+        inboxes.values().removeIf(inbox -> inbox.generation != generation);
+        Arrays.fill(memberBuffer, count, memberBuffer.length, null);
+        memberPhase = new MemberPhase(Thread.currentThread(), inboxes, memberBuffer, count);
+        return true;
+    }
+
+    /**
+     * Host-only, after SUCCESSFUL join. Never call this after an interrupted or
+     * failed unjoined dispatch: leave its phase published until terminal close.
+     * Retire every obsolete entry before submitting any new work. Copies are
+     * demand-driven by actual submissions, not by polls or cancellations.
+     */
+    public synchronized void finishMemberUpdates(NavigationGrid grid, byte[] occupancy) {
+        MemberPhase phase = memberPhase;
+        if (closed) return;
+        if (phase == null || phase.owner() != Thread.currentThread()) {
+            throw new IllegalStateException("rally phase must finish on its joining host");
+        }
+        for (int i = 0; i < phase.count(); i++) {
+            MemberInbox inbox = phase.members()[i];
+            if (inbox.original != inbox.entry && inbox.original != null) remove(inbox.original);
+            if (inbox.entry != null) inbox.entry.retryAtTick = inbox.retryAtTick;
+            if (inbox.noPath != 0L) noPath.addAndGet(inbox.noPath);
+            pollCalls += inbox.polls;
+            cancelCalls += inbox.cancels;
+            noOpCancels += inbox.noOpCancels;
+            if (inbox.deliveryAge >= 0) recordDelivery(inbox.deliveryAge, inbox.finishedAge);
+        }
+        for (int i = 0; i < phase.count(); i++) {
+            MemberInbox inbox = phase.members()[i];
+            if (inbox.request != null && inbox.requestRevision == grid.topologyRevision()
+                    && currentTick.get() - inbox.requestTick <= REQUEST_TTL_TICKS) {
+                pollOrSubmitLegacy(inbox.request, inbox.requestTick, grid, occupancy);
+            }
+        }
+        memberPhase = null;
+    }
+
+    private void requireNoMemberPhase() {
+        if (memberPhase != null) throw new IllegalStateException("rally member phase is still active");
+    }
+
     /** Called only from a unit's own update, so the returned route can be installed there. */
-    public synchronized Result pollOrSubmit(Request request, int tick,
-                                             NavigationGrid liveGrid,
-                                             byte[] liveOccupancy) {
+    public Result pollOrSubmit(Request request, int tick,
+                               NavigationGrid liveGrid, byte[] liveOccupancy) {
         if (closed) return Result.WAITING;
+        MemberPhase phase = memberPhase;
+        if (phase != null) return pollMember(phase.inbox(request.member()), request,
+                tick, liveGrid.topologyRevision());
+        synchronized (this) {
+            if (closed) return Result.WAITING;
+            requireNoMemberPhase();
+            pollCalls++;
+            return pollOrSubmitLegacy(request, tick, liveGrid, liveOccupancy);
+        }
+    }
+
+    /** Own-member path: future readiness is the only cross-thread completion signal. */
+    private Result pollMember(MemberInbox inbox, Request request, int tick, long revision) {
+        inbox.polls++;
+        Entry entry = inbox.entry;
+        if (entry != null && (entry.key.topologyRevision() != revision
+                || !entry.key.request().equals(request)
+                || tick - entry.submittedTick > REQUEST_TTL_TICKS)) {
+            inbox.entry = entry = null;
+            inbox.retryAtTick = 0;
+        }
+        if (entry != null) {
+            if (!entry.task.ready || inbox.retryAtTick > tick) return Result.WAITING;
+            if (inbox.retryAtTick != 0) {
+                inbox.entry = null;
+                inbox.retryAtTick = 0;
+            } else {
+                try {
+                    int[] path = entry.task.get();
+                    if (!Paths.isEmpty(path)) {
+                        inbox.entry = null;
+                        inbox.request = null;
+                        inbox.deliveryAge = Math.max(0, tick - entry.submittedTick);
+                        inbox.finishedAge = Math.max(0, tick - entry.finishedTick.get());
+                        return closed ? Result.WAITING : new Result(true, path);
+                    }
+                } catch (Exception ignored) {
+                    // Same bounded negative-result retry as the legacy path.
+                }
+                inbox.noPath++;
+                inbox.retryAtTick = tick + NO_PATH_RETRY_TICKS;
+                return Result.WAITING;
+            }
+        }
+        // Latest intent wins within the member's update; no live input is copied
+        // or retained here. The host validates revision and freezes after join.
+        inbox.request = request;
+        inbox.requestTick = tick;
+        inbox.requestRevision = revision;
+        return Result.WAITING;
+    }
+
+    /** Service monitor held by unbracketed callers, or exclusively owned by the joined host. */
+    private Result pollOrSubmitLegacy(Request request, int tick,
+                                      NavigationGrid liveGrid, byte[] liveOccupancy) {
         Key key = new Key(request, liveGrid.topologyRevision());
         Entry entry = byMember.get(request.member());
         if (entry != null && (!entry.key.equals(key)
@@ -191,15 +377,9 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
                     if (!Paths.isEmpty(path)) {
                         byMember.remove(request.member());
                         int age = Math.max(0, tick - entry.submittedTick);
-                        waitAgeHistogram[Math.min(age, REQUEST_TTL_TICKS + 1)]++;
                         int finishedAge = Math.max(0,
                                 tick - entry.finishedTick.get());
-                        finishedWaitHistogram[Math.min(finishedAge,
-                                REQUEST_TTL_TICKS + 1)]++;
-                        delivered++;
-                        maxWaitAge = Math.max(maxWaitAge, age);
-                        maxFinishedWaitAge = Math.max(maxFinishedWaitAge,
-                                finishedAge);
+                        recordDelivery(age, finishedAge);
                         return new Result(true, path);
                     }
                 } catch (Exception ignored) {
@@ -271,9 +451,34 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         return Result.WAITING;
     }
 
-    public synchronized void cancel(long member) {
-        Entry entry = byMember.get(member);
-        if (entry != null) remove(entry);
+    public void cancel(long member) {
+        if (closed) return;
+        MemberPhase phase = memberPhase;
+        if (phase != null) {
+            MemberInbox inbox = phase.inbox(member);
+            inbox.cancels++;
+            if (inbox.entry == null && inbox.request == null) inbox.noOpCancels++;
+            inbox.entry = null;
+            inbox.request = null;
+            inbox.retryAtTick = 0;
+            return;
+        }
+        synchronized (this) {
+            if (closed) return;
+            requireNoMemberPhase();
+            cancelCalls++;
+            Entry entry = byMember.get(member);
+            if (entry != null) remove(entry);
+            else noOpCancels++;
+        }
+    }
+
+    private void recordDelivery(int age, int finishedAge) {
+        waitAgeHistogram[Math.min(age, REQUEST_TTL_TICKS + 1)]++;
+        finishedWaitHistogram[Math.min(finishedAge, REQUEST_TTL_TICKS + 1)]++;
+        delivered++;
+        maxWaitAge = Math.max(maxWaitAge, age);
+        maxFinishedWaitAge = Math.max(maxFinishedWaitAge, finishedAge);
     }
 
     private void remove(Entry entry) {
@@ -323,12 +528,15 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
                 queueP95, maxQueueWaitAge.get(), deliveryP95, maxWaitAge,
                 finishedP95, maxFinishedWaitAge,
                 snapshotNanos, maxSnapshotNanos,
-                topologyCopies, occupancyCopies);
+                topologyCopies, occupancyCopies, pollCalls, cancelCalls, noOpCancels);
     }
 
     @Override public synchronized void close() {
         if (closed) return;
         closed = true;
+        // An interrupted dispatch may still own its inboxes. Detach, but never
+        // clear/recycle the published lookup or mailbox storage beneath it.
+        memberPhase = null;
         for (Entry entry : byMember.values()) entry.task.cancel(true);
         byMember.clear();
         executor.shutdownNow();

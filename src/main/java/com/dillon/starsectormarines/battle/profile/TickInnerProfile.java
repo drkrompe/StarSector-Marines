@@ -128,6 +128,11 @@ public final class TickInnerProfile {
         GOAP_SQUAD_REPLAN,
         GOAP_ROUTE_COLLECTION,
         GOAP_ROUTE_PREPARATION,
+        /** Capture-post selection, nested inside custom squad planning. */
+        HOLD_POSITION,
+        /** Count-only inspected cells and exceptional nonlocal fallback calls. */
+        HOLD_POSITION_CELL,
+        HOLD_POSITION_FALLBACK,
         // Nested FrontageDefense relevance stages; selection still owns the total.
         FRONTAGE_SCOPE,
         FRONTAGE_CLAIMS,
@@ -156,7 +161,27 @@ public final class TickInnerProfile {
         CONVOY_PROGRESSIVE_SNAPSHOT,
         CONVOY_ROUTE_PROOF_STEP,
         TARGET_PICK,
+        RALLY_REQUEST_PREPARE,
+        RALLY_REQUEST_COMMIT,
+        PROJECTILE_PUBLICATION_PREPARE,
+        PROJECTILE_PUBLICATION_COMMIT,
+        TARGET_SCAN_VISIT,
+        TARGET_SCAN_RING,
+        TARGET_SCAN_RAY,
+        CLEAR_ZONE_TARGET_SELECT,
+        CLEAR_ZONE_TARGET_VISIT,
+        CLEAR_ZONE_TARGET_RAY,
+        /** Count-only target decision and unsuccessful-search retry reuse. */
+        CLEAR_ZONE_DECISION_REUSE,
+        CLEAR_ZONE_NEGATIVE_REUSE,
         FIRING_POSITION,
+        FIRING_RETAIN_VALIDATE,
+        FIRING_RETAIN_HIT,
+        FIRING_RETAIN_SEARCH,
+        /** Count-only spread neighborhood query pairs, candidates, and gathered points. */
+        FIRING_SPREAD_QUERY,
+        FIRING_SPREAD_CANDIDATE,
+        FIRING_SPREAD_VISIT,
         /** Experimental shared geometry builds; time is nested within FIRING_POSITION. */
         FIRING_POOL_BUILD,
         FIRING_POOL_HIT,
@@ -321,6 +346,11 @@ public final class TickInnerProfile {
     private long activeMemberId;
     private int activeSquadId = -1;
     private String activeAction = "";
+    private String lastUnitAction = "";
+
+    /** Optional callback diagnostics; empty means no GOAP action was entered. */
+    public void clearUnitAction() { lastUnitAction = ""; }
+    public String lastUnitAction() { return lastUnitAction; }
     private String activeRouteReason = "";
     /** Per profiling identity {@code {nanos, count}} behind {@link Bucket#ACTION_EXECUTE}. */
     private final Map<String, long[]> actions = new HashMap<>();
@@ -346,6 +376,7 @@ public final class TickInnerProfile {
         convoySearchesStarted = 0L;
         slowPathSearchCount = 0;
         activeBehavior = null;
+        clearUnitAction();
         exitAction();
         actions.clear();
     }
@@ -374,6 +405,7 @@ public final class TickInnerProfile {
         activeMemberId = memberId;
         activeSquadId = squadId;
         activeAction = action != null ? action : "";
+        lastUnitAction = activeAction;
         activeRouteReason = "";
     }
 
@@ -402,6 +434,12 @@ public final class TickInnerProfile {
                 && activeBehavior == Bucket.BEHAVIOR_SWARM_PRESSURE) {
             add(Bucket.SWARM_PATHFIND, deltaNanos);
         }
+    }
+
+    /** Aggregate work counts without a clock read or a method call per candidate. */
+    public void recordCount(Bucket bucket, int count) {
+        if (count < 0) throw new IllegalArgumentException("negative work count");
+        counts[bucket.ordinal()] += count;
     }
 
     /**

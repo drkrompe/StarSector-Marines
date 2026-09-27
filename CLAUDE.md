@@ -204,6 +204,15 @@ Do not run builds or leave generated task files there.
   execution-sample recording and one event per measured tick in the same output directory;
   JFR adds overhead, so use the ordinary run for timing magnitude and the
   recording for code-path attribution. Add
+  `-Dbattle.tail.workerTimeline=true` together with JFR to retain every unit
+  callback's worker identity, last entered GOAP action, nanoTime interval and
+  thread-CPU delta for dispatches lasting at least 10 ms. Includes early-return
+  callbacks. Separate dispatch markers identify stream-root completion and host
+  wakeup: the latest callback is not assumed to be the join's completion. Callback
+  events are emitted by the host after join; use their explicit timestamps and
+  worker identity, not the JFR emission timestamp/thread. This diagnostic adds
+  per-callback CPU reads, 1 ms stack sampling, and zero-threshold monitor events;
+  do not use it for ordinary performance comparisons. Add
   `-Dbattle.tail.convoyUncachedStages=true` to measure isolated terrain-cost,
   APC-clearance, connectivity-label construction, and a frozen progressive
   route-input snapshot on the same grid after the timed replay; this does not
@@ -228,6 +237,49 @@ Do not run builds or leave generated task files there.
   shared constrained firing-position experiment for patrol and zone-entry
   execution. `FIRING_POOL_*` and `FIRING_INDIVIDUAL_*` inner counters expose
   reuse and candidate/ray work (count-only counters have zero time).
+  `-Dbattle.targeting.firingReachabilityComponents=false` restores discarded A*
+  reachability proofs for unconstrained firing positions. The default uses the
+  grid's topology-revision component cache without changing movement rules.
+  `-Dbattle.goap.localHoldPositions=false` restores whole-zone capture-post
+  spreading; the default scopes posts to the compound footprint and maintains
+  nearest-selected distances incrementally. `HOLD_POSITION` records total picker
+  time, `HOLD_POSITION_CELL` inspected cells, and `HOLD_POSITION_FALLBACK` the
+  exceptional nearest-zone-cell fallback when no local intersection exists.
+  `-Dbattle.goap.priorityOrderedEvaluation=false` evaluates every goal category
+  eagerly; the default descends only after higher-category goals cannot supply
+  a plan. `-Dbattle.goap.localBreachChecks=false` restores whole-roster breach
+  eligibility scans. `-Dbattle.targeting.retainFiringPositions=false` disables
+  positive execution-position retention. The default validates one chosen cell
+  and retains it for 300–360 ticks unless intent or legality changes; eligibility
+  probes and negative/vantage-only answers are not retained. `FIRING_RETAIN_*`
+  counters distinguish validation time, reuse, and fresh searches. The older
+  shared-pool experiment remains independent and off; enabling it bypasses the
+  per-member constrained retention path so controls remain separable.
+  JFR tail recordings explicitly capture 1 ms monitor/park waits, full safepoint
+  lifecycle, GC pause and VM-operation events, and a `UnitDispatch` event around
+  parallel submission/join. Its `wallNanos` is the real elapsed interval; the
+  outer `awaitWorkers` metric includes useful execution as well as waiting.
+  `-Dbattle.targeting.boundKnownContactScan=false` restores target-ring expansion
+  beyond the sight/known-contact bound. `TARGET_SCAN_VISIT/RING/RAY` count its
+  candidates, completed rings, and visibility checks. Distant beliefs still
+  extend the default bound; unknown enemies cannot become eligible merely
+  because no visible winner was found nearby.
+  `-Dbattle.targeting.pruneClearZoneSelection=false` restores separate unpruned
+  visible/nearest room-target scans. `CLEAR_ZONE_TARGET_SELECT/VISIT/RAY` report
+  selection wall time, roster visits, and LOS checks. The default preserves exact
+  room scope and first-dense-roster ties without a visibility-radius cap.
+  `-Dbattle.squad.isolatedAdvanceThreat=false` restores the broad squad monitor
+  for route-threat publication. The default uses a dedicated once-per-tick
+  monitor, preserving complete current-tick decisions and hysteresis.
+  `-Dbattle.pathfinding.phaseOwnedRallyRequests=false` restores worker-side
+  synchronized route requests. The default publishes member-owned intents after
+  join; `RALLY_REQUEST_PREPARE/COMMIT` separates host work from worker dispatch,
+  and route poll/cancel/no-op counters quantify the former contention surface.
+  `-Dbattle.projectiles.phaseOwnedPublication=false` restores per-reader copies
+  and synchronized projectile appends. The default shares an update-start
+  hazard view and collects launch intents before projectile physics; fresh
+  launches remain visible to reservation checks. `PROJECTILE_PUBLICATION_*`
+  records host preparation and collection rather than hiding moved work.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.

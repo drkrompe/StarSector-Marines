@@ -319,11 +319,24 @@ public final class ShuttleMeans implements ReinforcementMeans {
                     DEFAULT_TYPE.capacity, mission.deboardUnitType,
                     risk, sim.random());
         }
-        LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
-                + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")"
-                + " from=" + (airfield.isEmpty() ? "offmap"
-                        : loadedOnTheGround ? "airfield-embark" : "airfield"));
+        if (LOG.isInfoEnabled()) {
+            LOG.info(dispatchMessage(req.side, lz[0], lz[1], entry[0], entry[1],
+                    !airfield.isEmpty(), loadedOnTheGround));
+        }
         return ReinforcementDispatchResult.COMMITTED;
+    }
+
+    /** Avoid first-dispatch string-concat linkage in the simulation tick. */
+    static String dispatchMessage(Faction side, int lzX, int lzY, float entryX, float entryY,
+                                  boolean hasAirfield, boolean loadedOnTheGround) {
+        return new StringBuilder(144)
+                .append("ShuttleMeans: dispatched ").append(DEFAULT_TYPE)
+                .append(" side=").append(side)
+                .append(" lz=(").append(lzX).append(',').append(lzY)
+                .append(") entry=(").append(entryX).append(',').append(entryY)
+                .append(") from=").append(!hasAirfield ? "offmap"
+                        : loadedOnTheGround ? "airfield-embark" : "airfield")
+                .toString();
     }
 
     /**

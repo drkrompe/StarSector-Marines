@@ -48,8 +48,10 @@ class SquadFiringPositionEvidenceTest {
     @Test
     void comparesBoundedPositionsAcrossTargetMotionAndTopologyChanges() throws Exception {
         String previous = System.getProperty(PROPERTY);
+        String previousRetention = System.getProperty("battle.targeting.retainFiringPositions");
         TickInnerProfile priorProfile = TickInnerProfile.currentIfBound();
         try {
+            System.setProperty("battle.targeting.retainFiringPositions", "false");
             JSONObject report = new JSONObject().put("schemaVersion", 1)
                     .put("evidenceKind", "scorer-only; no autonomous movement or shots")
                     .put("timingSemantics", "selection wall time only; descriptive, includes JIT; no cross-host timing gate")
@@ -64,6 +66,8 @@ class SquadFiringPositionEvidenceTest {
             Files.writeString(summary, report.toString(2), StandardCharsets.UTF_8);
             System.out.println("Squad firing-position scoring evidence: " + summary.toAbsolutePath());
         } finally {
+            if (previousRetention == null) System.clearProperty("battle.targeting.retainFiringPositions");
+            else System.setProperty("battle.targeting.retainFiringPositions", previousRetention);
             if (previous == null) System.clearProperty(PROPERTY);
             else System.setProperty(PROPERTY, previous);
             TickInnerProfile.setCurrent(priorProfile);
