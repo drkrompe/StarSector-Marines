@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — deployed APC direct control suspends route orders and shares physical motion and turret authority.
+Updated: 2026-09-27 — repeated recovery failures may be reused only for the same bounded request against frozen routing inputs.
 
 ## Purpose and boundary
 
@@ -273,6 +273,13 @@ reroute around the failing area, with failed areas excluded for that travel leg
 so later attempts cannot ping-pong through an earlier bad bend. If no such route
 exists, reroute attempts are rate-limited while ordinary tracking continues;
 the durable abort, hold, or deliver-in-place terminal outcome remains open.
+
+A failed bounded recovery is not proof of permanent unreachability. The vehicle
+may retain that answer while the exact recovery request and its frozen routing
+inputs remain unchanged, avoiding repeated identical proofs. A different
+request, exclusion set, routing snapshot, or control intent requires a fresh
+answer. This reuse neither suppresses ordinary physical tracking nor grants
+permission to cross terrain; it only replaces an identical failed computation.
 
 An actual convoy proof retains a frozen routing view: raw navigation and ground
 kinds are copied once, while footprint clearance and terrain cost are evaluated

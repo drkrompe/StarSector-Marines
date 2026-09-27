@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -40,6 +41,9 @@ public final class HybridAStarPlanner {
     private static final float SQRT2 = (float) Math.sqrt(2.0);
     /** A rolling goal is accepted only when the vehicle is also aligned within 20 degrees of its corridor tangent. */
     private static final int LOCAL_GOAL_HEADING_TOLERANCE_BINS = 2;
+    /** Same-build control: false retains heuristic/lattice work for an invalid start. */
+    private static final boolean REJECT_INVALID_PLANNER_START = Boolean.parseBoolean(
+            System.getProperty("battle.vehicle.rejectInvalidPlannerStart", "true"));
 
     // -- Rolling-horizon local search --------------------------------------
 
@@ -67,6 +71,15 @@ public final class HybridAStarPlanner {
     public static float[][] planLocal(Pose start, Pose goal, float goalRadiusCells,
                                       int winMinX, int winMinY, int winMaxX, int winMaxY,
                                       int maxIterations, VehicleType type, NavigationGrid grid) {
+        return planLocal(start, goal, goalRadiusCells, winMinX, winMinY, winMaxX, winMaxY,
+                maxIterations, type, grid, REJECT_INVALID_PLANNER_START);
+    }
+
+    /** Explicit policy seam for paired unit evidence; does not mutate a process-global switch. */
+    static float[][] planLocal(Pose start, Pose goal, float goalRadiusCells,
+                               int winMinX, int winMinY, int winMaxX, int winMaxY,
+                               int maxIterations, VehicleType type, NavigationGrid grid,
+                               boolean rejectInvalidStart) {
         GroundBody body = type.createBody();
         if (!(body instanceof BicycleBody)) return null;
         BicycleBody bicycle = (BicycleBody) body;
@@ -89,6 +102,17 @@ public final class HybridAStarPlanner {
         // Fail fast instead -- a goal outside the search window is "no trajectory".
         if (goalCellX < minX || goalCellX > maxX || goalCellY < minY || goalCellY > maxY) {
             return null;
+        }
+        // Every first successor's sweep checks this identical padded start.
+        // The parentless root cannot satisfy the goal, and analytic shortcuts
+        // begin only after 30 expansions: an invalid start has no way forward.
+        // Keep malformed poses on the existing validation path instead of
+        // turning an input error into an ordinary physical refusal.
+        if (Float.isFinite(start.x) && Float.isFinite(start.y) && Float.isFinite(start.facingDeg)
+                && !VehicleFootprint.isPoseFeasible(start.x, start.y, start.facingDeg,
+                        vLen, vWid, grid)) {
+            recordInvalidStart(start, type, vLen, vWid, grid);
+            if (rejectInvalidStart) return null;
         }
         long heuristicStarted = VehicleWorkProfile.start();
         float[] gridDist;
@@ -210,6 +234,23 @@ public final class HybridAStarPlanner {
         VehicleWorkProfile.count(Bucket.VEHICLE_LOCAL_EXPANDED, iterations);
         if (goalNode == null && analyticPath == null) return null;
         return extractLocal(goalNode, analyticFrom, analyticPath, best, goal, turnRadius);
+    }
+
+    /** Two independent partitions of padded-start refusals, once per call in either control. */
+    private static void recordInvalidStart(Pose start, VehicleType type,
+                                            float paddedLength, float paddedWidth,
+                                            NavigationGrid grid) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile == null) return;
+        profile.recordCount(Bucket.VEHICLE_LOCAL_INVALID_START, 1);
+        boolean chassisClear = VehicleFootprint.isPoseFeasible(start.x, start.y, start.facingDeg,
+                type.visualLengthCells, type.visualWidthCells, grid);
+        profile.recordCount(chassisClear ? Bucket.VEHICLE_LOCAL_PADDING_ONLY_START
+                : Bucket.VEHICLE_LOCAL_INVALID_CHASSIS_START, 1);
+        boolean withinBounds = VehicleFootprint.isPoseWithinGrid(start.x, start.y, start.facingDeg,
+                paddedLength, paddedWidth, grid);
+        profile.recordCount(withinBounds ? Bucket.VEHICLE_LOCAL_START_TERRAIN
+                : Bucket.VEHICLE_LOCAL_START_OUT_OF_BOUNDS, 1);
     }
 
     /**

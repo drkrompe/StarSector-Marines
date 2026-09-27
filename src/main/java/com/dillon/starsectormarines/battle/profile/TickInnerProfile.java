@@ -206,8 +206,22 @@ public final class TickInnerProfile {
         VEHICLE_HEURISTIC_STORAGE_CELL,
         VEHICLE_LOCAL_EXPANDED,
         VEHICLE_LOCAL_NO_TRAJECTORY,
+        /** Padded start footprint invalid; counted once per local search in both controls. */
+        VEHICLE_LOCAL_INVALID_START,
+        /** Physical chassis is already invalid (subset of INVALID_START). */
+        VEHICLE_LOCAL_INVALID_CHASSIS_START,
+        /** Physical chassis clears; only the planner's tracking pad is invalid. */
+        VEHICLE_LOCAL_PADDING_ONLY_START,
+        /** Padded start extends outside map bounds; independent of chassis/padding partition. */
+        VEHICLE_LOCAL_START_OUT_OF_BOUNDS,
+        /** Padded start is inside bounds but fails terrain or reciprocal closed-edge checks. */
+        VEHICLE_LOCAL_START_TERRAIN,
         VEHICLE_RECOVERY_EXPANDED,
         VEHICLE_RECOVERY_ATTEMPT,
+        /** A prior failed recovery remains applicable, avoiding another identical search. */
+        VEHICLE_RECOVERY_FAILED_REUSE,
+        /** A fresh recovery search returned no route. */
+        VEHICLE_RECOVERY_FAILED_RESULT,
         TARGET_PICK,
         RALLY_REQUEST_PREPARE,
         RALLY_REQUEST_COMMIT,

@@ -44,6 +44,9 @@ import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComp
  */
 public final class VehicleControlSystem {
 
+    private static final boolean REUSE_FAILED_RECOVERY = Boolean.parseBoolean(
+            System.getProperty("battle.vehicle.reuseFailedRecovery", "true"));
+
     private final ConvoyService convoy;
     private final NavigationService navigation;
 
@@ -90,6 +93,7 @@ public final class VehicleControlSystem {
 
     /** Manual wheel/throttle input shares bicycle integration and the live whole-body sweep. */
     public void tickManual(long id, float dt, float throttle, float steering) {
+        convoy.control(id).failedRecovery = null;
         GroundBody body = convoy.body(id);
         if (!(body instanceof BicycleBody bicycle)) throw new IllegalStateException("Manual vehicle drive requires a bicycle chassis");
         VehicleType type = convoy.vehicleType(id);
@@ -127,7 +131,8 @@ public final class VehicleControlSystem {
         resetTracking(s, clearRescueFirstSteps);
     }
 
-    private void resetTracking(VehicleControlComponent s, boolean clearRescueFirstSteps) {
+    static void resetTracking(VehicleControlComponent s, boolean clearRescueFirstSteps) {
+        s.failedRecovery = null;
         s.arrived = false;
         s.trajectory = null;
         s.trajProgress = 0f;
@@ -493,10 +498,11 @@ public final class VehicleControlSystem {
      * dropping an impassable disc on the stuck spot so the search picks a
      * genuinely different corridor. Swaps the new polyline onto the vehicle and
      * rebuilds the corridor. Returns {@code false} (no change) when the vehicle
-     * isn't cost-field-routed, the endpoints can't be snapped, or avoiding the
-     * stuck spot disconnects the goal (genuinely boxed in → the truck holds; the
-     * stall timer retries every {@link VehicleController#STALL_SECONDS} in case the
-     * grid opens up).
+     * isn't cost-field-routed, the endpoints can't be snapped, or the
+     * bounded rescue search finds no route. The truck holds and the stall timer
+     * retries every {@link VehicleController#STALL_SECONDS}. Frozen-world rescue
+     * reuses an identical failed request until its inputs change; only the legacy
+     * live-grid branch can benefit directly from newly opened ground.
      */
     private boolean attemptReroute(VehicleMission mission, GroundBody body, VehicleType type,
                                    VehicleControlComponent s) {
@@ -547,11 +553,8 @@ public final class VehicleControlSystem {
         int avoidY = (int) Math.floor(ahead.y);
         rememberFailedArea(s, avoidX, avoidY);
         VehicleRoutePlanner.RescueRoute rescue = fields != null
-                ? VehicleRoutePlanner.routeAvoidingForwardFirstOnDemand(
-                cur[0], cur[1], goal[0], goal[1], body.facingDegrees,
-                s.rescueFirstStepTriedMask, grid, fields, fields,
-                s.rerouteAvoidX, s.rerouteAvoidY, s.rerouteAvoidCount,
-                VehicleController.REROUTE_AVOID_RADIUS, type)
+                ? frozenRescue(s, fields, type, cur[0], cur[1], goal[0], goal[1],
+                body.facingDegrees, VehicleController.REROUTE_AVOID_RADIUS, REUSE_FAILED_RECOVERY)
                 : VehicleRoutePlanner.routeAvoidingForwardFirst(
                 cur[0], cur[1], goal[0], goal[1], body.facingDegrees,
                 s.rescueFirstStepTriedMask, grid, cost, clr,
@@ -579,6 +582,30 @@ public final class VehicleControlSystem {
         // tried-bearing history before the truck has actually escaped.
         s.recoveryBestRemaining = s.corridor.remainingLength(body.x, body.y);
         return true;
+    }
+
+    /** Only committed frozen route fields qualify; the eager/live-grid branch must always retry. */
+    static VehicleRoutePlanner.RescueRoute frozenRescue(
+            VehicleControlComponent s, ProgressiveVehicleField fields, VehicleType type,
+            int startX, int startY, int goalX, int goalY, float facing, float radius,
+            boolean reuseFailed) {
+        boolean cacheable = reuseFailed && Float.isFinite(facing) && Float.isFinite(radius) && radius >= 0f;
+        if (cacheable && s.failedRecovery != null
+                && s.failedRecovery.matches(s, fields, type, startX, startY, goalX, goalY, facing, radius)) {
+            VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_FAILED_REUSE, 1);
+            return null;
+        }
+        s.failedRecovery = null;
+        VehicleRoutePlanner.RescueRoute rescue = VehicleRoutePlanner.routeAvoidingForwardFirstOnDemand(
+                startX, startY, goalX, goalY, facing, s.rescueFirstStepTriedMask,
+                fields.grid(), fields, fields, s.rerouteAvoidX, s.rerouteAvoidY,
+                s.rerouteAvoidCount, radius, type);
+        if (rescue == null) {
+            VehicleWorkProfile.count(Bucket.VEHICLE_RECOVERY_FAILED_RESULT, 1);
+            if (cacheable) s.failedRecovery = new FailedVehicleRecovery(
+                    s, fields, type, startX, startY, goalX, goalY, facing, radius);
+        }
+        return rescue;
     }
 
     private static void rememberFailedArea(VehicleControlComponent s, int x, int y) {
