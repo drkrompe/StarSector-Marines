@@ -61,6 +61,8 @@ class SquadRoutePendingActionTest {
             assertEquals(1, f.requests);
             assertEquals(1, f.pathWrites);
             assertEquals(1, f.advances);
+            assertSame(f.currentPath, f.roster.world().path(f.member));
+            assertFalse(f.roster.movement().mayRepath(f.member), "real installation stamps the repath clock");
             assertEquals(f.enemy, f.roster.combat().fireTargetId(f.member));
             assertEquals(1, f.profile.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_PENDING_CALL));
             assertFalse(f.roster.movement().needsObjectiveRouteRefresh(f.member));
@@ -81,6 +83,7 @@ class SquadRoutePendingActionTest {
             assertEquals(1, f.requests, "ready field must be read before resuming a possibly unrelated old path");
             assertEquals(1, f.pathWrites);
             assertEquals(1, f.advances);
+            assertSame(f.currentPath, f.roster.world().path(f.member));
             assertFalse(f.roster.movement().needsObjectiveRouteRefresh(f.member));
             f.execute();
             assertEquals(1, f.requests, "the one-off refresh must not defeat the ordinary throttle thereafter");
@@ -108,6 +111,8 @@ class SquadRoutePendingActionTest {
         final ProbeAction action = new ProbeAction();
         final SquadPlan.Step step = new SquadPlan.Step(action);
         final int[] oldPath = {2, 2, 3, 2, 4, 2};
+        final int[] currentPath = {2, 2, 3, 2, 4, 2, 5, 2, 6, 2, 7, 2,
+                8, 2, 9, 2, 10, 2, 11, 2, 12, 2, 13, 2};
         final BattleControl sim;
         boolean pending = true;
         int tick = 100, pendingChecks, requests, pathWrites, advances;
@@ -122,6 +127,13 @@ class SquadRoutePendingActionTest {
             squad = roster.getSquad(id);
             member = roster.spawn(new EntitySpec("member", Faction.MARINE, UnitType.MARINE, 2, 2).squad(id));
             enemy = roster.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MARINE, 6, 2));
+            nav.setOccupancyDeltaSink((unit, oldX, oldY, newX, newY) -> {
+                assertEquals(member, unit);
+                assertEquals(4, oldX);
+                assertEquals(2, oldY);
+                assertEquals(13, newX);
+                assertEquals(2, newY);
+            });
             roster.world().setAttackRange(member, 10f);
             roster.world().setTargetId(member, enemy);
             roster.movement().setPathRef(member, oldPath);
@@ -153,10 +165,37 @@ class SquadRoutePendingActionTest {
                             assertEquals(2, args[4]);
                             yield pending;
                         }
-                        case "findSquadPathToGoal" -> { requests++; yield oldPath; }
-                        case "setPath" -> { pathWrites++; yield null; }
+                        case "findSquadPathToGoal" -> {
+                            requests++;
+                            assertEquals(13, args[5]);
+                            assertEquals(2, args[6]);
+                            yield currentPath;
+                        }
+                        case "setPath" -> {
+                            assertTrue(roster.movement().needsObjectiveRouteRefresh(member),
+                                    "handback marker must survive until route installation");
+                            assertSame(currentPath, args[1]);
+                            nav.setPath((long) args[0], (int[]) args[1]);
+                            pathWrites++;
+                            assertSame(currentPath, roster.world().path(member));
+                            assertTrue(roster.movement().needsObjectiveRouteRefresh(member),
+                                    "installation does not clear the action-owned handback marker");
+                            yield null;
+                        }
                         case "clearPath" -> throw new AssertionError("pending must not clear a path");
-                        case "advanceSquadTravel", "advanceMovement" -> { advances++; yield null; }
+                        case "advanceSquadTravel" -> {
+                            assertEquals(1, pathWrites, "current route must be installed before travel");
+                            assertSame(currentPath, roster.world().path(member));
+                            assertNotSame(oldPath, roster.world().path(member));
+                            assertEquals(1, roster.world().pathIdx(member));
+                            assertFalse(roster.movement().needsObjectiveRouteRefresh(member),
+                                    "handback marker must clear before travel resumes");
+                            assertFalse(roster.movement().mayRepath(member),
+                                    "real installation must have stamped the repath clock");
+                            advances++;
+                            yield null;
+                        }
+                        case "advanceMovement" -> throw new AssertionError("unexpected combat movement");
                         default -> throw new AssertionError("Unexpected battle dependency: " + method.getName());
                     });
             TickInnerProfile.setCurrent(profile);
