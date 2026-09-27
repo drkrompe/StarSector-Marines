@@ -4,9 +4,8 @@ Status: ACTIVE — shared architecture and mission-specific migrations are track
 
 Written: 2026-08-27
 
-Updated: 2026-09-02 — the lane chain shipped on by default and its story is
-folded into `conquest-command.md`; what turned it on was a map defect rather
-than anything in the commander.
+Updated: 2026-09-27 — strategic-resolution evidence and compact navigation
+snapshots are folded into the canonical model; open work remains below.
 
 Read `mission-command-nouns.md`, then the relevant mission design before an
 implementation story.
@@ -15,7 +14,6 @@ implementation story.
 
 | Story | State | Intent |
 |---|---|---|
-| `strategic-resolution-evidence.md` | IN PROGRESS | Attribute commander snapshot rebuilding and compare8/16-cell influence fields on identical frozen battle inputs. |
 | `autonomous-mission-command-foundation.md` | IN PROGRESS | Close assignment-writer ownership and live acceptance around the shared frame/plan/commit contract. |
 | `commander-trace-and-balance-harness.md` | IN PROGRESS | Replace construction-only Conquest evidence with launch-faithful fixtures and later compare bounded intervention. |
 | `player-command-interventions.md` | PLANNED | Tactical squad orders lease through the arbiter and hand back (shipped 2026-09-01). Add the strategic priority/rally/reserve/fallback vocabulary, refuse a lease over a higher authority, and bound pacing. |

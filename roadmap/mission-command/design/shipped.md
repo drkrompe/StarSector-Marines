@@ -6,6 +6,7 @@ Written: 2026-08-27
 
 | Retired story | Mission | Ship date | Evidence | Fold destination |
 |---|---|---|---|---|
+| `strategic-resolution-evidence.md` | Shared | 2026-09-27 | `5d8971331`, `d2e708d67`; 317 focused tests and paired frozen-grid evidence | `mission-command-nouns.md` — exact snapshot storage, strategic resolution and field-approximation boundaries |
 | `sabotage-site-task-groups.md` | Sabotage | 2026-08-26 | `3efd0c42`, `30da6637` | `sabotage-command.md` |
 | `sabotage-site-defense-command.md` | Sabotage | 2026-08-26 | `d598c1df` | `sabotage-command.md` |
 | `extraction-objective-contract.md` | Extraction | 2026-08-27 | `34ce388a` | `extraction-command.md`, `mission-command-nouns.md` |
