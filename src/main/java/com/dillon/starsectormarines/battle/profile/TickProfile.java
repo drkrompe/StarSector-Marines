@@ -121,6 +121,9 @@ public final class TickProfile {
     private long spikeTotalNanos;
     private long spikeBaselineNanos;
 
+    /** Opt-in per battle: phase averages remain live without allocating spike snapshots. */
+    private boolean autoSpikeCaptureEnabled;
+
     /** Sim-tick index at the start of the current tick — latched in {@link #begin(int)} so {@link #lap(Phase)} and {@link #endTick(int)} can gate on warmup without re-passing it. */
     private int currentTickIndex;
     /** True while {@link #currentTickIndex} {@code <} {@link #WARMUP_TICKS}. Set in {@link #begin(int)} so the gate is consistent across the lap+endTick passes within one tick. */
@@ -165,11 +168,12 @@ public final class TickProfile {
     /**
      * Counts one tick. Two responsibilities:
      * <ol>
-     *   <li>Spike detection — sum the per-phase nanos for this tick, compare
+     *   <li>Opt-in spike detection — sum the per-phase nanos for this tick, compare
      *       against the windowed total average; latch a pending spike if the
      *       tick blew past {@link #SPIKE_MULTIPLIER}× baseline and the absolute
      *       time was above {@link #SPIKE_FLOOR_NS}. Only fires once a complete
-     *       window has populated the baseline; the first window is warmup.</li>
+     *       window has populated the baseline; the first window is warmup.
+     *       Disabled capture skips detection and snapshot allocation.</li>
      *   <li>Window snapshot — when {@link #WINDOW_TICKS} have accumulated,
      *       freeze the averages + per-phase max into the display buffer and
      *       reset the accumulators. The display buffer holds steady between
@@ -193,19 +197,11 @@ public final class TickProfile {
         // --- Spike detection ---
         // Skip while baseline is uninitialized (first window) — without a
         // reference there's no "spike", just first-tick wall-clock noise.
-        if (displaySampleCount > 0 && !spikePending) {
+        if (autoSpikeCaptureEnabled && displaySampleCount > 0 && !spikePending) {
             long baselineTotal = totalAvgNanos();
             long thisTickTotal = 0L;
             for (long v : currentTickNanos) thisTickTotal += v;
-            if (thisTickTotal >= SPIKE_FLOOR_NS
-                    && baselineTotal > 0L
-                    && thisTickTotal >= (long) (baselineTotal * SPIKE_MULTIPLIER)) {
-                spikePending = true;
-                spikeTickIndex = simTickIndex;
-                spikeTotalNanos = thisTickTotal;
-                spikeBaselineNanos = baselineTotal;
-                spikeInnerSnapshot = (innerProfile != null) ? innerProfile.snapshot() : null;
-            }
+            captureSpikeIfEligible(simTickIndex, thisTickTotal, baselineTotal, innerProfile);
         }
 
         // --- Window snapshot ---
@@ -240,6 +236,31 @@ public final class TickProfile {
 
     /** Nanos spent in {@code p} during the most recent {@link #endTick(int)}. Useful when consumers want per-tick (not per-window-average) numbers. */
     public long lastTickNanos(Phase p) { return currentTickNanos[p.ordinal()]; }
+
+    /** Automatic capture is off by default; live counters and manual dumps are independent. */
+    public boolean isAutoSpikeCaptureEnabled() { return autoSpikeCaptureEnabled; }
+
+    /** Disabling also releases a latched snapshot so re-arming cannot dump a stale tick. */
+    public void setAutoSpikeCaptureEnabled(boolean enabled) {
+        autoSpikeCaptureEnabled = enabled;
+        if (!enabled) {
+            spikePending = false;
+            spikeInnerSnapshot = null;
+        }
+    }
+
+    /** Duration-based capture policy, separated from the clock for exact threshold tests. */
+    void captureSpikeIfEligible(int tickIndex, long totalNanos, long baselineNanos,
+                                TickInnerProfile innerProfile) {
+        if (!autoSpikeCaptureEnabled || spikePending
+                || totalNanos < SPIKE_FLOOR_NS || baselineNanos <= 0L
+                || totalNanos < (long) (baselineNanos * SPIKE_MULTIPLIER)) return;
+        spikePending = true;
+        spikeTickIndex = tickIndex;
+        spikeTotalNanos = totalNanos;
+        spikeBaselineNanos = baselineNanos;
+        spikeInnerSnapshot = innerProfile != null ? innerProfile.snapshot() : null;
+    }
 
     /** True until the sim has crossed {@link #WARMUP_TICKS} ticks. While true, spike detection is suppressed and baselines aren't accumulating. */
     public boolean isWarmingUp() { return inWarmup; }

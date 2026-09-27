@@ -634,13 +634,16 @@ public class BattleScreen implements Screen, BattleUiContext {
         // DevConfig-gated; informs
         // the upcoming DoD / ECS refactor by showing which tick phases are
         // actually expensive at peak unit counts.
-        hud.addPanel(new TickProfileDebugPanel(this));
+        TickProfileDebugPanel tickProfilePanel = new TickProfileDebugPanel(this);
+        hud.addPanel(tickProfilePanel);
         // Debug toggles + actions (top-center beside Tick Profile, collapsed
         // by default). Replaces
         // the prior DebugTogglesWidget which was attached to the screen's
         // widget root rather than the hud — moved into the hud so input +
         // render ordering match the rest of the debug panels.
         DebugTogglesPanel debugPanel = new DebugTogglesPanel(this);
+        debugPanel.addToggle("Auto spike dumps",
+                tickProfilePanel::isAutoDumpEnabled, tickProfilePanel::toggleAutoDump);
         debugPanel.addToggle("Docking paths",
                 () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS,
                 () -> BattleRenderer.DEBUG_RENDER_DOCKING_PATHS =
