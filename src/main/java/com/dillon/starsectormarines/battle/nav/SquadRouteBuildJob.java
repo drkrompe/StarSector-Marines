@@ -8,7 +8,7 @@ import java.util.Arrays;
 /**
  * One serial, resumable preparation slot. Map-sized primitive scratch is owned
  * by the slot, not allocated for each squad. Each work unit visits one search
- * node, route cell, mesh boundary, corridor cell, or publication entry. Heap
+ * node, route cell, mesh boundary, required start, or publication entry. Heap
  * operations have logarithmic cost; output-array allocation is not preemptible.
  * Only already-current connected-component labels may reject a seed: a lazy
  * full-map rebuild would bypass this budget. Topology must remain unchanged
@@ -20,7 +20,7 @@ final class SquadRouteBuildJob {
     private static final int CLOSED = -2;
     private final NavigationGrid grid;
     private final int width, height, size;
-    private final int[] seen, allowed, required, next, positions, heap, settled;
+    private final int[] seen, required, next, positions, heap, settled;
     private final float[] distance, priority;
     private int[] routeRegions = new int[0], selectedRegions = new int[0];
     private int generation, jobGeneration, heapSize, settledCount;
@@ -28,7 +28,7 @@ final class SquadRouteBuildJob {
     private RouteCostField cost;
     private int[] starts;
     private int goal, startCursor, traceCursor, traceSuccessor, padRegion, padCursor;
-    private int regionCursor, regionCellCursor, requiredCursor, remaining;
+    private int requiredCursor, remaining;
     private int sortCursor, sortEnd, publishCursor;
     private int[] publishedCells, publishedNext;
     private boolean direct, hasRoute, invalidated;
@@ -43,7 +43,7 @@ final class SquadRouteBuildJob {
         width = grid.getWidth();
         height = grid.getHeight();
         size = width * height;
-        seen = new int[size]; allowed = new int[size]; required = new int[size];
+        seen = new int[size]; required = new int[size];
         next = new int[size]; positions = new int[size]; heap = new int[size];
         settled = new int[size]; distance = new float[size]; priority = new float[size];
     }
@@ -58,7 +58,7 @@ final class SquadRouteBuildJob {
         starts = request.startCells();
         topologyRevision = grid.topologyRevision();
         if (++jobGeneration == 0) {
-            Arrays.fill(allowed, 0); Arrays.fill(required, 0);
+            Arrays.fill(required, 0);
             Arrays.fill(routeRegions, 0); Arrays.fill(selectedRegions, 0);
             jobGeneration = 1;
         }
@@ -132,7 +132,11 @@ final class SquadRouteBuildJob {
             case SEED -> expandSeed();
             case TRACE -> traceSeed();
             case PAD -> padRegion();
-            case CORRIDOR -> addCorridorCell();
+            case CORRIDOR -> {
+                resetSearch();
+                requiredCursor = remaining = 0;
+                stage = Stage.REQUIRED;
+            }
             case REQUIRED -> addRequiredStart();
             case REVERSE -> expandReverse();
             case SORT_HEAP -> {
@@ -169,7 +173,6 @@ final class SquadRouteBuildJob {
     private void startSeed() {
         if (startCursor == starts.length) {
             if (!hasRoute) { stage = Stage.DONE; return; }
-            regionCursor = regionCellCursor = 0;
             stage = Stage.CORRIDOR;
             return;
         }
@@ -239,7 +242,8 @@ final class SquadRouteBuildJob {
         if (direct) { settled[settledCount++] = cell; return; }
         int region = mesh.regionIdAt(cell % width, cell / width);
         if (region >= 0 && routeRegions[region] != jobGeneration) {
-            routeRegions[region] = selectedRegions[region] = jobGeneration;
+            routeRegions[region] = jobGeneration;
+            selectRegion(region);
             unpaddedCells += mesh.regions().get(region).cellCount();
             padRegion = region;
             padCursor = 0;
@@ -251,31 +255,27 @@ final class SquadRouteBuildJob {
         if (padCursor == mesh.transitionCount(padRegion)) { stage = Stage.TRACE; return; }
         GreedyNavigationMesh.Transition transition = mesh.transitions().get(
                 mesh.transitionIdAt(padRegion, padCursor++));
-        selectedRegions[transition.regionA()] = jobGeneration;
-        selectedRegions[transition.regionB()] = jobGeneration;
+        selectRegion(transition.regionA());
+        selectRegion(transition.regionB());
     }
 
-    private void addCorridorCell() {
-        if (regionCursor == mesh.regions().size()) {
-            resetSearch();
-            requiredCursor = remaining = 0;
-            stage = Stage.REQUIRED;
-            return;
+    /**
+     * A synchronized mesh region contains only walkable cells. Retain its
+     * membership instead of enumerating its rectangle into another cell mask.
+     * Topology invalidation prevents a changed grid from using this count.
+     */
+    private void selectRegion(int region) {
+        if (selectedRegions[region] != jobGeneration) {
+            selectedRegions[region] = jobGeneration;
+            corridorCells += mesh.regions().get(region).cellCount();
         }
-        GreedyNavigationMesh.Region region = mesh.regions().get(regionCursor);
-        if (selectedRegions[region.id()] != jobGeneration
-                || regionCellCursor == region.cellCount()) {
-            regionCursor++;
-            regionCellCursor = 0;
-            return;
-        }
-        int cell = (region.y() + regionCellCursor / region.width()) * width
-                + region.x() + regionCellCursor % region.width();
-        regionCellCursor++;
-        if ((grid.getCellFlagsArray()[cell] & 1L) != 0) {
-            allowed[cell] = jobGeneration;
-            corridorCells++;
-        }
+    }
+
+    private boolean inCorridor(int cell, int x, int y) {
+        // Reverse canStep checks the destination, not this predecessor.
+        if ((grid.getCellFlagsArray()[cell] & 1L) == 0) return false;
+        int region = mesh.regionIdAt(x, y);
+        return region >= 0 && selectedRegions[region] == jobGeneration;
     }
 
     private void addRequiredStart() {
@@ -285,7 +285,7 @@ final class SquadRouteBuildJob {
             return;
         }
         int start = starts[requiredCursor++];
-        if (start >= 0 && start < size && allowed[start] == jobGeneration
+        if (start >= 0 && start < size && inCorridor(start, start % width, start / width)
                 && required[start] != jobGeneration) {
             required[start] = jobGeneration;
             remaining++;
@@ -308,8 +308,8 @@ final class SquadRouteBuildJob {
             int py = y - GridPathfinder.directionY(direction);
             if (px < 0 || px >= width || py < 0 || py >= height) continue;
             int predecessor = py * width + px;
-            if (allowed[predecessor] != jobGeneration
-                    || seen[predecessor] == generation && positions[predecessor] == CLOSED) continue;
+            if (seen[predecessor] == generation && positions[predecessor] == CLOSED
+                    || !inCorridor(predecessor, px, py)) continue;
             if (!GridPathfinder.canStep(predecessor, px, py, current, direction, width, height,
                     grid.getCellFlagsArray(), grid.getEdgePassabilityArray(), null)) continue;
             float candidate = distance[current] + GridPathfinder.stepCost(

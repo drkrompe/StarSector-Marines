@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.perception.NoiseDetection;
 import com.dillon.starsectormarines.battle.perception.NoiseEvent;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
@@ -140,7 +141,14 @@ public final class SquadAlertSystem {
     }
 
     public void tick(float dt, int simTick) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        long stageStarted = profile == null ? 0L : System.nanoTime();
         List<NoiseEvent> pendingNoises = noiseEvents.drain();
+        if (profile != null) {
+            long now = System.nanoTime();
+            profile.record(TickInnerProfile.Bucket.ALERT_NOISE_DRAIN, now - stageStarted);
+            stageStarted = now;
+        }
         NavigationGrid grid = navigation.getGrid();
         World world = roster.world();
         VisionService vision = roster.vision();
@@ -168,6 +176,13 @@ public final class SquadAlertSystem {
             squad._underFireAtLosLastTick = squad._underFireAtLosThisTick;
             squad._underFireAtLosThisTick = false;
         }
+        if (profile != null) {
+            long now = System.nanoTime();
+            profile.record(TickInnerProfile.Bucket.ALERT_BELIEF_RESET, now - stageStarted);
+            stageStarted = now;
+        }
+        int awarenessVisits = 0;
+        int awarenessLos = 0;
 
         // Pass 1: accumulate squad aggregates + per-squad engagement LoS.
         // For garrison squads (holdsFireUntilKillZone), also drive the kill-zone
@@ -208,6 +223,7 @@ public final class SquadAlertSystem {
                     ? Math.max(awarenessGatherRange, KILL_ZONE_RANGE_CELLS)
                     : awarenessGatherRange;
             unitIndex.gather(uX, uY, gatherRange, awarenessCandidates);
+            if (profile != null) awarenessVisits += awarenessCandidates.size;
             int uCellX = world.cellX(u);
             int uCellY = world.cellY(u);
             float visionRangeSquared = visionRange * visionRange;
@@ -240,6 +256,7 @@ public final class SquadAlertSystem {
                             || !squad.observedDirectlyOnTick(otherRosterSlot, simTick);
                 }
                 if (!inKillZone && !needsObservation) continue;
+                if (profile != null) awarenessLos++;
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         uAir, vision.targetAirLosRadius(other))) continue;
                 if (inKillZone) {
@@ -257,17 +274,28 @@ public final class SquadAlertSystem {
                 }
             }
         }
+        if (profile != null) {
+            long now = System.nanoTime();
+            profile.record(TickInnerProfile.Bucket.ALERT_AWARENESS, now - stageStarted);
+            profile.recordCount(TickInnerProfile.Bucket.ALERT_AWARENESS_CANDIDATE, awarenessVisits);
+            profile.recordCount(TickInnerProfile.Bucket.ALERT_AWARENESS_LOS, awarenessLos);
+            stageStarted = now;
+        }
 
         List<ShotEvent> activeShots = shots.getActiveShots();
+        int noisesConsidered = 0;
+        int noisesDetected = 0;
         for (Squad squad : roster.getSquads()) {
             if (squad.centroidMembers <= 0) continue;
             float listenerX = squad.centroidX / squad.centroidMembers;
             float listenerY = squad.centroidY / squad.centroidMembers;
+            if (profile != null) noisesConsidered += pendingNoises.size();
             for (NoiseEvent event : pendingNoises) {
                 if (event.sourceFaction() == squad.faction) continue;
                 NoiseDetection.Detection detection = NoiseDetection.detect(
                         event, squad.id, listenerX, listenerY, grid);
                 if (detection == null) continue;
+                if (profile != null) noisesDetected++;
                 squad._suspiciousThisTick = true;
                 squad.observeAudibleBearing(detection.cellX(), detection.cellY(),
                         simTick, detection.confidence(), event.sourceUnitId(), event.kind());
@@ -277,6 +305,15 @@ public final class SquadAlertSystem {
                 }
             }
         }
+        if (profile != null) {
+            long now = System.nanoTime();
+            profile.record(TickInnerProfile.Bucket.ALERT_NOISE, now - stageStarted);
+            profile.recordCount(TickInnerProfile.Bucket.ALERT_NOISE_CONSIDERED, noisesConsidered);
+            profile.recordCount(TickInnerProfile.Bucket.ALERT_NOISE_DETECTED, noisesDetected);
+            stageStarted = now;
+        }
+        int incomingVisits = 0;
+        int incomingLos = 0;
 
         // Per-tick under-fire-at-LoS scan. Produces two facts from one walk:
         // the squad flag consumed by WorldStateBuilder, and the individual's own
@@ -299,6 +336,7 @@ public final class SquadAlertSystem {
         if (!activeShots.isEmpty()) {
             for (ShotEvent shot : activeShots) {
                 unitIndex.gather(shot.toX, shot.toY, 2f, underFireCandidates);
+                if (profile != null) incomingVisits += underFireCandidates.size;
                 int fromCellX = (int) Math.floor(shot.fromX);
                 int fromCellY = (int) Math.floor(shot.fromY);
                 for (int i = 0; i < underFireCandidates.size; i++) {
@@ -311,6 +349,7 @@ public final class SquadAlertSystem {
                     if (!squadNeedsFlag && !unitTakesPressure) continue;
                     int uCellX = world.cellX(u);
                     int uCellY = world.cellY(u);
+                    if (profile != null) incomingLos++;
                     if (!grid.hasLineOfSight(uCellX, uCellY, fromCellX, fromCellY)) continue;
                     if (squadNeedsFlag) squad._underFireAtLosThisTick = true;
                     if (unitTakesPressure) {
@@ -318,6 +357,13 @@ public final class SquadAlertSystem {
                     }
                 }
             }
+        }
+        if (profile != null) {
+            long now = System.nanoTime();
+            profile.record(TickInnerProfile.Bucket.ALERT_INCOMING_FIRE, now - stageStarted);
+            profile.recordCount(TickInnerProfile.Bucket.ALERT_INCOMING_CANDIDATE, incomingVisits);
+            profile.recordCount(TickInnerProfile.Bucket.ALERT_INCOMING_LOS, incomingLos);
+            stageStarted = now;
         }
 
         // Finalize: divide centroids, apply alert-state transitions.
@@ -398,6 +444,9 @@ public final class SquadAlertSystem {
                 }
             }
             squad._alertLevelChangedThisTick = squad.alertLevel != previousAlert;
+        }
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.ALERT_FINALIZE, System.nanoTime() - stageStarted);
         }
     }
 

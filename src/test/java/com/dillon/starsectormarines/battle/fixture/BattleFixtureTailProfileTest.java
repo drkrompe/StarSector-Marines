@@ -504,7 +504,9 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 18);
+        report.put("schemaVersion", 19);
+        report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
+        report.put("replanCpuSemantics", "Opt-in current-host-thread CPU for actual infantry replans and their goal-selection envelopes. Selection CPU accumulates across declined goals; individual goal probes remain wall-only. Actual replan excludes idle eligibility checks. CPU milliseconds are -1 when disabled, unsupported, or incomplete; wall minus CPU is not proof of lock contention. Selection is nested in actual replan and must not be added to it.");
         report.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.squadRouteWorkBudget", "true")));
         report.put("squadRouteWorkPerTick", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)));
@@ -868,6 +870,11 @@ class BattleFixtureTailProfileTest {
                     .put("goal", breakdown.selectedGoal())
                     .put("worldStateMs", millis(breakdown.worldStateNanos()))
                     .put("goalSelectionMs", millis(breakdown.selectionNanos()))
+                    .put("actualReplanMs", millis(breakdown.actualReplanNanos()))
+                    .put("actualReplanCpuMs", breakdown.actualReplanCpuNanos() < 0L
+                            ? -1.0 : millis(breakdown.actualReplanCpuNanos()))
+                    .put("goalSelectionCpuMs", breakdown.selectionCpuNanos() < 0L
+                            ? -1.0 : millis(breakdown.selectionCpuNanos()))
                     .put("goalRelevanceMs", millis(breakdown.relevanceNanos()))
                     .put("goalRelevanceCalls", breakdown.relevanceCalls())
                     .put("slowestRelevanceGoal", breakdown.slowestRelevanceGoal())

@@ -135,6 +135,29 @@ public final class TickInnerProfile {
         SQUAD_TRAFFIC_RETURN,
         SQUAD_TRAFFIC_SQUAD,
         SQUAD_TRAFFIC_CANDIDATE,
+        // ---- Serial squad alert stages; disjoint within SQUAD_ALERT. ----
+        /** Entry-point noise mailbox drain, copy, and stable sort. */
+        ALERT_NOISE_DRAIN,
+        /** Service lookup, transient reset, and belief expiry/decay. */
+        ALERT_BELIEF_RESET,
+        /** Member aggregates, spatial awareness gathering, LOS, and observations. */
+        ALERT_AWARENESS,
+        /** Per-squad noise detection and audible/contact observation. */
+        ALERT_NOISE,
+        /** Shot endpoint gathering, LOS, and incoming-fire publication. */
+        ALERT_INCOMING_FIRE,
+        /** Belief snapshots, centroids, alert transitions, and target clearing. */
+        ALERT_FINALIZE,
+        /** Count-only visited gathered candidates, including subsequently rejected entries. */
+        ALERT_AWARENESS_CANDIDATE,
+        /** Count-only actual canSeePair calls, not cache misses or ray steps. */
+        ALERT_AWARENESS_LOS,
+        /** Count-only squad/event pairs before faction filtering, and successful detections. */
+        ALERT_NOISE_CONSIDERED,
+        ALERT_NOISE_DETECTED,
+        /** Count-only gathered endpoint candidates and actual grid LOS calls. */
+        ALERT_INCOMING_CANDIDATE,
+        ALERT_INCOMING_LOS,
         // ---- Per-behavior buckets — what updateUnit's dispatch went into. ----
         BEHAVIOR_FALLBACK,
         BEHAVIOR_COMBATANT,
