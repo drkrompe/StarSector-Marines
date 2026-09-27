@@ -4,6 +4,8 @@ Status: DRAFT
 
 Written: 2026-09-27
 
+Updated: 2026-09-27 — missing-field fan-out remains expensive with fixed-goal occupancy omission enabled.
+
 ## Problem
 
 Squad fields have a per-tick build allowance, but members whose fields were
@@ -17,6 +19,15 @@ occupancy omission disabled, recorded four field builds taking 3.31 ms alongside
 occupancy 255, and about 150,000 expansions per sampled search. Omitting the
 unavoidable terminal occupancy toll reduces individual search work; it does not
 enforce admission. These are distinct mechanisms.
+
+A follow-up capture on `3f5e1e63a` with that omission enabled recorded a
+70.29 ms unit-update phase, 5.87 million flat-search expansions, and 965.85 ms
+of overlapping pathfinder worker time. Retained slow searches identify
+`EnterZone` / `MISSING_FIELD`, with about 28,000 nodes per member, toward the
+same assigned room. Worker CPU (969.83 ms summed) nearly equals callback wall
+time (974.08 ms summed), and the tick records no GC. This is redundant useful
+search work, not evidence of threads idling on a join. A cheaper individual
+search does not eliminate the need for explicit pending admission.
 
 `ai-nouns.md` owns squad intent and execution authority. Waiting for computation
 must not become a tactical failure or an unreachable verdict.
