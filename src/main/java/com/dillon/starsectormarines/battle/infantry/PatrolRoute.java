@@ -47,7 +47,15 @@ public final class PatrolRoute implements Action {
     private static final int FALLBACK_SAMPLE_ATTEMPTS = 16;
 
     /** Node-route waypoint strategy (default staleness: no-waypoint or arrived). Singleton, so resolve once. */
-    private final PatrolMotion.WaypointSource waypointSource = this::pickWaypoint;
+    private final PatrolMotion.WaypointSource waypointSource = new PatrolMotion.WaypointSource() {
+        @Override public PatrolMotion.OptionalRoutePolicy optionalRoutePolicy() {
+            return PatrolMotion.OptionalRoutePolicy.DISTRICT;
+        }
+
+        @Override public int[] next(long member, Squad squad, BattleView sim) {
+            return pickWaypoint(member, squad, sim);
+        }
+    };
 
     private PatrolRoute() {}
 

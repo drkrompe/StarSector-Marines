@@ -1727,7 +1727,7 @@ an ordinary local hold. Whether a wiped garrison is replaced or a defender
 force is strategically recommitted belongs to mission command, not the local
 guard plan.
 
-A quiet guard-post waypoint is optional local activity, not an obligation to
+A quiet guard-post or random district waypoint is optional local activity, not an obligation to
 prove a route across the map. Its route may be refused when local travel would
 require disproportionate effort or detour. A refusal starts a squad dwell
 before choosing another waypoint and survives routine plan refresh; concurrent
@@ -1735,7 +1735,9 @@ members cannot publish a route for a waypoint a sibling has already retired.
 Only complete terrain-legal routes are usable. This allowance belongs to each
 member's attempt, not a battle-wide work scheduler. Returning to an assigned
 home, investigating evidence and maneuvering under contact retain their own
-distinct travel policies.
+distinct travel policies. Authored compound room rounds also retain their
+required-visit policy; declining a random district waypoint does not retire a
+room from a garrison's tour.
 
 When a tactical place supplies authored stand positions, initial allocation
 and structural fallback assign those cells as member homes before deriving

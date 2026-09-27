@@ -382,6 +382,10 @@ public final class TickInnerProfile {
         GUARD_PATROL_EXPANDED,
         GUARD_PATROL_REFUSAL,
         GUARD_PATROL_BACKOFF,
+        DISTRICT_PATROL_SEARCH,
+        DISTRICT_PATROL_EXPANDED,
+        DISTRICT_PATROL_REFUSAL,
+        DISTRICT_PATROL_BACKOFF,
         /** Nested execution wall time by effective mech doctrine; excludes shared planning and reflexes. */
         MECH_DOCTRINE_ASSAULT,
         MECH_DOCTRINE_ARMORED_SUPPORT,

@@ -97,7 +97,9 @@ public final class GuardPostPatrol implements Action {
         this.anchorY = anchorY;
         this.radius = Math.max(1, radius);
         this.waypointSource = new PatrolMotion.WaypointSource() {
-            @Override public boolean optionalLocalRouting() { return true; }
+            @Override public PatrolMotion.OptionalRoutePolicy optionalRoutePolicy() {
+                return PatrolMotion.OptionalRoutePolicy.GUARD;
+            }
             @Override public int[] next(long member, Squad squad, BattleView sim) {
                 return nextWaypoint(member, squad, sim);
             }
