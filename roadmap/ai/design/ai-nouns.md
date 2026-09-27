@@ -307,8 +307,12 @@ tick allowance. Reusable construction scratch belongs to a bounded host-owned
 pool; members see only completed immutable routes. This is a computational
 work limit, not a hard wall-clock deadline.
 
-Unfinished preparation retains its original soft-cost snapshot. Changed intent
-or terrain retires it; ordinary member motion does not restart it every tick.
+Unfinished preparation retains its original soft-cost snapshot. A replan may
+explicitly adopt an unfinished geometric proof for the same action and
+destination on unchanged terrain, without renewing its work allowance or age.
+Its waiting publication belongs only to the current plan identity. Changed
+action, destination or terrain retires the proof; ordinary member motion does
+not restart it every tick.
 Before publication, new starting positions must be covered or request bounded
 additional preparation. Partial construction is not a usable field and cannot
 silently turn uncovered members into independent synchronous searches.

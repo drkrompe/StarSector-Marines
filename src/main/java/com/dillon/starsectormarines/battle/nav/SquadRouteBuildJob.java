@@ -10,8 +10,9 @@ import java.util.Arrays;
  * by the slot, not allocated for each squad. Each work unit visits one search
  * node, route cell, mesh boundary, corridor cell, or publication entry. Heap
  * operations have logarithmic cost; output-array allocation is not preemptible.
- * No connected-component query is made here: its lazy full-map rebuild would
- * bypass this budget. Topology must remain unchanged between advances.
+ * Only already-current connected-component labels may reject a seed: a lazy
+ * full-map rebuild would bypass this budget. Topology must remain unchanged
+ * between advances.
  */
 final class SquadRouteBuildJob {
     private enum Stage { START, SEED, TRACE, PAD, CORRIDOR, REQUIRED, REVERSE,
@@ -180,10 +181,11 @@ final class SquadRouteBuildJob {
         int region = mesh.regionIdAt(x, y);
         if (region < 0 || (grid.getCellFlagsArray()[start] & 1L) == 0
                 || hasRoute && selectedRegions[region] == jobGeneration) return;
-        resetSearch();
         seedSearches++;
         lastSeedStart = start;
         lastSeedExpanded = 0;
+        if (grid.knownPathDisconnected(start, goal, GridPathfinder.USE_CARDINAL_NAVIGATION)) return;
+        resetSearch();
         discover(start, 0, heuristic(start), start);
         stage = Stage.SEED;
     }
@@ -397,5 +399,5 @@ final class SquadRouteBuildJob {
     boolean isDirect() { return direct; }
     int lastSeedStart() { return lastSeedStart; }
     int lastSeedExpanded() { return lastSeedExpanded; }
-    int maxSeedExpanded() { return maxSeedExpanded; }
+    int maxSeedExpanded() { return Math.max(maxSeedExpanded, lastSeedExpanded); }
 }

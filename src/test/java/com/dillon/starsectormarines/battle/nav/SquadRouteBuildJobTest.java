@@ -116,6 +116,23 @@ class SquadRouteBuildJobTest {
     }
 
     @Test
+    void currentComponentProofRejectsWithoutFloodButStaleLabelsDoNotRejectNewConnection() {
+        NavigationGrid grid = openGrid(15, 3);
+        for (int y = 0; y < 3; y++) grid.setWalkable(7, y, false);
+        grid.preparePathComponents(GridPathfinder.USE_CARDINAL_NAVIGATION);
+        SquadRouteBuildJob job = new SquadRouteBuildJob(grid);
+        job.begin(request(grid, 14, 1, null, 0, 1), new GreedyNavigationMesh(grid).snapshot(), true);
+        finish(job, 1);
+        assertNull(job.field());
+        assertEquals(0, job.seedExpanded());
+        grid.setWalkableFloor(7, 1);
+        job.begin(request(grid, 14, 1, null, 0, 1), new GreedyNavigationMesh(grid).snapshot(), true);
+        finish(job, 1);
+        assertNotNull(job.field());
+        assertTrue(job.seedExpanded() > 0);
+    }
+
+    @Test
     void cancellingAnUnfinishedSearchAndChangingSliceSizeDoesNotChangeThePublishedRoute() {
         NavigationGrid grid = openGrid(40, 7);
         GreedyNavigationMesh.Snapshot mesh = new GreedyNavigationMesh(grid).snapshot();

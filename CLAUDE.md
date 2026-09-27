@@ -303,8 +303,10 @@ Do not run builds or leave generated task files there.
   visited entries/nodes and bounded heap operations, not nanoseconds; array
   allocation and VM scheduling are not preemptible. Total-limit backoff remains
   pending (no member fallback), survives routine epoch churn, and is released
-  by materially changed routing context. New goals/steps/topology cancel active
-  jobs; soft-cost publications do not. Current-start drift outside a finished
+  by materially changed routing context. New goals/actions/topology cancel active
+  jobs; replans may adopt the same geometric proof under their new exact pending
+  identity without renewing age/work. Soft-cost publications do not restart it.
+  Current-start drift outside a finished
   field restarts under the same total allowance.
   `SQUAD_ROUTE_WORK/YIELD/LIMIT/CANCEL` and query-time `slowSquadRouteWork`
   samples expose action, goal, stage/status, slice work and expansions, lifetime
