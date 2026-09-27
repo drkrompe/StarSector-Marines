@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
@@ -112,10 +111,8 @@ public final class EngageAtCurrentBand implements Action {
         NavigationGrid grid = sim.getGrid();
         int memberX = sim.world().cellX(member);
         int memberY = sim.world().cellY(member);
-        int[] connected = GridPathfinder.labelConnectedComponents(grid);
-        int memberComponent = grid.inBounds(memberX, memberY)
-                ? connected[grid.index(memberX, memberY)] : -1;
-        if (memberComponent < 0) return null;
+        MechReachability reachable = new MechReachability(grid, memberX, memberY);
+        if (!reachable.contains(memberX, memberY)) return null;
 
         float targetX = sim.world().x(target);
         float targetY = sim.world().y(target);
@@ -130,7 +127,7 @@ public final class EngageAtCurrentBand implements Action {
                 int x = centerX + ox;
                 int y = centerY + oy;
                 if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)
-                        || connected[grid.index(x, y)] != memberComponent
+                        || !reachable.contains(x, y)
                         || sim.world().mechLoadout(member).routeIntent.rejected(x, y)) continue;
                 float targetDx = x + 0.5f - targetX;
                 float targetDy = y + 0.5f - targetY;

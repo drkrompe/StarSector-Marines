@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.PathRequestStatus;
@@ -307,12 +306,10 @@ public final class OverwatchKillZone implements Action {
         NavigationGrid grid = sim.getGrid();
         if (tx < 0 || ty < 0) return null;
         int radius = (int) Math.ceil(band.maxDistance());
-        int[] connected = GridPathfinder.labelConnectedComponents(grid);
         int memberX = sim.world().cellX(member);
         int memberY = sim.world().cellY(member);
-        int memberComponent = grid.inBounds(memberX, memberY)
-                ? connected[grid.index(memberX, memberY)] : -1;
-        if (memberComponent < 0) return null;
+        MechReachability reachable = new MechReachability(grid, memberX, memberY);
+        if (!reachable.contains(memberX, memberY)) return null;
         ScreeningAllies allies = gatherScreeningAllies(member, squad, tx, ty, sim);
 
         OverwatchPosition bestScreened = null;
@@ -327,7 +324,7 @@ public final class OverwatchKillZone implements Action {
                         || sim.world().mechLoadout(member).routeIntent.rejected(cx, cy)) continue;
                 if (!MechAssignmentBoundary.permitsOverwatchCell(
                         member, squad, cx, cy, tx, ty, sim)) continue;
-                if (connected[grid.index(cx, cy)] != memberComponent) continue;
+                if (!reachable.contains(cx, cy)) continue;
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget < band.minDistance()
                         || distFromTarget > band.maxDistance()) continue;
