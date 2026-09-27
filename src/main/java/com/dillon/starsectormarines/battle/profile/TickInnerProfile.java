@@ -200,6 +200,14 @@ public final class TickInnerProfile {
         SQUAD_ROUTE_PENDING_REQUEST,
         /** Member callbacks that defer travel without a synchronous fallback. */
         SQUAD_ROUTE_PENDING_CALL,
+        /** Work units consumed this tick; never cumulative request work. */
+        SQUAD_ROUTE_WORK,
+        /** Work slices yielding unfinished; not a failure or unreachable result. */
+        SQUAD_ROUTE_YIELD,
+        /** Requests reaching their lifetime work ceiling. */
+        SQUAD_ROUTE_LIMIT,
+        /** Pending route requests retired before completion. */
+        SQUAD_ROUTE_CANCEL,
         /** Build attempts admitted this tick, including failed builds. */
         SQUAD_ROUTE_ADMITTED,
         /** Previously pending exact intents that now have a successful field; not motion. */
@@ -429,6 +437,11 @@ public final class TickInnerProfile {
     private final long[][] squadBuildValues = new long[8][10];
     private final String[] squadBuildReasons = new String[8];
     private int squadBuildCount;
+    private final long[][] squadWorkValues = new long[8][14];
+    private final String[] squadWorkActions = new String[8];
+    private final String[] squadWorkStages = new String[8];
+    private final String[] squadWorkStatuses = new String[8];
+    private int squadWorkCount;
     private Bucket activeBehavior;
     private long activeMemberId;
     private int activeSquadId = -1;
@@ -464,6 +477,10 @@ public final class TickInnerProfile {
         slowPathSearchCount = 0;
         squadBuildCount = 0;
         Arrays.fill(squadBuildReasons, null);
+        squadWorkCount = 0;
+        Arrays.fill(squadWorkActions, null);
+        Arrays.fill(squadWorkStages, null);
+        Arrays.fill(squadWorkStatuses, null);
         activeBehavior = null;
         clearUnitAction();
         exitAction();
@@ -679,6 +696,71 @@ public final class TickInnerProfile {
         return List.copyOf(samples);
     }
 
+    /**
+     * Retains the eight slowest work slices this tick, without allocating on the
+     * recording path. Records samples only: the caller owns work/yield/limit
+     * counters, so merging samples cannot double-count work. Expansion values
+     * prefixed with slice describe this slice; lifetime work, age, and per-seed
+     * cumulative counts describe the request at its end and are not additive.
+     */
+    public void recordSquadRouteWork(long durationNanos, int squadId, String action,
+                                     int goalX, int goalY, String stage, String status,
+                                     int workUnits, int seedExpanded, int reverseExpanded,
+                                     long lifetimeWorkUnits, int ageTicks, int startCount,
+                                     int maxStartGoalManhattan, int lastSeedStart,
+                                     int lastSeedExpanded, int maxSeedExpanded) {
+        int index = 0;
+        while (index < squadWorkCount && squadWorkValues[index][0] >= durationNanos) index++;
+        if (index == squadWorkValues.length) return;
+        int last = Math.min(squadWorkCount, squadWorkValues.length - 1);
+        long[] slot = squadWorkValues[last];
+        for (int i = last; i > index; i--) {
+            squadWorkValues[i] = squadWorkValues[i - 1];
+            squadWorkActions[i] = squadWorkActions[i - 1];
+            squadWorkStages[i] = squadWorkStages[i - 1];
+            squadWorkStatuses[i] = squadWorkStatuses[i - 1];
+        }
+        squadWorkValues[index] = slot;
+        squadWorkActions[index] = action;
+        squadWorkStages[index] = stage;
+        squadWorkStatuses[index] = status;
+        slot[0] = durationNanos;
+        slot[1] = squadId;
+        slot[2] = goalX;
+        slot[3] = goalY;
+        slot[4] = workUnits;
+        slot[5] = seedExpanded;
+        slot[6] = reverseExpanded;
+        slot[7] = lifetimeWorkUnits;
+        slot[8] = ageTicks;
+        slot[9] = startCount;
+        slot[10] = maxStartGoalManhattan;
+        slot[11] = lastSeedStart;
+        slot[12] = lastSeedExpanded;
+        slot[13] = maxSeedExpanded;
+        if (squadWorkCount < squadWorkValues.length) squadWorkCount++;
+    }
+
+    /** Samples are not additive totals: a request may appear in several ticks. */
+    public record SquadRouteWork(long nanos, int squadId, String action, int goalX, int goalY,
+                                 String stage, String status, int sliceWorkUnits,
+                                 int sliceSeedExpanded, int sliceReverseExpanded,
+                                 long lifetimeWorkUnits, int ageTicks, int startCount,
+                                 int maxStartGoalManhattan, int lastSeedStart,
+                                 int lastSeedExpanded, int maxSeedExpanded) {}
+
+    public List<SquadRouteWork> slowSquadRouteWork() {
+        List<SquadRouteWork> samples = new ArrayList<>(squadWorkCount);
+        for (int i = 0; i < squadWorkCount; i++) {
+            long[] v = squadWorkValues[i];
+            samples.add(new SquadRouteWork(v[0], (int) v[1], squadWorkActions[i],
+                    (int) v[2], (int) v[3], squadWorkStages[i], squadWorkStatuses[i],
+                    (int) v[4], (int) v[5], (int) v[6], v[7], (int) v[8],
+                    (int) v[9], (int) v[10], (int) v[11], (int) v[12], (int) v[13]));
+        }
+        return List.copyOf(samples);
+    }
+
     /** Cell-volume evidence for each compact squad field built this tick. */
     public void recordSquadRouteFieldShape(int corridorCells,
                                            int settledCells) {
@@ -733,6 +815,13 @@ public final class TickInnerProfile {
             retainSquadRouteBuild(v[0], (int) v[1], other.squadBuildReasons[i],
                     (int) v[2], (int) v[3], (int) v[4], (int) v[5], (int) v[6],
                     (int) v[7], (int) v[8], (int) v[9]);
+        }
+        for (int i = 0; i < other.squadWorkCount; i++) {
+            long[] v = other.squadWorkValues[i];
+            recordSquadRouteWork(v[0], (int) v[1], other.squadWorkActions[i],
+                    (int) v[2], (int) v[3], other.squadWorkStages[i], other.squadWorkStatuses[i],
+                    (int) v[4], (int) v[5], (int) v[6], v[7], (int) v[8],
+                    (int) v[9], (int) v[10], (int) v[11], (int) v[12], (int) v[13]);
         }
         for (int i = 0; i < other.slowPathSearchCount; i++) {
             MutablePathSearch sample = other.slowPathSearches[i];
@@ -857,7 +946,7 @@ public final class TickInnerProfile {
                 squadRouteCorridorCells, squadRouteSettledCells,
                 pathfindExpandedNodes, slowPathSearches(),
                 convoyClearanceEvaluations, convoyCostEvaluations,
-                convoyExpandedNodes, convoySearchesStarted, slowSquadRouteBuilds());
+                convoyExpandedNodes, convoySearchesStarted, slowSquadRouteBuilds(), slowSquadRouteWork());
     }
 
     /** Immutable frozen bucket state — what spike dumps carry forward past the next tick's reset. */
@@ -875,6 +964,7 @@ public final class TickInnerProfile {
         public final long convoySearchesStarted;
         public final List<PathSearch> slowPathSearches;
         public final List<SquadRouteBuild> slowSquadRouteBuilds;
+        public final List<SquadRouteWork> slowSquadRouteWork;
         public Snapshot(long[] nanos, int[] counts) {
             this(nanos, counts, Collections.emptyMap(), 0L, 0L);
         }
@@ -905,6 +995,18 @@ public final class TickInnerProfile {
                         long convoyClearanceEvaluations, long convoyCostEvaluations,
                         long convoyExpandedNodes, long convoySearchesStarted,
                         List<SquadRouteBuild> slowSquadRouteBuilds) {
+            this(nanos, counts, actions, squadRouteCorridorCells, squadRouteSettledCells,
+                    pathfindExpandedNodes, slowPathSearches, convoyClearanceEvaluations,
+                    convoyCostEvaluations, convoyExpandedNodes, convoySearchesStarted,
+                    slowSquadRouteBuilds, List.of());
+        }
+        public Snapshot(long[] nanos, int[] counts, Map<String, long[]> actions,
+                        long squadRouteCorridorCells, long squadRouteSettledCells,
+                        long pathfindExpandedNodes, List<PathSearch> slowPathSearches,
+                        long convoyClearanceEvaluations, long convoyCostEvaluations,
+                        long convoyExpandedNodes, long convoySearchesStarted,
+                        List<SquadRouteBuild> slowSquadRouteBuilds,
+                        List<SquadRouteWork> slowSquadRouteWork) {
             this.nanos = nanos;
             this.counts = counts;
             this.actions = actions;
@@ -913,6 +1015,7 @@ public final class TickInnerProfile {
             this.pathfindExpandedNodes = pathfindExpandedNodes;
             this.slowPathSearches = List.copyOf(slowPathSearches);
             this.slowSquadRouteBuilds = List.copyOf(slowSquadRouteBuilds);
+            this.slowSquadRouteWork = List.copyOf(slowSquadRouteWork);
             this.convoyClearanceEvaluations = convoyClearanceEvaluations;
             this.convoyCostEvaluations = convoyCostEvaluations;
             this.convoyExpandedNodes = convoyExpandedNodes;

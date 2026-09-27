@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — route preparation retains an exact path for singleton
-demand while shared fields serve multiple starts.
+Updated: 2026-09-27 — shared route preparation yields under per-request and
+per-tick work budgets; budget refusal waits rather than implying unreachability.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -300,8 +300,27 @@ objective travel after a wait, the member obtains a route for its current
 intent even if the old path's ordinary repath throttle has not expired. A genuine
 failed build, an uncovered start in a usable field, or an intentionally
 unprepared query remains a different condition with its existing fallback.
-Admission bounds a wave of new shared work; it does not promise that one
-admitted search has a fixed expansion cost.
+Admission also bounds the work inside a route, rather than only the number of
+routes started. Seed search, corridor construction, reverse search and compact
+publication make resumable progress under a per-request quantum and a shared
+tick allowance. Reusable construction scratch belongs to a bounded host-owned
+pool; members see only completed immutable routes. This is a computational
+work limit, not a hard wall-clock deadline.
+
+Unfinished preparation retains its original soft-cost snapshot. Changed intent
+or terrain retires it; ordinary member motion does not restart it every tick.
+Before publication, new starting positions must be covered or request bounded
+additional preparation. Partial construction is not a usable field and cannot
+silently turn uncovered members into independent synchronous searches.
+
+A total construction allowance prevents an expensive attempt from consuming
+quanta indefinitely. Exhausting it releases scratch and applies a retry delay,
+still published as waiting rather than failed travel. Routine replanning and
+soft-cost changes do not bypass that delay; changed destination or behavior,
+terrain, membership, or meaningful displacement permits a fresh attempt. A
+compatible existing route can continue serving during either preparation or
+backoff. This scheduling boundary never cancels the mission assignment or
+declares its destination unreachable.
 
 Long travel to a track rally or a defended site may wait for an asynchronous
 route, including a boarding squad walking to its transport. Waiting for a

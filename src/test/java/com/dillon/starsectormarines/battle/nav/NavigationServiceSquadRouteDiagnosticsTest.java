@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.nav;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -11,8 +12,17 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NavigationServiceSquadRouteDiagnosticsTest {
+    private final String previousBudget = System.getProperty(NavigationService.SQUAD_ROUTE_WORK_BUDGET_PROPERTY);
+
+    @BeforeEach
+    void inspectLegacyWholeBuildDiagnostics() {
+        System.setProperty(NavigationService.SQUAD_ROUTE_WORK_BUDGET_PROPERTY, "false");
+    }
+
     @AfterEach
     void releaseProfile() {
+        if (previousBudget == null) System.clearProperty(NavigationService.SQUAD_ROUTE_WORK_BUDGET_PROPERTY);
+        else System.setProperty(NavigationService.SQUAD_ROUTE_WORK_BUDGET_PROPERTY, previousBudget);
         TickInnerProfile.releaseCurrentThread();
     }
 

@@ -12,9 +12,65 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TickInnerProfileTest {
+    @Test
+    void routeWorkSlicesRetainOnlySlowestSamplesWithoutChangingWorkTotals() {
+        TickInnerProfile profile = new TickInnerProfile();
+        for (int i = 1; i <= 12; i++) {
+            profile.recordSquadRouteWork(i, i, "EnterZone", 40, 50, "SEED", "PENDING",
+                    80, 70, 0, 3_000_000_000L, 9, 6, 88, 100, 120, 130);
+        }
+        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK));
+        profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK, 960);
+        TickInnerProfile.Snapshot frozen = profile.snapshot();
+        assertEquals(8, frozen.slowSquadRouteWork.size());
+        assertEquals(12, frozen.slowSquadRouteWork.get(0).squadId());
+        assertEquals(5, frozen.slowSquadRouteWork.get(7).squadId());
+        assertEquals(new TickInnerProfile.SquadRouteWork(12, 12, "EnterZone", 40, 50,
+                "SEED", "PENDING", 80, 70, 0, 3_000_000_000L, 9, 6, 88,
+                100, 120, 130), frozen.slowSquadRouteWork.get(0));
+        assertEquals(960, frozen.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK));
+        assertEquals(0, frozen.nanosOf(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK));
+        assertThrows(UnsupportedOperationException.class, () -> frozen.slowSquadRouteWork.clear());
+        profile.reset();
+        assertTrue(profile.slowSquadRouteWork().isEmpty());
+        assertEquals(0, profile.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK));
+        profile.recordSquadRouteWork(100, 99, "AttackMove", 1, 2, "REVERSE", "COMPLETE",
+                4, 0, 3, 90, 2, 1, 5, 6, 7, 8);
+        assertEquals(12, frozen.slowSquadRouteWork.get(0).squadId());
+        assertEquals("EnterZone", frozen.slowSquadRouteWork.get(0).action());
+        assertEquals(1, profile.slowSquadRouteWork().size());
+    }
+
+    @Test
+    void mergedRouteWorkSlicesPreserveStableTiesAndCountWorkExactlyOnce() {
+        TickInnerProfile aggregate = new TickInnerProfile();
+        TickInnerProfile worker = new TickInnerProfile();
+        aggregate.recordSquadRouteWork(20, 1, "EnterZone", 1, 2, "SEED", "PENDING",
+                30, 20, 0, 100, 2, 6, 40, 3, 70, 80);
+        worker.recordSquadRouteWork(20, 2, "AttackMove", 2, 3, "REVERSE", "COMPLETE",
+                40, 0, 30, 200, 3, 2, 50, 4, 80, 90);
+        worker.recordSquadRouteWork(30, 3, "AmbientAdvance", 3, 4, "SEED", "LIMIT",
+                50, 40, 0, 300, 4, 1, 60, 5, 90, 100);
+        aggregate.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK, 30);
+        worker.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK, 90);
+        worker.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_LIMIT, 1);
+        aggregate.addFrom(worker);
+        worker.reset();
+        assertEquals(List.of(3, 1, 2), aggregate.slowSquadRouteWork().stream()
+                .map(TickInnerProfile.SquadRouteWork::squadId).toList());
+        assertEquals(120, aggregate.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK));
+        assertEquals(1, aggregate.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_LIMIT));
+        assertEquals(new TickInnerProfile.SquadRouteWork(30, 3, "AmbientAdvance", 3, 4,
+                "SEED", "LIMIT", 50, 40, 0, 300, 4, 1, 60, 5, 90, 100),
+                aggregate.slowSquadRouteWork().get(0));
+        assertTrue(new TickInnerProfile.Snapshot(new long[TickInnerProfile.Bucket.VALUES.length],
+                new int[TickInnerProfile.Bucket.VALUES.length]).slowSquadRouteWork.isEmpty());
+    }
+
     @Test
     void squadBuildSamplesStayBoundedFreezeAndReset() {
         TickInnerProfile profile = new TickInnerProfile();

@@ -79,6 +79,9 @@ class NavigationServiceSquadRouteTest {
                 158, 1, new int[]{grid.index(1, 1), grid.index(2, 1)}, null);
 
         navigation.prepareSquadRoutes(List.of(first));
+        for (int i = 0; i < 100 && navigation.isSquadRoutePending(7, 3L, token, 158, 1); i++) {
+            navigation.prepareSquadRoutes(List.of(first));
+        }
 
         assertEquals(1, navigation.preparedSquadRouteCount());
         assertEquals(1, navigation.lastSquadRouteBuilds());

@@ -41,7 +41,7 @@ public final class SquadRoutePreparationSystem {
             if (count != 0) {
                 requests.add(new SquadRouteRequest(squad.id, squad.routingEpoch, step,
                         goal.x(), goal.y(), Arrays.copyOf(starts, count),
-                        sim.getRouteCostField(squad.faction)));
+                        sim.getRouteCostField(squad.faction), step.action.name()));
             }
         }
         return List.copyOf(requests);

@@ -42,8 +42,8 @@ import java.util.ArrayList;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** v10 adds bounded individual A* timings and expanded-node counts. */
-    private static final int SCHEMA_VERSION = 10;
+    /** v11 adds bounded squad route work slices, distinct from synchronous builds. */
+    private static final int SCHEMA_VERSION = 11;
     /**
      * SettingsAPI rejects any common-folder text write longer than this many
      * characters. It throws from its own writer thread when routed through
@@ -166,6 +166,8 @@ public final class TickProfileDumper {
                     "battle.pathfinding.retainSingletonSeeds", "true")));
             putSquadRouteBuilds(root, innerSnap != null
                     ? innerSnap.slowSquadRouteBuilds : liveInner.slowSquadRouteBuilds());
+            putSquadRouteWork(root, innerSnap != null
+                    ? innerSnap.slowSquadRouteWork : liveInner.slowSquadRouteWork());
 
             // These are individual searches, not sums across workers. In a
             // parallel unit phase, their total PATHFIND nanos can exceed the
@@ -220,6 +222,34 @@ public final class TickProfileDumper {
                     .put("settledCells", build.settledCells()));
         }
         root.put("slowSquadRouteBuilds", samples);
+    }
+
+    static void putSquadRouteWork(JSONObject root, List<TickInnerProfile.SquadRouteWork> slices)
+            throws JSONException {
+        root.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.squadRouteWorkBudget", "true")));
+        root.put("squadRouteWorkPerTick", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)));
+        root.put("squadRouteWorkPerSlice", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerSlice", 4096)));
+        root.put("squadRouteWorkPerRequest", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerRequest", 524288)));
+        root.put("squadRouteRetryTicks", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteRetryTicks", 120)));
+        root.put("squadRouteWorkSemantics", "top eight work slices by wall duration, not complete-build timings; slice work/expansion counts are increments; lifetimeWorkUnits and ageTicks describe the request at slice end and must not be summed; lastSeedStart is a global cell index, lastSeedExpanded is cumulative for the current or last seed, maxSeedExpanded is the request's cumulative per-seed maximum; SQUAD_ROUTE_WORK counts all work units this tick, including unretained slices");
+        JSONArray samples = new JSONArray();
+        for (TickInnerProfile.SquadRouteWork slice : slices) {
+            samples.put(new JSONObject().put("ms", slice.nanos() / 1_000_000.0)
+                    .put("squadId", slice.squadId()).put("action", slice.action())
+                    .put("goalX", slice.goalX()).put("goalY", slice.goalY())
+                    .put("stage", slice.stage()).put("status", slice.status())
+                    .put("sliceWorkUnits", slice.sliceWorkUnits())
+                    .put("sliceSeedExpanded", slice.sliceSeedExpanded())
+                    .put("sliceReverseExpanded", slice.sliceReverseExpanded())
+                    .put("lifetimeWorkUnits", slice.lifetimeWorkUnits())
+                    .put("ageTicks", slice.ageTicks()).put("startCount", slice.startCount())
+                    .put("maxStartGoalManhattan", slice.maxStartGoalManhattan())
+                    .put("lastSeedStart", slice.lastSeedStart())
+                    .put("lastSeedExpanded", slice.lastSeedExpanded())
+                    .put("maxSeedExpanded", slice.maxSeedExpanded()));
+        }
+        root.put("slowSquadRouteWork", samples);
     }
 
     static void putPathSearches(JSONObject root, long totalExpandedNodes,

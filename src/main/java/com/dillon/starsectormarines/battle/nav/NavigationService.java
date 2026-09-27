@@ -54,6 +54,13 @@ public final class NavigationService implements AutoCloseable {
             "battle.pathfinding.retainSquadRouteCosts";
     public static final String RETAIN_SINGLETON_SEEDS_PROPERTY =
             "battle.pathfinding.retainSingletonSeeds";
+    public static final String SQUAD_ROUTE_WORK_BUDGET_PROPERTY =
+            "battle.pathfinding.squadRouteWorkBudget";
+    /** A small fixed pool bounds retained map-sized scratch independently of squad count. */
+    private static final int MAX_ROUTE_JOB_SLOTS = 4;
+    private final List<RouteJobSlot> routeJobSlots = new ArrayList<>();
+    private final Map<Integer, RouteBackoff> routeBackoffs = new HashMap<>();
+    private int lastSquadRouteWorkUnits;
 
     private final NavigationGrid grid;
     private final CellTopology topology;
@@ -147,6 +154,11 @@ public final class NavigationService implements AutoCloseable {
         this.sharedGoalPathfinder = new SharedGoalPathfinder(grid,
                 occupancyMap, hierarchicalPathfinder);
         this.squadRouteBuilder = new SquadRouteField.Builder(grid);
+        // Allocate retained search scratch during battle setup, not the first
+        // busy command pulse. Slots are reused; the queue holds no dense arrays.
+        for (int i = 0; i < MAX_ROUTE_JOB_SLOTS; i++) {
+            routeJobSlots.add(new RouteJobSlot(new SquadRouteBuildJob(grid)));
+        }
     }
 
     /** Injects the dense entity store once it's built (see {@link #roster}). Called once at sim construction. */
@@ -288,6 +300,8 @@ public final class NavigationService implements AutoCloseable {
         vantagePointsByTargetCell.clear();
         sharedGoalPathfinder.invalidateAll();
         squadRouteBatch = SquadRouteBatch.empty();
+        cancelRouteJobs();
+        routeBackoffs.clear();
     }
 
     /** Compatibility name; prefer {@link #flushNavigationTopologyIfDirty()}. */
@@ -433,6 +447,15 @@ public final class NavigationService implements AutoCloseable {
     /** Explicit allowance seam for focused admission tests. */
     void prepareSquadRoutes(List<SquadRouteRequest> requests, int tick, int maximumBuilds) {
         if (maximumBuilds < 0) throw new IllegalArgumentException("maximumBuilds must be nonnegative");
+        if (maximumBuilds > 0 && SharedGoalPolicy.squadRouteCorridorsEnabled()
+                && Boolean.parseBoolean(System.getProperty(SQUAD_ROUTE_ADMISSION_PROPERTY, "true"))
+                && Boolean.parseBoolean(System.getProperty(SQUAD_ROUTE_WORK_BUDGET_PROPERTY, "true"))) {
+            prepareBudgetedSquadRoutes(requests, tick, maximumBuilds);
+            return;
+        }
+        cancelRouteJobs();
+        routeBackoffs.clear();
+        lastSquadRouteWorkUnits = 0;
         squadRoutePreparationTick = tick;
         SquadRouteBatch previousBatch = squadRouteBatch;
         Map<Integer, PreparedSquadRoute> previous = previousBatch.prepared;
@@ -566,6 +589,273 @@ public final class NavigationService implements AutoCloseable {
             profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_ADMITTED, lastSquadRouteAdmissions);
             profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_RESUMED, lastSquadRouteResumed);
         }
+    }
+
+    /**
+     * Cooperative, host-owned construction. No worker sees mutable scratch.
+     * One quantum per request per tick plus a shared allowance bounds actual
+     * work rather than assuming that a fixed number of builds is cheap.
+     */
+    private void prepareBudgetedSquadRoutes(List<SquadRouteRequest> requests,
+                                            int tick, int maximumBuilds) {
+        squadRoutePreparationTick = tick;
+        int tickBudget = positiveRouteProperty("squadRouteWorkPerTick", 8192);
+        int sliceBudget = positiveRouteProperty("squadRouteWorkPerSlice", 4096);
+        int requestBudget = positiveRouteProperty("squadRouteWorkPerRequest", 524288);
+        int retryTicks = positiveRouteProperty("squadRouteRetryTicks", 120);
+        int slotLimit = Math.min(maximumBuilds, MAX_ROUTE_JOB_SLOTS);
+        boolean retainCosts = Boolean.parseBoolean(System.getProperty(RETAIN_SQUAD_ROUTE_COSTS_PROPERTY, "true"));
+        GreedyNavigationMesh.Snapshot mesh = navigationMesh.snapshot();
+        long topologyRevision = grid.topologyRevision();
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        lastSquadRouteBuilds = lastSquadRouteReuses = lastSquadRouteDeferred = 0;
+        lastSquadRouteCorridorCells = lastSquadRouteSettledCells = 0;
+        lastSquadRoutePending = lastSquadRouteAdmissions = lastSquadRouteResumed = 0;
+        lastSquadRouteOldestWaitTicks = lastSquadRouteAdmittedWaitTicks = 0;
+        lastSquadRouteWorkUnits = 0;
+        Map<Integer, SquadRouteRequest> live = new HashMap<>();
+        for (SquadRouteRequest request : requests) live.put(request.squadId(), request);
+        for (RouteJobSlot slot : routeJobSlots) {
+            if (slot.request != null && !slot.matches(live.get(slot.request.squadId()),
+                    mesh.revision(), topologyRevision)) cancelRouteJob(slot);
+        }
+        routeBackoffs.entrySet().removeIf(entry -> !entry.getValue().matches(
+                live.get(entry.getKey()), mesh.revision(), topologyRevision, grid.getWidth())
+                || tick >= entry.getValue().retryAt);
+
+        Map<Integer, PreparedSquadRoute> next = new HashMap<>();
+        Map<Integer, DeferredSquadRoute> deferred = new HashMap<>();
+        List<RouteCandidate> candidates = new ArrayList<>();
+        for (SquadRouteRequest request : requests) {
+            PreparedSquadRoute retained = squadRouteBatch.prepared.get(request.squadId());
+            boolean compatible = retained != null && retained.isCompatible(request, mesh.revision(), grid.getWidth());
+            if (retained != null && retained.isFresh(request, mesh.revision(), grid.getWidth())
+                    || compatible && (retained.cost == request.cost()
+                    || retainCosts && retained.canRetainCosts(request, tick))) {
+                next.put(request.squadId(), retained.adoptFresh(request));
+                lastSquadRouteReuses++;
+                if (profile != null && retained.cost != request.cost()) {
+                    profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_COST_REUSE, 1);
+                }
+                RouteJobSlot obsolete = routeJobFor(request.squadId());
+                if (obsolete != null) cancelRouteJob(obsolete);
+                continue;
+            }
+            DeferredSquadRoute waiting = squadRouteBatch.deferred.get(request.squadId());
+            if (waiting != null && !waiting.matches(request.squadId(), request.routingEpoch(),
+                    request.routeToken(), request.goalX(), request.goalY(), mesh.revision(), topologyRevision)) waiting = null;
+            RouteJobSlot running = routeJobFor(request.squadId());
+            int firstTick = running != null ? running.firstTick
+                    : waiting == null ? tick : waiting.firstDeferredTick;
+            candidates.add(new RouteCandidate(request, retained, compatible, firstTick, waiting != null));
+        }
+        // Within each priority class, rotate working slots so one hard route
+        // cannot win every quantum. Older unstarted intents get a freed slot first.
+        candidates.sort(Comparator.comparingInt((RouteCandidate candidate) -> {
+                    RouteJobSlot slot = routeJobFor(candidate.request.squadId());
+                    return slot == null ? candidate.firstDeferredTick : slot.lastServedTick;
+                }).thenComparingInt(RouteCandidate::firstDeferredTick)
+                .thenComparingInt(candidate -> candidate.request.squadId()));
+        int slices = maximumBuilds;
+        for (int pass = 0; pass < 2; pass++) {
+            for (RouteCandidate candidate : candidates) {
+                if (candidate.compatible != (pass == 1)) continue;
+                SquadRouteRequest request = candidate.request;
+                RouteJobSlot slot = routeJobFor(request.squadId());
+                PreparedSquadRoute built = null;
+                boolean failed = false;
+                if (tickBudget > 0 && slices > 0 && !routeBackoffs.containsKey(request.squadId())) {
+                    if (slot == null && activeSquadRouteJobs() < slotLimit) {
+                        slot = freeRouteJob();
+                        slot.begin(request, mesh, topologyRevision, candidate.firstDeferredTick,
+                                Boolean.parseBoolean(System.getProperty(RETAIN_SINGLETON_SEEDS_PROPERTY, "true")));
+                    }
+                    if (slot != null) {
+                        int allowance = Math.min(Math.min(tickBudget, sliceBudget),
+                                (int) Math.max(0L, requestBudget - slot.lifetimeWork));
+                        long started = System.nanoTime();
+                        int beforeSeed = slot.job.seedExpanded();
+                        int beforeReverse = slot.job.reverseExpanded();
+                        int used = slot.job.advance(allowance);
+                        slot.lifetimeWork += used;
+                        slot.lastServedTick = tick;
+                        lastSquadRouteWorkUnits += used;
+                        tickBudget -= used;
+                        slices--;
+                        lastSquadRouteAdmissions++;
+                        if (candidate.wasPending) lastSquadRouteAdmittedWaitTicks = Math.max(
+                                lastSquadRouteAdmittedWaitTicks, tick - candidate.firstDeferredTick);
+                        boolean capped = slot.lifetimeWork >= requestBudget && !slot.job.isDone();
+                        boolean movedOutside = slot.job.isDone() && slot.job.field() != null
+                                && !coversCurrentStarts(slot, request);
+                        // Completing a stale-start field is not permission to
+                        // run new member A*. Rebuild the current footprint under
+                        // the SAME lifetime allowance, or back off when exhausted.
+                        if (movedOutside && slot.lifetimeWork >= requestBudget) capped = true;
+                        String status = capped ? "LIMIT" : movedOutside ? "STARTS_CHANGED"
+                                : !slot.job.isDone() ? "YIELD" : slot.job.field() == null ? "FAILED" : "READY";
+                        if (profile != null) {
+                            long elapsed = System.nanoTime() - started;
+                            profile.record(TickInnerProfile.Bucket.SQUAD_PATH_FIELD_BUILD, elapsed);
+                            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_WORK, used);
+                            profile.recordSquadRouteWork(elapsed, request.squadId(), request.actionName(),
+                                    request.goalX(), request.goalY(), slot.job.stage(), status,
+                                    used, slot.job.seedExpanded() - beforeSeed,
+                                    slot.job.reverseExpanded() - beforeReverse, slot.lifetimeWork,
+                                    tick - slot.firstTick, slot.job.startCount(), slot.job.maxStartGoalManhattan(),
+                                    slot.job.lastSeedStart(), slot.job.lastSeedExpanded(), slot.job.maxSeedExpanded());
+                        }
+                        if (capped) {
+                            routeBackoffs.put(request.squadId(), new RouteBackoff(request, mesh.revision(),
+                                    topologyRevision, (long) tick + retryTicks));
+                            slot.release();
+                            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_LIMIT, 1);
+                        } else if (movedOutside) {
+                            slot.restart(request, mesh);
+                            if (profile != null) profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_YIELD, 1);
+                        } else if (slot.job.isDone()) {
+                            if (slot.job.field() == null) failed = true;
+                            else built = new PreparedSquadRoute(request.routingEpoch(), request.routeToken(),
+                                    grid.index(request.goalX(), request.goalY()), mesh.revision(),
+                                    slot.request.cost(), slot.job.field(), tick);
+                            slot.release();
+                        } else if (profile != null) profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_YIELD, 1);
+                    }
+                }
+                if (built != null) {
+                    next.put(request.squadId(), built);
+                    lastSquadRouteBuilds++;
+                    if (candidate.wasPending) lastSquadRouteResumed++;
+                    lastSquadRouteCorridorCells += built.field.corridorCellCount();
+                    lastSquadRouteSettledCells += built.field.settledCellCount();
+                    if (profile != null) profile.recordSquadRouteFieldShape(
+                            built.field.corridorCellCount(), built.field.settledCellCount());
+                } else if (candidate.compatible) {
+                    next.put(request.squadId(), candidate.retained.adopt(request));
+                    lastSquadRouteDeferred++;
+                } else if (failed) {
+                    // Only a completed geometric search may take the legacy
+                    // failure path. Yields and total limits never reach it.
+                    next.put(request.squadId(), PreparedSquadRoute.failure(request,
+                            mesh.revision(), grid.getWidth(), tick));
+                } else {
+                    deferred.put(request.squadId(), new DeferredSquadRoute(request.squadId(),
+                            request.routingEpoch(), request.routeToken(), request.goalX(), request.goalY(),
+                            mesh.revision(), topologyRevision, candidate.firstDeferredTick));
+                    lastSquadRoutePending++;
+                    lastSquadRouteOldestWaitTicks = Math.max(lastSquadRouteOldestWaitTicks,
+                            tick - candidate.firstDeferredTick);
+                }
+            }
+        }
+        squadRouteBatch = new SquadRouteBatch(Map.copyOf(next), Map.copyOf(deferred));
+        if (profile != null) {
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_PENDING_REQUEST, lastSquadRoutePending);
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_ADMITTED, lastSquadRouteAdmissions);
+            profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_RESUMED, lastSquadRouteResumed);
+        }
+    }
+
+    private static int positiveRouteProperty(String suffix, int fallback) {
+        return Math.max(1, Integer.getInteger("battle.pathfinding." + suffix, fallback));
+    }
+
+    private boolean coversCurrentStarts(RouteJobSlot slot, SquadRouteRequest request) {
+        for (int start : request.startCells()) {
+            if (slot.job.field().covers(start)) continue;
+            // A start that the completed build actually examined retains the
+            // legacy unreachable/uncovered semantics; only newly moved starts
+            // must not leak construction work to individual fallback.
+            boolean original = false;
+            for (int initial : slot.request.startCells()) if (start == initial) { original = true; break; }
+            if (!original) return false;
+        }
+        return true;
+    }
+
+    private RouteJobSlot routeJobFor(int squadId) {
+        for (RouteJobSlot slot : routeJobSlots) {
+            if (slot.request != null && slot.request.squadId() == squadId) return slot;
+        }
+        return null;
+    }
+
+    private RouteJobSlot freeRouteJob() {
+        for (RouteJobSlot slot : routeJobSlots) if (slot.request == null) return slot;
+        throw new IllegalStateException("No free route job slot");
+    }
+
+    private void cancelRouteJob(RouteJobSlot slot) {
+        if (slot.request == null) return;
+        slot.release();
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_CANCEL, 1);
+    }
+
+    private void cancelRouteJobs() {
+        for (RouteJobSlot slot : routeJobSlots) cancelRouteJob(slot);
+    }
+
+    private static final class RouteJobSlot {
+        final SquadRouteBuildJob job;
+        SquadRouteRequest request;
+        long meshRevision, topologyRevision, lifetimeWork;
+        int firstTick, lastServedTick;
+        boolean retainSingleton;
+
+        RouteJobSlot(SquadRouteBuildJob job) { this.job = job; }
+
+        void begin(SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh,
+                   long topology, int tick, boolean singleton) {
+            meshRevision = mesh.revision();
+            topologyRevision = topology;
+            firstTick = tick;
+            lastServedTick = Integer.MIN_VALUE;
+            lifetimeWork = 0;
+            retainSingleton = singleton;
+            restart(request, mesh);
+        }
+
+        void restart(SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh) {
+            this.request = request;
+            job.begin(request, mesh, retainSingleton);
+        }
+
+        boolean matches(SquadRouteRequest current, long mesh, long topology) {
+            return current != null && request.squadId() == current.squadId()
+                    && request.routingEpoch() == current.routingEpoch()
+                    && request.routeToken() == current.routeToken()
+                    && request.goalX() == current.goalX() && request.goalY() == current.goalY()
+                    && meshRevision == mesh && topologyRevision == topology;
+        }
+
+        void release() { request = null; job.release(); }
+    }
+
+    /** A budget refusal survives routine epoch churn; it is not an unreachable memo. */
+    private record RouteBackoff(SquadRouteRequest request, long meshRevision,
+                                long topologyRevision, long retryAt) {
+        boolean matches(SquadRouteRequest current, long mesh, long topology, int width) {
+            if (current == null || meshRevision != mesh || topologyRevision != topology
+                    || request.goalX() != current.goalX() || request.goalY() != current.goalY()
+                    || !request.actionName().equals(current.actionName())) return false;
+            int[] before = request.startCells();
+            int[] now = current.startCells();
+            if (before.length != now.length || before.length == 0) return false;
+            long bx = 0, by = 0, nx = 0, ny = 0;
+            for (int cell : before) { bx += cell % width; by += cell / width; }
+            for (int cell : now) { nx += cell % width; ny += cell / width; }
+            long dx = bx - nx, dy = by - ny;
+            return dx * dx + dy * dy < 16L * before.length * before.length;
+        }
+    }
+
+    public int lastSquadRouteWorkUnits() { return lastSquadRouteWorkUnits; }
+
+    public int activeSquadRouteJobs() {
+        int count = 0;
+        for (RouteJobSlot slot : routeJobSlots) if (slot.request != null) count++;
+        return count;
     }
 
     private PreparedSquadRoute buildSquadRoute(SquadRouteRequest request,
@@ -803,13 +1093,13 @@ public final class NavigationService implements AutoCloseable {
     public int lastSquadRouteSettledCells() { return lastSquadRouteSettledCells; }
     /** Exact intents still deferred without a compatible field after preparation. */
     public int lastSquadRoutePending() { return lastSquadRoutePending; }
-    /** Build attempts, including failures; each consumes one admission slot. */
+    /** Work slices in budgeted mode, whole attempts in the control; includes failures. */
     public int lastSquadRouteAdmissions() { return lastSquadRouteAdmissions; }
     /** Previously pending exact intents that now have a successfully built field. */
     public int lastSquadRouteResumed() { return lastSquadRouteResumed; }
     /** Maximum age of requests still pending in the published batch. */
     public int lastSquadRouteOldestWaitTicks() { return lastSquadRouteOldestWaitTicks; }
-    /** Maximum age of previously pending requests admitted this preparation, even if build failed. */
+    /** Maximum age of previously pending requests receiving work, even if not yet ready. */
     public int lastSquadRouteAdmittedWaitTicks() { return lastSquadRouteAdmittedWaitTicks; }
 
     private record SquadRouteBatch(Map<Integer, PreparedSquadRoute> prepared,
@@ -1111,6 +1401,9 @@ public final class NavigationService implements AutoCloseable {
     public void beginClearanceTick(int tick) { clearanceRoutes.beginTick(tick); }
 
     @Override public void close() {
+        cancelRouteJobs();
+        routeBackoffs.clear();
+        lastSquadRouteWorkUnits = 0;
         squadRouteBatch = SquadRouteBatch.empty();
         lastSquadRoutePending = 0;
         lastSquadRouteOldestWaitTicks = 0;
