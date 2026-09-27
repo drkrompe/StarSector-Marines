@@ -245,8 +245,12 @@ final class RouteProofJob {
         expandedThisStep = 0;
         int spentAtStart = budget.spent();
         while (state == State.RUNNING) {
-            if (budget.isExhausted() && inboundSearch == null
-                    && outboundSearch == null) {
+            // A wrapper can remain PENDING after its last paid attempt rejects
+            // a turn. Only an actual frontier can progress without a new claim;
+            // pumping an unfunded retry would otherwise spin in this same tick.
+            if (budget.isExhausted()
+                    && (inboundSearch == null || !inboundSearch.hasActiveAttempt())
+                    && (outboundSearch == null || !outboundSearch.hasActiveAttempt())) {
                 state = State.NO_ROUTE;
                 break;
             }
