@@ -200,6 +200,8 @@ class ConvoyMeansTest {
 
         assertEquals(ReinforcementDispatchResult.RETRYABLE,
                 means.dispatch(sim, request));
+        assertEquals(0, means.routeFieldCaptures(), "dispatch queues without copying the map");
+        means.advance(BattleSimulation.TICK_DT, sim);
         assertEquals(1, means.routeFieldCaptures());
         sim.getGrid().setWalkable(5, 5, false);
         means.advance(BattleSimulation.TICK_DT, sim);

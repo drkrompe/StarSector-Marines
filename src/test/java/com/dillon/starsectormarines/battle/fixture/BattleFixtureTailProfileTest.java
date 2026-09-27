@@ -132,6 +132,7 @@ class BattleFixtureTailProfileTest {
         long[] innerCounts = new long[TickInnerProfile.Bucket.VALUES.length];
         Map<String, long[]> actionTotals = new HashMap<>();
         long[] convoyWorkTotals = new long[4];
+        long[] convoyAdmissionMaxima = new long[5];
         TailSquadRouteAdmission.Totals admissionTotals =
                 new TailSquadRouteAdmission.Totals(warmupTicks + 1);
         TailSquadRouteWork routeWorkTotals = new TailSquadRouteWork(warmupTicks + 1,
@@ -282,6 +283,16 @@ class BattleFixtureTailProfileTest {
                     maximumUnits = Math.max(maximumUnits, units);
                     minimumUnits = Math.min(minimumUnits, units);
                     TickInnerProfile inner = sim.getTickInnerProfile();
+                    convoyAdmissionMaxima[0] = Math.max(convoyAdmissionMaxima[0],
+                            inner.countOf(TickInnerProfile.Bucket.CONVOY_PROGRESSIVE_SNAPSHOT));
+                    convoyAdmissionMaxima[1] = Math.max(convoyAdmissionMaxima[1],
+                            inner.nanosOf(TickInnerProfile.Bucket.CONVOY_PROGRESSIVE_SNAPSHOT));
+                    convoyAdmissionMaxima[2] = Math.max(convoyAdmissionMaxima[2],
+                            inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_QUEUED));
+                    convoyAdmissionMaxima[3] = Math.max(convoyAdmissionMaxima[3],
+                            inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_PREPARED));
+                    convoyAdmissionMaxima[4] = Math.max(convoyAdmissionMaxima[4],
+                            inner.countOf(TickInnerProfile.Bucket.CONVOY_PROOF_OLDEST_PENDING_AGE));
                     TailSquadRouteAdmission admission = TailSquadRouteAdmission.capture(inner,
                             sim.lastSquadRouteDeferred(), sim.lastSquadRouteOldestWaitTicks(),
                             sim.lastSquadRouteAdmittedWaitTicks());
@@ -410,7 +421,7 @@ class BattleFixtureTailProfileTest {
         assertTrue(maximumUnits >= UnitUpdateSystem.configuredMinimumParallelUnits());
         JSONObject report = report(fixturePath, fixtureBytes, totalTicks,
                 warmupTicks, paceMillis, durations, phaseTotals, innerTotals,
-                innerCounts, convoyWorkTotals, worst, worstByPhase, commanderPulses,
+                innerCounts, convoyWorkTotals, convoyAdmissionMaxima, worst, worstByPhase, commanderPulses,
                 meshRefreshes, meshTilesCovered, setupPendingMeshChanges,
                 meshCoverNanos, meshSeamNanos, meshAssemblyNanos,
                 meshRebuildNanos, meshRefreshSamples, totalReplans,
@@ -474,6 +485,7 @@ class BattleFixtureTailProfileTest {
                                      long[] phaseTotals, long[] innerTotals,
                                      long[] innerCounts,
                                      long[] convoyWorkTotals,
+                                     long[] convoyAdmissionMaxima,
                                      PriorityQueue<TickSample> worst,
                                      TickSample[] worstByPhase,
                                      int commanderPulses, int meshRefreshes,
@@ -504,7 +516,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 19);
+        report.put("schemaVersion", 20);
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
         report.put("filteredSquadAwareness", Boolean.parseBoolean(System.getProperty(
                 "battle.perception.filteredSquadAwareness", "true")));
@@ -642,6 +654,18 @@ class BattleFixtureTailProfileTest {
         }
         report.put("innerTotals", innerTime);
         report.put("convoyRouteWorkTotals", convoyWorkJson(convoyWorkTotals));
+        report.put("convoyProofAdmission", new JSONObject()
+                .put("maximumSnapshotsPerTick", convoyAdmissionMaxima[0])
+                .put("maximumSnapshotMs", millis(convoyAdmissionMaxima[1]))
+                .put("maximumQueued", convoyAdmissionMaxima[2])
+                .put("maximumPrepared", convoyAdmissionMaxima[3])
+                .put("maximumPendingAgeTicks", convoyAdmissionMaxima[4])
+                .put("semantics", "All measured ticks, excluding warmup. Queue and prepared "
+                        + "counts observed after admission, before search and dispatch. "
+                        + "Counters aggregate registered convoy means; each means admits at most "
+                        + "one proof and retains at most four prepared proofs per tick. "
+                        + "Age includes queued, running and unconsumed finished requests; "
+                        + "it may originate before warmup and does not reset on invalidation."));
         report.put("overBudgetTicks", Arrays.stream(durations)
                 .filter(ns -> ns >= FRAME_BUDGET_NANOS).count());
         report.put("over30MsTicks", Arrays.stream(durations)

@@ -221,7 +221,15 @@ Do not run builds or leave generated task files there.
   live `tick_profile_spike_*.json.data` or its `.fixture.json.data` sibling,
   and `-Dbattle.tail.totalTicks=N`, `-Dbattle.tail.warmupTicks=N`,
   `-Dbattle.tail.paceMillis=N`, or `-Dbattle.tail.outputDir=<absolute path>`
-  for targeted runs. The test fork prefers the game's bundled Java 17 when
+  for targeted runs. Convoy admission reporting retains maximum snapshot
+  count/time, post-admission queued/prepared counts and oldest unconsumed
+  request age across all measured ticks. Each convoy means admits at most one
+  proof per tick and holds at most four prepared jobs, including finished
+  results. `CONVOY_PROOF_ADMITTED` includes admission-time refusal;
+  queued/prepared sums are request-ticks, not unique requests. Oldest-age sums
+  are not latency; use the reported maximum. Age survives topology restarts
+  and may originate before warmup. READY/FAILED count completed searches, not
+  delivered vehicles. The test fork prefers the game's bundled Java 17 when
   present; `-Dbattle.tail.javaExecutable=<absolute path>` overrides it. The
   live dump is a tick-zero construction fixture, not
   an in-flight state snapshot, so replay need not reproduce the exact spike.

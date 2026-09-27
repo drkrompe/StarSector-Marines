@@ -241,6 +241,15 @@ public final class TickInnerProfile {
         CONVOY_COMPONENT_CATCHUP,
         CONVOY_TERRAIN_COST_BUILD,
         CONVOY_PROGRESSIVE_SNAPSHOT,
+        /** New proof admissions, including admission-time refusal. */
+        CONVOY_PROOF_ADMITTED,
+        /** Queue/prepared observations per advance; sums are request-ticks. */
+        CONVOY_PROOF_QUEUED,
+        CONVOY_PROOF_PREPARED,
+        /** Oldest unconsumed request age per advance; use maximum, not sum. */
+        CONVOY_PROOF_OLDEST_PENDING_AGE,
+        CONVOY_PROOF_READY,
+        CONVOY_PROOF_FAILED,
         CONVOY_ROUTE_PROOF_STEP,
         // Ground-system stages are nested wall times, not additive to the phase.
         GROUND_PENDING_ORDERS,
