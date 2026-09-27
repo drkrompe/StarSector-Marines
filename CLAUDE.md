@@ -232,6 +232,15 @@ Do not run builds or leave generated task files there.
   synchronous A* while leaving track rallies asynchronous, for same-build
   coverage controls. Slow flat-search samples include member, squad, stable
   action identity, and route reason; action totals span all measured ticks.
+  `-Dbattle.pathfinding.pruneFlankCandidates=false` restores exhaustive flank
+  candidate A* fan-out. The default skips candidates whose admissible score
+  bound cannot improve the incumbent, preserving the selected cell and tie order;
+  actual proofs are labelled `FLANK_SNAP` in slow-search samples. Tail reports
+  record this and the squad-traffic switches, include counts at 30/40/50 ms,
+  and exclude warmup from async-route cumulative deltas. Pass
+  `-Dbattle.tail.sourceRevision=<commit>` to retain an explicit source revision;
+  omission records `unknown`, not a guessed checkout. Lifetime latency maxima
+  remain explicitly warmup-inclusive.
   Configurable orders such as DefendSite and DefendTrack are reported separately.
   `-Dbattle.targeting.squadFiringPositions=true` enables the off-by-default
   shared constrained firing-position experiment for patrol and zone-entry

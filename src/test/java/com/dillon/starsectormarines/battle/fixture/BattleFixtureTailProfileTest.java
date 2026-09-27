@@ -208,6 +208,7 @@ class BattleFixtureTailProfileTest {
             int recordingStart = Math.max(0, warmupTicks - 30);
             for (int attempt = 0; attempt < totalTicks; attempt++) {
                 if (attempt == warmupTicks) {
+                    firstRoutes = sim.asyncDefendTrackRoutes().metrics();
                     firstInfluence = sim.getCommanderInfluenceMetrics();
                 }
                 if (recording != null && attempt == recordingStart) recording.start();
@@ -480,7 +481,8 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 9);
+        report.put("schemaVersion", 10);
+        report.put("sourceRevision", System.getProperty("battle.tail.sourceRevision", "unknown"));
         report.put("fixturePath", fixturePath);
         report.put("fixtureSha256", HexFormat.of().formatHex(
                 MessageDigest.getInstance("SHA-256").digest(fixtureBytes)));
@@ -496,6 +498,11 @@ class BattleFixtureTailProfileTest {
         report.put("renderSink", "none");
         report.put("workerTimeline", jfrPath != null && Boolean.getBoolean("battle.tail.workerTimeline"));
         report.put("asyncDefendTrack", true);
+        report.put("squadTraffic", Boolean.getBoolean("battle.squad.traffic"));
+        report.put("squadTrafficYield", Boolean.parseBoolean(System.getProperty(
+                "battle.squad.trafficYield", "true")));
+        report.put("pruneFlankCandidates", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.pruneFlankCandidates", "true")));
         report.put("squadFiringPositions", Boolean.parseBoolean(System.getProperty(
                 "battle.targeting.squadFiringPositions", "false")));
         report.put("firingReachabilityComponents", Boolean.parseBoolean(System.getProperty(
@@ -582,8 +589,13 @@ class BattleFixtureTailProfileTest {
         report.put("convoyRouteWorkTotals", convoyWorkJson(convoyWorkTotals));
         report.put("overBudgetTicks", Arrays.stream(durations)
                 .filter(ns -> ns >= FRAME_BUDGET_NANOS).count());
+        report.put("over30MsTicks", Arrays.stream(durations)
+                .filter(ns -> ns >= 30_000_000L).count());
+        report.put("over40MsTicks", Arrays.stream(durations)
+                .filter(ns -> ns >= 40_000_000L).count());
         report.put("over50MsTicks", Arrays.stream(durations)
                 .filter(ns -> ns >= 50_000_000L).count());
+        report.put("asyncRouteTotalsFirstTick", warmupTicks + 1);
         report.put("asyncRouteSubmitted", finalRoutes.submitted()
                 - firstRoutes.submitted());
         report.put("asyncRouteCompleted", finalRoutes.completed()
