@@ -14,6 +14,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InfluenceResolutionEvidenceTest {
     @Test
+    void snapshotPayloadSeparatesKnownPrimitiveBytesFromUnknownReferenceWidth() throws JSONException {
+        JSONObject payload = InfluenceResolutionEvidence.snapshotPayload(560, 336);
+        long cells = 560L * 336;
+        assertEquals(cells, payload.getLong("cells"));
+        assertEquals(9, payload.getInt("requiredPrimitiveBytesPerCell"));
+        assertEquals(46, payload.getInt("avoidedPrimitiveBytesPerCell"));
+        assertEquals(cells * 9, payload.getLong("compactPerCellPrimitivePayloadBytes"));
+        assertEquals(cells * 55, payload.getLong("fullPerCellPrimitivePayloadBytes"));
+        assertEquals(cells * 46, payload.getLong("avoidedPrimitivePayloadBytes"));
+        assertEquals(cells * 2, payload.getLong("avoidedReferenceSlots"));
+    }
+
+    @Test
     void equalConstantFieldsCompareByWorldCellsDespiteDifferentStorage() throws JSONException {
         NavigationGrid grid = openGrid(31, 15);
         float[] control = new float[8];

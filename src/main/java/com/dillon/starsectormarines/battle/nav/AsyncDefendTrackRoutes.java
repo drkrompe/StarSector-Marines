@@ -398,7 +398,9 @@ public final class AsyncDefendTrackRoutes implements AutoCloseable {
         }
         long snapshotStart = System.nanoTime();
         if (topologySnapshot == null || topologyRevision != key.topologyRevision()) {
-            topologySnapshot = liveGrid.copyNavigationTopology();
+            topologySnapshot = Boolean.parseBoolean(System.getProperty(
+                    NavigationGrid.COMPACT_PUBLIC_TOPOLOGY_PROPERTY, "true"))
+                    ? liveGrid.copyRoutingTopology() : liveGrid.copyNavigationTopology();
             topologyRevision = key.topologyRevision();
             topologyCopies++;
         }

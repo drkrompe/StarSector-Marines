@@ -63,6 +63,10 @@ derived views. Public topology is reused until either the raw grid changes or
 the derived-navigation revision advances at the flushed breach boundary;
 influence connectivity is reused until that flush. Unit movement and changing
 belief rebuild frames and fields without recopying unchanged map geometry.
+Frozen navigation-only views carry movement flags and edge connectivity, not
+unused combat cover, damage or smoke storage. Compact storage must preserve
+the same exact reachability and snapshot isolation as a full navigation copy;
+it is independent of coarser strategic field resolution.
 Equal-strength influence emitters in one connectivity component may
 share one propagation traversal while retaining additive strength and the
 per-emitter attenuation cutoff.

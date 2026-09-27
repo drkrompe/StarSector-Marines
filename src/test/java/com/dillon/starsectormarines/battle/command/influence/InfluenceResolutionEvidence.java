@@ -96,7 +96,8 @@ public final class InfluenceResolutionEvidence {
                     .put("subjectVisitedComponents", subjectWork.visitedComponents)
                     .put("difference", compareFields(frozen, control, subject)));
         }
-        return new JSONObject().put("schema", 1).put("captureTick", sim.getSimTickIndex())
+        JSONObject storage = compareSnapshotStorage(frozen);
+        return new JSONObject().put("schema", 2).put("captureTick", sim.getSimTickIndex())
                 .put("worldWidth", frozen.getWidth()).put("worldHeight", frozen.getHeight())
                 .put("gridCaptureMs", millis(gridCaptureNanos)).put("sourceCaptureMs", millis(sourceCaptureNanos))
                 .put("warmupPairs", WARMUP_PAIRS).put("measuredPairs", MEASURED_PAIRS)
@@ -107,10 +108,67 @@ public final class InfluenceResolutionEvidence {
                         + "Timings are diagnostic: background battle workers may still finish already-submitted work. "
                         + "This is field cost and approximation evidence, not battle outcomes or whole-commander speedup. "
                         + "Topology still visits fine map cells; blocks and fine-connected components are different counts.")
-                .put("arms", arms).put("channels", comparisons).put("isolatedWallProbes", wallProbes());
+                .put("arms", arms).put("channels", comparisons).put("isolatedWallProbes", wallProbes())
+                .put("snapshotStorage", storage);
     }
 
     private static volatile double checksum;
+    private static volatile NavigationGrid copiedGrid;
+
+    private static JSONObject compareSnapshotStorage(NavigationGrid frozen) throws JSONException {
+        long[][] times = new long[2][MEASURED_PAIRS];
+        int flagsHash = Arrays.hashCode(frozen.getCellFlagsArray());
+        int edgesHash = Arrays.hashCode(frozen.getEdgePassabilityArray());
+        for (int pair = -WARMUP_PAIRS; pair < MEASURED_PAIRS; pair++) {
+            for (int order = 0; order < 2; order++) {
+                int arm = (pair + WARMUP_PAIRS + order) & 1;
+                long started = System.nanoTime();
+                NavigationGrid copy = arm == 0
+                        ? frozen.copyNavigationTopology() : frozen.copyRoutingTopology();
+                long elapsed = System.nanoTime() - started;
+                // Escape the whole result, then check copied inputs outside the timed
+                // allocation/copy envelope. Both arms read exactly the same frozen grid.
+                copiedGrid = copy;
+                int copiedFlagsHash = Arrays.hashCode(copy.getCellFlagsArray());
+                int copiedEdgesHash = Arrays.hashCode(copy.getEdgePassabilityArray());
+                checksum += copiedFlagsHash + (double) copiedEdgesHash;
+                if (copiedFlagsHash != flagsHash || copiedEdgesHash != edgesHash) {
+                    throw new AssertionError("Snapshot storage control changed routing inputs");
+                }
+                if (pair >= 0) times[arm][pair] = elapsed;
+            }
+        }
+        copiedGrid = null;
+        return new JSONObject().put("warmupPairs", WARMUP_PAIRS).put("measuredPairs", MEASURED_PAIRS)
+                .put("semantics", "Independent of influence resolution: full ancillary storage versus routing-only "
+                        + "storage copied from the same frozen fine grid, alternating arms per pair. "
+                        + "Timing includes construction and the two array copies, excludes checksums. "
+                        + "Routing input checksums match in every arm. Timing is diagnostic, not a whole-tick speedup.")
+                .put("cellFlagsHash", flagsHash).put("edgePassabilityHash", edgesHash)
+                .put("fullCopyNavigationTopology", timings(times[0]))
+                .put("compactCopyRoutingTopology", timings(times[1]))
+                .put("payload", snapshotPayload(frozen.getWidth(), frozen.getHeight()));
+    }
+
+    /** Per-cell backing-array payload from NavigationGrid's two constructor shapes, not heap size. */
+    static JSONObject snapshotPayload(int width, int height) throws JSONException {
+        long cells = (long) width * height;
+        int requiredBytesPerCell = Long.BYTES + Byte.BYTES;
+        int avoidedBytesPerCell = 2 * NavigationGrid.FACING_COUNT * (Byte.BYTES + Float.BYTES)
+                + Integer.BYTES + Short.BYTES;
+        return new JSONObject().put("cells", cells)
+                .put("requiredPrimitiveBytesPerCell", requiredBytesPerCell)
+                .put("avoidedPrimitiveBytesPerCell", avoidedBytesPerCell)
+                .put("compactPerCellPrimitivePayloadBytes", cells * requiredBytesPerCell)
+                .put("fullPerCellPrimitivePayloadBytes", cells * (requiredBytesPerCell + avoidedBytesPerCell))
+                .put("avoidedPrimitivePayloadBytes", cells * avoidedBytesPerCell)
+                .put("avoidedReferenceSlots", cells * 2)
+                .put("semantics", "Exact per-cell array element payload: routing long flags + byte edges; "
+                        + "omitted two cover bytes and two float heights per facing, int wall HP, short opacity, "
+                        + "plus two barrier-reference slots per cell. Reference slot width is JVM-dependent and "
+                        + "not converted to bytes. Excludes fixed arrays (including the topology change log), "
+                        + "array/object headers, alignment and other objects. Not a measured total heap allocation.");
+    }
 
     /** Cell-weighted comparison; region ranks use the same 16-cell footprint in both arms. */
     static JSONObject compareFields(NavigationGrid grid, float[] control, float[] subject) throws JSONException {
