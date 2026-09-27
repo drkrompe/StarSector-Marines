@@ -1127,8 +1127,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<ShotEvent> getShotsExpiredThisFrame() { return shots.getShotsExpiredThisFrame(); }
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Renderer reads positions for sprite + contrail drawing. */
     public List<Projectile> getActiveProjectiles() { return shots.getActiveProjectiles(); }
-    /** Thread-safe snapshot of active projectiles for callers iterating during the parallel UPDATE_UNITS dispatch (today: squad-coordination scorers checking projected rocket damage). See {@link com.dillon.starsectormarines.battle.combat.ShotService#snapshotActiveProjectiles()}. */
+    /** Phase-start hazard view during member updates. See {@link ShotService#snapshotActiveProjectiles()}. */
     public List<Projectile> snapshotActiveProjectiles() { return shots.snapshotActiveProjectiles(); }
+    /** Fresh launches remain visible to coordination without changing hazard perception mid-phase. */
+    public Iterable<Projectile> committedProjectiles() { return shots.committedProjectiles(); }
     /** Projectiles that arrived this tick — parallel to {@link #getShotsExpiredThisFrame} for the renderer's impact-FX dispatch. */
     public List<Projectile> getProjectilesArrivedThisFrame() { return shots.getProjectilesArrivedThisFrame(); }
     /**

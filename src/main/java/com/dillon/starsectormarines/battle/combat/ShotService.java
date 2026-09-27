@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.perception.NoiseKind;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Owner of every in-flight bullet, tracer, and projectile the battle has
@@ -36,21 +38,30 @@ import java.util.List;
  *
  * <p>Concurrency: {@link #postShot}, {@link #queueProjectile}, and
  * {@link #queueImpact} are called from the parallel UPDATE_UNITS dispatch.
- * Each synchronizes on its own list monitor ({@link #activeShots} — which
+ * Shots and impacts synchronize on their list monitors ({@link #activeShots} — which
  * also covers the paired {@link #shotsThisFrame} append in {@code postShot} —
- * {@link #activeProjectiles}, {@link #activeImpacts}). {@link #snapshotActiveShots}
- * grabs the same monitor so concurrent readers see a consistent list.
+ * and {@link #activeImpacts}). During a member phase, projectile writers publish
+ * append intents into a concurrent queue; the host alone updates the active
+ * list after the workers join. Hazard readers share one phase-start view,
+ * while damage reservations additionally see freshly committed launches.
  */
 public final class ShotService {
 
     private final NoiseEventBus noiseEvents;
+    private final boolean phaseOwnedPublication;
 
     public ShotService() {
         this(null);
     }
 
     public ShotService(NoiseEventBus noiseEvents) {
+        this(noiseEvents, Boolean.parseBoolean(System.getProperty(
+                "battle.projectiles.phaseOwnedPublication", "true")));
+    }
+
+    ShotService(NoiseEventBus noiseEvents, boolean phaseOwnedPublication) {
         this.noiseEvents = noiseEvents;
+        this.phaseOwnedPublication = phaseOwnedPublication;
     }
 
     /** Callback the projectile-arrival path uses to hand a {@link PendingDetonation} to the weapons subsystem. Functional interface so the BattleSimulation site is a lambda. */
@@ -119,6 +130,8 @@ public final class ShotService {
     private final List<ShotEvent> shotsExpiredThisFrame = new ArrayList<>();
     /** In-flight {@link Projectile}s — slow-velocity AoE kinds. Advanced + detonated by {@link #tickProjectiles(float, ProjectileArrivalSink)} each tick. */
     private final List<Projectile> activeProjectiles = new ArrayList<>();
+    /** Published before dispatch, cleared only after successful worker join. */
+    private volatile ProjectilePhase memberPhase;
     /** In-flight {@link PendingImpact}s — one per resolved ballistic round with a victim, queued at fire time by {@link com.dillon.starsectormarines.battle.infantry.InfantryWeapons#fireShot}. Advanced + applied by {@link #tickImpacts(float, ImpactSink)} each tick. */
     private final List<PendingImpact> activeImpacts = new ArrayList<>();
     /** Projectiles that arrived this tick — parallel to {@link #shotsExpiredThisFrame} for the impact-FX dispatch in the renderer. Cleared each tick. */
@@ -157,8 +170,102 @@ public final class ShotService {
     }
 
     public void queueProjectile(Projectile p) {
+        ProjectilePhase phase = memberPhase;
+        if (phase != null) {
+            // An abandoned phase stays installed: even a late writer can
+            // never fall through to the host-owned active list.
+            if (!phase.abandoned) phase.pending.add(p);
+            return;
+        }
         synchronized (activeProjectiles) {
             activeProjectiles.add(p);
+        }
+    }
+
+    /**
+     * Host-only entry before member dispatch. Projectile clocks/interception
+     * must remain untouched until the workers join. The shared view is
+     * structurally immutable; its projectile objects are immutable by phase
+     * ownership, not copies of the physical rounds.
+     *
+     * @return whether phase-owned publication is enabled for this service
+     */
+    public boolean beginMemberUpdates() {
+        if (!phaseOwnedPublication) return false;
+        if (memberPhase != null) {
+            throw new IllegalStateException("Projectile member phase is already active or abandoned");
+        }
+        synchronized (activeProjectiles) {
+            memberPhase = new ProjectilePhase(List.copyOf(activeProjectiles));
+        }
+        return true;
+    }
+
+    /**
+     * Host-only publication after a successful join, before point defence and
+     * projectile aging. Launch-tick physics and damage timing are unchanged;
+     * only sibling hazard decisions wait for the next member-phase view.
+     */
+    public void finishMemberUpdates() {
+        ProjectilePhase phase = memberPhase;
+        if (phase == null || phase.abandoned) {
+            throw new IllegalStateException("No publishable projectile member phase");
+        }
+        phase.requireOwner();
+        synchronized (activeProjectiles) {
+            Projectile projectile;
+            while ((projectile = phase.pending.poll()) != null) activeProjectiles.add(projectile);
+            memberPhase = null;
+        }
+    }
+
+    /**
+     * Terminal failure only: do not publish partial work or permit another
+     * member phase on this battle. Retaining the abandoned phase safely
+     * contains stragglers even when a failed join did not stop every worker.
+     */
+    public void abandonMemberUpdates() {
+        ProjectilePhase phase = memberPhase;
+        if (phase != null) {
+            phase.requireOwner();
+            phase.abandoned = true;
+        }
+    }
+
+    private static final class ProjectilePhase implements Iterable<Projectile> {
+        final Thread owner = Thread.currentThread();
+        final List<Projectile> startView;
+        final ConcurrentLinkedQueue<Projectile> pending = new ConcurrentLinkedQueue<>();
+        volatile boolean abandoned;
+
+        ProjectilePhase(List<Projectile> startView) {
+            this.startView = startView;
+        }
+
+        void requireOwner() {
+            if (Thread.currentThread() != owner) {
+                throw new IllegalStateException("Only the joining host may finish or abandon projectile updates");
+            }
+        }
+
+        @Override public Iterator<Projectile> iterator() {
+            return new Iterator<>() {
+                private final Iterator<Projectile> existing = startView.iterator();
+                private Iterator<Projectile> additions;
+
+                @Override public boolean hasNext() {
+                    return existing.hasNext() || additions().hasNext();
+                }
+
+                @Override public Projectile next() {
+                    return existing.hasNext() ? existing.next() : additions().next();
+                }
+
+                private Iterator<Projectile> additions() {
+                    if (additions == null) additions = pending.iterator();
+                    return additions;
+                }
+            };
         }
     }
 
@@ -166,7 +273,7 @@ public final class ShotService {
      * Queues a resolved round's damage/hit-response payload for delayed
      * application at {@link PendingImpact#remainingTime}. Called from the
      * parallel UPDATE_UNITS dispatch — same monitor-per-list discipline as
-     * {@link #postShot} / {@link #queueProjectile}.
+     * {@link #postShot}.
      */
     public void queueImpact(PendingImpact p) {
         synchronized (activeImpacts) {
@@ -200,17 +307,29 @@ public final class ShotService {
     }
 
     /**
-     * Thread-safe snapshot of {@link #activeProjectiles} — same justification
-     * as {@link #snapshotActiveShots}. Used by squad-coordination scorers that
-     * run during the parallel UPDATE_UNITS dispatch (today:
-     * {@code TacticalScoring.projectedRocketDamageOnTurret} while another
-     * worker may concurrently {@link #queueProjectile} a freshly-fired marine
-     * rocket).
+     * Hazard view, shared throughout member updates. Newly launched rounds
+     * appear in the next member phase, without per-reader copying or locking.
+     * Outside that phase (or with the control disabled), returns the legacy
+     * synchronized copy. Do not retain a phase view past worker join: the
+     * host subsequently advances the physical projectile objects.
      */
     public List<Projectile> snapshotActiveProjectiles() {
+        ProjectilePhase phase = memberPhase;
+        if (phase != null) return phase.startView;
         synchronized (activeProjectiles) {
             return new ArrayList<>(activeProjectiles);
         }
+    }
+
+    /**
+     * Coordination-only view: phase-start rounds plus concurrent fresh-launch
+     * intents, so damage/throw reservations do not forget already spent ammo.
+     * The fresh portion is weakly consistent, as simultaneous decisions may
+     * race. Iterate only within the calling phase; this is not a hazard view.
+     */
+    public Iterable<Projectile> committedProjectiles() {
+        ProjectilePhase phase = memberPhase;
+        return phase != null ? phase : snapshotActiveProjectiles();
     }
 
     /** Thread-safe view of committed direct-fire rounds for damage reservation. */
@@ -258,6 +377,9 @@ public final class ShotService {
      * direct-fire overshoots simply expire. Reverse iteration for in-place removal.
      */
     public void tickProjectiles(float dt, ProjectileArrivalSink sink) {
+        if (memberPhase != null) {
+            throw new IllegalStateException("Projectile aging requires a successfully joined member phase");
+        }
         for (int i = activeProjectiles.size() - 1; i >= 0; i--) {
             Projectile p = activeProjectiles.get(i);
             if (p.intercepted) {

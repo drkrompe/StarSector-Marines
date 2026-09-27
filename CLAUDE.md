@@ -262,6 +262,15 @@ Do not run builds or leave generated task files there.
   `-Dbattle.squad.isolatedAdvanceThreat=false` restores the broad squad monitor
   for route-threat publication. The default uses a dedicated once-per-tick
   monitor, preserving complete current-tick decisions and hysteresis.
+  `-Dbattle.pathfinding.phaseOwnedRallyRequests=false` restores worker-side
+  synchronized route requests. The default publishes member-owned intents after
+  join; `RALLY_REQUEST_PREPARE/COMMIT` separates host work from worker dispatch,
+  and route poll/cancel/no-op counters quantify the former contention surface.
+  `-Dbattle.projectiles.phaseOwnedPublication=false` restores per-reader copies
+  and synchronized projectile appends. The default shares an update-start
+  hazard view and collects launch intents before projectile physics; fresh
+  launches remain visible to reservation checks. `PROJECTILE_PUBLICATION_*`
+  records host preparation and collection rather than hiding moved work.
   Timings are machine-local diagnostic evidence, never a portable test gate.
   `-Dbattle.unitUpdate.parallelism=N` selects an explicit unit-worker count for
   scheduling controls; omission retains the production processor-count policy.

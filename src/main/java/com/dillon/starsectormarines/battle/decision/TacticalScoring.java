@@ -1166,7 +1166,7 @@ public final class TacticalScoring {
      * whose endpoint sits within AoE of the target cell. Used by
      * {@link #shouldCommitRocket}.
      *
-     * <p>Iterates {@code shots.snapshotActiveProjectiles()} for the inflight
+     * <p>Iterates {@code shots.committedProjectiles()} for the inflight
      * half. Every HE rocket-class weapon in the codebase rides the Projectile
      * entity model (locust + grenade-launcher turrets, marine handheld rocket,
      * mech SRM_POD + LRM_ARTILLERY) — each in-flight round is a real entity
@@ -1205,7 +1205,7 @@ public final class TacticalScoring {
         float targetCx = world.x(target);
         float targetCy = world.y(target);
         Faction shooterFaction = roster.identity().faction(shooter);
-        for (Projectile p : shots.snapshotActiveProjectiles()) {
+        for (Projectile p : shots.committedProjectiles()) {
             if (!shooterFaction.friendlyTo(p.shooterFaction)) continue;
             PendingDetonation det = p.onArrival;
             if (det == null) continue;
