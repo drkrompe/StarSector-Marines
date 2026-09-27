@@ -188,6 +188,13 @@ public final class TickInnerProfile {
         COMMANDER_FRAME,
         COMMANDER_FRAME_ASSIGNMENTS,
         COMMANDER_FRAME_SQUADS,
+        COMMANDER_FRAME_SQUAD_ROSTER,
+        COMMANDER_FRAME_SQUAD_MEMBERS,
+        COMMANDER_FRAME_SQUAD_CONTACT,
+        COMMANDER_FRAME_SQUAD_PUBLICATION,
+        COMMANDER_FRAME_SQUAD_ROWS,
+        COMMANDER_FRAME_MEMBER_INPUTS,
+        COMMANDER_FRAME_BELIEF_INPUTS,
         COMMANDER_FRAME_INFLUENCE,
         COMMANDER_FRAME_FACTS,
         /** Optional host CPU for the complete frame stage, not additive to its wall time. */

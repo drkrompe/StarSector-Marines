@@ -137,6 +137,7 @@ class BattleFixtureTailProfileTest {
         long[] convoyWorkTotals = new long[4];
         long[] convoyAdmissionMaxima = new long[6];
         JSONArray commandTopologyRebuilds = new JSONArray();
+        JSONArray commandFrameSamples = new JSONArray();
         JSONObject influenceResolution = null;
         TailSquadRouteAdmission.Totals admissionTotals =
                 new TailSquadRouteAdmission.Totals(warmupTicks + 1);
@@ -336,6 +337,16 @@ class BattleFixtureTailProfileTest {
                     convoyWorkTotals[3] += inner.convoySearchesStarted();
                     if (inner.countOf(TickInnerProfile.Bucket.COMMANDER_PULSE) > 0) {
                         commanderPulses++;
+                        JSONObject frame = new JSONObject().put("tick", sim.simTickIndex)
+                                .put("tickMs", millis(duration));
+                        for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
+                            if (bucket.name().startsWith("COMMANDER_FRAME")) {
+                                frame.put(bucket.name(), new JSONObject()
+                                        .put("count", inner.countOf(bucket))
+                                        .put("ms", millis(inner.nanosOf(bucket))));
+                            }
+                        }
+                        commandFrameSamples.put(frame);
                     }
                     totalReplans += sim.getSquadReplanSystem()
                             .lastTickDiagnostics().replanCount();
@@ -459,6 +470,7 @@ class BattleFixtureTailProfileTest {
         assertNotNull(firstInfluence);
         report.put("mechSupport", mechSupport.json());
         report.put("commandTopologyRebuilds", commandTopologyRebuilds);
+        report.put("commandFrameSamples", commandFrameSamples);
         report.put("commandTopologyStageSemantics", "Every measured-tick topology rebuild, excluding warmup. GRID_COPY, ZONE_COPY, CELL_COMPONENTS, ZONE_COMPONENTS and PUBLICATION are disjoint wall stages nested within REBUILD and LOOKUP. CPU overlaps these stages and is current-host-thread time, not wall time; count zero means disabled/unavailable, not zero CPU. MAP_CELLS is input area, ZONE_CELLS counts zone membership entries, ZONES counts copied zones. Revisions are observed after the tick, not captured at query time.");
         if (influenceResolution != null) report.put("influenceResolution", influenceResolution);
         report.put("squadRouteAdmission", admissionTotals.json());
@@ -551,7 +563,7 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 26);
+        report.put("schemaVersion", 27);
         report.put("mechReachabilityComponents", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.mechReachabilityComponents", "true")));
         report.put("boundGuardPatrol", Boolean.parseBoolean(System.getProperty(
@@ -567,6 +579,8 @@ class BattleFixtureTailProfileTest {
         report.put("compactPublicTopology", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.compactPublicTopology", "true")));
         report.put("commandTopologyCpu", Boolean.getBoolean("battle.profile.commandTopologyCpu"));
+        report.put("commandFrameDetail", Boolean.getBoolean("battle.profile.commandFrameDetail"));
+        report.put("commandFrameStageSemantics", "ASSIGNMENTS, SQUADS, INFLUENCE and FACTS are disjoint wall stages nested within FRAME, but do not cover all frame work. FRAME_CPU overlaps wall stages and is host-thread CPU. Opt-in SQUAD_ROSTER, MEMBERS, CONTACT and PUBLICATION accumulate per-row wall slices within SQUADS; PUBLICATION includes row construction and final sort. Their sample counts are perspective freezes, not rows. SQUAD_ROWS, MEMBER_INPUTS and BELIEF_INPUTS count inputs; belief inputs are retained list size, not visited contacts. Zero detail counts mean disabled or no inputs, not zero cost.");
         report.put("replanCpu", Boolean.getBoolean("battle.tail.replanCpu"));
         report.put("filteredSquadAwareness", Boolean.parseBoolean(System.getProperty(
                 "battle.perception.filteredSquadAwareness", "true")));

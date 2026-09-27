@@ -50,9 +50,13 @@ public class CommandFrame {
                 assignments.forPerspective(perspective);
         record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME_ASSIGNMENTS, stageStarted);
         stageStarted = profile != null ? System.nanoTime() : 0L;
+        boolean detail = profile != null && Boolean.getBoolean("battle.profile.commandFrameDetail");
+        long rosterNanos = 0L, memberNanos = 0L, contactNanos = 0L, publicationNanos = 0L;
+        int rowCount = 0, memberInputs = 0, beliefInputs = 0;
         List<CommandSquadState> rows = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != perspective) continue;
+            long rowStageStarted = detail ? System.nanoTime() : 0L;
             int memberCount = sim.squadMemberCount(squad.id);
             long anchor = sim.resolveUnit(squad.leaderId);
             if (anchor == 0L && memberCount > 0) anchor = sim.squadMemberAt(squad.id, 0);
@@ -60,6 +64,13 @@ public class CommandFrame {
             int anchorY = anchor != 0L ? sim.world().cellY(anchor) : -1;
             UnitRole role = memberCount > 0
                     ? sim.role().role(sim.squadMemberAt(squad.id, 0)) : null;
+            if (detail) {
+                long now = System.nanoTime();
+                rosterNanos += now - rowStageStarted;
+                rowStageStarted = now;
+                rowCount++;
+                memberInputs += memberCount;
+            }
             int activePathMembers = 0;
             int movingMembers = 0;
             SquadContactPicture contact = squad.contactPicture;
@@ -101,12 +112,25 @@ public class CommandFrame {
                     coolingDownMembers++;
                 }
             }
+            if (detail) {
+                long now = System.nanoTime();
+                memberNanos += now - rowStageStarted;
+                rowStageStarted = now;
+            }
             SquadPlan.Step step = squad.currentPlan != null
                     ? squad.currentPlan.currentStep() : null;
+            int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
+            boolean localContact = WorldStateBuilder.hasActionableContact(squad, sim);
+            if (detail) {
+                long now = System.nanoTime();
+                contactNanos += now - rowStageStarted;
+                rowStageStarted = now;
+                // Input size, not the number examined by the early-exit contact query.
+                beliefInputs += squad.believedContacts().size();
+            }
             rows.add(new CommandSquadState(squad.id, squad.faction,
                     squad.aliveMembers, squad.centroidX, squad.centroidY,
-                    anchorX, anchorY, ZoneQueries.squadCurrentZone(squad, sim),
-                    role, WorldStateBuilder.hasActionableContact(squad, sim),
+                    anchorX, anchorY, currentZone, role, localContact,
                     squad.timeSinceUnderFire
                             < SquadMoraleSystem.MORALE_RECOVER_AFTER_FIRE_SECONDS,
                     squad.moraleBroken,
@@ -122,8 +146,22 @@ public class CommandFrame {
                     contact.doctrine().name(),
                     contact.contactInitiative().name(), coolingDownMembers,
                     memberZoneIds, memberCellXs, memberCellYs));
+            if (detail) publicationNanos += System.nanoTime() - rowStageStarted;
         }
+        long sortStarted = detail ? System.nanoTime() : 0L;
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));
+        if (detail) {
+            publicationNanos += System.nanoTime() - sortStarted;
+            // One sample per perspective, not per row/member. These disjoint slices
+            // exclude loop/filter and diagnostic overhead inside the outer envelope.
+            profile.record(TickInnerProfile.Bucket.COMMANDER_FRAME_SQUAD_ROSTER, rosterNanos);
+            profile.record(TickInnerProfile.Bucket.COMMANDER_FRAME_SQUAD_MEMBERS, memberNanos);
+            profile.record(TickInnerProfile.Bucket.COMMANDER_FRAME_SQUAD_CONTACT, contactNanos);
+            profile.record(TickInnerProfile.Bucket.COMMANDER_FRAME_SQUAD_PUBLICATION, publicationNanos);
+            profile.recordCount(TickInnerProfile.Bucket.COMMANDER_FRAME_SQUAD_ROWS, rowCount);
+            profile.recordCount(TickInnerProfile.Bucket.COMMANDER_FRAME_MEMBER_INPUTS, memberInputs);
+            profile.recordCount(TickInnerProfile.Bucket.COMMANDER_FRAME_BELIEF_INPUTS, beliefInputs);
+        }
         record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME_SQUADS, stageStarted);
         stageStarted = profile != null ? System.nanoTime() : 0L;
         CommanderInfluenceSnapshot influence = sim.getCommanderInfluence(perspective);
