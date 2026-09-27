@@ -273,6 +273,13 @@ public class NavigationGrid {
         pathComponents(cardinalOnly);
     }
 
+    /** Cheap negative proof only; unknown/stale labels never trigger a map rebuild. */
+    boolean knownPathDisconnected(int startCell, int goalCell, boolean cardinalOnly) {
+        PathComponents current = cardinalOnly ? cardinalPathComponents : diagonalPathComponents;
+        if (current.revision != topologyRevision) return false;
+        return current.labels[startCell] < 0 || current.labels[startCell] != current.labels[goalCell];
+    }
+
     private int[] pathComponents(boolean cardinalOnly) {
         PathComponents current = cardinalOnly
                 ? cardinalPathComponents : diagonalPathComponents;

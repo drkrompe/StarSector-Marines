@@ -172,6 +172,81 @@ class NavigationServiceSquadRouteWorkBudgetTest {
     }
 
     @Test
+    void compatibleReplansAdoptProgressWithoutPublishingTheFormerIntent() {
+        try (NavigationService navigation = navigation()) {
+            TickInnerProfile profile = new TickInnerProfile();
+            TickInnerProfile.setCurrent(profile);
+            SquadRouteRequest previous = null;
+            SquadRouteRequest current = null;
+            long lifetime = 0;
+            boolean ready = false;
+            for (int tick = 1; tick <= 2000; tick++) {
+                current = request(1, tick, new Object(), 28, cell(1, 2), costs(1f + tick * 0.001f));
+                profile.reset();
+                navigation.prepareSquadRoutes(List.of(current), tick, 4);
+                if (previous != null) assertFalse(pending(navigation, previous), "former token never consumes new waiting state");
+                lifetime += navigation.lastSquadRouteWorkUnits();
+                assertEquals(1, profile.slowSquadRouteWork().size());
+                TickInnerProfile.SquadRouteWork sample = profile.slowSquadRouteWork().get(0);
+                assertEquals(lifetime, sample.lifetimeWorkUnits(), "replanning must not reset work already spent");
+                assertEquals(tick - 1, sample.ageTicks(), "replanning must not renew proof age");
+                assertEquals(0, profile.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_CANCEL));
+                if (!pending(navigation, current)) {
+                    ready = true;
+                    break;
+                }
+                previous = current;
+            }
+            assertTrue(ready, "same geometric route must finish despite a new epoch and token every tick");
+            assertExtracts(navigation, current, cell(1, 2));
+        }
+    }
+
+    @Test
+    void repeatedReplansCannotRenewTheLifetimeWorkAllowanceBeforeExhaustion() {
+        System.setProperty(PER_TICK, "8");
+        System.setProperty(PER_SLICE, "8");
+        System.setProperty(PER_REQUEST, "16");
+        try (NavigationService navigation = navigation()) {
+            SquadRouteRequest previous = null;
+            long total = 0;
+            for (int tick = 1; tick <= 10; tick++) {
+                SquadRouteRequest current = request(1, tick, new Object(), 28, cell(1, 2), null);
+                navigation.prepareSquadRoutes(List.of(current), tick, 4);
+                total += navigation.lastSquadRouteWorkUnits();
+                assertTrue(total <= 16, "replans retain the original lifetime cap");
+                assertTrue(pending(navigation, current));
+                if (previous != null) assertFalse(pending(navigation, previous));
+                if (tick > 2) assertEquals(0, navigation.lastSquadRouteWorkUnits(), "exhausted proof stays backed off");
+                previous = current;
+            }
+            assertEquals(16, total);
+        }
+    }
+
+    @Test
+    void differentActionAtTheSameGoalDoesNotAdoptTheFormerProof() {
+        try (NavigationService navigation = navigation()) {
+            SquadRouteRequest old = request(1, 1, new Object(), 28, cell(1, 2), null);
+            navigation.prepareSquadRoutes(List.of(old), 1, 4);
+            assertTrue(pending(navigation, old));
+            TickInnerProfile profile = new TickInnerProfile();
+            TickInnerProfile.setCurrent(profile);
+            SquadRouteRequest changed = new SquadRouteRequest(1, 2, new Object(), 28, 2,
+                    new int[]{cell(1, 2)}, null, "DifferentMove");
+            navigation.prepareSquadRoutes(List.of(changed), 2, 4);
+            assertFalse(pending(navigation, old));
+            assertTrue(pending(navigation, changed));
+            assertEquals(1, profile.countOf(TickInnerProfile.Bucket.SQUAD_ROUTE_CANCEL));
+            assertEquals(1, profile.slowSquadRouteWork().size());
+            TickInnerProfile.SquadRouteWork sample = profile.slowSquadRouteWork().get(0);
+            assertEquals("DifferentMove", sample.action());
+            assertEquals(0, sample.ageTicks());
+            assertEquals(navigation.lastSquadRouteWorkUnits(), sample.lifetimeWorkUnits());
+        }
+    }
+
+    @Test
     void changedIdentityAndMissingProviderCancelOldWork() {
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest old = request(1, 1, new Object(), 28, cell(1, 2), null);

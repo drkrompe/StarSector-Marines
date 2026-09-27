@@ -134,6 +134,9 @@ class BattleFixtureTailProfileTest {
         long[] convoyWorkTotals = new long[4];
         TailSquadRouteAdmission.Totals admissionTotals =
                 new TailSquadRouteAdmission.Totals(warmupTicks + 1);
+        TailSquadRouteWork routeWorkTotals = new TailSquadRouteWork(warmupTicks + 1,
+                Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)),
+                Boolean.parseBoolean(System.getProperty("battle.pathfinding.squadRouteWorkBudget", "true")));
         Path outputDir = Path.of(System.getProperty("battle.tail.outputDir",
                 "build/reports/performance/conquest-tail"));
         Files.createDirectories(outputDir);
@@ -283,6 +286,7 @@ class BattleFixtureTailProfileTest {
                             sim.lastSquadRouteDeferred(), sim.lastSquadRouteOldestWaitTicks(),
                             sim.lastSquadRouteAdmittedWaitTicks());
                     admissionTotals.observe(sim.simTickIndex, admission);
+                    routeWorkTotals.observe(sim.simTickIndex, inner);
                     inner.accumulateActionTotals(actionTotals);
                     for (TickInnerProfile.Bucket bucket : TickInnerProfile.Bucket.VALUES) {
                         int index = bucket.ordinal();
@@ -414,6 +418,7 @@ class BattleFixtureTailProfileTest {
                 finalRoutes, jfrPath, convoyUncachedStages);
         assertNotNull(firstInfluence);
         report.put("squadRouteAdmission", admissionTotals.json());
+        report.put("squadRouteWorkTotals", routeWorkTotals.json());
         report.put("unitWorkerCpuTotalMs", millis(totalUnitWorkerCpuNanos));
         report.put("unitWorkerSampledWallTotalMs", millis(totalUnitWorkerWallNanos));
         report.put("ticksWithCompleteUnitCpu", ticksWithCompleteUnitCpu);

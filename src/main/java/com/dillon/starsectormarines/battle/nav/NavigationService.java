@@ -616,8 +616,15 @@ public final class NavigationService implements AutoCloseable {
         Map<Integer, SquadRouteRequest> live = new HashMap<>();
         for (SquadRouteRequest request : requests) live.put(request.squadId(), request);
         for (RouteJobSlot slot : routeJobSlots) {
-            if (slot.request != null && !slot.matches(live.get(slot.request.squadId()),
-                    mesh.revision(), topologyRevision)) cancelRouteJob(slot);
+            if (slot.request == null) continue;
+            SquadRouteRequest current = live.get(slot.request.squadId());
+            if (!slot.matches(current, mesh.revision(), topologyRevision)) {
+                // A periodic replan is a new publication identity, not a new
+                // geometric problem. Explicitly adopt the proof without renewing
+                // its work/age; only the current intent may consume readiness.
+                if (slot.canAdopt(current, mesh.revision(), topologyRevision)) slot.intent = current;
+                else cancelRouteJob(slot);
+            }
         }
         routeBackoffs.entrySet().removeIf(entry -> !entry.getValue().matches(
                 live.get(entry.getKey()), mesh.revision(), topologyRevision, grid.getWidth())
@@ -628,13 +635,14 @@ public final class NavigationService implements AutoCloseable {
         List<RouteCandidate> candidates = new ArrayList<>();
         for (SquadRouteRequest request : requests) {
             PreparedSquadRoute retained = squadRouteBatch.prepared.get(request.squadId());
+            boolean fresh = retained != null && retained.isFresh(request, mesh.revision(), grid.getWidth());
             boolean compatible = retained != null && retained.isCompatible(request, mesh.revision(), grid.getWidth());
-            if (retained != null && retained.isFresh(request, mesh.revision(), grid.getWidth())
+            if (fresh
                     || compatible && (retained.cost == request.cost()
                     || retainCosts && retained.canRetainCosts(request, tick))) {
-                next.put(request.squadId(), retained.adoptFresh(request));
+                next.put(request.squadId(), fresh ? retained : retained.adoptFresh(request));
                 lastSquadRouteReuses++;
-                if (profile != null && retained.cost != request.cost()) {
+                if (profile != null && !fresh && retained.cost != request.cost()) {
                     profile.recordCount(TickInnerProfile.Bucket.SQUAD_ROUTE_COST_REUSE, 1);
                 }
                 RouteJobSlot obsolete = routeJobFor(request.squadId());
@@ -647,7 +655,9 @@ public final class NavigationService implements AutoCloseable {
             RouteJobSlot running = routeJobFor(request.squadId());
             int firstTick = running != null ? running.firstTick
                     : waiting == null ? tick : waiting.firstDeferredTick;
-            candidates.add(new RouteCandidate(request, retained, compatible, firstTick, waiting != null));
+            boolean wasPending = waiting != null || running != null
+                    && squadRouteBatch.deferred.containsKey(request.squadId());
+            candidates.add(new RouteCandidate(request, retained, compatible, firstTick, wasPending));
         }
         // Within each priority class, rotate working slots so one hard route
         // cannot win every quantum. Older unstarted intents get a freed slot first.
@@ -799,6 +809,7 @@ public final class NavigationService implements AutoCloseable {
     private static final class RouteJobSlot {
         final SquadRouteBuildJob job;
         SquadRouteRequest request;
+        SquadRouteRequest intent;
         long meshRevision, topologyRevision, lifetimeWork;
         int firstTick, lastServedTick;
         boolean retainSingleton;
@@ -818,18 +829,26 @@ public final class NavigationService implements AutoCloseable {
 
         void restart(SquadRouteRequest request, GreedyNavigationMesh.Snapshot mesh) {
             this.request = request;
+            this.intent = request;
             job.begin(request, mesh, retainSingleton);
         }
 
         boolean matches(SquadRouteRequest current, long mesh, long topology) {
             return current != null && request.squadId() == current.squadId()
-                    && request.routingEpoch() == current.routingEpoch()
-                    && request.routeToken() == current.routeToken()
+                    && intent.routingEpoch() == current.routingEpoch()
+                    && intent.routeToken() == current.routeToken()
                     && request.goalX() == current.goalX() && request.goalY() == current.goalY()
                     && meshRevision == mesh && topologyRevision == topology;
         }
 
-        void release() { request = null; job.release(); }
+        boolean canAdopt(SquadRouteRequest current, long mesh, long topology) {
+            return current != null && request.squadId() == current.squadId()
+                    && request.goalX() == current.goalX() && request.goalY() == current.goalY()
+                    && request.actionName().equals(current.actionName())
+                    && meshRevision == mesh && topologyRevision == topology;
+        }
+
+        void release() { request = intent = null; job.release(); }
     }
 
     /** A budget refusal survives routine epoch churn; it is not an unreachable memo. */
