@@ -575,7 +575,7 @@ public final class NavigationService implements AutoCloseable {
                             candidate.request.squadId(), candidate.request.routingEpoch(),
                             candidate.request.routeToken(), candidate.request.goalX(),
                             candidate.request.goalY(), mesh.revision(), grid.topologyRevision(),
-                            candidate.firstDeferredTick));
+                            candidate.firstDeferredTick, candidate.request.actionName()));
                     lastSquadRoutePending++;
                     lastSquadRouteOldestWaitTicks = Math.max(lastSquadRouteOldestWaitTicks,
                             Math.max(0, tick - candidate.firstDeferredTick));
@@ -651,7 +651,8 @@ public final class NavigationService implements AutoCloseable {
             }
             DeferredSquadRoute waiting = squadRouteBatch.deferred.get(request.squadId());
             if (waiting != null && !waiting.matches(request.squadId(), request.routingEpoch(),
-                    request.routeToken(), request.goalX(), request.goalY(), mesh.revision(), topologyRevision)) waiting = null;
+                    request.routeToken(), request.goalX(), request.goalY(), mesh.revision(), topologyRevision)
+                    && !waiting.canAdopt(request, mesh.revision(), topologyRevision)) waiting = null;
             RouteJobSlot running = routeJobFor(request.squadId());
             int firstTick = running != null ? running.firstTick
                     : waiting == null ? tick : waiting.firstDeferredTick;
@@ -751,7 +752,7 @@ public final class NavigationService implements AutoCloseable {
                 } else {
                     deferred.put(request.squadId(), new DeferredSquadRoute(request.squadId(),
                             request.routingEpoch(), request.routeToken(), request.goalX(), request.goalY(),
-                            mesh.revision(), topologyRevision, candidate.firstDeferredTick));
+                            mesh.revision(), topologyRevision, candidate.firstDeferredTick, request.actionName()));
                     lastSquadRoutePending++;
                     lastSquadRouteOldestWaitTicks = Math.max(lastSquadRouteOldestWaitTicks,
                             tick - candidate.firstDeferredTick);
@@ -1128,11 +1129,16 @@ public final class NavigationService implements AutoCloseable {
 
     private record DeferredSquadRoute(int squadId, long routingEpoch, Object routeToken,
                                       int goalX, int goalY, long meshRevision,
-                                      long topologyRevision, int firstDeferredTick) {
+                                      long topologyRevision, int firstDeferredTick, String actionName) {
         private boolean matches(int requestedSquad, long epoch, Object token,
                                 int x, int y, long mesh, long topology) {
             return squadId == requestedSquad && routingEpoch == epoch && routeToken == token
                     && goalX == x && goalY == y && meshRevision == mesh && topologyRevision == topology;
+        }
+
+        private boolean canAdopt(SquadRouteRequest request, long mesh, long topology) {
+            return squadId == request.squadId() && goalX == request.goalX() && goalY == request.goalY()
+                    && actionName.equals(request.actionName()) && meshRevision == mesh && topologyRevision == topology;
         }
     }
 

@@ -126,6 +126,38 @@ class NavigationServiceSquadRouteWorkBudgetTest {
     }
 
     @Test
+    void queuedReplansRetainSeniorityAgainstFreshLowIdRequests() {
+        System.setProperty(PER_TICK, "32");
+        System.setProperty(PER_SLICE, "32");
+        try (NavigationService navigation = navigation()) {
+            SquadRouteRequest occupyingSlot = request(0, 1, new Object(), 28, cell(1, 2), null);
+            SquadRouteRequest waiting = request(1000, 1, new Object(), 28, cell(1, 2), null);
+            navigation.prepareSquadRoutes(List.of(occupyingSlot, waiting), 1, 1);
+            assertTrue(pending(navigation, waiting));
+            assertEquals(1, navigation.activeSquadRouteJobs());
+            boolean ready = false;
+            for (int tick = 2; tick <= 100; tick++) {
+                SquadRouteRequest oldWaiting = waiting;
+                waiting = request(1000, tick, new Object(), 28, cell(1, 2), costs(1.01f));
+                // Alternate destinations so yesterday's completed short field
+                // cannot satisfy today's low-id request through ordinary reuse.
+                int shortGoal = tick % 2 == 0 ? 20 : 28;
+                SquadRouteRequest fresh = request(2, tick, new Object(), shortGoal,
+                        cell(shortGoal - 1, 2), null);
+                navigation.prepareSquadRoutes(List.of(occupyingSlot, fresh, waiting), tick, 1);
+                assertFalse(pending(navigation, oldWaiting));
+                assertTrue(navigation.lastSquadRouteWorkUnits() <= 32);
+                if (!pending(navigation, waiting)) {
+                    ready = true;
+                    break;
+                }
+            }
+            assertTrue(ready, "routine replans must not turn an old queued request into fresh low priority work");
+            assertExtracts(navigation, waiting, cell(1, 2));
+        }
+    }
+
+    @Test
     void sharedCorridorAndReverseWorkAlsoYieldWithinTheSameBudget() {
         try (NavigationService navigation = navigation()) {
             SquadRouteRequest request = new SquadRouteRequest(1, 1, new Object(),
