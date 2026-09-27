@@ -47,9 +47,22 @@ class SquadRoutePreparationSystemTest {
         assertArrayEquals(new int[]{grid.index(3, 1), grid.index(2, 1)}, request.startCells());
         assertSame(cost, request.cost());
         assertSame(later.currentPlan.currentStep(), request.routeToken());
+        assertEquals(later.currentPlan.currentStep().action.name(), request.actionName());
         int[] changed = request.startCells();
         changed[0] = 0;
         assertEquals(grid.index(3, 1), request.startCells()[0]);
+    }
+
+    @Test
+    void oldRequestConstructorKeepsDefensiveStartsAndUsesUnknownAction() {
+        int[] starts = {3, 4};
+        Object token = new Object();
+        SquadRouteRequest request = new SquadRouteRequest(1, 2L, token, 5, 6, starts, cost);
+        starts[0] = 99;
+        assertArrayEquals(new int[]{3, 4}, request.startCells());
+        assertEquals("unknown", request.actionName());
+        assertEquals("unknown", new SquadRouteRequest(1, 2L, token, 5, 6,
+                starts, cost, null).actionName());
     }
 
     @Test

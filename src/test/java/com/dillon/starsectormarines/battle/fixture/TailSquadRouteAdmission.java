@@ -60,7 +60,7 @@ record TailSquadRouteAdmission(long pendingRequests, long pendingCalls,
                     .put("pendingAtEnd", pendingAtEnd).put("maximumPending", maximumPending)
                     .put("maximumPendingWaitTicks", maximumPendingWaitTicks)
                     .put("maximumAdmittedWaitTicks", maximumAdmittedWaitTicks)
-                    .put("semantics", "Events and queue observations exclude warmup. Pending request-ticks are repeated observations, not unique squads. Admissions include failed build attempts; resumedFields counts successful fields for previously pending exact intents, not physical movement. Compatible refresh deferrals retain a usable field and are not no-field pending. Wait ages are observed in measured ticks and can originate before warmup ended.");
+                    .put("semantics", "Events and queue observations exclude warmup. Pending request-ticks are repeated observations, not unique squads. Admissions count work slices in budgeted mode and whole build attempts in the control, including failures; resumedFields counts successful fields for previously pending exact intents, not physical movement. Compatible refresh deferrals retain a usable field and are not no-field pending. Wait ages are observed in measured ticks and can originate before warmup ended.");
         }
     }
 }

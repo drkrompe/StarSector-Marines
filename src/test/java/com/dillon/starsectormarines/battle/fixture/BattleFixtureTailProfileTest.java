@@ -499,7 +499,14 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 17);
+        report.put("schemaVersion", 18);
+        report.put("squadRouteWorkBudget", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.squadRouteWorkBudget", "true")));
+        report.put("squadRouteWorkPerTick", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerTick", 8192)));
+        report.put("squadRouteWorkPerSlice", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerSlice", 4096)));
+        report.put("squadRouteWorkPerRequest", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteWorkPerRequest", 524288)));
+        report.put("squadRouteRetryTicks", Math.max(1, Integer.getInteger("battle.pathfinding.squadRouteRetryTicks", 120)));
+        report.put("squadRouteWorkSemantics", "top eight work slices per retained tick by wall duration, not complete-build timings; slice work/expansion counts are increments; lifetimeWorkUnits and ageTicks describe the request at slice end and must not be summed; lastSeedStart is a global cell index, lastSeedExpanded is cumulative for the current or last seed, maxSeedExpanded is the request's cumulative per-seed maximum; innerTotals SQUAD_ROUTE_WORK count covers all measured work units including unretained ticks and slices");
         report.put("retainSingletonSeeds", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.retainSingletonSeeds", "true")));
         report.put("singletonRouteSemantics", "direct singleton fields store only seed cells; corridor/settled cell volumes describe retained coverage, not reverse expansions; unpadded region area is zero");
@@ -783,6 +790,23 @@ class BattleFixtureTailProfileTest {
                     .put("settledCells", build.settledCells()));
         }
         tick.put("slowSquadRouteBuilds", builds);
+        JSONArray work = new JSONArray();
+        for (TickInnerProfile.SquadRouteWork slice : sample.inner().slowSquadRouteWork) {
+            work.put(new JSONObject().put("ms", millis(slice.nanos()))
+                    .put("squadId", slice.squadId()).put("action", slice.action())
+                    .put("goalX", slice.goalX()).put("goalY", slice.goalY())
+                    .put("stage", slice.stage()).put("status", slice.status())
+                    .put("sliceWorkUnits", slice.sliceWorkUnits())
+                    .put("sliceSeedExpanded", slice.sliceSeedExpanded())
+                    .put("sliceReverseExpanded", slice.sliceReverseExpanded())
+                    .put("lifetimeWorkUnits", slice.lifetimeWorkUnits())
+                    .put("ageTicks", slice.ageTicks()).put("startCount", slice.startCount())
+                    .put("maxStartGoalManhattan", slice.maxStartGoalManhattan())
+                    .put("lastSeedStart", slice.lastSeedStart())
+                    .put("lastSeedExpanded", slice.lastSeedExpanded())
+                    .put("maxSeedExpanded", slice.maxSeedExpanded()));
+        }
+        tick.put("slowSquadRouteWork", work);
         tick.put("convoyRouteWork", convoyWorkJson(new long[]{
                 sample.inner().convoyClearanceEvaluations,
                 sample.inner().convoyCostEvaluations,

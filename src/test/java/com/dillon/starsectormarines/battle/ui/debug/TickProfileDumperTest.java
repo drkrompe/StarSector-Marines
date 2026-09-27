@@ -23,6 +23,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class TickProfileDumperTest {
     @Test
+    void serializesFrozenWorkSlicesSeparatelyFromCompleteBuildSamples() throws Exception {
+        TickInnerProfile profile = new TickInnerProfile();
+        profile.recordSquadRouteWork(2_000_000, 17, "EnterZone", 70, 80, "SEED", "PENDING",
+                4096, 4000, 0, 3_000_000_000L, 9, 6, 120, 200, 8000, 9000);
+        TickInnerProfile.Snapshot snapshot = profile.snapshot();
+        profile.reset();
+        JSONObject json = new JSONObject();
+        TickProfileDumper.putSquadRouteWork(json, snapshot.slowSquadRouteWork);
+        TickProfileDumper.putSquadRouteBuilds(json, snapshot.slowSquadRouteBuilds);
+        JSONObject sample = json.getJSONArray("slowSquadRouteWork").getJSONObject(0);
+        assertEquals(2.0, sample.getDouble("ms"));
+        assertEquals(17, sample.getInt("squadId"));
+        assertEquals("EnterZone", sample.getString("action"));
+        assertEquals(70, sample.getInt("goalX"));
+        assertEquals(80, sample.getInt("goalY"));
+        assertEquals("SEED", sample.getString("stage"));
+        assertEquals("PENDING", sample.getString("status"));
+        assertEquals(4096, sample.getInt("sliceWorkUnits"));
+        assertEquals(4000, sample.getInt("sliceSeedExpanded"));
+        assertEquals(0, sample.getInt("sliceReverseExpanded"));
+        assertEquals(3_000_000_000L, sample.getLong("lifetimeWorkUnits"));
+        assertEquals(9, sample.getInt("ageTicks"));
+        assertEquals(6, sample.getInt("startCount"));
+        assertEquals(120, sample.getInt("maxStartGoalManhattan"));
+        assertEquals(200, sample.getInt("lastSeedStart"));
+        assertEquals(8000, sample.getInt("lastSeedExpanded"));
+        assertEquals(9000, sample.getInt("maxSeedExpanded"));
+        assertEquals(0, json.getJSONArray("slowSquadRouteBuilds").length());
+        assertTrue(json.getString("squadRouteWorkSemantics").contains("must not be summed"));
+        assertTrue(json.getString("squadRouteWorkSemantics").contains("cumulative"));
+        assertTrue(json.getInt("squadRouteWorkPerTick") > 0);
+        assertTrue(json.getInt("squadRouteWorkPerSlice") > 0);
+        assertTrue(json.getInt("squadRouteWorkPerRequest") > 0);
+        assertTrue(json.getInt("squadRouteRetryTicks") > 0);
+    }
+
+    @Test
     void serializesFrozenSquadRouteBuildDiagnostics() throws Exception {
         TickInnerProfile profile = new TickInnerProfile();
         profile.recordSquadRouteBuild(2_000_000, 17, "COST", 6, 120,

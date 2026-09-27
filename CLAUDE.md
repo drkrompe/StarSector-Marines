@@ -294,6 +294,26 @@ Do not run builds or leave generated task files there.
   coverage, not reverse expansions. `SQUAD_ROUTE_UNCOVERED_FALLBACK/EXPANDED`
   measures off-field fallback work for both singleton and shared fields, so
   narrower coverage cannot hide searches displaced into member execution.
+  `-Dbattle.pathfinding.squadRouteWorkBudget=false` restores whole-build
+  admission. The default resumes seed, region/corridor, reverse, sorting and
+  publication work across ticks using four reusable scratch slots. Defaults:
+  `squadRouteWorkPerTick=8192`, `squadRouteWorkPerSlice=4096`,
+  `squadRouteWorkPerRequest=524288`, and `squadRouteRetryTicks=120`, each prefixed
+  with `battle.pathfinding.` and clamped to at least one. Work units charge
+  visited entries/nodes and bounded heap operations, not nanoseconds; array
+  allocation and VM scheduling are not preemptible. Total-limit backoff remains
+  pending (no member fallback), survives routine epoch churn, and is released
+  by materially changed routing context. New goals/steps/topology cancel active
+  jobs; soft-cost publications do not. Current-start drift outside a finished
+  field restarts under the same total allowance.
+  `SQUAD_ROUTE_WORK/YIELD/LIMIT/CANCEL` and query-time `slowSquadRouteWork`
+  samples expose action, goal, stage/status, slice work and expansions, lifetime
+  work/age, and current/last/max seed expansions. Slice counts are additive;
+  lifetime and per-seed cumulative samples are not. `SQUAD_PATH_FIELD_BUILD`
+  measures slices in budgeted mode and whole attempts in the control; completed
+  build counts remain separate. Legacy `slowSquadRouteBuilds` applies to the
+  whole-build control. Inspect wait and cancellation alongside frame timings:
+  pending means postponed objective travel, not successful movement.
   `-Dbattle.pathfinding.omitFixedGoalOccupancy=false` restores the unavoidable
   terminal crowding toll in flat A*. By default only that additive constant is
   omitted during search; intermediate crowding and terrain costs still rank

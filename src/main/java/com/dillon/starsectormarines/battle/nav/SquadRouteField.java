@@ -21,6 +21,12 @@ final class SquadRouteField {
         this.next = next;
     }
 
+    /** Ownership transfer from a completed incremental publication; arrays are never reused. */
+    static SquadRouteField takePublished(int width, int height, int goal, int corridorCellCount,
+                                         int[] cells, int[] next) {
+        return new SquadRouteField(width, height, goal, corridorCellCount, cells, next);
+    }
+
     /**
      * Retains a proven, loop-free cell path without solving a reverse field.
      * Only cells on that path are covered. The caller owns terrain validation;
