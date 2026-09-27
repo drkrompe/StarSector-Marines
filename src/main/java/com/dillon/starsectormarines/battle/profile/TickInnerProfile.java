@@ -128,6 +128,8 @@ public final class TickInnerProfile {
         SQUAD_ROUTE_SEED_SEARCH,
         SQUAD_ROUTE_SEED_EXPANDED,
         SQUAD_ROUTE_SEED_PATH_CELL,
+        SQUAD_ROUTE_UNCOVERED_FALLBACK,
+        SQUAD_ROUTE_UNCOVERED_EXPANDED,
         SQUAD_TRAFFIC_PREPARE,
         SQUAD_TRAFFIC_MOVE,
         SQUAD_TRAFFIC_RETURN,
@@ -190,6 +192,8 @@ public final class TickInnerProfile {
         SQUAD_PATH_FIELD_SEED,
         SQUAD_PATH_FIELD_CORRIDOR,
         SQUAD_PATH_FIELD_REVERSE,
+        /** Storage-only conversion of an already proved singleton seed; no reverse expansion. */
+        SQUAD_PATH_FIELD_DIRECT,
         SQUAD_PATH_FIELD_EXTRACT,
         SQUAD_PATH_FIELD_FALLBACK,
         /** Count-only admission work: requests are per-tick observations, not unique squads. */

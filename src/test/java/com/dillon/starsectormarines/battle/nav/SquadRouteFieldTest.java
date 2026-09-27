@@ -13,6 +13,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadRouteFieldTest {
     @Test
+    void directSeedCopiesSuccessorsAndSupportsNonMonotonicSuffixes() {
+        int[] seed = {3, 1, 2, 1, 2, 2, 1, 2};
+        SquadRouteField field = SquadRouteField.fromSeed(5, 4, seed);
+        seed[0] = 0;
+        assertArrayEquals(new int[]{3, 1, 2, 1, 2, 2, 1, 2}, field.extract(3, 1));
+        int[] suffix = field.extract(2, 1);
+        suffix[0] = 0;
+        assertArrayEquals(new int[]{2, 1, 2, 2, 1, 2}, field.extract(2, 1));
+        assertArrayEquals(new int[]{1, 2}, field.extract(1, 2));
+        assertFalse(field.covers(0));
+        assertEquals(4, field.settledCellCount());
+    }
+
+    @Test
     void exactPathStopsAtRequiredStartAndDoesNotRetainBuilderState() {
         NavigationGrid grid = openGrid(8, 1);
         SquadRouteField.Builder builder = new SquadRouteField.Builder(grid);

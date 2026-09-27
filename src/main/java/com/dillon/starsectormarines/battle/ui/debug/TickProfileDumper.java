@@ -162,6 +162,8 @@ public final class TickProfileDumper {
             root.put("actions", actionsArr);
             root.put("retainSquadRouteCosts", Boolean.parseBoolean(System.getProperty(
                     "battle.pathfinding.retainSquadRouteCosts", "true")));
+            root.put("retainSingletonSeeds", Boolean.parseBoolean(System.getProperty(
+                    "battle.pathfinding.retainSingletonSeeds", "true")));
             putSquadRouteBuilds(root, innerSnap != null
                     ? innerSnap.slowSquadRouteBuilds : liveInner.slowSquadRouteBuilds());
 
@@ -203,6 +205,7 @@ public final class TickProfileDumper {
                                    List<TickInnerProfile.SquadRouteBuild> builds)
             throws JSONException {
         root.put("squadRouteBuildSemantics", "top eight builds by wall duration; NEW means no prior entry, including after a flush; COST includes bounded-age refresh; seedPathCells sums seed lengths; cell volumes may overlap between builds");
+        root.put("singletonRouteSemantics", "direct singleton fields store only seed cells; corridor/settled cell volumes describe retained coverage, not reverse expansions; unpadded region area is zero");
         JSONArray samples = new JSONArray();
         for (TickInnerProfile.SquadRouteBuild build : builds) {
             samples.put(new JSONObject().put("ms", build.nanos() / 1_000_000.0)

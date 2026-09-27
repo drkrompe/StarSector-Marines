@@ -499,7 +499,10 @@ class BattleFixtureTailProfileTest {
                     .put("tick", tickJson(sample)));
         }
         JSONObject report = new JSONObject();
-        report.put("schemaVersion", 16);
+        report.put("schemaVersion", 17);
+        report.put("retainSingletonSeeds", Boolean.parseBoolean(System.getProperty(
+                "battle.pathfinding.retainSingletonSeeds", "true")));
+        report.put("singletonRouteSemantics", "direct singleton fields store only seed cells; corridor/settled cell volumes describe retained coverage, not reverse expansions; unpadded region area is zero");
         report.put("squadRouteBuildSemantics", "top eight builds by wall duration; NEW means no prior entry, including after a flush; COST includes bounded-age refresh; seedPathCells sums seed lengths; cell volumes may overlap between builds");
         report.put("retainSquadRouteCosts", Boolean.parseBoolean(System.getProperty(
                 "battle.pathfinding.retainSquadRouteCosts", "true")));

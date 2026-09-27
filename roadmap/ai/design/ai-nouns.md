@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — shared travel separates route legality from bounded
-soft-cost reconsideration across routine replans.
+Updated: 2026-09-27 — route preparation retains an exact path for singleton
+demand while shared fields serve multiple starts.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -276,6 +276,12 @@ Older waiting intents take precedence over newer requests in the same priority
 group; compatible existing fields can continue serving while their refresh is
 deferred. Changed squad, plan epoch, step, destination, or topology cannot consume
 another intent's waiting state.
+
+Preparation scales with actual demand: a single assigned traveler may retain
+its exact route without expanding a shared reverse field around it. That route
+serves suffixes along the proven path, not arbitrary neighboring positions.
+Leaving its coverage uses the ordinary fallback and subsequent replan rules;
+it is not proof of unreachability and does not bypass admission for new intents.
 
 A routine replan need not optimize an otherwise valid route again merely
 because remembered casualty costs decayed or changed elsewhere. A covered
