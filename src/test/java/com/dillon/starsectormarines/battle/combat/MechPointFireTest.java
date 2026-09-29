@@ -56,6 +56,33 @@ class MechPointFireTest {
     }
 
     @Test
+    void selectedHardpointIsTheOnlyManualTriggerAndOtherMountClocksStillAdvanceOnce() {
+        Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS,
+                MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5);
+        var arms = f.loadout.mount(MechMountSlot.ARMS);
+        var srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        var lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
+        arms.cooldown = 1f;
+        int ammo = srm.ammo;
+        f.weapons.tick(f.shooter, NORTH, true, 2);
+        assertEquals(1, f.shots.getActiveShots().size());
+        assertEquals(0, arms.burstRemaining);
+        assertEquals(1f - BattleSimulation.TICK_DT, arms.cooldown, 0.00001f);
+        assertEquals(ammo - 1, srm.ammo);
+        assertEquals(1, srm.burstRemaining);
+        assertEquals(0f, lrm.cooldown);
+        assertEquals(lrm.component.ammoCapacity, lrm.ammo);
+        assertFalse(HeavyWeapons.supportsPointFire(lrm));
+        for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, 2);
+        assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
+        assertEquals(ammo - 1, srm.ammo, "selection does not split or reprice the authored trigger pack");
+
+        Fixture invalid = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
+        invalid.weapons.tick(invalid.shooter, NORTH, true, 4);
+        assertTrue(invalid.shots.getActiveShots().isEmpty());
+    }
+
+    @Test
     void burstTracksLivePointAlternatesBarrelsAndDoesNotRestartWhileHeld() {
         Fixture f = new Fixture(MechWeaponComponent.DUAL_CHAINGUNS, null, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);

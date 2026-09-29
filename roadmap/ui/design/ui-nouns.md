@@ -4,10 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the spec sheet, `position: absolute` and `pointer-events` are ordinary
-parsed CSS: a bounded out-of-flow placement against the immediate parent, and the
-declared exception to design law 6 that lets a hover overlay paint without being
-hit-tested.
+Updated: 2026-09-29 — direct control has a dedicated equipment-aware action HUD.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -367,15 +364,25 @@ framing and viewport-relative lead. All pointer aim uses the resulting camera
 projection. Look-ahead resets on takeover and eases back when the cursor enters
 chrome or leaves the battlefield.
 
-Active control uses a reduced HUD: a bottom-center return/pause strip and unit
-control hints, world health bars, the controlled bracket, and the aim crosshair.
+Active control uses a thin HUD strip: a bottom-center panel with controlled
+identity, inline current and maximum health or structure and armor,
+equipment-specific weapon cards, return/pause controls, and movement hints.
+Durability reads the exact controlled body; armorless and exposed states are
+explicit. Weapon cards show authored firing patterns, resource units, and
+recovery or burst state without claiming legal aim or barrel clearance. A Mech
+offers all direct mounts or one installed hardpoint through buttons and keys
+1–4; indirect mounts are read-only and retain their unavailability in manual
+control. The selection projects the battle-owned session and does not edit
+equipment or AI doctrine. The world retains health bars, the controlled bracket,
+and the aim crosshair. Camera framing reserves clearance above the strip; when
+world-edge clamping would leave the body under it, the strip docks at the top.
 Strategic panels, commander/objective rails, power cards, retreat, communications,
 and developer panels are hidden together with their input and pointer bounds.
 Selection and command/debug cell overlays also yield. Hidden projections continue
 to refresh, so handback restores current information and the existing selection.
 Entry cancels armed command-power and Defend Area targeting, clears retained focus
 and pointer capture, and dismisses retreat confirmation without abandoning the
-battle. The remaining strip owns only its visible bounds; movement and fire stop
+battle. The remaining action panel owns only its visible bounds; movement and fire stop
 there. The host snapshots releases before chrome consumption, so a swallowed
 release cannot leave a key or trigger held.
 

@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -87,6 +88,17 @@ class BattleDirectControlOverlayTest {
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
+        return withHost(physicalWidth, physicalHeight, uiScale, position -> new OverlayLayout(
+                MarineOpsUiViewport.from(position), BattleDirectControlOverlay.viewport(position),
+                BattleSquadOverlay.viewport(position), BattleMechOverlay.viewport(position),
+                BattlePowerOverlay.viewport(position, 5, true),
+                BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
+                BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
+                BattleDirectControlOverlay.viewport(position, true)));
+    }
+
+    private static <T> T withHost(int physicalWidth, int physicalHeight, float uiScale,
+                                 Function<PositionAPI, T> check) {
         SettingsAPI previous = Global.getSettings();
         SettingsAPI settings = (SettingsAPI) Proxy.newProxyInstance(SettingsAPI.class.getClassLoader(),
                 new Class<?>[]{SettingsAPI.class}, (proxy, method, args) -> {
@@ -103,12 +115,7 @@ class BattleDirectControlOverlayTest {
                 });
         try {
             Global.setSettings(settings);
-            return new OverlayLayout(MarineOpsUiViewport.from(position),
-                    BattleDirectControlOverlay.viewport(position), BattleSquadOverlay.viewport(position),
-                    BattleMechOverlay.viewport(position), BattlePowerOverlay.viewport(position, 5, true),
-                    BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
-                    BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
-                    BattleDirectControlOverlay.viewport(position, true));
+            return check.apply(position);
         } finally {
             Global.setSettings(previous);
         }
@@ -155,7 +162,7 @@ class BattleDirectControlOverlayTest {
     }
 
     @Test
-    void activeControlsStayBottomCenteredAndBothActionsRemainClickable() throws Exception {
+    void activeHudStaysBottomCenteredInsideTheHostAcrossScales() throws Exception {
         for (int[] size : List.of(new int[]{1744, 938}, new int[]{1920, 1080},
                 new int[]{1366, 768}, new int[]{1280, 720})) {
             for (float uiScale : new float[]{1f, 1.25f, 1.5f}) {
@@ -167,30 +174,34 @@ class BattleDirectControlOverlayTest {
                 assertTrue(plate.screenX() >= layout.host().screenX());
                 assertTrue(plate.screenX() + plate.width() <= layout.host().screenX() + layout.host().width());
                 assertTrue(plate.screenY() + plate.height() <= layout.host().screenY() + layout.host().height());
-                for (boolean paused : List.of(false, true)) {
-                    AtomicInteger returns = new AtomicInteger();
-                    AtomicInteger pauses = new AtomicInteger();
-                    try (MarkupInstance markup = fixture(Path.of("mod"), true, true,
-                            true, false, paused, returns::incrementAndGet, pauses::incrementAndGet)) {
-                        UiDocument document = document(markup);
-                        assertFalse(markup.requireElement("battle-direct-control-pause").disabled());
-                        document.layout(plate.documentWidth(), plate.documentHeight());
-                        for (String id : List.of("battle-direct-control-toggle", "battle-direct-control-pause")) {
-                            var box = markup.requireElement(id).box().borderBox();
-                            assertTrue(box.width() > 0f && box.height() > 0f);
-                            assertTrue(box.x() >= 0f && box.right() <= plate.documentWidth());
-                            assertTrue(box.y() >= 0f && box.bottom() <= plate.documentHeight());
-                            float x = plate.screenXFor(box.x() + box.width() / 2f);
-                            float y = plate.screenTopFor(box.y() + box.height() / 2f);
-                            document.pointerDown(plate.documentX(x), plate.documentY(y));
-                            document.pointerUp(plate.documentX(x), plate.documentY(y));
-                        }
-                        assertEquals(1, returns.get());
-                        assertEquals(1, pauses.get());
-                        assertTrue(markup.requireElement("battle-direct-control-hint")
-                                .box().borderBox().bottom() <= plate.documentHeight());
-                    }
-                }
+                assertEquals(BattleDirectControlOverlay.ACTION_WIDTH, plate.documentWidth(), .001f);
+                assertEquals(BattleDirectControlOverlay.ACTION_HEIGHT, plate.documentHeight(), .001f);
+            }
+        }
+    }
+
+    @Test
+    void hudDocksAtTopOnlyWhenTheControlledBodyWouldOverlapItsBottomBounds() {
+        for (int[] size : List.of(new int[]{1744, 938}, new int[]{1280, 720})) {
+            for (float scale : new float[]{1f, 1.25f, 1.5f}) {
+                withHost(size[0], size[1], scale, position -> {
+                    UiViewport host = MarineOpsUiViewport.from(position);
+                    UiViewport bottom = BattleDirectControlOverlay.viewport(position, true);
+                    float x = bottom.screenX() + bottom.width() / 2f;
+                    float y = bottom.screenY() + bottom.height() / 2f;
+                    float radius = 24f * scale;
+                    UiViewport docked = BattleDirectControlOverlay.actionViewport(position, x, y, radius);
+                    assertEquals(host.screenY() + host.height() - 12f - bottom.height(),
+                            docked.screenY(), .001f);
+                    assertEquals(bottom.screenX(), docked.screenX(), .001f);
+                    assertEquals(bottom.width(), docked.width(), .001f);
+                    assertTrue(y + radius < docked.screenY(), "docking leaves the body visible");
+                    assertEquals(bottom, BattleDirectControlOverlay.actionViewport(position,
+                            x, bottom.screenY() + bottom.height() + radius + 9f, radius));
+                    assertEquals(bottom, BattleDirectControlOverlay.actionViewport(position,
+                            bottom.screenX() - radius - 9f, y, radius));
+                    return null;
+                });
             }
         }
     }

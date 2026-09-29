@@ -763,7 +763,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         retainedRetreatOverlay.attach(position, sim != null && sim.isComplete());
         if (directControlOverlay == null) {
             directControlOverlay = new BattleDirectControlOverlay(selection, this::toggleDirectControl,
-                    () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f));
+                    () -> setBattleSpeed(speedMultiplier == 0f ? 1f : 0f), this::selectDirectWeapon);
         }
         directControlOverlay.attach(position, sim, speedMultiplier);
     }
@@ -1202,7 +1202,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // and the plain-RMB pan handler never sees it. Plain RMB (no shift)
         // is unclaimed and falls through to pan.
         directControlInput.process(manualSamples, this::toggleDirectControl,
-                this::exitDirectControl, this::battleChromeBlocksWorldPointer);
+                this::exitDirectControl, this::selectDirectWeapon, this::battleChromeBlocksWorldPointer);
         if (!directControlInput.active()) handleDebugDamageInput(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
@@ -1230,6 +1230,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         followControlledUnit(0f);
         if (turretAuthor != null) turretAuthor.active = false;
         syncDirectControlHud();
+    }
+
+    private boolean selectDirectWeapon(int selection) {
+        BattleSimulation sim = getSim();
+        if (sim == null || !sim.directControl().selectWeapon(selection)) return false;
+        directControlInput.syncSelectedWeapon(sim.directControl().selectedWeapon());
+        directControlInput.releaseFire();
+        return true;
     }
 
     private void exitDirectControl() {
@@ -1282,6 +1290,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     private void submitDirectControlIntent() {
         if (directControlSimulation == null || !directControlInput.active()) return;
+        directControlInput.syncSelectedWeapon(directControlSimulation.directControl().selectedWeapon());
         if (directControlInput.blocked(camera, speedMultiplier == 0f,
                 this::battleChromeBlocksWorldPointer)) {
             directControlSimulation.directControl().suspendInput();
@@ -1306,7 +1315,14 @@ public class BattleScreen implements Screen, BattleUiContext {
                 directControlSimulation.world().renderY(unit), radius,
                 pointerX, pointerY,
                 directControlInput.pointerKnown()
-                        && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt);
+                        && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt,
+                position != null ? BattleDirectControlOverlay.viewport(position, true).height() + 12f : 0f);
+        if (directControlOverlay != null) {
+            directControlOverlay.avoidControlledBody(
+                    camera.cellToScreenX(directControlSimulation.world().renderX(unit)),
+                    camera.cellToScreenY(directControlSimulation.world().renderY(unit)),
+                    radius * camera.cellPxSize());
+        }
     }
 
     /**

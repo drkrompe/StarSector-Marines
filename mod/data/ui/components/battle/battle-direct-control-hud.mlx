@@ -1,0 +1,68 @@
+<template props="identity,carrier,healthLabel,healthValue,healthStyle,healthClasses,armorLabel,armorValue,armorStyle,armorClasses,weapons,allLabel,allClasses,allStyle,allDisabled,allAction,selectionHint,controls,exitLabel,exitAction,pauseLabel,pauseAction">
+  <div id="direct-hud" class="direct-hud">
+    <div id="direct-hud-header" class="header">
+      <div id="direct-hud-identity-group" class="identity-group">
+        <div id="direct-hud-identity" class="identity">{identity}</div>
+        <div id="direct-hud-carrier" class="carrier">{carrier}</div>
+      </div>
+      <div id="direct-hud-durability" class="durability-row">
+        <div id="direct-hud-health-group" class="durability">
+          <div id="direct-hud-health-row" class="value-row"><div id="direct-hud-health-label" class="capacity-label">{healthLabel}</div><div id="direct-hud-health" class="capacity-value">{healthValue}</div></div>
+          <div id="direct-hud-health-meter" class="meter"><div id="direct-hud-health-fill" class="{healthClasses}" style="{healthStyle}"></div></div>
+        </div>
+        <div id="direct-hud-armor-group" class="durability">
+          <div id="direct-hud-armor-row" class="value-row"><div id="direct-hud-armor-label" class="capacity-label">{armorLabel}</div><div id="direct-hud-armor" class="capacity-value">{armorValue}</div></div>
+          <div id="direct-hud-armor-meter" class="meter"><div id="direct-hud-armor-fill" class="{armorClasses}" style="{armorStyle}"></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="direct-hud-weapons" class="weapons">
+      <button each="weapon in weapons" key="{weapon.id}" id="{weapon.id}" class="{weapon.classes}" style="{weapon.style}" disabled="{weapon.disabled}" onclick="{weapon.action}">
+        <div id="{weapon.topId}" class="weapon-top"><div id="{weapon.nameId}" class="weapon-name">{weapon.name}</div><div id="{weapon.stateId}" class="{weapon.stateClasses}">{weapon.state}</div></div>
+        <div id="{weapon.dataId}" class="weapon-data"><div id="{weapon.behaviorId}" class="weapon-detail">{weapon.behavior}</div><div id="{weapon.ammoId}" class="weapon-ammo">{weapon.ammo}</div></div>
+        <div id="{weapon.cycleId}" class="weapon-cycle"><div id="{weapon.fillId}" class="cycle-fill" style="{weapon.cycleStyle}"></div></div>
+      </button>
+    </div>
+    <div id="direct-hud-footer" class="footer">
+      <button id="direct-hud-all" class="{allClasses}" style="{allStyle}" disabled="{allDisabled}" onclick="{allAction}">{allLabel}</button>
+      <div id="direct-hud-controls" class="controls">{controls}</div>
+      <button id="direct-hud-exit" class="exit" onclick="{exitAction}">{exitLabel}</button>
+      <button id="direct-hud-pause" class="pause" onclick="{pauseAction}">{pauseLabel}</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .direct-hud { width: 100%; height: 100%; padding: 6px; gap: 4px; border-width: 1px; border-color: #4f6d8e; background-color: #0b111bf2; overflow: hidden; }
+  .header { height: 26px; flex-direction: row; gap: 12px; }
+  .identity-group { width: 136px; gap: 1px; }
+  .identity { height: 14px; font-family: heading; color: #d7f3ff; overflow: hidden; white-space: nowrap; }
+  .carrier { height: 10px; font-family: compact; color: #6ed7ff; }
+  .durability-row { flex-grow: 1; flex-direction: row; gap: 12px; }
+  .durability { width: 0px; flex-grow: 1; gap: 3px; }
+  .value-row { height: 17px; flex-direction: row; gap: 6px; }
+  .capacity-label { color: #aebdce; }
+  .capacity-value { flex-grow: 1; text-align: right; color: #ecf3fb; white-space: nowrap; overflow: hidden; }
+  .meter { height: 4px; width: 100%; flex-direction: row; background-color: #253344; }
+  .health-fill { height: 100%; background-color: #7cd89c; }
+  .armor-fill { height: 100%; background-color: #6ed7ff; }
+  .capacity-low { background-color: #f07c72; }
+  .weapons { height: 42px; flex-direction: row; gap: 5px; }
+  .weapon { width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 1px; border-color: #45596f; background-color: #142131; overflow: hidden; }
+  .weapon-top { height: 14px; flex-direction: row; gap: 4px; }
+  .weapon-name { flex-grow: 1; font-family: heading; color: #ecf3fb; overflow: hidden; white-space: nowrap; }
+  .weapon-state { color: #7cd89c; font-family: compact; }
+  .weapon-busy { color: #ffd464; }
+  .weapon-empty { color: #f07c72; }
+  .weapon-data { height: 13px; flex-direction: row; gap: 4px; }
+  .weapon-detail { flex-grow: 1; color: #aebdce; font-family: compact; overflow: hidden; white-space: nowrap; }
+  .weapon-ammo { color: #d7f3ff; font-family: compact; white-space: nowrap; }
+  .weapon-cycle { width: 100%; height: 2px; flex-direction: row; background-color: #253344; }
+  .cycle-fill { height: 100%; background-color: #6ed7ff; }
+  .footer { height: 20px; flex-direction: row; gap: 5px; }
+  .all { width: 94px; height: 20px; padding: 0px; text-align: center; font-family: compact; }
+  .controls { flex-grow: 1; color: #aebdce; font-family: compact; overflow: hidden; white-space: nowrap; }
+  .exit, .pause { height: 20px; padding: 0px; text-align: center; border-width: 1px; border-color: #4f6d8e; background-color: #243d56; color: #d7f3ff; }
+  .exit { width: 100px; font-family: compact; }
+  .pause { width: 48px; }
+</style>

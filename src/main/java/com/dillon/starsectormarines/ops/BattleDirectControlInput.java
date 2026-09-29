@@ -8,6 +8,7 @@ import org.lwjgl.input.Keyboard;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.IntPredicate;
 
 /** Held manual controls at the host boundary. No simulation or selection authority. */
 final class BattleDirectControlInput {
@@ -17,6 +18,8 @@ final class BattleDirectControlInput {
     private float pointerX, pointerY;
     private float previousSpeed;
     private boolean toggleHeld;
+    private final boolean[] weaponKeyHeld = new boolean[4];
+    private int selectedWeapon;
 
     /** Read host values before retained chrome consumes and invalidates them. */
     static List<Sample> capture(List<InputEventAPI> events) {
@@ -39,6 +42,11 @@ final class BattleDirectControlInput {
     /** Chrome acts first; releases still clear our held state even when claimed there. */
     void process(List<Sample> samples, Runnable toggle, Runnable exit,
                  BiPredicate<Float, Float> chrome) {
+        process(samples, toggle, exit, selection -> false, chrome);
+    }
+
+    void process(List<Sample> samples, Runnable toggle, Runnable exit,
+                 IntPredicate selectWeapon, BiPredicate<Float, Float> chrome) {
         for (Sample sample : samples) {
             if (sample.pointer) {
                 pointerKnown = true;
@@ -47,6 +55,8 @@ final class BattleDirectControlInput {
             }
             if (sample.keyUp) setMovement(sample.key, false);
             if (sample.keyUp && sample.key == Keyboard.KEY_C) toggleHeld = false;
+            int weaponKey = weaponKey(sample.key);
+            if (sample.keyUp && weaponKey >= 0) weaponKeyHeld[weaponKey] = false;
             if (sample.primaryUp) firing = false;
             if (active && sample.keyDown && sample.key == Keyboard.KEY_ESCAPE) {
                 exit.run();
@@ -61,6 +71,14 @@ final class BattleDirectControlInput {
                 continue;
             }
             if (!active) continue;
+            if ((sample.keyDown || sample.keyUp) && weaponKey >= 0) {
+                if (sample.keyDown && !weaponKeyHeld[weaponKey]) {
+                    weaponKeyHeld[weaponKey] = true;
+                    if (selectWeapon.test(weaponKey)) releaseFire();
+                }
+                sample.event.consume();
+                continue;
+            }
             if ((sample.keyDown || sample.keyUp) && movementKey(sample.key)) {
                 setMovement(sample.key, sample.keyDown);
                 sample.event.consume();
@@ -89,6 +107,7 @@ final class BattleDirectControlInput {
     float enter(float currentSpeed) {
         previousSpeed = currentSpeed;
         active = true;
+        selectedWeapon = 0;
         releaseHeld();
         return currentSpeed == 0f ? 0f : 1f;
     }
@@ -113,7 +132,17 @@ final class BattleDirectControlInput {
                 || !camera.containsScreen(pointerX, pointerY) || chrome.test(pointerX, pointerY);
     }
 
-    void releaseHeld() { north = south = west = east = firing = toggleHeld = false; }
+    void releaseHeld() {
+        north = south = west = east = firing = toggleHeld = false;
+        for (int i = 0; i < weaponKeyHeld.length; i++) weaponKeyHeld[i] = false;
+    }
+    void releaseFire() { firing = false; }
+    /** Reconcile simulation fallback before publishing held input again. */
+    void syncSelectedWeapon(int selection) {
+        if (selectedWeapon == selection) return;
+        selectedWeapon = selection;
+        releaseFire();
+    }
     boolean active() { return active; }
     boolean pointerKnown() { return pointerKnown; }
     float pointerX() { return pointerX; }
@@ -129,6 +158,14 @@ final class BattleDirectControlInput {
     private static boolean movementKey(int key) {
         return key == Keyboard.KEY_W || key == Keyboard.KEY_A
                 || key == Keyboard.KEY_S || key == Keyboard.KEY_D;
+    }
+
+    private static int weaponKey(int key) {
+        if (key == Keyboard.KEY_1) return 0;
+        if (key == Keyboard.KEY_2) return 1;
+        if (key == Keyboard.KEY_3) return 2;
+        if (key == Keyboard.KEY_4) return 3;
+        return -1;
     }
 
     private static boolean arrowKey(int key) {
