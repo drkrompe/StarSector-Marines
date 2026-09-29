@@ -1187,6 +1187,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void processInput(List<InputEventAPI> events) {
         syncDirectControl();
+        boolean controlledAtInputStart = directControlInput.active();
         var manualSamples = BattleDirectControlInput.capture(events);
         // Hidden strategic surfaces neither claim input nor retain keyboard focus.
         if (!directControlInput.active()) {
@@ -1207,11 +1208,18 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (Display.isCreated() && Display.isActive() && Keyboard.isCreated()) {
             directControlInput.reconcileAbilityKeyReleases(
                     Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G));
+            directControlInput.reconcileShiftKeyReleases(
+                    Keyboard.isKeyDown(Keyboard.KEY_LSHIFT), Keyboard.isKeyDown(Keyboard.KEY_RSHIFT));
         }
         directControlInput.process(manualSamples, this::toggleDirectControl,
                 this::exitDirectControl, this::selectDirectWeapon, this::requestDirectAbility,
                 this::battleChromeBlocksWorldPointer);
-        if (!directControlInput.active()) handleDebugDamageInput(events);
+        if (directControlInput.active() && !directControlInput.physicalShiftHeld()
+                && directControlSimulation != null && directControlSimulation == getSim()
+                && directControlSimulation.directControl().active()) {
+            directControlSimulation.directControl().observeSprintRelease();
+        }
+        if (!controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
         followControlledUnit(0f);

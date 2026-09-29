@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — equipped shield and smoke have manual activation and compact ability readouts.
+Updated: 2026-09-29 — controlled Marines can sprint with their own battle stamina.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -18,7 +18,7 @@ fire intent; it does not turn the player into a second mission commander.
   selection itself grants no authority. The simulation validates entry and
   owns the active identity until release.
 - A **manual intent** is a snapshot of movement axes, cursor-derived world aim,
-  trigger state, and optional weapon choice for one simulation tick. Input
+  trigger and sprint state, and optional weapon choice for one simulation tick. Input
   events are presentation data until the battle accepts that snapshot.
 - A **point shot** is direct fire along a weapon's sampled direction around a
   world aim point. It has no locked target identity. Physical contacts, not a
@@ -121,6 +121,12 @@ the shared smoke-field lifetime. Smoke opacity affects both factions and does
 not make a walk obstacle. Other secondary equipment needs its own manual
 contract before it gains an activation key.
 
+Holding either Shift key requests sprint for every controllable Marine,
+independently of armor or carried equipment. Sprint is an individual movement
+choice; it does not add a squad order or a Mech/APC speed mode. A small Shift
+card in the existing equipment row shows the exact Marine's stamina and running
+or exhausted state. Its bar is distinct from armor and health.
+
 Intent is sampled at the fixed 30 Hz simulation boundary. A paused battle
 accepts no movement or shot; the aim preview may still move. Direct control
 plays at 1x so a real-time hand has a stable movement and firing cadence.
@@ -158,6 +164,31 @@ its legs where the equipped hardpoint allows. A vehicle uses its own ground
 controller: W/S request forward/reverse motion and A/D steer, while the mouse
 aims its independent turret. A vehicle must never acquire grid-infantry
 components merely to share the input mode.
+
+Marine sprint temporarily scales the current authored movement speed, including
+an active suit's ordinary movement effect. It uses the same full terrain sweep,
+normalized diagonal input, applied velocity, separation, and gait as walking.
+Only extra movement actually gained through sprint spends stamina. Standing
+still, fully blocked motion, input suspension, and a committed smoke throw
+spend none. A partly funded final tick receives only that share of the boost.
+While boosted movement is applied, the primary is lowered and pending primary
+fire and burst work are cancelled without changing its cooldown or already
+launched shots. Mouse facing and shield protection remain under their ordinary
+manual authorities. Walking or stopping returns normal primary control.
+
+Stamina belongs to the exact Marine within the battle, rather than to an entry
+into control. It survives handback, switching bodies, and re-entry; those bodies
+recover in simulation time while outside control. Pausing advances neither
+spending nor recovery, and death retires the body's resource. Exhaustion
+requires releasing Shift and recovering a minimum reserve before
+sprinting again, avoiding a repeated speed pulse while Shift stays held. Input
+cancellation clears sprint and a stale key repeat cannot restore it. Temporarily
+blocking input over chrome does not count as releasing a held Shift key.
+Initial tuning is a 1.6 speed multiplier, six seconds of full sprint, a one-second
+recovery delay, four seconds for a full refill, and a quarter-bar reserve after
+exhaustion. Those values are balance choices; stamina ownership and terrain
+authority are standing laws. This resource is specific to manual sprint and
+does not change autonomous movement or campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing

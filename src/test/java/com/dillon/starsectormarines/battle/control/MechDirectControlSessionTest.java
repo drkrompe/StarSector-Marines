@@ -107,8 +107,9 @@ class MechDirectControlSessionTest {
         int ammo = mount.ammo;
         mount.burstRemaining = 2;
         mount.burstPointAim = new PointFireAim(20, 5);
-        session.submit(new ManualIntent(1, 0, 20, 5, true));
+        session.submit(new ManualIntent(1, 0, 20, 5, true, true));
         session.tick();
+        assertEquals(MarineSprint.EMPTY, session.sprintStatus(), "Mechs do not acquire Marine stamina");
         assertEquals(3f, mount.cooldown, "session cannot tick the heavy-weapon clock");
         assertEquals(ammo, mount.ammo, "session cannot spend a mount trigger");
         session.suspendInput();

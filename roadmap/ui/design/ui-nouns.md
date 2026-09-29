@@ -374,6 +374,13 @@ the strip height. E and G identify their keyboard commands; the cards are
 readouts, so pointing at them does not choose a smoke target. They display the
 equipment's actual readiness, active or throw clock, shield soak, and remaining
 canisters. Unequipped abilities have no placeholder card.
+A controlled Marine also has a read-only Shift sprint card with a distinct
+stamina bar. It projects that individual's battle resource, including active
+sprint and exhaustion, within the existing row height. Sprint belongs to every
+controllable Marine and is absent for Mechs and APCs; it is not inferred from
+the armor or health bars. Both Shift keys are held inputs, with releases
+observed before chrome consumes events. Input cancellation clears sprint and
+physical release reconciliation never activates it.
 Weapon cards show authored firing patterns, resource units, and
 recovery or burst state without claiming legal aim or barrel clearance. A Mech
 offers all direct mounts or one installed hardpoint through buttons and keys

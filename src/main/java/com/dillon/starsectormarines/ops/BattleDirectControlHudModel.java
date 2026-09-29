@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
+import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -90,6 +91,9 @@ final class BattleDirectControlHudModel {
                         () -> select.accept(weapon.number())));
             }
             for (var ability : snapshot.abilities()) cards.add(abilityCard(ability));
+            if (snapshot.carrier() == BattleDirectControlStatus.Carrier.MARINE) {
+                cards.add(sprintCard(snapshot.sprint()));
+            }
             weapons.set(List.copyOf(cards));
         });
     }
@@ -115,6 +119,17 @@ final class BattleDirectControlHudModel {
                 "opacity: 1;", true, (shield ? "[E] " : "[G] ") + label(shield ? "Shield" : "Smoke"),
                 detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
                 : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
+    }
+
+    private WeaponCard sprintCard(MarineSprint.Status sprint) {
+        float fraction = Math.max(0f, Math.min(1f, sprint.staminaFraction()));
+        String state = label(sprint.sprinting() ? "SprintRunning"
+                : sprint.exhausted() ? "SprintResting" : "SprintReady");
+        return new WeaponCard("direct-hud-sprint", "weapon ability sprint",
+                "opacity: 1;", true, "[Shift] " + label("Sprint"),
+                label("Stamina"), Math.round(fraction * 100f) + "%", state,
+                "weapon-state" + (sprint.exhausted() ? " weapon-busy" : ""),
+                width(fraction) + " background-color: #e3b64e;", () -> {});
     }
 
     private static String seconds(float value) { return String.format(Locale.ROOT, "%.1fs", value); }

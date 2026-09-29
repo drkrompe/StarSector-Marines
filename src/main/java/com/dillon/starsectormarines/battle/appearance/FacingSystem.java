@@ -110,11 +110,16 @@ public final class FacingSystem {
 
     /** Authors {@code SPRITE_INDEX}/{@code SPRITE_FLIP_V}/{@code SPRITE_SHEET} for every row in {@link BattleComponents#liveSprites}. */
     public void tick() {
-        tick(0L, Float.NaN, Float.NaN);
+        tick(0L, Float.NaN, Float.NaN, false);
     }
 
     /** Manual infantry aim overrides target/travel facing without changing applied movement gait. */
     public void tick(long controlledUnitId, float aimX, float aimY) {
+        tick(controlledUnitId, aimX, aimY, false);
+    }
+
+    /** Applied sprint motion keeps the cursor bearing while lowering the weapon pose. */
+    public void tick(long controlledUnitId, float aimX, float aimY, boolean sprinting) {
         for (ArchetypeTable t : world.matched(components.liveSprites)) {
             boolean hasCombat = t.has(components.COMBAT);
             boolean hasMovement = t.has(components.MOVEMENT);
@@ -209,10 +214,12 @@ public final class FacingSystem {
                 boolean manualAim = (throwCommit != null || t.entityAt(r) == controlledUnitId)
                         && Float.isFinite(manualDx) && Float.isFinite(manualDy)
                         && (manualDx != 0f || manualDy != 0f);
+                boolean sprintRow = sprinting && t.entityAt(r) == controlledUnitId
+                        && type == UnitType.MARINE;
                 float manualFacing = manualAim
                         ? AirBody.facingToward(manualDx, manualDy) : Float.NaN;
-                boolean up = manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
-                        hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f);
+                boolean up = !sprintRow && (manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
+                        hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f));
 
                 // The grid cell this row occupies — floored locally because target
                 // facing uses an integer cell delta while movement retains continuous
@@ -311,7 +318,7 @@ public final class FacingSystem {
                             secondaryFired, gaitPhase, haveTargetDelta, targetDx,
                             targetDy, haveTravelDelta, travelDx, travelDy, layeredFacing,
                             locomotionPhase, weaponPhase, headLook, weaponPose,
-                            layeredFlags, manualFacing);
+                            layeredFlags, manualFacing, sprintRow);
                 }
                 if (hasMechLayeredAnimation && hasMechLoadout && hasMechLocomotion) {
                     authorLayeredMechRow(r, hasMovement && haveTravelDelta, gaitPhase,
@@ -434,14 +441,14 @@ public final class FacingSystem {
             boolean haveTargetDelta, int targetDx, int targetDy,
             boolean haveTravelDelta, int travelDx, int travelDy,
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
-            int[] pose, int[] flags, float manualFacing) {
+            int[] pose, int[] flags, float manualFacing, boolean sprinting) {
 
         int previousFlags = flags[row];
         boolean manualAim = Float.isFinite(manualFacing);
         // Nonzero applied velocity — true iff the mover translated this tick,
         // so held units (aim freeze, dwell with a retained path) idle cleanly.
         boolean moving = hasMovement && haveTravelDelta;
-        boolean primaryUp = hasCombat && LiveAppearance.weaponUp(false, type.combatant,
+        boolean primaryUp = !sprinting && hasCombat && LiveAppearance.weaponUp(false, type.combatant,
                 cooldownTimer[row], attackCooldown[row]);
 
         // While walking, shoulders follow travel unless the weapon is actively
@@ -536,7 +543,7 @@ public final class FacingSystem {
                 authoredPose = LayeredAppearance.POSE_AIMED;
                 authoredPhase = clamp01(elapsed / LiveAppearance.WEAPON_UP_TIME);
             }
-        } else if (manualAim) {
+        } else if (manualAim && !sprinting) {
             authoredPose = LayeredAppearance.POSE_AIMED;
         }
 

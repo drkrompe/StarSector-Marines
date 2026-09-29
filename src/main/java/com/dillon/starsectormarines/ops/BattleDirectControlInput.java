@@ -16,6 +16,8 @@ import java.util.function.Predicate;
 final class BattleDirectControlInput {
     private boolean active;
     private boolean north, south, west, east, firing;
+    private boolean leftShift, rightShift;
+    private boolean leftShiftKeyHeld, rightShiftKeyHeld;
     private boolean pointerKnown;
     private float pointerX, pointerY;
     private float previousSpeed;
@@ -63,6 +65,13 @@ final class BattleDirectControlInput {
                 pointerY = sample.y;
             }
             if (sample.keyUp) setMovement(sample.key, false);
+            if (sample.keyUp) {
+                setShift(sample.key, false);
+                setShiftKeyHeld(sample.key, false);
+            }
+            boolean newShiftPress = sample.keyDown && shiftKey(sample.key)
+                    && !shiftKeyHeld(sample.key);
+            if (sample.keyDown) setShiftKeyHeld(sample.key, true);
             if (sample.keyUp && sample.key == Keyboard.KEY_C) toggleHeld = false;
             int weaponKey = weaponKey(sample.key);
             if (sample.keyUp && weaponKey >= 0) weaponKeyHeld[weaponKey] = false;
@@ -102,6 +111,10 @@ final class BattleDirectControlInput {
                 setMovement(sample.key, sample.keyDown);
                 sample.event.consume();
             }
+            if ((sample.keyDown || sample.keyUp) && shiftKey(sample.key)) {
+                if (newShiftPress) setShift(sample.key, true);
+                sample.event.consume();
+            }
             // Arrow panning and world orders have no owner while following a Marine.
             if ((sample.keyDown || sample.keyUp) && arrowKey(sample.key)) {
                 sample.event.consume();
@@ -120,7 +133,8 @@ final class BattleDirectControlInput {
         float dx = blocked ? 0f : (east ? 1f : 0f) - (west ? 1f : 0f);
         float dy = blocked ? 0f : (north ? 1f : 0f) - (south ? 1f : 0f);
         return new ManualIntent(dx, dy, camera.screenToCellX(pointerX),
-                camera.screenToCellY(pointerY), !blocked && firing);
+                camera.screenToCellY(pointerY), !blocked && firing,
+                !blocked && (leftShift || rightShift));
     }
 
     float enter(float currentSpeed) {
@@ -152,7 +166,7 @@ final class BattleDirectControlInput {
     }
 
     void releaseHeld() {
-        north = south = west = east = firing = toggleHeld = false;
+        north = south = west = east = firing = toggleHeld = leftShift = rightShift = false;
         for (int i = 0; i < weaponKeyHeld.length; i++) weaponKeyHeld[i] = false;
         // Ability presses have no held intent. Keep their physical debounce until
         // keyup so pause, rejected input, or handback cannot turn repeat into a new use.
@@ -162,6 +176,17 @@ final class BattleDirectControlInput {
         if (!shieldHeld) abilityKeyHeld[0] = false;
         if (!smokeHeld) abilityKeyHeld[1] = false;
     }
+    /** Physical observations can release a missed Shift keyup but cannot restore sprint. */
+    void reconcileShiftKeyReleases(boolean leftHeld, boolean rightHeld) {
+        if (!leftHeld) {
+            leftShift = false;
+            leftShiftKeyHeld = false;
+        }
+        if (!rightHeld) {
+            rightShift = false;
+            rightShiftKeyHeld = false;
+        }
+    }
     void releaseFire() { firing = false; }
     /** Reconcile simulation fallback before publishing held input again. */
     void syncSelectedWeapon(int selection) {
@@ -170,6 +195,7 @@ final class BattleDirectControlInput {
         releaseFire();
     }
     boolean active() { return active; }
+    boolean physicalShiftHeld() { return leftShiftKeyHeld || rightShiftKeyHeld; }
     boolean pointerKnown() { return pointerKnown; }
     float pointerX() { return pointerX; }
     float pointerY() { return pointerY; }
@@ -179,6 +205,25 @@ final class BattleDirectControlInput {
         if (key == Keyboard.KEY_S) south = down;
         if (key == Keyboard.KEY_A) west = down;
         if (key == Keyboard.KEY_D) east = down;
+    }
+
+    private void setShift(int key, boolean down) {
+        if (key == Keyboard.KEY_LSHIFT) leftShift = down;
+        if (key == Keyboard.KEY_RSHIFT) rightShift = down;
+    }
+
+    private boolean shiftKeyHeld(int key) {
+        return key == Keyboard.KEY_LSHIFT ? leftShiftKeyHeld
+                : key == Keyboard.KEY_RSHIFT && rightShiftKeyHeld;
+    }
+
+    private void setShiftKeyHeld(int key, boolean held) {
+        if (key == Keyboard.KEY_LSHIFT) leftShiftKeyHeld = held;
+        if (key == Keyboard.KEY_RSHIFT) rightShiftKeyHeld = held;
+    }
+
+    private static boolean shiftKey(int key) {
+        return key == Keyboard.KEY_LSHIFT || key == Keyboard.KEY_RSHIFT;
     }
 
     private static boolean movementKey(int key) {

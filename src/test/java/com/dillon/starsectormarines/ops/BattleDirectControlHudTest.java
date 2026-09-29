@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
+import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -31,9 +32,11 @@ class BattleDirectControlHudTest {
                     false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
                 var shield = fixture.markup.requireElement("direct-hud-ability-SHIELD");
                 var smoke = fixture.markup.requireElement("direct-hud-ability-SMOKE");
+                var sprint = fixture.markup.requireElement("direct-hud-sprint");
                 assertEquals("[E] Shield", fixture.markup.requireElement("direct-hud-ability-SHIELD-name").text());
                 assertEquals("[G] Smoke", fixture.markup.requireElement("direct-hud-ability-SMOKE-name").text());
-                for (var card : List.of(shield, smoke)) {
+                assertEquals("[Shift] Sprint", fixture.markup.requireElement("direct-hud-sprint-name").text());
+                for (var card : List.of(shield, smoke, sprint)) {
                     assertTrue(card.disabled());
                     assertEquals(1f, card.opacity());
                     var bounds = card.box().borderBox();
@@ -47,6 +50,16 @@ class BattleDirectControlHudTest {
                         fixture.markup.requireElement("direct-hud-ability-SMOKE-state").text());
                 assertEquals(state == 2 ? "0 / 2" : "2 / 2",
                         fixture.markup.requireElement("direct-hud-ability-SMOKE-ammo").text());
+                assertEquals(new String[]{"READY", "RUN", "REST", "REST"}[state],
+                        fixture.markup.requireElement("direct-hud-sprint-state").text());
+                assertEquals(new String[]{"100%", "61%", "0%", "35%"}[state],
+                        fixture.markup.requireElement("direct-hud-sprint-ammo").text());
+                assertEquals("Stamina", fixture.markup.requireElement("direct-hud-sprint-behavior").text());
+                assertTrue(sprint.box().borderBox().width() > 0f);
+                var sprintFill = fixture.markup.requireElement("direct-hud-sprint-fill");
+                assertEquals(new float[]{1f, .61f, 0f, .35f}[state]
+                                * sprintFill.parent().box().contentBox().width(),
+                        sprintFill.box().borderBox().width(), .01f);
                 if (state == 1) {
                     var fill = fixture.markup.requireElement("direct-hud-ability-SHIELD-fill");
                     assertEquals(fill.parent().box().contentBox().width() * .5f,
@@ -60,6 +73,8 @@ class BattleDirectControlHudTest {
                     () -> fixture.markup.requireElement("direct-hud-ability-SHIELD"));
             assertThrows(IllegalArgumentException.class,
                     () -> fixture.markup.requireElement("direct-hud-ability-SMOKE"));
+            assertEquals("READY", fixture.markup.requireElement("direct-hud-sprint-state").text(),
+                    "unmodified Marines still have stamina");
         }
     }
 
@@ -77,6 +92,8 @@ class BattleDirectControlHudTest {
                     fixture.document.layout(viewport.documentWidth(), viewport.documentHeight());
                     fixture.actionsDocument.layout(layout.activeActions().documentWidth(),
                             layout.activeActions().documentHeight());
+                    assertThrows(IllegalArgumentException.class,
+                            () -> fixture.markup.requireElement("direct-hud-sprint"));
                     assertEquals("1x", fixture.actionsMarkup.requireElement("direct-actions-pause").text());
                     var disabled = fixture.markup.requireElement("direct-hud-weapon-RIGHT_SHOULDER");
                     assertTrue(disabled.disabled());
@@ -140,6 +157,10 @@ class BattleDirectControlHudTest {
                 assertEquals(0f, all.box().borderBox().width());
                 assertEquals(0f, all.box().borderBox().height());
                 assertThinDurabilityBars(fixture.markup);
+                if (carrier == Carrier.VEHICLE) {
+                    assertThrows(IllegalArgumentException.class,
+                            () -> fixture.markup.requireElement("direct-hud-sprint"));
+                }
                 assertTrue(fixture.actionsMarkup.requireElement("direct-actions-exit").box().borderBox().width() > 0f);
             }
         }
@@ -254,7 +275,12 @@ class BattleDirectControlHudTest {
                 state == 1 ? .4f : 0f, .8f, 0f, 0f, state == 2 ? 0 : 2, 2,
                 0f, 0f);
         return new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(),
-                base.weapons(), List.of(shield, smoke));
+                base.weapons(), List.of(shield, smoke), switch (state) {
+                    case 0 -> MarineSprint.EMPTY;
+                    case 1 -> new MarineSprint.Status(.61f, true, false);
+                    case 2 -> new MarineSprint.Status(0f, false, true);
+                    default -> new MarineSprint.Status(.35f, false, true);
+                });
     }
 
     private static WeaponStatus weapon(int number, String slot, String name, FireKind kind, int rounds,

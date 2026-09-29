@@ -274,15 +274,24 @@ public final class MovementService {
      */
     public void moveDirect(long id, NavigationGrid grid, float axisX, float axisY,
                            float radius, float dt) {
-        ManualTerrainMotion.Result result = previewDirect(id, grid, axisX, axisY, radius, dt);
+        moveDirectScaled(id, grid, axisX, axisY, radius, dt, 1f);
+    }
+
+    /** Same physical sweep with a caller-owned transient speed scale; the authored stat is untouched. */
+    public ManualTerrainMotion.Result moveDirectScaled(long id, NavigationGrid grid,
+                                                        float axisX, float axisY,
+                                                        float radius, float dt, float speedScale) {
+        ManualTerrainMotion.Result result = previewDirect(id, grid, axisX, axisY,
+                radius, dt, speedScale);
         setVelocity(id, 0f, 0f);
         setFormationMemoryTimer(id, 0f);
-        if (dt == 0f) return;
+        if (dt == 0f) return result;
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, result.x());
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, result.y());
         setVelocity(id, result.dx() / dt, result.dy() / dt);
         float appliedDistance = (float) Math.hypot(result.dx(), result.dy());
         setGaitPhase(id, (gaitPhase(id) + appliedDistance) % 1f);
+        return result;
     }
 
     /**
@@ -324,9 +333,17 @@ public final class MovementService {
     public ManualTerrainMotion.Result previewDirect(long id, NavigationGrid grid,
                                                      float axisX, float axisY,
                                                      float radius, float dt) {
+        return previewDirect(id, grid, axisX, axisY, radius, dt, 1f);
+    }
+
+    /** Preview through the same sweep as {@link #moveDirectScaled}, without changing state. */
+    public ManualTerrainMotion.Result previewDirect(long id, NavigationGrid grid,
+                                                     float axisX, float axisY,
+                                                     float radius, float dt, float speedScale) {
         if (!Float.isFinite(axisX) || !Float.isFinite(axisY)
-                || !Float.isFinite(dt) || dt < 0f) {
-            throw new IllegalArgumentException("Direct motion requires finite axes and nonnegative time");
+                || !Float.isFinite(dt) || dt < 0f
+                || !Float.isFinite(speedScale) || speedScale < 0f) {
+            throw new IllegalArgumentException("Direct motion requires finite axes, scale, and nonnegative time");
         }
         float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
         float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
@@ -334,7 +351,7 @@ public final class MovementService {
             return new ManualTerrainMotion.Result(x, y, 0f, 0f);
         }
         double divisor = Math.max(1d, Math.hypot(axisX, axisY));
-        float distance = Math.max(0f, moveSpeed(id)) * dt;
+        float distance = Math.max(0f, moveSpeed(id)) * dt * speedScale;
         float dx = (float) (axisX / divisor * distance);
         float dy = (float) (axisY / divisor * distance);
         return ManualTerrainMotion.move(grid, x, y, dx, dy, radius);
