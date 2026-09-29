@@ -33,11 +33,19 @@ public final class DirectControlPanel implements HudPanel {
         HudDraw.prepBlend();
         HudDraw.borderRect(x - radius, y - radius, radius * 2f, radius * 2f,
                 CONTROLLED, alpha);
+        if (!context.directControlAimVisible()) return;
         var aim = sim.directControl().intent();
         if (!Float.isFinite(aim.aimX()) || !Float.isFinite(aim.aimY())) return;
         float aimX = camera.cellToScreenX(aim.aimX());
         float aimY = camera.cellToScreenY(aim.aimY());
         if (!camera.containsScreen(aimX, aimY)) return;
+        for (var origin : DirectControlAimOrigins.read(sim)) {
+            var lane = DirectControlAimLane.observed(sim.getGrid(), origin, aim.aimX(), aim.aimY(),
+                    sim.getFogOfWar()::isCellRevealed);
+            if (lane == null) continue;
+            for (var stroke : DirectControlAimLane.strokes(lane, camera.cellPxSize(),
+                    camera.cellToScreenX(0f), camera.cellToScreenY(0f))) HudDraw.stroke(stroke, alpha);
+        }
         HudDraw.filledRect(aimX - 8f, aimY - 1f, 5f, 2f, CONTROLLED, alpha);
         HudDraw.filledRect(aimX + 3f, aimY - 1f, 5f, 2f, CONTROLLED, alpha);
         HudDraw.filledRect(aimX - 1f, aimY - 8f, 2f, 5f, CONTROLLED, alpha);

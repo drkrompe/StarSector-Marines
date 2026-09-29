@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — verify Marine sprint and chassis-mass manual Mech handling.
+Updated: 2026-09-29 — verify terrain aim-lane readability alongside carrier movement.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -32,6 +32,14 @@ including its transition back to autonomous play.
 - Sweep the cursor during a Bulwark burst, including behind the hips and while
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.
+- Aim around a wall corner from sub-cell positions and compare the faint lane
+  and amber contact with actual shots. Move along a window and a closed doorway,
+  then open or destroy the obstruction; the next preview must match current
+  structural geometry. Check Marine origin, selected Mech hardpoints and All,
+  and the APC's turret muzzle, including a barrel protruding beyond a wall.
+  Aim into fog and smoke: the guide must not reveal unseen structure or bodies.
+  Move onto HUD chrome and outside the world, then return while paused and
+  changing zoom; the guide must hide and reproject without stale aim.
 - Drive each Mech chassis, release WASD, and change direction through a right
   angle and a full reversal. Braking and turns must remain smooth without a
   hard stop while the hips align. Compare the agile Hound, intermediate Sirocco,

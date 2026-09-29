@@ -97,6 +97,8 @@ Controlled Marines also have held-Shift sprint with individual battle stamina
 and a lowered primary during the speed boost.
 Manual Mech drive eases acceleration, braking, and direction changes according
 to chassis handling mass while retaining shared terrain clearance.
+A faint world aim lane reports observed structural clearance from the controlled
+weapon's firing origin without changing targeting or shot resolution.
 
 Air uses one hull-derived atmospheric motion model. Shuttles and fighters are
 both composed world entities flying the same sortie from two origins — a berth

@@ -693,7 +693,7 @@ public final class BallisticResolver {
     }
 
     /** Entry fraction of segment {@code a -> b} into one closed unit cell. */
-    private static float segmentCellEntryFraction(float ax, float ay, float bx, float by,
+    public static float segmentCellEntryFraction(float ax, float ay, float bx, float by,
                                                   int cellX, int cellY) {
         float dx = bx - ax;
         float dy = by - ay;

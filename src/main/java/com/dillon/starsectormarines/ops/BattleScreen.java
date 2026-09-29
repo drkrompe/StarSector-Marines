@@ -1318,6 +1318,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
+    @Override public boolean directControlAimVisible() {
+        return directControlInput.active() && directControlInput.pointerKnown()
+                && camera != null && camera.containsScreen(directControlInput.pointerX(), directControlInput.pointerY())
+                && !battleChromeBlocksWorldPointer(directControlInput.pointerX(), directControlInput.pointerY());
+    }
+
     private void submitDirectControlIntent() {
         if (directControlSimulation == null || !directControlInput.active()) return;
         directControlInput.syncSelectedWeapon(directControlSimulation.directControl().selectedWeapon());

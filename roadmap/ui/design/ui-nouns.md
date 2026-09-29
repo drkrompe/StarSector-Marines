@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — direct control separates its thin equipment strip from session controls.
+Updated: 2026-09-29 — direct control adds a faint world aim lane without enlarging chrome.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -391,6 +391,17 @@ occupy separate top-right buttons. The world retains health bars, the controlled
 and the aim crosshair. Camera framing reserves clearance above the strip; when
 world-edge clamping would leave the body under it, the strip docks at the top
 below the session buttons.
+
+A thin, faint world aim lane runs from the controlled weapon's firing origin
+toward the pointer. A small amber marker reports the first observed structural
+projectile stop; a still fainter dashed continuation communicates the blocked
+bearing. The host's actual pointer eligibility hides the lane over chrome or
+outside the viewport even when simulation intent retains an aim point. It
+continues to project pointer and camera changes while paused. Geometry styling
+ends at current observation, so hidden blockers receive no marker or transition.
+This readout adds no input target or HUD space and makes no readiness or hit
+guarantee. `direct-control-nouns.md` owns carrier origins and selection scope.
+
 Strategic panels, commander/objective rails, power cards, retreat, communications,
 and developer panels are hidden together with their input and pointer bounds.
 Selection and command/debug cell overlays also yield. Hidden projections continue

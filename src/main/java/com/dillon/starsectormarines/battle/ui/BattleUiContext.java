@@ -28,6 +28,9 @@ public interface BattleUiContext {
 
     BattleLayout getLayout();
 
+    /** Presentation pointer is currently over eligible battlefield space, including during pause. */
+    default boolean directControlAimVisible() { return false; }
+
     Selection getSelection();
 
     /** Shared overlay for debug cell highlights — plan-step cells, selected squad members, captain badge, etc. */

@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — launch intents publish after member join without delaying physical flight.
+Updated: 2026-09-29 — manual terrain previews reuse firing geometry without resolving rounds.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -120,6 +120,13 @@ wall cannot bypass that wall by starting the contact walk on its far side.
 Ballistics, tracer origin, and muzzle presentation therefore describe the same
 shot. Mech accuracy retains the shared weapon calculation and receives no
 infantry training multiplier merely because its aim is a point.
+
+A manual aim-lane preview may reuse deterministic structural geometry and the
+same firing origins without resolving a modeled round. Its first obstruction
+reports a wall or projectile-blocking edge, never a probabilistic cover catch
+or body contact. It consumes no random samples, ammunition, or clocks and
+does not promise that a mount is aligned, ready, or certain to hit.
+`direct-control-nouns.md` owns that preview's visibility and selection scope.
 
 Manual ground-direct area weapons keep the same terminal-contact rule as other
 modeled direct fire. An empty cursor point is a bearing, never a detonation
