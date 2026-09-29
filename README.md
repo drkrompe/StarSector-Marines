@@ -65,6 +65,10 @@ roadmap/                     Design docs, session logs, and feature-track plans
 
 ## Building from source
 
+Contributing agents must follow [`CLAUDE.md`](CLAUDE.md), including the session
+worktree workflow and Sol 6.1 (`gpt-6.1-sol`) selection for reconnaissance and
+implementation subagents.
+
 ### Prerequisites
 
 - **JDK 25** (Eclipse Adoptium) — Gradle's toolchain resolver will auto-download it.
