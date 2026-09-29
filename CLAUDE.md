@@ -8,6 +8,14 @@ For project vision, current focus, and immediate next-up, see
 start with its canonical noun doc for the high-level model and
 `design/stories.md` for the open-work board.
 
+## Agent model selection
+
+Use Sol 6.1 (`gpt-6.1-sol`) for reconnaissance and implementation subagents
+unless the user explicitly requests a different model. Select the model
+explicitly when spawning those agents; do not rely on inheritance from the
+orchestrating chat. If that model is unavailable, report the limitation before
+substituting another model.
+
 ## Session worktrees (default workflow)
 
 Keep the main workspace checked out on `main` and free of session edits so it
