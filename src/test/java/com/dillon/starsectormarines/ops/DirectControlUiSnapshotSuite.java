@@ -56,7 +56,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
                     BattleDirectControlHudTest.abilityPreview(state), 0, false,
                     ignored -> {}, () -> {}, () -> {})) {
-                artifacts.add(new SnapshotArtifact("action-abilities-" + state + ".png",
+                String phase = new String[]{"full", "running", "empty", "recovering"}[state];
+                artifacts.add(new SnapshotArtifact("action-abilities-sprint-" + phase + ".png",
                         renderer.render(fixture.document(), (int) BattleDirectControlOverlay.ACTION_WIDTH,
                                 (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
             }
@@ -79,12 +80,23 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 activeComposite(renderer, context.modRoot(), 1280, 720, 1.5f, false)));
         artifacts.add(new SnapshotArtifact("active-mech-paused-1744x938-ui100.png",
                 activeComposite(renderer, context.modRoot(), 1744, 938, 1f, true)));
+        artifacts.add(new SnapshotArtifact("active-marine-equipped-1280x720-ui150.png",
+                activeComposite(renderer, context.modRoot(), 1280, 720, 1.5f,
+                        BattleDirectControlHudTest.abilityPreview(1), false)));
         return artifacts;
     }
 
     /** Active control keeps equipment bottom-center and exit/pause in their independent top-right document. */
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
+                                                  boolean paused) throws Exception {
+        return activeComposite(renderer, modRoot, width, height, uiScale,
+                BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false), paused);
+    }
+
+    private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
+                                                  int width, int height, float uiScale,
+                                                  BattleDirectControlStatus.Snapshot snapshot,
                                                   boolean paused) throws Exception {
         var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -98,8 +110,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
-                    BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false),
-                    0, paused, ignored -> {}, () -> {}, () -> {})) {
+                    snapshot, 0, paused, ignored -> {}, () -> {}, () -> {})) {
                 draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);
                 draw(graphics, renderer, fixture.actionsMarkup(), layout.activeActions(), layout.host(), uiScale);
             }

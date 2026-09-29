@@ -331,6 +331,98 @@ class BattleDirectControlInputTest {
                 DirectControlAbility.SHIELD, DirectControlAbility.SMOKE), requests);
     }
 
+    @Test
+    void eitherShiftRequestsSprintAndConsumedKeyReleasesClearEachSideIndependently() {
+        BattleDirectControlInput input = active();
+        var presses = List.of(event(Kind.MOVE, 70, 60, 0),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_LSHIFT),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_RSHIFT));
+        process(input, presses);
+        assertTrue(presses.get(1).isConsumed());
+        assertTrue(presses.get(2).isConsumed());
+        assertTrue(input.physicalShiftHeld());
+        assertTrue(input.intent(camera(), false, NO_CHROME).sprint());
+
+        var leftUp = event(Kind.UP, 0, 0, Keyboard.KEY_LSHIFT);
+        var capturedLeft = BattleDirectControlInput.capture(List.of(leftUp));
+        leftUp.consume();
+        input.process(capturedLeft, () -> {}, () -> {}, NO_CHROME);
+        assertTrue(input.physicalShiftHeld(), "one released Shift is not a physical sprint release");
+        assertTrue(input.intent(camera(), false, NO_CHROME).sprint(),
+                "right Shift still owns sprint after consumed left release");
+        var rightUp = event(Kind.UP, 0, 0, Keyboard.KEY_RSHIFT);
+        var capturedRight = BattleDirectControlInput.capture(List.of(rightUp));
+        rightUp.consume();
+        input.process(capturedRight, () -> {}, () -> {}, NO_CHROME);
+        assertFalse(input.physicalShiftHeld());
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint());
+    }
+
+    @Test
+    void sprintNeutralizesOverChromeOutsideWorldAndPauseWithoutRestoringAfterHeldReset() {
+        BattleDirectControlInput input = active();
+        process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_LSHIFT)));
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint(),
+                "without a known world pointer no sprint intent is published");
+        process(input, List.of(event(Kind.MOVE, 70, 60, 0),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_W)));
+        assertTrue(input.intent(camera(), false, NO_CHROME).sprint());
+        assertFalse(input.intent(camera(), true, NO_CHROME).sprint());
+        assertFalse(input.intent(camera(), false, (x, y) -> true).sprint());
+        process(input, List.of(event(Kind.MOVE, 250, 60, 0)));
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint());
+        assertTrue(input.physicalShiftHeld(), "chrome-neutral intent keeps the physical hold");
+
+        input.speedChanged(0f);
+        process(input, List.of(event(Kind.MOVE, 70, 60, 0)));
+        input.reconcileShiftKeyReleases(true, false);
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint(),
+                "a held physical observation cannot restore input after pause");
+        assertTrue(input.physicalShiftHeld(), "pause does not count as a physical Shift release");
+        process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_LSHIFT)));
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint(),
+                "a repeated keydown cannot restore sprint after pause");
+        process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_RSHIFT)));
+        assertTrue(input.intent(camera(), false, NO_CHROME).sprint());
+        input.reconcileShiftKeyReleases(true, false);
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint(),
+                "a dropped keyup can be cleared from physical state");
+        assertTrue(input.physicalShiftHeld(), "left Shift still holds after right release");
+        input.reconcileShiftKeyReleases(false, false);
+        assertFalse(input.physicalShiftHeld(), "last observed release clears the physical hold");
+        input.exit(1f);
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint());
+    }
+
+    @Test
+    void activeControlConsumesShiftAndRightClickBeforeStrategicDebugCanSeeThem() {
+        BattleDirectControlInput input = active();
+        var events = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_LSHIFT),
+                event(Kind.RIGHT_DOWN, 70, 60, 0));
+        process(input, events);
+        assertTrue(events.stream().allMatch(InputEventAPI::isConsumed));
+    }
+
+    @Test
+    void inactiveOrChromeClaimedShiftPressNeedsReleaseBeforeItCanEnableSprint() {
+        BattleDirectControlInput input = new BattleDirectControlInput();
+        process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_LSHIFT)));
+        input.enter(1f);
+        process(input, List.of(event(Kind.MOVE, 70, 60, 0),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_LSHIFT)));
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint());
+
+        var claimed = event(Kind.DOWN, 0, 0, Keyboard.KEY_RSHIFT);
+        var captured = BattleDirectControlInput.capture(List.of(claimed));
+        claimed.consume();
+        input.process(captured, () -> {}, () -> {}, NO_CHROME);
+        process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_RSHIFT)));
+        assertFalse(input.intent(camera(), false, NO_CHROME).sprint());
+        process(input, List.of(event(Kind.UP, 0, 0, Keyboard.KEY_RSHIFT),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_RSHIFT)));
+        assertTrue(input.intent(camera(), false, NO_CHROME).sprint());
+    }
+
     private static void assertNeutral(ManualIntent intent) {
         assertEquals(0f, intent.moveX());
         assertEquals(0f, intent.moveY());
@@ -353,7 +445,7 @@ class BattleDirectControlInputTest {
         input.process(BattleDirectControlInput.capture(events), () -> {}, () -> {}, NO_CHROME);
     }
 
-    private enum Kind { DOWN, UP, MOVE, LEFT_DOWN, LEFT_UP }
+    private enum Kind { DOWN, UP, MOVE, LEFT_DOWN, LEFT_UP, RIGHT_DOWN }
 
     private static InputEventAPI event(Kind kind, int x, int y, int key) {
         boolean[] consumed = {false};
@@ -370,6 +462,7 @@ class BattleDirectControlInputTest {
                         case "isMouseMoveEvent" -> kind == Kind.MOVE;
                         case "isLMBDownEvent" -> kind == Kind.LEFT_DOWN;
                         case "isLMBUpEvent" -> kind == Kind.LEFT_UP;
+                        case "isRMBDownEvent" -> kind == Kind.RIGHT_DOWN;
                         case "getX" -> x;
                         case "getY" -> y;
                         case "getEventValue" -> key;

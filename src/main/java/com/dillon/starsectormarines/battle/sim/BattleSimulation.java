@@ -2270,7 +2270,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechTurretSystem.tick(TICK_DT, directControl.controlledMechId(), directControl.pointAim());
         directControl.validate();
         facingSystem.tick(directControl.activeUnitId(), directControl.intent().aimX(),
-                directControl.intent().aimY());
+                directControl.intent().aimY(), directControl.sprintStatus().sprinting());
         // Authors what a running integral system looks like, from the same
         // settled state and for the same reason: a treatment written here is
         // present on the tick of activation and gone on the tick the effect

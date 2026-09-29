@@ -93,6 +93,8 @@ are implemented. APCs share vehicle kinematics, turret authority, and
 suspended-order handback. Final live feel remains on the direct-control story board.
 Equipped Marine shields and smoke accept explicit manual activation through
 their existing equipment owners, with compact readouts beside the primary.
+Controlled Marines also have held-Shift sprint with individual battle stamina
+and a lowered primary during the speed boost.
 
 Air uses one hull-derived atmospheric motion model. Shuttles and fighters are
 both composed world entities flying the same sortie from two origins — a berth

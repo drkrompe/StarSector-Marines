@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
+import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
@@ -34,7 +35,8 @@ final class BattleDirectControlStatus {
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
-                    List<WeaponStatus> weapons, List<AbilityStatus> abilities) {
+                    List<WeaponStatus> weapons, List<AbilityStatus> abilities,
+                    MarineSprint.Status sprint) {
         static final Snapshot EMPTY = new Snapshot(0L, "", Carrier.NONE,
                 new Durability(0f, 0f, 0f, 0f, 0f), List.of());
 
@@ -42,6 +44,12 @@ final class BattleDirectControlStatus {
             name = name == null ? "" : name;
             weapons = List.copyOf(weapons);
             abilities = List.copyOf(abilities);
+            sprint = sprint == null ? MarineSprint.EMPTY : sprint;
+        }
+
+        Snapshot(long entityId, String name, Carrier carrier, Durability durability,
+                 List<WeaponStatus> weapons, List<AbilityStatus> abilities) {
+            this(entityId, name, carrier, durability, weapons, abilities, MarineSprint.EMPTY);
         }
 
         Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -121,7 +129,8 @@ final class BattleDirectControlStatus {
                 : List.of(marineWeapon(primary, combat.equipmentGrade(id), combat.cooldownTimer(id),
                 combat.attackCooldown(id), combat.burstRemaining(id), combat.burstTimer(id)));
         return new Snapshot(id, name, Carrier.MARINE, durability, weapons,
-                marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility));
+                marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility),
+                sim.directControl().sprintStatus());
     }
 
     static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,

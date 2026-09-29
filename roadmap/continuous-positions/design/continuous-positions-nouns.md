@@ -101,6 +101,12 @@ for Mechs that adjustment uses the same circular terrain sweep as locomotion,
 so crowd pressure cannot push a chassis through a wall or closed edge. Later
 combat, presentation, and proximity consumers see that final position.
 
+Manual Marine sprint supplies a temporary speed scale to that same swept
+movement, without changing the body's authored walking speed. Stamina and the
+lowered-primary state follow the extra displacement actually achieved; a
+blocked sprint request creates no stored motion or resource spend.
+`direct-control-nouns.md` owns the sprint resource and its handback lifetime.
+
 Nearby-unit queries snapshot true positions once per tick. Point-space consumers use those positions and footprints: picking tests the cursor against an expanded unit extent, and explosions test their endpoint against each candidate's blast-expanded footprint. Grid consumers deliberately project through `floor` instead of rounding or retaining a stale cell.
 
 ## Laws

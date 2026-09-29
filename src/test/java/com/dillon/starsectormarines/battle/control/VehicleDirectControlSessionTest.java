@@ -81,8 +81,9 @@ class VehicleDirectControlSessionTest {
         assertTrue(session.enter(id));
         turret.cooldownTimer = 2f;
         int ammo = turret.ammo;
-        session.submit(new ManualIntent(1f, 1f, 20f, 20f, true));
+        session.submit(new ManualIntent(1f, 1f, 20f, 20f, true, true));
         session.tick();
+        assertEquals(MarineSprint.EMPTY, session.sprintStatus(), "APCs do not acquire Marine stamina");
         assertEquals(10f, body.x);
         assertEquals(10f, body.y);
         assertEquals(2f, turret.cooldownTimer);

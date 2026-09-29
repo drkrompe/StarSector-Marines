@@ -99,7 +99,7 @@ class DirectControlAbilityTest {
     void smokeCommitsOnTickFreezesMoveAndPrimaryAndSpendsExactlyAtMidpoint() {
         long marine = spawn();
         assertTrue(session.enter(marine));
-        session.submit(new ManualIntent(1, 0, 12, 5.5f, true));
+        session.submit(new ManualIntent(1, 0, 12, 5.5f, true, true));
         assertTrue(session.requestAbility(DirectControlAbility.SMOKE, new PointFireAim(10, 5.5f)));
         assertFalse(session.requestAbility(DirectControlAbility.SMOKE, new PointFireAim(4, 8)));
         assertEquals(0f, roster.world().secondaryActionTimer(marine));
@@ -113,13 +113,15 @@ class DirectControlAbilityTest {
                 roster.world().secondaryActionTimer(marine), 1e-6f);
         assertFalse(session.canUseAbility(DirectControlAbility.SHIELD));
         assertFalse(session.canUseAbility(DirectControlAbility.SMOKE));
-        session.submit(new ManualIntent(1, 0, 4, 9, true));
+        session.submit(new ManualIntent(1, 0, 4, 9, true, true));
         int ticks = 0;
         while (roster.world().secondaryActionTimer(marine) > 0f) {
             assertTrue(ticks++ < 30);
             assertTrue(session.active(), "the player's own channel keeps ownership");
             assertEquals(startX, roster.world().renderX(marine));
             assertEquals(0f, roster.movement().velX(marine));
+            assertEquals(1f, session.sprintStatus().staminaFraction(),
+                    "the committed throw rests even under held Shift");
             assertNull(roster.combat().pointFireAim(marine));
             assertEquals(0, roster.combat().burstRemaining(marine));
             if (roster.world().secondaryActionTimer(marine) > SMOKE.throwDuration() * .5f) {
@@ -138,6 +140,7 @@ class DirectControlAbilityTest {
         smokeFields.tick(SMOKE.flightSeconds());
         assertEquals(10f, smokeFields.activeFields().get(0).x(), "cursor movement did not redirect the throw");
         assertEquals(SMOKE.cloudDuration(), smokeFields.activeFields().get(0).remaining());
+        session.submit(new ManualIntent(1, 0, 4, 9, true));
         session.tick();
         assertTrue(roster.world().renderX(marine) > startX);
         assertNotNull(roster.combat().pointFireAim(marine));
@@ -267,6 +270,28 @@ class DirectControlAbilityTest {
                 roster.world().renderY(marine), 0, y));
         assertEquals(3f - BattleSimulation.TICK_DT, roster.mitigations().remaining(marine), 1e-6f);
         assertEquals(22f - BattleSimulation.TICK_DT, roster.integralSystems().cooldownRemaining(marine), 1e-6f);
+    }
+
+    @Test
+    void sprintScalesTheCurrentShieldSpeedAndKeepsItsMouseFacing() {
+        long marine = spawn();
+        assertTrue(session.enter(marine));
+        float base = roster.movement().moveSpeed(marine);
+        session.submit(new ManualIntent(0, 1, 12, 5.5f, true, true));
+        assertTrue(session.requestAbility(DirectControlAbility.SHIELD, new PointFireAim(12, 5.5f)));
+        session.tick();
+        assertTrue(session.sprintStatus().sprinting());
+        assertEquals(base * 1.45f, roster.movement().moveSpeed(marine), 1e-5f,
+                "sprint does not rewrite the suit's authored live speed");
+        assertEquals(base * 1.45f * MarineSprint.SPEED_SCALE,
+                roster.movement().velY(marine), 1e-4f);
+        float x = roster.world().renderX(marine);
+        float y = roster.world().renderY(marine);
+        assertEquals(20f, roster.mitigations().soakAgainst(marine, x, y, 12f, 5.5f),
+                "the shield protects the cursor bearing while the Marine moves north");
+        assertEquals(0f, roster.mitigations().soakAgainst(marine, x, y, x, y + 5f),
+                "the strafe bearing is outside the directional screen");
+        assertNull(roster.combat().pointFireAim(marine), "boosted translation lowers primary fire");
     }
 
     @Test

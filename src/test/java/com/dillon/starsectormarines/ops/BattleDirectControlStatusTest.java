@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
+import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
@@ -269,6 +270,7 @@ class BattleDirectControlStatusTest {
     @Test
     void noSessionIsEmptyAndSnapshotEquipmentIsImmutable() {
         assertSame(BattleDirectControlStatus.Snapshot.EMPTY, BattleDirectControlStatus.snapshot(null));
+        assertEquals(MarineSprint.EMPTY, BattleDirectControlStatus.Snapshot.EMPTY.sprint());
         List<BattleDirectControlStatus.WeaponStatus> weapons = new ArrayList<>();
         var snapshot = new BattleDirectControlStatus.Snapshot(1L, null,
                 BattleDirectControlStatus.Carrier.MARINE,
@@ -278,5 +280,15 @@ class BattleDirectControlStatusTest {
         assertEquals("", snapshot.name());
         assertTrue(snapshot.weapons().isEmpty());
         assertThrows(UnsupportedOperationException.class, () -> snapshot.weapons().clear());
+        assertEquals(MarineSprint.EMPTY, snapshot.sprint(), "legacy fixtures default to full resting stamina");
+        var sprint = new MarineSprint.Status(.35f, false, true);
+        var withSprint = new BattleDirectControlStatus.Snapshot(1L, "Marine",
+                BattleDirectControlStatus.Carrier.MARINE, snapshot.durability(),
+                weapons, List.of(), sprint);
+        assertEquals(sprint, withSprint.sprint());
+        assertEquals(1, withSprint.weapons().size());
+        weapons.clear();
+        assertEquals(1, withSprint.weapons().size(), "sprint snapshot retains immutable equipment");
+        assertTrue(snapshot.weapons().isEmpty(), "the earlier snapshot retains its own equipment list");
     }
 }

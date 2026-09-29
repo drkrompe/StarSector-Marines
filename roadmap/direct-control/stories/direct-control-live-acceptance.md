@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — verify equipped shield and smoke activation alongside the compact HUD.
+Updated: 2026-09-29 — verify stamina sprint, weapon lowering, and compact equipment readouts.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -56,6 +56,16 @@ including its transition back to autonomous play.
   Hold E/G through pause or an unavailable state: no use may start later without
   another press. Check depleted smoke and the absence of automatic squad smoke
   throws by the controlled carrier.
+- Hold left and right Shift separately and together while walking a Marine.
+  Sprint should provide a readable speed increase and lower the primary;
+  releasing one held Shift must leave the other active. Check diagonal speed,
+  walls and sliding, shield facing, and a smoke throw while Shift remains held.
+  Fully blocked movement must not drain stamina, and released primary bursts
+  must not resume from a backlog. Exhaust the bar and verify the recovery
+  threshold and release requirement. Pause, exit, switch Marines, and re-enter:
+  resource state must persist and pause must not refill it. Compare the Shift
+  card with actual movement at supported scales, including a Marine with both
+  shield and smoke; Mechs and APCs must have no sprint card or speed increase.
 
 - Use each eligible body under contact, behind cover, and near a friendly
   firing lane. Verify cursor direction, shot path and impact, moving fire,

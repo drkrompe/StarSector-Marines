@@ -48,6 +48,7 @@ public final class DirectControlSession {
     private int selectedWeapon;
     private final EnumMap<DirectControlAbility, PointFireAim> pendingAbilities =
             new EnumMap<>(DirectControlAbility.class);
+    private final MarineSprint marineSprint = new MarineSprint();
 
     public DirectControlSession(BattleControl battle, UnitRosterService roster,
                                 LongPredicate unavailable, BooleanSupplier complete) {
@@ -63,6 +64,13 @@ public final class DirectControlSession {
     public ManualIntent intent() { return intent; }
     /** 0 is all direct weapons; 1..3 name ARMS, LEFT_SHOULDER, and RIGHT_SHOULDER. */
     public int selectedWeapon() { return selectedWeapon; }
+
+    /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */
+    public MarineSprint.Status sprintStatus() {
+        return active() && roster.isAliveById(unitId)
+                && roster.identity().type(unitId) == UnitType.MARINE
+                ? marineSprint.status(unitId) : MarineSprint.EMPTY;
+    }
 
     public boolean canSelectWeapon(int selection) {
         if (!active() || !roster.isAliveById(unitId)) return false;
@@ -187,6 +195,7 @@ public final class DirectControlSession {
         selectedWeapon = 0;
         vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
+        if (!vehicle && roster.identity().type(id) == UnitType.MARINE) marineSprint.releaseHold(id);
         pendingAbilities.clear();
         controlledSquad = vehicle ? null : battle.squadOf(id);
         clearOwnedWork(id);
@@ -196,12 +205,19 @@ public final class DirectControlSession {
     }
 
     public void submit(ManualIntent next) {
-        if (active()) intent = next != null ? next : ManualIntent.NEUTRAL;
+        if (!active()) return;
+        intent = next != null ? next : ManualIntent.NEUTRAL;
+    }
+
+    /** A physical Shift release may arrive while chrome has suppressed simulation intent. */
+    public void observeSprintRelease() {
+        if (active()) marineSprint.releaseHold(unitId);
     }
 
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
         pendingAbilities.clear();
+        if (active()) marineSprint.suspend(unitId);
         intent = intent.neutralized();
         if (vehicleControl) battle.suspendVehicleDirectInput(unitId);
         if (active() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
@@ -217,6 +233,7 @@ public final class DirectControlSession {
         unitId = 0L;
         selectedWeapon = 0;
         pendingAbilities.clear();
+        marineSprint.releaseHold(previous);
         vehicleControl = false;
         if (vehicle) battle.endVehicleDirectControl(previous);
         intent = ManualIntent.NEUTRAL;
@@ -259,6 +276,9 @@ public final class DirectControlSession {
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
     public void tick() {
         validate();
+        long activeMarine = active() && !vehicleControl
+                && roster.identity().type(unitId) == UnitType.MARINE ? unitId : 0L;
+        marineSprint.tickInactive(activeMarine, BattleSimulation.TICK_DT, roster::isAliveById);
         if (!active() || vehicleControl) return; // GroundSystem owns vehicle movement and turret clocks.
         long id = unitId;
         ManualIntent input = intent;
@@ -278,16 +298,29 @@ public final class DirectControlSession {
         PointFireAim smoke = pendingAbilities.remove(DirectControlAbility.SMOKE);
         if (smoke != null) SmokeTactics.beginThrow(id, smoke, true, battle);
         if (ownsSmokeChannel(id) && InfantryUnitPrep.tickAimAndShortCircuit(id, battle)) {
+            marineSprint.finishStep(id, input.sprint(), 0f, roster.movement().moveSpeed(id),
+                    BattleSimulation.TICK_DT);
             roster.combat().clearPrimaryFire(id);
             roster.movement().moveDirect(id, battle.getGrid(), 0f, 0f,
                     battle.physicalRadius(id), BattleSimulation.TICK_DT);
             MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
             return;
         }
-        roster.movement().moveDirect(id, battle.getGrid(), input.moveX(), input.moveY(),
-                battle.physicalRadius(id), BattleSimulation.TICK_DT);
+        float speed = roster.movement().moveSpeed(id);
+        float scale = marineSprint.speedScale(id, input.sprint(), BattleSimulation.TICK_DT);
+        ManualTerrainMotion.Result normal = scale > 1f
+                ? roster.movement().previewDirect(id, battle.getGrid(), input.moveX(), input.moveY(),
+                        battle.physicalRadius(id), BattleSimulation.TICK_DT) : null;
+        ManualTerrainMotion.Result applied = roster.movement().moveDirectScaled(id, battle.getGrid(),
+                input.moveX(), input.moveY(), battle.physicalRadius(id), BattleSimulation.TICK_DT, scale);
+        float bonusDistance = normal == null ? 0f : Math.max(0f,
+                (float) Math.hypot(applied.dx(), applied.dy())
+                        - (float) Math.hypot(normal.dx(), normal.dy()));
+        boolean sprinting = marineSprint.finishStep(id, input.sprint(), bonusDistance,
+                speed, BattleSimulation.TICK_DT);
+        if (sprinting) roster.combat().clearPrimaryFire(id);
         MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
-        if (input.firing()) {
+        if (input.firing() && !sprinting) {
             boolean moving = roster.movement().velX(id) != 0f || roster.movement().velY(id) != 0f;
             roster.combat().setPointFireIntent(id, new PointFireAim(input.aimX(), input.aimY()),
                     FireStance.stanceFor(moving));
