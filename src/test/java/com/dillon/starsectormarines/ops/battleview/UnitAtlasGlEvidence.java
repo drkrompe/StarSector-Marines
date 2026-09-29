@@ -207,6 +207,17 @@ class UnitAtlasGlEvidence {
                             "and the atlas has to draw the same picture, not a similar one: "
                                     + same.differingPixels() + " of " + same.painted()
                                     + " painted pixels differ at all");
+
+                    // The same host keeps its sprite caches across battles.
+                    // The control frame has resized the sprites, so rebuilding
+                    // must still copy the original pixels with the original stride.
+                    atlas.dispose();
+                    renderer.buildTileBatches();
+                    draw(target[0], renderer, camera, sim, new DrawCensus());
+                    assertTrue(atlas.isServing(), "a rebuilt atlas must still serve resized sprites");
+                    byte[] reentered = draw(target[0], renderer, camera, sim, new DrawCensus());
+                    assertEquals(0, compare(throughAtlas, reentered).differingPixels(),
+                            "battle re-entry must preserve every atlas pixel");
                 }
             } finally {
                 if (renderer != null) renderer.getUnitAtlas().dispose();

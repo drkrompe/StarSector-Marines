@@ -134,31 +134,17 @@ public final class UnitAtlas extends SpriteAtlas {
         offer(into, cache.sprite, cache.pxW, cache.pxH);
     }
 
-    /** Offers one image to the layout, unless it is too large to be worth a slot. */
-    private static void offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
-        if (sprite == null) return;
-        int w = contentWidth(sprite, recordedW);
-        int h = contentHeight(sprite, recordedH);
-        if (w <= 0 || h <= 0) return;
-        if (w > MAX_IMAGE_PX || h > MAX_IMAGE_PX) return;
-        into.add(new Source(sprite, w, h));
-    }
-
     /**
-     * The image's own pixel width, preferring what the sprite itself reports.
+     * Offers native image dimensions to the layout, unless the image is too large.
      *
-     * <p>A cache's recorded size is what the composers scale against and is
-     * normally the same number, but a cache that never recorded one is a real
-     * case ({@code ShuttleSpriteCache.pxW} can be zero), and a slot sized from a
-     * zero copies nothing at all.
+     * <p>SpriteAPI's width and height are mutable display sizes: the first
+     * whole-sprite frame resizes them, and the same caches survive battle
+     * re-entry. Only the dimensions captured by the loader can size a texture
+     * copy. An image without recorded dimensions stays on the sprite path.
      */
-    private static int contentWidth(SpriteAPI sprite, int recorded) {
-        int reported = Math.round(sprite.getWidth());
-        return reported > 0 ? reported : recorded;
-    }
-
-    private static int contentHeight(SpriteAPI sprite, int recorded) {
-        int reported = Math.round(sprite.getHeight());
-        return reported > 0 ? reported : recorded;
+    static void offer(List<Source> into, SpriteAPI sprite, int recordedW, int recordedH) {
+        if (sprite == null || recordedW <= 0 || recordedH <= 0) return;
+        if (recordedW > MAX_IMAGE_PX || recordedH > MAX_IMAGE_PX) return;
+        into.add(new Source(sprite, recordedW, recordedH));
     }
 }
