@@ -171,8 +171,8 @@ final class GlSpriteTokens implements HeadlessBattleSprites.SpriteTokens, AutoCl
         SpriteAPI proxy() {
             InvocationHandler handler = (proxy, method, args) -> {
                 switch (method.getName()) {
-                    case "getWidth": return (float) pxW;
-                    case "getHeight": return (float) pxH;
+                    case "getWidth": return width;
+                    case "getHeight": return height;
                     case "getTextureWidth":
                     case "getTextureHeight": return 1f;
                     case "bindTexture":

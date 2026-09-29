@@ -913,7 +913,7 @@ public class BattleSprites {
             float w = sprite.getWidth();
             float h = sprite.getHeight();
             float aspect = (h > 0f) ? w / h : 1f;
-            droneHubSprite = new ShuttleSpriteCache(sprite, aspect);
+            droneHubSprite = new ShuttleSpriteCache(sprite, aspect, Math.round(w), Math.round(h));
             LOG.info("BattleSprites: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load " + path, e);
@@ -959,7 +959,7 @@ public class BattleSprites {
             float h = sprite.getHeight();
             float aspect = (h > 0f) ? w / h : 1f;
             LOG.info("BattleSprites: loaded " + path + " (" + w + "x" + h + ", aspect=" + aspect + ")");
-            return new ShuttleSpriteCache(sprite, aspect);
+            return new ShuttleSpriteCache(sprite, aspect, Math.round(w), Math.round(h));
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load " + path, e);
             return null;
