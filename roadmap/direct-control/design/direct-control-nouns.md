@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — manual movement includes Marine stamina and chassis-mass Mech momentum.
+Updated: 2026-09-29 — a faint terrain aim lane makes manual corner clearance readable.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -91,6 +91,24 @@ while the pointer is over chrome or outside the battlefield. Entering and
 leaving clears every held key and trigger. Escape or an explicit exit control
 releases the session. Death, boarding, hard withdrawal, battle completion,
 screen detach, and lost input focus release it as well.
+
+A faint aim lane connects the current firing origin toward the cursor. Its
+clear segment ends at the first structural projectile blocker, marked in amber;
+a fainter dashed segment continues beyond that obstruction. Marine origin is
+the ordinary point-shot source. Mech and APC lanes use their actual posed
+muzzles, and Mech weapon selection determines which direct hardpoints appear.
+A blocked body-to-barrel segment cannot masquerade as an open lane from a
+muzzle beyond the wall. The guide uses current continuous terrain and shared
+edge profiles, so opening or destroying structure changes the next preview.
+
+The lane is a geometric aid. Spread, probabilistic cover, smoke, ammunition,
+cooldown, and firing alignment retain their ordinary authorities. A movement
+barrier that passes direct rounds does not become an amber firing stop. The
+guide neither samples a shot nor identifies bodies along the lane. It stops at
+the edge of current observation so hidden terrain cannot leak through an
+obstruction marker or line-style transition. Pointer movement and camera motion
+continue to update the guide while paused; pointing at chrome or outside the
+world viewport hides it.
 
 Equipped Marine abilities have one-shot input: E raises an integral directional
 shield and G throws carried smoke toward the cursor. Their small, read-only

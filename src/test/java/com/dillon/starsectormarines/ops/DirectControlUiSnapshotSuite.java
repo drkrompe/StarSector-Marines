@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
+import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -12,6 +13,13 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
+import java.awt.BasicStroke;
+import java.awt.geom.Line2D;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -28,10 +36,47 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "direct-control-ui"; }
     @Override public String label() { return "Direct-control HUD"; }
 
+    private static BufferedImage aimLane(String scenario) {
+        BufferedImage image = new BufferedImage(640, 360, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = image.createGraphics();
+        graphics.setColor(new Color(24, 30, 35)); graphics.fillRect(0, 0, 640, 360);
+        NavigationGrid grid = new NavigationGrid(16, 9);
+        for (int x = 0; x < 16; x++) for (int y = 0; y < 9; y++) {
+            grid.setWalkable(x, y, true);
+            graphics.setColor(new Color(40, 47, 50)); graphics.drawRect(x * 40, y * 40, 40, 40);
+        }
+        if (scenario.equals("corner") || scenario.equals("closed-edge")) {
+            int wy = scenario.equals("corner") ? 4 : 3;
+            grid.setWalkable(7, wy, false);
+            graphics.setColor(new Color(94, 99, 103)); graphics.fillRect(280, wy * 40, 40, 40);
+        }
+        float aimY = scenario.equals("corner") ? 7.5f : 3.5f;
+        if (!scenario.equals("chrome-hidden")) {
+            var loadout = new MechLoadoutComponent(MechVariant.BULWARK, null);
+            loadout.torsoFacingDegrees = 90f;
+            var origins = scenario.equals("carrier-muzzles")
+                    ? DirectControlAimOrigins.mech(loadout, 0, 2.5f, 3.5f, .2f, -.1f)
+                    : List.of(new DirectControlAimOrigins.Origin(2.5f, 3.5f, 2.5f, 3.5f));
+            for (var origin : origins) {
+                var lane = DirectControlAimLane.observed(grid, origin, 13.5f, aimY, (x, y) -> true);
+                for (var stroke : DirectControlAimLane.strokes(lane, 40, 0, 0)) {
+                    graphics.setColor(stroke.color()); graphics.setStroke(new BasicStroke(stroke.width()));
+                    graphics.draw(new Line2D.Float(stroke.x(), stroke.y(), stroke.endX(), stroke.endY()));
+                }
+            }
+        }
+        graphics.setColor(new Color(110, 215, 255)); graphics.drawRect(86, 126, 28, 28);
+        graphics.dispose(); return image;
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
+        for (String scenario : List.of("clear", "corner", "closed-edge", "chrome-hidden", "carrier-muzzles")) {
+            artifacts.add(new SnapshotArtifact("aim-lane-" + scenario + ".png", aimLane(scenario)));
+        }
         for (int state = 0; state < 2; state++) {
             try (var markup = BattleDirectControlOverlayTest.fixture(
                     context.modRoot(), false, state > 0, () -> {})) {

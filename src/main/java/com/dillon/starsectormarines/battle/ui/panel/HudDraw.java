@@ -4,6 +4,7 @@ import java.awt.Color;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
+import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
@@ -32,6 +33,17 @@ final class HudDraw {
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    static void stroke(DirectControlAimLane.Stroke stroke, float alpha) {
+        Color color = stroke.color();
+        glColor4f(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f,
+                color.getAlpha() / 255f * alpha);
+        glLineWidth(stroke.width());
+        glBegin(GL_LINES);
+        glVertex2f(stroke.x(), stroke.y());
+        glVertex2f(stroke.endX(), stroke.endY());
+        glEnd();
     }
 
     static void filledRect(float x, float y, float w, float h, Color c, float alphaMult) {

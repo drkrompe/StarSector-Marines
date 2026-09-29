@@ -4,10 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — collectors visit what the camera can see (law 26), so a
-compound framing collects a compound's worth of bodies rather than the whole
-map's; the frame is bounded by the view at every framing and the remaining
-ceiling is `GROUND`'s per-visible-cell work at the whole map.
+Updated: 2026-09-29 — live and headless aim-lane rendering share read-only terrain geometry.
 
 ## Vocabulary
 
@@ -94,6 +91,13 @@ and layered appearance while retaining manual cursor bearing. A valid aim point
 alone cannot raise the weapon through that movement state. Gait continues to
 follow actual applied travel; presentation neither grants the speed boost nor
 spends stamina. `direct-control-nouns.md` owns those decisions.
+
+The direct-control aim lane is read-only world presentation derived from current
+firing origins, pointer aim, and deterministic structural terrain. Live and
+headless rendering share its clear segments, obstruction markers, and dashed
+blocked segments. Observation bounds clip that geometry before it can reveal
+hidden structure; the preview never performs a random shot resolution or
+manufactures a target, contact, or visibility change.
 
 Within a layer, producer submission order is paint order. Across layers, enum order is paint order. The drain may batch adjacent commands with the same compatible primitive and state, but it flushes whenever batching would invert that order. Every loaded sheet that can emit a sheet-quad command must be registered with the live drain after that sheet becomes available; a host whose asset lifecycle loads a sheet after its terrain batches are built registers it at that later lifecycle seam. A foreign sprite render or a custom pass is treated as GL-state pollution until the engine has re-established the state required by the next batch.
 
