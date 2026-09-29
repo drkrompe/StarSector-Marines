@@ -20,26 +20,43 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-/** Production control plates and composed host overlays, without a battle simulation or live host. */
+/** Production control HUD and composed host overlays, without a battle simulation or live host. */
 public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     @Override public String id() { return "direct-control-ui"; }
-    @Override public String label() { return "Direct-control plate"; }
+    @Override public String label() { return "Direct-control HUD"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
-        for (int state = 0; state < 5; state++) {
+        for (int state = 0; state < 2; state++) {
             try (var markup = BattleDirectControlOverlayTest.fixture(
-                    context.modRoot(), state >= 2, state > 0, state == 3, state == 4, () -> {})) {
+                    context.modRoot(), false, state > 0, () -> {})) {
                 var document = BattleDirectControlOverlayTest.document(markup);
-                artifacts.add(new SnapshotArtifact(new String[]{"select", "ready", "active", "mech", "vehicle"}[state]
+                artifacts.add(new SnapshotArtifact(new String[]{"select", "ready"}[state]
                         + ".png", renderer.render(document,
                         (int) BattleDirectControlOverlay.DOCUMENT_WIDTH,
                         (int) BattleDirectControlOverlay.DOCUMENT_HEIGHT)));
             }
+        }
+        for (var carrier : List.of(BattleDirectControlStatus.Carrier.MARINE,
+                BattleDirectControlStatus.Carrier.MECH, BattleDirectControlStatus.Carrier.VEHICLE)) {
+            try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
+                    BattleDirectControlHudTest.preview(carrier, false), 0, false,
+                    ignored -> {}, () -> {}, () -> {})) {
+                artifacts.add(new SnapshotArtifact("action-" + carrier.name().toLowerCase(Locale.ROOT)
+                        + ".png", renderer.render(fixture.document(),
+                        (int) BattleDirectControlOverlay.ACTION_WIDTH, (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
+            }
+        }
+        try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
+                BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, true), 2, true,
+                ignored -> {}, () -> {}, () -> {})) {
+            artifacts.add(new SnapshotArtifact("action-exposed-selected.png", renderer.render(fixture.document(),
+                    (int) BattleDirectControlOverlay.ACTION_WIDTH, (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
         }
         artifacts.add(new SnapshotArtifact("selected-mech-1744x938-ui100.png",
                 composite(renderer, context.modRoot(), 1744, 938, 1f, true)));
@@ -69,9 +86,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             for (int y = 0; y < height; y += 48) graphics.drawLine(0, y, width, y);
             graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                     RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            try (MarkupInstance markup = BattleDirectControlOverlayTest.fixture(modRoot,
-                    true, true, true, false, paused, () -> {}, () -> {})) {
-                draw(graphics, renderer, markup, layout.activeControl(), layout.host(), uiScale);
+            try (var fixture = BattleDirectControlHudTest.fixture(modRoot,
+                    BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false),
+                    0, paused, ignored -> {}, () -> {}, () -> {})) {
+                draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);
             }
         } finally {
             graphics.dispose();

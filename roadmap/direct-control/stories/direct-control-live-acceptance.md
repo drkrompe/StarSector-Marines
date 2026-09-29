@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — live play is underway; verify selection-panel clearance and continuous Mech cursor aim.
+Updated: 2026-09-29 — verify dedicated durability, weapon readouts, and Mech hardpoint selection in live play.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -19,16 +19,30 @@ including its transition back to autonomous play.
 - Select infantry, a Mech lance, and an APC at supported UI scales. The control
   button must remain visible and clickable outside the selected-unit panels.
 - Enter control with strategic panels or retreat confirmation open. Only the
-  compact unit-control strip and world status/crosshair remain; firing across
-  the old panel bounds must work. Pause and resume through the strip, then exit by button and key;
+  compact action HUD and world status/crosshair remain; firing across
+  the old panel bounds must work. Pause and resume through the HUD, then exit by button and key;
   the strategic view must return with current information and the same selection.
 - Sweep the cursor near and far from the controlled body, across the dead zone,
   and onto UI chrome. Look-ahead should ease without drift or losing the body.
   Check both camera modes at the closest wheel zoom, including map edges and
-  transitions into and out of control; aim and the crosshair must agree.
+  transitions into and out of control; aim and the crosshair must agree. The
+  thin HUD must leave the body visible, docking at the top when map clamping
+  places it near the bottom edge.
 - Sweep the cursor during a Bulwark burst, including behind the hips and while
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.
+
+- Compare the HUD's health or structure and armor with each controlled body
+  before and after damage. Depleted armor must read EXPOSED even with high
+  health; armorless bodies must not acquire a fictitious armor pool.
+- Check rifle, Mech, and APC weapon cards against real firing: authored bursts
+  versus simultaneous volleys, finite Mech trigger packs versus APC rounds,
+  and current cooldown/burst state. Loaded must not imply that an unaimed or
+  structurally blocked barrel can fire. Indirect mounts remain AI-only.
+- Select each direct Mech hardpoint by card and number key, including an empty
+  rack, then return to all direct mounts. A switch during a burst must stop the
+  old queued fire and require a new press without refunding ammunition or
+  clearing cooldowns. Pause retains the choice; exit and re-entry reset it.
 
 - Use each eligible body under contact, behind cover, and near a friendly
   firing lane. Verify cursor direction, shot path and impact, moving fire,

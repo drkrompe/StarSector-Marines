@@ -13,16 +13,32 @@ final class BattleActionCamera {
 
     void follow(BattleCamera camera, float unitX, float unitY, float bodyRadius,
                 float pointerX, float pointerY, boolean worldPointer, float dt) {
-        float span = Math.min(camera.vpW(), camera.vpH());
+        follow(camera, unitX, unitY, bodyRadius, pointerX, pointerY, worldPointer, dt, 0f);
+    }
+
+    /**
+     * Frames the body in the band above bottom chrome without changing the world
+     * viewport. At a map edge the ordinary pan clamp can prevent that framing;
+     * the host then docks its chrome away from the final projected body.
+     */
+    void follow(BattleCamera camera, float unitX, float unitY, float bodyRadius,
+                float pointerX, float pointerY, boolean worldPointer, float dt,
+                float bottomReserve) {
         float cellSize = camera.cellPxSize();
-        if (span <= 0f || cellSize <= 0f) return;
+        if (camera.vpW() <= 0f || camera.vpH() <= 0f || cellSize <= 0f) return;
+        float bodyPadding = Math.max(0f, bodyRadius) * cellSize + 24f;
+        // If the host is too short for both body and chrome, prioritize keeping
+        // the body inside the viewport. The host's alternate dock remains needed.
+        float reserve = Float.isFinite(bottomReserve) ? Math.max(0f, bottomReserve) : 0f;
+        reserve = Math.min(reserve, Math.max(0f, camera.vpH() - 2f * bodyPadding));
+        float span = Math.min(camera.vpW(), camera.vpH() - reserve);
         float maxLead = Math.min(MAX_LEAD, Math.max(0f,
-                .5f - (Math.max(0f, bodyRadius) * cellSize + 24f) / span));
+                .5f - bodyPadding / span));
         float targetX = 0f, targetY = 0f;
         if (worldPointer && Float.isFinite(pointerX) && Float.isFinite(pointerY)
                 && camera.containsScreen(pointerX, pointerY)) {
             float dx = (pointerX - camera.vpX() - camera.vpW() * .5f) / span;
-            float dy = (pointerY - camera.vpY() - camera.vpH() * .5f) / span;
+            float dy = (pointerY - camera.vpY() - (camera.vpH() + reserve) * .5f) / span;
             float distance = (float) Math.hypot(dx, dy);
             if (distance > DEAD_ZONE) {
                 // Solved in screen space: at rest this frames the midpoint of the
@@ -45,6 +61,6 @@ final class BattleActionCamera {
         // Follow translation immediately; only cursor lead is eased. Normalized
         // lead preserves framing through wheel zoom and viewport/UI-scale changes.
         camera.centerOn(unitX + leadX * span / cellSize,
-                unitY + leadY * span / cellSize);
+                unitY + (leadY * span - reserve * .5f) / cellSize);
     }
 }

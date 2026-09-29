@@ -80,15 +80,33 @@ public class HeavyWeapons {
 
     /** Manual triggers join the same mount clocks and continuation pass as autonomous fire. */
     public void tick(long controlledId, PointFireAim aim, boolean trigger) {
+        tick(controlledId, aim, trigger, 0);
+    }
+
+    /** Zero selects all direct mounts; positive values select a stable hardpoint ordinal plus one. */
+    public void tick(long controlledId, PointFireAim aim, boolean trigger, int selectedWeapon) {
         if (trigger && roster.isAliveById(controlledId)
                 && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
             for (MechWeaponMount mount : loadout.mounts()) {
                 if (mount == null || mount.cooldown > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
+                if (!selected(mount, selectedWeapon)) continue;
                 if (firePointRound(controlledId, mount, aim)) mount.commitTrigger(0L, aim);
             }
         }
-        advanceMechWeapons(controlledId, aim);
+        advanceMechWeapons(controlledId, aim, selectedWeapon);
+    }
+
+    /** Carrier capability shared by the selector and the fire procedure. Ammunition is readiness, not eligibility. */
+    public static boolean supportsPointFire(MechWeaponMount mount) {
+        if (mount == null) return false;
+        WeaponDef weapon = mount.weaponDef();
+        return weapon.arcHeight == 0f && !weapon.indirectFire
+                && Float.isFinite(weapon.range) && weapon.range > 0f;
+    }
+
+    private static boolean selected(MechWeaponMount mount, int selection) {
+        return selection == 0 || selection == mount.slot.ordinal() + 1;
     }
 
     /**
@@ -171,8 +189,7 @@ public class HeavyWeapons {
     private boolean firePointRound(long shooter, MechWeaponMount mount, PointFireAim aim) {
         if (!canFireMechMount(shooter, mount)) return false;
         WeaponDef weapon = mount.weaponDef();
-        if (weapon.arcHeight != 0f || weapon.indirectFire
-                || !Float.isFinite(weapon.range) || weapon.range <= 0f) return false;
+        if (!supportsPointFire(mount)) return false;
         MechLoadoutComponent loadout = roster.world().mechLoadout(shooter);
         float hipFacing = roster.entityWorld().getFloat(shooter, roster.components().MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
@@ -298,7 +315,7 @@ public class HeavyWeapons {
      * ticks down per-weapon cooldowns, and advances each finite missile rack's
      * installed replenisher cadence.
      */
-    private void advanceMechWeapons(long controlledId, PointFireAim aim) {
+    private void advanceMechWeapons(long controlledId, PointFireAim aim, int selectedWeapon) {
         // Gather the live mechs first (walking the MECH_LOADOUT query — only mech
         // entities match it, so no scan over the whole registry), then run the
         // continuation pass over the snapshot. Other arrivals in this phase
@@ -331,7 +348,7 @@ public class HeavyWeapons {
                 if (mount.burstTimer > 0f) continue;
 
                 if (mount.burstPointAim != null) {
-                    if (u != controlledId) {
+                    if (u != controlledId || !selected(mount, selectedWeapon)) {
                         mount.clearBurst();
                         continue;
                     }

@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-26 — action framing adds bounded cursor look-ahead and a closer shared zoom range.
+Updated: 2026-09-29 — the action HUD projects durability and equipment, with session-owned Mech weapon selection.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -70,9 +70,17 @@ world picking, contextual orders, and camera keys. During control, strategic
 chrome is hidden: commander/objective rails, squad and Mech panels, command
 powers, retreat, communications, and developer panels. Their hidden bounds
 cannot capture input or suppress movement and fire. Entry clears old UI focus,
-pointer capture, and retreat confirmation. A compact bottom-center strip keeps
+pointer capture, and retreat confirmation. A thin bottom-center action HUD keeps
 return-to-command, pause/resume, the controlled identity, and control hints
-available; the world retains health bars, the controlled bracket, and aim
+available. It displays current and maximum health or chassis structure, armor
+capacity, and installed weapon cards. Armor depletion explicitly
+reads as exposed; a body without an armor capacity reads as unarmored. Neither
+state is inferred from health. Weapon cards distinguish the authored firing
+pattern, remaining resources, and burst or recovery clocks. Loaded describes
+resource and clock availability, not a guarantee that the barrel is aimed or
+clear. Infantry primaries have no ammunition counter; finite Mech stores count
+trigger packs, while the APC turret counts individual rounds. Indirect mounts
+remain visible as unavailable for manual fire. The world retains health bars, the controlled bracket, and aim
 crosshair. Selection and command/debug cell overlays are suppressed while
 controlling. Exit restores the strategic view and current selection. In the world, WASD supplies movement and
 the mouse supplies aim; a primary press starts held fire and its release ends
@@ -91,7 +99,9 @@ changed time while controlling. An action camera follows body movement immediate
 toward the cursor beyond a central dead zone. Its framing sits between the body
 and cursor without letting camera motion feed back into further camera drift.
 The lead scales with the viewport and leaves the controlled body on screen;
-world-edge clamping remains authoritative. Moving onto UI chrome or outside
+world-edge clamping remains authoritative. Framing reserves clearance above the
+action strip; if map clamping places the body beneath that strip, the strip docks
+at the top instead. Moving onto UI chrome or outside
 the battlefield eases the lead back toward the body. Entry resets old lead.
 Wheel zoom remains available, reaching twice the former close-up limit in
 strategic and action views. Action zoom preserves the body’s screen framing;
@@ -227,10 +237,19 @@ not a range limit: an unobstructed round travels to the weapon’s full modeled
 reach beyond it. Accuracy, falloff, spread, and smoke depth are calibrated at
 weapon range so placing the cursor nearer cannot improve distant accuracy.
 
-For a Mech, the held primary trigger requests every installed ground-direct
-mount whose own arc, alignment, cooldown, ammunition, and burst gates permit
-it. There is no separate weapon selector in this adapter. Indirect mounts stay
-untriggered. Every mount keeps one clock and resource stream under the ordinary
+For a Mech, the held primary trigger requests either all installed ground-direct
+mounts or one selected hardpoint, subject to each mount's arc, alignment,
+cooldown, ammunition, and burst gates. The action HUD's buttons and keys 1–4
+select all direct mounts, arms, left shoulder, or right shoulder. Empty or
+indirect hardpoints cannot be selected; an installed direct mount remains
+selectable when its ammunition is exhausted. Selection belongs to the control
+session, survives pause, and resets on takeover or handback. Changing it cancels
+queued manual rounds and releases held fire while preserving movement, aim,
+ammunition, and clocks; a new press must trigger the new choice. Repeated input
+cannot replay a cancelled burst. Selection does not change the installed
+equipment, authored packet size, or AI firing policy. The authored single shot,
+timed burst, or simultaneous volley remains distinct from this player choice.
+Indirect mounts stay untriggered. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
 and each scheduled round of a manual Mech burst. A round still requires the

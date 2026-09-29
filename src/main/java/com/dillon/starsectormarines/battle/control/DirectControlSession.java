@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -39,6 +41,7 @@ public final class DirectControlSession {
     private boolean vehicleControl;
     private Squad controlledSquad;
     private ManualIntent intent = ManualIntent.NEUTRAL;
+    private int selectedWeapon;
 
     public DirectControlSession(BattleControl battle, UnitRosterService roster,
                                 LongPredicate unavailable, BooleanSupplier complete) {
@@ -52,6 +55,31 @@ public final class DirectControlSession {
     public boolean active() { return unitId != 0L; }
     public boolean isControlling(long id) { return id != 0L && id == unitId; }
     public ManualIntent intent() { return intent; }
+    /** 0 is all direct weapons; 1..3 name ARMS, LEFT_SHOULDER, and RIGHT_SHOULDER. */
+    public int selectedWeapon() { return selectedWeapon; }
+
+    public boolean canSelectWeapon(int selection) {
+        if (!active() || !roster.isAliveById(unitId)) return false;
+        if (selection == 0) return true;
+        if (selection < 1 || selection > MechMountSlot.values().length
+                || !roster.world().hasMechLoadout(unitId)) return false;
+        return HeavyWeapons.supportsPointFire(roster.world().mechLoadout(unitId)
+                .mount(MechMountSlot.values()[selection - 1]));
+    }
+
+    /** Serialized player choice; switching releases queued rounds without changing installed equipment. */
+    public boolean selectWeapon(int selection) {
+        if (!canSelectWeapon(selection)) return false;
+        if (selection == selectedWeapon) return true;
+        selectedWeapon = selection;
+        releaseSelectedFire();
+        return true;
+    }
+
+    private void releaseSelectedFire() {
+        intent = new ManualIntent(intent.moveX(), intent.moveY(), intent.aimX(), intent.aimY(), false);
+        if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
+    }
     public long controlledMechId() {
         return active() && roster.world().hasMechLoadout(unitId) ? unitId : 0L;
     }
@@ -119,6 +147,7 @@ public final class DirectControlSession {
         boolean vehicle = roster.convoy().isVehicle(id);
         if (vehicle && !battle.beginVehicleDirectControl(id)) return false;
         unitId = id;
+        selectedWeapon = 0;
         vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
         controlledSquad = vehicle ? null : battle.squadOf(id);
@@ -147,6 +176,7 @@ public final class DirectControlSession {
         if (previous == 0L) return;
         boolean vehicle = vehicleControl;
         unitId = 0L;
+        selectedWeapon = 0;
         vehicleControl = false;
         if (vehicle) battle.endVehicleDirectControl(previous);
         intent = ManualIntent.NEUTRAL;
@@ -180,6 +210,10 @@ public final class DirectControlSession {
     /** Run before replanning and after lifecycle phases, including on paused advances. */
     public void validate() {
         if (active() && (!eligible(unitId) || (!vehicleControl && controlledSquad != battle.squadOf(unitId)))) exit();
+        if (active() && !canSelectWeapon(selectedWeapon)) {
+            selectedWeapon = 0;
+            releaseSelectedFire();
+        }
     }
 
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
