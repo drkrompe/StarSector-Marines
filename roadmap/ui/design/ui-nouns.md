@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — direct control has a dedicated equipment-aware action HUD.
+Updated: 2026-09-29 — direct control separates its thin equipment strip from session controls.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -364,26 +364,30 @@ framing and viewport-relative lead. All pointer aim uses the resulting camera
 projection. Look-ahead resets on takeover and eases back when the cursor enters
 chrome or leaves the battlefield.
 
-Active control uses a thin HUD strip: a bottom-center panel with controlled
-identity, inline current and maximum health or structure and armor,
-equipment-specific weapon cards, return/pause controls, and movement hints.
-Durability reads the exact controlled body; armorless and exposed states are
-explicit. Weapon cards show authored firing patterns, resource units, and
+Active control uses a thin bottom-center equipment strip: color-only armor and
+health or structure lines above the weapon groups, with armor on top. Filled
+lengths read the exact controlled body; armor depletion empties its line without
+changing the health line, and armorless bodies have no armor fill. Identity,
+durability labels, and numeric capacity values do not occupy this strip.
+Weapon cards show authored firing patterns, resource units, and
 recovery or burst state without claiming legal aim or barrel clearance. A Mech
 offers all direct mounts or one installed hardpoint through buttons and keys
 1–4; indirect mounts are read-only and retain their unavailability in manual
 control. The selection projects the battle-owned session and does not edit
-equipment or AI doctrine. The world retains health bars, the controlled bracket,
+equipment or AI doctrine. All remains with the Mech weapon groups; Exit and Pause
+occupy separate top-right buttons. The world retains health bars, the controlled bracket,
 and the aim crosshair. Camera framing reserves clearance above the strip; when
-world-edge clamping would leave the body under it, the strip docks at the top.
+world-edge clamping would leave the body under it, the strip docks at the top
+below the session buttons.
 Strategic panels, commander/objective rails, power cards, retreat, communications,
 and developer panels are hidden together with their input and pointer bounds.
 Selection and command/debug cell overlays also yield. Hidden projections continue
 to refresh, so handback restores current information and the existing selection.
 Entry cancels armed command-power and Defend Area targeting, clears retained focus
 and pointer capture, and dismisses retreat confirmation without abandoning the
-battle. The remaining action panel owns only its visible bounds; movement and fire stop
-there. The host snapshots releases before chrome consumption, so a swallowed
+battle. The equipment strip and session buttons own only their separate visible
+bounds; the intervening world remains interactive. Movement and fire stop over
+either surface. The host snapshots releases before chrome consumption, so a swallowed
 release cannot leave a key or trigger held.
 
 Control allows pause or 1x; exit restores the entry rate unless the player explicitly

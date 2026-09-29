@@ -19,6 +19,7 @@ final class BattleDirectControlHudModel {
     private final IntConsumer select;
     private final Function<String, String> copy;
     private final Map<String, Object> props = new LinkedHashMap<>();
+    private final Map<String, Object> actionsProps = new LinkedHashMap<>();
     private final Map<String, MutableSignal<String>> text = new LinkedHashMap<>();
     private final MutableSignal<List<WeaponCard>> weapons;
     private final MutableSignal<Boolean> allDisabled;
@@ -32,50 +33,36 @@ final class BattleDirectControlHudModel {
         this.reactor = reactor;
         this.select = select;
         this.copy = copy;
-        for (String key : List.of("identity", "carrier", "healthLabel", "healthValue", "healthStyle",
-                "healthClasses", "armorLabel", "armorValue", "armorStyle", "armorClasses",
-                "allLabel", "allClasses", "allStyle", "selectionHint", "controls", "exitLabel", "pauseLabel")) {
+        for (String key : List.of("healthStyle", "healthClasses", "armorStyle", "weaponsClasses",
+                "allLabel", "allClasses", "exitLabel", "pauseLabel")) {
             MutableSignal<String> signal = reactor.signal("");
             text.put(key, signal);
-            props.put(key, signal);
+            if (key.equals("exitLabel") || key.equals("pauseLabel")) actionsProps.put(key, signal);
+            else props.put(key, signal);
         }
         weapons = reactor.signal(List.of());
         allDisabled = reactor.signal(true);
         props.put("weapons", weapons);
         props.put("allDisabled", allDisabled);
         props.put("allAction", (Runnable) () -> select.accept(0));
-        props.put("exitAction", exit);
-        props.put("pauseAction", pause);
+        actionsProps.put("exitAction", exit);
+        actionsProps.put("pauseAction", pause);
     }
 
     Map<String, Object> props() { return props; }
+    Map<String, Object> actionsProps() { return actionsProps; }
 
     void update(BattleDirectControlStatus.Snapshot snapshot, int selected, boolean paused) {
         boolean mech = snapshot.carrier() == BattleDirectControlStatus.Carrier.MECH;
         var durability = snapshot.durability();
         reactor.untracked(() -> {
-            set("identity", snapshot.name());
-            set("carrier", snapshot.carrier() == BattleDirectControlStatus.Carrier.NONE
-                    ? "" : label(snapshot.carrier().name()));
-            set("healthLabel", label(snapshot.carrier() == BattleDirectControlStatus.Carrier.MARINE
-                    ? "Health" : "Structure"));
-            set("healthValue", capacity(durability.hp(), durability.maxHp()));
             set("healthStyle", width(durability.hpFraction()));
             set("healthClasses", "health-fill" + (durability.hpFraction() <= .25f ? " capacity-low" : ""));
-            set("armorLabel", label("Armor"));
-            set("armorValue", durability.maxArmor() > 0f
-                    ? capacity(durability.armor(), durability.maxArmor())
-                    + (durability.armor() <= 0f ? "  ·  " + label("Exposed") : "")
-                    : label("Unarmored"));
             set("armorStyle", width(durability.armorFraction()));
-            set("armorClasses", "armor-fill");
-            set("allLabel", mech ? label("AllDirect") : label("Primary"));
-            set("allClasses", "all" + (selected == 0 ? " selected" : ""));
-            set("allStyle", "opacity: 1;");
+            set("weaponsClasses", mech ? "weapons" : "weapons weapons-single");
+            set("allLabel", label("AllDirect"));
+            set("allClasses", !mech ? "all all-hidden" : "all" + (selected == 0 ? " selected" : ""));
             allDisabled.set(!mech);
-            set("selectionHint", label(mech ? "SelectHint" : "AimHint"));
-            set("controls", label(snapshot.carrier() == BattleDirectControlStatus.Carrier.VEHICLE
-                    ? "DriveHint" : "MoveHint"));
             set("exitLabel", label("Exit"));
             set("pauseLabel", copy.apply(paused ? "battleSpeed1x" : "battleSpeedPause"));
             List<WeaponCard> cards = new ArrayList<>();
@@ -94,11 +81,10 @@ final class BattleDirectControlHudModel {
                 String stateClasses = "weapon-state";
                 if (weapon.state() == BattleDirectControlStatus.WeaponState.EMPTY) stateClasses += " weapon-empty";
                 else if (weapon.state() != BattleDirectControlStatus.WeaponState.LOADED) stateClasses += " weapon-busy";
-                String slot = (mech ? "[" + (weapon.number() + 1) + "] " : "") + label(weapon.slotKey());
                 String style = "opacity: " + (enabled ? "1" : "0.6") + ";";
                 String name = (mech ? "[" + (weapon.number() + 1) + "] " : "") + weapon.name();
                 cards.add(new WeaponCard("direct-hud-weapon-" + weapon.slotKey(), classes, style,
-                        !enabled || !mech, slot, name, behavior(weapon.behavior()),
+                        !enabled || !mech, name, behavior(weapon.behavior()),
                         ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
                         () -> select.accept(weapon.number())));
             }
@@ -125,13 +111,9 @@ final class BattleDirectControlHudModel {
 
     private String label(String suffix) { return copy.apply("battleDirectHud" + suffix); }
     private void set(String key, String value) { text.get(key).set(value); }
-    private static String capacity(float current, float maximum) {
-        return number(current) + " / " + number(maximum);
-    }
-    private static String number(float value) { return Integer.toString(Math.round(Math.max(0f, value))); }
     private static String width(float fraction) { return "width: " + Math.round(fraction * 100f) + "%;"; }
 
-    record WeaponCard(String id, String classes, String style, boolean disabled, String slot, String name,
+    record WeaponCard(String id, String classes, String style, boolean disabled, String name,
                       String behavior, String ammo, String state, String stateClasses,
                       String cycleStyle, Runnable action) implements MarkupPropertySource {
         @Override public Object markupProperty(String key) {
@@ -140,7 +122,6 @@ final class BattleDirectControlHudModel {
                 case "classes" -> classes;
                 case "style" -> style;
                 case "disabled" -> disabled;
-                case "slot" -> slot;
                 case "name" -> name;
                 case "behavior" -> behavior;
                 case "ammo" -> ammo;
@@ -150,7 +131,6 @@ final class BattleDirectControlHudModel {
                 case "action" -> action;
                 case "topId" -> id + "-top";
                 case "dataId" -> id + "-data";
-                case "slotId" -> id + "-slot";
                 case "stateId" -> id + "-state";
                 case "nameId" -> id + "-name";
                 case "behaviorId" -> id + "-behavior";

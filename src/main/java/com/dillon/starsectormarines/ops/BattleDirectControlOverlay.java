@@ -18,14 +18,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.IntConsumer;
 
-/** Strategic entry above selection; compact exit and pause controls while following one body. */
+/** Strategic entry above selection; equipment below and separate session controls above during takeover. */
 final class BattleDirectControlOverlay {
     static final String COMPONENT = "battle-direct-control-overlay";
     static final String COMPONENT_PATH = "data/ui/components/battle/" + COMPONENT + ".mlx";
     static final String ACTION_COMPONENT = "battle-direct-control-hud";
     static final String ACTION_COMPONENT_PATH = "data/ui/components/battle/" + ACTION_COMPONENT + ".mlx";
     static final float ACTION_WIDTH = 640f;
-    static final float ACTION_HEIGHT = 110f;
+    static final float ACTION_HEIGHT = 52f;
+    static final String ACTIONS_COMPONENT = "battle-direct-control-actions";
+    static final String ACTIONS_COMPONENT_PATH = "data/ui/components/battle/" + ACTIONS_COMPONENT + ".mlx";
+    static final float ACTIONS_WIDTH = 154f;
+    static final float ACTIONS_HEIGHT = 26f;
     static final float DOCUMENT_WIDTH = 440f;
     static final float DOCUMENT_HEIGHT = 52f;
     private static final float SELECTION_GAP = 4f;
@@ -45,6 +49,10 @@ final class BattleDirectControlOverlay {
     private MarkupInstance markup;
     private UiDocument actionDocument;
     private MarkupInstance actionMarkup;
+    private UiDocument actionsDocument;
+    private MarkupInstance actionsMarkup;
+    private UiViewport actionsViewport;
+    private StarsectorUiInputAdapter actionsInput;
     private UiViewport viewport;
     private StarsectorUiInputAdapter input;
     private boolean visible;
@@ -78,6 +86,10 @@ final class BattleDirectControlOverlay {
                     List.of(ACTION_COMPONENT_PATH));
             actionMarkup = actionLoader.reloadAndBuild(reactor, ACTION_COMPONENT, actionModel.props());
             actionDocument = document(actionMarkup);
+            MarkupLoader actionsLoader = new MarkupLoader(path -> Global.getSettings().loadText(path),
+                    List.of(ACTIONS_COMPONENT_PATH));
+            actionsMarkup = actionsLoader.reloadAndBuild(reactor, ACTIONS_COMPONENT, actionModel.actionsProps());
+            actionsDocument = document(actionsMarkup);
         }
         update(0f, sim, speedMultiplier);
     }
@@ -98,7 +110,8 @@ final class BattleDirectControlOverlay {
                 position.getWidth() - 24f));
         if (active) {
             return new UiViewport(position.getX() + (position.getWidth() - width) / 2f,
-                    dockTop ? position.getY() + position.getHeight() - 12f - ACTION_HEIGHT * scale
+                    dockTop ? position.getY() + position.getHeight() - 12f
+                            - (ACTIONS_HEIGHT + 6f + ACTION_HEIGHT) * scale
                             : position.getY() + 12f,
                     width, ACTION_HEIGHT * scale, scale);
         }
@@ -112,11 +125,19 @@ final class BattleDirectControlOverlay {
                 DOCUMENT_HEIGHT * scale, scale);
     }
 
+    static UiViewport actionsViewport(PositionAPI position) {
+        float scale = MarineOpsUiViewport.from(position).documentScale();
+        return new UiViewport(position.getX() + position.getWidth() - 12f - ACTIONS_WIDTH * scale,
+                position.getY() + position.getHeight() - 12f - ACTIONS_HEIGHT * scale,
+                ACTIONS_WIDTH * scale, ACTIONS_HEIGHT * scale, scale);
+    }
+
     void update(float dt, BattleSimulation sim, float speedMultiplier) {
         boolean active = sim != null && sim.directControl().active();
         if (active != activeMode) {
             deactivateDocuments();
             input = null;
+            actionsInput = null;
         }
         activeMode = active;
         if (!active) dockTop = false;
@@ -132,17 +153,12 @@ final class BattleDirectControlOverlay {
         if (active) {
             actionModel.update(BattleDirectControlStatus.snapshot(sim),
                     sim.directControl().selectedWeapon(), speedMultiplier == 0f);
-            String name = sim.identity().name(sim.directControl().activeUnitId());
-            boolean mech = sim.directControl().controlledMechId() != 0L;
-            boolean vehicle = sim.directControl().controlledVehicleId() != 0L;
-            hint.set((name == null ? "" : name + "  |  ")
-                    + Strings.get(vehicle ? "battleDirectVehicleControls"
-                            : mech ? "battleDirectMechControls" : "battleDirectControls"));
         } else {
             hint.set(Strings.get(eligible ? "battleDirectReady" : "battleDirectSelect"));
         }
         if (markup != null) markup.flush();
         if (actionMarkup != null) actionMarkup.flush();
+        if (actionsMarkup != null) actionsMarkup.flush();
         UiDocument current = currentDocument();
         if (position != null && current != null) {
             UiViewport next = viewport(position, active, dockTop);
@@ -154,26 +170,42 @@ final class BattleDirectControlOverlay {
             }
         }
         if (current != null) current.advance(dt);
+        if (active && position != null && actionsDocument != null) {
+            UiViewport next = actionsViewport(position);
+            if (!next.equals(actionsViewport) || actionsInput == null) {
+                actionsDocument.deactivateInput();
+                actionsViewport = next;
+                actionsDocument.layout(next.documentWidth(), next.documentHeight());
+                actionsInput = new StarsectorUiInputAdapter(actionsDocument, next);
+            }
+            actionsDocument.advance(dt);
+        }
     }
 
     void processInput(List<InputEventAPI> events) {
+        if (visible && activeMode && actionsInput != null && events != null) actionsInput.process(events);
         if (visible && input != null && events != null) input.process(events);
     }
 
     void render(float alpha) {
         UiDocument current = currentDocument();
         if (visible && current != null) current.render(viewport, alpha);
+        if (visible && activeMode && actionsDocument != null) actionsDocument.render(actionsViewport, alpha);
     }
 
     boolean blocksWorldPointer(float x, float y) {
-        return visible && viewport != null && x >= viewport.screenX()
-                && x < viewport.screenX() + viewport.width() && y >= viewport.screenY()
-                && y < viewport.screenY() + viewport.height();
+        return visible && (contains(viewport, x, y) || activeMode && contains(actionsViewport, x, y));
+    }
+
+    private static boolean contains(UiViewport bounds, float x, float y) {
+        return bounds != null && x >= bounds.screenX() && x < bounds.screenX() + bounds.width()
+                && y >= bounds.screenY() && y < bounds.screenY() + bounds.height();
     }
 
     void detach() {
         deactivateDocuments();
         input = null;
+        actionsInput = null;
     }
 
     /** Map clamping can put the body at the bottom edge; move chrome instead of revealing off-map ground. */
@@ -203,6 +235,7 @@ final class BattleDirectControlOverlay {
     private void deactivateDocuments() {
         if (document != null) document.deactivateInput();
         if (actionDocument != null) actionDocument.deactivateInput();
+        if (actionsDocument != null) actionsDocument.deactivateInput();
     }
 
     static UiDocument document(MarkupInstance markup) {

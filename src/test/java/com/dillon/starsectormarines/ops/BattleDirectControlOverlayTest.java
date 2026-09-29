@@ -84,7 +84,7 @@ class BattleDirectControlOverlayTest {
 
     static record OverlayLayout(UiViewport host, UiViewport control, UiViewport squad,
                                 UiViewport mech, UiViewport powers, UiViewport retreat,
-                                UiViewport hud, UiViewport activeControl) { }
+                                UiViewport hud, UiViewport activeControl, UiViewport activeActions) { }
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
@@ -94,7 +94,8 @@ class BattleDirectControlOverlayTest {
                 BattlePowerOverlay.viewport(position, 5, true),
                 BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
                 BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
-                BattleDirectControlOverlay.viewport(position, true)));
+                BattleDirectControlOverlay.viewport(position, true),
+                BattleDirectControlOverlay.actionsViewport(position)));
     }
 
     private static <T> T withHost(int physicalWidth, int physicalHeight, float uiScale,
@@ -176,6 +177,14 @@ class BattleDirectControlOverlayTest {
                 assertTrue(plate.screenY() + plate.height() <= layout.host().screenY() + layout.host().height());
                 assertEquals(BattleDirectControlOverlay.ACTION_WIDTH, plate.documentWidth(), .001f);
                 assertEquals(BattleDirectControlOverlay.ACTION_HEIGHT, plate.documentHeight(), .001f);
+                UiViewport actions = layout.activeActions();
+                assertEquals(layout.host().screenX() + layout.host().width() - 12f,
+                        actions.screenX() + actions.width(), .001f);
+                assertEquals(layout.host().screenY() + layout.host().height() - 12f,
+                        actions.screenY() + actions.height(), .001f);
+                assertEquals(BattleDirectControlOverlay.ACTIONS_WIDTH, actions.documentWidth(), .001f);
+                assertEquals(BattleDirectControlOverlay.ACTIONS_HEIGHT, actions.documentHeight(), .001f);
+                assertDisjoint(plate, actions, "bottom equipment and top-right actions own disjoint pointer bounds");
             }
         }
     }
@@ -191,11 +200,13 @@ class BattleDirectControlOverlayTest {
                     float y = bottom.screenY() + bottom.height() / 2f;
                     float radius = 24f * scale;
                     UiViewport docked = BattleDirectControlOverlay.actionViewport(position, x, y, radius);
-                    assertEquals(host.screenY() + host.height() - 12f - bottom.height(),
+                    UiViewport actions = BattleDirectControlOverlay.actionsViewport(position);
+                    assertEquals(actions.screenY() - 6f * bottom.documentScale() - bottom.height(),
                             docked.screenY(), .001f);
                     assertEquals(bottom.screenX(), docked.screenX(), .001f);
                     assertEquals(bottom.width(), docked.width(), .001f);
                     assertTrue(y + radius < docked.screenY(), "docking leaves the body visible");
+                    assertDisjoint(docked, actions, "docked weapons leave top-right actions clear");
                     assertEquals(bottom, BattleDirectControlOverlay.actionViewport(position,
                             x, bottom.screenY() + bottom.height() + radius + 9f, radius));
                     assertEquals(bottom, BattleDirectControlOverlay.actionViewport(position,

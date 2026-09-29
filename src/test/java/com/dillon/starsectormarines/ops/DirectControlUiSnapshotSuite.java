@@ -57,6 +57,8 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 ignored -> {}, () -> {}, () -> {})) {
             artifacts.add(new SnapshotArtifact("action-exposed-selected.png", renderer.render(fixture.document(),
                     (int) BattleDirectControlOverlay.ACTION_WIDTH, (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
+            artifacts.add(new SnapshotArtifact("action-controls.png", renderer.render(fixture.actionsDocument(),
+                    (int) BattleDirectControlOverlay.ACTIONS_WIDTH, (int) BattleDirectControlOverlay.ACTIONS_HEIGHT)));
         }
         artifacts.add(new SnapshotArtifact("selected-mech-1744x938-ui100.png",
                 composite(renderer, context.modRoot(), 1744, 938, 1f, true)));
@@ -71,7 +73,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         return artifacts;
     }
 
-    /** Active control leaves the battlefield clear apart from the bottom-center essential controls. */
+    /** Active control keeps equipment bottom-center and exit/pause in their independent top-right document. */
     private static BufferedImage activeComposite(HeadlessUiRenderer renderer, Path modRoot,
                                                   int width, int height, float uiScale,
                                                   boolean paused) throws Exception {
@@ -90,6 +92,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                     BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false),
                     0, paused, ignored -> {}, () -> {}, () -> {})) {
                 draw(graphics, renderer, fixture.markup(), layout.activeControl(), layout.host(), uiScale);
+                draw(graphics, renderer, fixture.actionsMarkup(), layout.activeActions(), layout.host(), uiScale);
             }
         } finally {
             graphics.dispose();
