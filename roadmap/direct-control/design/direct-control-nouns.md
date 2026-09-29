@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — the equipment strip uses color-only durability lines and separate session controls.
+Updated: 2026-09-29 — equipped shield and smoke have manual activation and compact ability readouts.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -91,6 +91,35 @@ while the pointer is over chrome or outside the battlefield. Entering and
 leaving clears every held key and trigger. Escape or an explicit exit control
 releases the session. Death, boarding, hard withdrawal, battle completion,
 screen detach, and lost input focus release it as well.
+
+Equipped Marine abilities have one-shot input: E raises an integral directional
+shield and G throws carried smoke toward the cursor. Their small, read-only
+cards stay beside the primary weapon in the same equipment strip. Only present
+equipment appears. Shield state reads its real soak pool, expiry, break flash,
+and cooldown; smoke reads carried canisters and the committed throw clock.
+Smoke has no additional cooldown. Held keys never repeat activation or queue a
+later use when equipment is unavailable. Pause, chrome, lost focus, or handback
+clear uncommitted requests. The equipment owners validate requests and spend
+resources at their existing activation or release boundaries.
+
+During manual control the suit's supported shield waits for E rather than its
+autonomous activation policy. Its normal clocks and other suit systems keep
+running. The shield faces authoritative mouse aim, including while strafing;
+zero-length aim retains the screen's last simulation bearing. Its finite directional soak and
+authored movement effect remain unchanged. Releasing control restores the
+normal activation policy without resetting an active effect or cooldown.
+
+A smoke press freezes a legal, range-clamped world point and begins the
+equipment's ordinary committed throw. It blocks movement and primary fire for
+the whole channel, releases once at its midpoint, and spends one canister only
+at that release. This recognized manual channel retains control; an already
+committed autonomous equipment action still blocks entry. A controlled carrier
+is excluded from squad smoke reservations. Accepted throws retain their point
+and finish under ordinary prep after handback. Pause freezes their progress;
+death before release prevents release, while a grenade already launched follows
+the shared smoke-field lifetime. Smoke opacity affects both factions and does
+not make a walk obstacle. Other secondary equipment needs its own manual
+contract before it gains an activation key.
 
 Intent is sampled at the fixed 30 Hz simulation boundary. A paused battle
 accepts no movement or shot; the aim preview may still move. Direct control

@@ -156,6 +156,14 @@ class IntegralSystemActivationTest {
         assertFalse(roster.mitigations().has(plain));
     }
 
+    @Test
+    void manualOwnershipSuppressesOnlyTheSupportedShieldPolicy() {
+        assertTrue(IntegralSystemSystem.permitsAutonomousActivation(breacherAssist(), false));
+        assertFalse(IntegralSystemSystem.permitsAutonomousActivation(breacherAssist(), true));
+        assertTrue(IntegralSystemSystem.permitsAutonomousActivation(brace(), true));
+        assertTrue(IntegralSystemSystem.permitsAutonomousActivation(missilePod(), true));
+    }
+
     /** Death drops the live state with every other live-only component. */
     @Test
     void theCorpseKeepsNoSystemState() {

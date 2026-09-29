@@ -1,12 +1,29 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
+import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.BreacherAssistSpec;
+import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.IntegralSystemEffect;
+import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialAiPolicy;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialResourceMode;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -118,6 +135,135 @@ class BattleDirectControlStatusTest {
         assertEquals(.5f, turret.cooldownTimer);
         assertEquals(2, turret.burstRemaining);
         assertTrue(apc.directEligible());
+    }
+
+    @Test
+    void shieldReportsTheLivePoolAndBreakFactWithoutCallingRemainingBoostProtection() {
+        var roster = roster();
+        IntegralSystemDef def = shield(SpecialResourceMode.COOLDOWN, 40f);
+        long id = roster.spawn(marine().integralSystem(def));
+        var ready = BattleDirectControlStatus.marineAbilities(roster, id,
+                ability -> roster.integralSystems().canActivate(id)).get(0);
+        assertTrue(ready.ready());
+        assertEquals(def.displayName(), ready.name());
+        assertEquals(-1, ready.remaining(), "a cooldown shield has no ammunition model");
+        assertEquals(-1, ready.capacity());
+        assertEquals(0f, ready.activeSeconds());
+
+        assertTrue(roster.integralSystems().activate(id));
+        roster.mitigations().face(id, 63f);
+        roster.mitigations().absorb(id, 10f);
+        var active = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertEquals(3f, active.activeSeconds());
+        assertEquals(3f, active.durationSeconds());
+        assertEquals(12f, active.cooldownSeconds());
+        assertEquals(12f, active.cooldownDurationSeconds());
+        assertEquals(30f, active.soakRemaining());
+        assertEquals(40f, active.soakCapacity());
+        assertEquals(63f, active.facingDegrees());
+        assertEquals(120f, active.arcDegrees());
+        assertFalse(active.ready());
+        assertFalse(active.broken());
+
+        roster.mitigations().absorb(id, 100f);
+        var broken = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertTrue(roster.integralSystems().isActive(id), "the boost can outlive the shield pool");
+        assertTrue(broken.broken());
+        assertEquals(0f, broken.activeSeconds(), "a shattered shield no longer protects");
+        assertEquals(0f, broken.soakRemaining());
+        assertEquals(0f, broken.soakCapacity());
+        assertEquals(12f, broken.cooldownSeconds());
+        assertEquals(30f, active.soakRemaining(), "an earlier projection is an immutable value");
+        assertEquals(3f, roster.integralSystems().activeRemaining(id), "projection never advances clocks");
+    }
+
+    @Test
+    void timedOutShieldIsNotMistakenForABreakAndAuthoredUsesStayFinite() {
+        var roster = roster();
+        IntegralSystemDef def = shield(SpecialResourceMode.AMMUNITION, 40f);
+        long id = roster.spawn(marine().integralSystem(def));
+        assertTrue(roster.integralSystems().activate(id));
+        var active = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertEquals(1, active.remaining());
+        assertEquals(2, active.capacity());
+        roster.mitigations().tick(id, def.durationSeconds());
+        var expired = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertFalse(expired.broken(), "only the real absorb-to-zero event marks a break");
+        assertEquals(0f, expired.activeSeconds());
+        assertEquals(0f, expired.soakRemaining());
+        assertEquals(1, roster.integralSystems().ammo(id), "projection never consumes a use");
+    }
+
+    @Test
+    void smokeReadsCarriedAmmoAndOnlyTheAcceptedManualThrowClock() {
+        SpecialEquipmentDef smoke = smoke();
+        var roster = roster();
+        long id = roster.spawn(marine());
+        roster.world().attachSpecialEquipment(id, smoke, 2);
+        var ready = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertEquals(DirectControlAbility.SMOKE, ready.ability());
+        assertEquals(smoke.displayName(), ready.name());
+        assertEquals(2, ready.remaining());
+        assertEquals(3, ready.capacity());
+        assertFalse(ready.ready(), "availability comes from the session, not an ammo-only guess");
+        assertEquals(0f, ready.cooldownSeconds());
+        assertEquals(0f, ready.cooldownDurationSeconds());
+        roster.world().setSecondaryActionTimer(id, .4f);
+        roster.world().setSmokeThrowCommit(id, new SmokeThrowCommit(new PointFireAim(8, 8), false));
+        assertEquals(0f, BattleDirectControlStatus.marineAbilities(roster, id, ability -> false)
+                .get(0).activeSeconds(), "an AI commitment is not advertised as the manual throw");
+        roster.world().setSmokeThrowCommit(id, new SmokeThrowCommit(new PointFireAim(8, 8), true));
+        var throwing = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertEquals(.4f, throwing.activeSeconds());
+        assertEquals(.8f, throwing.durationSeconds());
+        roster.world().setSecondaryAmmo(id, 0);
+        var lastThrow = BattleDirectControlStatus.marineAbilities(roster, id, ability -> false).get(0);
+        assertEquals(0, lastThrow.remaining());
+        assertEquals(.4f, lastThrow.activeSeconds(), "a committed last canister can still be throwing");
+        assertEquals(.4f, roster.world().secondaryActionTimer(id));
+        assertEquals(2, throwing.remaining());
+    }
+
+    @Test
+    void abilitiesRequireTheCarriedCapabilityAndSnapshotCopiesBothCollections() {
+        var roster = roster();
+        long plain = roster.spawn(marine());
+        assertTrue(BattleDirectControlStatus.marineAbilities(roster, plain, ability -> true).isEmpty());
+        long noScreen = roster.spawn(marine().integralSystem(shield(SpecialResourceMode.COOLDOWN, 0f)));
+        assertTrue(BattleDirectControlStatus.marineAbilities(roster, noScreen, ability -> true).isEmpty(),
+                "an integral system without mitigation is not a shield ability");
+        var abilities = new ArrayList<BattleDirectControlStatus.AbilityStatus>();
+        var snapshot = new BattleDirectControlStatus.Snapshot(plain, "Marine",
+                BattleDirectControlStatus.Carrier.MARINE,
+                new BattleDirectControlStatus.Durability(100, 100, 0, 0, 0), List.of(), abilities);
+        abilities.add(BattleDirectControlStatus.smokeAbility(smoke(), 2, null, 0, true));
+        assertTrue(snapshot.abilities().isEmpty());
+        assertThrows(UnsupportedOperationException.class, () -> snapshot.abilities().clear());
+    }
+
+    private static UnitRosterService roster() {
+        return new UnitRosterService(new UnitSpatialIndex(16, 16), null);
+    }
+
+    private static EntitySpec marine() {
+        return new EntitySpec("Test marine", Faction.MARINE, UnitType.MARINE, 5, 5);
+    }
+
+    private static IntegralSystemDef shield(SpecialResourceMode resource, float soak) {
+        return new IntegralSystemDef("system.test-screen", "Test breach screen", EquipmentGrade.SERVICE,
+                "A finite frontal screen.", IntegralSystemEffect.BREACHER_ASSIST, resource,
+                3f, resource == SpecialResourceMode.COOLDOWN ? 12f : 0f,
+                resource == SpecialResourceMode.AMMUNITION ? 2 : 0,
+                new BreacherAssistSpec(1.2f, soak, 120f), null, null, null,
+                new ExposedUnderFireSpec(1f, 0f));
+    }
+
+    private static SpecialEquipmentDef smoke() {
+        return new SpecialEquipmentDef("equipment.test-smoke", "Test smoke canister", "", "", null,
+                SpecialActivation.UTILITY_SMOKE, null, SpecialResourceMode.AMMUNITION, 3,
+                SpecialAiPolicy.SQUAD_SMOKE_SCREEN, null,
+                new SmokeGrenadeSpec(8f, .8f, .5f, 1f, 2f, 10f),
+                null, null, null, null);
     }
 
     @Test

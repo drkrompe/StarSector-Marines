@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -157,6 +158,8 @@ public final class FacingSystem {
                     ? t.ints(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED).array() : null;
             long[] secondaryAimTarget = hasSecondary
                     ? t.longs(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AIM_TARGET_ID).array() : null;
+            Object[] smokeCommit = hasSecondary
+                    ? t.objects(components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SMOKE_COMMIT).array() : null;
 
             float[] layeredFacing = hasLayeredAnimation
                     ? t.floats(components.LAYERED_ANIMATION, BattleComponents.LAYERED_FACING_DEGREES).array() : null;
@@ -198,14 +201,16 @@ public final class FacingSystem {
                 if (hp[r] <= 0f) continue;
 
                 UnitType type = (UnitType) types[r];
-                float manualDx = aimX - posX[r];
-                float manualDy = aimY - posY[r];
-                boolean manualAim = t.entityAt(r) == controlledUnitId
+                boolean inAim = hasSecondary && actionTimer[r] > 0f;
+                SmokeThrowCommit throwCommit = inAim ? (SmokeThrowCommit) smokeCommit[r] : null;
+                // A throw keeps facing its accepted point, including after control is handed back.
+                float manualDx = (throwCommit != null ? throwCommit.aim().x() : aimX) - posX[r];
+                float manualDy = (throwCommit != null ? throwCommit.aim().y() : aimY) - posY[r];
+                boolean manualAim = (throwCommit != null || t.entityAt(r) == controlledUnitId)
                         && Float.isFinite(manualDx) && Float.isFinite(manualDy)
                         && (manualDx != 0f || manualDy != 0f);
                 float manualFacing = manualAim
                         ? AirBody.facingToward(manualDx, manualDy) : Float.NaN;
-                boolean inAim = hasSecondary && actionTimer[r] > 0f;
                 boolean up = manualAim || LiveAppearance.weaponUp(inAim, type.combatant,
                         hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f);
 

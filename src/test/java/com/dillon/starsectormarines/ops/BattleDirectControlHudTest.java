@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -23,6 +24,45 @@ import static com.dillon.starsectormarines.ops.BattleDirectControlStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BattleDirectControlHudTest {
+    @Test
+    void equippedAbilitiesFitExistingStripAndShowActualActiveEmptyAndBrokenState() throws Exception {
+        for (int state = 0; state < 4; state++) {
+            try (Fixture fixture = fixture(Path.of("mod"), abilityPreview(state), 0,
+                    false, ignored -> fail("Ability readouts cannot select weapons"), () -> {}, () -> {})) {
+                var shield = fixture.markup.requireElement("direct-hud-ability-SHIELD");
+                var smoke = fixture.markup.requireElement("direct-hud-ability-SMOKE");
+                assertEquals("[E] Shield", fixture.markup.requireElement("direct-hud-ability-SHIELD-name").text());
+                assertEquals("[G] Smoke", fixture.markup.requireElement("direct-hud-ability-SMOKE-name").text());
+                for (var card : List.of(shield, smoke)) {
+                    assertTrue(card.disabled());
+                    assertEquals(1f, card.opacity());
+                    var bounds = card.box().borderBox();
+                    assertTrue(bounds.right() <= BattleDirectControlOverlay.ACTION_WIDTH);
+                    assertTrue(bounds.bottom() <= BattleDirectControlOverlay.ACTION_HEIGHT);
+                }
+                assertThinDurabilityBars(fixture.markup);
+                assertEquals(new String[]{"READY", "UP", "6.0s", "BROKEN"}[state],
+                        fixture.markup.requireElement("direct-hud-ability-SHIELD-state").text());
+                assertEquals(new String[]{"READY", "THROW", "EMPTY", "READY"}[state],
+                        fixture.markup.requireElement("direct-hud-ability-SMOKE-state").text());
+                assertEquals(state == 2 ? "0 / 2" : "2 / 2",
+                        fixture.markup.requireElement("direct-hud-ability-SMOKE-ammo").text());
+                if (state == 1) {
+                    var fill = fixture.markup.requireElement("direct-hud-ability-SHIELD-fill");
+                    assertEquals(fill.parent().box().contentBox().width() * .5f,
+                            fill.box().borderBox().width(), .01f);
+                }
+            }
+        }
+        try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, false), 0,
+                false, ignored -> {}, () -> {}, () -> {})) {
+            assertThrows(IllegalArgumentException.class,
+                    () -> fixture.markup.requireElement("direct-hud-ability-SHIELD"));
+            assertThrows(IllegalArgumentException.class,
+                    () -> fixture.markup.requireElement("direct-hud-ability-SMOKE"));
+        }
+    }
+
     @Test
     void realBindingsShowDamageAndEquipmentAndKeepSelectionActionsInsideVisibleBounds() throws Exception {
         AtomicInteger selection = new AtomicInteger(-1);
@@ -203,6 +243,18 @@ class BattleDirectControlHudTest {
         };
         return new Snapshot(101, carrier == Carrier.MARINE ? "Rhea Voss" : carrier == Carrier.MECH
                 ? "Bulwark Lead" : "Heavy APC", carrier, durability, weapons);
+    }
+
+    static Snapshot abilityPreview(int state) {
+        var base = preview(Carrier.MARINE, false);
+        var shield = new AbilityStatus(DirectControlAbility.SHIELD, "Breacher shield", state == 0,
+                state == 1 ? 3f : 0f, 6f, state == 0 ? 0f : 6f, 12f,
+                -1, -1, state == 1 ? 60f : 0f, 120f, state == 3, 90f, 120f);
+        var smoke = new AbilityStatus(DirectControlAbility.SMOKE, "Smoke grenade", state == 0 || state == 3,
+                state == 1 ? .4f : 0f, .8f, 0f, 0f, state == 2 ? 0 : 2, 2,
+                0f, 0f);
+        return new Snapshot(base.entityId(), base.name(), base.carrier(), base.durability(),
+                base.weapons(), List.of(shield, smoke));
     }
 
     private static WeaponStatus weapon(int number, String slot, String name, FireKind kind, int rounds,

@@ -369,6 +369,11 @@ health or structure lines above the weapon groups, with armor on top. Filled
 lengths read the exact controlled body; armor depletion empties its line without
 changing the health line, and armorless bodies have no armor fill. Identity,
 durability labels, and numeric capacity values do not occupy this strip.
+Equipped Marine shield and smoke cards share its weapon row without increasing
+the strip height. E and G identify their keyboard commands; the cards are
+readouts, so pointing at them does not choose a smoke target. They display the
+equipment's actual readiness, active or throw clock, shield soak, and remaining
+canisters. Unequipped abilities have no placeholder card.
 Weapon cards show authored firing patterns, resource units, and
 recovery or burst state without claiming legal aim or barrel clearance. A Mech
 offers all direct mounts or one installed hardpoint through buttons and keys

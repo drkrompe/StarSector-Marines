@@ -675,6 +675,19 @@ and defender carriers. Player issue includes two starter canisters and a
 Screen template; medium/high-risk non-militia defender fireteams may carry
 smoke explicitly.
 
+Direct control replaces the wearer's smoke reservation decision with one
+explicit cursor-point request. Controlled carriers leave the autonomous carrier
+selection, while the same authored throw channel, midpoint ammunition debit,
+flight, and shared opacity execute the accepted request. Its committed point
+survives handback so ordinary preparation can finish the throw. It creates no
+new smoke cooldown or squad advance order.
+
+The directly controlled wearer's mitigation-granting integral shield likewise
+waits for explicit activation; its other suit systems retain their policies.
+Activation still uses the integral-system owner and its authored resources,
+duration, cooldown, and movement effect. Protection faces manual mouse aim and
+reads the ordinary directional mitigation pool.
+
 The Breachhand is reusable close-contact demolition for a marine who already
 happens to be beside a hostile hardened target. Opportunity AI considers only
 living turrets, drone hubs, and heavy mechs already inside contact range and
@@ -1002,9 +1015,9 @@ because breaking it would teach the player something false:
 - **The pool is shown draining rather than counted down.** A screen with a
   sliver of soak left reads as one: the rim fades as the pool is spent, and its
   angular extent never narrows, because the protected arc does not narrow as the
-  pool goes. Cooldown is deliberately not drawn: these are spent on an authored
-  policy rather than a player click, so a cooldown readout answers a question
-  nobody has.
+  pool goes. The world treatment does not draw cooldown. Direct control's
+  separate equipment card reads the existing cooldown because the player now
+  chooses when to raise that wearer's shield.
 - **Breaking looks like breaking.** A window that ran out and a pool that was
   beaten to nothing are different events and must not share a picture. The
   shatter is its own brief moment — the wearer's whole silhouette thrown outward

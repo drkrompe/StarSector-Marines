@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
+import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
@@ -1989,7 +1989,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // has already put the speed back.
         // Ahead of the integral sweep so a screen raised this tick spends its
         // whole authored duration instead of losing its first tick to this drain.
-        mitigationSystem.tick(TICK_DT);
+        mitigationSystem.tick(TICK_DT, directControl.activeUnitId(), directControl.pointAim());
         integralSystemSystem.tick(TICK_DT, this);
         directControl.tick();
         navigation.beginSharedGoalPathSnapshot();
@@ -2022,6 +2022,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmAvoidance.tick(TICK_DT, directControl.activeUnitId());
         separation.tick(TICK_DT, directControl.activeUnitId());
         mechCollisionEscape.tick(TICK_DT);
+        if (directControl.active()) {
+            MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),
+                    world, directControl.pointAim());
+        }
         tickProfile.lap(TickProfile.Phase.SEPARATION);
         // Mirror queued drone-hub spawns into the units list. Only callers
         // running inside UPDATE_UNITS route through queueSpawn; AIR_SYSTEM /
@@ -2516,27 +2520,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public void throwSmoke(long carrier, float targetX, float targetY) {
-        if (!world.hasSecondaryWeapon(carrier)) return;
-        SpecialEquipmentDef secondary = world.specialEquipment(carrier);
-        if (secondary.activation() != SpecialActivation.UTILITY_SMOKE) return;
-        int ammo = world.secondaryAmmo(carrier);
-        if (ammo <= 0) return;
-        SmokeGrenadeSpec spec = secondary.smokeGrenadeSpec();
-        float fromX = world.renderX(carrier);
-        float fromY = world.renderY(carrier);
-        float dx = targetX - fromX;
-        float dy = targetY - fromY;
-        float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        if (distance > spec.throwRange() && distance > 0f) {
-            targetX = fromX + dx / distance * spec.throwRange();
-            targetY = fromY + dy / distance * spec.throwRange();
-        }
-        targetX = Math.max(0.5f, Math.min(grid.getWidth() - 0.5f, targetX));
-        targetY = Math.max(0.5f, Math.min(grid.getHeight() - 0.5f, targetY));
-        world.setSecondaryAmmo(carrier, ammo - 1);
-        rosterService.telemetry().recordSecondaryUsed(carrier);
-        smokeFields.launch(carrier, identity().faction(carrier), fromX, fromY,
-                targetX, targetY, spec);
+        SmokeTactics.release(carrier, targetX, targetY, rosterService, smokeFields, grid);
     }
 
     @Override

@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.ui.debug.CommanderTraceDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
@@ -75,6 +77,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import org.apache.log4j.Logger;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 
@@ -1201,8 +1204,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Debug damage runs BEFORE pan-drag so shift+RMB consumes the event
         // and the plain-RMB pan handler never sees it. Plain RMB (no shift)
         // is unclaimed and falls through to pan.
+        if (Display.isCreated() && Display.isActive() && Keyboard.isCreated()) {
+            directControlInput.reconcileAbilityKeyReleases(
+                    Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G));
+        }
         directControlInput.process(manualSamples, this::toggleDirectControl,
-                this::exitDirectControl, this::selectDirectWeapon, this::battleChromeBlocksWorldPointer);
+                this::exitDirectControl, this::selectDirectWeapon, this::requestDirectAbility,
+                this::battleChromeBlocksWorldPointer);
         if (!directControlInput.active()) handleDebugDamageInput(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
@@ -1238,6 +1246,20 @@ public class BattleScreen implements Screen, BattleUiContext {
         directControlInput.syncSelectedWeapon(sim.directControl().selectedWeapon());
         directControlInput.releaseFire();
         return true;
+    }
+
+    private boolean requestDirectAbility(DirectControlAbility ability) {
+        BattleSimulation sim = getSim();
+        if (sim == null || sim != directControlSimulation || sim.isComplete()
+                || !directControlInput.active() || !sim.directControl().active()
+                || Display.isCreated() && !Display.isActive()
+                || directControlInput.blocked(camera, speedMultiplier == 0f,
+                        this::battleChromeBlocksWorldPointer)) return false;
+        float aimX = camera.screenToCellX(directControlInput.pointerX());
+        float aimY = camera.screenToCellY(directControlInput.pointerY());
+        if (!Float.isFinite(aimX) || !Float.isFinite(aimY)
+                || !sim.getGrid().inBounds((int) Math.floor(aimX), (int) Math.floor(aimY))) return false;
+        return sim.directControl().requestAbility(ability, new PointFireAim(aimX, aimY));
     }
 
     private void exitDirectControl() {

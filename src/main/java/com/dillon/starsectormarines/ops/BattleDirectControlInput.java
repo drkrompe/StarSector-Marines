@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 
 /** Held manual controls at the host boundary. No simulation or selection authority. */
 final class BattleDirectControlInput {
@@ -19,6 +21,7 @@ final class BattleDirectControlInput {
     private float previousSpeed;
     private boolean toggleHeld;
     private final boolean[] weaponKeyHeld = new boolean[4];
+    private final boolean[] abilityKeyHeld = new boolean[2];
     private int selectedWeapon;
 
     /** Read host values before retained chrome consumes and invalidates them. */
@@ -47,6 +50,12 @@ final class BattleDirectControlInput {
 
     void process(List<Sample> samples, Runnable toggle, Runnable exit,
                  IntPredicate selectWeapon, BiPredicate<Float, Float> chrome) {
+        process(samples, toggle, exit, selectWeapon, ability -> false, chrome);
+    }
+
+    void process(List<Sample> samples, Runnable toggle, Runnable exit,
+                 IntPredicate selectWeapon, Predicate<DirectControlAbility> requestAbility,
+                 BiPredicate<Float, Float> chrome) {
         for (Sample sample : samples) {
             if (sample.pointer) {
                 pointerKnown = true;
@@ -57,6 +66,10 @@ final class BattleDirectControlInput {
             if (sample.keyUp && sample.key == Keyboard.KEY_C) toggleHeld = false;
             int weaponKey = weaponKey(sample.key);
             if (sample.keyUp && weaponKey >= 0) weaponKeyHeld[weaponKey] = false;
+            int abilityKey = abilityKey(sample.key);
+            boolean newAbilityPress = sample.keyDown && abilityKey >= 0 && !abilityKeyHeld[abilityKey];
+            if (sample.keyUp && abilityKey >= 0) abilityKeyHeld[abilityKey] = false;
+            if (sample.keyDown && abilityKey >= 0) abilityKeyHeld[abilityKey] = true;
             if (sample.primaryUp) firing = false;
             if (active && sample.keyDown && sample.key == Keyboard.KEY_ESCAPE) {
                 exit.run();
@@ -71,6 +84,12 @@ final class BattleDirectControlInput {
                 continue;
             }
             if (!active) continue;
+            if ((sample.keyDown || sample.keyUp) && abilityKey >= 0) {
+                if (newAbilityPress) requestAbility.test(abilityKey == 0
+                        ? DirectControlAbility.SHIELD : DirectControlAbility.SMOKE);
+                sample.event.consume();
+                continue;
+            }
             if ((sample.keyDown || sample.keyUp) && weaponKey >= 0) {
                 if (sample.keyDown && !weaponKeyHeld[weaponKey]) {
                     weaponKeyHeld[weaponKey] = true;
@@ -135,6 +154,13 @@ final class BattleDirectControlInput {
     void releaseHeld() {
         north = south = west = east = firing = toggleHeld = false;
         for (int i = 0; i < weaponKeyHeld.length; i++) weaponKeyHeld[i] = false;
+        // Ability presses have no held intent. Keep their physical debounce until
+        // keyup so pause, rejected input, or handback cannot turn repeat into a new use.
+    }
+    /** Reconcile releases the host may have missed while unfocused; observations never activate. */
+    void reconcileAbilityKeyReleases(boolean shieldHeld, boolean smokeHeld) {
+        if (!shieldHeld) abilityKeyHeld[0] = false;
+        if (!smokeHeld) abilityKeyHeld[1] = false;
     }
     void releaseFire() { firing = false; }
     /** Reconcile simulation fallback before publishing held input again. */
@@ -165,6 +191,12 @@ final class BattleDirectControlInput {
         if (key == Keyboard.KEY_2) return 1;
         if (key == Keyboard.KEY_3) return 2;
         if (key == Keyboard.KEY_4) return 3;
+        return -1;
+    }
+
+    private static int abilityKey(int key) {
+        if (key == Keyboard.KEY_E) return 0;
+        if (key == Keyboard.KEY_G) return 1;
         return -1;
     }
 

@@ -329,6 +329,8 @@ public final class BattleComponents {
     public static final int SECONDARY_WEAPON_AIM_TARGET_ID = 4;
     /** {@link #SECONDARY_WEAPON} field 5: one-shot-per-aim-cycle latch as 0/1 (INT). */
     public static final int SECONDARY_WEAPON_FIRED = 5;
+    /** Carrier-owned smoke point/channel origin; null outside an accepted smoke throw (OBJECT). */
+    public static final int SECONDARY_WEAPON_SMOKE_COMMIT = 6;
 
     /** {@link #INTEGRAL_SYSTEM} field 0: the authoritative {@link com.dillon.starsectormarines.marine.IntegralSystemDef} the worn armour pattern declares (OBJECT). */
     public static final int INTEGRAL_SYSTEM_SPEC = 0;
@@ -1181,7 +1183,7 @@ public final class BattleComponents {
                 FieldKind.INT, FieldKind.OBJECT, FieldKind.OBJECT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.LONG, FieldKind.INT);
+                FieldKind.LONG, FieldKind.INT, FieldKind.OBJECT);
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,

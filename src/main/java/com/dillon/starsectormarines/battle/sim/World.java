@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -281,11 +282,23 @@ public final class World {
     public boolean secondaryFired(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED) != 0; }
     public void setSecondaryFired(long id, boolean v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED, v ? 1 : 0); }
 
+    /** The accepted smoke channel, independent of the squad's tactical reservation. */
+    public SmokeThrowCommit smokeThrowCommit(long id) {
+        return hasSecondaryWeapon(id) ? (SmokeThrowCommit) entityWorld.getObject(id,
+                components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SMOKE_COMMIT) : null;
+    }
+
+    public void setSmokeThrowCommit(long id, SmokeThrowCommit commit) {
+        entityWorld.setObject(id, components.SECONDARY_WEAPON,
+                BattleComponents.SECONDARY_WEAPON_SMOKE_COMMIT, commit);
+    }
+
     /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only — never mid-{@code Query} walk. */
     public void attachSpecialEquipment(long id, SpecialEquipmentDef spec, int ammo) {
         entityWorld.addComponent(id, components.SECONDARY_WEAPON);
         entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec);
         entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, ammo);
+        setSmokeThrowCommit(id, null);
     }
 
     // AI-cadence state lives in the entity world's OPTIONAL AI_STATE component,

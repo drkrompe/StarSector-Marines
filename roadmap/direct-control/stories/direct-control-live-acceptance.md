@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — verify stacked durability lines, separate session controls, and Mech hardpoint selection.
+Updated: 2026-09-29 — verify equipped shield and smoke activation alongside the compact HUD.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -45,6 +45,17 @@ including its transition back to autonomous play.
   rack, then return to all direct mounts. A switch during a burst must stop the
   old queued fire and require a new press without refunding ammunition or
   clearing cooldowns. Pause retains the choice; exit and re-entry reset it.
+- Control a shield-and-smoke Marine. Only equipped abilities appear beside the
+  primary, with no extra HUD height. Press E once to raise the shield, strafe
+  while sweeping aim, and verify the world arc matches protected bearings.
+  Break the soak pool and check the card's break state and real cooldown.
+- Press G over the battlefield. The throw commits the cursor point and stops
+  movement and primary fire until the channel ends. Move the cursor, pause,
+  and hand back before release: the point must stay fixed, pause must freeze
+  progress, and handback must finish exactly one throw at one canister cost.
+  Hold E/G through pause or an unavailable state: no use may start later without
+  another press. Check depleted smoke and the absence of automatic squad smoke
+  throws by the controlled carrier.
 
 - Use each eligible body under contact, behind cover, and near a friendly
   firing lane. Verify cursor direction, shot path and impact, moving fire,
