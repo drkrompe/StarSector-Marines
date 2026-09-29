@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — the action HUD projects durability and equipment, with session-owned Mech weapon selection.
+Updated: 2026-09-29 — the equipment strip uses color-only durability lines and separate session controls.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -70,12 +70,14 @@ world picking, contextual orders, and camera keys. During control, strategic
 chrome is hidden: commander/objective rails, squad and Mech panels, command
 powers, retreat, communications, and developer panels. Their hidden bounds
 cannot capture input or suppress movement and fire. Entry clears old UI focus,
-pointer capture, and retreat confirmation. A thin bottom-center action HUD keeps
-return-to-command, pause/resume, the controlled identity, and control hints
-available. It displays current and maximum health or chassis structure, armor
-capacity, and installed weapon cards. Armor depletion explicitly
-reads as exposed; a body without an armor capacity reads as unarmored. Neither
-state is inferred from health. Weapon cards distinguish the authored firing
+pointer capture, and retreat confirmation. A thin bottom-center equipment strip
+shows installed weapon cards and two color-only durability lines: armor above
+health or chassis structure. Their filled lengths reflect the exact body's
+remaining fractions. Armor depletion empties its line independently of health;
+an armorless body has no armor fill. The strip omits identity, capacity labels,
+and numeric durability values. All stays with the Mech weapon groups; separate
+top-right buttons provide return-to-command and pause/resume. Weapon cards
+distinguish the authored firing
 pattern, remaining resources, and burst or recovery clocks. Loaded describes
 resource and clock availability, not a guarantee that the barrel is aimed or
 clear. Infantry primaries have no ammunition counter; finite Mech stores count
@@ -100,8 +102,8 @@ toward the cursor beyond a central dead zone. Its framing sits between the body
 and cursor without letting camera motion feed back into further camera drift.
 The lead scales with the viewport and leaves the controlled body on screen;
 world-edge clamping remains authoritative. Framing reserves clearance above the
-action strip; if map clamping places the body beneath that strip, the strip docks
-at the top instead. Moving onto UI chrome or outside
+equipment strip; if map clamping places the body beneath that strip, the strip docks
+at the top below the separate session controls. Moving onto UI chrome or outside
 the battlefield eases the lead back toward the body. Entry resets old lead.
 Wheel zoom remains available, reaching twice the former close-up limit in
 strategic and action views. Action zoom preserves the body’s screen framing;

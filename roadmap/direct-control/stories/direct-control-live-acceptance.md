@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — verify dedicated durability, weapon readouts, and Mech hardpoint selection in live play.
+Updated: 2026-09-29 — verify stacked durability lines, separate session controls, and Mech hardpoint selection.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -20,8 +20,9 @@ including its transition back to autonomous play.
   button must remain visible and clickable outside the selected-unit panels.
 - Enter control with strategic panels or retreat confirmation open. Only the
   compact action HUD and world status/crosshair remain; firing across
-  the old panel bounds must work. Pause and resume through the HUD, then exit by button and key;
-  the strategic view must return with current information and the same selection.
+  the old panel bounds must work. Pause, resume, and exit through the separate
+  top-right buttons or exit key; All remains beside the Mech weapon groups.
+  The strategic view must return with current information and the same selection.
 - Sweep the cursor near and far from the controlled body, across the dead zone,
   and onto UI chrome. Look-ahead should ease without drift or losing the body.
   Check both camera modes at the closest wheel zoom, including map edges and
@@ -32,9 +33,10 @@ including its transition back to autonomous play.
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.
 
-- Compare the HUD's health or structure and armor with each controlled body
-  before and after damage. Depleted armor must read EXPOSED even with high
-  health; armorless bodies must not acquire a fictitious armor pool.
+- Compare the strip's color-only armor and health or structure lines with each
+  controlled body before and after damage. Armor sits above health and empties
+  independently even with high health; armorless bodies have no armor fill.
+  Identity, durability labels, and numeric capacity readouts must be absent.
 - Check rifle, Mech, and APC weapon cards against real firing: authored bursts
   versus simultaneous volleys, finite Mech trigger packs versus APC rounds,
   and current cooldown/burst state. Loaded must not imply that an unaimed or
