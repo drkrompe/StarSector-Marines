@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — direct control shares chassis clearance, posed mount fire, and autonomous lance handback.
+Updated: 2026-09-29 — direct control has chassis-mass acceleration and braking through shared clearance.
 
 ## Purpose
 
@@ -36,6 +36,10 @@ increasing an encounter's total armored threat.
 - A **loadout** is the live mount configuration. It owns installed hardpoint
   components and their independent ammunition, cooldown, salvo, lock, and
   resupply state.
+- **Relative handling mass** is the chassis's authored inertia for manual
+  acceleration and braking. It is a dimensionless response parameter, not a
+  tonnage estimate or remaining durability. The Bulwark has the heaviest
+  response, the Hound the lightest, and the Sirocco an intermediate response.
 - A **mount** is physical hardware at an arm or shoulder position. An absent
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
 - A **missile replenisher** is an installed onboard subsystem. It owns how
@@ -312,11 +316,17 @@ morale, forced fallback, structural squad retreat, and hard withdrawal retain
 authority to refuse or release control. Personal chassis morale continues to
 feed the shared survival rule without a separate manual-only threshold.
 
-WASD supplies desired travel direction to the existing damped hips. Translation
-waits until the hips are within eight degrees of travel; the mouse turns the
+WASD supplies a speed-bounded desired velocity. Manual drive eases acceleration,
+direction changes, and key-release braking according to relative handling mass.
+The damped hips follow travel without a hard translation alignment gate;
+autonomous path following retains its eight-degree gate. The mouse turns the
 upper chassis independently within 145 degrees of either side of the hips.
 Fire requires four-degree alignment and the installed mount's own legal arc.
 Terrain sweep, speed, separation, and gait remain the shared chassis rules.
+Only swept, achieved movement may survive as manual momentum after obstacle
+contact, preserving legal sliding without stored wall pressure. Applied travel
+remains the authority for gait and moving-fire effects. Entry, handback, pause,
+and input suspension clear retained manual drive; natural key release brakes it.
 
 The primary trigger requests all installed ground-direct mounts, each spending
 its own ready ammunition and observing its cooldown and burst state. Indirect

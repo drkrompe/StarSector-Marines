@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.mech.MechTurretSystem;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.ManualMechDrive;
 import com.dillon.starsectormarines.battle.mech.MechRouteIntent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -30,6 +31,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * same tick. Mechs do not borrow the infantry primary-weapon state.
  */
 public final class MechLoadoutComponent {
+
+    /** Manual velocity survives the applied-velocity tick reset, but never handback. */
+    public final ManualMechDrive manualDrive = new ManualMechDrive();
 
     public final MechRouteIntent routeIntent = new MechRouteIntent();
 

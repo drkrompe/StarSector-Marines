@@ -4,6 +4,7 @@ Written: 2026-09-26
 
 | Retired story | Ship date | Evidence | Fold destination |
 | --- | --- | --- | --- |
+| `mech-manual-momentum.md` | 2026-09-29 | this commit | `direct-control-nouns.md` — eased manual drive and lifecycle; `mechs-nouns.md` — relative chassis handling mass; `continuous-positions-nouns.md` — swept momentum and contact feedback |
 | `marine-sprint.md` | 2026-09-29 | this commit | `direct-control-nouns.md` — per-Marine stamina and input lifecycle; `continuous-positions-nouns.md` — temporary speed scale and swept-motion spending; `battle-render-nouns.md` — lowered primary during sprint; `ui-nouns.md` — compact stamina readout |
 | `direct-control-abilities.md` | 2026-09-29 | this commit | `direct-control-nouns.md` — explicit shield and committed smoke; `progression-nouns.md` — equipment activation ownership; `ui-nouns.md` — compact equipped ability readouts |
 | `point-aim-direct-fire.md` | 2026-09-26 | this commit | `ballistics-nouns.md` — point aim and physical reach; `direct-control-nouns.md` — primary trigger and burst ownership |

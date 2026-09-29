@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — controlled Marines can sprint with their own battle stamina.
+Updated: 2026-09-29 — manual movement includes Marine stamina and chassis-mass Mech momentum.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -158,8 +158,8 @@ the fleet-source, pre-battle deck, and activation-payment laws of
 One manual intent has carrier-specific execution. Infantry translates on the
 ground plane at its current movement speed, with normalized diagonal input and
 the same walkability, body interaction, velocity, and pose rules as ordinary
-movement. A Mech takes a desired travel direction but retains its chassis
-pivot, gait, and facing constraints; its weapon aim may turn independently of
+movement. A Mech eases its velocity toward a desired travel direction using
+its chassis handling mass, damped hips, and actual-travel gait; its weapon aim may turn independently of
 its legs where the equipped hardpoint allows. A vehicle uses its own ground
 controller: W/S request forward/reverse motion and A/D steer, while the mouse
 aims its independent turret. A vehicle must never acquire grid-infantry
@@ -238,10 +238,25 @@ vehicle versus infantry occupancy still needs the cross-domain policy in
 `truck-infantry-interaction.md`; direct control must not invent a player-only
 collision outcome for it.
 
-A controlled Mech interprets WASD as desired travel direction. Its hips accelerate
-and brake toward that direction and may translate only within the existing
-eight-degree movement alignment gate. Neutral input brakes hip turning; mouse
-aim does not rotate the legs. The torso turns toward the aim point within the
+A controlled Mech interprets WASD as desired travel velocity, bounded by its
+current movement speed with normalized diagonal input. Acceleration, direction
+changes, and braking ease the retained velocity in simulation time. Releasing
+movement therefore decelerates to rest rather than stopping in one tick; a
+reversal first arrests the old momentum. Relative handling mass belongs to the
+chassis: the Bulwark responds more slowly, the Hound is more agile, and the
+Sirocco lies between them. It does not change top speed or depend on damage.
+
+Manual translation continues while the damped hips turn toward travel instead
+of waiting for the autonomous eight-degree path-alignment gate. Mouse aim does
+not rotate the legs. Every momentum step still sweeps the actual chassis
+envelope; terrain contact removes blocked velocity and retains only legal
+sliding, so a wall cannot bank a later speed surge. Applied velocity and gait
+describe achieved travel, separately from retained manual drive. Entry,
+handback, loss of eligibility, pause, and input suspension discard stale manual
+momentum. Ordinary key release uses natural braking. Autonomous paths retain
+their alignment gate and movement tuning.
+
+The torso turns toward the aim point within the
 existing 145-degree limit to either side of the hips. Traversing between the
 two rear limits goes through the forward arc, never across the blind wedge.
 A mount requires the same four-degree firing alignment used by autonomous fire. A blocked drive step may

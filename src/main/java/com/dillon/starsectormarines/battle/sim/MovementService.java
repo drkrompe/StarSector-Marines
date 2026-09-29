@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.LocalGrenadeEscape;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
+import com.dillon.starsectormarines.battle.mech.ManualMechDrive;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.ContinuousRoute;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -295,11 +297,8 @@ public final class MovementService {
     }
 
     /**
-     * Manual mech drive owns both hip steering and translation for this tick.
-     * The hips retain their damped turn and pivot gate; only aligned input is
-     * passed to the shared full-body terrain sweep. Neutral input brakes hip
-     * momentum without consulting the AI's target or remembered contact.
-     * The normal locomotion pass must skip this actor after this call.
+     * Manual inertia is independent of the tick's applied velocity and AI pivot gate.
+     * Current terrain clips the drive before velocity and gait are published.
      */
     public void moveDirectMech(long id, NavigationGrid grid, float axisX, float axisY,
                                float radius, float dt) {
@@ -308,21 +307,37 @@ public final class MovementService {
                 || !Float.isFinite(dt) || dt < 0f) {
             throw new IllegalArgumentException("Mech drive requires finite axes, positive radius and nonnegative time");
         }
-        if (dt == 0f) {
-            moveDirect(id, grid, 0f, 0f, radius, 0f);
-            return;
+        if (dt == 0f) return;
+        MechLoadoutComponent loadout = (MechLoadoutComponent) entityWorld.getObject(id,
+                components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE);
+        ManualMechDrive drive = loadout.manualDrive;
+        ManualMechDrive.Step step = drive.advance(axisX, axisY, moveSpeed(id),
+                loadout.variant.relativeMass, dt);
+        float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
+        float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        ManualTerrainMotion.Result result = ManualTerrainMotion.move(grid, x, y,
+                step.dx(), step.dy(), radius);
+        // The sweep reports position differences: compare against the same float
+        // endpoint rounding, so ordinary large-coordinate precision is not contact.
+        ManualMechDrive.Step quantized = new ManualMechDrive.Step(
+                (x + step.dx()) - x, (y + step.dy()) - y);
+        drive.acceptMotion(quantized, result.dx(), result.dy(), dt);
+        float headingX = drive.velocityX(), headingY = drive.velocityY();
+        if (headingX == 0f && headingY == 0f) {
+            headingX = axisX;
+            headingY = axisY;
         }
-        if (axisX == 0f && axisY == 0f) {
+        if (headingX == 0f && headingY == 0f) {
             MechLocomotion.stopTurning(entityWorld, components, id, dt);
         } else {
-            float error = MechLocomotion.turnToward(entityWorld, components, id,
-                    MechLocomotion.continuousFacing(axisX, axisY), dt);
-            if (error > MechLocomotion.MOVE_ALIGNMENT_DEGREES) {
-                axisX = 0f;
-                axisY = 0f;
-            }
+            MechLocomotion.turnToward(entityWorld, components, id,
+                    MechLocomotion.continuousFacing(headingX, headingY), dt);
         }
-        moveDirect(id, grid, axisX, axisY, radius, dt);
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, result.x());
+        entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, result.y());
+        setVelocity(id, result.dx() / dt, result.dy() / dt);
+        setFormationMemoryTimer(id, 0f);
+        setGaitPhase(id, (gaitPhase(id) + (float) Math.hypot(result.dx(), result.dy())) % 1f);
     }
 
     /**

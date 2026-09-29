@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 public enum MechVariant {
 
     BULWARK("bulwark", "Bulwark", 550f, 950f, 18f, 1.15f, 0.40f, 55f,
-            1.60f, 1.50f, 0.60f, 0.80f,
+            1.60f, 1.50f, 0.60f, 0.80f, 1.8f,
             LayeredMechAppearance.CHASSIS_CLEAN,
             MechWeaponComponent.DUAL_CHAINGUNS,
             MechWeaponComponent.SRM_15,
@@ -16,7 +16,7 @@ public enum MechVariant {
             MechRole.ARMORED_SUPPORT),
 
     HOUND("hound", "Hound", 350f, 500f, 14f, 1.70f, 0.42f, 50f,
-            1.35f, 1.20f, 0.50f, 0.67f,
+            1.35f, 1.20f, 0.50f, 0.67f, 0.8f,
             LayeredMechAppearance.CHASSIS_HOUND,
             MechWeaponComponent.NOSE_CHAINGUN,
             MechWeaponComponent.SRM_5,
@@ -24,7 +24,7 @@ public enum MechVariant {
             MechRole.ASSAULT),
 
     SIROCCO("sirocco", "Sirocco", 250f, 400f, 10f, 1.45f, 0.45f, 55f,
-            1.35f, 1.20f, 0.48f, 0.65f,
+            1.35f, 1.20f, 0.48f, 0.65f, 1.2f,
             LayeredMechAppearance.CHASSIS_SIROCCO,
             MechWeaponComponent.SINGLE_HEAVY_CANNON,
             MechWeaponComponent.LRM_5,
@@ -43,6 +43,8 @@ public enum MechVariant {
     public final float moraleImpact;
     public final float radius;
     public final float hitHalfHeight;
+    /** Relative inertia for manual drive only; not tonnage or an autonomous speed modifier. */
+    public final float relativeMass;
     public final int chassisAppearance;
     public final MechWeaponComponent arms;
     public final MechWeaponComponent leftShoulder;
@@ -52,7 +54,7 @@ public enum MechVariant {
     MechVariant(String id, String displayName, float maxStructure,
                 float armorCapacity, float armorRating, float moveSpeed,
                 float accuracy, float visionRange, float renderScale,
-                float moraleImpact, float radius, float hitHalfHeight,
+                float moraleImpact, float radius, float hitHalfHeight, float relativeMass,
                 int chassisAppearance, MechWeaponComponent arms,
                 MechWeaponComponent leftShoulder,
                 MechWeaponComponent rightShoulder, MechRole defaultRole) {
@@ -68,6 +70,7 @@ public enum MechVariant {
         this.moraleImpact = moraleImpact;
         this.radius = radius;
         this.hitHalfHeight = hitHalfHeight;
+        this.relativeMass = relativeMass;
         this.chassisAppearance = chassisAppearance;
         this.arms = arms;
         this.leftShoulder = leftShoulder;
