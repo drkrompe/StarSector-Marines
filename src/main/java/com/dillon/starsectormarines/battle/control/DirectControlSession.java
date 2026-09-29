@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
@@ -220,6 +221,7 @@ public final class DirectControlSession {
         if (active()) marineSprint.suspend(unitId);
         intent = intent.neutralized();
         if (vehicleControl) battle.suspendVehicleDirectInput(unitId);
+        if (active()) clearMechDrive(unitId);
         if (active() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
             roster.combat().clearPrimaryFire(unitId);
             if (roster.world().hasMechLoadout(unitId)) roster.world().mechLoadout(unitId).clearQueuedFire();
@@ -245,7 +247,16 @@ public final class DirectControlSession {
         if (squad != null) squad.setControlledMember(0L, battle);
     }
 
+    private void clearMechDrive(long id) {
+        if (roster.world().hasMechLoadout(id)) roster.world().mechLoadout(id).manualDrive.clear();
+        if (roster.entityWorld().has(id, roster.components().MECH_LOCOMOTION)) {
+            roster.entityWorld().setFloat(id, roster.components().MECH_LOCOMOTION,
+                    BattleComponents.MECH_LOCOMOTION_ANGULAR_VELOCITY, 0f);
+        }
+    }
+
     private void clearOwnedWork(long id) {
+        clearMechDrive(id);
         if (!roster.isAliveById(id)) return;
         if (roster.movement().has(id)) battle.clearPath(id);
         if (roster.combat().has(id)) roster.combat().clearPrimaryFire(id);

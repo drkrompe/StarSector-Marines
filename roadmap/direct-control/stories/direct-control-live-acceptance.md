@@ -4,7 +4,7 @@ Status: LIVE ACCEPTANCE
 
 Written: 2026-09-23
 
-Updated: 2026-09-29 — verify stamina sprint, weapon lowering, and compact equipment readouts.
+Updated: 2026-09-29 — verify Marine sprint and chassis-mass manual Mech handling.
 
 Read `direct-control-nouns.md` first. Begin after the Marine slice; repeat
 carrier-specific checks when Mech and vehicle adapters ship.
@@ -32,6 +32,14 @@ including its transition back to autonomous play.
 - Sweep the cursor during a Bulwark burst, including behind the hips and while
   a barrel is blocked. The torso must follow current input within its physical
   limits, without an old burst pulling aim back or crossing the rear blind wedge.
+- Drive each Mech chassis, release WASD, and change direction through a right
+  angle and a full reversal. Braking and turns must remain smooth without a
+  hard stop while the hips align. Compare the agile Hound, intermediate Sirocco,
+  and heavy Bulwark; top speed must retain each chassis's ordinary limit.
+  Coast into walls, slide along them, and open a previously blocked edge: no
+  retained wall pressure may launch the body. Pause or cross UI chrome while
+  moving, then resume; hand back and retake another body. Stale momentum must
+  clear while ordinary key release continues to brake naturally.
 
 - Compare the strip's color-only armor and health or structure lines with each
   controlled body before and after damage. Armor sits above health and empties

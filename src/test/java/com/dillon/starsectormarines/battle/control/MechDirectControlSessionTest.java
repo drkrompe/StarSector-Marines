@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -223,6 +224,38 @@ class MechDirectControlSessionTest {
         assertFalse(session.canSelectWeapon(1));
         assertTrue(session.canSelectWeapon(2));
         assertFalse(session.canSelectWeapon(3));
+    }
+
+    @Test
+    void suspensionAndEveryOwnershipBoundaryClearLinearAndHipMomentum() {
+        long mech = spawn();
+        var drive = roster.world().mechLoadout(mech).manualDrive;
+        drive.advance(1f, 0f, 1f, 1f, .5f);
+        assertTrue(session.enter(mech));
+        assertEquals(0f, drive.velocityX());
+        session.submit(new ManualIntent(1f, 0f, 20f, 5f, false));
+        session.tick();
+        assertTrue(drive.velocityX() > 0f);
+        roster.entityWorld().setFloat(mech, roster.components().MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_ANGULAR_VELOCITY, 90f);
+        session.suspendInput();
+        assertEquals(0f, drive.velocityX());
+        assertEquals(0f, roster.entityWorld().getFloat(mech, roster.components().MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_ANGULAR_VELOCITY));
+        float x = roster.world().x(mech);
+        session.tick();
+        assertEquals(x, roster.world().x(mech));
+        session.submit(new ManualIntent(1f, 0f, 20f, 5f, false));
+        session.tick();
+        session.exit();
+        assertEquals(0f, drive.velocityX());
+        assertTrue(session.enter(mech));
+        session.submit(new ManualIntent(1f, 0f, 20f, 5f, false));
+        session.tick();
+        roster.world().setHp(mech, 0f);
+        session.validate();
+        assertFalse(session.active());
+        assertEquals(0f, drive.velocityX());
     }
 
     private long spawn() {

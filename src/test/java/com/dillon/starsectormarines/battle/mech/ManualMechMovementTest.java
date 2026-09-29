@@ -20,47 +20,35 @@ class ManualMechMovementTest {
     private static final float DT = 1f / 30f;
 
     @Test
-    void pivotsBeforeDrivingTheExactSubcellBearing() {
+    void acceleratesDespiteHipMisalignmentAndRetainsMomentumAcrossTickReset() {
         Fixture f = new Fixture();
         long mech = f.mech(MechVariant.BULWARK, 5f, 5f);
         f.face(mech, 180f);
-        float desired = MechLocomotion.continuousFacing(.25f, .1f);
-        f.drive(mech, .25f, .1f, DT);
-        assertEquals(5f, f.world.x(mech));
-        assertEquals(0f, f.movement.velX(mech));
-        assertEquals(0f, f.gait(mech));
-        for (int tick = 0; tick < 180 && f.world.x(mech) == 5f; tick++) {
-            f.drive(mech, .25f, .1f, DT);
-            if (Math.abs(MechLocomotion.deltaDegrees(f.facing(mech), desired))
-                    > MechLocomotion.MOVE_ALIGNMENT_DEGREES) {
-                assertEquals(5f, f.world.x(mech));
-                assertEquals(0f, f.gait(mech));
-            }
-        }
+        f.drive(mech, 1f, .4f, DT);
         assertTrue(f.world.x(mech) > 5f);
-        assertEquals(.4f, f.movement.velY(mech) / f.movement.velX(mech), .0001f);
-        assertEquals(f.movement.moveSpeed(mech) * Math.hypot(.25f, .1f),
-                Math.hypot(f.movement.velX(mech), f.movement.velY(mech)), .0001f);
+        assertTrue(f.movement.velX(mech) < f.movement.moveSpeed(mech));
+        assertEquals(.4f, f.movement.velY(mech) / f.movement.velX(mech), .002f);
+        float velocity = f.movement.velX(mech);
+        f.movement.beginTick(DT);
+        f.drive(mech, 1f, .4f, DT);
+        assertTrue(f.movement.velX(mech) > velocity);
     }
 
     @Test
-    void changedDirectionBrakesOpposingHipMomentumAndStopsTranslation() {
+    void changedDirectionRetainsTranslationWhileHipsBrakeTheirOldSwing() {
         Fixture f = new Fixture();
         long mech = f.mech(MechVariant.HOUND, 5f, 5f);
         f.face(mech, MechLocomotion.continuousFacing(1f, 0f));
-        f.drive(mech, 1f, 0f, DT);
-        assertTrue(f.movement.velX(mech) > 0f);
-        float x = f.world.x(mech), gait = f.gait(mech), facing = f.facing(mech);
+        for (int tick = 0; tick < 15; tick++) f.drive(mech, 1f, 0f, DT);
+        float x = f.world.x(mech), facing = f.facing(mech);
         f.angularVelocity(mech, 90f);
         f.drive(mech, 0f, -1f, DT);
-        assertEquals(78f, f.angularVelocity(mech), .0001f,
-                "reversing intent first brakes angular momentum instead of snapping it");
+        assertEquals(78f, f.angularVelocity(mech), .0001f);
         assertTrue(f.facing(mech) > facing);
-        assertEquals(x, f.world.x(mech));
-        assertEquals(5f, f.world.y(mech));
-        assertEquals(0f, f.movement.velX(mech));
-        assertEquals(0f, f.movement.velY(mech));
-        assertEquals(gait, f.gait(mech));
+        assertTrue(f.world.x(mech) > x);
+        assertTrue(f.world.y(mech) < 5f);
+        assertTrue(f.movement.velX(mech) > 0f);
+        assertTrue(f.movement.velY(mech) < 0f);
     }
 
     @Test
@@ -92,23 +80,37 @@ class ManualMechMovementTest {
     }
 
     @Test
-    void diagonalIsNormalizedAtCurrentSpeedAndZeroTimePreservesHipMomentum() {
+    void diagonalRespectsLiveSpeedAndZeroTimePreservesAllMotionState() {
         Fixture f = new Fixture();
         long mech = f.mech(MechVariant.SIROCCO, 5f, 5f);
-        f.face(mech, MechLocomotion.continuousFacing(1f, 1f));
         f.roster.entityWorld().setFloat(mech, f.roster.components().MOVEMENT,
                 BattleComponents.MOVEMENT_MOVE_SPEED, 3f);
         f.drive(mech, 1f, 1f, .25f);
-        assertEquals(.75f, Math.hypot(f.world.x(mech) - 5f, f.world.y(mech) - 5f), .00001f);
-        assertEquals(3f, Math.hypot(f.movement.velX(mech), f.movement.velY(mech)), .00001f);
-        assertEquals(.75f, f.gait(mech), .00001f);
+        assertTrue(Math.hypot(f.movement.velX(mech), f.movement.velY(mech)) < 3f);
+        assertTrue(f.gait(mech) > 0f);
         f.angularVelocity(mech, 90f);
-        float facing = f.facing(mech);
+        float facing = f.facing(mech), x = f.world.x(mech), gait = f.gait(mech);
+        float velocity = f.world.mechLoadout(mech).manualDrive.velocityX();
         f.drive(mech, -1f, 0f, 0f);
         assertEquals(facing, f.facing(mech));
         assertEquals(90f, f.angularVelocity(mech));
-        assertEquals(0f, f.movement.velX(mech));
-        assertEquals(.75f, f.gait(mech), .00001f);
+        assertEquals(x, f.world.x(mech));
+        assertEquals(gait, f.gait(mech));
+        assertEquals(velocity, f.world.mechLoadout(mech).manualDrive.velocityX());
+    }
+
+    @Test
+    void keyReleaseCoastsAndThenComesToRest() {
+        Fixture f = new Fixture();
+        long mech = f.mech(MechVariant.BULWARK, 5f, 5f);
+        for (int tick = 0; tick < 15; tick++) f.drive(mech, 1f, 0f, DT);
+        float x = f.world.x(mech), velocity = f.movement.velX(mech);
+        f.drive(mech, 0f, 0f, DT);
+        assertTrue(f.world.x(mech) > x);
+        assertTrue(f.movement.velX(mech) > 0f);
+        assertTrue(f.movement.velX(mech) < velocity);
+        for (int tick = 0; tick < 120; tick++) f.drive(mech, 0f, 0f, DT);
+        assertEquals(0f, f.world.mechLoadout(mech).manualDrive.velocityX());
     }
 
     @Test
@@ -128,30 +130,58 @@ class ManualMechMovementTest {
             assertEquals(gait, f.gait(mech));
             for (int y = 0; y < 12; y++) f.grid.openSharedEdge(3, y, Direction.E);
             f.drive(mech, 1f, 0f, DT);
-            assertEquals(x + f.movement.moveSpeed(mech) * DT, f.world.x(mech), .00001f);
-            f.drive(mech, 1f, 0f, 100f);
-            assertTrue(f.world.x(mech) <= 12f - variant.radius);
+            assertTrue(f.world.x(mech) > x);
+            assertTrue(f.world.x(mech) < x + f.movement.moveSpeed(mech) * DT);
+            f.drive(mech, 1f, 0f, 1000f);
+            assertTrue(f.world.x(mech) <= 512f - variant.radius);
             f.face(mech, MechLocomotion.continuousFacing(-1f, 0f));
-            f.drive(mech, -1f, 0f, 100f);
+            f.drive(mech, -1f, 0f, 1000f);
             assertTrue(f.world.x(mech) >= variant.radius);
             assertTrue(ManualTerrainMotion.canStand(f.grid, f.world.x(mech), f.world.y(mech), variant.radius));
         }
     }
 
+    @Test
+    void firstWallContactDropsNormalMomentumAndKeepsTheLegalSlide() {
+        Fixture f = new Fixture();
+        long mech = f.mech(MechVariant.HOUND, 3.4f, 3f);
+        for (int y = 0; y < 12; y++) f.grid.blockSharedEdge(3, y, Direction.E);
+        f.drive(mech, 1f, 1f, .5f);
+        var drive = f.world.mechLoadout(mech).manualDrive;
+        assertEquals(0f, drive.velocityX());
+        assertTrue(drive.velocityY() > 0f);
+        assertTrue(f.world.y(mech) > 3f);
+        for (int y = 0; y < 12; y++) f.grid.openSharedEdge(3, y, Direction.E);
+        float x = f.world.x(mech);
+        f.drive(mech, 0f, 0f, DT);
+        assertEquals(x, f.world.x(mech), "opening cannot release old normal momentum");
+    }
+
+    @Test
+    void openTravelAtLargeCoordinatesDoesNotMistakeFloatRoundingForCollision() {
+        Fixture f = new Fixture();
+        long mech = f.mech(MechVariant.BULWARK, 400f, 5f);
+        for (int tick = 0; tick < 120; tick++) f.drive(mech, 1f, 0f, DT);
+        assertTrue(f.world.mechLoadout(mech).manualDrive.velocityX()
+                > f.movement.moveSpeed(mech) * .99f);
+        assertTrue(f.movement.velX(mech) > f.movement.moveSpeed(mech) * .99f);
+    }
+
     private static final class Fixture {
-        final NavigationGrid grid = new NavigationGrid(12, 12);
-        final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(12, 12), null);
+        final NavigationGrid grid = new NavigationGrid(512, 12);
+        final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(512, 12), null);
         final MovementService movement = roster.movement();
         final World world = roster.world();
         final MechLocomotionSystem hips = new MechLocomotionSystem(roster.entityWorld(), roster.components(), roster);
 
         Fixture() {
-            for (int y = 0; y < 12; y++) for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
+            for (int y = 0; y < 12; y++) for (int x = 0; x < 512; x++) grid.setWalkableFloor(x, y);
         }
 
         long mech(MechVariant variant, float x, float y) {
             long id = roster.spawn(new EntitySpec("mech", Faction.MARINE, UnitType.HEAVY_MECH,
                     (int) x, (int) y).mechVariant(variant));
+            world.attachMechLoadout(id, variant.createLoadout(MechRole.BALANCED));
             world.setPos(id, x, y);
             return id;
         }

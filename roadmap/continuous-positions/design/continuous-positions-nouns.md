@@ -4,8 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-09-26 — shared Mech routing uses physical clearance and continuous
-arrival; optional infantry traffic preserves terrain and cell-path authority.
+Updated: 2026-09-29 — manual Mech momentum uses shared clearance and actual-motion feedback.
 
 ## Vocabulary
 
@@ -106,6 +105,13 @@ movement, without changing the body's authored walking speed. Stamina and the
 lowered-primary state follow the extra displacement actually achieved; a
 blocked sprint request creates no stored motion or resource spend.
 `direct-control-nouns.md` owns the sprint resource and its handback lifetime.
+
+Manual Mech drive retains velocity between ticks to ease acceleration, braking,
+and changes of direction according to chassis handling mass. That drive is
+distinct from the tick's applied velocity. Each proposed displacement still
+uses the same circular terrain sweep; contact feeds achieved motion back into
+the drive so blocked momentum cannot accumulate. Legal sliding preserves its
+tangent motion. Autonomous route alignment and arrival remain unchanged.
 
 Nearby-unit queries snapshot true positions once per tick. Point-space consumers use those positions and footprints: picking tests the cursor against an expanded unit extent, and explosions test their endpoint against each candidate's blast-expanded footprint. Grid consumers deliberately project through `floor` instead of rounding or retaining a stale cell.
 
