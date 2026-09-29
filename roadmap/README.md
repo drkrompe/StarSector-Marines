@@ -91,6 +91,8 @@ and extension stories. Start with `ai-nouns.md`, `fog-of-war-nouns.md`,
 point-aim fire and explicit AI handback. Marine, Mech, and deployed APC control
 are implemented. APCs share vehicle kinematics, turret authority, and
 suspended-order handback. Final live feel remains on the direct-control story board.
+Equipped Marine shields and smoke accept explicit manual activation through
+their existing equipment owners, with compact readouts beside the primary.
 
 Air uses one hull-derived atmospheric motion model. Shuttles and fighters are
 both composed world entities flying the same sortie from two origins — a berth

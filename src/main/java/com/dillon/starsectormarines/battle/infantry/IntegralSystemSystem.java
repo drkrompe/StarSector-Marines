@@ -188,6 +188,7 @@ public final class IntegralSystemSystem {
             if (!systems.canActivate(id)) continue;
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;
+            if (!permitsAutonomousActivation(def, sim.directControl().isControlling(id))) continue;
             ManualTerrainMotion.Result manualStep = null;
             if (sim.directControl().isControlling(id)) {
                 ManualIntent intent = sim.directControl().intent();
@@ -335,6 +336,11 @@ public final class IntegralSystemSystem {
 
     /** Facts for the early policy pass; manual preview never mutates movement. */
     record PolicyMotion(boolean underway, float vx, float vy) {}
+
+    /** Only the supported shield is player-owned; unrelated suit policies continue normally. */
+    static boolean permitsAutonomousActivation(IntegralSystemDef def, boolean controlled) {
+        return !controlled || !def.grantsMitigation();
+    }
 
     static PolicyMotion policyMotion(long id, MovementService movement,
                                      ManualTerrainMotion.Result manualStep, float dt) {

@@ -52,6 +52,15 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                         (int) BattleDirectControlOverlay.ACTION_WIDTH, (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
             }
         }
+        for (int state = 0; state < 4; state++) {
+            try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
+                    BattleDirectControlHudTest.abilityPreview(state), 0, false,
+                    ignored -> {}, () -> {}, () -> {})) {
+                artifacts.add(new SnapshotArtifact("action-abilities-" + state + ".png",
+                        renderer.render(fixture.document(), (int) BattleDirectControlOverlay.ACTION_WIDTH,
+                                (int) BattleDirectControlOverlay.ACTION_HEIGHT)));
+            }
+        }
         try (var fixture = BattleDirectControlHudTest.fixture(context.modRoot(),
                 BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, true), 2, true,
                 ignored -> {}, () -> {}, () -> {})) {

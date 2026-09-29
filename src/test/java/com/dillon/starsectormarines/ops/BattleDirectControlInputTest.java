@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -7,8 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.lwjgl.input.Keyboard;
 
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -207,6 +210,125 @@ class BattleDirectControlInputTest {
         process(input, List.of(event(Kind.LEFT_DOWN, 70, 60, 0)));
         input.syncSelectedWeapon(0);
         assertTrue(input.intent(camera(), false, NO_CHROME).firing(), "entry initializes the new session to ALL");
+    }
+
+    @Test
+    void abilityKeysMapToOneShotRequestsAndConsumedReleaseRearmsWithoutDroppingPrimaryControls() {
+        BattleDirectControlInput input = active();
+        process(input, List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_W),
+                event(Kind.LEFT_DOWN, 70, 60, 0)));
+        List<DirectControlAbility> requests = new ArrayList<>();
+        Predicate<DirectControlAbility> accept = ability -> { requests.add(ability); return true; };
+        var presses = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_E), event(Kind.DOWN, 0, 0, Keyboard.KEY_G),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_G));
+        input.process(BattleDirectControlInput.capture(presses), () -> {}, () -> {},
+                selection -> false, accept, NO_CHROME);
+        assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE), requests);
+        assertTrue(presses.stream().allMatch(InputEventAPI::isConsumed));
+        assertEquals(1f, input.intent(camera(), false, NO_CHROME).moveY());
+        assertTrue(input.intent(camera(), false, NO_CHROME).firing());
+
+        var release = event(Kind.UP, 0, 0, Keyboard.KEY_E);
+        var captured = BattleDirectControlInput.capture(List.of(release));
+        release.consume();
+        input.process(captured, () -> {}, () -> {}, selection -> false, accept, NO_CHROME);
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E))),
+                () -> {}, () -> {}, selection -> false, accept, NO_CHROME);
+        assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE,
+                DirectControlAbility.SHIELD), requests);
+    }
+
+    @Test
+    void rejectedAbilityPressNeverQueuesLaterAfterPauseChromeOrViewportUnblocks() {
+        for (int blockedBy = 0; blockedBy < 4; blockedBy++) {
+            BattleDirectControlInput input = active();
+            BattleCamera camera = camera();
+            boolean[] paused = {blockedBy == 0}, chrome = {blockedBy == 1};
+            if (blockedBy != 3) process(input, List.of(event(Kind.MOVE,
+                    blockedBy == 2 ? 250 : 70, 60, 0)));
+            int[] attempts = {0}, accepted = {0};
+            BiPredicate<Float, Float> chromeGate = (x, y) -> chrome[0];
+            Predicate<DirectControlAbility> request = ability -> {
+                attempts[0]++;
+                if (input.blocked(camera, paused[0], chromeGate)) return false;
+                accepted[0]++;
+                return true;
+            };
+            input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                    () -> {}, () -> {}, selection -> false, request, chromeGate);
+            assertEquals(0, accepted[0]);
+            if (paused[0]) {
+                input.speedChanged(0f);
+                input.speedChanged(1f);
+            }
+            paused[0] = chrome[0] = false;
+            process(input, List.of(event(Kind.MOVE, 70, 60, 0)));
+            input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                    () -> {}, () -> {}, selection -> false, request, chromeGate);
+            assertEquals(1, attempts[0], "unblocking cannot replay a held rejected press");
+            assertEquals(0, accepted[0]);
+            input.process(BattleDirectControlInput.capture(List.of(event(Kind.UP, 0, 0, Keyboard.KEY_G),
+                            event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                    () -> {}, () -> {}, selection -> false, request, chromeGate);
+            assertEquals(1, accepted[0], "a fresh press after release is eligible");
+        }
+    }
+
+    @Test
+    void inactiveAndConsumedAbilityPressCannotActivateOnRepeatOrSessionReentry() {
+        BattleDirectControlInput input = new BattleDirectControlInput();
+        int[] requests = {0};
+        Predicate<DirectControlAbility> request = ability -> { requests[0]++; return true; };
+        var inactivePress = event(Kind.DOWN, 0, 0, Keyboard.KEY_E);
+        input.process(BattleDirectControlInput.capture(List.of(inactivePress)), () -> {}, () -> {},
+                selection -> false, request, NO_CHROME);
+        assertFalse(inactivePress.isConsumed());
+        input.enter(1f);
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E))),
+                () -> {}, () -> {}, selection -> false, request, NO_CHROME);
+        assertEquals(0, requests[0]);
+
+        var chromePress = event(Kind.DOWN, 0, 0, Keyboard.KEY_G);
+        var captured = BattleDirectControlInput.capture(List.of(chromePress));
+        chromePress.consume();
+        input.process(captured, () -> {}, () -> {}, selection -> false, request, NO_CHROME);
+        input.exit(1f);
+        input.enter(1f);
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                () -> {}, () -> {}, selection -> false, request, NO_CHROME);
+        assertEquals(0, requests[0], "handback does not turn held chrome input into a new press");
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.UP, 0, 0, Keyboard.KEY_G),
+                        event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                () -> {}, () -> {}, selection -> false, request, NO_CHROME);
+        assertEquals(1, requests[0]);
+    }
+
+    @Test
+    void observedPhysicalReleaseRearmsAfterDroppedKeyupWhileHeldObservationDoesNot() {
+        BattleDirectControlInput input = active();
+        List<DirectControlAbility> requests = new ArrayList<>();
+        Predicate<DirectControlAbility> request = ability -> { requests.add(ability); return true; };
+        var held = List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_G));
+        input.process(BattleDirectControlInput.capture(held), () -> {}, () -> {},
+                selection -> false, request, NO_CHROME);
+        input.reconcileAbilityKeyReleases(true, true);
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+                        event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                () -> {}, () -> {}, selection -> false, request, NO_CHROME);
+        assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE), requests);
+
+        // Focus was lost and both keyups were dropped by the host.
+        input.exit(1f);
+        input.enter(1f);
+        input.reconcileAbilityKeyReleases(false, false);
+        assertEquals(2, requests.size(), "a release observation cannot activate equipment");
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_E),
+                        event(Kind.DOWN, 0, 0, Keyboard.KEY_G))),
+                () -> {}, () -> {}, selection -> false, request, NO_CHROME);
+        assertEquals(List.of(DirectControlAbility.SHIELD, DirectControlAbility.SMOKE,
+                DirectControlAbility.SHIELD, DirectControlAbility.SMOKE), requests);
     }
 
     private static void assertNeutral(ManualIntent intent) {

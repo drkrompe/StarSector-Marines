@@ -27,6 +27,7 @@
   .all { width: 44px; height: 38px; padding: 1px; text-align: center; font-family: compact; border-width: 1px; }
   .all-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   .weapon { width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 1px; border-color: #45596f; background-color: #142131; overflow: hidden; }
+  .ability { width: 128px; flex-grow: 0; }
   .weapon-top { height: 14px; flex-direction: row; gap: 4px; }
   .weapon-name { flex-grow: 1; font-family: heading; color: #ecf3fb; overflow: hidden; white-space: nowrap; }
   .weapon-state { color: #7cd89c; font-family: compact; }

@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.battle.control;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
+import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
+import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -22,7 +24,9 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 
+import java.util.EnumMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.LongPredicate;
 
@@ -42,6 +46,8 @@ public final class DirectControlSession {
     private Squad controlledSquad;
     private ManualIntent intent = ManualIntent.NEUTRAL;
     private int selectedWeapon;
+    private final EnumMap<DirectControlAbility, PointFireAim> pendingAbilities =
+            new EnumMap<>(DirectControlAbility.class);
 
     public DirectControlSession(BattleControl battle, UnitRosterService roster,
                                 LongPredicate unavailable, BooleanSupplier complete) {
@@ -89,6 +95,37 @@ public final class DirectControlSession {
                 ? new PointFireAim(intent.aimX(), intent.aimY()) : null;
     }
 
+    /** Availability does not spend equipment or change the actor's current channel. */
+    public boolean canUseAbility(DirectControlAbility ability) {
+        if (ability == null || !active() || !eligible(unitId) || vehicleControl
+                || roster.identity().type(unitId) != UnitType.MARINE
+                || pendingAbilities.containsKey(ability)) return false;
+        World world = roster.world();
+        if (world.hasSecondaryWeapon(unitId) && world.secondaryActionTimer(unitId) > 0f) return false;
+        return switch (ability) {
+            case SHIELD -> {
+                var spec = roster.integralSystems().spec(unitId);
+                yield spec != null && spec.grantsMitigation() && roster.integralSystems().canActivate(unitId);
+            }
+            case SMOKE -> SmokeTactics.canThrow(unitId, battle);
+        };
+    }
+
+    /** Bounded one-shot mailbox, consumed at the fixed simulation boundary before movement. */
+    public boolean requestAbility(DirectControlAbility ability, PointFireAim aim) {
+        if (!canUseAbility(ability) || aim == null || !Float.isFinite(aim.x()) || !Float.isFinite(aim.y())) {
+            return false;
+        }
+        pendingAbilities.put(ability, aim);
+        return true;
+    }
+
+    private boolean ownsSmokeChannel(long id) {
+        var commit = roster.world().smokeThrowCommit(id);
+        return isControlling(id) && commit != null && commit.manual()
+                && roster.world().specialEquipment(id).activation() == SpecialActivation.UTILITY_SMOKE;
+    }
+
     /** Read-only entry check. Committed special actions finish under their original owner. */
     public boolean canEnter(long id) {
         if (!eligible(id)) return false;
@@ -125,7 +162,7 @@ public final class DirectControlSession {
         // weapon clock. Their explicit interaction adapter is outside this primary-only slice.
         UnitRole role = roster.role().role(id);
         if (role == UnitRole.PLANTER || role == UnitRole.KIT_RETRIEVER) return false;
-        if (world.hasSecondaryWeapon(id) && world.secondaryActionTimer(id) > 0f) return false;
+        if (world.hasSecondaryWeapon(id) && world.secondaryActionTimer(id) > 0f && !ownsSmokeChannel(id)) return false;
         Squad squad = battle.squadOf(id);
         if (mech && (!world.hasMechLoadout(id) || squad == null
                 || squad.faction != Faction.MARINE || !squad.isMechSquad()
@@ -150,6 +187,7 @@ public final class DirectControlSession {
         selectedWeapon = 0;
         vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
+        pendingAbilities.clear();
         controlledSquad = vehicle ? null : battle.squadOf(id);
         clearOwnedWork(id);
         if (roster.combat().has(id)) roster.combat().setTargetId(id, 0L);
@@ -163,6 +201,7 @@ public final class DirectControlSession {
 
     /** Chrome, focus, and pause can neutralize input even when no simulation tick runs. */
     public void suspendInput() {
+        pendingAbilities.clear();
         intent = intent.neutralized();
         if (vehicleControl) battle.suspendVehicleDirectInput(unitId);
         if (active() && roster.isAliveById(unitId) && roster.combat().has(unitId)) {
@@ -177,6 +216,7 @@ public final class DirectControlSession {
         boolean vehicle = vehicleControl;
         unitId = 0L;
         selectedWeapon = 0;
+        pendingAbilities.clear();
         vehicleControl = false;
         if (vehicle) battle.endVehicleDirectControl(previous);
         intent = ManualIntent.NEUTRAL;
@@ -228,8 +268,25 @@ public final class DirectControlSession {
             return; // HeavyWeapons owns every mount clock and trigger in its serial pass.
         }
         InfantryUnitPrep.tickCooldowns(id, roster.world());
+        PointFireAim shield = pendingAbilities.remove(DirectControlAbility.SHIELD);
+        if (shield != null && roster.integralSystems().spec(id) != null
+                && roster.integralSystems().spec(id).grantsMitigation()) {
+            if (roster.integralSystems().activate(id)) {
+                MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), shield);
+            }
+        }
+        PointFireAim smoke = pendingAbilities.remove(DirectControlAbility.SMOKE);
+        if (smoke != null) SmokeTactics.beginThrow(id, smoke, true, battle);
+        if (ownsSmokeChannel(id) && InfantryUnitPrep.tickAimAndShortCircuit(id, battle)) {
+            roster.combat().clearPrimaryFire(id);
+            roster.movement().moveDirect(id, battle.getGrid(), 0f, 0f,
+                    battle.physicalRadius(id), BattleSimulation.TICK_DT);
+            MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
+            return;
+        }
         roster.movement().moveDirect(id, battle.getGrid(), input.moveX(), input.moveY(),
                 battle.physicalRadius(id), BattleSimulation.TICK_DT);
+        MitigationSystem.faceManual(id, roster.mitigations(), roster.world(), pointAim());
         if (input.firing()) {
             boolean moving = roster.movement().velX(id) != 0f || roster.movement().velY(id) != 0f;
             roster.combat().setPointFireIntent(id, new PointFireAim(input.aimX(), input.aimY()),

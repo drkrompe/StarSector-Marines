@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -88,8 +89,37 @@ final class BattleDirectControlHudModel {
                         ammo(weapon.ammo()), state, stateClasses, width(weapon.cycleFraction()),
                         () -> select.accept(weapon.number())));
             }
+            for (var ability : snapshot.abilities()) cards.add(abilityCard(ability));
             weapons.set(List.copyOf(cards));
         });
+    }
+
+    private WeaponCard abilityCard(BattleDirectControlStatus.AbilityStatus ability) {
+        boolean shield = ability.ability() == DirectControlAbility.SHIELD;
+        boolean active = ability.activeSeconds() > 0f;
+        boolean broken = shield && ability.broken();
+        boolean empty = !shield && ability.remaining() <= 0 && !active;
+        String state = broken ? label("Broken") : active ? label(shield ? "Active" : "Throwing")
+                : empty ? label("EMPTY")
+                : ability.cooldownSeconds() > 0f ? seconds(ability.cooldownSeconds())
+                : label(ability.ready() ? "Ready" : "Busy");
+        String detail = active ? seconds(ability.activeSeconds()) : label(shield ? "Directional" : "CursorThrow");
+        String resource = shield ? (active ? Math.round(ability.soakRemaining()) + " / "
+                + Math.round(ability.soakCapacity()) : "")
+                : ability.remaining() + " / " + ability.capacity();
+        float fill = broken ? 0f : shield && active ? fraction(ability.soakRemaining(), ability.soakCapacity())
+                : active ? 1f - fraction(ability.activeSeconds(), ability.durationSeconds())
+                : ability.cooldownSeconds() > 0f ? 1f - fraction(ability.cooldownSeconds(), ability.cooldownDurationSeconds())
+                : ability.ready() ? 1f : 0f;
+        return new WeaponCard("direct-hud-ability-" + ability.ability().name(), "weapon ability",
+                "opacity: 1;", true, (shield ? "[E] " : "[G] ") + label(shield ? "Shield" : "Smoke"),
+                detail, resource, state, "weapon-state" + (broken || empty ? " weapon-empty"
+                : !ability.ready() ? " weapon-busy" : ""), width(fill), () -> {});
+    }
+
+    private static String seconds(float value) { return String.format(Locale.ROOT, "%.1fs", value); }
+    private static float fraction(float value, float maximum) {
+        return maximum > 0f ? Math.max(0f, Math.min(1f, value / maximum)) : 0f;
     }
 
     private String behavior(BattleDirectControlStatus.Behavior behavior) {

@@ -2,17 +2,27 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.combat.MitigationService;
+import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
+import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Predicate;
 
 /** Read-only values for the exact controlled body; labels and selection belong to the HUD adapter. */
 final class BattleDirectControlStatus {
@@ -24,13 +34,35 @@ final class BattleDirectControlStatus {
     enum AmmoUnit { UNTRACKED, ROUNDS, TRIGGER_PACKS }
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
-                    List<WeaponStatus> weapons) {
+                    List<WeaponStatus> weapons, List<AbilityStatus> abilities) {
         static final Snapshot EMPTY = new Snapshot(0L, "", Carrier.NONE,
                 new Durability(0f, 0f, 0f, 0f, 0f), List.of());
 
         Snapshot {
             name = name == null ? "" : name;
             weapons = List.copyOf(weapons);
+            abilities = List.copyOf(abilities);
+        }
+
+        Snapshot(long entityId, String name, Carrier carrier, Durability durability,
+                 List<WeaponStatus> weapons) {
+            this(entityId, name, carrier, durability, weapons, List.of());
+        }
+    }
+
+    /** A broken screen is a durability fact; the suit's remaining boost is not shield uptime. */
+    record AbilityStatus(DirectControlAbility ability, String name, boolean ready,
+                         float activeSeconds, float durationSeconds,
+                         float cooldownSeconds, float cooldownDurationSeconds,
+                         int remaining, int capacity, float soakRemaining, float soakCapacity,
+                         boolean broken, float facingDegrees, float arcDegrees) {
+        AbilityStatus(DirectControlAbility ability, String name, boolean ready,
+                      float activeSeconds, float durationSeconds,
+                      float cooldownSeconds, float cooldownDurationSeconds,
+                      int remaining, int capacity, float soakRemaining, float soakCapacity) {
+            this(ability, name, ready, activeSeconds, durationSeconds,
+                    cooldownSeconds, cooldownDurationSeconds, remaining, capacity,
+                    soakRemaining, soakCapacity, false, 0f, 0f);
         }
     }
 
@@ -88,7 +120,49 @@ final class BattleDirectControlStatus {
         List<WeaponStatus> weapons = primary == null ? List.of()
                 : List.of(marineWeapon(primary, combat.equipmentGrade(id), combat.cooldownTimer(id),
                 combat.attackCooldown(id), combat.burstRemaining(id), combat.burstTimer(id)));
-        return new Snapshot(id, name, Carrier.MARINE, durability, weapons);
+        return new Snapshot(id, name, Carrier.MARINE, durability, weapons,
+                marineAbilities(sim.getRoster(), id, sim.directControl()::canUseAbility));
+    }
+
+    static List<AbilityStatus> marineAbilities(UnitRosterService roster, long id,
+                                              Predicate<DirectControlAbility> available) {
+        World world = roster.world();
+        if (!world.isAlive(id) || roster.identity().type(id) != UnitType.MARINE) return List.of();
+        List<AbilityStatus> abilities = new ArrayList<>(2);
+        IntegralSystemDef system = roster.integralSystems().spec(id);
+        if (system != null && system.grantsMitigation()) {
+            abilities.add(shieldAbility(system, roster.integralSystems(), roster.mitigations(), id,
+                    available.test(DirectControlAbility.SHIELD)));
+        }
+        if (world.hasSecondaryWeapon(id)) {
+            SpecialEquipmentDef special = world.specialEquipment(id);
+            if (special != null && special.activation() == SpecialActivation.UTILITY_SMOKE
+                    && special.smokeGrenadeSpec() != null) {
+                abilities.add(smokeAbility(special, world.secondaryAmmo(id), world.smokeThrowCommit(id),
+                        world.secondaryActionTimer(id), available.test(DirectControlAbility.SMOKE)));
+            }
+        }
+        return List.copyOf(abilities);
+    }
+
+    static AbilityStatus shieldAbility(IntegralSystemDef def, IntegralSystemService systems,
+                                       MitigationService mitigations, long id, boolean ready) {
+        return new AbilityStatus(DirectControlAbility.SHIELD, def.displayName(), ready,
+                mitigations.isActive(id) ? mitigations.remaining(id) : 0f, def.durationSeconds(),
+                systems.cooldownRemaining(id), def.cooldownSeconds(),
+                def.usesAmmunition() ? systems.ammo(id) : -1,
+                def.usesAmmunition() ? def.startingAmmo() : -1,
+                mitigations.soakRemaining(id), mitigations.soakCapacity(id),
+                mitigations.breakFlashRemaining(id) > 0f,
+                mitigations.facingDegrees(id), mitigations.arcDegrees(id));
+    }
+
+    static AbilityStatus smokeAbility(SpecialEquipmentDef def, int ammo, SmokeThrowCommit commit,
+                                      float actionRemaining, boolean ready) {
+        float active = commit != null && commit.manual() ? Math.max(0f, actionRemaining) : 0f;
+        return new AbilityStatus(DirectControlAbility.SMOKE, def.displayName(), ready,
+                active, def.smokeGrenadeSpec().throwDuration(), 0f, 0f,
+                ammo, def.startingAmmo(), 0f, 0f);
     }
 
     static WeaponStatus marineWeapon(WeaponDef weapon, EquipmentGrade grade,

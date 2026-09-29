@@ -305,17 +305,14 @@ public final class InfantryUnitPrep {
                 world.secondaryActionTimer(unit) - BattleSimulation.TICK_DT);
         if (!world.secondaryFired(unit)
                 && world.secondaryActionTimer(unit) <= duration * 0.5f) {
-            Squad squad = sim.squadOf(unit);
-            if (squad != null && squad.smokeCarrierId == unit
-                    && squad.smokeTargetX >= 0 && squad.smokeTargetY >= 0) {
-                sim.throwSmoke(unit, squad.smokeTargetX + 0.5f,
-                        squad.smokeTargetY + 0.5f);
-            }
+            SmokeThrowCommit commit = world.smokeThrowCommit(unit);
+            if (commit != null) sim.throwSmoke(unit, commit.aim().x(), commit.aim().y());
             world.setSecondaryFired(unit, true);
         }
         if (world.secondaryActionTimer(unit) <= 0f) {
             world.setSecondaryActionTimer(unit, 0f);
             world.setSecondaryAimTargetId(unit, 0L);
+            world.setSmokeThrowCommit(unit, null);
         }
         return true;
     }

@@ -203,6 +203,12 @@ raise a screen on the same terms whenever one is authored; nothing about the
 concept is infantry-specific, and nothing about it obliges every actor to have
 one.
 
+A directly controlled shield wearer supplies authoritative mouse aim for the
+mitigation facing, including while moving sideways. Facing is updated before
+damage can resolve and on a fresh grant; render interpolation never decides
+the protected arc. This changes who supplies facing, while the same finite pool,
+authored arc, expiry, and incoming bearing decide mitigation.
+
 ## Decisions, morale, evidence, and presentation
 
 Durability-aware decisions evaluate expected armor loss, time to armor break,

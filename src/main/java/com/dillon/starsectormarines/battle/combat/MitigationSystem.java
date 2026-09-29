@@ -21,7 +21,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  *
  * <p><b>The facing is simulation state.</b> The screen points where the wearer
  * is pushing while they are actually moving, and at what they are shooting when
- * they are not. That ordering is what makes the standing rule bite: a breacher
+ * they are not. Direct control instead points it at the current world aim, so
+ * strafing does not redirect the protection. That ordering makes the standing rule bite: a breacher
  * who turns to deal with something behind them loses the front they were
  * covering, in the same tick they turn.
  */
@@ -39,6 +40,11 @@ public final class MitigationSystem {
      * tick to this drain.
      */
     public void tick(float dt) {
+        tick(dt, 0L, null);
+    }
+
+    /** The controlled screen follows the world aim even while its wearer strafes. */
+    public void tick(float dt, long controlledId, PointFireAim manualAim) {
         MitigationService screens = rosterService.mitigations();
         MovementService movement = rosterService.movement();
         CombatService combat = rosterService.combat();
@@ -51,9 +57,20 @@ public final class MitigationSystem {
             // by a screen that broke has to drain too, and it outlives the
             // screen by construction.
             if (!screens.has(id)) continue;
-            if (screens.isActive(id)) aim(id, screens, movement, combat, world);
+            if (screens.isActive(id)) {
+                if (id == controlledId) faceManual(id, screens, world, manualAim);
+                else aim(id, screens, movement, combat, world);
+            }
             screens.tick(id, dt);
         }
+    }
+
+    /** Also used immediately after a grant and after manual movement, ahead of damage resolution. */
+    public static void faceManual(long id, MitigationService screens, World world, PointFireAim aim) {
+        if (!screens.isActive(id) || aim == null
+                || !aim.validFrom(world.renderX(id), world.renderY(id))) return;
+        screens.face(id, AirBody.facingToward(aim.x() - world.renderX(id),
+                aim.y() - world.renderY(id)));
     }
 
     /**
