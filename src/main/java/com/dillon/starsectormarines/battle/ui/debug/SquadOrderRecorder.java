@@ -4,6 +4,10 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+import com.dillon.starsectormarines.battle.nav.NavigationService.SquadRouteDiagnostic;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
@@ -133,6 +137,10 @@ public final class SquadOrderRecorder {
     private final int requestedFrames;
     private final Map<Layer, LayerState> layers = new LinkedHashMap<>();
     private final List<Transition> transitions = new ArrayList<>();
+    private record RouteSample(int tick, int goalX, int goalY, boolean enabled,
+            float centroidX, float centroidY, int activePaths, int movingMembers,
+            SquadRouteDiagnostic route) {}
+    private final List<RouteSample> routeSamples = new ArrayList<>();
 
     private int frames;
     private int transitionsDropped;
@@ -182,10 +190,32 @@ public final class SquadOrderRecorder {
      * inflates a value's run length.
      */
     public void sample(Squad squad, BattleSimulation sim) {
-        if (squad == null || sim == null || isComplete()) return;
+        if (squad == null || sim == null || isComplete() || sim.simTickIndex == lastSampledTick) return;
+        captureRoute(squad, sim);
         Map<Layer, String> labels = new EnumMap<>(Layer.class);
         for (Layer layer : Layer.values()) labels.put(layer, label(layer, squad, sim));
         sample(sim.simTickIndex, labels);
+    }
+
+    private void captureRoute(Squad squad, BattleSimulation sim) {
+        SquadPlan.Step step = squad.currentPlan == null ? null : squad.currentPlan.currentStep();
+        if (step == null || !(step.action instanceof SquadRouteGoalProvider provider)) return;
+        SquadRouteGoalProvider.Goal goal = provider.squadRouteGoal(squad, sim);
+        if (goal == null) return;
+        List<Long> members = step.allAssignedMembers().stream().distinct()
+                .filter(member -> sim.resolveUnit(member) != 0L && !sim.isRiding(member)).toList();
+        int[] starts = new int[members.size()];
+        int activePaths = 0, moving = 0;
+        for (int i = 0; i < members.size(); i++) {
+            long member = members.get(i);
+            starts[i] = sim.getGrid().index(sim.world().cellX(member), sim.world().cellY(member));
+            if (sim.world().pathIdx(member) < Paths.cellCount(sim.world().path(member))) activePaths++;
+            if (sim.movement().has(member) && !sim.movement().settled(member)) moving++;
+        }
+        routeSamples.add(new RouteSample(sim.simTickIndex, goal.x(), goal.y(),
+                SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount()),
+                squad.centroidX, squad.centroidY, activePaths, moving,
+                sim.inspectSquadRoute(squad.id, squad.routingEpoch, step, goal.x(), goal.y(), starts)));
     }
 
     /**
@@ -346,6 +376,20 @@ public final class SquadOrderRecorder {
         root.put("layers", layerJson);
         root.put("transitions", buildTransitionsJson());
         root.put("transitionsDropped", transitionsDropped);
+        JSONArray routes = new JSONArray();
+        for (RouteSample sample : routeSamples) {
+            JSONObject route = SquadStateDumper.buildRouteDiagnosticJson(sample.route);
+            route.put("tick", sample.tick);
+            route.put("goalX", sample.goalX);
+            route.put("goalY", sample.goalY);
+            route.put("enabled", sample.enabled);
+            route.put("centroidX", sample.centroidX);
+            route.put("centroidY", sample.centroidY);
+            route.put("activePathMembers", sample.activePaths);
+            route.put("movingMembers", sample.movingMembers);
+            routes.put(route);
+        }
+        root.put("routeSamples", routes);
         return root;
     }
 

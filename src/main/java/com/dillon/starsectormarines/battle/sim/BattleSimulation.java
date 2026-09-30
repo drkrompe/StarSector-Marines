@@ -2388,6 +2388,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return navigation.isSquadRoutePending(squadId, routingEpoch, routeToken, goalX, goalY);
     }
 
+    /** Debug-only read of an exact prepared route, without initiating a search. */
+    public NavigationService.SquadRouteDiagnostic inspectSquadRoute(int squadId, long epoch,
+            Object token, int goalX, int goalY, int[] starts) {
+        return navigation.inspectSquadRoute(squadId, epoch, token, goalX, goalY, starts);
+    }
+
     public int lastSquadRouteOldestWaitTicks() { return navigation.lastSquadRouteOldestWaitTicks(); }
 
     public int lastSquadRouteAdmittedWaitTicks() { return navigation.lastSquadRouteAdmittedWaitTicks(); }

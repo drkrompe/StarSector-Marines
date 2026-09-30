@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
+import com.dillon.starsectormarines.battle.nav.NavigationService.SquadRouteDiagnostic;
+import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
@@ -1441,6 +1444,8 @@ public final class SquadStateDumper {
         o.put("stepCount", plan.stepCount());
         o.put("currentIndex", plan.currentIndex());
         o.put("complete", plan.isComplete());
+        o.put("routingEpoch", squad.routingEpoch);
+        o.put("route", buildRouteJson(squad, sim));
         JSONArray steps = new JSONArray();
         List<SquadPlan.Step> stepList = plan.steps();
         for (int i = 0; i < stepList.size(); i++) {
@@ -1459,6 +1464,52 @@ public final class SquadStateDumper {
             steps.put(so);
         }
         o.put("steps", steps);
+        return o;
+    }
+
+    /** Captures readiness and geometry without running any diagnostic path searches. */
+    private static JSONObject buildRouteJson(Squad squad, BattleSimulation sim) throws Exception {
+        SquadPlan.Step step = squad.currentPlan.currentStep();
+        if (step == null || !(step.action instanceof SquadRouteGoalProvider provider)) return null;
+        SquadRouteGoalProvider.Goal goal = provider.squadRouteGoal(squad, sim);
+        if (goal == null) return null;
+        List<Long> members = step.allAssignedMembers().stream().distinct()
+                .filter(member -> sim.resolveUnit(member) != 0L && !sim.isRiding(member)).toList();
+        int[] starts = members.stream().mapToInt(member -> sim.getGrid().index(
+                sim.world().cellX(member), sim.world().cellY(member))).toArray();
+        SquadRouteDiagnostic route = sim.inspectSquadRoute(squad.id, squad.routingEpoch,
+                step, goal.x(), goal.y(), starts);
+        JSONObject o = buildRouteDiagnosticJson(route);
+        o.put("enabled", SharedGoalPolicy.usesSquadRouteCorridors(sim.liveUnitCount()));
+        o.put("goalX", goal.x());
+        o.put("goalY", goal.y());
+        boolean inBounds = sim.getGrid().inBounds(goal.x(), goal.y());
+        o.put("goalInBounds", inBounds);
+        o.put("goalWalkable", inBounds && sim.getGrid().isWalkable(goal.x(), goal.y()));
+        o.put("goalZoneId", inBounds ? sim.getZoneGraph().zoneIdAt(goal.x(), goal.y()) : -1);
+        return o;
+    }
+
+    static JSONObject buildRouteDiagnosticJson(SquadRouteDiagnostic route) throws Exception {
+        JSONObject o = new JSONObject();
+        o.put("status", route.status());
+        o.put("preparationTick", route.preparationTick());
+        o.put("meshRevision", route.meshRevision());
+        o.put("topologyRevision", route.topologyRevision());
+        o.put("waitAgeTicks", route.waitAgeTicks());
+        o.put("buildAgeTicks", route.buildAgeTicks());
+        o.put("buildStage", route.buildStage() == null ? JSONObject.NULL : route.buildStage());
+        o.put("lifetimeWorkUnits", route.lifetimeWorkUnits());
+        o.put("seedExpanded", route.seedExpanded());
+        o.put("reverseExpanded", route.reverseExpanded());
+        o.put("lastServedTick", route.lastServedTick());
+        o.put("retryRemainingTicks", route.retryRemainingTicks());
+        o.put("fieldAgeTicks", route.fieldAgeTicks());
+        o.put("startCount", route.startCount());
+        o.put("coveredStartCount", route.coveredStartCount());
+        o.put("activeJobs", route.activeJobs());
+        o.put("pendingRequests", route.pendingRequests());
+        o.put("workUnitsThisTick", route.workUnitsThisTick());
         return o;
     }
 

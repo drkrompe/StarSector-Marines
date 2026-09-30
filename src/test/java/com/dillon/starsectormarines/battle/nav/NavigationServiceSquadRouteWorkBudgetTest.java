@@ -53,6 +53,63 @@ class NavigationServiceSquadRouteWorkBudgetTest {
     }
 
     @Test
+    void inspectionDistinguishesQueuedBuildingReadyAndWrongIntentWithoutSearching() {
+        try (NavigationService navigation = navigation()) {
+            SquadRouteRequest request = request(9, 1, new Object(), 28, cell(1, 2), null);
+            SquadRouteRequest blocker = request(0, 1, new Object(), 28, cell(1, 2), null);
+            navigation.prepareSquadRoutes(List.of(blocker, request), 10, 1);
+            var queued = inspect(navigation, request);
+            assertEquals("QUEUED", queued.status());
+            assertEquals(0, queued.lifetimeWorkUnits());
+            navigation.prepareSquadRoutes(List.of(blocker, request), 11, 4);
+            var building = inspect(navigation, request);
+            assertEquals("BUILDING", building.status());
+            assertEquals(1, building.waitAgeTicks());
+            assertTrue(building.lifetimeWorkUnits() > 0);
+            assertEquals(building, inspect(navigation, request), "inspection must not advance work");
+            assertEquals(2, navigation.activeSquadRouteJobs());
+            finish(navigation, request, 12);
+            var ready = inspect(navigation, request);
+            assertEquals("READY", ready.status());
+            assertEquals(1, ready.coveredStartCount());
+            assertEquals(0, ready.activeJobs());
+            assertEquals("INTENT_MISMATCH", navigation.inspectSquadRoute(9, 2, new Object(),
+                    28, 2, request.startCells()).status());
+            assertEquals("UNCOVERED_START", navigation.inspectSquadRoute(9, 1, request.routeToken(),
+                    28, 2, new int[]{cell(0, 0)}).status());
+        }
+    }
+
+    @Test
+    void inspectionSeparatesWorkLimitBackoffFromCompletedGeometricFailure() {
+        System.setProperty(PER_REQUEST, "2");
+        try (NavigationService navigation = navigation()) {
+            SquadRouteRequest request = request(9, 1, new Object(), 28, cell(1, 2), null);
+            navigation.prepareSquadRoutes(List.of(request), 10, 4);
+            var backoff = inspect(navigation, request);
+            assertEquals("BACKOFF", backoff.status());
+            assertEquals(20, backoff.retryRemainingTicks());
+            assertEquals(0, backoff.activeJobs());
+            navigation.prepareSquadRoutes(List.of(request), 11, 4);
+            assertEquals(19, inspect(navigation, request).retryRemainingTicks());
+        }
+        System.setProperty(PER_REQUEST, "10000");
+        try (NavigationService navigation = navigation()) {
+            navigation.getGrid().getCellFlagsArray()[cell(28, 2)] = 0L;
+            SquadRouteRequest request = request(9, 1, new Object(), 28, cell(1, 2), null);
+            navigation.prepareSquadRoutes(List.of(request), 10, 4);
+            assertEquals("BUILD_FAILED", inspect(navigation, request).status());
+            assertFalse(pending(navigation, request));
+        }
+    }
+
+    private static NavigationService.SquadRouteDiagnostic inspect(NavigationService navigation,
+                                                                  SquadRouteRequest request) {
+        return navigation.inspectSquadRoute(request.squadId(), request.routingEpoch(),
+                request.routeToken(), request.goalX(), request.goalY(), request.startCells());
+    }
+
+    @Test
     void waveSharesAnAggregateBudgetAndEveryRequestEventuallyCompletes() {
         try (NavigationService navigation = navigation()) {
             List<SquadRouteRequest> requests = new ArrayList<>();
