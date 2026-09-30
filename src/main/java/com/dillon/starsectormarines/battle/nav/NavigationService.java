@@ -1110,6 +1110,48 @@ public final class NavigationService implements AutoCloseable {
         }
     }
 
+    /** Read-only inspection of one exact route intent; never admits work or searches. */
+    public SquadRouteDiagnostic inspectSquadRoute(int squadId, long epoch, Object token,
+                                                  int goalX, int goalY, int[] starts) {
+        long mesh = navigationMesh.snapshot().revision();
+        long topology = grid.topologyRevision();
+        PreparedSquadRoute prepared = squadRouteBatch.prepared.get(squadId);
+        DeferredSquadRoute deferred = squadRouteBatch.deferred.get(squadId);
+        boolean pending = deferred != null
+                && deferred.matches(squadId, epoch, token, goalX, goalY, mesh, topology);
+        boolean matchingField = prepared != null && prepared.routingEpoch == epoch
+                && prepared.routeToken == token && grid.inBounds(goalX, goalY)
+                && prepared.goal == grid.index(goalX, goalY) && prepared.meshRevision == mesh;
+        RouteJobSlot slot = pending ? routeJobFor(squadId) : null;
+        RouteBackoff backoff = pending ? routeBackoffs.get(squadId) : null;
+        int covered = 0;
+        if (matchingField && prepared.field != null) {
+            for (int start : starts) if (prepared.field.covers(start)) covered++;
+        }
+        String status = pending ? backoff != null ? "BACKOFF" : slot != null ? "BUILDING" : "QUEUED"
+                : matchingField ? prepared.field == null ? "BUILD_FAILED"
+                : covered == starts.length ? "READY" : "UNCOVERED_START"
+                : prepared != null || deferred != null ? "INTENT_MISMATCH" : "MISSING_FIELD";
+        return new SquadRouteDiagnostic(status, squadRoutePreparationTick, mesh, topology,
+                pending ? Math.max(0, squadRoutePreparationTick - deferred.firstDeferredTick) : 0,
+                slot == null ? 0 : Math.max(0, squadRoutePreparationTick - slot.firstTick),
+                slot == null ? null : slot.job.stage(), slot == null ? 0 : slot.lifetimeWork,
+                slot == null ? 0 : slot.job.seedExpanded(),
+                slot == null ? 0 : slot.job.reverseExpanded(),
+                slot == null ? -1 : slot.lastServedTick,
+                backoff == null ? 0 : Math.max(0L, backoff.retryAt - squadRoutePreparationTick),
+                matchingField ? Math.max(0, squadRoutePreparationTick - prepared.builtTick) : 0,
+                starts.length, covered, activeSquadRouteJobs(), lastSquadRoutePending,
+                lastSquadRouteWorkUnits);
+    }
+
+    /** Frozen diagnostic values; zero ages apply only to the statuses that own them. */
+    public record SquadRouteDiagnostic(String status, int preparationTick, long meshRevision,
+            long topologyRevision, int waitAgeTicks, int buildAgeTicks, String buildStage,
+            long lifetimeWorkUnits, int seedExpanded, int reverseExpanded, int lastServedTick,
+            long retryRemainingTicks, int fieldAgeTicks, int startCount, int coveredStartCount,
+            int activeJobs, int pendingRequests, int workUnitsThisTick) {}
+
     public int preparedSquadRouteCount() { return squadRouteBatch.prepared.size(); }
     public int lastSquadRouteBuilds() { return lastSquadRouteBuilds; }
     public int lastSquadRouteReuses() { return lastSquadRouteReuses; }
