@@ -23,6 +23,12 @@ flow back into the campaign.
 
 ## Current focus
 
+The cross-feature status for a first public alpha is tracked in `v0.1-alpha.md`.
+Its current target is one to twenty Marine squads and two to eight heavy lances
+of up to four chassis each. Mission selection and the upper map-scale decision
+remain open; the tracker identifies existing stories and areas with no covering
+story yet.
+
 ### Company and progression
 
 The campaign spine already supports persistent personnel, contracts, patrons,
@@ -160,6 +166,10 @@ the battle HUD layer.
 See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
+
+Use `v0.1-alpha.md` for the release gates and their owning stories. The
+mission-command and live-acceptance work below remains relevant to the alpha
+only where its mission families enter the chosen release set.
 
 Conquest's fortress capture topology, stable command handoff, portal evidence,
 and contact-execution seam are repaired. Summary
