@@ -24,10 +24,12 @@ flow back into the campaign.
 ## Current focus
 
 The cross-feature status for a first public alpha is tracked in `v0.1-alpha.md`.
-Its current target is one to twenty Marine squads and two to eight heavy lances
-of up to four chassis each. Mission selection and the upper map-scale decision
-remain open; the tracker identifies existing stories and areas with no covering
-story yet.
+Its current direction is toned-down Conquest for early progression, with one
+to twenty Marine squads and two to eight heavy lances of up to four chassis
+each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
+with a smaller combat area. The opening sequence, lance caps across rosters,
+and first-operation discovery remain open; the tracker identifies existing
+stories and areas with no covering story yet.
 
 ### Company and progression
 
