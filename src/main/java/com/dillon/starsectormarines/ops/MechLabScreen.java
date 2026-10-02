@@ -175,6 +175,12 @@ public final class MechLabScreen implements Screen {
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
+        props.put("selectedMechNameClasses", viewModel.selectedMechNameClasses());
+        props.put("callSignDraft", viewModel.callSignDraft());
+        props.put("callSignEditorClasses", viewModel.callSignEditorClasses());
+        props.put("callSignRenameDisabled", viewModel.callSignRenameDisabled());
+        props.put("editCallSign", viewModel.editCallSignAction());
+        props.put("renameCallSign", viewModel.renameCallSignAction());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
@@ -260,6 +266,7 @@ public final class MechLabScreen implements Screen {
                 "mech-active-bay", "mech-next-bay", "mech-lab-body", "mech-asset-picker",
                 "mech-squad-list", "mech-list", "mech-fitting-workspace",
                 "mech-previous-gantry", "mech-active-gantry", "mech-next-gantry",
+                "mech-call-sign-editor", "mech-call-sign-input", "mech-call-sign-set",
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
                 "mech-overview-rail", "mech-overview-gantries", "mech-overview-browse",
                 "mech-slot-rack", "mech-component-catalog",

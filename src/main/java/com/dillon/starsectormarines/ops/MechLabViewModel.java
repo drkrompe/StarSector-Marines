@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
 public final class MechLabViewModel {
@@ -41,6 +42,7 @@ public final class MechLabViewModel {
     private final MutableSignal<SocketId> selectedSlot;
     private final MutableSignal<Boolean> fittingFocused;
     private final MutableSignal<Boolean> assetPickerOpen;
+    private final MutableSignal<String> callSignDraft;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final MutableSignal<CategoryFilter> catalogFilter;
@@ -52,6 +54,9 @@ public final class MechLabViewModel {
     private final ComputedSignal<List<GantryRow>> gantryRows;
     private final ComputedSignal<String> activeGantryLabel;
     private final ComputedSignal<String> selectedMechName;
+    private final ComputedSignal<String> selectedMechNameClasses;
+    private final ComputedSignal<String> callSignEditorClasses;
+    private final ComputedSignal<Boolean> callSignRenameDisabled;
     private final ComputedSignal<String> selectedMechIdentity;
     private final ComputedSignal<String> selectedMechDoctrine;
     private final ComputedSignal<List<PerformanceMeter>> performanceMeters;
@@ -99,6 +104,7 @@ public final class MechLabViewModel {
         selectedSlot = reactor.signal(SocketId.MINI_FAB);
         fittingFocused = reactor.signal(false);
         assetPickerOpen = reactor.signal(false);
+        callSignDraft = reactor.signal("");
         feedbackText = reactor.signal(
                 "Select an occupied gantry to refit, or press + on a vacant pad to fabricate a chassis.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
@@ -120,6 +126,20 @@ public final class MechLabViewModel {
             return mech != null ? mech.displayName() : fabricatingChassis()
                     ? String.format(Locale.ROOT, "VACANT GANTRY %02d", selectedGantryIndex() + 1)
                     : "NO ASSET SELECTED";
+        });
+        selectedMechNameClasses = reactor.computed(() -> selectedMech() == null
+                ? "label asset-name tone-accent"
+                : "label asset-name tone-accent hidden");
+        callSignEditorClasses = reactor.computed(() -> selectedMech() == null
+                ? "mech-call-sign-editor hidden" : "mech-call-sign-editor");
+        callSignRenameDisabled = reactor.computed(() -> {
+            CampaignMech mech = selectedMech();
+            String candidate = callSignDraft.get();
+            if (mech == null || candidate == null) return true;
+            String trimmed = candidate.trim();
+            return trimmed.isEmpty()
+                    || trimmed.length() > CampaignMech.CALLSIGN_MAX_LENGTH
+                    || trimmed.equals(mech.displayName());
         });
         selectedMechIdentity = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
@@ -180,6 +200,10 @@ public final class MechLabViewModel {
     public Signal<List<GantryRow>> gantryRows() { return gantryRows; }
     public Signal<String> activeGantryLabel() { return activeGantryLabel; }
     public Signal<String> selectedMechName() { return selectedMechName; }
+    public Signal<String> callSignDraft() { return callSignDraft; }
+    public Signal<String> selectedMechNameClasses() { return selectedMechNameClasses; }
+    public Signal<String> callSignEditorClasses() { return callSignEditorClasses; }
+    public Signal<Boolean> callSignRenameDisabled() { return callSignRenameDisabled; }
     public Signal<String> selectedMechIdentity() { return selectedMechIdentity; }
     public Signal<String> selectedMechDoctrine() { return selectedMechDoctrine; }
     public Signal<List<PerformanceMeter>> performanceMeters() { return performanceMeters; }
@@ -204,6 +228,8 @@ public final class MechLabViewModel {
     public Runnable nextGantryAction() { return this::nextGantry; }
     public Runnable selectGantryAction(int index) { return () -> selectGantry(index); }
     public Runnable overviewAction() { return this::showLanceOverview; }
+    public Consumer<String> editCallSignAction() { return this::editCallSign; }
+    public Runnable renameCallSignAction() { return this::renameSelectedMech; }
     public Signal<List<FilterPill>> categoryFilterPills() { return categoryFilterPills; }
     public Signal<CategoryFilter> catalogFilter() { return catalogFilter; }
     public void setFilter(CategoryFilter filter) {
@@ -292,6 +318,7 @@ public final class MechLabViewModel {
             selectedSquadId.set(squad != null ? squad.id() : null);
         }
         selectedMechId.set(null);
+        callSignDraft.set("");
         fittingFocused.set(false);
         assetPickerOpen.set(false);
         revision.update(value -> value + 1);
@@ -652,6 +679,7 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = bay.squadById(squadId);
         selectedSquadId.set(squadId);
         selectedMechId.set(null);
+        callSignDraft.set("");
         selectedGantry.set(0);
         selectedSlot.set(SocketId.MINI_FAB);
         fittingFocused.set(false);
@@ -671,6 +699,7 @@ public final class MechLabViewModel {
             }
         }
         selectedMechId.set(mechId);
+        callSignDraft.set(squad.mechById(mechId).displayName());
         selectedSlot.set(defaultFittingSlot(squad.mechById(mechId)));
         fittingFocused.set(true);
         assetPickerOpen.set(false);
@@ -693,6 +722,7 @@ public final class MechLabViewModel {
         CampaignMech mech = mechAt(selectedSquad(), index);
         selectedGantry.set(index);
         selectedMechId.set(mech != null ? mech.id() : null);
+        callSignDraft.set(mech != null ? mech.displayName() : "");
         selectedSlot.set(defaultFittingSlot(mech));
         fittingFocused.set(true);
         assetPickerOpen.set(false);
@@ -708,6 +738,7 @@ public final class MechLabViewModel {
         assetPickerOpen.set(true);
         fittingFocused.set(false);
         selectedMechId.set(null);
+        callSignDraft.set("");
         feedbackText.set("Choose a support lance and assigned asset to open its gantry.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
@@ -716,6 +747,7 @@ public final class MechLabViewModel {
         assetPickerOpen.set(false);
         fittingFocused.set(false);
         selectedMechId.set(null);
+        callSignDraft.set("");
         feedbackText.set("Returned to the lance overview. No campaign hardware changed.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
@@ -751,6 +783,7 @@ public final class MechLabViewModel {
         assetPickerOpen.set(false);
         fittingFocused.set(false);
         selectedMechId.set(null);
+        callSignDraft.set("");
         feedbackText.set("Lance overview restored. Select an occupied gantry to refit,"
                 + " or press + on a vacant pad to fabricate a chassis.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -817,6 +850,7 @@ public final class MechLabViewModel {
         CampaignMech fabricated = result.mech();
         if (fabricated != null) {
             selectedMechId.set(fabricated.id());
+            callSignDraft.set(fabricated.displayName());
             selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
             selectedSlot.set(SocketId.ARMS);
             fittingFocused.set(true);
@@ -832,6 +866,33 @@ public final class MechLabViewModel {
                 ? "mech-lab-feedback tone-good surface-dark"
                 : "mech-lab-feedback tone-danger surface-dark");
         if (result.succeeded()) bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    private void editCallSign(String value) {
+        String draft = value != null ? value : "";
+        callSignDraft.set(draft);
+        if (draft.trim().isEmpty()) {
+            feedbackText.set("A call sign is required; the current mech name is unchanged.");
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+        } else {
+            feedbackText.set("Press SET to apply this call sign. Hardware and stores are unchanged.");
+            feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+        }
+    }
+
+    private void renameSelectedMech() {
+        CampaignMech mech = selectedMech();
+        if (mech == null) return;
+        if (!mech.rename(callSignDraft.get())) {
+            feedbackText.set("Call sign must contain 1–"
+                    + CampaignMech.CALLSIGN_MAX_LENGTH + " characters.");
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+            return;
+        }
+        callSignDraft.set(mech.displayName());
+        feedbackText.set(mech.displayName() + " renamed. Chassis identity, fit, and stores were unchanged.");
+        feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
     }
 

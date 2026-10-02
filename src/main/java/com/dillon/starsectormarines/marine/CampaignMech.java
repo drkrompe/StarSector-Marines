@@ -13,6 +13,7 @@ import java.io.Serializable;
 public final class CampaignMech implements Serializable {
 
     public static final String EMPTY_COMPONENT_ID = "empty";
+    public static final int CALLSIGN_MAX_LENGTH = 48;
 
     private final String id;
     private String displayName;
@@ -43,6 +44,15 @@ public final class CampaignMech implements Serializable {
 
     public String id() { return id; }
     public String displayName() { return displayName; }
+    /** Changes only this mech's player-facing name; its identity and fit stay intact. */
+    public boolean rename(String value) {
+        if (value == null) return false;
+        String candidate = value.trim();
+        if (candidate.isEmpty() || candidate.length() > CALLSIGN_MAX_LENGTH) return false;
+        displayName = candidate;
+        return true;
+    }
+
     public MechVariant variant() { return variant; }
     public MechRole role() { return role != null ? role : variant.defaultRole; }
     public String missileReplenisherId() {
@@ -78,7 +88,7 @@ public final class CampaignMech implements Serializable {
 
     public MechDeploymentSpec freezeForDeployment() {
         return new MechDeploymentSpec(variant, role(), missileReplenisher(),
-                arms(), leftShoulder(), rightShoulder());
+                arms(), leftShoulder(), rightShoulder(), displayName);
     }
 
     void installMissileReplenisher(String componentId) {

@@ -46,7 +46,10 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 }
             }
         }
-        EntitySpec spec = new EntitySpec("support-" + context.nextUnitName(), context.faction,
+        String fallbackName = "support-" + context.nextUnitName();
+        String name = deployment.displayName();
+        if (name == null || name.isBlank()) name = fallbackName;
+        EntitySpec spec = new EntitySpec(name, context.faction,
                 UnitType.HEAVY_MECH, point.cellX(), point.cellY())
                 .atPosition(point.x(), point.y())
                 .mechVariant(variant)

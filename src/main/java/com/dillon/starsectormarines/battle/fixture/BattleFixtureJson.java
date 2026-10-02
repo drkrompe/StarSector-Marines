@@ -564,6 +564,9 @@ public final class BattleFixtureJson {
                         componentId(deployment.leftShoulder()));
                 putNullable(mech, "rightShoulderComponentId",
                         componentId(deployment.rightShoulder()));
+                if (deployment.displayName() != null) {
+                    mech.put("displayName", deployment.displayName());
+                }
                 deployments.put(mech);
             }
             encoded.put("mechDeployments", deployments);
@@ -593,13 +596,16 @@ public final class BattleFixtureJson {
                 MissileReplenisherComponent replenisher =
                         MissileReplenisherComponent.requireById(replenisherId);
                 MechVariant variant = MechVariant.fromId(mech.getString("variantId"));
+                String displayName = mech.has("displayName") && !mech.isNull("displayName")
+                        ? mech.getString("displayName") : null;
                 deployments.add(new MechDeploymentSpec(
                         variant,
                         enumValue(MechRole.class, mech.getString("role"), "mech role"),
                         replenisher,
                         component(mech, "armsComponentId", variant.arms),
                         component(mech, "leftShoulderComponentId", variant.leftShoulder),
-                        component(mech, "rightShoulderComponentId", variant.rightShoulder)));
+                        component(mech, "rightShoulderComponentId", variant.rightShoulder),
+                        displayName));
             }
             powers.add(new CommandPowerCommitment(
                     encoded.getString("id"), deployments));

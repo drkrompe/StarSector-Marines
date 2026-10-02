@@ -1,4 +1,4 @@
-<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,categoryFilterPills,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechNameClasses,callSignDraft,callSignEditorClasses,callSignRenameDisabled,editCallSign,renameCallSign,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,categoryFilterPills,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -49,7 +49,12 @@
       <div id="mech-fitting-workspace" class="{workspaceClasses}">
           <div id="mech-asset-strip" class="{fittingHeaderClasses}">
             <div id="mech-asset-strip-copy" class="asset-strip-copy">
-              <div id="selected-mech-name" class="label asset-name tone-accent">{selectedMechName}</div>
+              <div id="selected-mech-name" class="{selectedMechNameClasses}">{selectedMechName}</div>
+              <div id="mech-call-sign-editor" class="{callSignEditorClasses}">
+                <div id="mech-call-sign-label" class="label heading tone-muted call-sign-label">CALLSIGN</div>
+                <input id="mech-call-sign-input" class="mech-call-sign-input" value="{callSignDraft}" maxlength="48" oninput="{editCallSign}" />
+                <button id="mech-call-sign-set" class="call-sign-action" disabled="{callSignRenameDisabled}" onclick="{renameCallSign}">SET</button>
+              </div>
               <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
             </div>
             <div id="mech-gantry-navigator" class="gantry-navigator">
@@ -202,6 +207,11 @@
   .asset-strip { flex-direction: row; height: 44px; padding: 4px 8px; gap: 8px; }
   .asset-strip-copy { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; }
   .asset-name { width: 210px; height: 27px; font-family: title; }
+  .mech-call-sign-editor { flex-direction: row; width: 300px; height: 27px; gap: 4px; overflow: hidden; }
+  .call-sign-label { width: 65px; height: 27px; padding-top: 7px; }
+  .mech-call-sign-input { width: 0px; flex-grow: 1; height: 27px; padding: 4px 7px; border-width: 1px; background-color: #0d1622; color: #d5deea; font-family: title; }
+  .mech-call-sign-input:focus { border-color: #53c6e8; background-color: #14263a; }
+  .call-sign-action { width: 48px; height: 27px; text-align: center; }
   .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
   .gantry-navigator { flex-direction: row; width: 290px; height: 34px; gap: 3px; }
   .gantry-step { width: 60px; height: 34px; padding: 5px; }
