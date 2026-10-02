@@ -44,7 +44,7 @@ Design: `assault-command.md`
 |---|---|---|
 | `assault-search-sector-picture.md` | IN PROGRESS | Finish live and canonical-duration acceptance of attacker search. |
 | `assault-area-defense-command.md` | IN PROGRESS | Finish live and canonical-duration acceptance of defender area security. |
-| `opening-operation-objective-command.md` | DRAFT | Adapt the shared architecture to finite preserve/secure opening scenarios. |
+| `opening-operation-objective-command.md` | IN PROGRESS | Adapt the shared architecture to finite preserve/secure opening scenarios; real COMMS/depot place legibility and live acceptance remain. |
 
 ## Raid
 

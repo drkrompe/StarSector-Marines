@@ -43,9 +43,10 @@ domains share — four currencies, the stages that fall out of them, the growth
 rule, and the boundary with the player's own colonies — is
 `meta-progression.md`.
 
-The opening Independent contract ladder is code-complete and awaiting a live
-play pass before another early-operation variant is contracted. Its standing
-mission model lives in `early-operation-nouns.md`.
+The recurring Independent opening-operation pair is code-complete and awaiting
+a live play pass before another early-operation variant is contracted. Its
+standing mission model lives in `early-operation-nouns.md`; first-offer
+discoverability remains a separate alpha gate.
 
 ### Battle tier
 

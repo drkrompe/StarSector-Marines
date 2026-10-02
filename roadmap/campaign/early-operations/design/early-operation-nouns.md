@@ -4,29 +4,40 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Early operations are the opening proof that a green marine company can take
+Updated: 2026-10-02 — reconciled recurring Independent work with current live-acceptance scope.
+
+Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
-authored First Contract missions, not weakened generic battles.
+authored First Contract missions, not weakened generic battles. Their force
+model remains aimed at a small company as it grows; the fixed, modest payout is
+the reason for a veteran company to move on, rather than an eligibility rule
+withdrawing the work.
 
-## Opening ladder
+## Opening operation pair
 
-The **opening ladder** is a two-rung, one-shot Independent-broker sequence.
-Relief establishes that the player can reinforce a local line; counterattack
-then asks that same young company to seize the bandits' depot. Victory advances
-only the completed rung, while defeat leaves it available for retry. The first
-rung is gated to a green, small company; completing it permanently unlocks the
-second rung even if survival changes that company afterwards.
+The **opening operation pair** is recurring Independent-broker work. Relief
+establishes that the player can reinforce a local line; counterattack then asks
+that company to secure the bandits' depot. Both remain available after
+completion, and defeat leaves the relevant operation available to retry.
+Completing Relief unlocks Counterattack permanently, even if the company later
+grows or suffers losses. Neither operation is gated on the roster remaining
+green or small.
 
-The Independent broker is the ladder's sole owner. This makes the opening
-reachable through the ordinary client surface rather than through a synthetic
-tutorial client or a planet-specific route.
+The Independent broker is the pair's sole owner. Offers use the ordinary client
+surface rather than a synthetic tutorial client or a planet-specific route.
+The seeded availability roll is stable for the same planet and client, though
+completing Relief can add the newly unlocked Counterattack. Currently each
+operation appears at roughly one in three eligible Independent brokers. Whether
+that is a dependable first-offer route is an open alpha discovery question in
+`v0.1-alpha.md`.
 
-## Green-company promise
+## Small-company promise
 
-An **early operation** assumes scarce player lift, mixed persistent equipment,
-and a company still learning to fight together. Employer militia makes the
-battle larger but never replaces the player contribution: local troops take
-their authored seats and campaign personnel retains ownership of player seats.
+An **early operation** is tuned around scarce player lift, mixed persistent
+equipment, and a company still learning to fight together. Employer militia
+makes the battle larger but never replaces the player contribution: local
+troops take their authored seats and campaign personnel retains ownership of
+player seats.
 
 The enemy is a finite ragtag force. An early operation deliberately excludes
 regular infantry, mechs, static defense posts, fighter cover, and open-ended
@@ -54,17 +65,18 @@ command-architecture seam, not a rule later Assault missions inherit.
 ## Boundaries and acceptance
 
 Operation tier supplies the shared scale vocabulary; it does not replace the
-authored green-company eligibility or scenario identity. Company-view owns the
-player's squad and lift semantics. Battle setup owns finite force composition
-and mission command. The opening ladder owns only the campaign progression
-between its two missions. Explicitly persisting that authored tier through the
-mission boundary belongs to `retire-risk-tier-bridges.md`.
+small-company force promise or scenario identity. Company-view owns the player's
+squad and lift semantics. Battle setup owns finite force composition and
+mission command. The opening pair owns only progression between its missions.
+Explicitly persisting that authored tier through the mission boundary belongs
+to `retire-risk-tier-bridges.md`.
 
 An eventual local-survival incentive must consume allied casualty facts frozen
 into the mission outcome. Until that outcome boundary exists, it is an
 extension point rather than a bounded early-operation story.
 
-The remaining work is `opening-ladder-live-acceptance.md`: live play must
-validate arrival timing, present lift requirements, force ratios, and victory
-availability before any third opening variant is contracted. Shipped
-implementation evidence is in `shipped.md`.
+The remaining live play is tracked by `opening-ladder-live-acceptance.md`: it
+must validate arrival timing, actual lift requirements, force ratios, and
+briefing claims before another opening variant is contracted. Whether a new
+player can dependably discover the first offer remains a separate alpha gate.
+Shipped implementation evidence is in `shipped.md`.
