@@ -68,4 +68,20 @@ public interface MapGenerator {
         }
         return generate(width, height, seed, axis, profile);
     }
+
+    /**
+     * Generate a First Contract map with one authored mission place while
+     * preserving the resolved landing and force staging in {@code plan}.
+     *
+     * <p>This is deliberately a separate entry point from the PrecinctPlan
+     * overload: calls that pass {@code null} for the latter remain
+     * unambiguous. A generator that cannot honor the authored-place request
+     * fails explicitly rather than returning a map that silently lacks it.
+     */
+    default OpeningOperationMapResult generateOpeningOperation(
+            int width, int height, long seed, TargetProfile profile,
+            OpeningOperationMapPlan plan) {
+        throw new UnsupportedOperationException(getClass().getName()
+                + " cannot build an authored opening-operation place");
+    }
 }

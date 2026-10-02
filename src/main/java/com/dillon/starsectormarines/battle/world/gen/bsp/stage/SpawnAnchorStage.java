@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BiomeMap;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -47,6 +48,17 @@ public final class SpawnAnchorStage implements GenStage {
         } else {
             marine   = pickSpawnAnchor(grid, 1, 1, ctx.width / 2, ctx.height - 1, rng);
             defender = pickSpawnAnchor(grid, ctx.width / 2, 1, ctx.width - 1, ctx.height - 1, rng);
+        }
+        OpeningOperationMapPlan opening = ctx.get(BspKeys.OPENING_OPERATION_PLAN);
+        if (opening != null) {
+            marine = new int[]{opening.marineSpawnX(), opening.marineSpawnY()};
+            defender = new int[]{opening.defenderSpawnX(), opening.defenderSpawnY()};
+            if (!grid.inBounds(marine[0], marine[1]) || !grid.isWalkable(marine[0], marine[1])
+                    || !grid.inBounds(defender[0], defender[1])
+                    || !grid.isWalkable(defender[0], defender[1])) {
+                throw new IllegalStateException(
+                        "opening-operation plan displaced a map spawn anchor");
+            }
         }
         ctx.put(BspKeys.MARINE_SPAWN, marine);
         ctx.put(BspKeys.DEFENDER_SPAWN, defender);

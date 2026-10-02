@@ -108,6 +108,8 @@ import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
+import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -1121,13 +1123,45 @@ public final class BattleSetup {
                 "opening operation kind is required");
 
         MapScale scale = MapScale.forTier(OperationTier.FIRST_CONTRACT);
-        MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null,
-                profile != null ? profile : TargetProfile.NEUTRAL);
-        Random rng = new Random(seed);
+        TargetProfile effectiveProfile = profile != null ? profile : TargetProfile.NEUTRAL;
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        List<Doodad> vehiclePlacements = stampVehicles(map, rng);
+        MapResult stagingMap = MAP_GEN.generate(scale.width, scale.height, seed,
+                null, effectiveProfile);
+        Random stagingRng = new Random(seed);
+        List<Doodad> reservedVehicles = stampVehicles(stagingMap, stagingRng);
         List<LandingPad> lzCells = LandingPadSelector.select(
-                map, assignments.size(), LZ_MIN_SEPARATION);
+                stagingMap, assignments.size(), LZ_MIN_SEPARATION);
+        List<int[]> raiderCells = pickDefensiveCluster(stagingMap.grid,
+                stagingMap.defenderSpawnX, stagingMap.defenderSpawnY, OPENING_RAIDERS);
+        int[] raiderAnchor = raiderCells.isEmpty()
+                ? new int[]{stagingMap.defenderSpawnX, stagingMap.defenderSpawnY}
+                : raiderCells.get(0).clone();
+        int[] reliefLineAnchor = kind == OpeningOperationKind.RELIEF
+                ? openingDefenseLineAnchor(stagingMap, lzCells.get(0)) : null;
+        List<int[]> localMilitiaCells = kind == OpeningOperationKind.RELIEF
+                ? pickDefensiveCluster(stagingMap.grid, reliefLineAnchor[0],
+                        reliefLineAnchor[1], OPENING_LOCAL_MILITIA)
+                : Collections.emptyList();
+        int[] requestedAnchor = kind == OpeningOperationKind.RELIEF
+                ? (localMilitiaCells.isEmpty() ? reliefLineAnchor
+                        : localMilitiaCells.get(0).clone())
+                : raiderAnchor;
+        PointOfInterest.Kind facilityKind = kind == OpeningOperationKind.RELIEF
+                ? PointOfInterest.Kind.COMMS : PointOfInterest.Kind.DEPOT;
+        OpeningOperationMapPlan openingPlan = openingMapPlan(stagingMap, lzCells,
+                reservedVehicles, localMilitiaCells, raiderCells, facilityKind,
+                requestedAnchor);
+        OpeningOperationMapResult generated = MAP_GEN.generateOpeningOperation(
+                scale.width, scale.height, seed, effectiveProfile, openingPlan);
+        MapResult map = generated.map();
+        PointOfInterest authoredPlace = generated.place();
+
+        Random rng = new Random(seed);
+        boolean[][] vehicleReservations = openingVehicleReservations(
+                map, authoredPlace, lzCells, localMilitiaCells, raiderCells);
+        List<Doodad> vehiclePlacements = stampVehicles(map, rng, vehicleReservations);
+        validateOpeningOperationLayout(map, authoredPlace, lzCells,
+                localMilitiaCells, raiderCells, requestedAnchor);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(map, vehiclePlacements,
                 Collections.emptyList(), parkedAircraft, seed).sim();
@@ -1188,21 +1222,23 @@ public final class BattleSetup {
             // are for companies whose lift is transport, not close support.
         }
 
-        int[] reliefAnchor = kind == OpeningOperationKind.RELIEF
-                ? spawnOpeningDefenseLine(sim, map, lzCells.get(0), rng)
-                : null;
-        int[] banditDepot = spawnOpeningRaiders(sim, map, rng);
+        if (kind == OpeningOperationKind.RELIEF) {
+            spawnOpeningMilitiaSquads(sim, localMilitiaCells, Faction.ALLY,
+                    "local", true, rng);
+        }
+        spawnOpeningMilitiaSquads(sim, raiderCells, Faction.DEFENDER,
+                "raider", false, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
 
-        int[] commandPlace = kind == OpeningOperationKind.RELIEF
-                ? reliefAnchor : banditDepot;
+        int[] commandPlace = new int[]{authoredPlace.anchorCellX,
+                authoredPlace.anchorCellY};
         OpeningOperationCommandFacts commandFacts =
                 new OpeningOperationCommandFacts(kind,
                         kind == OpeningOperationKind.RELIEF
-                                ? "relief-anchor" : "bandit-depot",
+                                ? "relief-comms" : "bandit-depot",
                         kind == OpeningOperationKind.RELIEF
-                                ? "Relief anchor" : "Bandit depot",
+                                ? "Relief COMMS post" : "Bandit depot",
                         commandPlace[0], commandPlace[1]);
         OpeningOperationCommandDisclosure disclosure =
                 new OpeningOperationCommandDisclosure(commandFacts);
@@ -1211,6 +1247,145 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER,
                 new OpeningOperationCommand(Faction.DEFENDER), disclosure);
         return sim;
+    }
+
+    private static OpeningOperationMapPlan openingMapPlan(
+            MapResult stagingMap, List<LandingPad> lzCells,
+            List<Doodad> reservedVehicles,
+            List<int[]> localMilitiaCells, List<int[]> raiderCells,
+            PointOfInterest.Kind facilityKind, int[] targetAnchor) {
+        List<OpeningOperationMapPlan.Cell> reserved = new ArrayList<>();
+        addReservedCell(reserved, stagingMap.marineSpawnX, stagingMap.marineSpawnY,
+                stagingMap.grid.getWidth(), stagingMap.grid.getHeight());
+        addReservedCell(reserved, stagingMap.defenderSpawnX, stagingMap.defenderSpawnY,
+                stagingMap.grid.getWidth(), stagingMap.grid.getHeight());
+        for (LandingPad pad : lzCells) {
+            for (int y = pad.bottom() - 1; y <= pad.top() + 1; y++) {
+                for (int x = pad.left() - 1; x <= pad.right() + 1; x++) {
+                    addReservedCell(reserved, x, y,
+                            stagingMap.grid.getWidth(), stagingMap.grid.getHeight());
+                }
+            }
+        }
+        addReservedCells(reserved, localMilitiaCells,
+                stagingMap.grid.getWidth(), stagingMap.grid.getHeight());
+        addReservedCells(reserved, raiderCells,
+                stagingMap.grid.getWidth(), stagingMap.grid.getHeight());
+        for (Doodad vehicle : reservedVehicles) {
+            for (int y = vehicle.cellY; y < vehicle.cellY + vehicle.footprintCellsY; y++) {
+                for (int x = vehicle.cellX; x < vehicle.cellX + vehicle.footprintCellsX; x++) {
+                    addReservedCell(reserved, x, y,
+                            stagingMap.grid.getWidth(), stagingMap.grid.getHeight());
+                }
+            }
+        }
+        return new OpeningOperationMapPlan(facilityKind,
+                stagingMap.marineSpawnX, stagingMap.marineSpawnY,
+                stagingMap.defenderSpawnX, stagingMap.defenderSpawnY,
+                targetAnchor[0], targetAnchor[1], reserved);
+    }
+
+    private static void validateOpeningOperationLayout(
+            MapResult map, PointOfInterest place, List<LandingPad> landingPads,
+            List<int[]> localMilitiaCells, List<int[]> raiderCells,
+            int[] originalCommandAnchor) {
+        if (place == null || !map.grid.isWalkable(place.anchorCellX, place.anchorCellY)
+                || !map.grid.isWalkable(place.interiorAnchorX, place.interiorAnchorY)) {
+            throw new IllegalStateException(
+                    "opening-operation place has no walkable ingress");
+        }
+        if (Paths.isEmpty(GridPathfinder.findPath(map.grid,
+                place.anchorCellX, place.anchorCellY,
+                place.interiorAnchorX, place.interiorAnchorY))) {
+            throw new IllegalStateException(
+                    "opening-operation place ingress is disconnected");
+        }
+        if (Paths.isEmpty(GridPathfinder.findPath(map.grid,
+                originalCommandAnchor[0], originalCommandAnchor[1],
+                place.anchorCellX, place.anchorCellY))) {
+            throw new IllegalStateException(
+                    "opening-operation place is unreachable from its staging anchor");
+        }
+        for (LandingPad pad : landingPads) {
+            if (!pad.isClear(map.grid, map.topology)) {
+                throw new IllegalStateException(
+                        "opening-operation facility displaced a shuttle landing pad");
+            }
+        }
+        for (int[] cell : localMilitiaCells) {
+            if (!map.grid.isWalkable(cell[0], cell[1])) {
+                throw new IllegalStateException(
+                        "opening-operation facility displaced local militia staging");
+            }
+        }
+        for (int[] cell : raiderCells) {
+            if (!map.grid.isWalkable(cell[0], cell[1])) {
+                throw new IllegalStateException(
+                        "opening-operation facility displaced raider staging");
+            }
+        }
+    }
+
+    private static boolean[][] openingVehicleReservations(
+            MapResult map, PointOfInterest place, List<LandingPad> landingPads,
+            List<int[]> localMilitiaCells, List<int[]> raiderCells) {
+        int width = map.grid.getWidth();
+        int height = map.grid.getHeight();
+        boolean[][] reserved = new boolean[width][height];
+        markVehicleReservation(reserved, map.marineSpawnX, map.marineSpawnY,
+                width, height);
+        markVehicleReservation(reserved, map.defenderSpawnX, map.defenderSpawnY,
+                width, height);
+        for (LandingPad pad : landingPads) {
+            for (int y = pad.bottom() - 1; y <= pad.top() + 1; y++) {
+                for (int x = pad.left() - 1; x <= pad.right() + 1; x++) {
+                    markVehicleReservation(reserved, x, y, width, height);
+                }
+            }
+        }
+        for (int[] cell : localMilitiaCells) {
+            markVehicleReservation(reserved, cell[0], cell[1], width, height);
+        }
+        for (int[] cell : raiderCells) {
+            markVehicleReservation(reserved, cell[0], cell[1], width, height);
+        }
+        for (int y = place.top; y <= place.bottom; y++) {
+            for (int x = place.left; x <= place.right; x++) {
+                markVehicleReservation(reserved, x, y, width, height);
+            }
+        }
+        return reserved;
+    }
+
+    private static void markVehicleReservation(boolean[][] reserved, int x, int y,
+                                               int width, int height) {
+        if (x >= 0 && y >= 0 && x < width && y < height) reserved[x][y] = true;
+    }
+
+    private static void addReservedCells(List<OpeningOperationMapPlan.Cell> out,
+                                         List<int[]> cells, int width, int height) {
+        for (int[] cell : cells) {
+            addReservedCell(out, cell[0], cell[1], width, height);
+        }
+    }
+
+    private static void addReservedCell(List<OpeningOperationMapPlan.Cell> out,
+                                        int x, int y, int width, int height) {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        for (OpeningOperationMapPlan.Cell existing : out) {
+            if (existing.x() == x && existing.y() == y) return;
+        }
+        out.add(new OpeningOperationMapPlan.Cell(x, y));
+    }
+
+    private static int[] openingDefenseLineAnchor(MapResult map, LandingPad firstLz) {
+        int towardEnemyX = Integer.compare(map.defenderSpawnX, firstLz.centerX);
+        int towardEnemyY = Integer.compare(map.defenderSpawnY, firstLz.centerY);
+        int anchorX = clamp(firstLz.centerX + towardEnemyX * OPENING_LINE_OFFSET,
+                0, map.grid.getWidth() - 1);
+        int anchorY = clamp(firstLz.centerY + towardEnemyY * OPENING_LINE_OFFSET,
+                0, map.grid.getHeight() - 1);
+        return new int[]{anchorX, anchorY};
     }
 
     /**
@@ -2911,38 +3086,6 @@ public final class BattleSetup {
         return approach;
     }
 
-    private static int[] spawnOpeningDefenseLine(
-            BattleSimulation sim, MapResult map, LandingPad firstLz,
-            Random rng) {
-        int towardEnemyX = Integer.compare(map.defenderSpawnX, firstLz.centerX);
-        int towardEnemyY = Integer.compare(map.defenderSpawnY, firstLz.centerY);
-        int anchorX = clamp(firstLz.centerX + towardEnemyX * OPENING_LINE_OFFSET,
-                0, map.grid.getWidth() - 1);
-        int anchorY = clamp(firstLz.centerY + towardEnemyY * OPENING_LINE_OFFSET,
-                0, map.grid.getHeight() - 1);
-        List<int[]> cells = pickDefensiveCluster(
-                map.grid, anchorX, anchorY, OPENING_LOCAL_MILITIA);
-        // The relief job's local line belongs to the employer, not the company.
-        // Under ALLY it keeps everything it had — the same kit, the same posts,
-        // the same garrison authority — and stops being a marine squad the
-        // player's commander can see or a click can move.
-        spawnOpeningMilitiaSquads(sim, cells, Faction.ALLY,
-                "local", true, rng);
-        return cells.isEmpty()
-                ? new int[]{anchorX, anchorY} : cells.get(0).clone();
-    }
-
-    private static int[] spawnOpeningRaiders(
-            BattleSimulation sim, MapResult map, Random rng) {
-        List<int[]> cells = pickDefensiveCluster(map.grid,
-                map.defenderSpawnX, map.defenderSpawnY, OPENING_RAIDERS);
-        spawnOpeningMilitiaSquads(sim, cells, Faction.DEFENDER,
-                "raider", false, rng);
-        return cells.isEmpty()
-                ? new int[]{map.defenderSpawnX, map.defenderSpawnY}
-                : cells.get(0).clone();
-    }
-
     /** Spawns intentionally low-grade four-person militia squads for either side. */
     private static void spawnOpeningMilitiaSquads(
             BattleSimulation sim, List<int[]> cells, Faction faction,
@@ -3878,6 +4021,11 @@ public final class BattleSetup {
      * all and says nothing about it.
      */
     static List<Doodad> stampVehicles(MapResult map, Random rng) {
+        return stampVehicles(map, rng, null);
+    }
+
+    private static List<Doodad> stampVehicles(MapResult map, Random rng,
+                                              boolean[][] reserved) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
         GenMappingRegistry mappings = GenMappingRegistry.installed();
@@ -3899,7 +4047,7 @@ public final class BattleSetup {
         for (int i = 0; i < serviceTarget; i++) {
             LandingPad pad = portPads.get(i * 2);
             DoodadDef kind = serviceKinds.get(rng.nextInt(serviceKinds.size()));
-            int[] anchor = findServiceVehicleAnchor(map, pad, kind);
+            int[] anchor = findServiceVehicleAnchor(map, pad, kind, reserved);
             if (anchor == null) continue;
             placed.add(stampOneVehicle(grid, topology, anchor[0], anchor[1], kind));
         }
@@ -3911,7 +4059,7 @@ public final class BattleSetup {
             DoodadDef kind = kinds.get(rng.nextInt(kinds.size()));
             int x = rng.nextInt(Math.max(1, grid.getWidth()  - kind.footprintCellsX));
             int y = rng.nextInt(Math.max(1, grid.getHeight() - kind.footprintCellsY));
-            if (!canPlaceVehicle(map, x, y, kind, false)) continue;
+            if (!canPlaceVehicle(map, x, y, kind, false, reserved)) continue;
             if (PlacementGuards.wouldStrandGround(
                     grid, x, y, kind.footprintCellsX, kind.footprintCellsY)) continue;
             placed.add(stampOneVehicle(grid, topology, x, y, kind));
@@ -3920,7 +4068,8 @@ public final class BattleSetup {
     }
 
     private static int[] findServiceVehicleAnchor(MapResult map, LandingPad pad,
-                                                   DoodadDef kind) {
+                                                   DoodadDef kind,
+                                                   boolean[][] reserved) {
         int x;
         int y;
         if (pad.approach.dx != 0) {
@@ -3940,7 +4089,7 @@ public final class BattleSetup {
         for (int offset : offsets) {
             int candidateX = pad.approach.dx != 0 ? x : x + offset;
             int candidateY = pad.approach.dx != 0 ? y + offset : y;
-            if (!canPlaceVehicle(map, candidateX, candidateY, kind, true)) continue;
+            if (!canPlaceVehicle(map, candidateX, candidateY, kind, true, reserved)) continue;
             if (PlacementGuards.wouldStrandGround(map.grid, candidateX, candidateY,
                     kind.footprintCellsX, kind.footprintCellsY)) continue;
             return new int[]{candidateX, candidateY};
@@ -3949,7 +4098,8 @@ public final class BattleSetup {
     }
 
     private static boolean canPlaceVehicle(MapResult map, int x, int y,
-                                           DoodadDef kind, boolean allowApron) {
+                                           DoodadDef kind, boolean allowApron,
+                                           boolean[][] reserved) {
         NavigationGrid grid = map.grid;
         CellTopology topology = map.topology;
         for (int dy = 0; dy < kind.footprintCellsY; dy++) {
@@ -3957,6 +4107,7 @@ public final class BattleSetup {
                 int cx = x + dx;
                 int cy = y + dy;
                 if (!grid.inBounds(cx, cy)) return false;
+                if (reserved != null && reserved[cx][cy]) return false;
                 if (!grid.isWalkable(cx, cy)) return false;
                 if (PlacementGuards.touchesDoorway(grid, cx, cy)) return false;
                 boolean ordinaryPavement = topology.isStreet(cx, cy) || topology.isCourtyard(cx, cy);
