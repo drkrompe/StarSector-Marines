@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.gen.BlockFiller;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -9,6 +10,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
+import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -50,6 +53,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DoorwayClearanceS
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
@@ -531,6 +535,33 @@ public final class BspCityGenerator implements MapGenerator {
     @Override
     public MapResult generate(int width, int height, long seed, TraversalAxis axis,
                               TargetProfile profile, PrecinctPlan precincts) {
+        return generateInternal(width, height, seed, axis, profile, precincts, null).map();
+    }
+
+    @Override
+    public OpeningOperationMapResult generateOpeningOperation(
+            int width, int height, long seed, TargetProfile profile,
+            OpeningOperationMapPlan plan) {
+        if (plan == null) {
+            throw new IllegalArgumentException("opening-operation map plan is required");
+        }
+        GeneratedMap generated = generateInternal(
+                width, height, seed, null, profile, null, plan);
+        if (generated.openingPlace() == null) {
+            throw new IllegalStateException(
+                    "opening-operation recipe completed without its authored place");
+        }
+        return new OpeningOperationMapResult(generated.map(), generated.openingPlace());
+    }
+
+    private GeneratedMap generateInternal(int width, int height, long seed,
+                                          TraversalAxis axis, TargetProfile profile,
+                                          PrecinctPlan precincts,
+                                          OpeningOperationMapPlan openingPlan) {
+        if (openingPlan != null && (precincts != null || axis != null)) {
+            throw new IllegalArgumentException(
+                    "opening-operation places use the legacy district recipe");
+        }
         if (precincts != null && axis != null) {
             throw new IllegalArgumentException(
                     "conquest keeps the stock crossroad: a traversal axis and a precinct "
@@ -547,19 +578,56 @@ public final class BspCityGenerator implements MapGenerator {
         GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
         if (axis != null) ctx.put(BspKeys.AXIS, axis);
         ctx.put(BspKeys.MARKET_PROFILE, profile != null ? profile : TargetProfile.NEUTRAL);
+        if (openingPlan != null) {
+            ctx.put(BspKeys.OPENING_OPERATION_PLAN, openingPlan);
+        }
 
         // Recipe selection is the conquest/legacy fork: axis present → the full
         // conquest sequence; axis absent → the legacy district recipe (which
         // omits the conquest-only stages rather than running them as no-ops).
         GenRecipe recipe = recipeFor(axis, profile, precincts);
+        if (openingPlan != null) recipe = openingOperationRecipe(recipe);
         recipe.run(ctx);
         if (axis != null) requireExactlyOneCentralKeep(ctx);
         if (precincts != null && precincts.objective() != null) {
             requireNoCompetingKeep(ctx);
         }
 
-        return assembleResult(ctx);
+        return new GeneratedMap(assembleResult(ctx),
+                openingPlan == null ? null : finalizedOpeningPlace(ctx));
     }
+
+    private static PointOfInterest finalizedOpeningPlace(GenContext ctx) {
+        PointOfInterest authored = ctx.get(BspKeys.OPENING_OPERATION_PLACE);
+        if (authored == null) return null;
+        for (PointOfInterest place : ctx.pois) {
+            if (place != null && place.kind == authored.kind
+                    && place.left == authored.left && place.top == authored.top
+                    && place.right == authored.right && place.bottom == authored.bottom) {
+                ctx.put(BspKeys.OPENING_OPERATION_PLACE, place);
+                return place;
+            }
+        }
+        throw new IllegalStateException("authored opening place was lost before map finalization");
+    }
+
+    private static GenRecipe openingOperationRecipe(GenRecipe base) {
+        List<GenStage> stages = new ArrayList<>(base.stages().size() + 1);
+        boolean inserted = false;
+        for (GenStage stage : base.stages()) {
+            if (stage instanceof FinalizeStage) {
+                stages.add(new OpeningOperationFacilityStage());
+                inserted = true;
+            }
+            stages.add(stage);
+        }
+        if (!inserted) {
+            throw new IllegalStateException("base city recipe has no FinalizeStage");
+        }
+        return new GenRecipe("FirstContractOpening", stages);
+    }
+
+    private record GeneratedMap(MapResult map, PointOfInterest openingPlace) {}
 
     /**
      * A stock-recipe Conquest map must have exactly one canonical central keep,

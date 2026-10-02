@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.world.gen.GenKey;
+import com.dillon.starsectormarines.battle.world.gen.OpeningOperationMapPlan;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -95,6 +97,14 @@ public final class BspKeys {
 
     /** The places this map is made of, when it was grown from a precinct plan. */
     public static final GenKey<PrecinctPlan> PRECINCTS = GenKey.of("precincts");
+
+    /** Per-call First Contract facility and staging reservations. */
+    public static final GenKey<OpeningOperationMapPlan> OPENING_OPERATION_PLAN =
+            GenKey.of("openingOperationPlan");
+
+    /** The exact facility authored for a First Contract map. */
+    public static final GenKey<PointOfInterest> OPENING_OPERATION_PLACE =
+            GenKey.of("openingOperationPlace");
 
     /**
      * Per-cell precinct index, or {@code GrownTrunkPlan.UNOWNED} for open

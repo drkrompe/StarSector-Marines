@@ -1,13 +1,12 @@
 # Opening-operation objective command
 
-Status: IN PROGRESS — paired frozen command, explicit force ownership, and
-scenario diagnostics are implemented; authored-place legibility and live
-acceptance remain.
+Status: IN PROGRESS — paired frozen command and authored COMMS/DEPOT places are
+implemented; structural and live acceptance remain.
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — migrated both sides from nearest-hostile scanning to one
-setup-authored public place, with spawn-time ownership and typed diagnostics.
+Updated: 2026-10-02 — added per-call authored-place map generation while
+preserving resolved landing and force staging.
 
 Read `mission-command-nouns.md`, `assault-command.md`,
 `early-operation-nouns.md`, and
@@ -67,10 +66,15 @@ Stable nearby rallies use existing `DEFEND_AREA` and `SWEEP_SECTOR` execution,
 so preserve/secure remains command intent rather than a fabricated interaction
 or victory condition.
 
-The current cells are honest deterministic command geometry, not yet guaranteed
-COMMS/depot structures. Authored-place legibility still needs a mapgen-owned
-plan that preserves landing and force clearance; live operation pacing remains
-with `opening-ladder-live-acceptance.md`.
+Opening operations now request a COMMS or DEPOT place through a per-call mapgen
+plan. Setup first resolves the ordinary map's landing and force positions, then
+the plan reserves those cells while the legacy district recipe fits a dedicated
+facility near the existing command anchor. Relief uses a command-room COMMS
+building; Counterattack uses an industrial DEPOT. The command discloses the
+exact generated place, and setup checks ingress, reachability, and staging
+clearance. Structural acceptance across representative seeds and live operation
+pacing remain open; the live review stays with
+`opening-ladder-live-acceptance.md`.
 
 ## Constraints
 
