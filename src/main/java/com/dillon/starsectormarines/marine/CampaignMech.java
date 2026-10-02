@@ -46,11 +46,35 @@ public final class CampaignMech implements Serializable {
     public String displayName() { return displayName; }
     /** Changes only this mech's player-facing name; its identity and fit stay intact. */
     public boolean rename(String value) {
-        if (value == null) return false;
-        String candidate = value.trim();
-        if (candidate.isEmpty() || candidate.length() > CALLSIGN_MAX_LENGTH) return false;
+        String candidate = normalizeCallSign(value);
+        if (candidate == null || candidate.isEmpty()
+                || candidate.length() > CALLSIGN_MAX_LENGTH) return false;
         displayName = candidate;
         return true;
+    }
+
+    /** Trims Unicode whitespace and space separators from a player-authored callsign. */
+    public static String normalizeCallSign(String value) {
+        if (value == null) return null;
+        int start = 0;
+        int end = value.length();
+        while (start < end) {
+            int codePoint = value.codePointAt(start);
+            if (!isCallSignWhitespace(codePoint)) break;
+            start += Character.charCount(codePoint);
+        }
+        while (start < end) {
+            int codePoint = value.codePointBefore(end);
+            if (!isCallSignWhitespace(codePoint)) break;
+            end -= Character.charCount(codePoint);
+        }
+        return value.substring(start, end);
+    }
+
+    private static boolean isCallSignWhitespace(int codePoint) {
+        return Character.isWhitespace(codePoint)
+                || Character.isSpaceChar(codePoint)
+                || codePoint == 0x0085;
     }
 
     public MechVariant variant() { return variant; }
