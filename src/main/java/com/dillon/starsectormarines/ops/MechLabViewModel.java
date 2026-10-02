@@ -136,10 +136,10 @@ public final class MechLabViewModel {
             CampaignMech mech = selectedMech();
             String candidate = callSignDraft.get();
             if (mech == null || candidate == null) return true;
-            String trimmed = candidate.trim();
-            return trimmed.isEmpty()
-                    || trimmed.length() > CampaignMech.CALLSIGN_MAX_LENGTH
-                    || trimmed.equals(mech.displayName());
+            String normalized = CampaignMech.normalizeCallSign(candidate);
+            return normalized.isEmpty()
+                    || normalized.length() > CampaignMech.CALLSIGN_MAX_LENGTH
+                    || normalized.equals(mech.displayName());
         });
         selectedMechIdentity = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
@@ -872,7 +872,7 @@ public final class MechLabViewModel {
     private void editCallSign(String value) {
         String draft = value != null ? value : "";
         callSignDraft.set(draft);
-        if (draft.trim().isEmpty()) {
+        if (CampaignMech.normalizeCallSign(draft).isEmpty()) {
             feedbackText.set("A call sign is required; the current mech name is unchanged.");
             feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
         } else {
