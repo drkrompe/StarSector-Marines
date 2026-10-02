@@ -32,8 +32,9 @@ objectives and victory.
   garrisons keep their duty; mobile finite forces receive stable scenario roles.
 - Remove direct scanning of live opponent positions. Initial movement follows
   authored place/approach context; contact response follows faction knowledge.
-- Publish the generic commander snapshot and the rung-specific phase/reason.
-- Preserve the finite militia/bandit force model and all campaign ladder laws.
+- Publish the generic commander snapshot and operation-specific phase/reason.
+- Preserve the finite militia/bandit force model and recurring-operation
+  progression laws.
 
 ## Acceptance
 
@@ -41,6 +42,9 @@ objectives and victory.
   arriving player tips a battle that progresses before exact contact knowledge.
 - [ ] Counterattack attackers advance on and secure the depot while bandits
   defend or locally counter from legally known context.
+- [ ] Relief's disclosed anchor is an authored COMMS place, and Counterattack's
+  disclosed anchor is an authored DEPOT place; each has legible structure and
+  usable ingress without displacing the current landing and force staging.
 - [x] Reversing commander dispatch order does not change the command result.
 - [x] Neither side receives a hidden hostile cell from mission command.
 - [x] Command intent does not change terminal outcome authority; any new
@@ -49,7 +53,8 @@ objectives and victory.
 - [x] The selected-squad panel and dump explain scenario role, phase, objective,
   directive authority, and reason for both factions.
 - [x] `opening-ladder-live-acceptance.md` remains the owner of live pacing,
-  lift, force-ratio, and green-company acceptance.
+  lift, force-ratio, and early-company acceptance. It does not treat company
+  growth as offer ineligibility.
 
 ## Implemented architecture checkpoint
 
@@ -63,13 +68,14 @@ so preserve/secure remains command intent rather than a fabricated interaction
 or victory condition.
 
 The current cells are honest deterministic command geometry, not yet guaranteed
-COMMS/depot structures. The two unchecked behavioral bullets therefore remain
-owned by authored-place work and the live opening-ladder pass.
+COMMS/depot structures. Authored-place legibility still needs a mapgen-owned
+plan that preserves landing and force clearance; live operation pacing remains
+with `opening-ladder-live-acceptance.md`.
 
 ## Constraints
 
 - Do not generalize opening-operation small-force rules to every Assault.
-- Do not add reinforcements, late-game support, or a third ladder rung.
+- Do not add reinforcements, late-game support, or a third opening-operation variant.
 - Do not let objective state disclose a hostile identity or exact approach.
 - Do not move terminal objective or victory ownership into AI command.
 

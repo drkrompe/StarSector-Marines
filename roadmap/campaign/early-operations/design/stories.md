@@ -6,6 +6,6 @@ Written: 2026-08-23
 
 | Story | Status | Outcome |
 |---|---|---|
-| `opening-ladder-live-acceptance.md` | READY | Validate the two-rung green-company experience in a live campaign before creating a third variant. |
+| `opening-ladder-live-acceptance.md` | READY | Validate the recurring Independent operation pair in a live campaign before creating another variant. |
 
-The completed opening-ladder implementation is recorded in `shipped.md`.
+The shipped opening-operation implementation is recorded in `shipped.md`.
