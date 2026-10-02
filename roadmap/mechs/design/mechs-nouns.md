@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — direct control has chassis-mass acceleration and braking through shared clearance.
+Updated: 2026-10-02 — defined a campaign mech callsign as a display label frozen into support deployment.
 
 ## Purpose
 
@@ -50,6 +50,11 @@ increasing an encounter's total armored threat.
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
+- A **callsign** is the player-authored display label for one campaign mech.
+  The persistent mech id remains its identity; changing the callsign changes
+  neither hardware nor doctrine. Support freezes the callsign with the other
+  deployment values, and the battle mech never reads it back from the campaign
+  record.
 - A **mech squad** is the player-facing group of up to four campaign mechs
   configured together in the Mech Lab. One selected active squad becomes
   the payload when a sourced Mech Support power is committed. It is distinct
@@ -362,9 +367,11 @@ morale footprint, picking, appearance, and wreck continuity. It creates a
 loadout, whose installed mounts drive firing, ammunition, resupply, and the
 visible hardpoint layers. The role attached to that loadout feeds the mech
 planner, independently of the hardware profile. Campaign support first freezes
-variant, role, and installed subsystem from the active mech squad into plain
-deployment values. The delivery power transports those values; landing then
-constructs the live loadout and installs the frozen subsystem.
+callsign, variant, role, and installed subsystem from the active mech squad into
+plain deployment values. The delivery power transports those values; landing
+then constructs the live loadout and installs the frozen subsystem. The
+callsign supplies the live unit's display name while the battle's own entity id
+remains its identity.
 
 Campaign faction identity crosses into presentation separately from that
 hardware flow. At battle-screen attachment, the selected client's exact

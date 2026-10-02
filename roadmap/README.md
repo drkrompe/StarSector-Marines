@@ -43,6 +43,10 @@ domains share — four currencies, the stages that fall out of them, the growth
 rule, and the boundary with the player's own colonies — is
 `meta-progression.md`.
 
+Mech-company work begins with editable campaign callsigns carried into the
+deployed unit's visible identity. Persistent multi-lance organization, the
+shared roster cap, and casualty/replacement policy remain open.
+
 The recurring Independent opening-operation pair is code-complete and awaiting
 a live play pass before another early-operation variant is contracted. Its
 standing mission model lives in `early-operation-nouns.md`; first-offer

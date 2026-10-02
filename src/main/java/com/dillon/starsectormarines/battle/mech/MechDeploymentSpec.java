@@ -10,7 +10,8 @@ public record MechDeploymentSpec(
         MissileReplenisherComponent missileReplenisher,
         MechWeaponComponent arms,
         MechWeaponComponent leftShoulder,
-        MechWeaponComponent rightShoulder) {
+        MechWeaponComponent rightShoulder,
+        String displayName) {
 
     public MechDeploymentSpec {
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
@@ -19,6 +20,19 @@ public record MechDeploymentSpec(
             missileReplenisher = MissileReplenisherComponent.STANDARD;
         }
         if (arms == null) arms = variant.arms;
+        if (displayName != null) {
+            displayName = displayName.trim();
+            if (displayName.isEmpty()) displayName = null;
+        }
+    }
+
+    public MechDeploymentSpec(MechVariant variant, MechRole role,
+                              MissileReplenisherComponent missileReplenisher,
+                              MechWeaponComponent arms,
+                              MechWeaponComponent leftShoulder,
+                              MechWeaponComponent rightShoulder) {
+        this(variant, role, missileReplenisher, arms, leftShoulder,
+                rightShoulder, null);
     }
 
     public MechDeploymentSpec(MechVariant variant, MechRole role,
@@ -26,12 +40,12 @@ public record MechDeploymentSpec(
         this(variant, role, missileReplenisher,
                 variant != null ? variant.arms : null,
                 variant != null ? variant.leftShoulder : null,
-                variant != null ? variant.rightShoulder : null);
+                variant != null ? variant.rightShoulder : null, null);
     }
 
     public static MechDeploymentSpec standard(MechVariant variant) {
         return new MechDeploymentSpec(variant, variant.defaultRole,
                 MissileReplenisherComponent.STANDARD,
-                variant.arms, variant.leftShoulder, variant.rightShoulder);
+                variant.arms, variant.leftShoulder, variant.rightShoulder, null);
     }
 }
