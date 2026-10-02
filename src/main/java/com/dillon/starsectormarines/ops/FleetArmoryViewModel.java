@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SoldierCareer;
+import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
@@ -434,9 +435,9 @@ public final class FleetArmoryViewModel {
             String readiness = readinessLabel(ready, MarineSquad.CAPACITY);
             String readinessClass = readinessClass(ready, MarineSquad.CAPACITY);
             MarineCaptain captain = roster.captainForSquad(squad.id());
-            String command = captain != null
+            String command = captain != null && captain.status() == Status.ACTIVE
                     ? captain.rank().displayName() + " " + captain.name()
-                    : "No officer assigned";
+                    : "Falls to operation commander";
             String location = squad.stationed() ? "Stationed away" : "Aboard fleet";
             String id = "squad-card:" + squad.id();
             cards.add(new SquadCard(id, id + ":name", id + ":status",
