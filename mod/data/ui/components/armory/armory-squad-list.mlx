@@ -1,16 +1,17 @@
 <template props="squadGalleryCards">
   <div id="squad-card-list" class="squad-card-list panel">
     <div each="card in squadGalleryCards" key="{card.id}" id="{card.id}" class="{card.classes}">
-      <button id="{card.squad.openId}" class="{card.openClasses}" onclick="{card.squad.open}">
+      <button id="{card.squad.openId}" class="{card.openClasses}" style="{card.openStyle}" disabled="{card.openDisabled}" onclick="{card.squad.open}">
+        <div id="{card.organizationNoticeId}" class="{card.organizationNoticeClasses}">{card.organizationNotice}</div>
         <div id="{card.squad.nameId}" class="squad-name label tone-edge">{card.squad.name}</div>
         <div id="{card.squad.statusId}" class="{card.squad.statusClasses}">{card.squad.status}</div>
         <div id="{card.squad.strengthId}" class="squad-stat label">{card.squad.strength}</div>
         <div id="{card.squad.teamsId}" class="squad-stat label">{card.squad.teams}</div>
-        <div id="{card.squad.commandId}" class="squad-command label surface-dark">{card.squad.command}</div>
+        <div id="{card.squad.commandId}" class="squad-command label surface-dark">{card.command}</div>
         <div id="{card.squad.locationId}" class="squad-location label tone-muted">{card.squad.location}</div>
         <div id="{card.squad.recoveryId}" class="squad-recovery label tone-accent">{card.squad.recovery}</div>
       </button>
-      <button id="{card.squad.reinforceId}" class="{card.reinforceClasses}" disabled="{card.squad.reinforceDisabled}" onclick="{card.squad.reinforce}">
+      <button id="{card.squad.reinforceId}" class="{card.reinforceClasses}" disabled="{card.reinforceDisabled}" onclick="{card.squad.reinforce}">
         <img id="{card.squad.reinforceIconId}" class="squad-reinforce-icon" src="{card.squad.reinforceIcon}" />
         <div id="{card.squad.reinforceLabelId}" class="squad-reinforce-label label">{card.squad.reinforceLabel}</div>
       </button>
@@ -65,12 +66,32 @@
     text-align: left;
   }
 
-  .squad-name { height: 34px; }
+  .squad-card.organizing { height: 206px; padding: 8px; gap: 0px; border-color: #53c6e8; }
+  .squad-card.organizing.selected { background-color: #183b50; border-color: #ffd464; border-width: 2px; }
+  .squad-card.organizing.locked { border-color: #9f4545; }
+  .squad-card.locked .squad-open { opacity: 1; }
+  .squad-organization-notice { height: 34px; padding: 3px 1px; white-space: normal; }
+  .squad-name { height: 34px; white-space: normal; }
   .squad-card-status { height: 26px; padding: 3px; border-width: 1px; text-align: center; }
   .squad-stat { height: 30px; padding: 4px; border-width: 1px; }
-  .squad-command { height: 42px; padding: 5px 4px; border-width: 1px; }
+  .squad-command { height: 60px; padding: 5px 4px; border-width: 1px; white-space: normal; }
   .squad-location { height: 24px; flex-grow: 1; padding: 4px; }
   .squad-recovery { height: 24px; padding: 3px 1px; }
+  .squad-card.organizing .squad-open { gap: 2px; }
+  .squad-card.organizing .squad-organization-notice { height: 26px; padding: 0px; }
+  .squad-card.organizing .squad-name { height: 24px; }
+  .squad-card.organizing .squad-card-status { height: 20px; padding: 0px; }
+  .squad-card.organizing .squad-command { height: 88px; padding: 3px 4px; }
+  .squad-card.organizing .squad-location { height: 18px; flex-grow: 0; padding: 0px; }
+  .squad-card.organizing .squad-stat, .squad-card.organizing .squad-recovery {
+    width: 0px;
+    height: 0px;
+    flex-grow: 0;
+    padding: 0px;
+    border-width: 0px;
+    overflow: hidden;
+    opacity: 0;
+  }
   .squad-reinforce {
     flex-direction: row;
     height: 28px;

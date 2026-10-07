@@ -1,4 +1,4 @@
-<template props="companySummary,squadGalleryCards,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="companySummary,squadGalleryCards,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / FLEET MARINE COMPANY" />
 
@@ -13,7 +13,28 @@
     <div id="squad-overview-intro" class="panel">
       <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
-      <div id="squad-overview-copy" class="label tone-muted">Found a formation from fleet cargo, then inspect its marines and issue doctrine.</div>
+      <div id="squad-overview-copy" class="label tone-muted">{organization.galleryCopy}</div>
+    </div>
+
+    <div id="organization-toolbar" class="organization-toolbar panel">
+      <button id="begin-squad-organization" class="{organization.startClasses}" disabled="{organization.active}" onclick="{organization.startAction}">Organize squads</button>
+      <button id="cancel-squad-organization" class="{organization.cancelClasses}" disabled="{organization.inactive}" onclick="{organization.cancelAction}">Cancel organization</button>
+      <div id="organization-toolbar-copy" class="{organization.toolbarCopyClasses}">{organization.toolbarCopy}</div>
+    </div>
+
+    <div id="squad-organization-panel" class="{organization.panelClasses}">
+      <div id="organization-heading" class="organization-heading">
+        <div id="organization-selected-count" class="organization-selected-count label heading tone-accent">{organization.selectedCount}</div>
+        <div id="organization-target-heading" class="organization-target-heading label tone-edge">HOME OFFICER</div>
+      </div>
+      <div id="organization-target-list" class="organization-target-list">
+        <button each="target in organization.targetRows" key="{target.id}" id="{target.id}" class="{target.classes}" disabled="{organization.inactive}" onclick="{target.select}">
+          <div id="{target.nameId}" class="organization-target-name label tone-edge">{target.name}</div>
+          <div id="{target.detailId}" class="organization-target-detail label tone-muted">{target.detail}</div>
+        </button>
+      </div>
+      <div id="organization-summary" class="{organization.summaryClasses}">{organization.summary}</div>
+      <button id="apply-squad-organization" class="organization-apply" disabled="{organization.applyDisabled}" onclick="{organization.applyAction}">{organization.applyLabel}</button>
     </div>
 
     <armory-squad-list squadGalleryCards="{squadGalleryCards}" />
@@ -48,5 +69,21 @@
   #squad-overview-heading { height: 18px; }
   #squad-overview-summary { height: 19px; padding: 2px 6px; }
   #squad-overview-copy { height: 17px; }
+
+  .organization-toolbar { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .organization-start, .organization-cancel { width: 168px; height: 30px; padding: 5px 7px; border-width: 1px; font-family: body; text-align: center; }
+  .organization-toolbar-copy { width: 0px; flex-grow: 1; padding: 2px 3px; white-space: normal; }
+  .organization-panel { flex-direction: column; height: 180px; padding: 7px; gap: 4px; border-width: 1px; overflow: scroll; }
+  .organization-heading { flex-direction: row; height: 18px; gap: 8px; }
+  .organization-selected-count { width: 0px; flex-grow: 1; height: 18px; }
+  .organization-target-heading { width: 130px; height: 18px; text-align: right; }
+  .organization-target-list { display: grid; height: 72px; gap: 6px; padding: 1px; overflow: scroll; }
+  .organization-target { flex-direction: column; width: 246px; height: 60px; padding: 5px; gap: 3px; border-width: 1px; font-family: body; text-align: left; }
+  .organization-target.selected { background-color: #183b50; border-color: #ffd464; }
+  .organization-target-name { height: 28px; white-space: normal; }
+  .organization-target-detail { height: 28px; white-space: normal; }
+  .organization-summary { padding: 2px; white-space: normal; }
+  .organization-apply { width: 246px; height: 20px; padding: 4px 7px; border-width: 1px; font-family: body; text-align: center; }
+  .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 
 </style>

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.CampaignBoat;
@@ -285,6 +287,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 false, false)),
+                new SnapshotArtifact("fleet-armory-organization-wide.png",
+                        renderFleetArmoryOrganization(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, false)),
+                new SnapshotArtifact("fleet-armory-organization-capacity-low-resolution.png",
+                        renderFleetArmoryOrganization(context, renderer,
+                                1163, 625, 6, true, false)),
+                new SnapshotArtifact("fleet-armory-organization-large-ui.png",
+                        renderFleetArmoryOrganization(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, false, 1.5f)),
+                new SnapshotArtifact("fleet-armory-organization-unassigned-wide.png",
+                        renderFleetArmoryOrganization(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, true)),
+                new SnapshotArtifact("fleet-armory-organization-large-company.png",
+                        renderFleetArmoryOrganization(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 24, false, false)),
                 new SnapshotArtifact("fleet-armory-founding-wide.png",
                         renderEmptyFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -1385,6 +1402,61 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    /** Organization evidence uses the production draft and ordinary roster authority. */
+    private static BufferedImage renderFleetArmoryOrganization(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, int squadCount, boolean overCapacity,
+            boolean unassigned) throws Exception {
+        return renderFleetArmoryOrganization(context, renderer, width, height,
+                squadCount, overCapacity, unassigned, 1f);
+    }
+
+    private static BufferedImage renderFleetArmoryOrganization(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, int squadCount, boolean overCapacity,
+            boolean unassigned, float uiScale) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(squadCount * MarineSquad.CAPACITY);
+        MarineCaptain captain = new MarineCaptain("Tamsin Vale", null, Rank.CAPTAIN, 0f);
+        MarineCaptain lieutenant = new MarineCaptain("Rafael Kade", null, Rank.LIEUTENANT, 0f);
+        roster.add(captain);
+        roster.add(lieutenant);
+        if (squadCount > 6) {
+            for (String name : List.of("Mara Soren", "Inez Ward", "Jonas Reed",
+                    "Elian Voss", "Nadia Orlov", "Kellan Price")) {
+                roster.add(new MarineCaptain(name, null, Rank.LIEUTENANT, 0f));
+            }
+        }
+        List<MarineSquad> squads = roster.squads();
+        roster.assignCaptainToSquad(captain.id(), squads.get(0).id());
+        roster.assignCaptainToSquad(captain.id(), squads.get(1).id());
+        roster.assignCaptainToSquad(lieutenant.id(), squads.get(2).id());
+        roster.assignCaptainToSquad(lieutenant.id(), squads.get(3).id());
+        if (!roster.bindStationing(42L, captain.id(), List.of(squads.get(5).id()))) {
+            throw new IllegalStateException("Organization snapshot needs one stationed squad");
+        }
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                reactor, roster, () -> { }, () -> 100d, snapshotEquipmentResources(),
+                snapshotSquadFoundingResources());
+        viewModel.beginOrganization();
+        viewModel.toggleOrganizationSquad(squads.get(0).id());
+        viewModel.toggleOrganizationSquad(squads.get(2).id());
+        viewModel.toggleOrganizationSquad(squads.get(4).id());
+        viewModel.selectOrganizationTarget(unassigned ? null
+                : overCapacity ? lieutenant.id() : captain.id());
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, "fleet-armory", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document, width, height, uiScale);
+        }
+    }
+
     private static BufferedImage renderEmptyFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -1992,6 +2064,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
+        props.put("organization", viewModel.organization());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
@@ -2131,6 +2204,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
+        props.put("selectedMechNameClasses", viewModel.selectedMechNameClasses());
+        props.put("callSignDraft", viewModel.callSignDraft());
+        props.put("callSignEditorClasses", viewModel.callSignEditorClasses());
+        props.put("callSignRenameDisabled", viewModel.callSignRenameDisabled());
+        props.put("editCallSign", viewModel.editCallSignAction());
+        props.put("renameCallSign", viewModel.renameCallSignAction());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());

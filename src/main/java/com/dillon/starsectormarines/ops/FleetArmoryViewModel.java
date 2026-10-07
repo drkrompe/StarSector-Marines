@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.marine.LoadoutEffectiveness;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineRoster.SquadCaptainAssignmentResult;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -57,12 +58,15 @@ import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 
 /**
- * Retained presentation adapter for one authoritative squad equipment workflow.
+ * Retained presentation adapter for squad equipment and company organization.
  * It owns selection and copy only; every inventory answer and mutation comes from
  * {@link MarineRoster}'s squad-wide preview/apply transaction.
  */
@@ -105,6 +109,13 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<LoadoutFilter> loadoutFilter;
     private final MutableSignal<Boolean> issuableOnly;
     private final MutableSignal<Integer> domainRevision;
+    private final MutableSignal<Boolean> organizing;
+    private final MutableSignal<Set<String>> organizationSelectedSquadIds;
+    private final MutableSignal<String> organizationTargetCaptainId;
+    private final MutableSignal<Boolean> organizationTargetChosen;
+    private final MutableSignal<Feedback> organizationFeedback;
+    private final ComputedSignal<SquadCaptainAssignmentResult> organizationPreview;
+    private final Map<String, Object> organization;
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
     private final ComputedSignal<List<SquadCard>> squadCards;
@@ -208,6 +219,54 @@ public final class FleetArmoryViewModel {
         loadoutFilter = reactor.signal(LoadoutFilter.ALL);
         issuableOnly = reactor.signal(Boolean.FALSE);
         domainRevision = reactor.signal(0);
+        organizing = reactor.signal(false);
+        organizationSelectedSquadIds = reactor.signal(Set.of());
+        organizationTargetCaptainId = reactor.signal(null);
+        organizationTargetChosen = reactor.signal(false);
+        organizationFeedback = reactor.signal(Feedback.neutral(
+                "Assign several squads to one officer, or leave them unassigned."));
+        organizationPreview = reactor.computed(() -> {
+            domainRevision.get();
+            return roster.previewCaptainAssignment(organizationTargetCaptainId.get(),
+                    organizationSelectedSquadIds.get());
+        });
+        Map<String, Object> organizationProps = new LinkedHashMap<>();
+        organizationProps.put("active", organizing);
+        organizationProps.put("inactive", reactor.computed(() -> !organizing.get()));
+        organizationProps.put("startClasses", reactor.computed(() -> organizing.get()
+                ? "organization-start hidden" : "organization-start"));
+        organizationProps.put("cancelClasses", reactor.computed(() -> organizing.get()
+                ? "organization-cancel" : "organization-cancel hidden"));
+        organizationProps.put("panelClasses", reactor.computed(() -> organizing.get()
+                ? "organization-panel panel" : "organization-panel panel hidden"));
+        organizationProps.put("selectedCount", reactor.computed(() ->
+                organizationCountLabel(organizationSelectedSquadIds.get().size()) + " selected"));
+        organizationProps.put("targetRows", reactor.computed(this::buildOrganizationTargets));
+        organizationProps.put("summary", reactor.computed(this::buildOrganizationSummary));
+        organizationProps.put("summaryClasses", reactor.computed(() ->
+                organizationTargetChosen.get() && !organizationSelectedSquadIds.get().isEmpty()
+                        && !organizationPreview.get().valid()
+                        ? "organization-summary label tone-danger"
+                        : "organization-summary label tone-muted"));
+        organizationProps.put("applyDisabled", reactor.computed(() -> !organizing.get()
+                || !organizationTargetChosen.get() || !organizationPreview.get().valid()
+                || organizationPreview.get().changedSquadCount() == 0));
+        organizationProps.put("applyLabel", reactor.computed(() -> "Apply to "
+                + organizationCountLabel(organizationSelectedSquadIds.get().size())));
+        organizationProps.put("toolbarCopy", reactor.computed(() -> organizing.get()
+                ? "Select squads below. Assignments change only when you apply."
+                : organizationFeedback.get().text()));
+        organizationProps.put("toolbarCopyClasses", reactor.computed(() ->
+                organizationFeedback.get().succeeded() && !organizing.get()
+                        ? "organization-toolbar-copy label tone-good"
+                        : "organization-toolbar-copy label tone-muted"));
+        organizationProps.put("galleryCopy", reactor.computed(() -> organizing.get()
+                ? "Choose several formations and their officer. Stationed squads are locked to their posting."
+                : "Found a formation from fleet cargo, then inspect its marines and issue doctrine."));
+        organizationProps.put("startAction", (Runnable) this::beginOrganization);
+        organizationProps.put("cancelAction", (Runnable) this::cancelOrganization);
+        organizationProps.put("applyAction", (Runnable) this::applyOrganization);
+        organization = Map.copyOf(organizationProps);
         feedback = reactor.signal(Feedback.neutral(
                 "Hover equipment names for field notes. Assign a weapon loadout and a tactic sheet, then issue to the squad."));
         foundingFeedback = reactor.signal(Feedback.neutral(
@@ -271,6 +330,11 @@ public final class FleetArmoryViewModel {
     }
 
     public MarineRoster roster() { return roster; }
+    public Map<String, Object> organization() { return organization; }
+    public boolean organizing() { return organizing.peek(); }
+    public Set<String> organizationSelectedSquadIds() { return organizationSelectedSquadIds.peek(); }
+    public String organizationTargetCaptainId() { return organizationTargetCaptainId.peek(); }
+    public boolean organizationTargetChosen() { return organizationTargetChosen.peek(); }
     public Signal<String> companySummary() { return companySummary; }
     public Signal<List<SquadCard>> squadCards() { return squadCards; }
     public Signal<List<SquadGalleryCard>> squadGalleryCards() { return squadGalleryCards; }
@@ -352,6 +416,115 @@ public final class FleetArmoryViewModel {
 
     public Runnable foundSquadAction() {
         return this::foundSquad;
+    }
+
+    /** Organization is a local draft until the roster accepts the whole command. */
+    public void beginOrganization() {
+        if (organizing.peek()) return;
+        clearOrganizationDraft();
+        organizing.set(true);
+        organizationFeedback.set(Feedback.neutral(
+                "Select squads and choose their home officer."));
+    }
+
+    /** Also used by navigation and detach so no draft survives the gallery. */
+    public void cancelOrganization() {
+        clearOrganizationDraft();
+        organizing.set(false);
+        organizationFeedback.set(Feedback.neutral(
+                "Assign several squads to one officer, or leave them unassigned."));
+    }
+
+    private void clearOrganizationDraft() {
+        organizationSelectedSquadIds.set(Set.of());
+        organizationTargetCaptainId.set(null);
+        organizationTargetChosen.set(false);
+    }
+
+    public void toggleOrganizationSquad(String squadId) {
+        if (!organizing.peek()) return;
+        MarineSquad squad = roster.squadById(squadId);
+        if (squad == null || squad.reserve() || squad.stationed()) return;
+        Set<String> selected = new LinkedHashSet<>(organizationSelectedSquadIds.peek());
+        if (!selected.remove(squadId)) selected.add(squadId);
+        organizationSelectedSquadIds.set(Set.copyOf(selected));
+        organizationFeedback.set(Feedback.neutral(""));
+    }
+
+    /** Null is the deliberate Unassigned choice, distinct from an untouched draft. */
+    public void selectOrganizationTarget(String captainId) {
+        if (!organizing.peek()) return;
+        MarineCaptain captain = captainId != null ? roster.byId(captainId) : null;
+        if (captainId != null && (captain == null || captain.status() != Status.ACTIVE)) return;
+        organizationTargetCaptainId.set(captainId);
+        organizationTargetChosen.set(true);
+        organizationFeedback.set(Feedback.neutral(""));
+    }
+
+    public void applyOrganization() {
+        if (!organizing.peek() || !organizationTargetChosen.peek()) return;
+        SquadCaptainAssignmentResult result = roster.assignCaptainToSquads(
+                organizationTargetCaptainId.peek(), organizationSelectedSquadIds.peek());
+        if (result.valid()) {
+            MarineCaptain captain = roster.byId(organizationTargetCaptainId.peek());
+            String target = captain != null ? captain.rank().displayName() + " " + captain.name()
+                    : "Unassigned; falls to operation commander";
+            clearOrganizationDraft();
+            organizing.set(false);
+            organizationFeedback.set(Feedback.success(organizationCountLabel(result.changedSquadCount())
+                    + " organized  ·  " + target + "."));
+        } else {
+            organizationFeedback.set(Feedback.neutral(result.reason()));
+        }
+        refresh();
+    }
+
+    private List<OrganizationTarget> buildOrganizationTargets() {
+        domainRevision.get();
+        List<OrganizationTarget> rows = new ArrayList<>();
+        rows.add(organizationTarget(null, "Unassigned"));
+        for (MarineCaptain captain : roster.active()) {
+            rows.add(organizationTarget(captain.id(),
+                    captain.rank().displayName() + " " + captain.name()));
+        }
+        return List.copyOf(rows);
+    }
+
+    private OrganizationTarget organizationTarget(String captainId, String name) {
+        SquadCaptainAssignmentResult preview = roster.previewCaptainAssignment(
+                captainId, organizationSelectedSquadIds.get());
+        String id = "organization-target:" + (captainId != null ? captainId : "unassigned");
+        boolean selected = organizationTargetChosen.get()
+                && Objects.equals(captainId, organizationTargetCaptainId.get());
+        String detail = captainId == null ? "Falls to operation commander"
+                : preview.currentCommandCount() + " now  ·  "
+                        + preview.resultingCommandCount() + " / " + preview.commandCapacity()
+                        + " squads after apply";
+        return new OrganizationTarget(id, id + ":name", id + ":detail",
+                "organization-target" + (selected ? " selected" : ""), name, detail,
+                () -> selectOrganizationTarget(captainId));
+    }
+
+    private String buildOrganizationSummary() {
+        if (!organizationTargetChosen.get()) return "Choose an officer or explicit Unassigned.";
+        SquadCaptainAssignmentResult preview = organizationPreview.get();
+        MarineCaptain captain = roster.byId(organizationTargetCaptainId.get());
+        String projection = organizationTargetCaptainId.get() == null
+                ? "Unassigned  ·  Falls to operation commander when deployed."
+                : captain == null ? "Chosen officer is no longer available."
+                : captain.rank().displayName() + " " + captain.name() + "  ·  "
+                        + preview.resultingCommandCount() + " / " + preview.commandCapacity()
+                        + " squads after apply.";
+        String reason = !preview.valid() ? preview.reason()
+                : preview.changedSquadCount() == 0
+                        ? "Selected squads already have this assignment."
+                        : organizationCountLabel(preview.changedSquadCount()) + " will change officer.";
+        String rejected = organizationFeedback.get().text();
+        return projection + "  " + (!rejected.isBlank() ? rejected : reason);
+    }
+
+    private static String organizationCountLabel(int count) {
+        return count + (count == 1 ? " squad" : " squads");
     }
 
     /** Reprojects campaign time, personnel, and cargo authority. */
@@ -452,10 +625,8 @@ public final class FleetArmoryViewModel {
                     command, location, compactRecoverySummary(squad),
                     equipmentIssueResources.commodityIcon(Commodities.MARINES),
                     reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
-                    () -> {
-                        selectSquad(squad.id());
-                        openSelectedSquad.run();
-                    }, () -> reinforceSquad(squad.id())));
+                    () -> activateGallerySquad(squad.id()), () -> reinforceSquad(squad.id()),
+                    squad.id()));
         }
         return List.copyOf(cards);
     }
@@ -481,25 +652,57 @@ public final class FleetArmoryViewModel {
     }
 
     private List<SquadGalleryCard> buildSquadGalleryCards() {
+        boolean organizationMode = organizing.get();
+        Set<String> selected = organizationSelectedSquadIds.get();
         List<SquadGalleryCard> cards = new ArrayList<>();
         for (SquadCard squad : squadCards.get()) {
+            MarineSquad formation = roster.squadById(squad.squadId());
+            boolean stationed = formation != null && formation.stationed();
+            boolean marked = selected.contains(squad.squadId());
             String founder = squad.id() + ":founder";
-            cards.add(new SquadGalleryCard(squad.id(), squad.classes(), squad,
-                    "squad-open", "squad-reinforce", "squad-founder-card hidden",
+            String classes = squad.classes() + (organizationMode ? " organizing" : "")
+                    + (organizationMode && marked ? " selected" : "")
+                    + (organizationMode && stationed ? " locked" : "");
+            String notice = stationed ? "Locked: stationed"
+                    : marked ? "Selected" : "Select squad";
+            String command = organizationMode && formation != null
+                    ? durableCommandLabel(formation) : squad.command();
+            cards.add(new SquadGalleryCard(squad.id(), classes, squad,
+                    "squad-open", organizationMode ? "squad-reinforce hidden" : "squad-reinforce",
+                    "squad-founder-card hidden",
                     founder, founder + ":plus",
                     founder + ":heading", founder + ":copy",
                     founder + ":costs", founder + ":feedback", List.of(), "", "",
-                    true, () -> { }));
+                    true, () -> { }, organizationMode && stationed,
+                    organizationMode || squad.reinforceDisabled(),
+                    command, notice, organizationMode
+                            ? "squad-organization-notice label "
+                                    + (stationed ? "tone-danger" : marked ? "tone-accent" : "tone-muted")
+                            : "squad-organization-notice hidden",
+                    organizationMode && stationed ? "opacity: 1;" : ""));
         }
         String id = "found-squad-card";
-        cards.add(new SquadGalleryCard(id, "squad-founder-slot", emptySquadCard(id),
+        cards.add(new SquadGalleryCard(id,
+                organizationMode ? "squad-founder-slot hidden" : "squad-founder-slot",
+                emptySquadCard(id),
                 "squad-open hidden", "squad-reinforce hidden", "squad-founder-card",
                 "found-squad", "found-squad-plus",
                 "found-squad-heading", "found-squad-copy",
                 "squad-founder-costs", "squad-founder-feedback", foundingCargoRows.get(),
                 foundingFeedbackText.get(), foundingFeedbackClasses.get(),
-                foundingDisabled.get(), this::foundSquad));
+                organizationMode || foundingDisabled.get(), this::foundSquad,
+                true, true, "", "", "squad-organization-notice hidden", ""));
         return List.copyOf(cards);
+    }
+
+    private String durableCommandLabel(MarineSquad squad) {
+        MarineCaptain captain = roster.captainForSquad(squad.id());
+        if (squad.homeCaptainId() == null) return "Unassigned  ·  Falls to operation commander";
+        if (captain == null) return "Home officer unavailable  ·  Falls to operation commander";
+        return captain.rank().displayName() + " " + captain.name()
+                + (squad.stationed() ? "  ·  Home command; assignment locked"
+                : captain.status() == Status.ACTIVE ? ""
+                : "  ·  Unavailable; falls to operation commander");
     }
 
     private static SquadCard emptySquadCard(String id) {
@@ -508,7 +711,7 @@ public final class FleetArmoryViewModel {
                 id + ":empty-location", id + ":empty-recovery", id + ":empty-open",
                 id + ":empty-reinforce", id + ":empty-reinforce-icon",
                 id + ":empty-reinforce-label", "", "", "", "", "", "", "",
-                "", "", "", "", true, () -> { }, () -> { });
+                "", "", "", "", true, () -> { }, () -> { }, null);
     }
 
     private List<FireTeamOverview> buildFireTeamOverviews() {
@@ -1011,6 +1214,16 @@ public final class FleetArmoryViewModel {
                 : "transaction-result danger-surface tone-danger";
     }
 
+    private void activateGallerySquad(String squadId) {
+        // Keyed MLX cards retain this handler across mode and selection updates.
+        if (organizing.peek()) {
+            toggleOrganizationSquad(squadId);
+        } else {
+            selectSquad(squadId);
+            openSelectedSquad.run();
+        }
+    }
+
     private void selectSquad(String squadId) {
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null || squad.reserve()) return;
@@ -1042,6 +1255,7 @@ public final class FleetArmoryViewModel {
     }
 
     private void reinforceSquad(String squadId) {
+        if (organizing.peek()) return;
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null) return;
         PersonnelDrawResult result = MarinePersonnelLogistics.reinforceSquad(roster, squadId);
@@ -1061,6 +1275,7 @@ public final class FleetArmoryViewModel {
     }
 
     private void foundSquad() {
+        if (organizing.peek()) return;
         SquadFoundingWorkshop.Result result = squadFoundingWorkshop.foundSquad();
         if (!result.succeeded()) {
             foundingFeedback.set(Feedback.neutral(
@@ -1811,7 +2026,7 @@ public final class FleetArmoryViewModel {
             String classes, String statusClasses, String name, String status,
             String strength, String teams, String command, String location,
             String recovery, String reinforceIcon, String reinforceLabel,
-            boolean reinforceDisabled, Runnable open, Runnable reinforce)
+            boolean reinforceDisabled, Runnable open, Runnable reinforce, String squadId)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1842,6 +2057,7 @@ public final class FleetArmoryViewModel {
                 case "reinforceDisabled" -> reinforceDisabled;
                 case "open" -> open;
                 case "reinforce" -> reinforce;
+                case "squadId" -> squadId;
                 default -> throw new IllegalArgumentException("Unknown squad-card property");
             };
         }
@@ -1854,7 +2070,9 @@ public final class FleetArmoryViewModel {
             String founderHeadingId, String founderCopyId,
             String founderCostsId, String founderFeedbackId,
             List<CargoCostRow> foundingCargoRows, String foundingFeedbackText,
-            String foundingFeedbackClasses, boolean foundingDisabled, Runnable foundSquad)
+            String foundingFeedbackClasses, boolean foundingDisabled, Runnable foundSquad,
+            boolean openDisabled, boolean reinforceDisabled, String command,
+            String organizationNotice, String organizationNoticeClasses, String openStyle)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1876,8 +2094,33 @@ public final class FleetArmoryViewModel {
                 case "foundingFeedbackClasses" -> foundingFeedbackClasses;
                 case "foundingDisabled" -> foundingDisabled;
                 case "foundSquad" -> foundSquad;
+                case "openDisabled" -> openDisabled;
+                case "openStyle" -> openStyle;
+                case "reinforceDisabled" -> reinforceDisabled;
+                case "command" -> command;
+                case "organizationNoticeId" -> id + ":organization-notice";
+                case "organizationNotice" -> organizationNotice;
+                case "organizationNoticeClasses" -> organizationNoticeClasses;
                 default -> throw new IllegalArgumentException(
                         "Unknown squad-gallery-card property: " + property);
+            };
+        }
+    }
+
+    public record OrganizationTarget(
+            String id, String nameId, String detailId, String classes,
+            String name, String detail, Runnable select) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "nameId" -> nameId;
+                case "detailId" -> detailId;
+                case "classes" -> classes;
+                case "name" -> name;
+                case "detail" -> detail;
+                case "select" -> select;
+                default -> throw new IllegalArgumentException("Unknown organization-target property");
             };
         }
     }

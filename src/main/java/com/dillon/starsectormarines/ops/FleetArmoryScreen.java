@@ -92,6 +92,7 @@ public final class FleetArmoryScreen implements Screen {
         } else {
             viewModel.refresh();
         }
+        viewModel.cancelOrganization();
         projectedCampaignHour = campaignHour();
         view = View.SQUADS;
         installDocument(true);
@@ -121,7 +122,7 @@ public final class FleetArmoryScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(switch (view) {
-                case SQUADS -> () -> context.returnFromFleetArmoryWorkspace();
+                case SQUADS -> this::cancelGallery;
                 case FIRETEAMS -> this::showSquadOverview;
                 case DESIGNER -> this::showFireTeams;
                 case ARMOR_COMPARISON -> this::showFireTeams;
@@ -198,6 +199,7 @@ public final class FleetArmoryScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("companySummary", viewModel.companySummary());
+        props.put("organization", viewModel.organization());
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
@@ -237,7 +239,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
-        props.put("back", (Runnable) () -> context.returnFromFleetArmoryWorkspace());
+        props.put("back", (Runnable) this::returnFromWorkspace);
         props.put("backToSquads", (Runnable) this::showSquadOverview);
         props.put("backToFireTeams", (Runnable) this::showFireTeams);
         if (designerViewModel != null) {
@@ -265,12 +267,12 @@ public final class FleetArmoryScreen implements Screen {
     private void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 context::roomAboard,
-                dismissDialog,
-                () -> context.goTo(ScreenId.COMPANY_HQ),
-                () -> context.goTo(ScreenId.BARRACKS),
+                () -> leaveGallery(dismissDialog),
+                () -> leaveGallery(() -> context.goTo(ScreenId.COMPANY_HQ)),
+                () -> leaveGallery(() -> context.goTo(ScreenId.BARRACKS)),
                 () -> { },
-                () -> context.goTo(ScreenId.MECH_LAB),
-                () -> context.goTo(ScreenId.BOAT_DECK));
+                () -> leaveGallery(() -> context.goTo(ScreenId.MECH_LAB)),
+                () -> leaveGallery(() -> context.goTo(ScreenId.BOAT_DECK)));
     }
 
     private void requireWiredElements(MarkupInstance component) {
@@ -307,6 +309,9 @@ public final class FleetArmoryScreen implements Screen {
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab", "page-nav-boats",
                 "squad-breadcrumb", "squad-overview-intro",
+                "organization-toolbar", "begin-squad-organization", "cancel-squad-organization",
+                "squad-organization-panel", "organization-selected-count",
+                "organization-target-list", "organization-summary", "apply-squad-organization",
                 "squad-founder-costs", "found-squad", "squad-founder-feedback",
                 "squad-card-list");
         for (String id : required) {
@@ -315,12 +320,14 @@ public final class FleetArmoryScreen implements Screen {
     }
 
     private void showSelectedSquad() {
+        viewModel.cancelOrganization();
         view = View.FIRETEAMS;
         previewAnimationSeconds = 0f;
         if (viewport != null) installDocument(false);
     }
 
     private void showSquadOverview() {
+        viewModel.cancelOrganization();
         view = View.SQUADS;
         if (viewport != null) installDocument(false);
     }
@@ -343,6 +350,20 @@ public final class FleetArmoryScreen implements Screen {
     private void showArmorComparison() {
         view = View.ARMOR_COMPARISON;
         if (viewport != null) installDocument(false);
+    }
+
+    private void cancelGallery() {
+        if (viewModel.organizing()) viewModel.cancelOrganization();
+        else returnFromWorkspace();
+    }
+
+    private void returnFromWorkspace() {
+        leaveGallery(context::returnFromFleetArmoryWorkspace);
+    }
+
+    private void leaveGallery(Runnable route) {
+        viewModel.cancelOrganization();
+        route.run();
     }
 
     @Override
@@ -381,6 +402,7 @@ public final class FleetArmoryScreen implements Screen {
 
     @Override
     public void detach() {
+        if (viewModel != null) viewModel.cancelOrganization();
         if (document != null) document.deactivateInput();
         if (specSheets != null) specSheets.clear();
         input = null;

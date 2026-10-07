@@ -1,8 +1,9 @@
 # C13 — Complete the task force
 
-Status: PARTIAL — slice 1 shipped; officer outcomes and assignment UX remain
+Status: PARTIAL — bulk home-command assignment implemented; officer outcomes and live acceptance remain
 Written: 2026-08-23
-Updated: 2026-08-23 — folded per-officer deployment command into `company-view-nouns.md`.
+Updated: 2026-10-06 — folded bulk organization semantics into the company and
+personnel noun docs; retained Armory acceptance remains open.
 
 Read `company-view-nouns.md` before changing this story.
 
@@ -18,15 +19,25 @@ reconstructing the task force from a later roster state.
 
 Coordinate the after-action presentation with `c6-after-action-by-fireteam.md`.
 
-### 2. Make organization practical at scale
+### 2. Accept bulk organization in the live company gallery
 
-Assigning dozens of squads by cycling one squad through one officer at a time is
-too costly. Add a bulk, readable squad-to-officer assignment affordance on the
-company roster surface. It must preserve officer squad caps and make unassigned
-squads—and their operation-commander fallback—explicit.
+Fleet Armory's company squad gallery stages an explicit multi-squad assignment
+to one active home officer or Unassigned. The roster rechecks the entire batch,
+preserves rank caps and stationed locks, and commits all assignments together.
+The standing model is in `company-view-nouns.md` and `personnel-nouns.md`.
 
-Coordinate the surface with `c3-company-card-stack.md` and
-`c4-whereabouts-and-deployed-state.md`.
+The shared UI snapshot catalog covers valid and over-capacity drafts, explicit
+Unassigned, a twenty-four-squad gallery, and enlarged UI scale. These establish
+headless presentation, not in-game feel or campaign persistence.
+
+The live acceptance still needs a company of roughly twenty squads: move several
+squads between officers, refuse an over-capacity destination, clear assignments,
+confirm stationed formations remain locked, and cancel or leave without applying.
+Confirm home assignments persist through save/load and ordinary deployment still
+resolves unassigned squads to the operation commander.
+
+Formation grouping and richer whereabouts remain owned by
+`c3-company-card-stack.md` and `c4-whereabouts-and-deployed-state.md`.
 
 ## Acceptance
 

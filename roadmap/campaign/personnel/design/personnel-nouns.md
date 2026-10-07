@@ -4,8 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — a new campaign begins without named line personnel;
-Fleet Armory founding atomically converts a complete cargo bill into one full squad.
+Updated: 2026-10-06 — bulk home-officer organization is one atomic, capacity-safe
+roster transition with no new persisted selection state.
 
 ## Purpose
 
@@ -40,6 +40,16 @@ A squad may name one home officer. Home command is an organizational default,
 not ownership of people or a record of temporary borrowing. Officer capacity is
 in whole squads and does not shrink with casualties. A garrison remains a
 single-officer posting even though a normal operation may be a task force.
+
+Home-command organization can assign or clear several line squads in one
+transaction. Every selected identity and the active destination officer are
+revalidated before any assignment changes. Adding squads cannot put the
+destination beyond that officer's rank capacity; an entirely unchanged selection
+may acknowledge an existing command even if its officer's capacity later fell.
+Existing assignments to the destination are counted once. Stationed squads cannot be moved or cleared, and the reserve
+pool cannot be assigned. A failed transaction leaves every assignment intact.
+Only existing home-officer ids persist; selection and destination drafts belong
+to the surface, so legacy saves need no additional organization state.
 
 ## Availability and deployment
 

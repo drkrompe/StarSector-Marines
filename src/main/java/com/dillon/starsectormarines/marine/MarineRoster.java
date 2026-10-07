@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -493,27 +494,137 @@ public class MarineRoster implements Serializable {
         return releaseStationing(contractId);
     }
 
+    /**
+     * A current-roster projection of one whole squad-selection assignment.
+     * {@code changedSquadCount} excludes squads already at the destination.
+     * Counts include every line squad, even when empty, wounded, or stationed;
+     * {@code commandCapacity} is {@code -1} for the uncapped unassigned pool or
+     * an officer who no longer exists. A refused result never mutates the roster.
+     */
+    public record SquadCaptainAssignmentResult(
+            boolean valid, String reason, int selectedSquadCount,
+            int changedSquadCount, int currentCommandCount,
+            int resultingCommandCount, int commandCapacity) { }
+
+    /**
+     * Previews assigning a selection to an active officer, or clearing its home
+     * command when {@code captainId} is null. Duplicate ids count once. Unknown
+     * ids, reserves, and changes to a stationed squad refuse the entire selection.
+     * A preview grants no permission to mutate later; commit validates again.
+     */
+    public SquadCaptainAssignmentResult previewCaptainAssignment(
+            String captainId, Collection<String> squadIds) {
+        return planCaptainAssignment(captainId, squadIds).result();
+    }
+
+    /**
+     * Validates every current input before changing any selected home command.
+     * An already-assigned squad consumes no additional slot; a wholly unchanged
+     * selection remains valid even if an older assignment exceeds today's cap.
+     */
+    public SquadCaptainAssignmentResult assignCaptainToSquads(
+            String captainId, Collection<String> squadIds) {
+        SquadCaptainAssignmentPlan plan = planCaptainAssignment(captainId, squadIds);
+        if (!plan.result().valid()) return plan.result();
+        for (MarineSquad squad : plan.squads()) {
+            squad.setHomeCaptainId(captainId);
+        }
+        return plan.result();
+    }
+
+    private SquadCaptainAssignmentPlan planCaptainAssignment(
+            String captainId, Collection<String> squadIds) {
+        MarineCaptain captain = captainId == null ? null : byId(captainId);
+        int commandCapacity = captain == null ? -1 : captain.rank().squadCommandCap();
+        int currentCommandCount = 0;
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && Objects.equals(captainId, squad.homeCaptainId())) {
+                currentCommandCount++;
+            }
+        }
+        Set<String> selectedIds = squadIds == null
+                ? Collections.emptySet() : new LinkedHashSet<>(squadIds);
+        int selectedCount = selectedIds.size();
+        if (selectedIds.isEmpty()) {
+            return refusedCaptainAssignment("Select at least one line squad.",
+                    selectedCount, 0, currentCommandCount, commandCapacity);
+        }
+        if (captainId != null && captain == null) {
+            return refusedCaptainAssignment("The selected officer no longer exists.",
+                    selectedCount, 0, currentCommandCount, commandCapacity);
+        }
+        if (captain != null && captain.status() != Status.ACTIVE) {
+            return refusedCaptainAssignment("Only active officers can receive squads.",
+                    selectedCount, 0, currentCommandCount, commandCapacity);
+        }
+        for (String squadId : selectedIds) {
+            if (squadById(squadId) == null) {
+                return refusedCaptainAssignment(
+                        "A selected squad no longer exists. Refresh the selection.",
+                        selectedCount, 0, currentCommandCount, commandCapacity);
+            }
+        }
+        List<MarineSquad> selectedSquads = new ArrayList<>(selectedCount);
+        int changedCount = 0;
+        String refusal = null;
+        for (MarineSquad squad : squads) {
+            if (!selectedIds.contains(squad.id())) continue;
+            selectedSquads.add(squad);
+            if (squad.reserve()) {
+                refusal = "The reserve pool cannot be assigned to an officer.";
+            }
+            if (Objects.equals(captainId, squad.homeCaptainId())) continue;
+            changedCount++;
+            if (squad.stationed() && refusal == null) {
+                refusal = "A stationed squad cannot change its home officer.";
+            }
+        }
+        if (refusal != null) {
+            return refusedCaptainAssignment(refusal, selectedCount, changedCount,
+                    currentCommandCount, commandCapacity);
+        }
+        int resultingCommandCount = currentCommandCount + changedCount;
+        if (captain != null && changedCount > 0
+                && resultingCommandCount > commandCapacity) {
+            return refusedCaptainAssignment(
+                    "This assignment would give " + captain.name() + " "
+                            + resultingCommandCount + " squads, exceeding the "
+                            + commandCapacity + "-squad command limit.",
+                    selectedCount, changedCount, currentCommandCount, commandCapacity);
+        }
+        String reason = captain == null
+                ? "Unassigned: " + resultingCommandCount + " squads. They follow the operation commander."
+                : captain.name() + ": " + resultingCommandCount + "/" + commandCapacity
+                        + " squads assigned.";
+        SquadCaptainAssignmentResult result = new SquadCaptainAssignmentResult(
+                true, reason, selectedCount, changedCount, currentCommandCount,
+                resultingCommandCount, commandCapacity);
+        return new SquadCaptainAssignmentPlan(result, selectedSquads);
+    }
+
+    private static SquadCaptainAssignmentPlan refusedCaptainAssignment(
+            String reason, int selectedCount, int changedCount,
+            int currentCommandCount, int commandCapacity) {
+        SquadCaptainAssignmentResult result = new SquadCaptainAssignmentResult(
+                false, reason, selectedCount, changedCount, currentCommandCount,
+                currentCommandCount + changedCount, commandCapacity);
+        return new SquadCaptainAssignmentPlan(result, Collections.emptyList());
+    }
+
+    private record SquadCaptainAssignmentPlan(
+            SquadCaptainAssignmentResult result, List<MarineSquad> squads) { }
+
     /** Assigns or atomically reassigns one line squad to an active captain. */
     public boolean assignCaptainToSquad(String captainId, String squadId) {
-        MarineCaptain captain = byId(captainId);
-        MarineSquad squad = squadById(squadId);
-        if (captain == null || captain.status() != Status.ACTIVE
-                || squad == null || squad.reserve()) return false;
-        if (captainId.equals(squad.homeCaptainId())) return true;
-        if (squad.stationed()) return false;
-        if (squadsCommandedBy(captainId).size() >= captain.rank().squadCommandCap()) {
-            return false;
-        }
-        squad.setHomeCaptainId(captainId);
-        return true;
+        return captainId != null && assignCaptainToSquads(
+                captainId, Collections.singletonList(squadId)).valid();
     }
 
     public boolean clearSquadCaptain(String squadId) {
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.reserve() || squad.stationed()
                 || squad.homeCaptainId() == null) return false;
-        squad.setHomeCaptainId(null);
-        return true;
+        return assignCaptainToSquads(null, Collections.singletonList(squadId)).valid();
     }
 
     /** Next roster-order captain who can receive this team; excludes its current captain. */
