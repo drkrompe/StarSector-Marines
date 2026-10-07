@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ui.retained;
 
 import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
@@ -95,6 +96,32 @@ public abstract class CanvasContext {
         drawLine(x1, y1, x2, y2, requireColor(color), strokeWidth);
     }
 
+    /** Draws one immutable mesh without allocating transformed vertex arrays. */
+    public final void mesh(CanvasMesh mesh, float x, float y, float scale, Color color) {
+        if (mesh == null) throw new IllegalArgumentException("mesh required");
+        requireFinite(x, y, scale);
+        if (scale < 0f) throw new IllegalArgumentException("mesh scale cannot be negative");
+        if (scale == 0f || mesh.vertexCount() == 0) return;
+        drawMesh(mesh, x, y, scale, requireColor(color));
+    }
+
+    /** Draws cached meshes in paint order; targets may submit the entire batch once. */
+    public final void meshBatch(CanvasMeshBatch batch, float x, float y, float scale, Color tint) {
+        if (batch == null) throw new IllegalArgumentException("mesh batch required");
+        requireFinite(x, y, scale);
+        requireColor(tint);
+        if (scale < 0f) throw new IllegalArgumentException("mesh scale cannot be negative");
+        if (scale == 0f || batch.layerCount() == 0 || tint.getAlpha() == 0) return;
+        drawMeshBatch(batch, x, y, scale, tint);
+    }
+
+    /** Aspect-fits a precompiled SVG asset into a canvas-local destination box. */
+    public final void svg(SvgAsset asset, float x, float y, float width, float height, Color tint) {
+        if (asset == null) throw new IllegalArgumentException("SVG asset required");
+        requireRect(x, y, width, height);
+        asset.draw(this, x, y, width, height, requireColor(tint));
+    }
+
     public final void text(BitmapFont font, String text, float x, float y, Color color) {
         if (font == null || text == null) throw new IllegalArgumentException("font and text required");
         requireFinite(x, y);
@@ -149,6 +176,33 @@ public abstract class CanvasContext {
 
     protected abstract void drawLine(float x1, float y1, float x2, float y2,
                                      Color color, float strokeWidth);
+
+    /** Targets may batch triangles to prevent seams between adjacent fill pieces. */
+    protected void drawMesh(CanvasMesh mesh, float x, float y, float scale, Color color) {
+        for (int i = 0; i < mesh.vertexCount(); i += 3) {
+            float x0 = x + mesh.x(i) * scale;
+            float y0 = y + mesh.y(i) * scale;
+            float x1 = x + mesh.x(i + 1) * scale;
+            float y1 = y + mesh.y(i + 1) * scale;
+            float x2 = x + mesh.x(i + 2) * scale;
+            float y2 = y + mesh.y(i + 2) * scale;
+            drawFillQuad(x0, y0, x1, y1, x2, y2, x2, y2, color);
+        }
+    }
+
+    /** Raster targets retain union-per-layer fills for antialiasing without mesh seams. */
+    protected void drawMeshBatch(CanvasMeshBatch batch, float x, float y, float scale, Color tint) {
+        for (int i = 0; i < batch.layerCount(); i++) {
+            CanvasMeshBatch.Layer layer = batch.layer(i);
+            Color color = layer.color();
+            int alpha = color.getAlpha() * tint.getAlpha() / 255;
+            if (alpha == 0 || layer.mesh().vertexCount() == 0) continue;
+            Color tinted = new Color(color.getRed() * tint.getRed() / 255,
+                    color.getGreen() * tint.getGreen() / 255,
+                    color.getBlue() * tint.getBlue() / 255, alpha);
+            drawMesh(layer.mesh(), x, y, scale, tinted);
+        }
+    }
 
     protected abstract void drawText(BitmapFont font, String text, float x, float y,
                                      Color color);

@@ -28,13 +28,28 @@
         <div id="organization-target-heading" class="organization-target-heading label tone-edge">HOME OFFICER</div>
       </div>
       <div id="organization-target-list" class="organization-target-list">
-        <button each="target in organization.targetRows" key="{target.id}" id="{target.id}" class="{target.classes}" disabled="{organization.inactive}" onclick="{target.select}">
-          <div id="{target.nameId}" class="organization-target-name label tone-edge">{target.name}</div>
+        <button each="target in organization.targetRows" key="{target.id}" id="{target.id}" class="{target.classes}" style="{target.style}" disabled="{organization.inactive}" onclick="{target.select}">
+          <div id="{target.identityId}" class="organization-target-identity">
+            <img id="{target.portraitId}" class="{target.portraitClasses}" src="{target.portrait}" />
+            <div id="{target.fallbackId}" class="{target.fallbackClasses}">OP</div>
+            <div id="{target.dossierId}" class="organization-target-dossier">
+              <div id="{target.rankRowId}" class="organization-target-rank-row">
+                <canvas id="{target.rankId}" class="{target.rankClasses}" width="24" height="24" />
+                <div id="{target.rankLabelId}" class="organization-target-rank-label label tone-muted">{target.rankLabel}</div>
+              </div>
+              <div id="{target.nameId}" class="organization-target-name label heading tone-edge">{target.name}</div>
+              <div id="{target.stateId}" class="{target.stateClasses}">{target.state}</div>
+            </div>
+          </div>
+          <canvas id="{target.capacityId}" class="{target.capacityClasses}" width="216" height="34" />
+          <div id="{target.fallbackCopyId}" class="{target.fallbackCopyClasses}">{target.fallbackCopy}</div>
           <div id="{target.detailId}" class="organization-target-detail label tone-muted">{target.detail}</div>
         </button>
       </div>
-      <div id="organization-summary" class="{organization.summaryClasses}">{organization.summary}</div>
-      <button id="apply-squad-organization" class="organization-apply" disabled="{organization.applyDisabled}" onclick="{organization.applyAction}">{organization.applyLabel}</button>
+      <div id="organization-commit-row" class="organization-commit-row">
+        <div id="organization-summary" class="{organization.summaryClasses}">{organization.summary}</div>
+        <button id="apply-squad-organization" class="organization-apply" disabled="{organization.applyDisabled}" onclick="{organization.applyAction}">{organization.applyLabel}</button>
+      </div>
     </div>
 
     <armory-squad-list squadGalleryCards="{squadGalleryCards}" />
@@ -54,36 +69,46 @@
   .label { overflow: hidden; }
   .heading { font-family: heading; }
 
-  #squad-breadcrumb { flex-direction: row; height: 28px; padding: 3px 4px; gap: 5px; }
+  #squad-breadcrumb { flex-direction: row; height: 22px; padding: 3px 4px; gap: 5px; }
   #squad-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
   .breadcrumb-separator { width: 10px; text-align: center; }
   .breadcrumb-current { padding: 3px 4px; }
 
   #squad-overview-intro {
     flex-direction: column;
-    height: 72px;
-    padding: 7px 8px;
-    gap: 3px;
+    height: 52px;
+    padding: 5px 8px;
+    gap: 2px;
   }
 
-  #squad-overview-heading { height: 18px; }
-  #squad-overview-summary { height: 19px; padding: 2px 6px; }
+  #squad-overview-heading { height: 14px; }
+  #squad-overview-summary { height: 15px; padding: 1px 6px; }
   #squad-overview-copy { height: 17px; }
 
-  .organization-toolbar { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; overflow: hidden; }
-  .organization-start, .organization-cancel { width: 168px; height: 30px; padding: 5px 7px; border-width: 1px; font-family: body; text-align: center; }
+  .organization-toolbar { flex-direction: row; height: 28px; padding: 4px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .organization-start, .organization-cancel { width: 168px; height: 18px; padding: 3px 7px; border-width: 1px; font-family: body; text-align: center; }
   .organization-toolbar-copy { width: 0px; flex-grow: 1; padding: 2px 3px; white-space: normal; }
-  .organization-panel { flex-direction: column; height: 180px; padding: 7px; gap: 4px; border-width: 1px; overflow: scroll; }
-  .organization-heading { flex-direction: row; height: 18px; gap: 8px; }
-  .organization-selected-count { width: 0px; flex-grow: 1; height: 18px; }
-  .organization-target-heading { width: 130px; height: 18px; text-align: right; }
-  .organization-target-list { display: grid; height: 72px; gap: 6px; padding: 1px; overflow: scroll; }
-  .organization-target { flex-direction: column; width: 246px; height: 60px; padding: 5px; gap: 3px; border-width: 1px; font-family: body; text-align: left; }
-  .organization-target.selected { background-color: #183b50; border-color: #ffd464; }
-  .organization-target-name { height: 28px; white-space: normal; }
-  .organization-target-detail { height: 28px; white-space: normal; }
-  .organization-summary { padding: 2px; white-space: normal; }
-  .organization-apply { width: 246px; height: 20px; padding: 4px 7px; border-width: 1px; font-family: body; text-align: center; }
+  .organization-panel { flex-direction: column; height: 180px; padding: 6px; gap: 4px; border-width: 1px; overflow: hidden; }
+  .organization-heading { flex-direction: row; height: 16px; gap: 8px; }
+  .organization-selected-count { width: 0px; flex-grow: 1; height: 16px; }
+  .organization-target-heading { width: 130px; height: 16px; text-align: right; }
+  .organization-target-list { display: grid; height: 124px; gap: 6px; padding: 1px; overflow: scroll; }
+  .organization-target { flex-direction: column; width: 216px; height: 104px; padding: 5px; gap: 2px; border-width: 2px; font-family: body; text-align: left; overflow: hidden; }
+  .organization-target-identity { flex-direction: row; height: 56px; gap: 6px; }
+  .organization-target-portrait { width: 56px; height: 56px; border-width: 1px; border-color: #51758b; background-color: #0c1620; }
+  .organization-target-fallback { width: 54px; height: 54px; padding: 1px; border-width: 1px; border-color: #51758b; background-color: #0c1620; font-family: title; text-align: center; }
+  .organization-target-dossier { flex-direction: column; width: 0px; flex-grow: 1; height: 56px; }
+  .organization-target-rank-row { flex-direction: row; height: 16px; gap: 4px; }
+  .organization-target-rank { width: 16px; height: 16px; }
+  .organization-target-rank-label { width: 0px; flex-grow: 1; height: 16px; padding: 3px 0px; font-family: compact; }
+  .organization-target-name { height: 24px; white-space: normal; }
+  .organization-target-state { height: 16px; }
+  .organization-target-capacity { width: 216px; height: 24px; }
+  .organization-fallback-copy { height: 24px; white-space: normal; }
+  .organization-target-detail { height: 16px; }
+  .organization-commit-row { flex-direction: row; height: 30px; gap: 8px; }
+  .organization-summary { width: 0px; flex-grow: 1; height: 28px; padding: 1px 2px; white-space: normal; }
+  .organization-apply { width: 150px; height: 20px; padding: 4px 7px; border-width: 1px; font-family: body; text-align: center; }
   .hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
 
 </style>

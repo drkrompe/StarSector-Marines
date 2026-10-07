@@ -5,7 +5,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 Written: 2026-08-23
 
 Updated: 2026-10-06 — Fleet Armory stages bulk home-officer assignments through
-one capacity-safe roster transaction.
+one capacity-safe roster transaction and depicts current billets and officer capacity.
 
 ## Purpose
 
@@ -111,6 +111,13 @@ Its selectable company and squad cards retain readiness, recovery, and reinforce
 in formation context. A reinforcement control is a secondary card action; selecting
 the rest of an Armory squad card still enters that squad.
 
+Squad cards show the twelve current billets grouped into Alpha, Bravo, and Charlie.
+A filled marine cutout means ready, an amber medical mark means wounded, and a
+hollow cutout means vacant; counts and a text legend accompany these shapes.
+Wounded marines retain their billet. Historical killed and missing personnel do
+not occupy the current establishment. Readiness is distinct from stationing and
+from the selected frame used while organizing squads.
+
 The company squad gallery also owns an explicit **Organize squads** mode. In
 that mode, formation cards select squads for one home-officer assignment rather
 than opening equipment inspection. The destination is one active officer or
@@ -122,6 +129,11 @@ nor choosing an officer changes campaign organization. Organization mode uses
 compact formation cards that keep selection and home command together at
 enlarged UI scales; equipment and recovery inspection remain with ordinary
 squad browsing.
+
+Officer destinations use the captain's persisted portrait, rank, and name. Their
+command display distinguishes current squads from incoming assignments and shows
+overflow against the rank cap before Apply. Unassigned carries an explicit
+operation-commander fallback rather than a fictional officer portrait or capacity.
 
 Fleet Armory is the only Armory route. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,

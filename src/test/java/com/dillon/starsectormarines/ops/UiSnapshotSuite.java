@@ -287,6 +287,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 false, false)),
+                new SnapshotArtifact("fleet-armory-squads-large-ui.png",
+                        renderFleetArmoryWorkspace(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                false, false, false, false, false, 1.5f)),
                 new SnapshotArtifact("fleet-armory-organization-wide.png",
                         renderFleetArmoryOrganization(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, false)),
@@ -296,6 +300,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-organization-large-ui.png",
                         renderFleetArmoryOrganization(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, false, 1.5f)),
+                new SnapshotArtifact("fleet-armory-organization-medium-ui.png",
+                        renderFleetArmoryOrganization(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, false, 1.25f)),
                 new SnapshotArtifact("fleet-armory-organization-unassigned-wide.png",
                         renderFleetArmoryOrganization(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 6, false, true)),
@@ -1418,17 +1425,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(squadCount * MarineSquad.CAPACITY);
-        MarineCaptain captain = new MarineCaptain("Tamsin Vale", null, Rank.CAPTAIN, 0f);
-        MarineCaptain lieutenant = new MarineCaptain("Rafael Kade", null, Rank.LIEUTENANT, 0f);
+        MarineCaptain captain = new MarineCaptain("Tamsin Vale",
+                "graphics/portraits/portrait_hegemony06.png", Rank.CAPTAIN, 0f);
+        MarineCaptain lieutenant = new MarineCaptain("Rafael Kade",
+                "graphics/portraits/portrait_mercenary04.png", Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.add(lieutenant);
         if (squadCount > 6) {
-            for (String name : List.of("Mara Soren", "Inez Ward", "Jonas Reed",
-                    "Elian Voss", "Nadia Orlov", "Kellan Price")) {
-                roster.add(new MarineCaptain(name, null, Rank.LIEUTENANT, 0f));
+            List<String> names = List.of("Mara Soren", "Inez Ward", "Jonas Reed",
+                    "Elian Voss", "Nadia Orlov", "Kellan Price");
+            List<String> portraits = List.of("portrait_mercenary05.png", "portrait_hegemony12.png",
+                    "portrait_pirate06.png", "portrait_pirate12.png", "portrait_hegemony13.png",
+                    "portrait_hegemony07.png");
+            for (int index = 0; index < names.size(); index++) {
+                roster.add(new MarineCaptain(names.get(index),
+                        "graphics/portraits/" + portraits.get(index), Rank.LIEUTENANT, 0f));
             }
         }
         List<MarineSquad> squads = roster.squads();
+        Map<String, MarineSoldierStatus> casualties = new LinkedHashMap<>();
+        casualties.put(squads.get(2).memberIds().get(0), MarineSoldierStatus.WIA);
+        casualties.put(squads.get(2).memberIds().get(1), MarineSoldierStatus.WIA);
+        casualties.put(squads.get(2).memberIds().get(11), MarineSoldierStatus.KIA);
+        casualties.put(squads.get(3).memberIds().get(0), MarineSoldierStatus.WIA);
+        casualties.put(squads.get(4).memberIds().get(0), MarineSoldierStatus.WIA);
+        casualties.put(squads.get(4).memberIds().get(10), MarineSoldierStatus.MIA);
+        casualties.put(squads.get(4).memberIds().get(11), MarineSoldierStatus.KIA);
+        roster.applySoldierOutcome(casualties, 100f, 1.25f);
         roster.assignCaptainToSquad(captain.id(), squads.get(0).id());
         roster.assignCaptainToSquad(captain.id(), squads.get(1).id());
         roster.assignCaptainToSquad(lieutenant.id(), squads.get(2).id());
@@ -1453,6 +1476,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            FleetArmoryScreen.bindGalleryCanvases(document, instance, viewModel);
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -1506,6 +1530,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, boolean fireteam, boolean pickerOpen,
             boolean armorPicker, boolean equipmentTooltip,
             boolean loadoutSpecSheet) throws Exception {
+        return renderFleetArmoryWorkspace(context, renderer, width, height,
+                fireteam, pickerOpen, armorPicker, equipmentTooltip, loadoutSpecSheet, 1f);
+    }
+
+    private static BufferedImage renderFleetArmoryWorkspace(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean fireteam, boolean pickerOpen,
+            boolean armorPicker, boolean equipmentTooltip,
+            boolean loadoutSpecSheet, float uiScale) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -1547,6 +1580,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     () -> viewModel.viewerBilletAt(billet),
                                     armoryPreview.assets()));
                 }
+            } else {
+                FleetArmoryScreen.bindGalleryCanvases(document, instance, viewModel);
             }
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
@@ -1565,7 +1600,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         instance.requireElement(ArmorySpecSheets.firstSpecSheetAnchorId(
                                 viewModel.weaponDoctrineTiles().get())));
             }
-            return renderRelative(renderer, document, width, height, 1f);
+            return renderRelative(renderer, document, width, height, uiScale);
         }
     }
 

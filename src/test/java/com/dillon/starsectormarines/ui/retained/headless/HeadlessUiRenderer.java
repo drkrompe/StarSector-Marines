@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ui.retained.headless;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
+import com.dillon.starsectormarines.ui.retained.CanvasMesh;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
@@ -325,6 +326,25 @@ public final class HeadlessUiRenderer {
             path.lineTo(documentX(x2), documentY(y2));
             path.lineTo(documentX(x3), documentY(y3));
             path.closePath();
+            graphics.fill(path);
+            graphics.setComposite(previous);
+        }
+
+        @Override
+        protected void drawMesh(CanvasMesh mesh, float x, float y, float scale, Color color) {
+            var previous = graphics.getComposite();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(color.getAlpha() / 255f * alphaMult())));
+            graphics.setColor(opaque(color));
+            // Fill the triangle set as one shape. Antialiasing individual
+            // pieces would make their shared boundaries visible as seams.
+            Path2D.Float path = new Path2D.Float();
+            for (int i = 0; i < mesh.vertexCount(); i += 3) {
+                path.moveTo(documentX(x + mesh.x(i) * scale), documentY(y + mesh.y(i) * scale));
+                path.lineTo(documentX(x + mesh.x(i + 1) * scale), documentY(y + mesh.y(i + 1) * scale));
+                path.lineTo(documentX(x + mesh.x(i + 2) * scale), documentY(y + mesh.y(i + 2) * scale));
+                path.closePath();
+            }
             graphics.fill(path);
             graphics.setComposite(previous);
         }

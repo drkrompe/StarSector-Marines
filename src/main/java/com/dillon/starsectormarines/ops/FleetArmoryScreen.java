@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.OfficerCapacityCanvas;
+import com.dillon.starsectormarines.ops.battleview.OfficerRankCanvas;
+import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -66,6 +69,8 @@ public final class FleetArmoryScreen implements Screen {
     /** The loadout projections the live document's entries were bound against. */
     private List<FleetArmoryViewModel.DoctrineTile> boundWeaponTiles;
     private List<FleetArmoryViewModel.DoctrineTile> boundArmorTiles;
+    private List<FleetArmoryViewModel.SquadCard> boundSquadCards;
+    private List<FleetArmoryViewModel.OrganizationTarget> boundOrganizationTargets;
     private StarsectorUiInputAdapter input;
     private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
@@ -127,7 +132,9 @@ public final class FleetArmoryScreen implements Screen {
                 case DESIGNER -> this::showFireTeams;
                 case ARMOR_COMPARISON -> this::showFireTeams;
             });
-            if (view == View.FIRETEAMS) {
+            if (view == View.SQUADS) {
+                bindGalleryCanvases(built, candidate, viewModel);
+            } else if (view == View.FIRETEAMS) {
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int slot = index;
                     built.canvases().set(candidate.requireElement("marine-preview:" + index),
@@ -171,6 +178,8 @@ public final class FleetArmoryScreen implements Screen {
         document = built;
         markupInstance = candidate;
         specSheets = candidateSheets;
+        boundSquadCards = view == View.SQUADS ? viewModel.squadCards().get() : null;
+        boundOrganizationTargets = view == View.SQUADS ? viewModel.organizationTargets().get() : null;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
         if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
@@ -194,6 +203,41 @@ public final class FleetArmoryScreen implements Screen {
         boundArmorTiles = armor;
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.weaponDoctrineTiles());
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.armorDoctrineTiles());
+    }
+
+    /** Shared production wiring used by the deterministic gallery fixtures. */
+    public static void bindGalleryCanvases(UiDocument document, MarkupInstance instance,
+                                          FleetArmoryViewModel viewModel) {
+        for (FleetArmoryViewModel.SquadCard card : viewModel.squadCards().get()) {
+            String squadId = card.squadId();
+            document.canvases().set(instance.requireElement(card.id() + ":muster"),
+                    new SquadMusterCanvas(() -> viewModel.squadMuster(squadId)));
+        }
+        for (FleetArmoryViewModel.OrganizationTarget target : viewModel.organizationTargets().get()) {
+            String id = target.id();
+            document.canvases().set(instance.requireElement(target.capacityId()),
+                    new OfficerCapacityCanvas(() -> {
+                        FleetArmoryViewModel.OrganizationTarget current =
+                                viewModel.organizationTargetById(id);
+                        return current != null ? current.capacity() : null;
+                    }));
+            document.canvases().set(instance.requireElement(target.rankId()),
+                    new OfficerRankCanvas(() -> {
+                        FleetArmoryViewModel.OrganizationTarget current =
+                                viewModel.organizationTargetById(id);
+                        return current != null ? current.rank() : null;
+                    }));
+        }
+    }
+
+    private void refreshGalleryCanvases() {
+        if (document == null || markupInstance == null) return;
+        List<FleetArmoryViewModel.SquadCard> squads = viewModel.squadCards().get();
+        List<FleetArmoryViewModel.OrganizationTarget> officers = viewModel.organizationTargets().get();
+        if (squads == boundSquadCards && officers == boundOrganizationTargets) return;
+        bindGalleryCanvases(document, markupInstance, viewModel);
+        boundSquadCards = squads;
+        boundOrganizationTargets = officers;
     }
 
     private Map<String, Object> props() {
@@ -377,7 +421,8 @@ public final class FleetArmoryScreen implements Screen {
         // Loadout cards come and go with the rarity and supplies filters, so
         // the entries a reader can ask about are wired after reconciliation
         // rather than only when the document was installed.
-        if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
+        if (view == View.SQUADS) refreshGalleryCanvases();
+        else if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
         if (specSheets != null) specSheets.update();
         if ((view == View.FIRETEAMS || view == View.DESIGNER)
                 && Float.isFinite(dt) && dt > 0f) {
@@ -417,6 +462,8 @@ public final class FleetArmoryScreen implements Screen {
         specSheets = null;
         boundWeaponTiles = null;
         boundArmorTiles = null;
+        boundSquadCards = null;
+        boundOrganizationTargets = null;
         input = null;
     }
 

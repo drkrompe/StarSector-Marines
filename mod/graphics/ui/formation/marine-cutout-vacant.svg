@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 96">
+  <!-- Vacant billets keep the marine outline but contain no filled body. -->
+  <g fill="none" stroke="#ffffff" stroke-width="1.7" stroke-dasharray="4 3" stroke-linejoin="round">
+    <path d="M23 6 L39 6 L44 12 L44 23 L39 29 L24 29 L19 23 L19 12 Z"/>
+    <path d="M20 28 L11 28 L7 31 L6 38 L9 43 L7 48 L12 52 L20 54 L19 60 L23 66 L19 68 L22 74 L18 83 L19 87 L16 91 L17 94 L30 94 L28 89 L30 83 L31 73 L34 73 L35 83 L37 89 L35 94 L48 94 L49 91 L45 87 L46 83 L43 74 L45 68 L41 65 L44 60 L43 53 L50 54 L57 47 L55 42 L57 35 L52 29 L43 28"/>
+    <path d="M6 47 L15 42 L20 45 L48 32 L61 28 M12 55 L20 52 L56 36"/>
+  </g>
+</svg>

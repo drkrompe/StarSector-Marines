@@ -4,7 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — direct control adds a faint world aim lane without enlarging chrome.
+Updated: 2026-10-06 — canvas visuals support cached authored SVG geometry in
+live and headless painting.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -497,6 +498,15 @@ source region for atlas and flipbook art and declare normal or additive
 blending. Those are producer-owned visual intents rather than backend
 shortcuts: the live and headless targets apply the same region, RGB tint,
 opacity, rotation, and blend contract.
+
+Authored SVG assets are another canvas primitive. A producer loads and compiles
+an asset once, then aspect-fits its cached geometry inside a canvas box with a
+color tint. Solid shapes, full SVG path commands, groups, affine transforms,
+fill rules, and strokes share one triangle geometry in live and headless painting.
+This is an explicit vector subset rather than a second markup tree: unsupported
+constructs fail when loading the asset. Gradients, references, masks, clip paths,
+and opacity that requires compositing overlapping paints are outside the current
+subset.
 
 An image element paints through that same sprite primitive rather than teaching
 the painter about textures, so both backends already agree on what an asset looks
