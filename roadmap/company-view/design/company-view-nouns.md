@@ -4,10 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — a loadout card's twelve-billet distribution reads as one
-joined line built from one entry per named thing, and each entry opens that
-item's spec sheet; an entry counting items that need not be the same item names
-nothing and opens nothing.
+Updated: 2026-10-06 — Fleet Armory stages bulk home-officer assignments through
+one capacity-safe roster transaction.
 
 ## Purpose
 
@@ -18,7 +16,8 @@ roster and contract state, not a second company simulation and not a
 player-order layer. The Fleet Armory, the Mech Lab and the Boat Deck are its
 deliberate authoring
 seams: the first assigns reusable weapon and armor equipment definitions to
-whole squads while preserving exact materialized kits; the second refits
+whole squads while preserving exact materialized kits and stages home-officer
+organization; the second refits
 persistent support squads.
 
 This domain owns the shared language and presentation shape of the company. It
@@ -112,6 +111,18 @@ Its selectable company and squad cards retain readiness, recovery, and reinforce
 in formation context. A reinforcement control is a secondary card action; selecting
 the rest of an Armory squad card still enters that squad.
 
+The company squad gallery also owns an explicit **Organize squads** mode. In
+that mode, formation cards select squads for one home-officer assignment rather
+than opening equipment inspection. The destination is one active officer or
+**Unassigned**, with its operation-commander fallback stated. The draft shows
+selected squads and the destination command's resulting count against rank
+capacity before the player applies it. Stationed formations remain visible and
+locked. Canceling or leaving the gallery discards the draft; neither selection
+nor choosing an officer changes campaign organization. Organization mode uses
+compact formation cards that keep selection and home command together at
+enlarged UI scales; equipment and recovery inspection remain with ordinary
+squad browsing.
+
 Fleet Armory is the only Armory route. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,
 and embedded Mech Lab were retired rather than retained as duplicate UI. Personnel
@@ -179,6 +190,15 @@ hours and days.
 `homeCaptainId` is a squad's durable organizational default, not a history of
 temporary mission borrowing. Stationed squads remain under one officer because
 a garrison is a posting, not a task force.
+
+A home-command change may move several line squads at once. The roster
+rechecks the whole selection and destination at commitment and either applies
+every assignment or changes none. Capacity counts whole assigned squads,
+including stationed and understrength formations; selecting a squad already
+under the destination does not consume another slot. Reserve formations and
+stationed reassignments cannot enter the transaction. Clearing home command
+uses the same deliberate transaction and restores the ordinary deployment
+fallback without choosing an operation commander in advance.
 
 ## Squad equipment doctrines
 
@@ -725,7 +745,8 @@ task-force model.
 
 Officer consequences have not yet caught up with officer deployment:
 `MissionOutcome` still resolves only the operation commander. Per-officer
-outcomes and practical bulk assignment remain in `c13-the-task-force.md`.
+outcomes remain in `c13-the-task-force.md`; bulk home-command organization
+is staged in the Fleet Armory company gallery.
 
 ## Campaign-map home
 
@@ -793,8 +814,9 @@ that the formation, whereabouts, and contract-board stories will expand.
 ## Presentation boundaries
 
 Company reporting surfaces are read-only explanations. The Fleet Armory and Mech
-Lab are the exceptions that author equipment through roster, armory, and mech-bay
-services; their UIs do not mutate those facts independently. Mission
+Lab are the exceptions that author equipment, and Fleet Armory additionally
+authors home-officer organization, through roster, armory, and mech-bay services.
+Their UIs do not mutate those facts independently. Mission
 command owns battle assignments; `Selection` remains view state. Campaign
 surfaces consume the live roster, while battle and results surfaces consume the
 frozen deployment. A UI must not silently regroup marines, invent persistence,
@@ -850,7 +872,7 @@ production vehicle deployment seam exists.
 ## Extension boundaries
 
 Future extensions may add a shared formation read model, safe late-arrival
-rejoin, participating-officer outcomes, practical large-company assignment,
+rejoin, participating-officer outcomes, broader formation grouping,
 and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.

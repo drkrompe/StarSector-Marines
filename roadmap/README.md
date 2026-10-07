@@ -150,7 +150,8 @@ from the same pipeline. Nothing in it has been implemented.
 
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's
-command station, Fleet Armory owns deliberate equipment inspection and issue,
+command station, Fleet Armory owns deliberate equipment inspection and issue
+and stages bulk home-officer organization from its company squad gallery,
 and Barracks is the ordinary read-only place to browse squads aboard ship between
 operations. Its practice range now fires issued primaries through a disposable bounded
 battle simulation while campaign personnel and inventory remain untouched. The UI

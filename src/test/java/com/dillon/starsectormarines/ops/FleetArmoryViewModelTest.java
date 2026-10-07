@@ -779,6 +779,7 @@ class FleetArmoryViewModelTest {
         props.put("selectedSquadName", viewModel.selectedSquadName());
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
+        props.put("organization", viewModel.organization());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
