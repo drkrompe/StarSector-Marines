@@ -2,9 +2,8 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-09-01 — berth work keeps authored technician stands but resolves each
-live focus against the parked asset's oriented service envelope, allowing walkers,
-vehicles, and later heavy assets to share the same gantries without welding the deck.
+Updated: 2026-10-06 — formation cards expose current billet states; officer
+destinations add persisted portraits and projected command capacity.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -134,6 +133,12 @@ breadcrumb keeps every completed level directly reachable.
   deck/hand/consume semantics.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
+- Squad overview cards depict all twelve current billets in three fire teams with
+  distinct ready, wounded, and vacant cutouts plus text counts. Wounded marines keep
+  their place; historical killed and missing records do not consume current billets.
+- Organization destinations show the officer's persisted portrait and rank, current
+  and projected command capacity, and visible overflow. Formation selection is
+  visually distinct from readiness; stationed formations keep their lock reason.
 - The fire-team viewer shows all four named marines together in a two-by-two grid without
   internal dossier scrolling; Alpha, Bravo, and Charlie share the FIRE TEAM context line.
 - Ready, wounded, missing, killed, and vacant marines receive distinct dossier border

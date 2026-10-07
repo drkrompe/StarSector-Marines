@@ -1,15 +1,28 @@
 <template props="squadGalleryCards">
   <div id="squad-card-list" class="squad-card-list panel">
-    <div each="card in squadGalleryCards" key="{card.id}" id="{card.id}" class="{card.classes}">
+    <div each="card in squadGalleryCards" key="{card.id}" id="{card.id}" class="{card.classes}" style="{card.style}">
       <button id="{card.squad.openId}" class="{card.openClasses}" style="{card.openStyle}" disabled="{card.openDisabled}" onclick="{card.squad.open}">
+        <div id="{card.squad.stripeId}" class="squad-dossier-stripe" />
         <div id="{card.organizationNoticeId}" class="{card.organizationNoticeClasses}">{card.organizationNotice}</div>
-        <div id="{card.squad.nameId}" class="squad-name label tone-edge">{card.squad.name}</div>
-        <div id="{card.squad.statusId}" class="{card.squad.statusClasses}">{card.squad.status}</div>
-        <div id="{card.squad.strengthId}" class="squad-stat label">{card.squad.strength}</div>
-        <div id="{card.squad.teamsId}" class="squad-stat label">{card.squad.teams}</div>
-        <div id="{card.squad.commandId}" class="squad-command label surface-dark">{card.command}</div>
+        <div id="{card.squad.nameId}" class="squad-name label heading tone-edge">{card.squad.name}</div>
+        <div id="{card.squad.statusLineId}" class="squad-status-line">
+          <div id="{card.squad.statusId}" class="{card.squad.statusClasses}">{card.squad.status}</div>
+          <div id="{card.squad.strengthId}" class="squad-strength label">{card.squad.strength}</div>
+        </div>
+        <canvas id="{card.squad.musterId}" class="squad-muster" width="216" height="96" />
+        <div id="{card.squad.legendId}" class="squad-muster-legend">
+          <div id="{card.squad.readyCountId}" class="squad-count label tone-good">{card.squad.readyCount}</div>
+          <div id="{card.squad.woundedCountId}" class="squad-count label tone-accent">{card.squad.woundedCount}</div>
+          <div id="{card.squad.vacantCountId}" class="squad-count label tone-muted">{card.squad.vacantCount}</div>
+        </div>
+        <div id="{card.squad.casualtiesId}" class="{card.squad.casualtyClasses}">{card.squad.casualties}</div>
+        <div id="{card.squad.commandBlockId}" class="squad-command-block surface-dark">
+          <div id="{card.squad.commandHeadingId}" class="squad-command-heading label tone-muted">HOME COMMAND</div>
+          <div id="{card.squad.commandId}" class="squad-command label">{card.command}</div>
+        </div>
         <div id="{card.squad.locationId}" class="squad-location label tone-muted">{card.squad.location}</div>
         <div id="{card.squad.recoveryId}" class="squad-recovery label tone-accent">{card.squad.recovery}</div>
+        <div id="{card.squad.teamsId}" class="squad-stat label tone-muted">{card.squad.teams}</div>
       </button>
       <button id="{card.squad.reinforceId}" class="{card.reinforceClasses}" disabled="{card.reinforceDisabled}" onclick="{card.squad.reinforce}">
         <img id="{card.squad.reinforceIconId}" class="squad-reinforce-icon" src="{card.squad.reinforceIcon}" />
@@ -44,76 +57,83 @@
 
   .squad-card {
     flex-direction: column;
-    width: 168px;
-    height: 446px;
-    padding: 8px;
-    gap: 5px;
-    border-width: 1px;
+    width: 216px;
+    height: 342px;
+    padding: 6px;
+    gap: 4px;
+    border-width: 2px;
+    background-color: #0c1620;
     overflow: hidden;
     font-family: body;
     text-align: left;
+    transition: background-color 140ms ease-out, border-color 140ms ease-out;
   }
 
   .squad-open {
     flex-direction: column;
     flex-grow: 1;
     width: 100%;
-    padding: 2px;
-    gap: 5px;
+    padding: 0px;
+    gap: 3px;
     border-width: 0px;
     overflow: hidden;
     font-family: body;
     text-align: left;
   }
 
-  .squad-card.organizing { height: 206px; padding: 8px; gap: 0px; border-color: #53c6e8; }
-  .squad-card.organizing.selected { background-color: #183b50; border-color: #ffd464; border-width: 2px; }
-  .squad-card.organizing.locked { border-color: #9f4545; }
+  .squad-card.organizing { height: 244px; gap: 0px; }
   .squad-card.locked .squad-open { opacity: 1; }
-  .squad-organization-notice { height: 34px; padding: 3px 1px; white-space: normal; }
-  .squad-name { height: 34px; white-space: normal; }
-  .squad-card-status { height: 26px; padding: 3px; border-width: 1px; text-align: center; }
-  .squad-stat { height: 30px; padding: 4px; border-width: 1px; }
-  .squad-command { height: 60px; padding: 5px 4px; border-width: 1px; white-space: normal; }
-  .squad-location { height: 24px; flex-grow: 1; padding: 4px; }
-  .squad-recovery { height: 24px; padding: 3px 1px; }
-  .squad-card.organizing .squad-open { gap: 2px; }
-  .squad-card.organizing .squad-organization-notice { height: 26px; padding: 0px; }
-  .squad-card.organizing .squad-name { height: 24px; }
-  .squad-card.organizing .squad-card-status { height: 20px; padding: 0px; }
-  .squad-card.organizing .squad-command { height: 88px; padding: 3px 4px; }
-  .squad-card.organizing .squad-location { height: 18px; flex-grow: 0; padding: 0px; }
-  .squad-card.organizing .squad-stat, .squad-card.organizing .squad-recovery {
-    width: 0px;
-    height: 0px;
-    flex-grow: 0;
-    padding: 0px;
-    border-width: 0px;
-    overflow: hidden;
-    opacity: 0;
-  }
+  .squad-dossier-stripe { height: 3px; background-color: #51758c; }
+  .squad-card.company-card-ready .squad-dossier-stripe { background-color: #78d494; }
+  .squad-card.company-card-operational .squad-dossier-stripe { background-color: #ffd464; }
+  .squad-card.company-card-unready .squad-dossier-stripe { background-color: #e98b83; }
+  .squad-card.selected .squad-dossier-stripe { background-color: #ffd464; }
+  .squad-organization-notice { height: 18px; padding: 0px 4px; font-family: compact; }
+  .squad-name { height: 24px; padding: 1px 4px; white-space: normal; }
+  .squad-status-line { flex-direction: row; height: 20px; gap: 4px; }
+  .squad-card-status { width: 124px; height: 18px; padding: 1px 3px; border-width: 1px; font-family: compact; text-align: left; background-color: #0e1924; }
+  .squad-strength { width: 0px; flex-grow: 1; height: 20px; padding: 3px 3px; text-align: right; }
+  .squad-muster { width: 216px; height: 96px; }
+  .squad-muster-legend { flex-direction: row; height: 18px; gap: 3px; padding: 0px 2px; }
+  .squad-count { width: 0px; flex-grow: 1; height: 18px; text-align: center; }
+  .squad-casualties { height: 16px; padding: 0px 4px; text-align: center; }
+  .squad-command-block { flex-direction: column; height: 43px; padding: 2px 4px; gap: 1px; border-width: 1px; border-color: #3e6075; }
+  .squad-command-heading { height: 10px; font-family: compact; }
+  .squad-command { height: 32px; white-space: normal; }
+  .squad-location { height: 16px; padding: 0px 4px; }
+  .squad-recovery { height: 16px; padding: 0px 4px; }
+  .squad-stat { height: 18px; padding: 1px 4px; }
+  .squad-card.organizing .squad-open { gap: 0px; }
+  .squad-card.organizing .squad-organization-notice { height: 14px; }
+  .squad-card.organizing .squad-muster-legend { height: 16px; }
+  .squad-card.organizing .squad-count { height: 16px; }
+  .squad-card.organizing .squad-command-block { height: 39px; }
+  .squad-card.organizing .squad-command { height: 28px; }
+  .squad-card.organizing .squad-stat,
+  .squad-card.organizing .squad-recovery,
+  .squad-card.organizing .squad-casualties { width: 0px; height: 0px; padding: 0px; overflow: hidden; opacity: 0; }
   .squad-reinforce {
     flex-direction: row;
-    height: 28px;
-    padding: 4px 5px;
+    height: 20px;
+    padding: 3px 5px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
     text-align: center;
   }
   .squad-reinforce-icon { width: 18px; height: 18px; }
-  .squad-reinforce-label { width: 0px; height: 18px; flex-grow: 1; padding: 2px 0px; text-align: center; }
+  .squad-reinforce-label { width: 0px; height: 16px; flex-grow: 1; padding: 2px 0px; text-align: center; }
 
   .squad-founder-slot {
-    width: 186px;
-    height: 464px;
+    width: 232px;
+    height: 358px;
     overflow: hidden;
   }
   .squad-founder-card {
     flex-direction: column;
-    width: 168px;
-    height: 438px;
-    padding: 12px 8px;
+    width: 216px;
+    height: 342px;
+    padding: 6px;
     gap: 6px;
     border-width: 1px;
     overflow: hidden;
@@ -122,9 +142,9 @@
     background-color: #0c1620;
   }
   .squad-founder-card:hover { background-color: #132c3d; border-color: #ffd464; }
-  .found-squad-cta-icon { width: 108px; height: 108px; }
+  .found-squad-cta-icon { width: 80px; height: 80px; }
   .found-squad-heading { height: 30px; white-space: normal; text-align: center; }
-  .found-squad-copy { height: 42px; white-space: normal; text-align: center; }
+  .found-squad-copy { height: 32px; white-space: normal; text-align: center; }
   .squad-founder-costs {
     flex-direction: column;
     width: 100%;

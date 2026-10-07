@@ -41,6 +41,9 @@ import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
+import com.dillon.starsectormarines.ops.battleview.OfficerCapacityCanvas;
+import com.dillon.starsectormarines.ops.battleview.SquadMuster;
+import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.ops.spec.CatalogCeilings;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
@@ -116,6 +119,7 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<Feedback> organizationFeedback;
     private final ComputedSignal<SquadCaptainAssignmentResult> organizationPreview;
     private final Map<String, Object> organization;
+    private final ComputedSignal<List<OrganizationTarget>> organizationTargets;
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
     private final ComputedSignal<List<SquadCard>> squadCards;
@@ -230,6 +234,7 @@ public final class FleetArmoryViewModel {
             return roster.previewCaptainAssignment(organizationTargetCaptainId.get(),
                     organizationSelectedSquadIds.get());
         });
+        organizationTargets = reactor.computed(this::buildOrganizationTargets);
         Map<String, Object> organizationProps = new LinkedHashMap<>();
         organizationProps.put("active", organizing);
         organizationProps.put("inactive", reactor.computed(() -> !organizing.get()));
@@ -241,7 +246,7 @@ public final class FleetArmoryViewModel {
                 ? "organization-panel panel" : "organization-panel panel hidden"));
         organizationProps.put("selectedCount", reactor.computed(() ->
                 organizationCountLabel(organizationSelectedSquadIds.get().size()) + " selected"));
-        organizationProps.put("targetRows", reactor.computed(this::buildOrganizationTargets));
+        organizationProps.put("targetRows", organizationTargets);
         organizationProps.put("summary", reactor.computed(this::buildOrganizationSummary));
         organizationProps.put("summaryClasses", reactor.computed(() ->
                 organizationTargetChosen.get() && !organizationSelectedSquadIds.get().isEmpty()
@@ -331,6 +336,23 @@ public final class FleetArmoryViewModel {
 
     public MarineRoster roster() { return roster; }
     public Map<String, Object> organization() { return organization; }
+    public Signal<List<OrganizationTarget>> organizationTargets() { return organizationTargets; }
+
+    /** Immutable current muster used by a keyed gallery canvas. */
+    public SquadMuster squadMuster(String squadId) {
+        for (SquadCard card : squadCards.get()) {
+            if (Objects.equals(card.squadId(), squadId)) return card.muster();
+        }
+        return null;
+    }
+
+    /** Canvas suppliers resolve the current row after roster and draft invalidation. */
+    public OrganizationTarget organizationTargetById(String id) {
+        for (OrganizationTarget target : organizationTargets.get()) {
+            if (target.id().equals(id)) return target;
+        }
+        return null;
+    }
     public boolean organizing() { return organizing.peek(); }
     public Set<String> organizationSelectedSquadIds() { return organizationSelectedSquadIds.peek(); }
     public String organizationTargetCaptainId() { return organizationTargetCaptainId.peek(); }
@@ -482,27 +504,50 @@ public final class FleetArmoryViewModel {
     private List<OrganizationTarget> buildOrganizationTargets() {
         domainRevision.get();
         List<OrganizationTarget> rows = new ArrayList<>();
-        rows.add(organizationTarget(null, "Unassigned"));
-        for (MarineCaptain captain : roster.active()) {
-            rows.add(organizationTarget(captain.id(),
-                    captain.rank().displayName() + " " + captain.name()));
-        }
+        rows.add(organizationTarget(null));
+        for (MarineCaptain captain : roster.active()) rows.add(organizationTarget(captain));
         return List.copyOf(rows);
     }
 
-    private OrganizationTarget organizationTarget(String captainId, String name) {
+    private OrganizationTarget organizationTarget(MarineCaptain captain) {
+        String captainId = captain != null ? captain.id() : null;
         SquadCaptainAssignmentResult preview = roster.previewCaptainAssignment(
                 captainId, organizationSelectedSquadIds.get());
         String id = "organization-target:" + (captainId != null ? captainId : "unassigned");
         boolean selected = organizationTargetChosen.get()
                 && Objects.equals(captainId, organizationTargetCaptainId.get());
-        String detail = captainId == null ? "Falls to operation commander"
+        boolean unassigned = captain == null;
+        boolean overflow = !unassigned
+                && preview.resultingCommandCount() > preview.commandCapacity();
+        boolean full = !unassigned
+                && preview.resultingCommandCount() == preview.commandCapacity();
+        String detail = unassigned
+                ? preview.currentCommandCount() + " now  ·  "
+                        + preview.resultingCommandCount() + " after apply"
                 : preview.currentCommandCount() + " now  ·  "
                         + preview.resultingCommandCount() + " / " + preview.commandCapacity()
-                        + " squads after apply";
-        return new OrganizationTarget(id, id + ":name", id + ":detail",
-                "organization-target" + (selected ? " selected" : ""), name, detail,
-                () -> selectOrganizationTarget(captainId));
+                        + " after apply";
+        String state = unassigned ? "Operation commander"
+                : overflow ? "Capacity exceeded"
+                : full ? "At command capacity"
+                : preview.commandCapacity() - preview.resultingCommandCount() + " slots open";
+        String classes = "organization-target" + (unassigned ? " unassigned" : "")
+                + (selected ? " selected" : "")
+                + (overflow ? " overflow" : full ? " full" : " available");
+        return new OrganizationTarget(id, id + ":name", id + ":detail", classes,
+                unassigned ? "Unassigned" : captain.name(), detail,
+                () -> selectOrganizationTarget(captainId),
+                unassigned ? "" : captain.portraitSprite(),
+                unassigned ? "NO HOME OFFICER" : captain.rank().displayName().toUpperCase(Locale.ROOT),
+                state, "organization-target-state label "
+                        + (overflow ? "tone-danger" : full ? "tone-accent" : "tone-good"),
+                selected ? "border-color: #ffd464; border-width: 2px;" : "",
+                unassigned ? "organization-target-portrait hidden" : "organization-target-portrait",
+                unassigned ? "organization-target-fallback" : "organization-target-fallback hidden",
+                unassigned ? "organization-target-capacity hidden" : "organization-target-capacity",
+                unassigned ? null : captain.rank(),
+                new OfficerCapacityCanvas.Projection(Math.max(0, preview.commandCapacity()),
+                        preview.currentCommandCount(), preview.resultingCommandCount()));
     }
 
     private String buildOrganizationSummary() {
@@ -607,10 +652,7 @@ public final class FleetArmoryViewModel {
                     ? MarineSquad.TEAMS_PER_SQUAD : 0;
             String readiness = readinessLabel(ready, MarineSquad.CAPACITY);
             String readinessClass = readinessClass(ready, MarineSquad.CAPACITY);
-            MarineCaptain captain = roster.captainForSquad(squad.id());
-            String command = captain != null && captain.status() == Status.ACTIVE
-                    ? captain.rank().displayName() + " " + captain.name()
-                    : "Falls to operation commander";
+            String command = durableCommandLabel(squad);
             String location = squad.stationed() ? "Stationed away" : "Aboard fleet";
             String id = "squad-card:" + squad.id();
             cards.add(new SquadCard(id, id + ":name", id + ":status",
@@ -626,7 +668,7 @@ public final class FleetArmoryViewModel {
                     equipmentIssueResources.commodityIcon(Commodities.MARINES),
                     reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
                     () -> activateGallerySquad(squad.id()), () -> reinforceSquad(squad.id()),
-                    squad.id()));
+                    squad.id(), SquadMuster.from(roster, squad.id(), (float) currentDay.getAsDouble())));
         }
         return List.copyOf(cards);
     }
@@ -663,8 +705,8 @@ public final class FleetArmoryViewModel {
             String classes = squad.classes() + (organizationMode ? " organizing" : "")
                     + (organizationMode && marked ? " selected" : "")
                     + (organizationMode && stationed ? " locked" : "");
-            String notice = stationed ? "Locked: stationed"
-                    : marked ? "Selected" : "Select squad";
+            String notice = stationed ? "STATIONED  ·  LOCKED"
+                    : marked ? "SELECTED FOR ASSIGNMENT" : "SELECT FORMATION";
             String command = organizationMode && formation != null
                     ? durableCommandLabel(formation) : squad.command();
             cards.add(new SquadGalleryCard(squad.id(), classes, squad,
@@ -679,7 +721,11 @@ public final class FleetArmoryViewModel {
                             ? "squad-organization-notice label "
                                     + (stationed ? "tone-danger" : marked ? "tone-accent" : "tone-muted")
                             : "squad-organization-notice hidden",
-                    organizationMode && stationed ? "opacity: 1;" : ""));
+                    organizationMode && stationed ? "opacity: 1;" : "",
+                    organizationMode
+                            ? marked ? "background-color: #1c303a; border-color: #ffd464; border-width: 2px;"
+                            : "background-color: #0c1620; border-color: #49667f; border-width: 2px;"
+                            : ""));
         }
         String id = "found-squad-card";
         cards.add(new SquadGalleryCard(id,
@@ -691,18 +737,16 @@ public final class FleetArmoryViewModel {
                 "squad-founder-costs", "squad-founder-feedback", foundingCargoRows.get(),
                 foundingFeedbackText.get(), foundingFeedbackClasses.get(),
                 organizationMode || foundingDisabled.get(), this::foundSquad,
-                true, true, "", "", "squad-organization-notice hidden", ""));
+                true, true, "", "", "squad-organization-notice hidden", "", ""));
         return List.copyOf(cards);
     }
 
     private String durableCommandLabel(MarineSquad squad) {
         MarineCaptain captain = roster.captainForSquad(squad.id());
-        if (squad.homeCaptainId() == null) return "Unassigned  ·  Falls to operation commander";
-        if (captain == null) return "Home officer unavailable  ·  Falls to operation commander";
+        if (squad.homeCaptainId() == null) return "Unassigned  ·  Operation commander";
+        if (captain == null) return "Home officer unavailable  ·  Operation commander";
         return captain.rank().displayName() + " " + captain.name()
-                + (squad.stationed() ? "  ·  Home command; assignment locked"
-                : captain.status() == Status.ACTIVE ? ""
-                : "  ·  Unavailable; falls to operation commander");
+                + (captain.status() == Status.ACTIVE ? "" : "  ·  Unavailable; operation commander");
     }
 
     private static SquadCard emptySquadCard(String id) {
@@ -711,7 +755,7 @@ public final class FleetArmoryViewModel {
                 id + ":empty-location", id + ":empty-recovery", id + ":empty-open",
                 id + ":empty-reinforce", id + ":empty-reinforce-icon",
                 id + ":empty-reinforce-label", "", "", "", "", "", "", "",
-                "", "", "", "", true, () -> { }, () -> { }, null);
+                "", "", "", "", true, () -> { }, () -> { }, null, null);
     }
 
     private List<FireTeamOverview> buildFireTeamOverviews() {
@@ -2026,7 +2070,7 @@ public final class FleetArmoryViewModel {
             String classes, String statusClasses, String name, String status,
             String strength, String teams, String command, String location,
             String recovery, String reinforceIcon, String reinforceLabel,
-            boolean reinforceDisabled, Runnable open, Runnable reinforce, String squadId)
+            boolean reinforceDisabled, Runnable open, Runnable reinforce, String squadId, SquadMuster muster)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -2058,6 +2102,24 @@ public final class FleetArmoryViewModel {
                 case "open" -> open;
                 case "reinforce" -> reinforce;
                 case "squadId" -> squadId;
+                case "musterId" -> id + ":muster";
+                case "stripeId" -> id + ":stripe";
+                case "statusLineId" -> id + ":status-line";
+                case "legendId" -> id + ":muster-legend";
+                case "readyCountId" -> id + ":ready-count";
+                case "woundedCountId" -> id + ":wounded-count";
+                case "vacantCountId" -> id + ":vacant-count";
+                case "casualtiesId" -> id + ":casualties";
+                case "commandBlockId" -> id + ":command-block";
+                case "commandHeadingId" -> id + ":command-heading";
+                case "readyCount" -> muster != null ? muster.readyCount() + " Ready" : "";
+                case "woundedCount" -> muster != null ? muster.woundedCount() + " WIA" : "";
+                case "vacantCount" -> muster != null ? muster.vacantCount() + " Open" : "";
+                case "casualties" -> muster == null ? ""
+                        : muster.missingCount() + " MIA  ·  " + muster.killedCount() + " KIA on record";
+                case "casualtyClasses" -> muster != null
+                        && (muster.missingCount() > 0 || muster.killedCount() > 0)
+                        ? "squad-casualties label tone-muted" : "squad-casualties hidden";
                 default -> throw new IllegalArgumentException("Unknown squad-card property");
             };
         }
@@ -2072,7 +2134,7 @@ public final class FleetArmoryViewModel {
             List<CargoCostRow> foundingCargoRows, String foundingFeedbackText,
             String foundingFeedbackClasses, boolean foundingDisabled, Runnable foundSquad,
             boolean openDisabled, boolean reinforceDisabled, String command,
-            String organizationNotice, String organizationNoticeClasses, String openStyle)
+            String organizationNotice, String organizationNoticeClasses, String openStyle, String style)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -2096,6 +2158,7 @@ public final class FleetArmoryViewModel {
                 case "foundSquad" -> foundSquad;
                 case "openDisabled" -> openDisabled;
                 case "openStyle" -> openStyle;
+                case "style" -> style;
                 case "reinforceDisabled" -> reinforceDisabled;
                 case "command" -> command;
                 case "organizationNoticeId" -> id + ":organization-notice";
@@ -2109,7 +2172,13 @@ public final class FleetArmoryViewModel {
 
     public record OrganizationTarget(
             String id, String nameId, String detailId, String classes,
-            String name, String detail, Runnable select) implements MarkupPropertySource {
+            String name, String detail, Runnable select, String portrait,
+            String rankLabel, String state, String stateClasses, String style,
+            String portraitClasses, String fallbackClasses, String capacityClasses,
+            Rank rank, OfficerCapacityCanvas.Projection capacity) implements MarkupPropertySource {
+        public String capacityId() { return id + ":capacity"; }
+        public String rankId() { return id + ":rank-insignia"; }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -2117,9 +2186,32 @@ public final class FleetArmoryViewModel {
                 case "nameId" -> nameId;
                 case "detailId" -> detailId;
                 case "classes" -> classes;
+                case "style" -> style;
                 case "name" -> name;
                 case "detail" -> detail;
                 case "select" -> select;
+                case "identityId" -> id + ":identity";
+                case "dossierId" -> id + ":dossier";
+                case "rankRowId" -> id + ":rank-row";
+                case "portraitId" -> id + ":portrait";
+                case "portrait" -> portrait;
+                case "portraitClasses" -> portraitClasses;
+                case "fallbackId" -> id + ":fallback";
+                case "fallbackClasses" -> fallbackClasses;
+                case "rankId" -> rankId();
+                case "rankClasses" -> rank != null ? "organization-target-rank"
+                        : "organization-target-rank hidden";
+                case "fallbackCopyId" -> id + ":fallback-copy";
+                case "fallbackCopyClasses" -> rank == null ? "organization-fallback-copy label tone-muted"
+                        : "organization-fallback-copy hidden";
+                case "fallbackCopy" -> "Falls to the operation commander.";
+                case "rankLabelId" -> id + ":rank-label";
+                case "rankLabel" -> rankLabel;
+                case "stateId" -> id + ":state";
+                case "state" -> state;
+                case "stateClasses" -> stateClasses;
+                case "capacityId" -> capacityId();
+                case "capacityClasses" -> capacityClasses;
                 default -> throw new IllegalArgumentException("Unknown organization-target property");
             };
         }

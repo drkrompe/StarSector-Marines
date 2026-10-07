@@ -6,11 +6,20 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.awt.Color;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_CULL_FACE;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glBlendFunc;
 import static org.lwjgl.opengl.GL11.glColorMask;
+import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glIsEnabled;
+import static org.lwjgl.opengl.GL11.glVertex2f;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /** Fixed-function Starsector implementation of the generic canvas surface. */
@@ -41,6 +50,61 @@ final class StarsectorCanvasContext extends CanvasContext {
                 metrics.toDocumentX(x2), metrics.toDocumentY(y2),
                 metrics.toDocumentX(x3), metrics.toDocumentY(y3),
                 viewport, color, alphaMult());
+    }
+
+    @Override
+    protected void drawMesh(CanvasMesh mesh, float x, float y, float scale, Color color) {
+        CanvasMetrics metrics = metrics();
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(color.getRed() / 255f, color.getGreen() / 255f,
+                color.getBlue() / 255f, color.getAlpha() / 255f * alphaMult());
+        boolean culling = glIsEnabled(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
+        try {
+            glBegin(GL_TRIANGLES);
+            meshVertices(mesh, metrics, x, y, scale);
+            glEnd();
+        } finally {
+            if (culling) glEnable(GL_CULL_FACE);
+        }
+    }
+
+    @Override
+    protected void drawMeshBatch(CanvasMeshBatch batch, float x, float y, float scale, Color tint) {
+        CanvasMetrics metrics = metrics();
+        int tintRed = tint.getRed();
+        int tintGreen = tint.getGreen();
+        int tintBlue = tint.getBlue();
+        int tintAlpha = tint.getAlpha();
+        glDisable(GL_TEXTURE_2D);
+        boolean culling = glIsEnabled(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
+        try {
+            glBegin(GL_TRIANGLES);
+            for (int i = 0; i < batch.layerCount(); i++) {
+                CanvasMeshBatch.Layer layer = batch.layer(i);
+                Color color = layer.color();
+                int alpha = color.getAlpha() * tintAlpha / 255;
+                if (alpha == 0) continue;
+                // Preserve the same byte-channel tint multiplication as the
+                // raster target, without creating one Color per SVG layer.
+                glColor4f((color.getRed() * tintRed / 255) / 255f,
+                        (color.getGreen() * tintGreen / 255) / 255f,
+                        (color.getBlue() * tintBlue / 255) / 255f,
+                        alpha / 255f * alphaMult());
+                meshVertices(layer.mesh(), metrics, x, y, scale);
+            }
+            glEnd();
+        } finally {
+            if (culling) glEnable(GL_CULL_FACE);
+        }
+    }
+
+    private void meshVertices(CanvasMesh mesh, CanvasMetrics metrics, float x, float y, float scale) {
+        for (int i = 0; i < mesh.vertexCount(); i++) {
+            glVertex2f(viewport.screenXFor(metrics.toDocumentX(x + mesh.x(i) * scale)),
+                    viewport.screenTopFor(metrics.toDocumentY(y + mesh.y(i) * scale)));
+        }
     }
 
     @Override
