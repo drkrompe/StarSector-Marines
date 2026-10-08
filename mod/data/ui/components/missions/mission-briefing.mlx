@@ -36,6 +36,7 @@
           <div id="mission-captain-list" class="mission-captain-list">
             <button each="captain in captains" key="{captain.id}" id="{captain.id}" class="{captain.classes}" disabled="{captain.disabled}" onclick="{captain.action}">
               <img id="{captain.indicatorId}" class="console-rocker" src="{captain.indicatorSource}" />
+              <img id="{captain.iconId}" class="choice-icon" src="{captain.icon}" />
               <div id="{captain.copyId}" class="choice-copy">
                 <div id="{captain.titleId}" class="label heading choice-title">{captain.title}</div>
                 <div id="{captain.detailId}" class="label tone-muted choice-detail">{captain.detail}</div>
@@ -55,8 +56,11 @@
             <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
             <div id="mission-task-force" class="force-card-grid" style="{forceCardsStyle}">
               <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="force-card console-readout">
-                <div id="{row.labelId}" class="label heading tone-edge force-card-title">{row.label}</div>
-                <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+                <img id="{row.portraitId}" class="{row.portraitClasses}" src="{row.portrait}" />
+                <div id="{row.copyId}" class="force-card-copy">
+                  <div id="{row.nameId}" class="label heading tone-edge force-card-title">{row.name}</div>
+                  <div id="{row.detailId}" class="{row.detailClasses}">{row.detail}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -255,9 +259,12 @@
   .commitment-section { flex-direction: column; padding: 5px; gap: 3px; border-width: 1px; }
   .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
   .force-card-grid { display: grid; gap: 6px; overflow: scroll; }
-  .force-card { flex-direction: column; width: 240px; height: 64px; padding: 7px; gap: 6px; border-width: 1px; }
+  .force-card { flex-direction: row; align-items: center; width: 270px; height: 64px; padding: 7px; gap: 8px; border-width: 1px; }
+  .force-card-portrait { width: 60px; height: 60px; padding: 1px; border-width: 1px; pointer-events: none; }
+  .force-card-portrait.portrait-absent { width: 0px; height: 0px; padding: 0px; border-width: 0px; }
+  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 58px; gap: 6px; overflow: hidden; }
   .force-card-title { height: auto; white-space: normal; }
-  .force-card .info-value { width: auto; flex-grow: 0; height: auto; text-align: left; white-space: normal; }
+  .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .mission-loadout-grid { flex-direction: column; height: 482px; gap: 5px; overflow: hidden; }
   .command-deck { height: 150px; }
   .command-power-list { display: grid; height: 120px; gap: 3px; overflow: scroll; }

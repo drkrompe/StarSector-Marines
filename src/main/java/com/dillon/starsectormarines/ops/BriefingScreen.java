@@ -685,10 +685,10 @@ public class BriefingScreen implements Screen {
                 + force.officerCount() + " officers";
     }
 
-    private List<BriefingViewModel.InfoRow> retainedTaskForceRows() {
+    private List<BriefingViewModel.ForceCard> retainedTaskForceRows() {
         TaskForce force = selectedTaskForce();
         if (force.officerCount() < 2) return List.of();
-        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        List<BriefingViewModel.ForceCard> rows = new ArrayList<>();
         int index = 0;
         for (TaskForce.Element element : force.elements()) {
             boolean bad = !element.fit() || element.overCap();
@@ -697,7 +697,8 @@ public class BriefingScreen implements Screen {
                     : "Unassigned";
             String detail = element.squads.size() + " squads  ·  " + element.marines
                     + " marines" + (element.inherited ? "  ·  attached" : "");
-            rows.add(BriefingViewModel.info("task-force-" + index++, name, detail,
+            rows.add(BriefingViewModel.forceCard("task-force-" + index++, name, detail,
+                    element.officer != null ? element.officer.portraitSprite() : null,
                     bad ? "tone-danger" : ""));
         }
         return List.copyOf(rows);
