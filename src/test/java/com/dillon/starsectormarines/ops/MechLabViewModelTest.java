@@ -462,6 +462,12 @@ class MechLabViewModelTest {
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
+        props.put("selectedMechNameClasses", viewModel.selectedMechNameClasses());
+        props.put("callSignDraft", viewModel.callSignDraft());
+        props.put("callSignEditorClasses", viewModel.callSignEditorClasses());
+        props.put("callSignRenameDisabled", viewModel.callSignRenameDisabled());
+        props.put("editCallSign", viewModel.editCallSignAction());
+        props.put("renameCallSign", viewModel.renameCallSignAction());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
         props.put("performanceMeters", viewModel.performanceMeters());
