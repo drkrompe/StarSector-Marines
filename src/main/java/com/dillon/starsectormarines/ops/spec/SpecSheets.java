@@ -68,6 +68,20 @@ public final class SpecSheets {
 
     private SpecSheets() { }
 
+    /** Shared pictograms for ability recognition in briefings and their detail sheets. */
+    public static String commandPowerIcon(CommandPower power) {
+        String symbol = switch (power.id) {
+            case OrbitalBarrage.ID -> "barrage";
+            case MarineInsertion.ID -> "insertion";
+            case VehicleSupport.ID -> "armour";
+            case MechSupport.ID -> "mech";
+            case ReconPing.ID -> "recon";
+            case EmergencyResupply.ID -> "resupply";
+            default -> "support";
+        };
+        return "graphics/ui/briefing/" + symbol + ".svg";
+    }
+
     /** Deck capacity and activation costs are distinct, both read from the actual power. */
     public static SpecSheet commandPower(CommandPower power) {
         String effect = switch (power.id) {
@@ -79,7 +93,7 @@ public final class SpecSheets {
             case VehicleSupport.ID -> "Calls a transport to deliver armoured support.";
             default -> "A support capability available from the committed fleet or employer.";
         };
-        return new SpecSheet(power.displayName, "Command power", null, "command",
+        return new SpecSheet(power.displayName, "Command power", commandPowerIcon(power), "command",
                 List.of(Stat.of("Deck capacity", power.slotWeight + (power.slotWeight == 1 ? " slot" : " slots")),
                         Stat.of("Command points / use", oneDecimal(power.cpCost)),
                         Stat.of("Supplies / use", Integer.toString(power.supplyCost)),

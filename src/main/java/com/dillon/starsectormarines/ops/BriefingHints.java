@@ -20,6 +20,12 @@ final class BriefingHints {
         bindChoices(binder, markup, props, "powerRows", "Command power");
         bindChoices(binder, markup, props, "sourceRows", "Power source");
         bindChoices(binder, markup, props, "carrierRows", "Fighter cover");
+        if (props.get("forceComparisonHint") instanceof SpecSheet force) {
+            binder.bind(markup.requireElement("mission-force-comparison"), force);
+        }
+        if (props.get("missionThreatHint") instanceof SpecSheet threat) {
+            binder.bind(markup.requireElement("mission-threat"), threat);
+        }
         if (props.get("landingCraftHint") instanceof SpecSheet landingCraft) {
             binder.bind(markup.requireElement("mission-transport-readout"), landingCraft);
         }

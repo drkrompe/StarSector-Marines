@@ -90,6 +90,7 @@ class MissionMlxTest {
         loader.reload();
         Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
         try (MarkupInstance instance = loader.build(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
+            BriefingScreen.requireRetainedElements(instance);
             BriefingViewModel.applyDebugVisibility(instance, props);
             assertNull(instance.requireElement("mission-debug-toggle").parent());
             assertNull(instance.requireElement("mission-debug-drawer").parent());

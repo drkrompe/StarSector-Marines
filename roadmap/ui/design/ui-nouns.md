@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — landing craft projects ship boats and deployment trips.
+Updated: 2026-10-08 — briefing composition centers mission demand, selected force, and deployment readiness.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -301,8 +301,16 @@ navigation and briefing actions remain available. The dossier's SVG scope is
 decorative framing for the planet image, never a tactical map or an intelligence
 claim.
 
-The briefing keeps its deploy, assignment, and back actions below a scrollable
-planning area. Command keys sit in a recessed rail with raised edges and grip
+The briefing groups a compact mission dossier beside the selected force and its
+command deck. Operation-scale chevrons and risk skulls retain their independent
+mission meanings and readable labels. A segmented personnel meter compares selected
+ready Marines with the recommendation; it caps its visual fill while retaining exact
+counts, and never becomes a launch gate or a prediction of victory. Experience,
+equipment, command capacity, and support remain separate facts.
+The force section owns its assignment action. Compact Back and Deploy controls sit
+at the left and right of the bottom rail, outside the scrollable planning area;
+readiness or the existing blocker appears beside Deploy. Reinforcement and assignment
+fallbacks retain their existing commands, with their explanation outside the button. Command keys sit in a recessed rail with raised edges and grip
 plates; readiness belongs to a small status lamp rather than flooding the key
 face. Selectable briefing options show a latched surface and an illuminated
 rocker whose position also distinguishes selection without relying only on
@@ -323,7 +331,10 @@ they are neither the number of physical boats nor a count of simultaneous waves.
 Employer craft and their trips remain a separate contribution. Stationed forces
 report local lift, and debug fixtures explicitly label their override. A contextual
 hint explains cycling and the Boat Deck's ownership of losses and fittings.
-The command deck keeps names, selection, and slot cost visible on compact keys.
+The command deck keeps a distinct SVG ability symbol, short name, selection, and
+slot cost visible on compact cards. These pictograms and their detail sheets share
+one presentation mapping. Support ships and logistics use bounded groups sized to
+their information; empty fighter cover is a quiet textual state, not an empty panel.
 Activation costs, cooldowns, use limits, and explanatory copy belong to a shared
 popup; source and carrier rows use that same layer for their secondary details.
 These briefing hints open on hover or visible keyboard focus. They remain
