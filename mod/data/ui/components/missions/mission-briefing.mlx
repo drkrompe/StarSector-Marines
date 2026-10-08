@@ -1,4 +1,4 @@
-<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -49,13 +49,13 @@
       <div id="mission-planning" class="mission-planning">
         <div id="mission-commitment" class="panel mission-commitment">
           <div id="mission-plan-sections" class="mission-plan-sections">
-          <div id="mission-force-summary" class="commitment-section surface-dark">
+          <div id="mission-force-summary" class="commitment-section surface-dark" style="{forceSummaryStyle}">
             <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
             <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
             <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
-            <div id="mission-task-force" class="info-list">
-              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="info-row compact-row console-readout">
-                <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
+            <div id="mission-task-force" class="force-card-grid" style="{forceCardsStyle}">
+              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="force-card console-readout">
+                <div id="{row.labelId}" class="label heading tone-edge force-card-title">{row.label}</div>
                 <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
               </div>
             </div>
@@ -254,8 +254,10 @@
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 1px; overflow: hidden; }
   .commitment-section { flex-direction: column; padding: 5px; gap: 3px; border-width: 1px; }
   .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  #mission-force-summary { height: 182px; }
-  #mission-task-force { height: 122px; overflow: scroll; }
+  .force-card-grid { display: grid; gap: 6px; overflow: scroll; }
+  .force-card { flex-direction: column; width: 240px; height: 64px; padding: 7px; gap: 6px; border-width: 1px; }
+  .force-card-title { height: auto; white-space: normal; }
+  .force-card .info-value { width: auto; flex-grow: 0; height: auto; text-align: left; white-space: normal; }
   .mission-loadout-grid { flex-direction: column; height: 482px; gap: 5px; overflow: hidden; }
   .command-deck { height: 150px; }
   .command-power-list { display: grid; height: 120px; gap: 3px; overflow: scroll; }

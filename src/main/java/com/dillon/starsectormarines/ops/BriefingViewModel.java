@@ -166,6 +166,9 @@ final class BriefingViewModel {
     }
 
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
+        boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
+        props.put("forceSummaryStyle", hasForceCards ? "height: 150px" : "height: 60px");
+        props.put("forceCardsStyle", hasForceCards ? "height: 86px" : "height: 0px");
         for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
             props.put(key + "Style", text.isBlank()
