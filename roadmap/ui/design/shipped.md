@@ -8,6 +8,7 @@ Updated: 2026-10-08 — mission command hardware folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
+| `force-card-portraits.md` | 2026-10-08 | this commit | `ui-nouns.md` — captain-owned portraits in force cards and officer selection |
 | `briefing-force-cards.md` | 2026-10-08 | this commit | `ui-nouns.md` — compact commander/count groupings and empty breakdown sizing |
 | `mission-debug-drawer.md` | 2026-10-08 | this commit | `ui-nouns.md` — header latch and complete removal of hidden debug controls |
 | `compact-mission-controls.md` | 2026-10-08 | this commit | `ui-nouns.md` — centered compact controls, contextual hints, and base-game craft imagery |

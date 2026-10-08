@@ -67,7 +67,7 @@ final class BriefingViewModel {
                 info("lift", "Lift", "2 sorties · 12 marines", "")));
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                "Mira Hale", "Lieutenant · 1 squad command", false, none, null)));
+                "Mira Hale", "Lieutenant · 1 squad command", false, none, "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
@@ -97,9 +97,12 @@ final class BriefingViewModel {
         props.put("personnelClasses", "label tone-good commitment-summary");
         props.put("experienceSummary", late ? "Campaign army" : "Conscript / opening company");
         props.put("taskForceRows", late ? List.of(
-                info("tf-1", "Major Hale", "34 squads · western lane", ""),
-                info("tf-2", "Captain Venn", "25 squads · central lane", ""),
-                info("tf-3", "Captain Okafor", "25 squads · eastern lane", "")) : List.of());
+                forceCard("tf-1", "Major Hale", "34 squads · western lane",
+                        "graphics/portraits/portrait_mercenary01.png", ""),
+                forceCard("tf-2", "Captain Venn", "25 squads · central lane",
+                        "graphics/portraits/portrait_mercenary02.png", ""),
+                forceCard("tf-3", "Captain Okafor", "25 squads · eastern lane",
+                        "graphics/portraits/portrait_mercenary03.png", "")) : List.of());
         props.put("commandSummary", "5 / 5 slots");
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
@@ -215,6 +218,27 @@ final class BriefingViewModel {
                 "", "-", "+", "", "", "debug-cycle-absent",
                 true, false, false, true, true,
                 action, action, action, action, action);
+    }
+
+    static ForceCard forceCard(String key, String name, String detail, String portrait, String tone) {
+        return new ForceCard("briefing-info-" + key, name, detail, portrait,
+                "label force-card-detail " + tone);
+    }
+
+    record ForceCard(String id, String name, String detail, String portrait, String detailClasses)
+            implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "nameId" -> id + "-label"; case "detailId" -> id + "-value";
+                case "copyId" -> id + "-copy"; case "portraitId" -> id + "-portrait";
+                case "name" -> name; case "detail" -> detail; case "portrait" -> portrait;
+                case "detailClasses" -> detailClasses;
+                case "portraitClasses" -> "force-card-portrait console-well"
+                        + (portrait == null || portrait.isBlank() ? " portrait-absent" : "");
+                default -> null;
+            };
+        }
     }
 
     static InfoRow info(String key, String label, String value, String valueClasses) {
