@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
@@ -421,6 +425,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-campaign-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 BriefingViewModel.campaignPreviewProps(true), 1f, false)),
+                new SnapshotArtifact("mission-briefing-campaign-understrength-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                understrengthBriefingProps(), 1f, false)),
                 new SnapshotArtifact("mission-briefing-first-contract-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
@@ -433,6 +440,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-controls-blocked-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 missionControlStateProps(), 1f, false)),
+                new SnapshotArtifact("mission-briefing-force-hint-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                understrengthBriefingProps(), 1f, false, "mission-force-comparison")),
                 new SnapshotArtifact("mission-briefing-power-hint-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 BriefingScreen.previewProps(true, true), 1f, false, "power-barrage")),
@@ -1078,12 +1088,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 BriefingScreen.previewProps(conquest, debugExpanded), uiScale, scrolled);
     }
 
+    private static Map<String, Object> understrengthBriefingProps() {
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.MEDIUM, 6, 12);
+        props.put("personnelSummary", "6 ready / minimum 4 / recommendation is advisory");
+        Mission mission = Mission.builder().id("understrength-preview").name("First contract")
+                .type(MissionType.SABOTAGE).source(MissionSource.GENERATED).requiredDrops(2).build();
+        BriefingViewModel.putLandingCraft(props, mission,
+                List.of(FittedBoat.standard(ShuttleType.AEROSHUTTLE)), 6, "HSS Siege of Raesvelg");
+        return props;
+    }
+
     private static Map<String, Object> missionControlStateProps() {
         Map<String, Object> props = new LinkedHashMap<>(BriefingScreen.previewProps(false, true));
         props.put("assignLabel", "ASSIGN");
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
-        props.put("deployLabel", "NO LIFT");
+        props.put("deployLabel", "DEPLOY");
+        props.put("deploymentStatus", "No landing craft available");
+        BriefingViewModel.putLandingCraft(props,
+                Mission.builder().id("no-lift-preview").name("No lift")
+                        .type(MissionType.SABOTAGE).source(MissionSource.DEBUG).requiredDrops(2).build(),
+                List.of(), 12, null);
         props.put("deployClasses", "briefing-deploy briefing-blocked");
         props.put("deployDisabled", true);
         return props;

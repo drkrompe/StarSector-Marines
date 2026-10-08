@@ -4,10 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — landing craft summary folded into `ui-nouns.md`.
+Updated: 2026-10-08 — briefing composition folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
+| `briefing-composition.md` | 2026-10-08 | this commit | `ui-nouns.md` — mission symbols, advisory force comparison, ability cards, and directional navigation |
 | `landing-craft-summary.md` | 2026-10-08 | this commit | `ui-nouns.md` — ship boats, mission trip counts, and lift ownership |
 | `force-card-portraits.md` | 2026-10-08 | this commit | `ui-nouns.md` — captain-owned portraits in force cards and officer selection |
 | `briefing-force-cards.md` | 2026-10-08 | this commit | `ui-nouns.md` — compact commander/count groupings and empty breakdown sizing |

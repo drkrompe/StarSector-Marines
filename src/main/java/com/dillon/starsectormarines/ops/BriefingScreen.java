@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
@@ -342,6 +343,9 @@ public class BriefingScreen implements Screen {
                 ? retainedAirRows() : List.of());
 
         PersonnelReadiness readiness = !debug ? personnelReadiness(mission) : null;
+        BriefingViewModel.putForceComparison(props, mission.tier, mission.risk,
+                debug ? ctx.getDebugSquadCount() * MarineSquad.CAPACITY : readiness.selectedReady(),
+                MissionForceEnvelope.recommendedPersonnel(mission));
         props.put("personnelSummary", debug
                 ? ctx.getDebugCompanyStage().summary(ctx.getDebugSquadCount())
                 : retainedPersonnelSummary(mission, readiness));
@@ -391,10 +395,6 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        rows.add(BriefingViewModel.info("type", "Type",
-                Strings.get(mission.type.displayKey), "tone-accent"));
-        rows.add(BriefingViewModel.info("risk", "Risk",
-                Strings.get(mission.risk.displayKey), ""));
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
         long payout = (long) mission.payout * cashMult / 100L;
@@ -411,10 +411,6 @@ public class BriefingScreen implements Screen {
         }
         rows.add(BriefingViewModel.info("requirements", "Requires",
                 mission.requirements, ""));
-        int recommended = MissionForceEnvelope.recommendedSquads(mission);
-        rows.add(BriefingViewModel.info("scale", "Operation scale",
-                mission.tier.displayName + "  ·  recommends " + recommended
-                        + (recommended == 1 ? " squad" : " squads"), "tone-accent"));
         rows.add(BriefingViewModel.info("presence", "Field presence",
                 mission.fieldPresencePolicy.briefingText(), ""));
         rows.add(BriefingViewModel.info("opposition", "Opposition",
@@ -717,7 +713,7 @@ public class BriefingScreen implements Screen {
             rows.add(new BriefingViewModel.ChoiceRow("briefing-power-" + i,
                     "choice-row" + (selected ? " selected" : ""),
                     power.displayName, detail, !selected && !canAdd,
-                    () -> togglePower(power.id), null, SpecSheets.commandPower(power)));
+                    () -> togglePower(power.id), SpecSheets.commandPowerIcon(power), SpecSheets.commandPower(power)));
         }
         return List.copyOf(rows);
     }
@@ -816,7 +812,10 @@ public class BriefingScreen implements Screen {
                         ? canReinforce ? "REINFORCE +" + reinforcement + "  ·  " + cargoCost + " CARGO"
                                 : "NEED " + shortfall + "  ·  NO MARINES"
                         : readiness != null ? "ASSIGN " + readiness.selectedShortfall() : "BLOCKED";
-        props.put("deployLabel", label);
+        props.put("deploymentStatus", canAccept ? "Ready to deploy" : label);
+        props.put("deployLabel", canAccept ? "DEPLOY" : canReinforce ? "REINFORCE"
+                : !transportOk || !commandOk || readiness == null || readiness.needsPersonnel()
+                        ? "DEPLOY" : "ASSIGN SQUADS");
         props.put("deployClasses", "briefing-deploy "
                 + (canAccept ? "good-surface" : canReinforce ? "" : "danger-surface briefing-blocked"));
         props.put("deployDisabled", !canAccept && !canReinforce
@@ -834,13 +833,13 @@ public class BriefingScreen implements Screen {
         return (value >= 0 ? "+" : "") + value + "%";
     }
 
-    private static void requireRetainedElements(MarkupInstance component) {
+    static void requireRetainedElements(MarkupInstance component) {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
                 "mission-briefing-body", "mission-overview", "mission-info-rows",
                 "mission-captain-list", "mission-planning", "mission-commitment",
                 "mission-loadout-grid", "mission-power-list", "mission-source-list",
-                "mission-transport-list", "mission-employer-list", "mission-assign",
+                "mission-transport-readout", "mission-employer-list", "mission-assign",
                 "mission-deploy", "mission-briefing-back")) component.requireElement(id);
     }
 

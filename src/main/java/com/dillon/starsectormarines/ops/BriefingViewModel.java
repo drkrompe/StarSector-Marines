@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,9 +37,9 @@ final class BriefingViewModel {
         props.put("screenHeader", "Mission Briefing");
         props.put("captainHeader", "Commanding Officer");
         props.put("debugHeader", "Mission DEBUG");
-        props.put("commitmentHeader", "Your Force");
-        props.put("commandHeader", "Command Deck");
-        props.put("sourceHeader", "Power Sources");
+        props.put("commitmentHeader", "01 / FORCE COMMITMENT");
+        props.put("commandHeader", "02 / COMMAND DECK");
+        props.put("sourceHeader", "Support Ships");
         props.put("transportHeader", "Landing Craft");
         props.put("carrierHeader", "Fighter Cover");
         props.put("employerHeader", "Employer Provides");
@@ -61,17 +62,13 @@ final class BriefingViewModel {
         props.put("missionFlavor", late
                 ? "Commit a campaign army across three active drop zones. Six shuttles cycle squads into contested lanes until the enemy front collapses."
                 : "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
-        props.put("missionRows", late ? List.of(
-                info("type", "Type", "Conquest", "tone-danger"),
-                info("tier", "Operation scale", "Full Strength · recommends 84 squads", "tone-accent"),
-                info("presence", "Field presence", "Unrestricted", ""),
-                info("opposition", "Opposition", "Veteran core · elites probable", ""),
-                info("lift", "Lift", "168 sorties · 1,008 marines", "")) : List.of(
-                info("type", "Type", "Sabotage", "tone-accent"),
-                info("tier", "Operation scale", "First Contract · recommends 1 squad", "tone-accent"),
-                info("presence", "Field presence", "1 squad active · reserve held off-map", ""),
-                info("opposition", "Opposition", "Regular core · veterans possible", ""),
-                info("lift", "Lift", "2 sorties · 12 marines", "")));
+        props.put("missionRows", List.of(
+                info("presence", "Field presence", late ? "Unrestricted" : "1 active squad / reserves off-map", ""),
+                info("opposition", "Expected opposition", late ? "Veteran core / elites probable" : "Regular core / veterans possible", ""),
+                info("payout", "Contract payment", late ? "480,000 credits" : "18,000 credits", "tone-good")));
+        putForceComparison(props, late ? OperationTier.FULL_STRENGTH : OperationTier.FIRST_CONTRACT,
+                late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
+        props.put("deploymentStatus", "Ready to deploy");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
                 "Mira Hale", "Lieutenant · 1 squad command", false, none, "graphics/portraits/portrait_mercenary01.png")));
@@ -126,7 +123,7 @@ final class BriefingViewModel {
         props.put("employerRows", List.of(
                 info("employer-transport", "Landing craft", "Overridden by DEBUG picker", ""),
                 info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
-        props.put("assignLabel", "");
+        props.put("assignLabel", "ASSIGN SQUADS");
         props.put("assignClasses", "briefing-assign-hidden");
         props.put("assignDisabled", true);
         props.put("assignAction", none);
@@ -167,12 +164,55 @@ final class BriefingViewModel {
         Map<String, Object> props = previewProps(conquest, false);
         putDebugDrawer(props, false, false, () -> { });
         putPreviewLandingCraft(props, conquest, false);
+        props.put("assignClasses", "");
+        props.put("assignDisabled", false);
         props.put("tierSteps", List.of());
         props.put("debugControls", List.of());
         props.put("airRows", List.of());
         props.put("employerRows", List.of(info("employer-transport", "Landing craft",
                 "None", ""), info("employer-air", "Allied air", "None", "")));
         return props;
+    }
+
+    /** The recommendation meter is advisory; deployment eligibility remains screen-owned. */
+    static void putForceComparison(Map<String, Object> props, OperationTier tier, RiskLevel risk,
+                                   int selected, int recommended) {
+        props.put("operationScale", tier.displayName);
+        props.put("operationRisk", risk.name() + " RISK");
+        props.put("scaleIndicators", indicators("scale", tier.ordinal() + 1, 5, "chevron"));
+        props.put("riskIndicators", indicators("risk", risk.ordinal() + 1, 3, "skull"));
+        props.put("forceSelected", String.format(Locale.ROOT, "%,d", selected));
+        props.put("forceRecommended", String.format(Locale.ROOT, "%,d recommended", recommended));
+        int filled = recommended > 0 ? (int) Math.min(10, (long) selected * 10 / recommended) : 0;
+        props.put("forceSegments", indicators("force", filled, 10, ""));
+        props.put("forceAssessment", selected >= recommended ? "Recommendation met" : "Below recommended strength");
+        props.put("forceAssessmentClasses", "label " + (selected >= recommended ? "tone-good" : "tone-accent"));
+        props.put("forceComparisonHint", new SpecSheet("Force commitment", "Personnel recommendation",
+                "graphics/ui/briefing/infantry.svg", "command", List.of(), List.of(
+                selected + " selected ready marines / " + recommended + " recommended.",
+                "The meter compares personnel only. Experience, equipment, officers, and support still matter.",
+                "A recommendation is not a launch requirement or a prediction of victory.")));
+        props.put("missionThreatHint", new SpecSheet("Operation profile", tier.displayName, null,
+                "command", List.of(), List.of("Chevrons show operation scale: " + tier.displayName + ".",
+                "Skulls show risk within that scale: " + risk.name().toLowerCase(Locale.ROOT) + ".",
+                "Risk describes uncertainty and defender quality; it does not replace operation scale.")));
+    }
+
+    private static List<Indicator> indicators(String prefix, int filled, int total, String symbol) {
+        List<Indicator> values = new ArrayList<>();
+        for (int i = 0; i < total; i++) values.add(new Indicator(prefix + "-pip-" + i,
+                "indicator" + (i < filled ? " lit" : " dim"),
+                symbol.isEmpty() ? null : "graphics/ui/briefing/" + symbol + ".svg"));
+        return List.copyOf(values);
+    }
+
+    record Indicator(String id, String classes, String image) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "classes" -> classes; case "image" -> image;
+                default -> null;
+            };
+        }
     }
 
     private static void putPreviewLandingCraft(Map<String, Object> props, boolean conquest, boolean debug) {
@@ -243,8 +283,11 @@ final class BriefingViewModel {
     }
 
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
+        boolean hasCarriers = !((List<?>) props.getOrDefault("carrierRows", List.of())).isEmpty();
+        props.put("carrierEmpty", hasCarriers ? "" : "No fighter cover");
+        props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
-        props.put("forceSummaryStyle", hasForceCards ? "height: 150px" : "height: 60px");
+        props.put("forceSummaryStyle", hasForceCards ? "height: 270px" : "height: 174px");
         props.put("forceCardsStyle", hasForceCards ? "height: 86px" : "height: 0px");
         for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
@@ -259,7 +302,7 @@ final class BriefingViewModel {
                                           boolean disabled, Runnable action) {
         return new ChoiceRow(id, "choice-row" + (selected ? " selected" : ""), power.displayName,
                 power.slotWeight + (power.slotWeight == 1 ? " slot" : " slots"),
-                disabled, action, null, SpecSheets.commandPower(power));
+                disabled, action, SpecSheets.commandPowerIcon(power), SpecSheets.commandPower(power));
     }
 
     private static List<TierStep> tierPreview(boolean conquest, Runnable action) {
