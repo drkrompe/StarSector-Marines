@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
+import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-
 import com.dillon.starsectormarines.battle.air.FittedBoat;
-
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
@@ -86,6 +90,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -419,30 +424,38 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 context.modRoot(), context.starsectorCore());
+        TileRegistryTestInstaller.install(context.projectRoot());
+        BriefingSurvey conquestSurvey = productionSurvey(context, "conquest-full-strength-west-v3.json", 1008);
+        BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
+        BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);
         return List.of(
                 new SnapshotArtifact("mission-catalog-debug-wide.png",
                         renderMissionSelect(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("mission-briefing-survey-loading-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                loadingBriefingProps(), 1f, false)),
                 new SnapshotArtifact("mission-briefing-campaign-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                BriefingViewModel.campaignPreviewProps(true), 1f, false)),
+                                surveyProps(BriefingViewModel.campaignPreviewProps(true), conquestSurvey), 1f, false)),
                 new SnapshotArtifact("mission-briefing-campaign-understrength-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                understrengthBriefingProps(), 1f, false)),
+                                surveyProps(understrengthBriefingProps(), understrengthSurvey), 1f, false)),
                 new SnapshotArtifact("mission-briefing-first-contract-wide.png",
                         renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, surveyProps(BriefingScreen.previewProps(false), sabotageSurvey), 1f, false)),
                 new SnapshotArtifact("mission-briefing-conquest-wide.png",
                         renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, surveyProps(BriefingScreen.previewProps(true), conquestSurvey), 1f, false)),
                 new SnapshotArtifact("mission-briefing-conquest-debug-expanded-wide.png",
                         renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                surveyProps(BriefingScreen.previewProps(true, true), conquestSurvey), 1f, false)),
                 new SnapshotArtifact("mission-briefing-controls-blocked-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 missionControlStateProps(), 1f, false)),
                 new SnapshotArtifact("mission-briefing-force-hint-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                understrengthBriefingProps(), 1f, false, "mission-force-comparison")),
+                                surveyProps(understrengthBriefingProps(), understrengthSurvey), 1f, false, "mission-force-comparison")),
                 new SnapshotArtifact("mission-briefing-power-hint-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 BriefingScreen.previewProps(true, true), 1f, false, "power-barrage")),
@@ -1088,6 +1101,44 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 BriefingScreen.previewProps(conquest, debugExpanded), uiScale, scrolled);
     }
 
+    private static BriefingSurvey productionSurvey(SnapshotContext context, String file, int personnel) throws Exception {
+        Path path = context.modRoot().getParent().resolve("src/test/resources/battle-fixtures").resolve(file);
+        JSONObject json = new JSONObject(Files.readString(path));
+        if (json.has("construction")) json = json.getJSONObject("construction");
+        boolean conquest = json.getString("kind").equals("CONQUEST");
+        json.put("tier", conquest ? "FULL_STRENGTH" : "FIRST_CONTRACT");
+        json.put("risk", conquest ? "HIGH" : "MEDIUM");
+        JSONArray shuttles = new JSONArray();
+        int boats = conquest ? 6 : 1;
+        for (int i = 0; i < boats; i++) shuttles.put(new JSONObject()
+                .put("type", "AEROSHUTTLE").put("cycles", personnel / boats / 6)
+                .put("seatsPerSortie", 6));
+        json.put("shuttles", shuttles);
+        if (conquest) json.getJSONObject("arrivalPlan").put("dropZoneCount", 3)
+                .put("shuttlePairsPerZone", 2).put("timingJitterSec", 0.75);
+        BattleFixture fixture = BattleFixtureJson.fromJson(json);
+        try (BattleSimulation sim = fixture.build()) {
+            BriefingSurvey survey = BriefingSurvey.capture(sim);
+            if (survey.markers().stream().noneMatch(BriefingSurvey.Marker::landing)) {
+                throw new IllegalStateException("Briefing survey lost production landing zones");
+            }
+            return survey;
+        }
+    }
+
+    private static Map<String, Object> surveyProps(Map<String, Object> props, BriefingSurvey survey) {
+        BriefingViewModel.putSurvey(props, survey, "");
+        return props;
+    }
+
+    private static Map<String, Object> loadingBriefingProps() {
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        props.put("deployLabel", "PREPARING");
+        props.put("deployDisabled", true);
+        props.put("deploymentStatus", "Preparing deployment area...");
+        return props;
+    }
+
     private static Map<String, Object> understrengthBriefingProps() {
         Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
         BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.MEDIUM, 6, 12);
@@ -1142,6 +1193,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
+            BriefingSurvey.install(document, instance, props);
             if (hintTarget != null) {
                 openSpecSheet(document, hints, width, height, uiScale, instance.requireElement(hintTarget));
             }

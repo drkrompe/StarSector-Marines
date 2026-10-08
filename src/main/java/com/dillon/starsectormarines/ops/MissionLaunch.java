@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.FighterWingCommitment;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
@@ -33,9 +34,11 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * The single accept-path both pre-battle entry points ({@link BriefingScreen},
@@ -123,6 +126,19 @@ public final class MissionLaunch {
                                             Collection<String> selectedPowerIds,
                                             List<FleetMemberAPI> committedPowerSources,
                                             DebugMechRoster debugMechs) {
+        ScenarioPlan plan = captureScenario(ctx, m, committedShuttles, committedWings,
+                selectedPowerIds, committedPowerSources, debugMechs,
+                m.battleSeed != null ? m.battleSeed : System.currentTimeMillis());
+        return finishSimulation(ctx, m, debugWings, plan, plan.builder().get());
+    }
+
+    /** Snapshot campaign inputs on the UI thread before handing pure construction to a worker. */
+    static ScenarioPlan captureScenario(MarineOpsContext ctx, Mission m,
+                                        List<FittedBoat> committedShuttles,
+                                        FlybyRoster committedWings,
+                                        Collection<String> selectedPowerIds,
+                                        List<FleetMemberAPI> committedPowerSources,
+                                        DebugMechRoster debugMechs, long seed) {
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
                 : committedPowerSources == null
@@ -159,9 +175,8 @@ public final class MissionLaunch {
         PrecinctPlan.Sprawl sprawl = m.sprawl != null
                 ? m.sprawl : SettlementZoning.sprawlFor(profile.marketSize());
 
-        // Wall-clock unless the mission pins a seed, so an ordinary relaunch is
-        // a fresh battlefield and a pinned one is the same battlefield twice.
-        long seed = m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
+        // The caller pins the seed for the briefing's lifetime. Launch consumes
+        // that scenario; an ordinary later deployment starts with a new seed.
         int firstPlayerShuttle = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
         ShuttleArrivalPlan conquestArrivalPlan = new ShuttleArrivalPlan(
@@ -177,20 +192,21 @@ public final class MissionLaunch {
                     m.marineArrivalPolicy, firstPlayerShuttle,
                     m.conquestArrivalConfig());
         }
-        BattleSimulation sim;
+        Supplier<BattleSimulation> builder;
+        Detachment constructionDetachment = det;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
         if (openingOperation != null) {
-            sim = BattleSetup.createOpeningOperation(seed,
-                    det.shuttleManifest,
+            builder = () -> BattleSetup.createOpeningOperation(seed,
+                    constructionDetachment.shuttleManifest,
                     DetachmentResolver.employerPhysicalShipCount(m),
                     openingOperation, profile);
         } else if (isSilentColonyBattle(m)) {
-            sim = BattleSetup.createSilentColony(seed,
+            builder = () -> BattleSetup.createSilentColony(seed,
                     m.campaignEventThreatSeed, m.civiliansAtRisk,
-                    det.shuttleManifest, m.risk);
+                    constructionDetachment.shuttleManifest, m.risk);
         } else if (isCivilianRescueBattle(m)) {
-            int firstWaveMarineSeats = firstWaveSeats(det.shuttleManifest);
+            int firstWaveMarineSeats = firstWaveSeats(constructionDetachment.shuttleManifest);
             boolean stressTest = m.source == MissionSource.DEBUG_CIVILIAN_RESCUE;
             int swarmCount = stressTest
                     ? SwarmDefenseRoster.debugCountFor(
@@ -198,49 +214,49 @@ public final class MissionLaunch {
                     : SwarmDefenseRoster.countFor(m.risk);
             CivilianRescueBattleFixture rescueFixture =
                     CivilianRescueBattleFixture.fromFactoryInputs(seed,
-                            det.shuttleManifest, enemyHasHeavyArmor, m.risk,
+                            constructionDetachment.shuttleManifest, enemyHasHeavyArmor, m.risk,
                             swarmCount, profile, stressTest);
             // Production launch and headless replay intentionally meet here:
             // the fixture carries inputs, while BattleSetup remains the only
             // implementation of map/scenario/unit construction.
-            sim = rescueFixture.build();
+            builder = rescueFixture::build;
             fixture = rescueFixture;
         } else switch (m.type) {
             case SABOTAGE:
                 SabotageBattleFixture sabotageFixture =
                         SabotageBattleFixture.fromFactoryInputs(seed,
-                                det.shuttleManifest, enemyHasHeavyArmor,
-                                m.tier, m.risk, profile, det.marineWings,
+                                constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, constructionDetachment.marineWings,
                                 m.enemyFighterSupport);
-                sim = sabotageFixture.build();
+                builder = sabotageFixture::build;
                 fixture = sabotageFixture;
                 break;
             case CONQUEST:
                 ConquestBattleFixture conquestFixture =
                         ConquestBattleFixture.fromFactoryInputs(seed,
-                                det.shuttleManifest, enemyHasHeavyArmor,
-                                m.tier, m.risk, profile, det.marineWings,
+                                constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, constructionDetachment.marineWings,
                                 m.enemyFighterSupport,
                                 conquestArrivalPlan, sprawl, m.standoff, m.lanes,
                                 m.landing, m.lanePaths);
-                sim = conquestFixture.build();
+                builder = conquestFixture::build;
                 fixture = conquestFixture;
                 break;
             case RAID:
                 RaidBattleFixture raidFixture = RaidBattleFixture.fromFactoryInputs(
-                        seed, det.shuttleManifest, enemyHasHeavyArmor,
-                        m.tier, m.risk, profile, det.marineWings,
+                        seed, constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
+                        m.tier, m.risk, profile, constructionDetachment.marineWings,
                         m.enemyFighterSupport, sprawl);
-                sim = raidFixture.build();
+                builder = raidFixture::build;
                 fixture = raidFixture;
                 break;
             case EXTRACTION:
                 ExtractionBattleFixture extractionFixture =
                         ExtractionBattleFixture.fromFactoryInputs(seed,
-                                det.shuttleManifest, enemyHasHeavyArmor,
-                                m.tier, m.risk, profile, det.marineWings,
+                                constructionDetachment.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, constructionDetachment.marineWings,
                                 m.enemyFighterSupport, sprawl);
-                sim = extractionFixture.build();
+                builder = extractionFixture::build;
                 fixture = extractionFixture;
                 break;
             case ASSAULT:
@@ -249,13 +265,32 @@ public final class MissionLaunch {
                 // built from. The override above rewrote its faction id and
                 // nothing else, and the garrison's size reads the market's own
                 // ground-defence strength — which it did not touch.
-                sim = BattleSetup.createPlaceholder(seed, det.shuttleManifest,
+                builder = () -> BattleSetup.createPlaceholder(seed, constructionDetachment.shuttleManifest,
                         enemyHasHeavyArmor, m.tier, m.risk, m.type, profile,
-                        det.marineWings, m.enemyFighterSupport, sprawl,
+                        constructionDetachment.marineWings, m.enemyFighterSupport, sprawl,
                         m.alliedGarrisonFactionId, m.alliedGarrisonStrengthMult);
                 break;
         }
 
+        Object key = fixture != null ? fixture : Arrays.asList(m.id, m.type, m.tier, m.risk,
+                seed, enemyHasHeavyArmor, profile, sprawl, openingOperation, firstPlayerShuttle,
+                m.campaignEventThreatSeed, m.civiliansAtRisk, m.alliedGarrisonFactionId,
+                m.alliedGarrisonStrengthMult, constructionDetachment.shuttleManifest,
+                FighterWingCommitment.captureRoster(constructionDetachment.marineWings),
+                FighterWingCommitment.captureRoster(m.enemyFighterSupport));
+        return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder);
+    }
+
+    /** Pure construction input; contains no campaign API handles. */
+    record ScenarioPlan(Object key, Detachment detachment, int firstPlayerShuttle,
+                        BattleFixture fixture, Supplier<BattleSimulation> builder) { }
+
+    /** Applies campaign state only after the player explicitly accepts deployment. */
+    static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
+                                          ScenarioPlan plan, BattleSimulation sim) {
+        Detachment det = plan.detachment();
+        int firstPlayerShuttle = plan.firstPlayerShuttle();
+        BattleFixture fixture = plan.fixture();
         try {
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.

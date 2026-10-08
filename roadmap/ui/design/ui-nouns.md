@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — briefing composition centers mission demand, selected force, and deployment readiness.
+Updated: 2026-10-08 — briefing intelligence projects the prepared battlefield, with contract payment and fleet-support imagery.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -302,7 +302,25 @@ decorative framing for the planet image, never a tactical map or an intelligence
 claim.
 
 The briefing groups a compact mission dossier beside the selected force and its
-command deck. Operation-scale chevrons and risk skulls retain their independent
+command deck, with a tactical survey on the right. Contract payment is a prominent
+employer authorization readout, using the negotiated cash multiplier and salvage
+rights rather than a second reward calculation. Zero-payment operations say so.
+The survey is an immutable projection of the unstarted production battlefield:
+terrain, strategic objective footprints, insertion berths, and authored approach
+routes. It exposes no enemy unit positions. Dense maps emphasize the command
+objective and lanes instead of labelling every berth and building; the accompanying
+summary retains strategic-site counts. Small objective-driven missions identify
+their actual target sites and extraction endpoints.
+
+Preparation runs asynchronously from campaign-free captured construction inputs.
+The briefing pins its seed, shows a pending survey while generation runs, and
+requires a ready scenario before deployment. Relevant input changes supersede the
+old preparation; stale results and abandoned scenarios are released. A failed
+preparation offers an explicit retry. Deploy consumes the same scenario the player
+surveyed, then applies campaign personnel and resources at acceptance. Background
+preparation never commits a contract or spends campaign resources.
+
+Operation-scale chevrons and risk skulls retain their independent
 mission meanings and readable labels. A segmented personnel meter compares selected
 ready Marines with the recommendation; it caps its visual fill while retaining exact
 counts, and never becomes a launch gate or a prediction of victory. Experience,
@@ -333,7 +351,8 @@ report local lift, and debug fixtures explicitly label their override. A context
 hint explains cycling and the Boat Deck's ownership of losses and fittings.
 The command deck keeps a distinct SVG ability symbol, short name, selection, and
 slot cost visible on compact cards. These pictograms and their detail sheets share
-one presentation mapping. Support ships and logistics use bounded groups sized to
+one presentation mapping. Fleet Support identifies each contributing ship with its
+name and the existing hull-spec sprite, and logistics use bounded groups sized to
 their information; empty fighter cover is a quiet textual state, not an empty panel.
 Activation costs, cooldowns, use limits, and explanatory copy belong to a shared
 popup; source and carrier rows use that same layer for their secondary details.
@@ -343,8 +362,8 @@ why a selection is unavailable. Power copy reads the existing power metadata;
 compact presentation never merges deck capacity with activation resources.
 Normal missions have neither a debug control nor a reserved debug lane. Debug
 missions start with their drawer closed and expose a compact header latch with
-a directional chevron. Opening it reveals the right-hand instrument rack;
-closing it returns the full width to mission planning. The closed subtree is
+a directional chevron. Opening it overlays the right-hand survey with the instrument
+rack; closing it reveals the survey again. Force controls keep the same position. The closed subtree is
 absent from layout and keyboard navigation, and toggling preserves focus on the
 latch. Selecting another mission resets the drawer to closed.
 The rack contains a tier selector, labelled adjustment banks, and a separate

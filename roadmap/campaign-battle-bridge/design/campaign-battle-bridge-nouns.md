@@ -4,7 +4,7 @@ Status: ACTIVE — target-profile transport is campaign-free, while ground consu
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the player faction's derived roster resolves through the same single path as every authored one.
+Updated: 2026-10-08 — briefing preparation captures construction inputs before asynchronous generation; acceptance consumes that scenario.
 
 Read `stories.md` for open work.
 
@@ -57,11 +57,21 @@ recipe, while stages and zoning policies own their local use of it.
 
 ## Flow and boundaries
 
-At launch, the selected mission identifies a target planet. The resolver finds
+During briefing preparation, the selected mission identifies a target planet. The resolver finds
 the matching vanilla market and produces one profile, or Neutral when no such
 market is available. The mission builder passes that same value into its
 battle setup. Setup passes it into map generation, and the BSP recipe exposes
 it to its stages as generation context.
+
+Campaign API reads finish on the host thread before background construction starts.
+The worker receives captured construction values and produces the unstarted production
+scenario; the briefing reads only an immutable terrain and objective projection.
+Relevant construction changes replace the pending result, and departure releases an
+unaccepted scenario. Acceptance revalidates construction inputs, consumes the matching
+prepared scenario, and only then freezes the selected campaign personnel and applies
+live resource ownership. The surveyed battlefield and the launched battlefield are
+therefore the same instance, with no map reroll at the Deploy click. Contract acceptance
+and campaign expenditure remain explicit launch actions.
 
 This is a directional, snapshot boundary. Battle and generation code do not
 look up or hold `MarketAPI`; they may only consume the profile passed to them.
@@ -145,7 +155,8 @@ only through the target profile.
 
 Comparing defenders is only a comparison when the battlefield holds still, so a
 mission built for that purpose also pins its generation seed; ordinary missions
-keep rerolling their map on each launch. The debug board carries such a group
+choose a fresh seed for each later deployment and hold it fixed while that briefing
+is being prepared and reviewed. The debug board carries such a group
 for Conquest, derived from the roster catalog rather than from a faction list
 written in code, so a newly catalogued doctrine becomes comparable without a
 code change.

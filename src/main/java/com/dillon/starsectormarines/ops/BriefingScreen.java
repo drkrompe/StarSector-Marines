@@ -67,6 +67,8 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.List;
 import java.util.Map;
 
@@ -89,20 +91,65 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * the mission-select list via the dossier card's <em>Brief &amp; Deploy</em>
  * action ({@link CommsConsolePanel}).
  *
- * <p>The full-canvas two-column layout's left "mission" column holds the
- * briefing details, salvage negotiation, and captain selection; the right
- * "detachment" column splits into <em>Your Fleet Brings</em> (the player's
- * committed transports + fighter cover + power-source ships, opt-in toggles) and <em>Employer
- * Provides</em> (the contract's shuttles / fighter support / offered powers,
- * read-only), with Deploy / Back below. The old decorative planet map is gone —
- * its space is reclaimed for the action area.
+ * <p>The dossier, committed force and command deck sit beside a tactical
+ * survey generated from the production scenario. Debug controls overlay the
+ * survey without moving the player's force or deployment actions.
  *
- * <p>Deploy resolves the committed detachment and launches the battle via
- * {@link MissionLaunch#buildSimulation} → {@link ScreenId#BATTLE}. Back returns
- * to {@link ScreenId#MISSION_SELECT}; client + cache state on the context
- * survive the trip.
+ * <p>Deploy transfers that prepared scenario through the campaign launch
+ * overlay into {@link ScreenId#BATTLE}. Back returns to
+ * {@link ScreenId#MISSION_SELECT} and releases unaccepted preparation.
  */
 public class BriefingScreen implements Screen {
+    private static final Executor SURVEY_WORKER = Executors.newSingleThreadExecutor(task -> {
+        Thread thread = new Thread(task, "marine-ops-briefing-survey");
+        thread.setDaemon(true);
+        thread.setPriority(Thread.NORM_PRIORITY - 2);
+        return thread;
+    });
+    private final AsyncPreparation<PreparedSurvey> survey = new AsyncPreparation<>(SURVEY_WORKER);
+    private MissionLaunch.ScenarioPlan surveyPlan;
+    private long surveySeed;
+    private boolean surveyComplete;
+    private Throwable surveyCaptureFailure;
+
+    private record PreparedSurvey(BattleSimulation simulation, BriefingSurvey map) implements AutoCloseable {
+        @Override public void close() { simulation.close(); }
+    }
+
+    private Mission launchMission(Mission mission) {
+        return mission.source == MissionSource.DEBUG && mission.type == MissionType.CONQUEST
+                ? Mission.builder(mission).conquestArrivalConfig(debugConquestArrivalConfig).build() : mission;
+    }
+
+    private void prepareSurvey(Mission mission) {
+        if (mission == null) return;
+        try {
+            boolean stationed = mission.source == MissionSource.STATIONING;
+            surveyPlan = MissionLaunch.captureScenario(ctx, launchMission(mission),
+                    stationed ? Collections.emptyList() : lift(),
+                    stationed ? FlybyRoster.EMPTY : committedWings(), selectedPowerIds,
+                    stationed ? Collections.emptyList() : committedPowerSourceMembers(),
+                    debugMechRoster(mission), surveySeed);
+            MissionLaunch.ScenarioPlan plan = surveyPlan;
+            survey.request(plan.key(), () -> {
+                BattleSimulation sim = plan.builder().get();
+                try { return new PreparedSurvey(sim, BriefingSurvey.capture(sim)); }
+                catch (RuntimeException | Error failure) { sim.close(); throw failure; }
+            });
+            surveyCaptureFailure = null;
+        } catch (RuntimeException failure) {
+            survey.close();
+            surveyPlan = null;
+            surveyCaptureFailure = failure;
+            LOG.warn("Briefing survey input capture failed", failure);
+        }
+        surveyComplete = survey.peek() != null || survey.failure() != null || surveyCaptureFailure != null;
+    }
+
+    private void retrySurvey() {
+        survey.close();
+        rebuild();
+    }
 
     private static final Logger LOG = Global.getLogger(BriefingScreen.class);
     static final String ROOT_COMPONENT = "mission-briefing";
@@ -246,6 +293,8 @@ public class BriefingScreen implements Screen {
         // Selection scope is per-mission — clear the deselection set when the
         // player switches missions so they don't carry over hidden state.
         if (m != null && !m.id.equals(lastSelectedMissionId)) {
+            survey.close();
+            surveySeed = m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
             lastSelectedMissionId = m.id;
             debugDrawerExpanded = false;
             deselectedCarriers.clear();
@@ -275,6 +324,7 @@ public class BriefingScreen implements Screen {
             commandDeckInitialized = true;
         }
 
+        prepareSurvey(m);
         installDocument();
     }
 
@@ -291,6 +341,7 @@ public class BriefingScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
             candidateHints = BriefingHints.install(built, candidate, props);
+            BriefingSurvey.install(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
@@ -325,6 +376,12 @@ public class BriefingScreen implements Screen {
         props.put("missionTitle", mission.name);
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
         props.put("missionRows", retainedMissionRows(mission));
+        BriefingViewModel.putReward(props, mission);
+        PreparedSurvey preparedSurvey = survey.peek();
+        Throwable surveyFailure = surveyCaptureFailure != null ? surveyCaptureFailure : survey.failure();
+        props.put("surveyFailed", surveyFailure != null);
+        BriefingViewModel.putSurvey(props, preparedSurvey != null ? preparedSurvey.map() : null,
+                surveyFailure != null ? "Survey unavailable / retry to prepare terrain" : "Compiling terrain and landing intelligence...");
         props.put("termActions", retainedTermActions(mission));
         props.put("captains", retainedCaptainRows(mission));
         props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()
@@ -395,20 +452,6 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        int cashMult = mission.cashMultiplier & 0xFF;
-        if (cashMult <= 0) cashMult = 100;
-        long payout = (long) mission.payout * cashMult / 100L;
-        // A polity defence pays nothing by design, and a green zero reads as a reward
-        // that failed to load. Same rule the debrief already uses.
-        rows.add(BriefingViewModel.info("payout", "Payout",
-                NumberFormat.getIntegerInstance().format(payout) + " credits",
-                payout > 0L ? "tone-good" : "tone-muted"));
-        int salvageBaseline = mission.contractSalvageBaseline & 0xFF;
-        if (salvageBaseline > 0) {
-            int negotiated = mission.contractSalvageNegotiated & 0xFF;
-            rows.add(BriefingViewModel.info("salvage", "Salvage rights",
-                    negotiated + "%  ·  cash " + signedPercent(cashMult - 100), ""));
-        }
         rows.add(BriefingViewModel.info("requirements", "Requires",
                 mission.requirements, ""));
         rows.add(BriefingViewModel.info("presence", "Field presence",
@@ -822,6 +865,13 @@ public class BriefingScreen implements Screen {
                 && (readiness == null || readiness.needsPersonnel() || !transportOk || !commandOk));
         props.put("deployAction", deployAction);
         props.put("backAction", (Runnable) this::onBack);
+        if (survey.peek() == null) {
+            boolean failed = surveyCaptureFailure != null || survey.failure() != null;
+            props.put("deployDisabled", !failed);
+            props.put("deployLabel", failed ? "RETRY SURVEY" : "PREPARING");
+            props.put("deploymentStatus", failed ? "Terrain survey failed" : "Preparing deployment area...");
+            props.put("deployAction", (Runnable) this::retrySurvey);
+        }
     }
 
     private void reinforce(MarineRoster roster, int shortfall) {
@@ -2046,6 +2096,8 @@ public class BriefingScreen implements Screen {
     private void onAccept() {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
+        prepareSurvey(m);
+        if (survey.peek() == null) { installDocument(); return; }
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
         if (m.contractId >= 0L && campaignScript != null) {
             boolean civilWarParticipation =
@@ -2081,25 +2133,14 @@ public class BriefingScreen implements Screen {
         LOG.info("MarineOps: deploy mission id=" + m.id + " name='" + m.name
                 + "' type=" + m.type + " captain=" + captainStr);
 
-        // Resolve the committed detachment (transports + marine fighter cover +
-        // command powers) and build the battle. The deselected transports are
-        // already filtered out of lift().
-        Mission launchMission = m.source == MissionSource.DEBUG
-                && m.type == MissionType.CONQUEST
-                ? Mission.builder(m)
-                        .conquestArrivalConfig(debugConquestArrivalConfig)
-                        .build()
-                : m;
-        MissionLaunch.PreparedBattle prepared = MissionLaunch.prepareSimulation(
-                ctx, launchMission,
-                m.source == MissionSource.STATIONING
-                        ? java.util.Collections.emptyList() : lift(),
-                m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),
+        // Transfer the exact scenario surveyed in this briefing. Campaign identities
+        // and consumable resources cross the boundary only after explicit acceptance.
+        Mission launchMission = launchMission(m);
+        PreparedSurvey ready = survey.take(surveyPlan.key());
+        if (ready == null) { rebuild(); return; }
+        MissionLaunch.PreparedBattle prepared = MissionLaunch.finishSimulation(ctx, launchMission,
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings(),
-                selectedPowerIds,
-                m.source == MissionSource.STATIONING
-                        ? java.util.Collections.emptyList() : committedPowerSourceMembers(),
-                debugMechRoster(m));
+                surveyPlan, ready.simulation());
         try {
             if (m.contractId >= 0L && campaignScript != null) {
                 int day = Global.getSector() != null
@@ -2113,6 +2154,7 @@ public class BriefingScreen implements Screen {
         }
         ctx.setBattle(prepared.simulation(), prepared.fixture(),
                 prepared.detachment());
+        lastSelectedMissionId = null; // A later ordinary deployment gets a fresh survey seed.
         ctx.goTo(ScreenId.BATTLE);
     }
 
@@ -2157,6 +2199,11 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
+            surveyComplete = true;
+            if (survey.failure() != null) LOG.warn("Briefing terrain generation failed", survey.failure());
+            installDocument();
+        }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
         if (hints != null) hints.update();
@@ -2175,6 +2222,8 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void detach() {
+        survey.close();
+        surveyPlan = null;
         if (hints != null) hints.clear();
         if (document != null) document.deactivateInput();
         input = null;
