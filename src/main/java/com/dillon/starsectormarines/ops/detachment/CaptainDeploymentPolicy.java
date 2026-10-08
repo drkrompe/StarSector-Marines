@@ -24,10 +24,14 @@ public final class CaptainDeploymentPolicy {
 
     private CaptainDeploymentPolicy() {}
 
-    /** Roster-ordered home formation, bounded by the captain's current rank. */
+    /** Named home formation, or all available squads when using acting NCOs. */
     public static List<String> defaultSquadIds(MarineRoster roster,
                                                MarineCaptain captain) {
-        if (!canLead(captain) || roster == null) return Collections.emptyList();
+        if (roster == null) return Collections.emptyList();
+        if (!canLead(captain)) {
+            return roster.squads().stream().filter(s -> !s.reserve()
+                    && roster.isSquadAvailable(s.id())).map(MarineSquad::id).toList();
+        }
         List<String> result = new ArrayList<>();
         for (MarineSquad squad : roster.squadsCommandedBy(captain.id())) {
             if (result.size() >= captain.rank().squadCommandCap()) break;
@@ -63,9 +67,7 @@ public final class CaptainDeploymentPolicy {
         if (squad == null || squad.reserve()
                 || !roster.isSquadAvailable(squadId)) return false;
         if (selectedIds != null && selectedIds.contains(squadId)) return true;
-        MarineCaptain leader = leaderFor(roster, commander, squadId);
-        if (!canLead(leader)) return false;
-        return TaskForce.of(roster, commander, selectedIds).remainingCapacity(leader) > 0;
+        return true;
     }
 
     /**
@@ -79,12 +81,20 @@ public final class CaptainDeploymentPolicy {
         return canLead(home) ? home : commander;
     }
 
-    /** Every selected squad has a fit officer with room for it. */
+    /** Stationing retains its requirement for fit named leadership. */
+    public static boolean isValidNamedCommand(MarineRoster roster, MarineCaptain commander,
+                                               Set<String> selectedIds) {
+        if (!canLead(commander)) return false;
+        TaskForce force = TaskForce.of(roster, commander, selectedIds);
+        return force.isValid() && force.unledSquads() == 0;
+    }
+
+    /** Ordinary deployments allow independent acting NCO leadership. */
     public static boolean isValidCommand(MarineRoster roster,
                                          MarineCaptain commander,
                                          Set<String> selectedIds) {
         TaskForce force = TaskForce.of(roster, commander, selectedIds);
-        if (force.squadCount() == 0) return canLead(commander);
+        if (force.squadCount() == 0) return true;
         return force.isValid();
     }
 }

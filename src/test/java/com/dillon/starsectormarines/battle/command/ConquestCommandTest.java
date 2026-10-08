@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -15,6 +16,10 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
+import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -22,6 +27,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.lang.reflect.Constructor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -2226,6 +2233,158 @@ public class ConquestCommandTest {
 
             assertTrue(isSecureCompound(onIt),
                     "a squad inside the footprint has genuinely arrived");
+        }
+    }
+
+    /** The group integration asks the planner directly, without standing up a battle. */
+    @Nested
+    class FrozenOfficerGroups {
+        private final CommandGroupIdentity officer =
+                new CommandGroupIdentity("officer:test", "test", "Captain Vale", true);
+
+        @Test void externalPlayerAndGarrisonOwnershipNeverEntersGroupAllocation() throws Exception {
+            ObjectiveAssignment playerOrder = ObjectiveAssignment.attackMove(1, 2, 40);
+            ObjectiveAssignment garrisonOrder = ObjectiveAssignment.defendArea(2, 2, 10, 5);
+            var plan = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
+                    List.of(row(1, 1, playerOrder, CommandAuthority.PLAYER_INTERVENTION),
+                            row(2, 2, garrisonOrder, CommandAuthority.GARRISON),
+                            row(3, 3, null, null)), List.of(), List.of(), false));
+            assertEquals(CommandProposal.Action.RETAIN, proposal(plan, 1).action());
+            assertEquals(CommandProposal.Action.RETAIN, proposal(plan, 2).action());
+            assertEquals(1, plan.commandPoolSize());
+        }
+
+        @Test void reachableHoldPersistsAlongsideAssaultWhileDisconnectedHoldReleases() throws Exception {
+            ObjectiveAssignment reachable = ObjectiveAssignment.defendArea(1, 2, 10, 5);
+            var holdPlan = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
+                    List.of(row(1, 1, reachable, CommandAuthority.MISSION_COMMAND),
+                            row(2, 2, null, null)), List.of(), contacts(10), true));
+            assertEquals(reachable, proposal(holdPlan, 1).assignment());
+            assertEquals("GROUP_HOLD_PRESERVED", proposal(holdPlan, 1).reason());
+            assertEquals(AssignmentKind.CLEAR_ZONE, proposal(holdPlan, 2).assignment().kind());
+            assertEquals("MIXED", holdPlan.detail().groups().get(0).task());
+
+            ObjectiveAssignment disconnected = ObjectiveAssignment.defendArea(1, 2, 50, 5);
+            var released = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
+                    List.of(row(1, 1, disconnected, CommandAuthority.MISSION_COMMAND)),
+                    List.of(), contacts(10), true));
+            assertNotEquals(disconnected, proposal(released, 1).assignment());
+            assertEquals(CommandStabilityBreak.TARGET_UNREACHABLE,
+                    proposal(released, 1).stabilityBreak());
+        }
+
+        @Test void captureSupportCannotTakeTheGroupsLastUsefulFrontSquad() throws Exception {
+            TacticalNode capture = new TacticalNode(TacticalNode.Kind.BARRACKS,
+                    2, 10, 1, 9, 4, 12, Faction.DEFENDER, 80, 4);
+            TacticalNode keep = new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                    2, 50, 1, 49, 4, 52, Faction.DEFENDER, 80, 4);
+            List<ConquestCommandFacts.Compound> compounds = List.of(
+                    new ConquestCommandFacts.Compound(CompoundService.CompoundState.CONTESTED,
+                            capture, 2, 10, 1, new int[]{1}),
+                    new ConquestCommandFacts.Compound(CompoundService.CompoundState.DEFENDER_HELD,
+                            keep, 2, 50, 3, new int[]{3}));
+            var plan = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
+                    List.of(row(1, 10, ObjectiveAssignment.secureCompound(1, 1, capture),
+                                    CommandAuthority.MISSION_COMMAND),
+                            row(2, 20, null, null)), compounds, contacts(10, 40), false));
+            assertEquals(AssignmentKind.SECURE_COMPOUND, proposal(plan, 1).assignment().kind());
+            assertEquals(AssignmentKind.CLEAR_ZONE, proposal(plan, 2).assignment().kind());
+            assertEquals(2, proposal(plan, 2).assignment().targetZoneId(),
+                    "the sole front squad must not be pulled backward into capture support");
+            assertEquals(1, plan.proposals().stream().filter(p -> p.assignment() != null
+                    && p.assignment().kind() == AssignmentKind.SECURE_COMPOUND).count());
+        }
+
+        @Test void namedGroupSupportPreservesEnabledZoneTargetDistribution() throws Exception {
+            boolean restore = ConquestCommand.ZONE_TARGET_CAP_ENABLED;
+            try {
+                ConquestCommand.ZONE_TARGET_CAP_ENABLED = true;
+                var plan = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).plan(frame(
+                        List.of(row(1, 1, null, null), row(2, 2, null, null),
+                                row(3, 3, null, null), row(4, 4, null, null)),
+                        List.of(), contacts(10, 40), false));
+                assertEquals(3, plan.proposals().stream().filter(p -> p.assignment() != null
+                        && p.assignment().kind() == AssignmentKind.CLEAR_ZONE
+                        && p.assignment().targetZoneId() == 1).count());
+                assertEquals(1, plan.proposals().stream().filter(p -> p.assignment() != null
+                        && p.assignment().kind() == AssignmentKind.CLEAR_ZONE
+                        && p.assignment().targetZoneId() == 2).count());
+            } finally {
+                ConquestCommand.ZONE_TARGET_CAP_ENABLED = restore;
+            }
+        }
+
+        private CommandSquadState row(int id, int y, ObjectiveAssignment assignment,
+                                      CommandAuthority authority) {
+            CommandDirective directive = authority == null ? null : new CommandDirective(id,
+                    Faction.MARINE, authority == CommandAuthority.MISSION_COMMAND
+                    ? "conquest-attacker" : "external", authority, "fixture", assignment,
+                    0, -1, -1, CommandDirective.Status.ACTIVE, "");
+            return new CommandSquadState(id, Faction.MARINE, 6, 2, y, 2, y,
+                    y == 10 ? 1 : 0, UnitRole.COMBATANT, false, false, false,
+                    null, null, null, assignment, directive, 0, 0, -1, 0, 0,
+                    null, null, null, 0, new int[]{y == 10 ? 1 : 0},
+                    new int[]{2}, new int[]{y}, officer);
+        }
+
+        private List<CommanderContact> contacts(int... ys) {
+            List<CommanderContact> result = new ArrayList<>();
+            for (int y : ys) result.add(new CommanderContact(y, 2, y, 0,
+                    1f, 1f, BeliefSource.DIRECT, 1));
+            return result;
+        }
+
+        private CommandProposal proposal(CommandPlan<ConquestFrontSnapshot> plan, int squad) {
+            return plan.proposals().stream().filter(p -> p.squadId() == squad)
+                    .findFirst().orElseThrow();
+        }
+
+        private ConquestCommandFrame frame(List<CommandSquadState> squads,
+                List<ConquestCommandFacts.Compound> compounds,
+                List<CommanderContact> contacts, boolean disconnected) throws Exception {
+            int width = 30, height = 60;
+            NavigationGrid grid = new NavigationGrid(width, height);
+            int[] zones = new int[width * height], components = new int[width * height];
+            List<List<Integer>> cells = List.of(new ArrayList<>(), new ArrayList<>(),
+                    new ArrayList<>(), new ArrayList<>());
+            for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+                grid.setWalkableFloor(x, y);
+                int zone = x >= 2 && x <= 3 ? y >= 10 && y <= 11 ? 1
+                        : y >= 40 && y <= 41 ? 2 : y >= 50 && y <= 51 ? 3 : 0 : 0;
+                int cell = y * width + x;
+                zones[cell] = zone;
+                components[cell] = disconnected && zone == 3 ? 1 : 0;
+                cells.get(zone).add(cell);
+            }
+            List<CommandTopology.Zone> topologyZones = new ArrayList<>();
+            for (int i = 0; i < cells.size(); i++) topologyZones.add(new CommandTopology.Zone(i,
+                    cells.get(i).stream().mapToInt(Integer::intValue).toArray(),
+                    disconnected && i == 3 ? List.of() : i == 0
+                            ? disconnected ? List.of(1, 2) : List.of(1, 2, 3) : List.of(0)));
+            CommandTopology topology = frozenConstruct(CommandTopology.class,
+                    new Class<?>[]{NavigationGrid.class, int[].class, List.class,
+                            int[].class, TickInnerProfile.class},
+                    grid, zones, topologyZones, components, null);
+            float[] empty = new float[width * height];
+            CommanderInfluenceSnapshot influence = frozenConstruct(CommanderInfluenceSnapshot.class,
+                    new Class<?>[]{Faction.class, int.class, int.class, int.class, int.class,
+                            int.class, int.class, float[].class, float[].class, float[].class, List.class},
+                    Faction.MARINE, 0, 1, width, height, width, height,
+                    empty, empty, empty, contacts);
+            CommandFrame common = new CommandFrame(150, Faction.MARINE, squads,
+                    influence, topology, new CommandAssignmentSnapshot(Map.of()));
+            ConquestCommandFacts facts = frozenConstruct(ConquestCommandFacts.class,
+                    new Class<?>[]{List.class}, compounds);
+            return frozenConstruct(ConquestCommandFrame.class,
+                    new Class<?>[]{CommandFrame.class, ConquestCommandFacts.class}, common, facts);
+        }
+
+        /** Tests construct immutable inputs without adding production fixture APIs. */
+        private <T> T frozenConstruct(Class<T> type, Class<?>[] signature,
+                                      Object... arguments) throws Exception {
+            Constructor<T> constructor = type.getDeclaredConstructor(signature);
+            constructor.setAccessible(true);
+            return constructor.newInstance(arguments);
         }
     }
 

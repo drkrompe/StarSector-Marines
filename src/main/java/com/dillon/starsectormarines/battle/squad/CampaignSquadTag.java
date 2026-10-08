@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
+
 /**
  * The campaign squad one deploying marine came from, frozen at deploy time.
  *
@@ -14,6 +16,9 @@ package com.dillon.starsectormarines.battle.squad;
  * and freezes a real, detached campaign roster.
  */
 public final class CampaignSquadTag {
+
+    /** Frozen organizational command; independent of physical landing locations. */
+    public final CommandGroupIdentity commandGroupIdentity;
 
     /** Stable campaign squad id; the key battle squads are grouped by. */
     public final String squadId;
@@ -41,6 +46,13 @@ public final class CampaignSquadTag {
 
     public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
                             int fireTeamIndex) {
+        this(squadId, label, leader, strength, fireTeamIndex,
+                CommandGroupIdentity.actingNco(squadId, label));
+    }
+
+    public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
+                            int fireTeamIndex, CommandGroupIdentity commandGroupIdentity) {
+        this.commandGroupIdentity = commandGroupIdentity;
         this.squadId = squadId;
         this.label = label;
         this.leader = leader;

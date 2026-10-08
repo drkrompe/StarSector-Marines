@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -25,6 +26,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * either way.
  */
 class MarineOpsRoutingTest {
+
+    @Test
+    void explicitNoOperationOfficerRemainsASelection() {
+        MarineOpsContext context = new MarineOpsContext(null);
+        assertFalse(context.isCaptainSelectionInitialized());
+        context.setSelectedCaptainId("officer");
+        context.setSelectedCaptainId(null);
+        assertTrue(context.isCaptainSelectionInitialized());
+        assertNull(context.getSelectedCaptainId());
+    }
 
     @Test
     @DisplayName("a page that is somewhere aboard declares itself as one")

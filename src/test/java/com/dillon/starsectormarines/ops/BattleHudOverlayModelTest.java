@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -25,6 +26,90 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleHudOverlayModelTest {
+
+    @Test
+    void publishedGroupsReplaceLaneRowsWithNamesTasksAndActualLivingStrength() throws Exception {
+        Reactor reactor = new Reactor();
+        BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
+                ignored -> { }, "Pause", "1x", "2x", "4x");
+        model.updateProjected(1f, List.of(), groupedCommander(List.of(
+                group("officer:a", "a", "Captain Vale", List.of(1, 2), "ASSAULT", true),
+                group("officer:b", "b", "Captain Reed", List.of(3), "HOLD", false))));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            UiDocument document = document(instance, BattleHudOverlay.COMMAND_ONLY_HEIGHT);
+            assertEquals("8 SQUADS  ·  2 GROUPS  ·  1 RESERVE",
+                    instance.requireElement("battle-conquest-command-force").text());
+            assertEquals(0, instance.requireElement("battle-conquest-lanes").childCount());
+            assertTrue(instance.requireElement("battle-conquest-lanes").hasClass("conquest-lanes-hidden"));
+            assertEquals(2, instance.requireElement("battle-conquest-groups").childCount());
+            assertEquals("Captain Vale", instance.requireElement("battle-conquest-group-0-name").text());
+            assertEquals("2 SQ · 11 LIVE", instance.requireElement("battle-conquest-group-0-force").text());
+            assertEquals("ASSAULT · RALLY", instance.requireElement("battle-conquest-group-0-intent").text());
+            assertEquals("OBJECTIVE AREA", instance.requireElement("battle-conquest-group-0-target").text());
+            assertEquals("HOLD", instance.requireElement("battle-conquest-group-1-intent").text());
+            model.updateProjected(1f, List.of(), conquestCommander());
+            instance.flush();
+            document.advance(0);
+            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
+            assertEquals(0, instance.requireElement("battle-conquest-groups").childCount());
+            assertTrue(instance.requireElement("battle-conquest-groups").hasClass("conquest-groups-hidden"));
+        }
+    }
+
+    @Test
+    void manyNcoGroupsAggregateExplicitlyWithinThreeRows() throws Exception {
+        Reactor reactor = new Reactor();
+        BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
+                ignored -> { }, "Pause", "1x", "2x", "4x");
+        model.updateProjected(1f, List.of(), groupedCommander(List.of(
+                group("nco:1", null, "First / acting NCO", List.of(4), "HOLD", false),
+                group("officer:a", "a", "Captain Vale", List.of(1), "ASSAULT", false),
+                group("nco:2", null, "Second / acting NCO", List.of(5), "ASSAULT", true),
+                group("officer:b", "b", "Captain Reed", List.of(2), "MIXED", false),
+                group("nco:3", null, "Third / acting NCO", List.of(6), "ASSAULT", false))));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            document(instance, BattleHudOverlay.COMMAND_ONLY_HEIGHT);
+            assertEquals(3, instance.requireElement("battle-conquest-groups").childCount());
+            assertEquals("Captain Vale", instance.requireElement("battle-conquest-group-0-name").text());
+            assertEquals("Captain Reed", instance.requireElement("battle-conquest-group-1-name").text());
+            assertEquals("3 ACTING NCO GROUPS", instance.requireElement("battle-conquest-group-summary-name").text());
+            assertEquals("3 SQ", instance.requireElement("battle-conquest-group-summary-force").text());
+            assertEquals("1 HOLD · 2 ASSAULT", instance.requireElement("battle-conquest-group-summary-intent").text());
+            assertEquals("1 RALLYING", instance.requireElement("battle-conquest-group-summary-target").text());
+            UiElement last = instance.requireElement("battle-conquest-group-summary");
+            assertTrue(last.box().borderBox().bottom()
+                    <= instance.requireElement("battle-conquest-command").box().borderBox().bottom());
+        }
+    }
+
+    private static ConquestFrontSnapshot.GroupState group(String id, String officer,
+            String label, List<Integer> squadIds, String task, boolean rallying) {
+        return new ConquestFrontSnapshot.GroupState(
+                new CommandGroupIdentity(id, officer, label, officer != null), squadIds,
+                task, AssignmentKind.CLEAR_ZONE, 100, -1, -1,
+                "GROUP_TASK_PRESERVED", rallying);
+    }
+
+    private static CommanderSnapshot<ConquestFrontSnapshot> groupedCommander(
+            List<ConquestFrontSnapshot.GroupState> groups) {
+        CommanderSnapshot<ConquestFrontSnapshot> base = conquestCommander();
+        ConquestFrontSnapshot front = base.detail();
+        ConquestFrontSnapshot grouped = new ConquestFrontSnapshot(front.tick(),
+                front.influenceTick(), front.perspective(), front.axis(), front.phase(),
+                front.remainingCompounds(), front.keepZoneId(), front.keepState(), front.tracks(),
+                List.of(new ConquestFrontSnapshot.SquadState(1, 6, 0, 0, 0, null, false),
+                        new ConquestFrontSnapshot.SquadState(2, 5, 0, 0, 0, null, false),
+                        new ConquestFrontSnapshot.SquadState(3, 4, 0, 0, 0, null, false)),
+                front.directives(), groups);
+        return new CommanderSnapshot<>(Faction.MARINE, "conquest-command", "FRONT_ADJUST",
+                90, 75, 8, 1, List.of(), List.of(), grouped);
+    }
 
     @Test
     void mlxProjectsSelectedSpeedAndCompressedCaptureState() throws Exception {

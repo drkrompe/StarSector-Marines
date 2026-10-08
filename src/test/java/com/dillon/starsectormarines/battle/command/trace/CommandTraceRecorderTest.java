@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -164,7 +165,11 @@ class CommandTraceRecorderTest {
                 TraversalAxis.SOUTH_TO_NORTH,
                 ConquestFrontSnapshot.Phase.LANE_ADVANCE, 2, 25,
                 CompoundService.CompoundState.DEFENDER_HELD,
-                List.of(), List.of(action));
+                List.of(), List.of(action)).withGroups(List.of(
+                        new ConquestFrontSnapshot.GroupState(
+                                new CommandGroupIdentity("officer:vale", "vale", "Vale", true),
+                                List.of(9), "ASSAULT", AssignmentKind.CLEAR_ZONE,
+                                17, -1, -1, "GROUP_TASK_PRESERVED", false)));
         CommanderSnapshot<ConquestFrontSnapshot> snapshot =
                 new CommanderSnapshot<>(Faction.MARINE, "conquest",
                         "LANE_ADVANCE", 75, 60, 2, 0,
@@ -177,6 +182,9 @@ class CommandTraceRecorderTest {
         String line = recorder.canonicalJsonLines().lines().toList().get(1);
         assertTrue(line.contains("\"reason\":\"TRACK_ADVANCE\""));
         assertTrue(line.contains("\"distantCaptureDeferred\":true"));
+        assertTrue(line.contains("\"groupId\":\"officer:vale\""));
+        assertTrue(line.contains("\"squadIds\":[9]"));
+        assertTrue(line.contains("\"reason\":\"GROUP_TASK_PRESERVED\""));
     }
 
     @Test

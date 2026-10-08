@@ -20,10 +20,6 @@ is what wins the held compound back; both were measured at full length and
 reverted, and the staging dormancy on the south turns out to be about where
 that fixture's lanes are.
 
-Earlier 2026-09-02 — a lane can be read as a chain of places taken in order;
-built, measured both ways, and left off by default because it costs a held
-compound. Earlier 2026-09-02 — the tracks now have places on them.
-
 Earlier 2026-09-01 — marine capture allocation is bounded to the home track and
 its neighbours, own track first, measured on a tree carrying the prosecution
 fall-through fix; the far-track walk it used to authorize is refused and

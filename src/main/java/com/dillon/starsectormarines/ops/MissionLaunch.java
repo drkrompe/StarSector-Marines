@@ -308,7 +308,7 @@ public final class MissionLaunch {
                         new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats);
             } else if (personnel != null) {
                 deployment = CampaignMarineDeployment.freezeSelection(personnel.roster(),
-                        ctx.getSelectedMarineSquadIds(), playerSeats);
+                        ctx.getSelectedMarineSquadIds(), playerSeats, ctx.getSelectedCaptain());
             }
 
             // Generic factories leave only the enemy wings that fit their shared

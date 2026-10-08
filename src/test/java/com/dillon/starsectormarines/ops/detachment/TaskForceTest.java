@@ -52,6 +52,51 @@ class TaskForceTest {
     }
 
     @Test
+    void homeSquadsRetainCapacityBeforeBorrowedSquads() {
+        MarineRoster roster = rosterWith(4);
+        MarineCaptain lead = captain(roster, "Vance", Rank.LIEUTENANT);
+        List<MarineSquad> line = roster.squads().stream().filter(q -> !q.reserve()).toList();
+        roster.assignCaptainToSquad(lead.id(), line.get(3).id());
+        TaskForce force = TaskForce.of(roster, lead, lineSquadIds(roster));
+        assertEquals(lead.id(), force.groupForSquad(line.get(3).id()).officerId());
+        assertFalse(force.groupForSquad(line.get(2).id()).namedOfficer());
+        assertEquals(3, force.elements().get(0).squads.size());
+    }
+
+    @Test
+    void deploymentFreezesOfficerIdentityByValueAndPreservesTroopStats() {
+        MarineRoster roster = rosterWith(2);
+        MarineCaptain lead = captain(roster, "Vance", Rank.LIEUTENANT);
+        Set<String> ids = lineSquadIds(roster);
+        CampaignMarineDeployment prior = CampaignMarineDeployment.freezeSelection(roster, ids, 24);
+        CampaignMarineDeployment deployed = CampaignMarineDeployment.freezeSelection(roster, ids, 24, lead);
+        assertEquals(lead.id(), deployed.seat(0).campaignSquad.commandGroupIdentity.officerId());
+        assertEquals(deployed.seat(0).campaignSquad.commandGroupIdentity,
+                deployed.seat(12).campaignSquad.commandGroupIdentity);
+        lead.setName("Changed later");
+        assertEquals("Vance", deployed.seat(0).campaignSquad.commandGroupIdentity.label());
+        assertEquals(prior.seat(0).soldierProfile, deployed.seat(0).soldierProfile);
+        assertEquals(prior.seat(0).armorCapacity, deployed.seat(0).armorCapacity);
+        assertEquals(deployed.seat(0).campaignSquad.commandGroupIdentity,
+                CampaignMarineDeployment.fromCommitments(deployed.commitments())
+                        .seat(0).campaignSquad.commandGroupIdentity);
+    }
+
+    @Test
+    void noOfficersProduceDistinctActingNcoGroups() {
+        MarineRoster roster = rosterWith(2);
+        TaskForce force = TaskForce.of(roster, null, lineSquadIds(roster));
+        assertTrue(force.isValid());
+        assertEquals(0, force.officerCount());
+        assertEquals(2, force.elements().size());
+        assertFalse(force.elements().get(0).identity().namedOfficer());
+        assertFalse(force.elements().get(0).identity().groupId().equals(
+                force.elements().get(1).identity().groupId()));
+        assertFalse(CaptainDeploymentPolicy.isValidNamedCommand(roster, null, lineSquadIds(roster)));
+        assertEquals(2, CaptainDeploymentPolicy.defaultSquadIds(roster, null).size());
+    }
+
+    @Test
     void unassignedSquadsFallToTheCommanderExactlyAsBefore() {
         // The compatibility case: nothing assigned, so the operation is one
         // officer's command and the old cap still binds.
@@ -74,8 +119,10 @@ class TaskForceTest {
 
         TaskForce force = TaskForce.of(roster, lead, lineSquadIds(roster));
 
-        assertFalse(force.isValid(), "five unassigned squads is past a Lieutenant's three");
-        assertFalse(CaptainDeploymentPolicy.isValidCommand(roster, lead, lineSquadIds(roster)));
+        assertTrue(force.isValid());
+        assertEquals(2, force.unledSquads());
+        assertEquals(3, force.elements().get(0).squads.size());
+        assertTrue(CaptainDeploymentPolicy.isValidCommand(roster, lead, lineSquadIds(roster)));
     }
 
     @Test
@@ -164,7 +211,7 @@ class TaskForceTest {
         Set<String> selected = new LinkedHashSet<>();
         for (int i = 0; i < 3; i++) selected.add(line.get(i).id());
 
-        assertFalse(CaptainDeploymentPolicy.canAdd(roster, lead, selected, line.get(3).id()),
+        assertTrue(CaptainDeploymentPolicy.canAdd(roster, lead, selected, line.get(3).id()),
                 "a fourth unassigned squad is past the Lieutenant's cap");
         assertTrue(CaptainDeploymentPolicy.canAdd(roster, lead, selected, line.get(4).id()),
                 "but the Captain's own squad rides on the Captain's capacity");

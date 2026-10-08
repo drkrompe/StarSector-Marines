@@ -145,7 +145,8 @@ public class CommandFrame {
                     contact.posture().name(),
                     contact.doctrine().name(),
                     contact.contactInitiative().name(), coolingDownMembers,
-                    memberZoneIds, memberCellXs, memberCellYs));
+                    memberZoneIds, memberCellXs, memberCellYs,
+                    squad.commandGroupIdentity));
             if (detail) publicationNanos += System.nanoTime() - rowStageStarted;
         }
         long sortStarted = detail ? System.nanoTime() : 0L;

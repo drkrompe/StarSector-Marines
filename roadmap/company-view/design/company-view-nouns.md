@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-06 — Fleet Armory stages bulk home-officer assignments through
-one capacity-safe roster transaction and depicts current billets and officer capacity.
+Updated: 2026-10-08 — deployment freezes officer command groups and independent
+acting-NCO leadership; rank limits coordination rather than deployment.
 
 ## Purpose
 
@@ -30,7 +30,7 @@ company view composes their stable outputs.
 - **Company** — the player's aggregate force. There is no separate persisted
   company entity; `MarineRoster` and the campaign authorities supply its state.
 - **Officer command** — the line squads assigned to one active
-  `MarineCaptain`. Officer capacity is denominated in squads.
+  `MarineCaptain`. Officer capacity is denominated in coordinated squads.
 - **Squad** — the persistent, player-facing formation: up to twelve marines in
   three fire teams. Its identity, name, roster order, officer assignment,
   stationing binding, and NCO billet live in the campaign roster.
@@ -61,8 +61,9 @@ company view composes their stable outputs.
   formation context.
 - **Reserve pool** — a roster holding area, not a deployable or commanded
   formation. It never inflates command, formation, or field-strength counts.
-- **Task force** — the officer commands represented by the squads selected for
-  one operation. It is derived for deployment, not persisted as another roster.
+- **Task force** — the named-officer groups and independent acting-NCO squads
+  selected for one operation. It is derived for deployment, not persisted as
+  another roster.
 - **Battle squad** — a battle-lifetime tactical realization of a campaign
   squad at one landing zone. It is not a campaign authority.
 - **Whereabouts** — a derived statement of a squad's current role: available,
@@ -121,7 +122,7 @@ from the selected frame used while organizing squads.
 The company squad gallery also owns an explicit **Organize squads** mode. In
 that mode, formation cards select squads for one home-officer assignment rather
 than opening equipment inspection. The destination is one active officer or
-**Unassigned**, with its operation-commander fallback stated. The draft shows
+**Unassigned**, with its operation-commander or acting-NCO fallback stated. The draft shows
 selected squads and the destination command's resulting count against rank
 capacity before the player applies it. Stationed formations remain visible and
 locked. Canceling or leaving the gallery discards the draft; neither selection
@@ -133,7 +134,7 @@ squad browsing.
 Officer destinations use the captain's persisted portrait, rank, and name. Their
 command display distinguishes current squads from incoming assignments and shows
 overflow against the rank cap before Apply. Unassigned carries an explicit
-operation-commander fallback rather than a fictional officer portrait or capacity.
+operation-commander or acting-NCO fallback rather than a fictional officer portrait or capacity.
 
 Fleet Armory is the only Armory route. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,
@@ -148,8 +149,9 @@ Each occupied billet carries compact primary/special shorthand and separate visu
 firepower and protection measures. Hover inspection names the marine, availability,
 full primary, armor, special equipment, integral suit system, and issued profile.
 The officer shown above those billets is the actual leader resolved by deployment
-policy: the squad's fit home captain, or the operation commander when command is
-inherited. The portrait is that `MarineCaptain`'s persisted Starsector sprite path,
+policy: the squad's fit home captain within command capacity, the operation
+commander within remaining capacity, or its own acting NCO. A named officer's
+portrait is that `MarineCaptain`'s persisted Starsector sprite path,
 not a UI-owned likeness or a name-based substitute.
 Those two measures reuse `LoadoutEffectiveness` against the catalog ceiling; they do
 not collapse reach, specials, systems, morale, terrain, or orders into a fictional
@@ -165,9 +167,22 @@ remain squad-granular.
 
 Officer command and enlisted leadership are separate ladders. Lieutenant,
 Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 10,
-16, and 24 squads; any marine-count form is explanatory display only. Enlisted
-rank follows squad and team billets rather than accumulating as an independent
+16, and 24 squads; any marine-count form is explanatory display only. These
+limits bound named-officer coordination, not whether the force may deploy.
+A squad outside available officer capacity acts independently under its own
+NCO and retains ordinary mission execution. Named officers coordinate their
+stable group's tasks and advance in Conquest; they grant no passive troop-stat
+bonus. Other mission adapters retain their existing command allocation.
+Enlisted rank follows squad and team billets rather than accumulating as an independent
 promotion track.
+
+Deployment freezes each selected squad's resolved command-group identity with
+its personnel manifest. Later lifts retain it rather than regrouping by landing
+area. An officer's group is not a western, central or eastern route assignment;
+physical lanes and current tasks belong to mission command. Briefing and battle
+views show actual leadership and published tasks, without inventing fixed lane
+ownership. `mission-command-nouns.md` owns the group's battle authority and
+`conquest-nouns.md` owns its first coordination policy.
 
 Each non-empty line squad has one roster-derived NCO. Other manned fire teams
 have their own enlisted lead. Leadership is recalculated after membership,
@@ -873,8 +888,8 @@ production vehicle deployment seam exists.
   seam explicitly adopts another representation.
 - A weapon doctrine may issue special equipment, but AI use follows faction-neutral
   battle policy rather than a hidden instruction encoded by its presentation card.
-- Officer capacity is checked per command; task forces do not flatten back into
-  one officer's cap.
+- Officer capacity is checked per named command; remaining squads retain
+  independent acting-NCO leadership rather than blocking deployment.
 - Reserve personnel do not count as formations or field-ready strength.
 - Campaign views read live state; battle and result views read frozen mission
   state.

@@ -23,11 +23,13 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
+import java.util.LinkedHashSet;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /** MLX-authored pre-battle whole-squad assignment workspace. */
@@ -355,16 +357,21 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
     private CommanderRow commanderRow(MarineSquad squad, boolean selected,
                                        boolean canToggle) {
         MarineCaptain home = roster.captainForSquad(squad.id());
-        MarineCaptain leader = CaptainDeploymentPolicy.leaderFor(
-                roster, context.getSelectedCaptain(), squad.id());
+        Set<String> previewSelection = new LinkedHashSet<>(context.getSelectedMarineSquadIds());
+        previewSelection.add(squad.id());
+        TaskForce preview = TaskForce.of(roster, context.getSelectedCaptain(), previewSelection);
+        MarineCaptain leader = null;
+        for (TaskForce.Element element : preview.elements()) {
+            if (element.squads.contains(squad)) { leader = element.officer; break; }
+        }
         boolean inherited = home == null || leader == null || !home.id().equals(leader.id());
         String commandKind = inherited ? "OPERATION COMMAND" : "HOME COMMAND";
         String status = !canToggle ? "COMMAND LIMIT"
                 : selected ? "SELECTED" : "AVAILABLE";
         if (leader == null) {
-            return new CommanderRow("", "No active commander",
-                    commandKind + " · " + status,
-                    "label heading squad-card-commander-status tone-danger");
+            return new CommanderRow("", "Acting NCO",
+                    "SQUAD COMMAND · " + status,
+                    "label heading squad-card-commander-status tone-good");
         }
         return new CommanderRow(leader.portraitSprite(),
                 leader.rank().displayName() + " " + leader.name(),

@@ -4,9 +4,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-09-03 — the derived lift is floored at the ferry it replaces, so
-a force small enough for the ferry plays the same battle either way; an open
-compound is no longer somewhere a squad can be sent from across the map.
+Updated: 2026-10-08 — officer groups coordinate authorized assault work and
+bounded advance while explicit hold obligations remain separate.
 
 Earlier 2026-09-02 — the marines descend from orbit onto their berths rather
 than crossing the map edge, so the sortie cadence no longer moves with the
@@ -14,7 +13,7 @@ standoff; sizing the lift from the committed seats is built, measured and off,
 because more lift landed sooner takes fewer compounds.
 
 Earlier 2026-09-02 — a lane's compounds stand in a recorded order, and the
-reading that takes them in it exists behind a switch that is off by default.
+reading that takes them in it is enabled by default on maps with recorded lanes.
 
 Earlier 2026-09-02 — the ground the marines came ashore on is a place with a
 kind, and a compound they already hold; a Conquest map states lanes, and its
@@ -277,7 +276,7 @@ lane finishes first go for the fortress. Compounds off every lane — a
 settlement's supply hub, the beachhead — are territory in the full sense of this
 section and stand on no chain. Nothing in the capture rule or the victory law
 distinguishes a lane compound from any other, and the ordering is not a
-territorial law: it is a commander reading, it is off by default today, and
+territorial law: it is a commander reading, it is enabled by default on maps with recorded lanes, and
 `conquest-command.md` owns both it and the measurement that keeps it off.
 
 Capture is deliberately asymmetric. Marines must sustain uncontested control
@@ -367,6 +366,32 @@ contact does not leave a squad indefinitely waiting outside the objective.
 Once inside, hold posts are chosen only from that capture room, even when the
 compound footprint contains several garrison rooms. Local engagement doctrine
 still governs threats; commitment changes entry, not target knowledge.
+
+A deployed **command group** retains its named officer or acting-NCO identity
+across all lifts. Officer membership is organization; a lane is a physical
+route through authored places, and a track is the command geometry used to
+coordinate the front. None is a substitute for the others. Named-officer groups
+share a preferred track and preserve useful objective work while the faction
+commander continues to allocate every squad through one global capture budget.
+Supporting a group's capture means ordinary clearing support, not extra
+capture-quota assignments. An independently led NCO squad keeps the existing
+mission allocation and local combat behavior.
+
+A named group may briefly pause quiet leading squads when they separate from
+the nearby body along its authorized advance. Distant late arrivals do not pin
+the front, a pause has a finite release, and contact, incoming fire, broken
+morale or form-up suspension take precedence. This does not pull marines toward
+an officer or replace the squad's own cohesion and survival laws. Cell staging
+remains per squad rather than concentrating the group on one marker.
+
+Explicit reachable hold work is a standing obligation, preserved separately
+from mobile assault and support. Capturing ground does not turn such a hold
+into spare assault strength. Born garrisons and delivery-owned forces retain
+their own authority. This permits hold and assault obligations to coexist;
+new mixed-mission authoring and automatic officer garrison allocation remain
+extensions. The published command picture names each group's leadership,
+member squads, task, target and reason rather than assigning officer cards a
+fixed compass lane.
 
 The broader front is organized into lateral **tracks**. A squad keeps a sticky
 preferred track so the assault remains readable, but the track is a coordination

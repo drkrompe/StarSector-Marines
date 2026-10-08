@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
@@ -429,6 +430,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
         BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);
         return List.of(
+                new SnapshotArtifact("battle-hud-command-groups-wide.png",
+                        renderBattleHudCommandOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("mission-catalog-debug-wide.png",
                         renderMissionSelect(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("mission-briefing-survey-loading-wide.png",
@@ -437,6 +441,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-briefing-campaign-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 surveyProps(BriefingViewModel.campaignPreviewProps(true), conquestSurvey), 1f, false)),
+                new SnapshotArtifact("mission-briefing-acting-nco-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                surveyProps(BriefingViewModel.actingNcoPreviewProps(), sabotageSurvey), 1f, false)),
                 new SnapshotArtifact("mission-briefing-campaign-understrength-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 surveyProps(understrengthBriefingProps(), understrengthSurvey), 1f, false)),
@@ -737,6 +744,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBattleHudCommandOverlay(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderBattleHudCommandOverlay(context, renderer, width, height, false);
+    }
+
+    private static BufferedImage renderBattleHudCommandOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean groups) throws Exception {
         BufferedImage image = renderBattleHudTaskForce(width, height);
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
@@ -756,7 +769,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         CompoundService.CompoundState.DEFENDER_HELD, 0f),
                 capture(TacticalNode.Kind.ARMORY,
                         CompoundService.CompoundState.MARINE_HELD, 0f)),
-                previewConquestCommander());
+                previewConquestCommander(groups));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
         loader.reload();
@@ -782,7 +795,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return new BattleHudOverlayModel.CaptureObjective(kind, state, progress);
     }
 
-    private static CommanderSnapshot<ConquestFrontSnapshot> previewConquestCommander() {
+    private static CommanderSnapshot<ConquestFrontSnapshot> previewConquestCommander(boolean groups) {
         List<ConquestFrontSnapshot.TrackState> tracks = List.of(
                 conquestTrack(0, 4, 43, 2, 101),
                 conquestTrack(1, 3, 32, 0, 102),
@@ -799,11 +812,29 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 conquestDirective(9, 2, AssignmentKind.SUPPORT, 103),
                 conquestDirective(10, 2, AssignmentKind.ATTACK_MOVE, -1),
                 conquestDirective(11, 2, AssignmentKind.ATTACK_MOVE, -1));
+        List<ConquestFrontSnapshot.SquadState> squadStates = new ArrayList<>();
+        if (groups) for (int id = 1; id <= 11; id++) {
+            squadStates.add(new ConquestFrontSnapshot.SquadState(id, 12, 40, 80,
+                    0, null, false));
+        }
         ConquestFrontSnapshot front = new ConquestFrontSnapshot(
                 420, 390, Faction.MARINE, TraversalAxis.SOUTH_TO_NORTH,
                 ConquestFrontSnapshot.Phase.FRONT_ADJUST, 4, 140,
                 CompoundService.CompoundState.DEFENDER_HELD,
-                tracks, List.of(), directives);
+                tracks, squadStates, directives);
+        if (groups) front = front.withGroups(List.of(
+                new ConquestFrontSnapshot.GroupState(
+                        new CommandGroupIdentity("officer:vale", "vale", "Captain Vale", true),
+                        List.of(1, 2, 3, 4, 5, 6), "ASSAULT", AssignmentKind.SECURE_COMPOUND,
+                        101, -1, -1, "GROUP_TASK_PRESERVED", false),
+                new ConquestFrontSnapshot.GroupState(
+                        new CommandGroupIdentity("officer:hale", "hale", "Major Hale", true),
+                        List.of(7, 8, 9, 10), "MIXED", AssignmentKind.ADVANCE_TRACK,
+                        -1, 40, 80, "GROUP_BOUNDED_RALLY", true),
+                new ConquestFrontSnapshot.GroupState(
+                        CommandGroupIdentity.actingNco("11", "Squad 11"),
+                        List.of(11), "HOLD", AssignmentKind.DEFEND_AREA,
+                        -1, 40, 80, "ACTING_NCO_AUTONOMY", false)));
         return new CommanderSnapshot<>(Faction.MARINE, "conquest-command",
                 "FRONT_ADJUST", 420, 390, 11, 0,
                 List.of("remaining compounds=4"), List.of(), front);

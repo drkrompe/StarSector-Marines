@@ -1,17 +1,29 @@
-<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,commandPanelClasses,commandPhase,commandForce,conquestLanes">
+<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,commandPanelClasses,commandPhase,commandForce,commandTitle,conquestLanes,conquestLaneClasses,conquestGroupClasses,conquestGroups">
   <div id="battle-hud-overlay" class="battle-hud-overlay" style="background-color: transparent">
     <div id="battle-conquest-command" class="{commandPanelClasses}">
       <div id="battle-conquest-command-header" class="conquest-command-header">
-        <div id="battle-conquest-command-title" class="label heading conquest-command-title">COMMANDER</div>
+        <div id="battle-conquest-command-title" class="label heading conquest-command-title">{commandTitle}</div>
         <div id="battle-conquest-command-phase" class="label heading conquest-command-phase">{commandPhase}</div>
       </div>
       <div id="battle-conquest-command-force" class="label conquest-command-force">{commandForce}</div>
-      <div id="battle-conquest-lanes" class="conquest-lanes">
+      <div id="battle-conquest-lanes" class="{conquestLaneClasses}">
         <div each="lane in conquestLanes" key="{lane.id}" id="{lane.id}" class="{lane.classes}">
           <div id="{lane.nameId}" class="label heading conquest-lane-name">{lane.label}</div>
           <div id="{lane.forceId}" class="label conquest-lane-force">{lane.force}</div>
           <div id="{lane.intentId}" class="label heading conquest-lane-intent">{lane.intent}</div>
           <div id="{lane.statusId}" class="label conquest-lane-status">{lane.status}</div>
+        </div>
+      </div>
+      <div id="battle-conquest-groups" class="{conquestGroupClasses}">
+        <div each="group in conquestGroups" key="{group.id}" id="{group.id}" class="{group.classes}">
+          <div id="{group.identityLineId}" class="conquest-group-line">
+            <div id="{group.nameId}" class="label heading conquest-group-name">{group.label}</div>
+            <div id="{group.forceId}" class="label conquest-group-force">{group.force}</div>
+          </div>
+          <div id="{group.taskLineId}" class="conquest-group-line">
+            <div id="{group.intentId}" class="label conquest-group-intent">{group.intent}</div>
+            <div id="{group.targetId}" class="label conquest-group-target">{group.target}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -196,7 +208,7 @@
   }
 
   .conquest-command-title {
-    width: 96px;
+    width: 152px;
     color: #8b9aaf;
   }
 
@@ -266,4 +278,35 @@
   .conquest-lane-objective { border-color: #806b35; }
   .conquest-lane-objective .conquest-lane-status { color: #ffd464; }
   .conquest-lane-empty { opacity: 0.66; }
+
+  .conquest-groups {
+    width: 100%;
+    height: 104px;
+    flex-direction: column;
+    gap: 3px;
+    overflow: hidden;
+  }
+  .conquest-groups-hidden, .conquest-lanes-hidden {
+    height: 0px;
+    gap: 0px;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .conquest-group {
+    width: 100%;
+    height: 28px;
+    flex-direction: column;
+    padding: 1px 4px;
+    border-width: 1px;
+    border-color: #31485f;
+    background-color: #111b28;
+  }
+  .conquest-group-line { width: 100%; height: 12px; flex-direction: row; }
+  .conquest-group-name { width: 0px; flex-grow: 1; height: 12px; color: #6ed7ff; }
+  .conquest-group-force { width: 112px; height: 12px; text-align: right; color: #c5d1df; }
+  .conquest-group-intent { width: 0px; flex-grow: 1; height: 12px; color: #ffd464; }
+  .conquest-group-target { width: 112px; height: 12px; text-align: right; color: #8b9aaf; }
+  .conquest-group-rally { border-color: #806b35; }
+  .conquest-group-rally .conquest-group-target { color: #ffd464; }
+  .conquest-group-summary .conquest-group-name { color: #a8b6c6; }
 </style>

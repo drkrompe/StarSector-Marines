@@ -7,6 +7,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BriefingComparisonTest {
     @Test
+    void previewsShowValidCommandGroupsWithoutInventedLaneAssignments() {
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(true);
+        List<?> cards = (List<?>) props.get("taskForceRows");
+        assertEquals(4, cards.size());
+        for (Object value : cards) {
+            BriefingViewModel.ForceCard card = (BriefingViewModel.ForceCard) value;
+            assertTrue(card.name().startsWith("Colonel"));
+            assertFalse(card.detail().contains("lane"));
+        }
+        BriefingViewModel.ForceCard nco = (BriefingViewModel.ForceCard)
+                ((List<?>) BriefingViewModel.actingNcoPreviewProps().get("taskForceRows")).get(0);
+        assertFalse(nco.namedOfficer());
+    }
+
+    @Test
     void scaleAndRiskRemainIndependent() {
         Map<String, Object> props = BriefingViewModel.baseProps();
         BriefingViewModel.putForceComparison(props, OperationTier.FULL_STRENGTH, RiskLevel.LOW, 12, 24);

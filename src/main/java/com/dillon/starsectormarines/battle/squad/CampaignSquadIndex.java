@@ -69,6 +69,7 @@ public final class CampaignSquadIndex {
         if (squad != null) {
             squad.expectedSize = tag.strength;
             squad.campaignSquadId = tag.squadId;
+            squad.commandGroupIdentity = tag.commandGroupIdentity;
             squad.campaignLabel = landing > 1
                     ? tag.label + " (" + (char) ('A' + landing - 1) + ")"
                     : tag.label;

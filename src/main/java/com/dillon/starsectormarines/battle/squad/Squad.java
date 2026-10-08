@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
+
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.RetainedFlankWaypoint;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -300,6 +302,7 @@ public final class Squad {
      * {@link CampaignSquadIndex} on the squad's first landing and never
      * cleared — a wiped squad keeps its name.
      */
+    public CommandGroupIdentity commandGroupIdentity;
     public String campaignSquadId;
 
     /**
