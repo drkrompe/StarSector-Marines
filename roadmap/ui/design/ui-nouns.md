@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — mission command rails and mechanical selection indicators.
+Updated: 2026-10-08 — compact briefing controls, contextual hints, and craft imagery.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -108,14 +108,16 @@ them.
   ceilings, and the item's field note. It is a value with no reference to the
   item and no behaviour, written by one copy factory from the item's owning
   catalog — a weapon at a grade, an armour pattern, a special item, an integral
-  system, a mech chassis or component, or an equipment template card, which
+  system, a command power, a mech chassis or component, or an equipment template card, which
   resolves to the equipment it names. No screen assembles one by hand from
   catalog fields, and no item's prose lives in markup; a mech's note is data
   beside the weapon and armour catalogs, not a field on its enum.
 - A **subject** is any catalog item a spec sheet can be written for. A marine,
   a squad, or a doctrine template is a dossier rather than a subject: it is
   described by its own screen, and only the catalog items it names carry
-  sheets.
+  sheets. Compact selection controls may reuse the sheet presentation for a
+  contextual hint: the row's existing detail and selection explanation, rather
+  than a substitute dossier or a second catalog authority.
 - The **spec-sheet layer** is one floating element per document, above every
   screen element, placed beside the hovered subject on the side with room and
   clamped to the document, sized to its measured text rather than an estimate,
@@ -266,6 +268,9 @@ Typography roles remain ordinary semantic classes and inherited CSS properties. 
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs
 to authored copy: all caps is a heading treatment, not a global font policy. Horizontal placement is
 `text-align`; button widgets center their measured line box vertically inside the content box.
+For composed controls, `align-items` places row or column children on the cross
+axis with `start`, `center`, `end`, or `stretch`. Centered legends use their
+intrinsic line height, so padding does not become a second alignment authority.
 
 ## Console materials
 
@@ -303,13 +308,24 @@ face. Selectable briefing options show a latched surface and an illuminated
 rocker whose position also distinguishes selection without relying only on
 color. Tier and drawer indicators follow that same illuminated-state vocabulary.
 Disabled controls remain subdued, and keyboard focus retains a distinct outline.
+The command deck keeps names, selection, and slot cost visible on compact keys.
+Activation costs, cooldowns, use limits, and explanatory copy belong to a shared
+popup; source and carrier rows use that same layer for their secondary details.
+These briefing hints open on hover or visible keyboard focus. They remain
+pointer-transparent and bounded to the document, and disabled power hints explain
+why a selection is unavailable. Power copy reads the existing power metadata;
+compact presentation never merges deck capacity with activation resources.
 Its development-only drawer is an instrument rack with a compact
 toggle, a tier selector, labelled adjustment banks, and a separate scrolling air
 support list. The adjustment list scrolls so a longer mission fixture cannot
 hide its later controls. Empty optional step buttons collapse instead of posing
 as controls. These surfaces project the existing mission and debug commands;
 their materials and layout do not alter mission availability or development
-gating.
+gating. Aircraft rows identify each craft with both its name and the existing
+base-game sprite referenced by its airframe profile. No duplicate artwork or
+presentation-only aircraft catalog is introduced.
+Mission presentation is authored and visually reviewed at 1920 x 1080 with
+100% UI scale. The dedicated mission preview suite uses only that presentation.
 
 ## Responsive grids
 

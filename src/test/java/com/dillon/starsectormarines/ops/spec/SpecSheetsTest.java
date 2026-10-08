@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.ReconPing;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -33,6 +35,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * number somebody typed twice.
  */
 class SpecSheetsTest {
+
+    @Test
+    void powerHintSeparatesDeckCapacityFromActivationAndUseLimits() {
+        SpecSheet barrage = SpecSheets.commandPower(new OrbitalBarrage());
+        assertTrue(barrage.stats().contains(SpecSheet.Stat.of("Deck capacity", "3 slots")));
+        assertTrue(barrage.stats().contains(SpecSheet.Stat.of("Command points / use", "4.0")));
+        assertTrue(barrage.stats().contains(SpecSheet.Stat.of("Supplies / use", "5")));
+        assertTrue(barrage.stats().contains(SpecSheet.Stat.of("Uses per battle", "1")));
+        assertTrue(barrage.notes().get(0).contains("friendly"));
+        assertTrue(SpecSheets.commandPower(new ReconPing()).stats()
+                .contains(SpecSheet.Stat.of("Uses per battle", "Unlimited")));
+    }
 
     private static final SoldierProfile SHOOTER = SoldierProfile.REGULAR;
 

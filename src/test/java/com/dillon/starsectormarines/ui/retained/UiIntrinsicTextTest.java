@@ -16,6 +16,63 @@ class UiIntrinsicTextTest {
     private static final FixedFont FONT = new FixedFont(10f, 20);
 
     @Test
+    void centeredRowUsesIntrinsicLegendHeightWithoutPaddingOffsets() {
+        UiElement legend = new UiElement("legend").text("DEPLOY").grow(1f)
+                .style("width: 0px; text-align: center");
+        UiElement root = new UiElement("root")
+                .style("flex-direction: row; align-items: center; padding: 4px; border-width: 2px")
+                .child(new UiElement("lamp").style("width: 14px; height: 8px"))
+                .child(legend)
+                .child(new UiElement("grip").style("width: 14px; height: 24px"));
+        UiDocument document = document(root);
+        document.layout(200f, 40f);
+        UiTextMeasurer text = new UiTextMeasurer(document.styles());
+        Rect line = text.lineBox(legend, text.measure(legend));
+        assertEquals(100f, line.x() + line.width() / 2f, EPSILON);
+        assertEquals(20f, line.y() + line.height() / 2f, EPSILON);
+        document.layout(300f, 60f);
+        line = text.lineBox(legend, text.measure(legend));
+        assertEquals(150f, line.x() + line.width() / 2f, EPSILON);
+        assertEquals(30f, line.y() + line.height() / 2f, EPSILON);
+    }
+
+    @Test
+    void columnAlignmentUsesItsHorizontalCrossAxisAndCanChange() {
+        UiElement child = new UiElement("child").style("width: 30px; height: 20px");
+        UiElement root = new UiElement("root").style("flex-direction: column; align-items: center")
+                .child(child);
+        UiDocument document = document(root);
+        document.layout(100f, 100f);
+        assertEquals(35f, child.box().borderBox().x(), EPSILON);
+        root.style("flex-direction: column; align-items: end");
+        document.advance(0f);
+        assertEquals(70f, child.box().borderBox().x(), EPSILON);
+    }
+
+    @Test
+    void rowMeasuresWrappedCrossHeightAtTheAllocatedChildWidth() {
+        UiElement wrapped = new UiElement("wrapped").text("ONE TWO")
+                .style("width: 35px; white-space: normal");
+        UiDocument document = document(new UiElement("root")
+                .style("flex-direction: row; align-items: center").child(wrapped));
+        document.layout(200f, 60f);
+        assertEquals(40f, wrapped.box().borderBox().height(), EPSILON);
+        assertEquals(10f, wrapped.box().borderBox().y(), EPSILON);
+    }
+
+    @Test
+    void wrappedRowKeepsPercentagePaddingRelativeToTheContainingBlock() {
+        UiElement wrapped = new UiElement("wrapped").text("ONE TWO")
+                .style("width: 35px; padding: 10%; white-space: normal");
+        UiDocument document = document(new UiElement("root")
+                .style("flex-direction: row; align-items: center").child(wrapped));
+        document.layout(200f, 100f);
+        assertEquals(75f, wrapped.box().borderBox().width(), EPSILON);
+        assertEquals(80f, wrapped.box().borderBox().height(), EPSILON);
+        assertEquals(10f, wrapped.box().borderBox().y(), EPSILON);
+    }
+
+    @Test
     void autoRowTextPaysItsContentWidthAndDeclaredWidthWins() {
         UiElement automatic = button("automatic", "HIGH CONTRAST");
         UiElement declared = button("declared", "HIGH CONTRAST")

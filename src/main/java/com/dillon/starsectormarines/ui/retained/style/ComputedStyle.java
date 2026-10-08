@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ui.retained.Insets;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
@@ -75,6 +76,11 @@ public final class ComputedStyle {
 
     public UiPosition position() {
         return (UiPosition) value(StyleProperty.POSITION);
+    }
+
+    /** Null preserves the child's Java-authored alignment when CSS is silent. */
+    public UiAlign alignItems() {
+        return (UiAlign) value(StyleProperty.ALIGN_ITEMS);
     }
 
     public PointerEvents pointerEvents() {

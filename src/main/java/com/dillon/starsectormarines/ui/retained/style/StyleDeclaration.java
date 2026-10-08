@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
@@ -76,6 +77,7 @@ public final class StyleDeclaration {
         return switch (property) {
             case DISPLAY -> value instanceof UiDisplay;
             case FLEX_DIRECTION -> value instanceof UiLayout;
+            case ALIGN_ITEMS -> value instanceof UiAlign;
             case POSITION -> value instanceof UiPosition;
             case POINTER_EVENTS -> value instanceof PointerEvents;
             case LEFT, TOP,

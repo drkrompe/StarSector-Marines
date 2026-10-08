@@ -196,12 +196,17 @@ final class MarineOpsThemes {
                     background-color: #edc273; border-color: #edc273;
                 }
 
+                .mission-briefing-root .spec-sheet {
+                    background-color: #141e19; border-color: #b9a16b; color: #e4e7df;
+                }
+                .mission-briefing-root .spec-sheet-title { color: #edc273; }
+                .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #a0ada8; }
                 .console-key-legend {
-                    width: 0px; flex-grow: 1; height: 30px; padding: 6px 0px;
+                    width: 0px; flex-grow: 1; height: auto; padding: 0px;
                     font-family: heading; text-align: center; overflow: hidden; pointer-events: none;
                 }
-                .console-key-grip { width: 14px; height: 30px; pointer-events: none; }
-                .console-command-signal { width: 5px; height: 28px; border-width: 1px; pointer-events: none; }
+                .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
+                .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
 
                 """);
     }
@@ -272,11 +277,11 @@ final class MarineOpsThemes {
                 }
 
                 .console-key-legend {
-                    width: 0px; flex-grow: 1; height: 30px; padding: 6px 0px;
+                    width: 0px; flex-grow: 1; height: auto; padding: 0px;
                     font-family: heading; text-align: center; overflow: hidden; pointer-events: none;
                 }
-                .console-key-grip { width: 14px; height: 30px; pointer-events: none; }
-                .console-command-signal { width: 5px; height: 28px; border-width: 1px; pointer-events: none; }
+                .console-key-grip { width: 14px; height: 24px; pointer-events: none; }
+                .console-command-signal { width: 12px; height: 8px; border-width: 1px; pointer-events: none; }
 
                 """);
     }

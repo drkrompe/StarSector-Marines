@@ -46,6 +46,8 @@ import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.SpriteThumbWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -150,6 +152,7 @@ public class BriefingScreen implements Screen {
     private BriefingLayout layout;
     private UiViewport viewport;
     private UiDocument document;
+    private SpecSheetBinder hints;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
 
@@ -274,14 +277,17 @@ public class BriefingScreen implements Screen {
     }
 
     private void installDocument() {
+        Map<String, Object> props = retainedProps();
+        SpecSheetBinder candidateHints;
         MarkupInstance candidate = markup.reloadAndBuild(
-                reactor, ROOT_COMPONENT, retainedProps());
+                reactor, ROOT_COMPONENT, props);
         UiDocument built;
         try {
             requireRetainedElements(candidate);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
+            candidateHints = BriefingHints.install(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
@@ -290,8 +296,10 @@ public class BriefingScreen implements Screen {
         }
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        if (hints != null) hints.clear();
         document = built;
         markupInstance = candidate;
+        hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
         if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
@@ -306,7 +314,7 @@ public class BriefingScreen implements Screen {
             props.put("deployDisabled", true);
             props.put("deployAction", (Runnable) () -> { });
             props.put("backAction", (Runnable) this::onBack);
-            return props;
+            return BriefingViewModel.withEmptyStyles(props);
         }
 
         props.put("missionKicker", mission.type.name() + "  ·  "
@@ -366,7 +374,7 @@ public class BriefingScreen implements Screen {
         props.put("carrierRows", retainedCarrierRows());
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
-        return props;
+        return BriefingViewModel.withEmptyStyles(props);
     }
 
     static Map<String, Object> previewProps(boolean conquest) {
@@ -651,7 +659,7 @@ public class BriefingScreen implements Screen {
             boolean attack = debugAirSelections.contains(attackKey);
             boolean defend = debugAirSelections.contains(defendKey);
             rows.add(new BriefingViewModel.AirRow("debug-air-" + profile.name().toLowerCase(),
-                    profileDisplayName(profile.name()), "ATK",
+                    profileDisplayName(profile.name()), profile.spritePath, "ATK",
                     "DEF", attack ? "selected" : "",
                     defend ? "selected" : "", () -> toggleDebugAir(attackKey),
                     () -> toggleDebugAir(defendKey)));
@@ -705,13 +713,11 @@ public class BriefingScreen implements Screen {
             boolean selected = selectedPowerIds.contains(power.id);
             boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
             int weight = CommandDeck.weight(power);
-            String detail = weight + (weight == 1 ? " slot" : " slots") + "  ·  "
-                    + Math.round(power.cpCost) + " CP"
-                    + (power.supplyCost > 0 ? "  ·  " + power.supplyCost + " supplies" : "");
+            String detail = weight + (weight == 1 ? " slot" : " slots");
             rows.add(new BriefingViewModel.ChoiceRow("briefing-power-" + i,
                     "choice-row" + (selected ? " selected" : ""),
                     power.displayName, detail, !selected && !canAdd,
-                    () -> togglePower(power.id), null));
+                    () -> togglePower(power.id), null, SpecSheets.commandPower(power)));
         }
         return List.copyOf(rows);
     }
@@ -2182,11 +2188,13 @@ public class BriefingScreen implements Screen {
     public void advance(float dt) {
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
+        if (hints != null) hints.update();
     }
 
     @Override
     public void processInput(List<InputEventAPI> events) {
         if (input != null) input.process(events);
+        if (hints != null) hints.update();
     }
 
     @Override
@@ -2196,6 +2204,7 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void detach() {
+        if (hints != null) hints.clear();
         if (document != null) document.deactivateInput();
         input = null;
     }

@@ -29,13 +29,20 @@ public final class SpecSheetBinder {
 
     private final UiDocument document;
     private final SpecSheetLayer layer;
+    private final boolean keyboardHints;
     private final Map<UiElement, Supplier<SpecSheet>> bindings = new IdentityHashMap<>();
 
     private UiElement open;
 
     public SpecSheetBinder(UiDocument document, SpecSheetLayer layer) {
+        this(document, layer, false);
+    }
+
+    /** Optionally exposes compact controls' details to keyboard users as well. */
+    public SpecSheetBinder(UiDocument document, SpecSheetLayer layer, boolean keyboardHints) {
         this.document = Objects.requireNonNull(document, "document");
         this.layer = Objects.requireNonNull(layer, "layer");
+        this.keyboardHints = keyboardHints;
     }
 
     /**
@@ -97,6 +104,15 @@ public final class SpecSheetBinder {
         UiElement next = null;
         if (!bindings.isEmpty()) {
             for (UiElement element : document.hoverChain()) {
+                if (bindings.containsKey(element)) {
+                    next = element;
+                    break;
+                }
+            }
+        }
+        UiElement focused = document.focusedElement();
+        if (next == null && keyboardHints && focused != null && focused.focusVisible()) {
+            for (UiElement element = focused; element != null; element = element.parent()) {
                 if (bindings.containsKey(element)) {
                     next = element;
                     break;

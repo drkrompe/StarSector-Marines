@@ -145,9 +145,12 @@ public final class UiLayoutEngine {
                 main += free * child.grow() / totalGrow;
             }
 
-            float preferredCross = preferredCross(child, horizontal, content.width(), content.height());
+            // Wrapped row text must measure against its allocated width, not the whole row.
+            float preferredCross = preferredCross(child, horizontal,
+                    content.width(), content.height(), main);
             UiAlign crossAlign = horizontal
                     ? child.verticalAlign() : child.horizontalAlign();
+            if (parent.alignItems() != null) crossAlign = parent.alignItems();
             float cross = Float.isNaN(preferredCross) || crossAlign == UiAlign.STRETCH
                     ? crossExtent : Math.min(crossExtent, Math.max(0f, preferredCross));
             float crossOrigin = crossOrigin(horizontal ? content.y() : content.x(),
@@ -235,12 +238,18 @@ public final class UiLayoutEngine {
     }
 
     private float preferredCross(UiElement element, boolean horizontal,
-                                 float widthBasis, float heightBasis) {
-        return preferredAxis(element, !horizontal, widthBasis, heightBasis);
+                                 float widthBasis, float heightBasis, float allocatedMain) {
+        return preferredAxis(element, !horizontal, widthBasis, heightBasis,
+                horizontal ? allocatedMain : widthBasis);
     }
 
     private float preferredAxis(UiElement element, boolean horizontal,
                                 float widthBasis, float heightBasis) {
+        return preferredAxis(element, horizontal, widthBasis, heightBasis, widthBasis);
+    }
+
+    private float preferredAxis(UiElement element, boolean horizontal,
+                                float widthBasis, float heightBasis, float allocatedWidth) {
         float preferred = horizontal ? element.resolvedPreferredWidth(widthBasis)
                 : element.resolvedPreferredHeight(heightBasis, widthBasis);
         if (!Float.isNaN(preferred)) return preferred;
@@ -248,7 +257,7 @@ public final class UiLayoutEngine {
             return horizontal ? element.canvasWidth() : element.canvasHeight();
         }
         Insets padding = element.resolvedPadding(widthBasis);
-        float textWidth = Math.max(0f, widthBasis - padding.horizontal()
+        float textWidth = Math.max(0f, allocatedWidth - padding.horizontal()
                 - element.borderWidth() * 2f);
         UiTextMeasurer.Measurement measured = text.measure(element, textWidth);
         if (measured.font() == null) return Float.NaN;
