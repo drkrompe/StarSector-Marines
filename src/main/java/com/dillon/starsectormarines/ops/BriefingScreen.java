@@ -246,6 +246,7 @@ public class BriefingScreen implements Screen {
         // player switches missions so they don't carry over hidden state.
         if (m != null && !m.id.equals(lastSelectedMissionId)) {
             lastSelectedMissionId = m.id;
+            debugDrawerExpanded = false;
             deselectedCarriers.clear();
             deselectedPowerSources.clear();
             selectedPowerIds.clear();
@@ -284,6 +285,7 @@ public class BriefingScreen implements Screen {
         UiDocument built;
         try {
             requireRetainedElements(candidate);
+            BriefingViewModel.applyDebugVisibility(candidate, props);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
@@ -309,7 +311,7 @@ public class BriefingScreen implements Screen {
         Map<String, Object> props = BriefingViewModel.baseProps();
         Mission mission = ctx != null ? ctx.getSelectedMission() : null;
         if (mission == null) {
-            props.putAll(BriefingViewModel.previewProps(false));
+            props.putAll(BriefingViewModel.campaignPreviewProps(false));
             props.put("missionTitle", "No mission selected");
             props.put("deployDisabled", true);
             props.put("deployAction", (Runnable) () -> { });
@@ -328,17 +330,7 @@ public class BriefingScreen implements Screen {
                 ? Strings.get("briefingNoCaptains") : "");
 
         boolean debug = mission.source.isDebug();
-        props.put("debugDrawerClasses", !debug ? "debug-drawer absent"
-                : "debug-drawer " + (debugDrawerExpanded ? "expanded" : "collapsed"));
-        props.put("debugWorkspaceClasses", debug && debugDrawerExpanded
-                ? "panel debug-workspace"
-                : "debug-workspace debug-workspace-collapsed");
-        props.put("debugToggleClasses", debug
-                ? "debug-drawer-toggle" : "debug-drawer-toggle-hidden");
-        props.put("debugToggleLabel", debugDrawerExpanded ? "HIDE" : "DEBUG");
-        props.put("debugToggleDisabled", !debug);
-        props.put("debugToggleAction", debug
-                ? (Runnable) this::toggleDebugDrawer : (Runnable) () -> { });
+        BriefingViewModel.putDebugDrawer(props, debug, debugDrawerExpanded, this::toggleDebugDrawer);
         props.put("tierSummary", debug
                 ? mission.tier.displayName + "  ·  "
                         + MissionForceEnvelope.recommendedSquads(mission) + " squads  ·  "
@@ -386,8 +378,13 @@ public class BriefingScreen implements Screen {
     }
 
     private void toggleDebugDrawer() {
+        Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        if (mission == null || !mission.source.isDebug()) return;
+        boolean keyboardFocus = document != null && document.focusedElement() != null
+                && document.focusedElement().focusVisible();
         debugDrawerExpanded = !debugDrawerExpanded;
         rebuild();
+        document.requestFocus(markupInstance.requireElement("mission-debug-toggle"), keyboardFocus);
     }
 
     private List<BriefingViewModel.InfoRow> retainedMissionRows(Mission mission) {
@@ -864,9 +861,7 @@ public class BriefingScreen implements Screen {
         for (String id : List.of(
                 "mission-briefing-root", "mission-briefing-header",
                 "mission-briefing-body", "mission-overview", "mission-info-rows",
-                "mission-captain-list", "mission-planning", "mission-debug-drawer",
-                "mission-debug-toggle", "mission-debug-workspace",
-                "mission-tier-track", "mission-debug-controls", "mission-commitment",
+                "mission-captain-list", "mission-planning", "mission-commitment",
                 "mission-loadout-grid", "mission-power-list", "mission-source-list",
                 "mission-transport-list", "mission-employer-list", "mission-assign",
                 "mission-deploy", "mission-briefing-back")) component.requireElement(id);

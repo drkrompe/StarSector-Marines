@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — compact briefing controls, contextual hints, and craft imagery.
+Updated: 2026-10-08 — debug drawers leave normal mission briefings unobstructed.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -315,9 +315,14 @@ These briefing hints open on hover or visible keyboard focus. They remain
 pointer-transparent and bounded to the document, and disabled power hints explain
 why a selection is unavailable. Power copy reads the existing power metadata;
 compact presentation never merges deck capacity with activation resources.
-Its development-only drawer is an instrument rack with a compact
-toggle, a tier selector, labelled adjustment banks, and a separate scrolling air
-support list. The adjustment list scrolls so a longer mission fixture cannot
+Normal missions have neither a debug control nor a reserved debug lane. Debug
+missions start with their drawer closed and expose a compact header latch with
+a directional chevron. Opening it reveals the right-hand instrument rack;
+closing it returns the full width to mission planning. The closed subtree is
+absent from layout and keyboard navigation, and toggling preserves focus on the
+latch. Selecting another mission resets the drawer to closed.
+The rack contains a tier selector, labelled adjustment banks, and a separate
+scrolling air support list. The adjustment list scrolls so a longer mission fixture cannot
 hide its later controls. Empty optional step buttons collapse instead of posing
 as controls. These surfaces project the existing mission and debug commands;
 their materials and layout do not alter mission availability or development

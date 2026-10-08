@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -35,12 +37,7 @@ final class BriefingViewModel {
         props.put("employerHeader", "Employer Provides");
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
-        props.put("debugDrawerClasses", "debug-drawer absent");
-        props.put("debugWorkspaceClasses", "debug-workspace debug-workspace-collapsed");
-        props.put("debugToggleClasses", "debug-drawer-toggle-hidden");
-        props.put("debugToggleLabel", "");
-        props.put("debugToggleDisabled", true);
-        props.put("debugToggleAction", (Runnable) () -> { });
+        putDebugDrawer(props, false, false, () -> { });
         return withEmptyStyles(props);
     }
 
@@ -72,15 +69,7 @@ final class BriefingViewModel {
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
                 "Mira Hale", "Lieutenant · 1 squad command", false, none, null)));
         props.put("captainEmpty", "");
-        props.put("debugDrawerClasses", "debug-drawer "
-                + (debugExpanded ? "expanded" : "collapsed"));
-        props.put("debugWorkspaceClasses", debugExpanded
-                ? "panel debug-workspace"
-                : "debug-workspace debug-workspace-collapsed");
-        props.put("debugToggleClasses", "debug-drawer-toggle");
-        props.put("debugToggleLabel", debugExpanded ? "HIDE" : "DEBUG");
-        props.put("debugToggleDisabled", false);
-        props.put("debugToggleAction", none);
+        putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
                 : "First Contract · 1 squad · 2 sorties");
         props.put("tierSteps", tierPreview(late, none));
@@ -138,6 +127,42 @@ final class BriefingViewModel {
         props.put("deployAction", none);
         props.put("backAction", none);
         return withEmptyStyles(props);
+    }
+
+    /** The same visibility projection feeds live missions and preview fixtures. */
+    static void putDebugDrawer(Map<String, Object> props, boolean available,
+                               boolean expanded, Runnable toggle) {
+        boolean open = available && expanded;
+        props.put("debugAvailable", available);
+        props.put("debugExpanded", open);
+        props.put("debugToggleClasses", "debug-drawer-toggle" + (open ? " expanded" : ""));
+        props.put("debugToggleLabel", open ? "CLOSE" : "DEBUG");
+        props.put("debugToggleArrow", "graphics/ui/console/drawer-" + (open ? "close" : "open") + ".svg");
+        props.put("debugToggleDisabled", !available);
+        props.put("debugToggleAction", available ? toggle : (Runnable) () -> { });
+    }
+
+    /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */
+    static void applyDebugVisibility(MarkupInstance markup, Map<String, Object> props) {
+        if (!Boolean.TRUE.equals(props.get("debugAvailable"))) {
+            UiElement toggle = markup.requireElement("mission-debug-toggle");
+            toggle.parent().remove(toggle);
+        }
+        if (!Boolean.TRUE.equals(props.get("debugExpanded"))) {
+            UiElement drawer = markup.requireElement("mission-debug-drawer");
+            drawer.parent().remove(drawer);
+        }
+    }
+
+    static Map<String, Object> campaignPreviewProps(boolean conquest) {
+        Map<String, Object> props = previewProps(conquest, false);
+        putDebugDrawer(props, false, false, () -> { });
+        props.put("tierSteps", List.of());
+        props.put("debugControls", List.of());
+        props.put("airRows", List.of());
+        props.put("employerRows", List.of(info("employer-transport", "Transport",
+                "None", ""), info("employer-air", "Allied air", "None", "")));
+        return props;
     }
 
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
