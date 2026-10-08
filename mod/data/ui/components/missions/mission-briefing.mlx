@@ -1,4 +1,4 @@
-<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -100,10 +100,13 @@
                 <div id="mission-lift-block" class="commitment-grid">
                   <div id="mission-transport-block" class="commitment-section">
                     <div id="mission-transport-heading" class="label heading tone-edge section-heading">{transportHeader}</div>
-                    <div id="mission-transport-list" class="info-list">
-                      <div each="row in transportRows" key="{row.id}" id="{row.id}" class="info-row compact-row console-readout">
-                        <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
-                        <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+                    <div id="mission-transport-readout" class="landing-craft-readout console-readout" tabindex="0">
+                      <img id="mission-transport-image" class="landing-craft-image" style="{landingCraftImageStyle}" src="{landingCraftImage}" />
+                      <div id="mission-transport-copy" class="landing-craft-copy">
+                        <div id="mission-transport-name" class="label heading landing-craft-line">{landingCraftTitle}</div>
+                        <div id="mission-transport-capacity" class="label landing-craft-line">{landingCraftCapacity}</div>
+                        <div id="mission-transport-schedule" class="{landingCraftScheduleClasses}">{landingCraftSchedule}</div>
+                        <div id="mission-transport-origin" class="label tone-muted landing-craft-line">{landingCraftOrigin}</div>
                       </div>
                     </div>
                   </div>
@@ -275,7 +278,12 @@
   .mission-support-stack { flex-direction: row; height: 206px; gap: 5px; overflow: hidden; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
   .commitment-grid .commitment-section { height: 78px; }
-  #mission-transport-list, #mission-carrier-list { height: 52px; overflow: scroll; }
+  #mission-transport-block { height: 116px; }
+  #mission-carrier-list { height: 52px; overflow: scroll; }
+  .landing-craft-readout { flex-direction: row; align-items: center; height: 90px; padding: 4px; gap: 7px; }
+  .landing-craft-image { height: 48px; }
+  .landing-craft-copy { flex-direction: column; height: 80px; width: 0px; flex-grow: 1; gap: 2px; }
+  .landing-craft-line { height: auto; padding: 0px; white-space: normal; }
   #mission-employer-block { width: 0px; flex-grow: 1; }
   #mission-employer-list { height: 0px; flex-grow: 1; overflow: scroll; }
   .commitment-summary { height: auto; white-space: normal; }

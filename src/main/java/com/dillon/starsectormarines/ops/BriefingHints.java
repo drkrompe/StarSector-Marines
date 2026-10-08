@@ -20,6 +20,9 @@ final class BriefingHints {
         bindChoices(binder, markup, props, "powerRows", "Command power");
         bindChoices(binder, markup, props, "sourceRows", "Power source");
         bindChoices(binder, markup, props, "carrierRows", "Fighter cover");
+        if (props.get("landingCraftHint") instanceof SpecSheet landingCraft) {
+            binder.bind(markup.requireElement("mission-transport-readout"), landingCraft);
+        }
         if (!Boolean.TRUE.equals(props.get("debugExpanded"))) return binder;
         for (Object value : (List<?>) props.getOrDefault("airRows", List.of())) {
             BriefingViewModel.AirRow row = (BriefingViewModel.AirRow) value;

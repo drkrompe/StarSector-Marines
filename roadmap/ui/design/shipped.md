@@ -4,10 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — mission command hardware folded into `ui-nouns.md`.
+Updated: 2026-10-08 — landing craft summary folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
+| `landing-craft-summary.md` | 2026-10-08 | this commit | `ui-nouns.md` — ship boats, mission trip counts, and lift ownership |
 | `force-card-portraits.md` | 2026-10-08 | this commit | `ui-nouns.md` — captain-owned portraits in force cards and officer selection |
 | `briefing-force-cards.md` | 2026-10-08 | this commit | `ui-nouns.md` — compact commander/count groupings and empty breakdown sizing |
 | `mission-debug-drawer.md` | 2026-10-08 | this commit | `ui-nouns.md` — header latch and complete removal of hidden debug controls |
