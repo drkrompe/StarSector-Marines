@@ -38,7 +38,9 @@ public final class ComputedStyle {
         values.put(StyleProperty.OVERFLOW, Overflow.VISIBLE);
         values.put(StyleProperty.BORDER_WIDTH, Length.ZERO);
         values.put(StyleProperty.BORDER_COLOR, null);
+        values.put(StyleProperty.BORDER_STYLE, UiBorderStyle.SOLID);
         values.put(StyleProperty.BACKGROUND_COLOR, null);
+        values.put(StyleProperty.BACKGROUND_IMAGE, null);
         values.put(StyleProperty.COLOR, null);
         values.put(StyleProperty.FONT_FAMILY, null);
         values.put(StyleProperty.TEXT_ALIGN, UiTextAlign.START);
@@ -136,6 +138,14 @@ public final class ComputedStyle {
 
     public Color backgroundColor() {
         return (Color) value(StyleProperty.BACKGROUND_COLOR);
+    }
+
+    public UiBorderStyle borderStyle() {
+        return (UiBorderStyle) value(StyleProperty.BORDER_STYLE);
+    }
+
+    public LinearGradient backgroundImage() {
+        return (LinearGradient) value(StyleProperty.BACKGROUND_IMAGE);
     }
 
     public Color color() {

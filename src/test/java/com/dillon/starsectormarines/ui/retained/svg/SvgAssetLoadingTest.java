@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ui.retained.svg;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiTag;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -13,6 +15,28 @@ class SvgAssetLoadingTest {
     private static final String SVG = """
             <svg viewBox="0 0 10 10"><rect width="10" height="10"/></svg>
             """;
+
+    @Test
+    void imageBindingCompilesSvgOnceAndClearsItWhenSourceChanges() {
+        AtomicInteger reads = new AtomicInteger();
+        SvgAsset.Source previous = SvgAsset.setSource(path -> {
+            reads.incrementAndGet();
+            return SVG;
+        });
+        try {
+            UiElement image = new UiElement("hardware").tag(UiTag.IMAGE).imageSource("plate.svg");
+            assertNotNull(image.svgImage());
+            image.imageSource("plate.svg");
+            assertEquals(1, reads.get());
+            image.imageSource("portrait.png");
+            assertNull(image.svgImage());
+            image.imageSource(null);
+            assertNull(image.imageSource());
+            assertEquals(1, reads.get());
+        } finally {
+            SvgAsset.setSource(previous);
+        }
+    }
 
     @Test
     void cachesSuccessfulLoadsButInvalidatesWhenTheHostChanges() {

@@ -722,10 +722,7 @@ public final class FleetArmoryViewModel {
                                     + (stationed ? "tone-danger" : marked ? "tone-accent" : "tone-muted")
                             : "squad-organization-notice hidden",
                     organizationMode && stationed ? "opacity: 1;" : "",
-                    organizationMode
-                            ? marked ? "background-color: #1c303a; border-color: #ffd464; border-width: 2px;"
-                            : "background-color: #0c1620; border-color: #49667f; border-width: 2px;"
-                            : ""));
+                    ""));
         }
         String id = "found-squad-card";
         cards.add(new SquadGalleryCard(id,
