@@ -4,7 +4,7 @@ Status: SHIPPED — no open foundation stories
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — briefing composition shipped and folded into `ui-nouns.md`.
+Updated: 2026-10-08 — briefing map folded into `ui-nouns.md` and `campaign-battle-bridge-nouns.md`.
 
 Read `ui-nouns.md` before changing a UI-foundation story.
 

@@ -39,10 +39,14 @@ final class BriefingViewModel {
         props.put("debugHeader", "Mission DEBUG");
         props.put("commitmentHeader", "01 / FORCE COMMITMENT");
         props.put("commandHeader", "02 / COMMAND DECK");
-        props.put("sourceHeader", "Support Ships");
+        props.put("sourceHeader", "Fleet Support");
         props.put("transportHeader", "Landing Craft");
         props.put("carrierHeader", "Fighter Cover");
         props.put("employerHeader", "Employer Provides");
+        props.put("rewardHeader", "CONTRACT AUTHORIZATION");
+        props.put("rewardValue", "Payment not specified");
+        props.put("rewardTerms", "Terms supplied by the employer");
+        putSurvey(props, null, "Compiling terrain and landing intelligence...");
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
         putDebugDrawer(props, false, false, () -> { });
@@ -64,11 +68,12 @@ final class BriefingViewModel {
                 : "Infiltrate the target complex, disable its critical systems, and withdraw before the garrison can mass against the team.");
         props.put("missionRows", List.of(
                 info("presence", "Field presence", late ? "Unrestricted" : "1 active squad / reserves off-map", ""),
-                info("opposition", "Expected opposition", late ? "Veteran core / elites probable" : "Regular core / veterans possible", ""),
-                info("payout", "Contract payment", late ? "480,000 credits" : "18,000 credits", "tone-good")));
+                info("opposition", "Expected opposition", late ? "Veteran core / elites probable" : "Regular core / veterans possible", "")));
         putForceComparison(props, late ? OperationTier.FULL_STRENGTH : OperationTier.FIRST_CONTRACT,
                 late ? RiskLevel.HIGH : RiskLevel.MEDIUM, late ? 1008 : 12, late ? 1008 : 12);
         props.put("deploymentStatus", "Ready to deploy");
+        props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
+        props.put("rewardTerms", "Payable on successful completion");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
                 "Mira Hale", "Lieutenant · 1 squad command", false, none, "graphics/portraits/portrait_mercenary01.png")));
@@ -116,7 +121,7 @@ final class BriefingViewModel {
                 previewPower("power-resupply", new EmergencyResupply(), false, true, none)));
         props.put("powerEmpty", "");
         props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
-                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage · Marine Drop", false, none, null)));
+                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage · Marine Drop", false, none, "graphics/ships/onslaught/onslaught_base.png")));
         props.put("sourceEmpty", "");
         putPreviewLandingCraft(props, conquest, true);
         props.put("carrierRows", List.of());
@@ -172,6 +177,32 @@ final class BriefingViewModel {
         props.put("employerRows", List.of(info("employer-transport", "Landing craft",
                 "None", ""), info("employer-air", "Allied air", "None", "")));
         return props;
+    }
+
+    static void putReward(Map<String, Object> props, Mission mission) {
+        int multiplier = mission.cashMultiplier & 0xff;
+        if (multiplier == 0) multiplier = 100;
+        long payment = (long) mission.payout * multiplier / 100;
+        props.put("rewardHeader", mission.source.isDebug() ? "SIMULATION CONTRACT" : "CONTRACT AUTHORIZATION");
+        props.put("rewardValue", payment > 0 ? String.format(Locale.ROOT, "%,d credits", payment) : "No credit payment");
+        int salvage = mission.contractSalvageNegotiated & 0xff;
+        props.put("rewardTerms", (mission.contractSalvageBaseline & 0xff) > 0
+                ? salvage + "% salvage rights / negotiated terms"
+                : payment > 0 ? "Payable on successful completion" : "Operation without a cash reward");
+    }
+
+    static void putSurvey(Map<String, Object> props, BriefingSurvey map, String pending) {
+        props.put("surveyMap", map);
+        props.put("surveyStatus", map == null ? pending : "Terrain confirmed / deployment area prepared");
+        props.put("surveyDetails", map == null ? "Locating objectives and insertion points"
+                : (map.lanes().isEmpty() ? "Direct insertion" : map.lanes().size() + " approach lanes")
+                        + " / objectives marked in amber");
+        List<InfoRow> rows = new ArrayList<>();
+        if (map != null) {
+            int i = 0;
+            for (String objective : map.objectives()) rows.add(info("survey-objective-" + i++, "", objective, ""));
+        }
+        props.put("surveyObjectives", List.copyOf(rows));
     }
 
     /** The recommendation meter is advisory; deployment eligibility remains screen-owned. */

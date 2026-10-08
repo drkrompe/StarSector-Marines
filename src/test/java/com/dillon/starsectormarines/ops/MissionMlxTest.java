@@ -94,7 +94,7 @@ class MissionMlxTest {
             BriefingViewModel.applyDebugVisibility(instance, props);
             assertNull(instance.requireElement("mission-debug-toggle").parent());
             assertNull(instance.requireElement("mission-debug-drawer").parent());
-            assertEquals(List.of("mission-commitment"), instance.requireElement("mission-planning")
+            assertEquals(List.of("mission-commitment", "mission-survey-slot"), instance.requireElement("mission-planning")
                     .children().stream().map(element -> element.id()).toList());
         }
     }

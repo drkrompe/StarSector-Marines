@@ -9,8 +9,8 @@ import java.util.List;
 
 /**
  * The frozen output of {@link DetachmentResolver#resolve} — what the player's
- * committed fleet (plus the employer's offerings) brings to one battle. Created
- * at the mission-accept instant and consumed by the battle setup; immutable.
+ * committed fleet (plus the employer's offerings) brings to one battle. Captured
+ * for briefing preparation and refreshed at acceptance; immutable.
  *
  * <p>Stores <em>pre-resolved capability lists</em>, not {@code FleetMemberAPI}
  * ids: the fleet can't change between accept and battle entry, and the battle

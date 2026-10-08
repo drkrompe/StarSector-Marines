@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -44,11 +45,17 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
-        HeadlessSvgAssets.install(Paths.get("mod"));
+        install(Paths.get(""));
+    }
+
+    /** Shared production-catalog bootstrap for opt-in scenario snapshots. */
+    public static void install(Path projectRoot) throws Exception {
+        Path mod = projectRoot.resolve("mod");
+        HeadlessSvgAssets.install(mod);
         // Shared with the authoring workbench, which needs the same two and had
         // nothing to install them: a page that opened on rooms it could not
         // furnish was how that came to light.
-        DiskRegistries.installMapGeneration();
+        DiskRegistries.installMapGeneration(projectRoot);
         // The other half of "what the game would have loaded": hull geometry,
         // which comes from the install rather than from the mod folder. Without
         // it every aircraft under test is the same size as every other one.
@@ -56,7 +63,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
         if (SpecialEquipmentRegistry.installed() == null) {
             SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
             for (String path : SpecialEquipmentRegistry.BUILTIN_CATALOGS) {
-                equipment.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+                equipment.ingest(new JSONObject(Files.readString(mod.resolve(path))));
             }
             equipment.validateReferences();
             SpecialEquipmentRegistry.install(equipment);
@@ -64,22 +71,20 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
         if (MarineArmorCatalogRegistry.installed() == null) {
             MarineArmorCatalogRegistry armor = new MarineArmorCatalogRegistry();
             for (String path : MarineArmorCatalogRegistry.BUILTIN_CATALOGS) {
-                armor.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+                armor.ingest(new JSONObject(Files.readString(mod.resolve(path))));
             }
             armor.validateCompleteness();
             MarineArmorCatalogRegistry.install(armor);
         }
         if (EquipmentTemplateCatalog.installed() == null) {
             EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
-            templates.ingest(new JSONObject(Files.readString(Paths.get("mod", "data",
-                    "marines", "equipment-templates.template.json"))));
+            templates.ingest(new JSONObject(Files.readString(mod.resolve("data/marines/equipment-templates.template.json"))));
             templates.validateCompleteness();
             EquipmentTemplateCatalog.install(templates);
         }
         if (FactionEquipmentCatalog.installed() == null) {
             FactionEquipmentCatalog factionEquipment = new FactionEquipmentCatalog();
-            factionEquipment.ingest(new JSONObject(Files.readString(Paths.get("mod", "data",
-                    "marines", "faction-equipment.faction-equipment.json"))));
+            factionEquipment.ingest(new JSONObject(Files.readString(mod.resolve("data/marines/faction-equipment.faction-equipment.json"))));
             factionEquipment.validateCompleteness();
             factionEquipment.validateReachability(
                     new MarineArmory().ownedEquipmentTemplateIds());
@@ -89,19 +94,19 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             SquadLoadoutPresentationRegistry loadouts =
                     new SquadLoadoutPresentationRegistry();
             for (String path : SquadLoadoutPresentationRegistry.BUILTIN_CATALOGS) {
-                loadouts.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+                loadouts.ingest(new JSONObject(Files.readString(mod.resolve(path))));
             }
             loadouts.validateBuiltins();
             SquadLoadoutPresentationRegistry.install(loadouts);
         }
         if (MechCatalog.installed() == null) {
             MechCatalog.install(MechCatalog.parse(new JSONObject(
-                    Files.readString(Paths.get("mod", MechCatalog.CONTENT_PATH)))));
+                    Files.readString(mod.resolve(MechCatalog.CONTENT_PATH)))));
         }
         if (GroundRosterRegistry.installed() == null) {
             GroundRosterRegistry rosters = new GroundRosterRegistry();
             for (String path : GroundRosterRegistry.BUILTIN_CATALOGS) {
-                rosters.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+                rosters.ingest(new JSONObject(Files.readString(mod.resolve(path))));
             }
             rosters.validateCompleteness();
             GroundRosterRegistry.install(rosters);

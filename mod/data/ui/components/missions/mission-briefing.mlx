@@ -1,4 +1,4 @@
-<template props="operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -28,6 +28,11 @@
               </div>
               <div id="mission-risk-name" class="label heading tone-accent">{operationRisk}</div>
             </div>
+          </div>
+          <div id="mission-reward" class="mission-reward console-readout">
+            <div id="mission-reward-header" class="label heading tone-accent">{rewardHeader}</div>
+            <div id="mission-reward-value" class="label title tone-good">{rewardValue}</div>
+            <div id="mission-reward-terms" class="label tone-muted">{rewardTerms}</div>
           </div>
           <div id="mission-flavor" class="label mission-flavor surface-dark">{missionFlavor}</div>
           <div id="mission-info-rows" class="mission-info-rows">
@@ -172,6 +177,18 @@
 
         </div>
 
+        <div id="mission-survey-slot" class="mission-survey-slot">
+          <div id="mission-survey" class="mission-survey console-well">
+            <div id="mission-survey-heading" class="label heading tone-accent">TACTICAL INTELLIGENCE / AREA SURVEY</div>
+            <div id="mission-survey-status" class="label tone-edge">{surveyStatus}</div>
+            <canvas id="mission-survey-canvas" width="560" height="410" />
+            <div id="mission-survey-legend" class="label tone-muted">CYAN / DROP ZONES     AMBER / OBJECTIVES &amp; LANES</div>
+            <div id="mission-survey-details" class="label tone-muted">{surveyDetails}</div>
+            <div id="mission-survey-objectives" class="survey-objectives">
+              <div each="row in surveyObjectives" key="{row.id}" id="{row.id}" class="label survey-objective">{row.value}</div>
+            </div>
+            <div id="mission-survey-footer" class="label tone-muted">Terrain survey only. Enemy positions unconfirmed.</div>
+          </div>
         <div id="mission-debug-drawer" class="debug-drawer expanded">
           <div id="mission-debug-workspace" class="panel debug-workspace">
             <div id="mission-debug-rack-header" class="console-header debug-rack-header">
@@ -215,6 +232,7 @@
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -339,7 +357,7 @@
   .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
   .mission-loadout-grid { flex-direction: column; height: 540px; gap: 22px; overflow: hidden; }
   .command-deck { height: 178px; align-items: start; }
-  .deck-heading-row { flex-direction: row; height: 21px; width: 740px; gap: 20px; }
+  .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
   .command-power-list { display: grid; height: 145px; gap: 8px; overflow: scroll; width: 100%; }
   .command-power-list .choice-row { width: 128px; height: 116px; padding: 6px; flex-direction: column; align-items: center; gap: 5px; }
   .command-power-list .console-rocker { width: 18px; height: 12px; }
@@ -364,10 +382,30 @@
   #mission-briefing-back { width: 114px; }
   #mission-action-spacer { width: 0px; flex-grow: 1; }
   #mission-deployment-status { width: 360px; height: 32px; text-align: right; white-space: normal; }
-  .force-heading-row { flex-direction: row; align-items: center; height: 30px; width: 880px; gap: 20px; }
+  .force-heading-row { flex-direction: row; align-items: center; height: 30px; width: 100%; gap: 20px; }
   #mission-force-heading { width: 0px; flex-grow: 1; }
   #mission-assign { flex-direction: row; align-items: center; width: 154px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
   #mission-assign.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   #mission-force-summary { align-items: start; }
   #mission-task-force { width: 100%; }
+  .mission-overview-copy { height: 634px; }
+  .mission-reward { flex-direction: column; height: 104px; padding: 10px; gap: 10px; border-width: 2px; }
+  #mission-reward-header { height: 18px; }
+  #mission-reward-value { height: 26px; }
+  #mission-reward-terms { height: 34px; white-space: normal; }
+  .mission-survey-slot { flex-direction: column; width: 594px; }
+  .mission-survey { flex-direction: column; height: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 2px; }
+  #mission-survey-heading { height: 24px; }
+  #mission-survey-status { height: 30px; white-space: normal; }
+  #mission-survey-canvas { height: 410px; }
+  #mission-survey-legend { height: 32px; white-space: normal; }
+  #mission-survey-details { height: 24px; }
+  .survey-objectives { flex-direction: column; height: 190px; gap: 4px; overflow: scroll; }
+  .survey-objective { height: 24px; white-space: normal; }
+  #mission-survey-footer { height: 34px; white-space: normal; }
+  #mission-debug-drawer { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; }
+  .source-list .choice-row { height: 48px; width: 310px; }
+  .source-list .choice-icon { width: 54px; height: 44px; }
+  #mission-source-block { height: 96px; }
+  #mission-source-list { height: 64px; }
 </style>
