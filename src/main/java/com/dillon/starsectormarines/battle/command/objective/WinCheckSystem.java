@@ -39,8 +39,7 @@ public final class WinCheckSystem {
      * Returns {@link WinResult#ONGOING} when the battle hasn't terminated,
      * otherwise a result with {@code complete=true} and the winning side
      * (or {@code null} for a mutual-failure tie). Pure function over the
-     * current objective list; the sim owns the writeback to its
-     * {@code complete} / {@code winner} fields.
+     * current objective list; the simulation owns the terminal transition.
      */
     public WinResult tick(List<Objective> objectives) {
         boolean marineFailed = false, marineAllComplete = true, marineHasObjective = false;

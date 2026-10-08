@@ -26,7 +26,7 @@ class BattleRetreatOverlayModelTest {
         AtomicInteger continues = new AtomicInteger();
         BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(
                 reactor, retreats::incrementAndGet, continues::incrementAndGet,
-                "Retreat", "Continue", "Abandon operation?", "Cancel", "Retreat");
+                "Retreat", "Continue", "Accept defeat?", "Cancel", "Retreat");
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 Path.of("mod").resolve(path)), List.of(BattleRetreatOverlay.COMPONENT_PATH));
@@ -97,7 +97,7 @@ class BattleRetreatOverlayModelTest {
         AtomicInteger retreats = new AtomicInteger();
         BattleRetreatOverlayModel model = new BattleRetreatOverlayModel(new Reactor(),
                 retreats::incrementAndGet, () -> {}, "Retreat", "Continue",
-                "Abandon operation?", "Cancel", "Retreat");
+                "Accept defeat?", "Cancel", "Retreat");
         ((Runnable) model.props().get("action")).run();
         assertEquals(BattleRetreatOverlayModel.Presentation.CONFIRM, model.presentation());
         model.cancelRetreat();

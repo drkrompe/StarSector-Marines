@@ -351,7 +351,7 @@ public final class MissionResolver {
                 float currentDay = Global.getSector() != null
                         ? CampaignClock.dayFloat()
                         : 0f;
-                if (marinesLost >= marinesEngaged) {
+                if (isTotalWipe(marinesEngaged, marinesLost)) {
                     // FoB overrun — roll fate. Deterministic per (captain, mission) so
                     // the result doesn't change if compute is called twice (e.g. preview).
                     long seed = ((long) captain.id().hashCode() << 32) ^ mission.id.hashCode();
@@ -396,6 +396,11 @@ public final class MissionResolver {
                 .deployedFireteamIds(deployedFireteamIds)
                 .soldierTelemetry(soldierTelemetry)
                 .build();
+    }
+
+    /** Retreat before the first landing supplies no casualties, not a wiped force. */
+    static boolean isTotalWipe(int marinesEngaged, int marinesLost) {
+        return marinesEngaged > 0 && marinesLost >= marinesEngaged;
     }
 
     public static void apply(MissionOutcome outcome) {
