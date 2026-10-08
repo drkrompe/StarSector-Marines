@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — briefing command cards reuse captain-owned portraits.
+Updated: 2026-10-08 — landing craft projects ship boats and deployment trips.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -316,6 +316,13 @@ another officer's image. Cards keep a bounded
 reading width as the briefing expands; they wrap into a scrolling gallery instead
 of spreading a name and its counts across the screen. Existing readiness warnings
 remain on their values. An empty officer breakdown reserves no gallery space.
+Landing Craft reports the company ship's available boats with their existing hull
+image, mission seats per boat trip, planned company trips, and host ship. Trips
+come from the deployment manifest, including personnel-sized ordinary operations;
+they are neither the number of physical boats nor a count of simultaneous waves.
+Employer craft and their trips remain a separate contribution. Stationed forces
+report local lift, and debug fixtures explicitly label their override. A contextual
+hint explains cycling and the Boat Deck's ownership of losses and fittings.
 The command deck keeps names, selection, and slot cost visible on compact keys.
 Activation costs, cooldowns, use limits, and explanatory copy belong to a shared
 popup; source and carrier rows use that same layer for their secondary details.

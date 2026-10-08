@@ -13,6 +13,13 @@ import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
+
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Arrays;
@@ -32,7 +39,7 @@ final class BriefingViewModel {
         props.put("commitmentHeader", "Your Force");
         props.put("commandHeader", "Command Deck");
         props.put("sourceHeader", "Power Sources");
-        props.put("transportHeader", "Transport");
+        props.put("transportHeader", "Landing Craft");
         props.put("carrierHeader", "Fighter Cover");
         props.put("employerHeader", "Employer Provides");
         props.put("assignClasses", "");
@@ -82,10 +89,10 @@ final class BriefingViewModel {
                 stepper("zones", "Drop zones", "3", "", none),
                 stepper("pairs", "Pairs / zone", "2", "", none),
                 stepper("jitter", "Timing jitter", "0.75 s", "", none),
-                stepper("transport", "Valkyrie transports", "84", "TYPE", none)) : List.of(
+                stepper("transport", "Aeroshuttle transports", "6", "TYPE", none)) : List.of(
                 stepper("squads", "Company squads", "1", "", none),
                 stepper("mechs", "Player mechs", "0", "REROLL", none),
-                stepper("transport", "Valkyrie transports", "1", "TYPE", none)));
+                stepper("transport", "Aeroshuttle transports", "1", "TYPE", none)));
         props.put("airRows", Arrays.stream(FighterProfile.values()).map(profile -> {
             String token = profile.name().toLowerCase(Locale.ROOT);
             String label = Character.toUpperCase(token.charAt(0)) + token.substring(1);
@@ -114,11 +121,10 @@ final class BriefingViewModel {
         props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
                 "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage · Marine Drop", false, none, null)));
         props.put("sourceEmpty", "");
-        props.put("transportRows", List.of(info("transport-row", "Valkyrie",
-                late ? "84 craft · 168 sorties" : "1 craft · 2 sorties", "")));
+        putPreviewLandingCraft(props, conquest, true);
         props.put("carrierRows", List.of());
         props.put("employerRows", List.of(
-                info("employer-transport", "Transport", "Overridden by DEBUG picker", ""),
+                info("employer-transport", "Landing craft", "Overridden by DEBUG picker", ""),
                 info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
         props.put("assignLabel", "");
         props.put("assignClasses", "briefing-assign-hidden");
@@ -160,12 +166,80 @@ final class BriefingViewModel {
     static Map<String, Object> campaignPreviewProps(boolean conquest) {
         Map<String, Object> props = previewProps(conquest, false);
         putDebugDrawer(props, false, false, () -> { });
+        putPreviewLandingCraft(props, conquest, false);
         props.put("tierSteps", List.of());
         props.put("debugControls", List.of());
         props.put("airRows", List.of());
-        props.put("employerRows", List.of(info("employer-transport", "Transport",
+        props.put("employerRows", List.of(info("employer-transport", "Landing craft",
                 "None", ""), info("employer-air", "Allied air", "None", "")));
         return props;
+    }
+
+    private static void putPreviewLandingCraft(Map<String, Object> props, boolean conquest, boolean debug) {
+        Mission mission = Mission.builder().id("landing-preview").name("Landing preview")
+                .type(conquest ? MissionType.CONQUEST : MissionType.SABOTAGE)
+                .source(debug ? MissionSource.DEBUG : MissionSource.GENERATED)
+                .requiredDrops(conquest ? 168 : 2).build();
+        putLandingCraft(props, mission, Collections.nCopies(conquest ? 6 : 1,
+                FittedBoat.standard(ShuttleType.AEROSHUTTLE)), conquest ? 1008 : 12,
+                debug ? null : "HSS Siege of Raesvelg");
+    }
+
+    /** Read deployment assignments; required drops are not a physical boat count. */
+    static void putLandingCraft(Map<String, Object> props, Mission mission, List<FittedBoat> boats,
+                                int selectedPersonnel, String carrier) {
+        boolean local = mission.source == MissionSource.STATIONING;
+        boolean debug = mission.source.isDebug();
+        String title;
+        String capacity;
+        String schedule;
+        String image = null;
+        String tone = "tone-good";
+        String note;
+        if (local) {
+            title = "Local lifts";
+            capacity = "Stationed detachment";
+            schedule = "No company boats committed";
+            note = "This detachment is already stationed here and uses local lift.";
+        } else if (boats.isEmpty()) {
+            title = "No boats aboard";
+            capacity = "0 available";
+            boolean employerOnly = !debug && mission.employerShuttles > 0
+                    && !MissionForceEnvelope.allowsUnderstrength(mission);
+            schedule = employerOnly ? "Employer lift provided" : "Company lift unavailable";
+            tone = employerOnly ? "tone-muted" : "tone-danger";
+            note = employerOnly ? "Employer-provided craft supply this operation's lift."
+                    : "The company needs at least one boat aboard its host ship to deploy.";
+        } else {
+            ShuttleType type = boats.get(0).pattern();
+            List<ShuttleAssignment> manifest = MissionForceEnvelope.allowsUnderstrength(mission)
+                    ? DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, selectedPersonnel)
+                    : DetachmentResolver.buildShuttleManifest(mission, boats);
+            List<ShuttleAssignment> player = manifest.subList(
+                    DetachmentResolver.employerPhysicalShipCount(mission), manifest.size());
+            int trips = player.stream().mapToInt(assignment -> assignment.cycles).sum();
+            title = type.displayName();
+            image = type.spritePath;
+            capacity = boats.size() + " available  ·  "
+                    + mission.marineArrivalPolicy.seatsPerSortie(type) + " seats / boat trip";
+            schedule = trips + (trips == 1 ? " boat trip planned" : " boat trips planned");
+            note = player.size() + " of " + boats.size() + " available boats assigned. "
+                    + "Each trip is one boat landing; boats return and repeat as needed. "
+                    + "Employer trips are listed separately.";
+        }
+        String origin = local ? "Local support" : debug ? "DEBUG override"
+                : carrier == null ? "Company ship" : "Aboard " + carrier;
+        props.put("landingCraftTitle", title);
+        props.put("landingCraftCapacity", capacity);
+        props.put("landingCraftSchedule", schedule);
+        props.put("landingCraftOrigin", origin);
+        props.put("landingCraftImage", image);
+        props.put("landingCraftImageStyle", image == null ? "width: 0px;" : "width: 48px;");
+        props.put("landingCraftScheduleClasses", "label landing-craft-line " + tone);
+        props.put("landingCraftHint", new SpecSheet(title, "Landing craft", image, "command", List.of(),
+                List.of(capacity, schedule, origin, note, local ? "Fleet boats remain aboard their ship."
+                        : debug ? "Type and count come from the debug picker."
+                        : "Boat type and berths come from the company ship. The Boat Deck retains losses and fittings.")));
     }
 
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {

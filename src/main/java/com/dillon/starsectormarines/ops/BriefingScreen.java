@@ -362,7 +362,9 @@ public class BriefingScreen implements Screen {
         props.put("sourceRows", retainedSourceRows());
         props.put("sourceEmpty", cachedPowerSources.isEmpty()
                 ? "No fleet ships provide command powers." : "");
-        props.put("transportRows", retainedTransportRows(mission));
+        BriefingViewModel.putLandingCraft(props, mission, lift(),
+                readiness != null ? readiness.selectedReady() : 0,
+                debug || mission.source == MissionSource.STATIONING ? null : ShipsBoatsAboard.carrier());
         props.put("carrierRows", retainedCarrierRows());
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
@@ -743,33 +745,6 @@ public class BriefingScreen implements Screen {
         rebuild();
     }
 
-    private List<BriefingViewModel.InfoRow> retainedTransportRows(Mission mission) {
-        if (mission.source == MissionSource.STATIONING) {
-            return List.of(BriefingViewModel.info("transport-local", "Local lifts",
-                    Strings.get("briefingStationedLocalLifts"), ""));
-        }
-        if (mission.source.isDebug()) {
-            return List.of(BriefingViewModel.info("transport-debug",
-                    debugTransportCount + " × " + debugTransportType.displayName(),
-                    debugTransportType.capacity + " seats each  ·  "
-                            + mission.requiredDrops + " required sorties",
-                    isTransportSufficient(mission, lift()) ? "tone-good" : "tone-danger"));
-        }
-        if (cachedAvailable.isEmpty()) {
-            return List.of(BriefingViewModel.info("transport-none", "No boats aboard",
-                    "Mission cannot launch without lift", "tone-danger"));
-        }
-        List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        ShuttleType type = cachedAvailable.get(0).pattern();
-        rows.add(BriefingViewModel.info("transport-fleet",
-                cachedAvailable.size() + " × " + type.displayName(),
-                mission.requiredDrops + " required sorties", "tone-good"));
-        String carrier = ShipsBoatsAboard.carrier();
-        if (carrier != null) rows.add(BriefingViewModel.info(
-                "transport-carrier", "Carried by", carrier, ""));
-        return List.copyOf(rows);
-    }
-
     private List<BriefingViewModel.ChoiceRow> retainedCarrierRows() {
         List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
         for (int i = 0; i < cachedCarriers.size(); i++) {
@@ -791,10 +766,11 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
-        rows.add(BriefingViewModel.info("employer-transport", "Transport",
+        rows.add(BriefingViewModel.info("employer-transport", "Landing craft",
                 mission.source.isDebug() ? "Overridden by DEBUG picker"
                         : mission.employerShuttles > 0
-                                ? mission.employerShuttles + " Aeroshuttle sorties"
+                                ? DetachmentResolver.employerPhysicalShipCount(mission) + " Aeroshuttles / "
+                                        + mission.employerShuttles + " boat trips"
                                 : Strings.get("briefingAirNone"), ""));
         rows.add(BriefingViewModel.info("employer-air", "Allied air",
                 summarizeWings(mission.clientFighterSupport, Faction.MARINE), ""));
