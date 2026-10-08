@@ -11,6 +11,7 @@ import java.util.Map;
 public enum StyleProperty {
     DISPLAY("display", false, true, false, false),
     FLEX_DIRECTION("flex-direction", false, true, false, false),
+    ALIGN_ITEMS("align-items", false, true, false, false),
     POSITION("position", false, true, false, false),
     LEFT("left", false, true, false, true),
     TOP("top", false, true, false, true),

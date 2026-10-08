@@ -446,6 +446,11 @@ public final class UiElement {
         return verticalAlign;
     }
 
+    /** CSS cross-axis alignment for this element's row or column children. */
+    public UiAlign alignItems() {
+        return computedStyle == null ? null : computedStyle.alignItems();
+    }
+
     public UiElement overflow(Overflow overflow) {
         this.overflow = Objects.requireNonNull(overflow, "overflow");
         authoredStyle.put(StyleProperty.OVERFLOW, overflow);

@@ -200,31 +200,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(battleScenes,
                 context.modRoot(), context.starsectorCore());
         return List.of(
-                new SnapshotArtifact("mission-catalog-debug-wide.png",
-                        renderMissionSelect(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
-                new SnapshotArtifact("mission-catalog-debug-low-resolution.png",
-                        renderMissionSelect(context, renderer, 1280, 720)),
-                new SnapshotArtifact("mission-catalog-debug-large-ui.png",
-                        renderMissionSelect(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1.5f)),
-                new SnapshotArtifact("mission-briefing-debug-low-resolution.png",
-                        renderMissionBriefing(context, renderer, 1280, 720, true, true)),
-                new SnapshotArtifact("mission-briefing-debug-large-ui.png",
-                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true, 1.5f)),
-                new SnapshotArtifact("mission-briefing-debug-scrolled-large-ui.png",
-                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true, 1.5f, true)),
-                new SnapshotArtifact("mission-briefing-controls-blocked-large-ui.png",
-                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                missionControlStateProps(), 1.5f, false)),
-                new SnapshotArtifact("mission-briefing-first-contract-wide.png",
-                        renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
-                new SnapshotArtifact("mission-briefing-conquest-wide.png",
-                        renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
-                new SnapshotArtifact("mission-briefing-conquest-debug-expanded-wide.png",
-                        renderMissionBriefing(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true)),
                 new SnapshotArtifact("mission-squad-deployment-wide.png",
                         renderMissionFlow(context, renderer, SQUAD_DEPLOYMENT_COMPONENTS,
                                 SquadDeploymentScreen.ROOT_COMPONENT,
@@ -433,6 +408,34 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-hud-retreat-confirm-wide.png",
                         renderBattleRetreatOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)));
+    }
+
+    /** Mission presentation is reviewed at the shipping baseline: 1920 x 1080, 100%. */
+    static List<SnapshotArtifact> renderMissionPreviews(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                context.modRoot(), context.starsectorCore());
+        return List.of(
+                new SnapshotArtifact("mission-catalog-debug-wide.png",
+                        renderMissionSelect(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("mission-briefing-first-contract-wide.png",
+                        renderMissionBriefing(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
+                new SnapshotArtifact("mission-briefing-conquest-wide.png",
+                        renderMissionBriefing(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
+                new SnapshotArtifact("mission-briefing-conquest-debug-expanded-wide.png",
+                        renderMissionBriefing(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true)),
+                new SnapshotArtifact("mission-briefing-controls-blocked-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                missionControlStateProps(), 1f, false)),
+                new SnapshotArtifact("mission-briefing-power-hint-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                BriefingScreen.previewProps(true, true), 1f, false, "power-barrage")),
+                new SnapshotArtifact("mission-briefing-air-hint-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                BriefingScreen.previewProps(true, true), 1f, false, "air-dagger")));
     }
 
     /**
@@ -1087,6 +1090,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, Map<String, Object> props, float uiScale,
             boolean scrolled) throws Exception {
+        return renderMissionBriefing(context, renderer, width, height, props, uiScale, scrolled, null);
+    }
+
+    private static BufferedImage renderMissionBriefing(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, Map<String, Object> props, float uiScale,
+            boolean scrolled, String hintTarget) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MISSION_BRIEFING_COMPONENTS);
@@ -1101,6 +1111,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            SpecSheetBinder hints = BriefingHints.install(document, instance, props);
+            if (hintTarget != null) {
+                openSpecSheet(document, hints, width, height, uiScale, instance.requireElement(hintTarget));
+            }
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -1164,14 +1178,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static void openSpecSheet(UiDocument document, SpecSheetBinder binder,
                                       int width, int height, UiElement subject) {
+        openSpecSheet(document, binder, width, height, 1f, subject);
+    }
+
+    private static void openSpecSheet(UiDocument document, SpecSheetBinder binder,
+                                      int width, int height, float uiScale, UiElement subject) {
         UiViewport viewport = UiViewport.relative(
-                0f, 0f, width, height, 1f,
+                0f, 0f, width / uiScale, height / uiScale, uiScale,
                 MarineOpsUiViewport.REFERENCE_WIDTH,
                 MarineOpsUiViewport.REFERENCE_HEIGHT);
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         Rect box = subject.box().borderBox();
         document.pointerMoved(box.x() + box.width() / 2f, box.y() + box.height() / 2f);
         binder.update();
+        if (binder.openTarget() != subject) {
+            throw new IllegalStateException("Spec sheet did not open for " + subject.id());
+        }
         document.advance(0f);
     }
 

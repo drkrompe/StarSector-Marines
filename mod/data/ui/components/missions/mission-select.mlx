@@ -115,8 +115,8 @@
   .client-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
   .client-name { height: 32px; white-space: normal; }
   .client-reputation { height: 30px; white-space: normal; }
-  .mission-client-footer { flex-direction: row; height: 44px; padding: 5px; gap: 6px; border-width: 2px; }
-  .mission-client-footer button { flex-direction: row; width: 0px; flex-grow: 1; padding: 4px; gap: 5px; border-width: 3px; text-align: center; font-family: heading; }
+  .mission-client-footer { flex-direction: row; height: 32px; padding: 3px; gap: 4px; border-width: 2px; }
+  .mission-client-footer button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 4px; gap: 4px; border-width: 3px; text-align: center; font-family: heading; }
   .mission-catalog-panel { flex-direction: column; width: 37%; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .catalog-heading { flex-direction: column; height: 76px; padding: 8px; gap: 5px; border-width: 1px; }
   #mission-catalog-kicker { height: 16px; }
@@ -154,8 +154,7 @@
   .detail-row { flex-direction: column; height: 52px; padding: 8px; gap: 5px; border-width: 1px; }
   .detail-label { height: 16px; }
   .detail-value { height: 30px; white-space: normal; }
-  .mission-detail-actions { flex-direction: row; height: 44px; padding: 7px; gap: 8px; border-width: 2px; }
-  .mission-detail-actions button { flex-direction: row; width: 0px; flex-grow: 1; padding: 4px 6px; gap: 8px; border-width: 3px; font-family: heading; text-align: center; }
+  .mission-detail-actions { flex-direction: row; height: 32px; padding: 3px; gap: 5px; border-width: 2px; }
+  .mission-detail-actions button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
   .empty-copy { height: 20px; padding: 4px; }
-  .mission-client-footer .console-command-signal { width: 0px; border-width: 0px; }
 </style>

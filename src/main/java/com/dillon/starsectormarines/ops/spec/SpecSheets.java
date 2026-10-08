@@ -7,6 +7,13 @@ import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.EmergencyResupply;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.MarineInsertion;
+import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
@@ -60,6 +67,27 @@ public final class SpecSheets {
     private static final SoldierProfile CATALOG_SHOOTER = SoldierProfile.REGULAR;
 
     private SpecSheets() { }
+
+    /** Deck capacity and activation costs are distinct, both read from the actual power. */
+    public static SpecSheet commandPower(CommandPower power) {
+        String effect = switch (power.id) {
+            case ReconPing.ID -> "Temporarily reveals an area of the battlefield.";
+            case MechSupport.ID -> "Calls a heavy transport to land supporting mechs.";
+            case EmergencyResupply.ID -> "Calls a utility shuttle to deliver a supply cache.";
+            case OrbitalBarrage.ID -> "Marks a zone for a delayed orbital strike. The blast can hit friendly units and structures.";
+            case MarineInsertion.ID -> "Calls a Valkyrie to insert an infantry squad near the selected location.";
+            case VehicleSupport.ID -> "Calls a transport to deliver armoured support.";
+            default -> "A support capability available from the committed fleet or employer.";
+        };
+        return new SpecSheet(power.displayName, "Command power", null, "command",
+                List.of(Stat.of("Deck capacity", power.slotWeight + (power.slotWeight == 1 ? " slot" : " slots")),
+                        Stat.of("Command points / use", oneDecimal(power.cpCost)),
+                        Stat.of("Supplies / use", Integer.toString(power.supplyCost)),
+                        Stat.of("Cooldown", oneDecimal(power.cooldownSeconds) + " s"),
+                        Stat.of("Uses per battle", power.maxCharges == 0
+                                ? "Unlimited" : Integer.toString(power.maxCharges))),
+                List.of(effect, "Command points and supplies are spent on activation, not when selecting the deck."));
+    }
 
     /**
      * One marine primary at one grade.

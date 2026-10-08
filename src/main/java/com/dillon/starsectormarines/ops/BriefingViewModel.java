@@ -1,9 +1,20 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
+import com.dillon.starsectormarines.battle.power.MarineInsertion;
+import com.dillon.starsectormarines.battle.power.VehicleSupport;
+import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 
 /** Display-ready values shared by the live briefing and deterministic snapshots. */
@@ -30,7 +41,7 @@ final class BriefingViewModel {
         props.put("debugToggleLabel", "");
         props.put("debugToggleDisabled", true);
         props.put("debugToggleAction", (Runnable) () -> { });
-        return props;
+        return withEmptyStyles(props);
     }
 
     static Map<String, Object> previewProps(boolean conquest) {
@@ -86,9 +97,12 @@ final class BriefingViewModel {
                 stepper("squads", "Company squads", "1", "", none),
                 stepper("mechs", "Player mechs", "0", "REROLL", none),
                 stepper("transport", "Valkyrie transports", "1", "TYPE", none)));
-        props.put("airRows", List.of(
-                new AirRow("air-talon", "Talon", "ATK", "DEF", "", "", none, none),
-                new AirRow("air-dagger", "Dagger", "ATK", "DEF", "", "selected", none, none)));
+        props.put("airRows", Arrays.stream(FighterProfile.values()).map(profile -> {
+            String token = profile.name().toLowerCase(Locale.ROOT);
+            String label = Character.toUpperCase(token.charAt(0)) + token.substring(1);
+            return new AirRow("air-" + token, label, profile.spritePath, "ATK", "DEF",
+                    "", profile == FighterProfile.DAGGER ? "selected" : "", none, none);
+        }).toList());
         props.put("personnelSummary", late ? "Full Strength · 84 squads · 1,008 marines"
                 : "First Contract · 1 squad · 12 marines");
         props.put("personnelClasses", "label tone-good commitment-summary");
@@ -99,9 +113,11 @@ final class BriefingViewModel {
                 info("tf-3", "Captain Okafor", "25 squads · eastern lane", "")) : List.of());
         props.put("commandSummary", "5 / 5 slots");
         props.put("powerRows", List.of(
-                new ChoiceRow("power-barrage", "choice-row selected", "Orbital Barrage", "3 slots · 4 CP · 5 supplies", false, none, null),
-                new ChoiceRow("power-drop", "choice-row selected", "Marine Drop", "2 slots · 3 CP · 2 supplies", false, none, null),
-                new ChoiceRow("power-armour", "choice-row", "Armour Support", "2 slots · 3 CP", true, none, null)));
+                previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
+                previewPower("power-drop", new MarineInsertion(), true, false, none),
+                previewPower("power-armour", new VehicleSupport(), false, true, none),
+                previewPower("power-recon", new ReconPing(), false, true, none),
+                previewPower("power-resupply", new EmergencyResupply(), false, true, none)));
         props.put("powerEmpty", "");
         props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
                 "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage · Marine Drop", false, none, null)));
@@ -121,7 +137,24 @@ final class BriefingViewModel {
         props.put("deployDisabled", false);
         props.put("deployAction", none);
         props.put("backAction", none);
+        return withEmptyStyles(props);
+    }
+
+    static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
+        for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
+            String text = (String) props.getOrDefault(key, "");
+            props.put(key + "Style", text.isBlank()
+                    ? "height: 0px; padding: 0px; overflow: hidden"
+                    : "height: auto; white-space: normal");
+        }
         return props;
+    }
+
+    private static ChoiceRow previewPower(String id, CommandPower power, boolean selected,
+                                          boolean disabled, Runnable action) {
+        return new ChoiceRow(id, "choice-row" + (selected ? " selected" : ""), power.displayName,
+                power.slotWeight + (power.slotWeight == 1 ? " slot" : " slots"),
+                disabled, action, null, SpecSheets.commandPower(power));
     }
 
     private static List<TierStep> tierPreview(boolean conquest, Runnable action) {
@@ -178,8 +211,13 @@ final class BriefingViewModel {
     }
 
     record ChoiceRow(String id, String classes, String title, String detail,
-                     boolean disabled, Runnable action, String icon)
+                     boolean disabled, Runnable action, String icon, SpecSheet hint)
             implements MarkupPropertySource {
+        ChoiceRow(String id, String classes, String title, String detail,
+                  boolean disabled, Runnable action, String icon) {
+            this(id, classes, title, detail, disabled, action, icon, null);
+        }
+
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "copyId" -> id + "-copy";
@@ -240,13 +278,14 @@ final class BriefingViewModel {
         }
     }
 
-    record AirRow(String id, String label, String attackLabel, String defendLabel,
+    record AirRow(String id, String label, String image, String attackLabel, String defendLabel,
                   String attackClasses, String defendClasses,
                   Runnable attackAction, Runnable defendAction)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "labelId" -> id + "-label";
+                case "imageId" -> id + "-image"; case "image" -> image;
                 case "attackId" -> id + "-attack"; case "defendId" -> id + "-defend";
                 case "attackIndicatorId" -> id + "-attack-indicator";
                 case "defendIndicatorId" -> id + "-defend-indicator";

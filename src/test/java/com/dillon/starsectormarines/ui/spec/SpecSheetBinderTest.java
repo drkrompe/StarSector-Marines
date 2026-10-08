@@ -18,6 +18,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SpecSheetBinderTest {
 
     @Test
+    void keyboardHintsFollowVisibleFocusAndCloseWhenFocusLeaves() {
+        try (MarkupInstance instance = SpecSheetDocuments.instance()) {
+            UiDocument document = SpecSheetDocuments.laidOut(instance);
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer, true);
+            UiElement anchor = instance.requireElement("near-left").tabIndex(0).onClick(() -> { });
+            binder.bind(anchor, SpecSheetDocuments.sheet("command"));
+            document.requestFocus(anchor, false);
+            binder.update();
+            assertFalse(layer.visible());
+            document.requestFocus(anchor, true);
+            binder.update();
+            assertSame(anchor, binder.openTarget());
+            assertTrue(layer.visible());
+            document.requestFocus(null, false);
+            binder.update();
+            assertFalse(layer.visible());
+        }
+    }
+
+    @Test
     void hoveringABoundElementOpensItsSheet() {
         try (MarkupInstance instance = SpecSheetDocuments.instance()) {
             UiDocument document = SpecSheetDocuments.laidOut(instance);

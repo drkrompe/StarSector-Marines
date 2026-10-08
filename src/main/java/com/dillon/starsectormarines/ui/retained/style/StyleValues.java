@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ui.retained.style;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.PointerEvents;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiPosition;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
@@ -32,6 +33,7 @@ final class StyleValues {
         return switch (property) {
             case DISPLAY -> parseDisplay(value);
             case FLEX_DIRECTION -> parseDirection(value);
+            case ALIGN_ITEMS -> parseAlignItems(value);
             case POSITION -> parsePosition(value);
             case LEFT, TOP -> parseLength(value, true);
             case POINTER_EVENTS -> parsePointerEvents(value);
@@ -77,6 +79,16 @@ final class StyleValues {
             case "column" -> UiLayout.COLUMN;
             default -> throw new UiStyleException("flex-direction supports row or column, not \""
                     + value + "\".");
+        };
+    }
+
+    private static UiAlign parseAlignItems(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "start", "flex-start" -> UiAlign.START;
+            case "center" -> UiAlign.CENTER;
+            case "end", "flex-end" -> UiAlign.END;
+            case "stretch" -> UiAlign.STRETCH;
+            default -> throw new UiStyleException("align-items supports start, center, end, or stretch: " + value);
         };
     }
 
