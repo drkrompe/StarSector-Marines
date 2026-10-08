@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — debug drawers leave normal mission briefings unobstructed.
+Updated: 2026-10-08 — force breakdowns group each commander with their counts.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -308,6 +308,11 @@ face. Selectable briefing options show a latched surface and an illuminated
 rocker whose position also distinguishes selection without relying only on
 color. Tier and drawer indicators follow that same illuminated-state vocabulary.
 Disabled controls remain subdued, and keyboard focus retains a distinct outline.
+The force breakdown uses compact read-only cards that keep each commander's name,
+squad and Marine counts, and attachment state together. Cards keep a bounded
+reading width as the briefing expands; they wrap into a scrolling gallery instead
+of spreading a name and its counts across the screen. Existing readiness warnings
+remain on their values. An empty officer breakdown reserves no gallery space.
 The command deck keeps names, selection, and slot cost visible on compact keys.
 Activation costs, cooldowns, use limits, and explanatory copy belong to a shared
 popup; source and carrier rows use that same layer for their secondary details.
