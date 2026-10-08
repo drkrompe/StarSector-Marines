@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupParser;
 import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
+import com.dillon.starsectormarines.ui.retained.style.UiBorderStyle;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -16,6 +17,8 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class MarineOpsThemesTest {
 
@@ -38,8 +41,10 @@ class MarineOpsThemesTest {
         document.advance(0f);
         document.advance(0.2f);
 
-        assertEquals(new Color(0x6E, 0xD7, 0xFF), root.borderColor());
-        assertEquals(new Color(0xFF, 0xD4, 0x64), button.borderColor());
+        assertEquals(new Color(0x72, 0x7B, 0x79), root.borderColor());
+        assertEquals(new Color(0xFF, 0xE1, 0xA0), button.borderColor());
+        assertEquals(UiBorderStyle.OUTSET, root.borderStyle());
+        assertNotNull(button.backgroundImage());
 
         document.theme(MarineOpsThemes.highContrast());
         document.advance(0f);
@@ -48,6 +53,8 @@ class MarineOpsThemesTest {
         assertSame(button, root.children().get(0));
         assertEquals(new Color(0x63, 0xE8, 0xFF), root.borderColor());
         assertEquals(new Color(0xFF, 0xE4, 0x5C), button.borderColor());
+        assertEquals(UiBorderStyle.SOLID, root.borderStyle());
+        assertNull(button.backgroundImage());
     }
 
     @Test

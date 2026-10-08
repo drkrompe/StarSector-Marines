@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — SVG text access belongs to the live or headless host.
+Updated: 2026-10-08 — shared metallic console materials and SVG image elements.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -267,6 +267,28 @@ a regular body face for controls, values, and prose and a display face for headi
 to authored copy: all caps is a heading treatment, not a global font policy. Horizontal placement is
 `text-align`; button widgets center their measured line box vertically inside the content box.
 
+## Console materials
+
+The standard shipboard theme evokes a late-1990s military computer: gunmetal
+housings, raised keys, recessed instrument readouts, muted phosphor text, and
+amber selection cues. Bright readiness and danger colors still communicate
+state. Mechanical decoration stays at the shell and surface boundaries, away
+from small labels and operational information. SVG locking plates and vented
+end caps belong to the persistent room rail. Decoration is never an input
+target or a source of domain state.
+
+Materials use the ordinary cascade. Uniform `border-style: outset` and
+`inset` light opposite edges of the same border box; pressed controls reverse
+the relief without moving their content or hit areas. `solid` preserves the
+existing flat treatment. `background-image` supports a single CSS
+`linear-gradient` toward the bottom or right, with explicit ordered
+percentage color stops within 0–100%, or `none`. Equal stop positions create
+hard edges; alpha interpolation is premultiplied. Other image functions,
+angles, and border styles fail explicitly. Gradients compile once into shared
+geometry and fill the padding box above the background color. They do not
+inherit or affect layout. High contrast keeps flat surfaces and bright
+outlines instead of material shading.
+
 ## Responsive grids
 
 `display: grid` is the retained fixed-item gallery context. The widest immediate
@@ -519,6 +541,12 @@ failure, and the headless target reads the file the source path names. The asset
 is aspect-fitted and centred inside the content box, never stretched to it,
 because a square icon in a rectangular box would otherwise read as a different
 symbol. An unresolvable or absent source draws nothing at all.
+
+An SVG image source compiles through the same host reader and vector primitive
+when its binding changes, outside the paint loop. It follows the image element's
+aspect-fit, clipping, and opacity rules. Malformed or unsupported SVG fails at
+binding time, matching authored canvas assets; it does not silently fall back to
+a raster or an invisible decoration.
 
 An existing renderer that already owns a complete GL lifecycle may use the canvas's
 bounded live-host pass. The pass receives the absolute content-box viewport plus

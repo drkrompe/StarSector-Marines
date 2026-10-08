@@ -40,6 +40,8 @@ final class StyleValues {
             case ROW_GAP, COLUMN_GAP,
                  PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT -> parseLength(value, false);
             case BORDER_WIDTH -> parseBorderWidth(value);
+            case BORDER_STYLE -> parseBorderStyle(value);
+            case BACKGROUND_IMAGE -> LinearGradient.parse(value);
             case GAP, PADDING -> throw new IllegalArgumentException("Shorthands expand in StyleDeclaration");
             case OVERFLOW -> parseOverflow(value);
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> parseColor(value);
@@ -57,6 +59,15 @@ final class StyleValues {
             case "grid" -> UiDisplay.GRID;
             default -> throw new UiStyleException("display supports flex or grid, not \""
                     + value + "\".");
+        };
+    }
+
+    private static UiBorderStyle parseBorderStyle(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "solid" -> UiBorderStyle.SOLID;
+            case "inset" -> UiBorderStyle.INSET;
+            case "outset" -> UiBorderStyle.OUTSET;
+            default -> throw new UiStyleException("border-style supports solid, inset, or outset: " + value);
         };
     }
 

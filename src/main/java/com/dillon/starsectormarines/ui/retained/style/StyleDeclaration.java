@@ -85,6 +85,8 @@ public final class StyleDeclaration {
             case FLEX_GROW, OPACITY -> value instanceof Float;
             case OVERFLOW -> value instanceof Overflow;
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> value == null || value instanceof Color;
+            case BORDER_STYLE -> value instanceof UiBorderStyle;
+            case BACKGROUND_IMAGE -> value == null || value instanceof LinearGradient;
             case FONT_FAMILY -> value == null || value instanceof String || value instanceof BitmapFont;
             case TEXT_ALIGN -> value instanceof UiTextAlign;
             case WHITE_SPACE -> value instanceof UiWhiteSpace;

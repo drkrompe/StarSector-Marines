@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.ui.retained.style.ComputedStyle;
 import com.dillon.starsectormarines.ui.retained.style.Length;
 import com.dillon.starsectormarines.ui.retained.style.StyleDeclaration;
 import com.dillon.starsectormarines.ui.retained.style.StyleProperty;
+import com.dillon.starsectormarines.ui.retained.style.LinearGradient;
+import com.dillon.starsectormarines.ui.retained.style.UiBorderStyle;
+import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -40,6 +43,7 @@ public final class UiElement {
     private int canvasHeight = 150;
     private int inputMaxLength = 64;
     private String imageSource;
+    private SvgAsset svgImage;
 
     private UiLayout layout = UiLayout.COLUMN;
     private Insets padding = Insets.ZERO;
@@ -210,8 +214,15 @@ public final class UiElement {
      */
     public UiElement imageSource(String path) {
         requireImage();
+        if (Objects.equals(imageSource, path)) return this;
+        SvgAsset next = path != null && path.endsWith(".svg") ? SvgAsset.load(path) : null;
         imageSource = path;
+        svgImage = next;
         return this;
+    }
+
+    public SvgAsset svgImage() {
+        return svgImage;
     }
 
     public String imageSource() {
@@ -531,6 +542,14 @@ public final class UiElement {
     public Color borderColor() {
         if (computedStyle != null) return computedStyle.borderColor();
         return borderColor;
+    }
+
+    public UiBorderStyle borderStyle() {
+        return computedStyle == null ? UiBorderStyle.SOLID : computedStyle.borderStyle();
+    }
+
+    public LinearGradient backgroundImage() {
+        return computedStyle == null ? null : computedStyle.backgroundImage();
     }
 
     public UiElement focusOutline(float width, Color color) {

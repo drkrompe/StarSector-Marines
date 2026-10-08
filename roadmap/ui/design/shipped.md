@@ -4,11 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the spec sheet joins the ledger; `ui-nouns.md` remains the sole fold destination after the
-redundant toolkit-direction document was retired.
+Updated: 2026-10-08 — metallic console surfaces folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
+| `metallic-console.md` | 2026-10-08 | this commit | `ui-nouns.md` — console materials and SVG image sources |
 | U1 — retained layout workbench | 2026-08-24 | `de03c15b` | `ui-nouns.md` |
 | U1b — intrinsic text and typography | 2026-08-24 | `2b1c1b9b` | `ui-nouns.md` |
 | U2 — clipping, scroll, focus, capture, and canvas | 2026-08-24 | `bb9bd030`, `822cb635`, `a7f34848`, `2d53481c` | `ui-nouns.md` |

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.dillon.starsectormarines.ui.retained.style.UiBorderStyle;
+
 import java.awt.Color;
 
 /** Walks one retained box tree and emits backend-neutral paint operations. */
@@ -32,9 +34,35 @@ final class UiPainter {
         if (background != null && rect.width() > 0f && rect.height() > 0f) {
             target.fill(rect, background, elementAlpha);
         }
+        if (element.backgroundImage() != null && rect.width() > 0f && rect.height() > 0f) {
+            // Gradients have no intrinsic dimensions; CSS sizes them to the padding box.
+            Rect area = element.box().paddingBox();
+            if (area.width() > 0f && area.height() > 0f) {
+                CanvasMetrics metrics = new CanvasMetrics(area, 1, 1, target.devicePixelRatio());
+                Rect visible = canvasVisibleBounds(metrics, inheritedClip.intersect(area));
+                if (visible != null && visible.width() > 0f && visible.height() > 0f) {
+                    target.clip(inheritedClip.intersect(area));
+                    target.canvasContext(metrics, visible, elementAlpha)
+                            .meshBatch(element.backgroundImage().mesh(), 0, 0, 1, Color.WHITE);
+                    target.clip(inheritedClip);
+                }
+            }
+        }
         if (element.borderColor() != null && element.borderWidth() > 0f
                 && rect.width() > 0f && rect.height() > 0f) {
-            target.outline(rect, element.borderColor(), element.borderWidth(), elementAlpha);
+            if (element.borderStyle() == UiBorderStyle.SOLID) {
+                target.outline(rect, element.borderColor(), element.borderWidth(), elementAlpha);
+            } else {
+                CanvasMetrics metrics = new CanvasMetrics(rect,
+                        Math.max(1, Math.round(rect.width())), Math.max(1, Math.round(rect.height())),
+                        target.devicePixelRatio());
+                CanvasContext canvas = target.canvasContext(metrics,
+                        canvasVisibleBounds(metrics, inheritedClip.intersect(rect)), elementAlpha);
+                // Preserve document-pixel thickness even when surface dimensions round differently.
+                UiBorderPaint.bevel(canvas, metrics.surfaceWidth(), metrics.surfaceHeight(),
+                        element.borderWidth() / metrics.scaleX(), element.borderWidth() / metrics.scaleY(),
+                        element.borderColor(), element.borderStyle());
+            }
         }
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
@@ -100,6 +128,17 @@ final class UiPainter {
         if (source == null || source.isBlank()) return;
         Rect content = element.box().contentBox();
         if (content.width() <= 0f || content.height() <= 0f) return;
+        if (element.svgImage() != null) {
+            Rect imageClip = inheritedClip.intersect(content);
+            if (imageClip.width() <= 0f || imageClip.height() <= 0f) return;
+            CanvasMetrics metrics = new CanvasMetrics(content,
+                    Math.max(1, Math.round(content.width())), Math.max(1, Math.round(content.height())),
+                    target.devicePixelRatio());
+            target.clip(imageClip);
+            target.canvasContext(metrics, canvasVisibleBounds(metrics, imageClip), alphaMult)
+                    .svg(element.svgImage(), 0, 0, metrics.surfaceWidth(), metrics.surfaceHeight(), Color.WHITE);
+            return;
+        }
         UiImage image = target.image(source);
         if (image == null) return;
         Rect imageClip = inheritedClip.intersect(content);
