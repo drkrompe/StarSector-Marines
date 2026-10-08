@@ -44,6 +44,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
+        HeadlessSvgAssets.install(Paths.get("mod"));
         // Shared with the authoring workbench, which needs the same two and had
         // nothing to install them: a page that opened on rooms it could not
         // furnish was how that came to light.

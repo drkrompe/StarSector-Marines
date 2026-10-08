@@ -23,8 +23,6 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.io.StringReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -64,6 +62,25 @@ public final class SvgAsset {
             "fill-opacity", "stroke-opacity", "opacity", "stroke-width", "stroke-linecap",
             "stroke-linejoin", "stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset");
     private static final Map<String, SvgAsset> CACHE = new HashMap<>();
+    private static final Source GAME_SOURCE = path -> Global.getSettings().loadText(path);
+    private static Source source = GAME_SOURCE;
+
+    /** Host-owned text access; filesystem readers belong only in tool code. */
+    @FunctionalInterface
+    public interface Source {
+        String read(String path) throws Exception;
+    }
+
+    /**
+     * Installs a tool host's reader and invalidates assets from the previous host.
+     * Null restores Starsector resource access. Returns the prior reader for scoped use.
+     */
+    public static synchronized Source setSource(Source next) {
+        Source previous = source;
+        source = next != null ? next : GAME_SOURCE;
+        CACHE.clear();
+        return previous;
+    }
 
     private final double minX;
     private final double minY;
@@ -85,10 +102,7 @@ public final class SvgAsset {
         SvgAsset cached = CACHE.get(modPath);
         if (cached != null) return cached;
         try {
-            String source = Global.getSettings() == null
-                    ? Files.readString(Path.of("mod").resolve(modPath))
-                    : Global.getSettings().loadText(modPath);
-            SvgAsset asset = parse(source);
+            SvgAsset asset = parse(source.read(modPath));
             CACHE.put(modPath, asset);
             return asset;
         } catch (Exception failure) {

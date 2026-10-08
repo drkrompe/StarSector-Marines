@@ -4,8 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-06 — canvas visuals support cached authored SVG geometry in
-live and headless painting.
+Updated: 2026-10-08 — SVG text access belongs to the live or headless host.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -507,6 +506,10 @@ This is an explicit vector subset rather than a second markup tree: unsupported
 constructs fail when loading the asset. Gradients, references, masks, clip paths,
 and opacity that requires compositing overlapping paints are outside the current
 subset.
+
+SVG text comes from the host resource reader: Starsector resource access in
+game, an explicitly installed disk reader in headless tooling. Changing hosts
+invalidates cached assets; shipped rendering code never opens filesystem paths.
 
 An image element paints through that same sprite primitive rather than teaching
 the painter about textures, so both backends already agree on what an asset looks
