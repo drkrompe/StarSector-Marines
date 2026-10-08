@@ -113,9 +113,8 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * in 1/30s ticks. {@link #render(float)} draws floor + walls + units + HP bars,
  * plus a centered Victory/Defeat banner when the sim completes.
  *
- * <p>Retreat abandons an active battle without producing an outcome and returns
- * to {@link ScreenId#MISSION_SELECT}. Once the battle completes, Continue resolves
- * the outcome and advances to the debrief.
+ * <p>Confirmed Retreat completes an active battle as defeat and settles through
+ * the same Results path as Continue after objective completion.
  */
 public class BattleScreen implements Screen, BattleUiContext {
 
@@ -1157,18 +1156,15 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void retreatFromBattle() {
         if (ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();
-        if (sim == null || sim.isComplete()) return;
-        // Retreat is an abandonment, not a defeat: release the live simulation
-        // and return without resolving rewards, casualties, or campaign effects.
+        if (sim == null || !sim.retreat()) return;
         exitDirectControl();
-        ctx.setBattleSimulation(null);
-        ctx.goTo(ScreenId.MISSION_SELECT);
+        continueFromBattle();
     }
 
     private void continueFromBattle() {
         if (ctx == null) return;
         BattleSimulation sim = ctx.getBattleSimulation();
-        if (sim != null && sim.isComplete()) {
+        if (sim != null && sim.isComplete() && ctx.beginBattleSettlement()) {
             // Compute + apply outcome once, then hand off to RESULTS.
             Mission mission = ctx.getSelectedMission();
             Set<String> deployedFireteams = mission.source.isDebug()

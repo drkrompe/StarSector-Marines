@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — folded the campaign umbrella's enduring scope and child-domain boundaries.
+Updated: 2026-10-08 — confirmed Retreat shares ordinary defeat settlement.
 
 ## Purpose
 
@@ -32,6 +32,20 @@ The campaign records durable identities, accepted commitments, observed
 outcomes, and attributed consequences. It must not infer a political result,
 moral choice, or recovery right merely because an operation ended. Each such
 consequence requires its own persisted authority and exactly-once boundary.
+
+## Ending an operation
+
+Confirmed **Retreat** ends an active operation as defeat and opens the same
+Results settlement as objective completion. It preserves recorded personnel
+and boat losses without inventing casualties among surviving or unlanded troops.
+Rewards, officer recovery, contracts, events, and opening-operation retry follow
+their existing defeat policies; withdrawal adds no separate penalty or extraction
+sequence. Zero engaged troops with zero losses is not a total wipe.
+
+Terminal civilian evacuation facts freeze at either ending boundary. A result
+already decided by objectives cannot be replaced by Retreat. The active battle's
+campaign settlement is claimed once before writeback, so repeated exit input
+cannot replay it. Debug-source operations retain their non-persistent policy.
 
 ## Political scale
 

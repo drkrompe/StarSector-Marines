@@ -30,6 +30,8 @@ each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
 with a smaller combat area. The opening sequence, lance caps across rosters,
 and first-operation discovery remain open; the tracker identifies existing
 stories and areas with no covering story yet.
+Confirmed Retreat now uses ordinary defeat settlement; its remaining live
+acceptance is tracked in `retreat-defeat-settlement.md`.
 
 ### Company and progression
 

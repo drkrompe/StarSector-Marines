@@ -14,8 +14,28 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MissionPersonnelOutcomeTest {
+
+    @Test
+    void officerWipeRollRequiresAnEngagedForceWithNoSurvivors() {
+        assertFalse(MissionResolver.isTotalWipe(0, 0));
+        assertFalse(MissionResolver.isTotalWipe(12, 0));
+        assertFalse(MissionResolver.isTotalWipe(12, 11));
+        assertTrue(MissionResolver.isTotalWipe(12, 12));
+    }
+
+    @Test
+    void defeatPreservesSurvivorsAndSettlesOnlyRecordedCasualties() {
+        MissionOutcome outcome = outcome(false, Set.of("survivor"), Set.of("fallen"));
+        Map<String, MarineSoldierStatus> fates = MissionResolver.resolvePersonnelOutcomes(outcome);
+        assertEquals(Set.of("survivor", "fallen"), fates.keySet());
+        assertEquals(MarineSoldierStatus.ACTIVE, fates.get("survivor"));
+        assertNotEquals(MarineSoldierStatus.ACTIVE, fates.get("fallen"));
+        assertEquals(fates, MissionResolver.resolvePersonnelOutcomes(outcome));
+    }
 
     @Test
     void casualtyDispositionIsStableForAResolvedMission() {

@@ -339,7 +339,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Divides a shared contact between squads under one attack-move order. */
     private final AssaultCoordinationSystem assaultCoordination;
     private final SquadContactOnsetSystem squadContactOnset;
-    /** Per-tick win-condition evaluator — pure function over the objective list; sim writes the {@link #complete}/{@link #winner} fields on terminal result. Initialized in the constructor. */
+    /** Per-tick win-condition evaluator; terminal results cross the shared completion boundary. */
     private final com.dillon.starsectormarines.battle.command.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
@@ -547,9 +547,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmAvoidanceSystem swarmAvoidance;
     /** Detects stalled mechs and grants a temporary mech-vs-mech separation escape hatch. */
     private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
-    private boolean complete = false;
+    private final BattleCompletion completion = new BattleCompletion(civilianEvacuation);
     private final DirectControlSession directControl;
-    private Faction winner;
     /** False for bounded non-mission hosts such as shipboard room previews. */
     private boolean missionCompletionEnabled = true;
 
@@ -779,7 +778,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
-                id -> transport.isRiding(id) || ambientTasks.isControlling(id), () -> complete);
+                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete);
     }
 
     public DirectControlSession directControl() { return directControl; }
@@ -1156,8 +1155,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public LongList getSystemActivationsThisFrame() { return systemFxSystem.activationsThisFrame(); }
     /** Presentation event seam for friendly-fire radio callouts; values may repeat when several rounds land in one frame. */
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
-    public boolean isComplete()            { return complete; }
-    public Faction getWinner()             { return winner; }
+    public boolean isComplete()            { return completion.isComplete(); }
+    public Faction getWinner()             { return completion.winner(); }
+
+    /** Freezes an active operation as defeat without fabricating additional casualties. */
+    public boolean retreat() {
+        return completion.retreat();
+    }
 
     /**
      * Controls mission terminal evaluation without disabling the simulation.
@@ -1166,10 +1170,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void setMissionCompletionEnabled(boolean enabled) {
         missionCompletionEnabled = enabled;
-        if (!enabled) {
-            complete = false;
-            winner = null;
-        }
+        completion.setEnabled(enabled);
     }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
     public byte[] getOccupancyMap()        { return occupancyMap; }
@@ -1555,7 +1556,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Labels an external headless-run bound without fabricating a winner. */
     public void recordCommandTraceTimeout(int maxTicks) {
-        if (commandTraceEnabled && commandTrace != null && !complete) {
+        if (commandTraceEnabled && commandTrace != null && !isComplete()) {
             commandTrace.recordTimeout(simTickIndex, maxTicks);
             commandTraceEnabled = false;
         }
@@ -1787,12 +1788,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         effects.beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
-        if (complete) return;
+        if (isComplete()) return;
         tickAccumulator += dt;
         while (tickAccumulator >= TICK_DT) {
             tick();
             tickAccumulator -= TICK_DT;
-            if (complete) break;
+            if (isComplete()) break;
         }
     }
 
@@ -2252,12 +2253,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             WinCheckSystem.WinResult result =
                     winCheck.tick(objectivesService.getObjectives());
             if (result.complete()) {
-                complete = true;
-                winner = result.winner();
-                // A terminal battle makes every registered civilian still outside
-                // the evacuation boundary unsaved. Incomplete setup cannot seal,
-                // preserving the no-report sentinel instead of scaling bad data.
-                civilianEvacuation.seal();
+                completion.finish(result.winner());
             }
         }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);

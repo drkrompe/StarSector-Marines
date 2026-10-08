@@ -332,7 +332,7 @@
 		"battleDirectHudSprintResting": "REST",
 		"battleDirectHudSprintReady": "READY",
 		"battleRetreat":          "Retreat",
-		"battleRetreatConfirm":   "Abandon operation?",
+		"battleRetreatConfirm":   "Accept defeat?",
 		"battleRetreatCancel":    "Cancel",
 		"battleRetreatConfirmAction": "Retreat",
 		"battleVictory":          "Victory",

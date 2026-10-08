@@ -99,6 +99,8 @@ public class MarineOpsContext {
     private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
     private BattleSimulation battleSimulation;
+    /** Shared by Retreat and Continue; reset only when a different battle is installed. */
+    private boolean battleSettlementStarted;
     /** Tick-zero construction facts retained for debug capture/replay; not mutable battle state. */
     private BattleFixture battleFixture;
     /** Detachment committed to the current battle — resolved by {@link MissionLaunch}, kept for the battle UI / debug. */
@@ -491,6 +493,7 @@ public class MarineOpsContext {
     /** Atomically replaces the active battle and all of its launch metadata. */
     public void setBattle(BattleSimulation simulation, BattleFixture fixture,
                           Detachment battleDetachment) {
+        if (battleSimulation != simulation) battleSettlementStarted = false;
         if (battleSimulation != null && battleSimulation != simulation) {
             battleSimulation.close();
         }
@@ -501,6 +504,14 @@ public class MarineOpsContext {
 
     public BattleFixture getBattleFixture() {
         return battleFixture;
+    }
+
+    /** Claims campaign writeback before side effects, including repeated exit callbacks. */
+    boolean beginBattleSettlement() {
+        if (battleSimulation == null || !battleSimulation.isComplete()
+                || battleSettlementStarted) return false;
+        battleSettlementStarted = true;
+        return true;
     }
 
     public Detachment getDetachment() {
