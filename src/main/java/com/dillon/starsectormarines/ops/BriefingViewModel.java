@@ -76,6 +76,9 @@ final class BriefingViewModel {
         props.put("debugControls", late ? List.of(
                 stepper("squads", "Company squads", "84", "", none),
                 stepper("mechs", "Player mechs", "8", "REROLL", none),
+                choiceStepper("standoff", "Landing standoff", "default", none),
+                choiceStepper("landing", "Landing place", "derived", none),
+                choiceStepper("lanes", "Resistance lanes", "default", none),
                 stepper("zones", "Drop zones", "3", "", none),
                 stepper("pairs", "Pairs / zone", "2", "", none),
                 stepper("jitter", "Timing jitter", "0.75 s", "", none),
@@ -146,6 +149,13 @@ final class BriefingViewModel {
                 action, action, action, action, action);
     }
 
+    private static DebugControl choiceStepper(String key, String label, String value, Runnable action) {
+        return new DebugControl("debug-" + key, label, value,
+                "", "-", "+", "", "", "debug-cycle-absent",
+                true, false, false, true, true,
+                action, action, action, action, action);
+    }
+
     static InfoRow info(String key, String label, String value, String valueClasses) {
         String base = "briefing-info-" + key;
         return new InfoRow(base, base + "-label", base + "-value", label, value,
@@ -202,12 +212,15 @@ final class BriefingViewModel {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "labelId" -> id + "-label";
+                case "bankId" -> id + "-bank";
                 case "farMinusId" -> id + "-far-minus"; case "minusId" -> id + "-minus";
                 case "valueId" -> id + "-value"; case "plusId" -> id + "-plus";
                 case "farPlusId" -> id + "-far-plus"; case "cycleId" -> id + "-cycle";
                 case "label" -> label; case "value" -> value;
                 case "farMinusLabel" -> farMinusLabel; case "minusLabel" -> minusLabel;
                 case "plusLabel" -> plusLabel; case "farPlusLabel" -> farPlusLabel;
+                case "farMinusClasses" -> farMinusLabel.isEmpty() ? "debug-step-absent" : "";
+                case "farPlusClasses" -> farPlusLabel.isEmpty() ? "debug-step-absent" : "";
                 case "cycleLabel" -> cycleLabel;
                 case "cycleClasses" -> cycleClasses;
                 case "farMinusDisabled" -> farMinusDisabled; case "minusDisabled" -> minusDisabled;

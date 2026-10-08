@@ -117,6 +117,42 @@ final class MarineOpsThemes {
                     background-image: linear-gradient(to bottom, #00000050 0%, #00000000 100%);
                 }
                 #marine-ops-page-routes .page-nav-current:hover { background-color: #50452e; }
+                .console-header {
+                    background-color: #444c4b;
+                    border-color: #929a94;
+                    border-style: outset;
+                    background-image: linear-gradient(to bottom, #ffffff24 0%, #ffffff08 45%, #00000020 48%, #00000044 100%);
+                }
+                .console-header-lock { width: 44px; height: 44px; pointer-events: none; }
+                .console-header-vent { width: 100px; height: 44px; pointer-events: none; }
+                .console-section, .mission-briefing-root .section-heading-row {
+                    background-color: #353e3a;
+                    border-color: #727b79;
+                    border-style: outset;
+                }
+                .console-readout {
+                    background-color: #202b27;
+                    border-color: #56675c;
+                    border-style: inset;
+                    background-image: none;
+                }
+                .console-well, .mission-detail-image-wrap, .commitment-section {
+                    background-color: #101a16;
+                    border-color: #69786b;
+                    border-style: inset;
+                    background-image: none;
+                }
+                .mission-glyph { background-color: #121d18; border-color: #65766a; border-style: inset; }
+                .debug-drawer-toggle { color: #edc273; border-color: #b99b63; }
+                .debug-control-value { color: #d6d5a3; }
+                .mission-card.selected, .client-card.selected, .tier-step.selected {
+                    background-color: #494431;
+                    border-color: #edc273;
+                    border-style: inset;
+                    color: #ffe1a0;
+                }
+                .mission-card:hover, .client-card:hover { background-color: #505b58; }
+                .mission-card:active, .client-card:active { background-color: #222c2a; }
                 """);
     }
 
@@ -161,6 +197,16 @@ final class MarineOpsThemes {
                 .company-card-ready { border-color: #78ff9d; }
                 .company-card-operational { border-color: #ffe45c; }
                 .company-card-unready { border-color: #ff9d91; }
+                .console-header, .console-section, .mission-briefing-root .section-heading-row {
+                    background-color: #071019; border-color: #d2f3ff;
+                }
+                .console-header-lock { width: 44px; height: 44px; pointer-events: none; }
+                .console-header-vent { width: 100px; height: 44px; pointer-events: none; }
+                .console-readout, .console-well, .mission-detail-image-wrap, .commitment-section {
+                    background-color: #000000; border-color: #d2f3ff;
+                }
+                .mission-glyph { background-color: #071019; border-color: #d2f3ff; }
+                .debug-drawer-toggle, .debug-control-value { color: #ffe45c; }
                 """);
     }
 
