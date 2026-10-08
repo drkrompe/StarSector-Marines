@@ -19,6 +19,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class MissionMlxTest {
 
@@ -71,11 +72,25 @@ class MissionMlxTest {
         try (MarkupInstance instance = loader.build(new Reactor(),
                 BriefingScreen.ROOT_COMPONENT,
                 BriefingScreen.previewProps(false))) {
-            assertTrue(instance.requireElement("mission-debug-drawer")
-                    .hasClass("collapsed"));
-            assertTrue(instance.requireElement("mission-debug-workspace")
-                    .hasClass("debug-workspace-collapsed"));
+            BriefingViewModel.applyDebugVisibility(instance, BriefingScreen.previewProps(false));
+            assertNull(instance.requireElement("mission-debug-drawer").parent());
+            assertEquals("mission-briefing-header",
+                    instance.requireElement("mission-debug-toggle").parent().id());
             assertFalse(instance.requireElement("mission-debug-toggle").disabled());
+        }
+    }
+
+    @Test
+    void campaignBriefingHasNoDebugAffordanceOrReservedLane() throws Exception {
+        MarkupLoader loader = loader(BriefingScreen.COMPONENT_PATHS);
+        loader.reload();
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        try (MarkupInstance instance = loader.build(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
+            BriefingViewModel.applyDebugVisibility(instance, props);
+            assertNull(instance.requireElement("mission-debug-toggle").parent());
+            assertNull(instance.requireElement("mission-debug-drawer").parent());
+            assertEquals(List.of("mission-commitment"), instance.requireElement("mission-planning")
+                    .children().stream().map(element -> element.id()).toList());
         }
     }
 

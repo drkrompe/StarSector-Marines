@@ -8,6 +8,7 @@ Updated: 2026-10-08 — mission command hardware folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
+| `mission-debug-drawer.md` | 2026-10-08 | this commit | `ui-nouns.md` — header latch and complete removal of hidden debug controls |
 | `compact-mission-controls.md` | 2026-10-08 | this commit | `ui-nouns.md` — centered compact controls, contextual hints, and base-game craft imagery |
 | `mission-control-hardware.md` | 2026-10-08 | this commit | `ui-nouns.md` — recessed command rails, readiness lamps, and latched selection indicators |
 | `mission-console.md` | 2026-10-08 | this commit | `ui-nouns.md` — contract dossier framing, pinned briefing actions, and scrollable debug controls |

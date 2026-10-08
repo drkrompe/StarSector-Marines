@@ -1,4 +1,4 @@
-<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugDrawerClasses,debugWorkspaceClasses,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -7,6 +7,11 @@
         <div id="mission-briefing-title" class="label title tone-edge">{missionTitle}</div>
       </div>
       <div id="mission-briefing-purpose" class="label heading tone-muted">{screenHeader}</div>
+      <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">
+        <img id="mission-debug-toggle-arrow" class="debug-toggle-arrow" src="{debugToggleArrow}" />
+        <div id="mission-debug-toggle-legend" class="console-key-legend">{debugToggleLabel}</div>
+        <img id="mission-debug-toggle-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+      </button>
       <img id="mission-briefing-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
     </div>
     <div id="mission-briefing-body" class="mission-briefing-body">
@@ -143,12 +148,8 @@
           </div>
         </div>
 
-        <div id="mission-debug-drawer" class="{debugDrawerClasses}">
-          <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">
-            <div id="mission-debug-toggle-lamp" class="console-toggle-lamp" />
-            <div id="mission-debug-toggle-legend" class="console-key-legend">{debugToggleLabel}</div>
-          </button>
-          <div id="mission-debug-workspace" class="{debugWorkspaceClasses}">
+        <div id="mission-debug-drawer" class="debug-drawer expanded">
+          <div id="mission-debug-workspace" class="panel debug-workspace">
             <div id="mission-debug-rack-header" class="console-header debug-rack-header">
               <img id="mission-debug-service-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
               <div id="mission-debug-heading" class="label heading tone-accent">{debugHeader} / SCALE &amp; FIXTURE</div>
@@ -199,8 +200,8 @@
 <style>
   .mission-briefing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-briefing-header { flex-direction: row; height: 62px; padding: 8px 10px; gap: 10px; border-width: 2px; }
-  .mission-briefing-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
+  .mission-briefing-header { flex-direction: row; align-items: center; height: 62px; padding: 8px 10px; gap: 10px; border-width: 2px; }
+  .mission-briefing-heading { flex-direction: column; height: 48px; flex-grow: 1; gap: 4px; }
   #mission-briefing-kicker { height: 17px; }
   #mission-briefing-title { height: 27px; }
   #mission-briefing-purpose { width: 280px; padding: 14px 4px; text-align: right; }
@@ -228,12 +229,8 @@
   .empty-copy { height: 18px; padding: 3px; }
   .mission-planning { flex-direction: row; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
-  .debug-drawer.collapsed { width: 104px; gap: 0px; }
-  .debug-drawer.absent { width: 0px; gap: 0px; }
-  .debug-drawer-toggle { flex-direction: row; align-items: center; height: 24px; padding: 3px 5px; gap: 6px; border-width: 3px; font-family: heading; text-align: center; }
-  .debug-drawer-toggle-hidden { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
+  .debug-drawer-toggle { flex-direction: row; align-items: center; width: 112px; height: 24px; padding: 3px 5px; gap: 6px; border-width: 3px; font-family: heading; text-align: center; }
   .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 2px; overflow: hidden; }
-  .debug-workspace-collapsed { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
   .tier-summary { height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
   .mission-tier-track { flex-direction: row; height: 54px; gap: 3px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 2px; text-align: center; }
@@ -286,7 +283,7 @@
   .console-rocker { width: 16px; height: 26px; pointer-events: none; }
   .debug-air-row .console-rocker { width: 12px; height: 20px; }
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
-  .console-toggle-lamp { width: 8px; height: 12px; border-width: 2px; pointer-events: none; }
+  .debug-toggle-arrow { width: 14px; height: 18px; pointer-events: none; }
   .debug-air-image { width: 28px; height: 24px; pointer-events: none; }
   .source-list .choice-copy, .carrier-list .choice-copy { height: 14px; }
   .source-list .choice-detail, .carrier-list .choice-detail { height: 0px; overflow: hidden; }

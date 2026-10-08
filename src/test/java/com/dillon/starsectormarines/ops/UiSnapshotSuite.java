@@ -418,6 +418,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return List.of(
                 new SnapshotArtifact("mission-catalog-debug-wide.png",
                         renderMissionSelect(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("mission-briefing-campaign-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                BriefingViewModel.campaignPreviewProps(true), 1f, false)),
                 new SnapshotArtifact("mission-briefing-first-contract-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
@@ -1103,6 +1106,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor,
                 BriefingScreen.ROOT_COMPONENT, props)) {
+            BriefingViewModel.applyDebugVisibility(instance, props);
             if (scrolled) {
                 instance.requireElement("mission-debug-controls").scrollTop(10000f);
                 instance.requireElement("mission-plan-sections").scrollTop(10000f);
