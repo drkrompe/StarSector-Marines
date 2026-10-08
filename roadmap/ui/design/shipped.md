@@ -4,10 +4,11 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — metallic console surfaces folded into `ui-nouns.md`.
+Updated: 2026-10-08 — mission picker and debug console folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
+| `mission-console.md` | 2026-10-08 | this commit | `ui-nouns.md` — contract dossier framing, pinned briefing actions, and scrollable debug controls |
 | `metallic-console.md` | 2026-10-08 | this commit | `ui-nouns.md` — console materials and SVG image sources |
 | U1 — retained layout workbench | 2026-08-24 | `de03c15b` | `ui-nouns.md` |
 | U1b — intrinsic text and typography | 2026-08-24 | `2b1c1b9b` | `ui-nouns.md` |

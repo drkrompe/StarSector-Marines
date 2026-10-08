@@ -203,6 +203,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mission-catalog-debug-wide.png",
                         renderMissionSelect(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("mission-catalog-debug-low-resolution.png",
+                        renderMissionSelect(context, renderer, 1280, 720)),
+                new SnapshotArtifact("mission-catalog-debug-large-ui.png",
+                        renderMissionSelect(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1.5f)),
+                new SnapshotArtifact("mission-briefing-debug-low-resolution.png",
+                        renderMissionBriefing(context, renderer, 1280, 720, true, true)),
+                new SnapshotArtifact("mission-briefing-debug-large-ui.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true, 1.5f)),
+                new SnapshotArtifact("mission-briefing-debug-scrolled-large-ui.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true, 1.5f, true)),
                 new SnapshotArtifact("mission-briefing-first-contract-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
@@ -1018,6 +1028,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderMissionSelect(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderMissionSelect(context, renderer, width, height, 1f);
+    }
+
+    private static BufferedImage renderMissionSelect(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MISSION_SELECT_COMPONENTS);
@@ -1028,7 +1044,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return renderRelative(renderer, document, width, height, 1f);
+            return renderRelative(renderer, document, width, height, uiScale);
         }
     }
 
@@ -1036,6 +1052,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean conquest,
             boolean debugExpanded) throws Exception {
+        return renderMissionBriefing(context, renderer, width, height, conquest, debugExpanded, 1f);
+    }
+
+    private static BufferedImage renderMissionBriefing(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean conquest, boolean debugExpanded, float uiScale) throws Exception {
+        return renderMissionBriefing(context, renderer, width, height, conquest, debugExpanded, uiScale, false);
+    }
+
+    private static BufferedImage renderMissionBriefing(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean conquest, boolean debugExpanded, float uiScale,
+            boolean scrolled) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MISSION_BRIEFING_COMPONENTS);
@@ -1043,10 +1072,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (MarkupInstance instance = loader.build(reactor,
                 BriefingScreen.ROOT_COMPONENT,
                 BriefingScreen.previewProps(conquest, debugExpanded))) {
+            if (scrolled) {
+                instance.requireElement("mission-debug-controls").scrollTop(10000f);
+                instance.requireElement("mission-plan-sections").scrollTop(10000f);
+                instance.requireElement("mission-overview-copy").scrollTop(10000f);
+            }
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return renderRelative(renderer, document, width, height, 1f);
+            return renderRelative(renderer, document, width, height, uiScale);
         }
     }
 

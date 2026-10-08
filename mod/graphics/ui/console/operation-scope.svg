@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140">
+  <path fill="#080f0c" d="M12 0H348L360 12V128L348 140H12L0 128V12Z"/>
+  <path fill="none" stroke="#3f5546" stroke-width="1" d="M12 3H348L357 12V128L348 137H12L3 128V12Z"/>
+  <path stroke="#1b2d22" stroke-width="1" d="M40 6V134M80 6V134M120 6V134M160 6V134M200 6V134M240 6V134M280 6V134M320 6V134M6 30H354M6 70H354M6 110H354"/>
+  <circle cx="180" cy="70" r="50" fill="none" stroke="#304c39" stroke-width="1"/>
+  <circle cx="180" cy="70" r="30" fill="none" stroke="#304c39" stroke-width="1"/>
+  <path fill="none" stroke="#739076" stroke-width="2" d="M134 35V24H146M214 24H226V35M134 105V116H146M214 116H226V105"/>
+  <path stroke="#607653" stroke-width="1" d="M170 70H190M180 60V80M10 18H28M10 22H22M332 118H350M338 122H350"/>
+  <path fill="#a58b52" d="M13 48H16V56H13ZM13 62H16V70H13ZM13 76H16V84H13ZM344 48H347V56H344ZM344 62H347V70H344ZM344 76H347V84H344Z"/>
+</svg>

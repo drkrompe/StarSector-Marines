@@ -1,18 +1,20 @@
 <template props="screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,debugDrawerClasses,debugWorkspaceClasses,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,transportRows,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
-    <div id="mission-briefing-header" class="mission-briefing-header surface-dark">
+    <div id="mission-briefing-header" class="mission-briefing-header console-header">
+      <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="mission-briefing-heading" class="mission-briefing-heading">
         <div id="mission-briefing-kicker" class="label heading tone-accent">{missionKicker}</div>
         <div id="mission-briefing-title" class="label title tone-edge">{missionTitle}</div>
       </div>
       <div id="mission-briefing-purpose" class="label heading tone-muted">{screenHeader}</div>
+      <img id="mission-briefing-vent" class="console-header-vent" src="graphics/ui/console/vent-plate.svg" />
     </div>
     <div id="mission-briefing-body" class="mission-briefing-body">
       <div id="mission-overview" class="panel mission-overview">
         <div id="mission-overview-copy" class="mission-overview-copy">
           <div id="mission-flavor" class="label mission-flavor surface-dark">{missionFlavor}</div>
           <div id="mission-info-rows" class="mission-info-rows">
-            <div each="row in missionRows" key="{row.id}" id="{row.id}" class="info-row">
+            <div each="row in missionRows" key="{row.id}" id="{row.id}" class="info-row console-readout">
               <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
               <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
             </div>
@@ -24,7 +26,7 @@
             </button>
           </div>
         </div>
-        <div id="mission-captain-block" class="mission-captain-block">
+        <div id="mission-captain-block" class="mission-captain-block console-well">
           <div id="mission-captain-heading" class="label heading tone-edge section-heading">{captainHeader}</div>
           <div id="mission-captain-list" class="mission-captain-list">
             <button each="captain in captains" key="{captain.id}" id="{captain.id}" class="{captain.classes}" disabled="{captain.disabled}" onclick="{captain.action}">
@@ -40,12 +42,13 @@
 
       <div id="mission-planning" class="mission-planning">
         <div id="mission-commitment" class="panel mission-commitment">
+          <div id="mission-plan-sections" class="mission-plan-sections">
           <div id="mission-force-summary" class="commitment-section surface-dark">
             <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
             <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
             <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
             <div id="mission-task-force" class="info-list">
-              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
+              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="info-row compact-row console-readout">
                 <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
                 <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
               </div>
@@ -86,7 +89,7 @@
                   <div id="mission-transport-block" class="commitment-section">
                     <div id="mission-transport-heading" class="label heading tone-edge section-heading">{transportHeader}</div>
                     <div id="mission-transport-list" class="info-list">
-                      <div each="row in transportRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
+                      <div each="row in transportRows" key="{row.id}" id="{row.id}" class="info-row compact-row console-readout">
                         <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
                         <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
                       </div>
@@ -107,7 +110,7 @@
                 <div id="mission-employer-block" class="commitment-section surface-dark">
                   <div id="mission-employer-heading" class="label heading tone-edge section-heading">{employerHeader}</div>
                   <div id="mission-employer-list" class="info-list">
-                    <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row compact-row">
+                    <div each="row in employerRows" key="{row.id}" id="{row.id}" class="info-row compact-row console-readout">
                       <div id="{row.labelId}" class="label heading tone-muted info-label">{row.label}</div>
                       <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
                     </div>
@@ -115,6 +118,7 @@
                 </div>
               </div>
             </div>
+          </div>
           </div>
           <div id="mission-briefing-actions" class="mission-briefing-actions">
             <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">{assignLabel}</button>
@@ -126,8 +130,11 @@
         <div id="mission-debug-drawer" class="{debugDrawerClasses}">
           <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">{debugToggleLabel}</button>
           <div id="mission-debug-workspace" class="{debugWorkspaceClasses}">
-            <div id="mission-debug-heading" class="label heading tone-accent section-heading">{debugHeader}  ·  SCALE &amp; FIXTURE</div>
-            <div id="mission-tier-summary" class="label tone-edge tier-summary">{tierSummary}</div>
+            <div id="mission-debug-rack-header" class="console-header debug-rack-header">
+              <img id="mission-debug-service-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
+              <div id="mission-debug-heading" class="label heading tone-accent">{debugHeader} / SCALE &amp; FIXTURE</div>
+            </div>
+            <div id="mission-tier-summary" class="label tone-edge tier-summary console-readout">{tierSummary}</div>
             <div id="mission-tier-track" class="mission-tier-track">
               <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
                 <div id="{step.numeralId}" class="label heading tier-numeral">{step.numeral}</div>
@@ -135,19 +142,21 @@
               </button>
             </div>
             <div id="mission-debug-controls" class="mission-debug-controls">
-              <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row">
+              <div each="control in debugControls" key="{control.id}" id="{control.id}" class="debug-control-row console-readout">
                 <div id="{control.labelId}" class="label heading tone-muted debug-control-label">{control.label}</div>
-                <button id="{control.farMinusId}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
-                <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
-                <div id="{control.valueId}" class="label heading debug-control-value">{control.value}</div>
-                <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
-                <button id="{control.farPlusId}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
-                <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+                <div id="{control.bankId}" class="debug-control-bank">
+                  <button id="{control.farMinusId}" class="{control.farMinusClasses}" disabled="{control.farMinusDisabled}" onclick="{control.farMinusAction}">{control.farMinusLabel}</button>
+                  <button id="{control.minusId}" disabled="{control.minusDisabled}" onclick="{control.minusAction}">{control.minusLabel}</button>
+                  <div id="{control.valueId}" class="label heading debug-control-value console-well">{control.value}</div>
+                  <button id="{control.plusId}" disabled="{control.plusDisabled}" onclick="{control.plusAction}">{control.plusLabel}</button>
+                  <button id="{control.farPlusId}" class="{control.farPlusClasses}" disabled="{control.farPlusDisabled}" onclick="{control.farPlusAction}">{control.farPlusLabel}</button>
+                  <button id="{control.cycleId}" class="{control.cycleClasses}" disabled="{control.cycleDisabled}" onclick="{control.cycleAction}">{control.cycleLabel}</button>
+                </div>
               </div>
             </div>
             <div id="mission-debug-air-heading" class="label heading tone-edge section-heading">AIR SUPPORT</div>
             <div id="mission-debug-air" class="mission-debug-air">
-              <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row">
+              <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row console-readout">
                 <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
                 <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">{air.attackLabel}</button>
                 <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">{air.defendLabel}</button>
@@ -163,78 +172,81 @@
 <style>
   .mission-briefing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-briefing-header { flex-direction: row; height: 62px; padding: 8px 10px; border-width: 1px; }
+  .mission-briefing-header { flex-direction: row; height: 62px; padding: 8px 10px; gap: 10px; border-width: 2px; }
   .mission-briefing-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
   #mission-briefing-kicker { height: 17px; }
   #mission-briefing-title { height: 27px; }
   #mission-briefing-purpose { width: 280px; padding: 14px 4px; text-align: right; }
   .mission-briefing-body { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
   .section-heading { height: 21px; }
-  .mission-overview { flex-direction: column; width: 462px; padding: 8px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .mission-overview { flex-direction: column; width: 24%; padding: 8px; gap: 8px; border-width: 1px; overflow: hidden; }
   .mission-overview-copy { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .mission-flavor { height: 82px; padding: 10px; border-width: 1px; }
+  .mission-flavor { white-space: normal; padding: 10px; border-width: 2px; }
   .mission-info-rows, .info-list { flex-direction: column; gap: 4px; }
   .mission-term-actions { flex-direction: row; height: 48px; gap: 6px; }
   .mission-term-actions button { flex-direction: column; width: 0px; flex-grow: 1; padding: 6px; gap: 4px; border-width: 1px; text-align: center; }
-  .info-row { flex-direction: row; height: 37px; padding: 8px 7px; gap: 8px; border-width: 1px; border-color: #263b51; }
-  .compact-row { height: 31px; padding: 6px; }
-  .info-label { width: 154px; }
-  .info-value { width: 0px; flex-grow: 1; text-align: right; }
-  .mission-captain-block { flex-direction: column; height: 286px; padding: 8px; gap: 5px; border-width: 1px; background-color: #0e1621; }
+  .info-row { flex-direction: row; height: 48px; padding: 8px 7px; gap: 8px; border-width: 1px; }
+  .compact-row { height: 40px; padding: 6px; }
+  .info-label { width: 35%; white-space: normal; }
+  .info-value { width: 0px; flex-grow: 1; text-align: right; white-space: normal; }
+  .mission-captain-block { flex-direction: column; height: 286px; padding: 8px; gap: 5px; border-width: 2px; }
   .mission-captain-list, .choice-list { flex-direction: column; gap: 4px; overflow: scroll; }
   .mission-captain-list { height: 239px; }
   .choice-row { flex-direction: row; height: 48px; padding: 7px; gap: 8px; border-width: 1px; text-align: left; }
-  .choice-row.selected { background-color: #315070; border-color: #78d494; }
+
   .choice-icon { width: 34px; height: 34px; }
   .choice-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
-  .choice-title { height: 17px; }
-  .choice-detail { height: 16px; }
+  .choice-title { height: auto; white-space: normal; }
+  .choice-detail { height: auto; white-space: normal; }
   .empty-copy { height: 18px; padding: 3px; }
   .mission-planning { flex-direction: row; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .debug-drawer { flex-direction: row; width: 590px; gap: 6px; overflow: hidden; }
-  .debug-drawer.collapsed { width: 54px; gap: 0px; }
+  .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
+  .debug-drawer.collapsed { width: 82px; gap: 0px; }
   .debug-drawer.absent { width: 0px; gap: 0px; }
-  .debug-drawer-toggle { width: 54px; padding: 6px 2px; border-width: 1px; font-family: heading; text-align: center; }
+  .debug-drawer-toggle { height: 28px; padding: 6px 4px; border-width: 2px; font-family: heading; text-align: center; }
   .debug-drawer-toggle-hidden { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
-  .debug-workspace { flex-direction: column; width: 530px; padding: 8px; gap: 6px; border-width: 1px; overflow: hidden; }
+  .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 8px; border-width: 2px; overflow: hidden; }
   .debug-workspace-collapsed { width: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
-  .tier-summary { height: 20px; padding: 2px; }
-  .mission-tier-track { flex-direction: row; height: 58px; gap: 4px; }
+  .tier-summary { height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
+  .mission-tier-track { flex-direction: row; height: 70px; gap: 4px; }
   .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: center; }
-  .tier-step.selected { background-color: #315070; border-color: #ffd464; color: #ffd464; }
+
   .tier-step.locked { opacity: 0.28; }
   .tier-numeral { height: 17px; text-align: center; }
-  .tier-label { height: 17px; text-align: center; }
-  .mission-debug-controls { flex-direction: column; height: 224px; gap: 4px; }
-  .debug-control-row { flex-direction: row; height: 34px; gap: 4px; }
-  .debug-control-label { width: 132px; padding: 8px 3px; }
-  .debug-control-row button { width: 36px; padding: 5px 2px; border-width: 1px; text-align: center; font-family: heading; }
-  .debug-control-row .debug-cycle { width: 64px; }
+  .tier-label { height: 30px; font-family: compact; text-align: center; white-space: normal; }
+  .mission-debug-controls { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; padding: 2px; overflow: scroll; }
+  .debug-control-row { flex-direction: column; height: 66px; padding: 6px; gap: 5px; border-width: 1px; }
+  .debug-control-bank { flex-direction: row; height: 32px; gap: 4px; }
+  .debug-control-label { height: 20px; }
+  .debug-control-row button { width: 24px; padding: 5px 2px; border-width: 2px; text-align: center; font-family: heading; }
+  .debug-control-row .debug-cycle { width: 58px; }
   .debug-control-row .debug-cycle-absent { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
-  .debug-control-value { width: 60px; padding: 8px 4px; border-width: 1px; border-color: #263b51; text-align: center; }
-  .mission-debug-air { flex-direction: column; height: 224px; gap: 4px; overflow: hidden; }
-  .debug-air-row { flex-direction: row; height: 32px; gap: 4px; padding: 2px; border-width: 1px; border-color: #263b51; }
-  .debug-air-label { width: 100px; padding: 6px 3px; }
-  .debug-air-row button { width: 84px; padding: 4px; border-width: 1px; font-family: heading; text-align: center; }
+  .debug-control-row .debug-step-absent { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
+  .debug-control-value { width: 0px; flex-grow: 1; padding: 7px 2px; border-width: 2px; text-align: center; }
+  .mission-debug-air { flex-direction: column; height: 158px; gap: 5px; overflow: scroll; }
+  .debug-air-row { flex-direction: row; height: 32px; gap: 4px; padding: 2px; border-width: 1px; }
+  .debug-air-label { width: 0px; flex-grow: 1; padding: 6px 3px; }
+  .debug-air-row button { width: 80px; padding: 4px; border-width: 1px; font-family: heading; text-align: center; }
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
-  .commitment-section { flex-direction: column; padding: 8px; gap: 5px; border-width: 1px; border-color: #263b51; }
-  #mission-force-summary { height: 246px; }
-  #mission-task-force { height: 141px; overflow: hidden; }
-  .mission-loadout-grid { flex-direction: column; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .command-deck { width: 100%; height: 205px; }
-  .command-power-list { display: grid; height: 159px; gap: 5px; overflow: hidden; }
+  .commitment-section { flex-direction: column; padding: 8px; gap: 5px; border-width: 1px; }
+  .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
+  #mission-force-summary { height: 196px; }
+  #mission-task-force { height: 110px; overflow: scroll; }
+  .mission-loadout-grid { flex-direction: column; height: 672px; gap: 7px; overflow: hidden; }
+  .command-deck { height: 205px; }
+  .command-power-list { display: grid; height: 159px; gap: 5px; overflow: scroll; }
   .command-power-list .choice-row { width: 250px; height: 64px; }
-  .mission-logistics { flex-direction: row; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  #mission-source-block { width: 0px; flex-grow: 1; }
+  .mission-logistics { flex-direction: column; height: 430px; gap: 7px; overflow: hidden; }
+  #mission-source-block { height: 116px; }
   #mission-source-list { height: 0px; flex-grow: 1; }
-  .mission-support-stack { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .commitment-grid { flex-direction: column; height: 218px; gap: 7px; }
-  .commitment-grid .commitment-section { width: 100%; height: 103px; }
-  #mission-transport-list, #mission-carrier-list { height: 55px; overflow: hidden; }
-  #mission-employer-block { height: 0px; flex-grow: 1; }
-  #mission-employer-list { height: 0px; flex-grow: 1; overflow: hidden; }
-  .commitment-summary { height: 19px; }
-  .commitment-note { height: 17px; }
+  .mission-support-stack { flex-direction: row; height: 286px; gap: 7px; overflow: hidden; }
+  .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
+  .commitment-grid .commitment-section { height: 103px; }
+  #mission-transport-list, #mission-carrier-list { height: 55px; overflow: scroll; }
+  #mission-employer-block { width: 0px; flex-grow: 1; }
+  #mission-employer-list { height: 0px; flex-grow: 1; overflow: scroll; }
+  .commitment-summary { height: auto; white-space: normal; }
+  .commitment-note { height: auto; white-space: normal; }
   .section-heading-row { flex-direction: row; height: 21px; }
   .section-heading-row .label { width: 0px; flex-grow: 1; }
   #mission-command-summary { text-align: right; }
@@ -243,4 +255,7 @@
   .mission-briefing-actions .briefing-assign-hidden { width: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; }
   .briefing-deploy { color: #78d494; }
   .briefing-blocked { color: #e98b83; }
+  .debug-rack-header { flex-direction: row; height: 38px; padding: 6px; gap: 8px; border-width: 1px; }
+  .debug-service-plate { width: 64px; height: 32px; pointer-events: none; }
+  #mission-debug-heading { width: 0px; flex-grow: 1; height: 34px; white-space: normal; }
 </style>

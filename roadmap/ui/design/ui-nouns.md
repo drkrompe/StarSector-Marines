@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — shared metallic console materials and SVG image elements.
+Updated: 2026-10-08 — mission console framing and accessible debug control banks.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -288,6 +288,22 @@ angles, and border styles fail explicitly. Gradients compile once into shared
 geometry and fill the padding box above the background color. They do not
 inherit or affect layout. High contrast keeps flat surfaces and bright
 outlines instead of material shading.
+
+The contract picker separates clients, selectable operation cards, and the
+selected operation's dossier into bounded columns. Mission prose and facts wrap
+inside inset readouts; lists and the dossier scroll independently while their
+navigation and briefing actions remain available. The dossier's SVG scope is
+decorative framing for the planet image, never a tactical map or an intelligence
+claim.
+
+The briefing keeps its deploy, assignment, and back actions below a scrollable
+planning area. Its development-only drawer is an instrument rack with a compact
+toggle, a tier selector, labelled adjustment banks, and a separate scrolling air
+support list. The adjustment list scrolls so a longer mission fixture cannot
+hide its later controls. Empty optional step buttons collapse instead of posing
+as controls. These surfaces project the existing mission and debug commands;
+their materials and layout do not alter mission availability or development
+gating.
 
 ## Responsive grids
 
