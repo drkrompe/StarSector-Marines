@@ -651,8 +651,8 @@ public class BriefingScreen implements Screen {
             boolean attack = debugAirSelections.contains(attackKey);
             boolean defend = debugAirSelections.contains(defendKey);
             rows.add(new BriefingViewModel.AirRow("debug-air-" + profile.name().toLowerCase(),
-                    profileDisplayName(profile.name()), attack ? "[x] ATK" : "[ ] ATK",
-                    defend ? "[x] DEF" : "[ ] DEF", attack ? "selected" : "",
+                    profileDisplayName(profile.name()), "ATK",
+                    "DEF", attack ? "selected" : "",
                     defend ? "selected" : "", () -> toggleDebugAir(attackKey),
                     () -> toggleDebugAir(defendKey)));
         }

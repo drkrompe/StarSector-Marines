@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — mission console framing and accessible debug control banks.
+Updated: 2026-10-08 — mission command rails and mechanical selection indicators.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -297,7 +297,13 @@ decorative framing for the planet image, never a tactical map or an intelligence
 claim.
 
 The briefing keeps its deploy, assignment, and back actions below a scrollable
-planning area. Its development-only drawer is an instrument rack with a compact
+planning area. Command keys sit in a recessed rail with raised edges and grip
+plates; readiness belongs to a small status lamp rather than flooding the key
+face. Selectable briefing options show a latched surface and an illuminated
+rocker whose position also distinguishes selection without relying only on
+color. Tier and drawer indicators follow that same illuminated-state vocabulary.
+Disabled controls remain subdued, and keyboard focus retains a distinct outline.
+Its development-only drawer is an instrument rack with a compact
 toggle, a tier selector, labelled adjustment banks, and a separate scrolling air
 support list. The adjustment list scrolls so a longer mission fixture cannot
 hide its later controls. Empty optional step buttons collapse instead of posing

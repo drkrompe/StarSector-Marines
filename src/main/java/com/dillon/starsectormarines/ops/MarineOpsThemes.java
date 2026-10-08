@@ -153,6 +153,56 @@ final class MarineOpsThemes {
                 }
                 .mission-card:hover, .client-card:hover { background-color: #505b58; }
                 .mission-card:active, .client-card:active { background-color: #222c2a; }
+                .console-command-rail {
+                    background-color: #101713; border-color: #697368; border-style: inset;
+                    background-image: none;
+                }
+                .console-command-rail button, .debug-drawer-toggle, .mission-briefing-root .debug-control-row button {
+                    color: #dfe3d4; background-color: #3c453e; border-color: #919887;
+                    border-style: outset;
+                    background-image: linear-gradient(to bottom, #ffffff15 0%, #ffffff00 12%, #00000000 80%, #00000044 82%, #00000044 100%);
+                }
+                .console-command-rail button:hover, .debug-drawer-toggle:hover, .mission-briefing-root .debug-control-row button:hover { background-color: #525d4e; }
+                .console-command-rail button:active, .debug-drawer-toggle:active, .mission-briefing-root .debug-control-row button:active {
+                    background-color: #222b24; border-style: inset;
+                }
+                .console-command-rail button:focus-visible, .debug-drawer-toggle:focus-visible, .mission-briefing-root .debug-control-row button:focus-visible {
+                    border-color: #ffe1a0; border-style: solid;
+                }
+                .console-command-signal, .console-toggle-lamp, .console-tier-lamp {
+                    background-color: #1a231a; border-color: #6b7562; border-style: inset;
+                    background-image: none;
+                }
+                .console-command-rail .good-surface .console-command-signal { background-color: #a6c788; }
+                .console-command-rail .briefing-blocked .console-command-signal { background-color: #e98b83; }
+                .console-command-rail .good-surface { color: #e8d9a7; }
+                .console-command-rail .briefing-blocked { color: #e98b83; }
+                .mission-briefing-root .choice-row, .mission-briefing-root .tier-step, .debug-air-row button {
+                    background-color: #303a32; border-color: #76816e; border-style: outset;
+                    background-image: linear-gradient(to bottom, #ffffff0c 0%, #ffffff00 12%, #00000020 100%);
+                }
+                .mission-briefing-root .choice-row.selected, .mission-briefing-root .tier-step.selected,
+                .debug-air-row button.selected {
+                    background-color: #20291f; border-color: #a89b70; border-style: inset;
+                    background-image: none; color: #e9d29b;
+                }
+                .mission-briefing-root .choice-row:hover, .mission-briefing-root .tier-step:hover,
+                .debug-air-row button:hover { background-color: #424d3c; }
+                .mission-briefing-root .choice-row:active, .mission-briefing-root .tier-step:active,
+                .debug-air-row button:active { background-color: #182219; border-style: inset; }
+                .mission-briefing-root .choice-row:focus-visible, .mission-briefing-root .tier-step:focus-visible,
+                .debug-air-row button:focus-visible { border-color: #ffe1a0; border-style: solid; }
+                .tier-step.selected .console-tier-lamp, .debug-drawer.expanded .console-toggle-lamp {
+                    background-color: #edc273; border-color: #edc273;
+                }
+
+                .console-key-legend {
+                    width: 0px; flex-grow: 1; height: 30px; padding: 6px 0px;
+                    font-family: heading; text-align: center; overflow: hidden; pointer-events: none;
+                }
+                .console-key-grip { width: 14px; height: 30px; pointer-events: none; }
+                .console-command-signal { width: 5px; height: 28px; border-width: 1px; pointer-events: none; }
+
                 """);
     }
 
@@ -207,6 +257,27 @@ final class MarineOpsThemes {
                 }
                 .mission-glyph { background-color: #071019; border-color: #d2f3ff; }
                 .debug-drawer-toggle, .debug-control-value { color: #ffe45c; }
+                .console-command-rail { background-color: #000000; border-color: #d2f3ff; }
+                .console-command-rail button { background-color: #102b42; border-color: #d2f3ff; }
+                .console-command-rail button:hover { background-color: #15577b; }
+                .console-command-rail button:active { background-color: #2185b4; }
+                .console-command-rail button:focus-visible { border-color: #ffe45c; }
+                .console-command-signal, .console-toggle-lamp, .console-tier-lamp {
+                    background-color: #000000; border-color: #d2f3ff;
+                }
+                .console-command-rail .good-surface .console-command-signal { background-color: #78ff9d; }
+                .console-command-rail .briefing-blocked .console-command-signal { background-color: #ff9d91; }
+                .tier-step.selected .console-tier-lamp, .debug-drawer.expanded .console-toggle-lamp {
+                    background-color: #ffe45c; border-color: #ffe45c;
+                }
+
+                .console-key-legend {
+                    width: 0px; flex-grow: 1; height: 30px; padding: 6px 0px;
+                    font-family: heading; text-align: center; overflow: hidden; pointer-events: none;
+                }
+                .console-key-grip { width: 14px; height: 30px; pointer-events: none; }
+                .console-command-signal { width: 5px; height: 28px; border-width: 1px; pointer-events: none; }
+
                 """);
     }
 

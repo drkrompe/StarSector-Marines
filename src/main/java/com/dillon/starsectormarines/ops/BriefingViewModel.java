@@ -87,8 +87,8 @@ final class BriefingViewModel {
                 stepper("mechs", "Player mechs", "0", "REROLL", none),
                 stepper("transport", "Valkyrie transports", "1", "TYPE", none)));
         props.put("airRows", List.of(
-                new AirRow("air-talon", "Talon", "[ ] ATK", "[ ] DEF", "", "", none, none),
-                new AirRow("air-dagger", "Dagger", "[ ] ATK", "[x] DEF", "", "selected", none, none)));
+                new AirRow("air-talon", "Talon", "ATK", "DEF", "", "", none, none),
+                new AirRow("air-dagger", "Dagger", "ATK", "DEF", "", "selected", none, none)));
         props.put("personnelSummary", late ? "Full Strength · 84 squads · 1,008 marines"
                 : "First Contract · 1 squad · 12 marines");
         props.put("personnelClasses", "label tone-good commitment-summary");
@@ -173,6 +173,10 @@ final class BriefingViewModel {
         }
     }
 
+    private static String rockerSource(boolean selected) {
+        return "graphics/ui/console/rocker-" + (selected ? "on" : "off") + ".svg";
+    }
+
     record ChoiceRow(String id, String classes, String title, String detail,
                      boolean disabled, Runnable action, String icon)
             implements MarkupPropertySource {
@@ -180,6 +184,8 @@ final class BriefingViewModel {
             return switch (property) {
                 case "id" -> id; case "copyId" -> id + "-copy";
                 case "titleId" -> id + "-title"; case "detailId" -> id + "-detail";
+                case "indicatorId" -> id + "-indicator";
+                case "indicatorSource" -> rockerSource(classes.contains("selected"));
                 case "iconId" -> id + "-icon"; case "classes" -> classes; case "title" -> title;
                 case "detail" -> detail; case "disabled" -> disabled;
                 case "action" -> action; case "icon" -> icon; default -> null;
@@ -192,6 +198,7 @@ final class BriefingViewModel {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "numeralId" -> id + "-numeral";
+                case "indicatorId" -> id + "-indicator";
                 case "labelId" -> id + "-label"; case "classes" -> classes; case "numeral" -> numeral;
                 case "label" -> label; case "disabled" -> disabled;
                 case "action" -> action; default -> null;
@@ -241,6 +248,12 @@ final class BriefingViewModel {
             return switch (property) {
                 case "id" -> id; case "labelId" -> id + "-label";
                 case "attackId" -> id + "-attack"; case "defendId" -> id + "-defend";
+                case "attackIndicatorId" -> id + "-attack-indicator";
+                case "defendIndicatorId" -> id + "-defend-indicator";
+                case "attackLegendId" -> id + "-attack-legend";
+                case "defendLegendId" -> id + "-defend-legend";
+                case "attackIndicatorSource" -> rockerSource(attackClasses.contains("selected"));
+                case "defendIndicatorSource" -> rockerSource(defendClasses.contains("selected"));
                 case "label" -> label; case "attackLabel" -> attackLabel;
                 case "defendLabel" -> defendLabel; case "attackClasses" -> attackClasses;
                 case "defendClasses" -> defendClasses; case "attackAction" -> attackAction;

@@ -22,9 +22,17 @@
           </button>
         </div>
         <div id="mission-client-empty" class="label tone-muted empty-copy">{clientEmpty}</div>
-        <div id="mission-client-footer" class="mission-client-footer">
-          <button id="mission-back" onclick="{backAction}">BACK</button>
-          <button id="mission-armory" onclick="{armoryAction}">ARMORY</button>
+        <div id="mission-client-footer" class="mission-client-footer console-command-rail">
+          <button id="mission-back" onclick="{backAction}">
+            <div id="mission-back-signal" class="console-command-signal" />
+            <div id="mission-back-legend" class="console-key-legend">BACK</div>
+            <img id="mission-back-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+          </button>
+          <button id="mission-armory" onclick="{armoryAction}">
+            <div id="mission-armory-signal" class="console-command-signal" />
+            <div id="mission-armory-legend" class="console-key-legend">ARMORY</div>
+            <img id="mission-armory-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+          </button>
         </div>
       </div>
       <div id="mission-catalog-panel" class="panel mission-catalog-panel">
@@ -71,9 +79,17 @@
             </div>
           </div>
         </div>
-        <div id="mission-detail-actions" class="mission-detail-actions">
-          <button id="mission-brief" class="mission-brief good-surface" disabled="{briefDisabled}" onclick="{briefAction}">BRIEF &amp; DEPLOY</button>
-          <button id="mission-collapse" disabled="{declineDisabled}" onclick="{declineAction}">COLLAPSE</button>
+        <div id="mission-detail-actions" class="mission-detail-actions console-command-rail">
+          <button id="mission-brief" class="mission-brief good-surface" disabled="{briefDisabled}" onclick="{briefAction}">
+            <div id="mission-brief-signal" class="console-command-signal" />
+            <div id="mission-brief-legend" class="console-key-legend">BRIEF &amp; DEPLOY</div>
+            <img id="mission-brief-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+          </button>
+          <button id="mission-collapse" disabled="{declineDisabled}" onclick="{declineAction}">
+            <div id="mission-collapse-signal" class="console-command-signal" />
+            <div id="mission-collapse-legend" class="console-key-legend">COLLAPSE</div>
+            <img id="mission-collapse-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+          </button>
         </div>
       </div>
     </div>
@@ -99,8 +115,8 @@
   .client-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
   .client-name { height: 32px; white-space: normal; }
   .client-reputation { height: 30px; white-space: normal; }
-  .mission-client-footer { flex-direction: row; height: 34px; gap: 6px; }
-  .mission-client-footer button { width: 0px; flex-grow: 1; padding: 5px; border-width: 1px; text-align: center; font-family: heading; }
+  .mission-client-footer { flex-direction: row; height: 44px; padding: 5px; gap: 6px; border-width: 2px; }
+  .mission-client-footer button { flex-direction: row; width: 0px; flex-grow: 1; padding: 4px; gap: 5px; border-width: 3px; text-align: center; font-family: heading; }
   .mission-catalog-panel { flex-direction: column; width: 37%; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .catalog-heading { flex-direction: column; height: 76px; padding: 8px; gap: 5px; border-width: 1px; }
   #mission-catalog-kicker { height: 16px; }
@@ -138,8 +154,8 @@
   .detail-row { flex-direction: column; height: 52px; padding: 8px; gap: 5px; border-width: 1px; }
   .detail-label { height: 16px; }
   .detail-value { height: 30px; white-space: normal; }
-  .mission-detail-actions { flex-direction: row; height: 36px; gap: 7px; }
-  .mission-detail-actions button { width: 0px; flex-grow: 1; padding: 6px; border-width: 1px; font-family: heading; text-align: center; }
-  .mission-brief { color: #78d494; }
+  .mission-detail-actions { flex-direction: row; height: 44px; padding: 7px; gap: 8px; border-width: 2px; }
+  .mission-detail-actions button { flex-direction: row; width: 0px; flex-grow: 1; padding: 4px 6px; gap: 8px; border-width: 3px; font-family: heading; text-align: center; }
   .empty-copy { height: 20px; padding: 4px; }
+  .mission-client-footer .console-command-signal { width: 0px; border-width: 0px; }
 </style>

@@ -213,6 +213,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true, 1.5f)),
                 new SnapshotArtifact("mission-briefing-debug-scrolled-large-ui.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, true, 1.5f, true)),
+                new SnapshotArtifact("mission-briefing-controls-blocked-large-ui.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                missionControlStateProps(), 1.5f, false)),
                 new SnapshotArtifact("mission-briefing-first-contract-wide.png",
                         renderMissionBriefing(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false)),
@@ -1065,13 +1068,31 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean conquest, boolean debugExpanded, float uiScale,
             boolean scrolled) throws Exception {
+        return renderMissionBriefing(context, renderer, width, height,
+                BriefingScreen.previewProps(conquest, debugExpanded), uiScale, scrolled);
+    }
+
+    private static Map<String, Object> missionControlStateProps() {
+        Map<String, Object> props = new LinkedHashMap<>(BriefingScreen.previewProps(false, true));
+        props.put("assignLabel", "ASSIGN");
+        props.put("assignClasses", "");
+        props.put("assignDisabled", false);
+        props.put("deployLabel", "NO LIFT");
+        props.put("deployClasses", "briefing-deploy briefing-blocked");
+        props.put("deployDisabled", true);
+        return props;
+    }
+
+    private static BufferedImage renderMissionBriefing(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, Map<String, Object> props, float uiScale,
+            boolean scrolled) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MISSION_BRIEFING_COMPONENTS);
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor,
-                BriefingScreen.ROOT_COMPONENT,
-                BriefingScreen.previewProps(conquest, debugExpanded))) {
+                BriefingScreen.ROOT_COMPONENT, props)) {
             if (scrolled) {
                 instance.requireElement("mission-debug-controls").scrollTop(10000f);
                 instance.requireElement("mission-plan-sections").scrollTop(10000f);

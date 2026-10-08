@@ -30,6 +30,7 @@
           <div id="mission-captain-heading" class="label heading tone-edge section-heading">{captainHeader}</div>
           <div id="mission-captain-list" class="mission-captain-list">
             <button each="captain in captains" key="{captain.id}" id="{captain.id}" class="{captain.classes}" disabled="{captain.disabled}" onclick="{captain.action}">
+              <img id="{captain.indicatorId}" class="console-rocker" src="{captain.indicatorSource}" />
               <div id="{captain.copyId}" class="choice-copy">
                 <div id="{captain.titleId}" class="label heading choice-title">{captain.title}</div>
                 <div id="{captain.detailId}" class="label tone-muted choice-detail">{captain.detail}</div>
@@ -62,6 +63,7 @@
               </div>
               <div id="mission-power-list" class="command-power-list">
                 <button each="power in powerRows" key="{power.id}" id="{power.id}" class="{power.classes}" disabled="{power.disabled}" onclick="{power.action}">
+                  <img id="{power.indicatorId}" class="console-rocker" src="{power.indicatorSource}" />
                   <div id="{power.copyId}" class="choice-copy">
                     <div id="{power.titleId}" class="label heading choice-title">{power.title}</div>
                     <div id="{power.detailId}" class="label tone-muted choice-detail">{power.detail}</div>
@@ -75,6 +77,7 @@
                 <div id="mission-source-heading" class="label heading tone-edge section-heading">{sourceHeader}</div>
                 <div id="mission-source-list" class="choice-list source-list">
                   <button each="source in sourceRows" key="{source.id}" id="{source.id}" class="{source.classes}" disabled="{source.disabled}" onclick="{source.action}">
+                    <img id="{source.indicatorId}" class="console-rocker" src="{source.indicatorSource}" />
                     <img id="{source.iconId}" class="choice-icon" src="{source.icon}" />
                     <div id="{source.copyId}" class="choice-copy">
                       <div id="{source.titleId}" class="label heading choice-title">{source.title}</div>
@@ -99,6 +102,7 @@
                     <div id="mission-carrier-heading" class="label heading tone-edge section-heading">{carrierHeader}</div>
                     <div id="mission-carrier-list" class="choice-list carrier-list">
                       <button each="carrier in carrierRows" key="{carrier.id}" id="{carrier.id}" class="{carrier.classes}" disabled="{carrier.disabled}" onclick="{carrier.action}">
+                        <img id="{carrier.indicatorId}" class="console-rocker" src="{carrier.indicatorSource}" />
                         <div id="{carrier.copyId}" class="choice-copy">
                           <div id="{carrier.titleId}" class="label heading choice-title">{carrier.title}</div>
                           <div id="{carrier.detailId}" class="label tone-muted choice-detail">{carrier.detail}</div>
@@ -120,15 +124,30 @@
             </div>
           </div>
           </div>
-          <div id="mission-briefing-actions" class="mission-briefing-actions">
-            <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">{assignLabel}</button>
-            <button id="mission-deploy" class="{deployClasses}" disabled="{deployDisabled}" onclick="{deployAction}">{deployLabel}</button>
-            <button id="mission-briefing-back" onclick="{backAction}">BACK</button>
+          <div id="mission-briefing-actions" class="mission-briefing-actions console-command-rail">
+            <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">
+              <div id="mission-assign-signal" class="console-command-signal" />
+              <div id="mission-assign-legend" class="console-key-legend">{assignLabel}</div>
+              <img id="mission-assign-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+            </button>
+            <button id="mission-deploy" class="{deployClasses}" disabled="{deployDisabled}" onclick="{deployAction}">
+              <div id="mission-deploy-signal" class="console-command-signal" />
+              <div id="mission-deploy-legend" class="console-key-legend">{deployLabel}</div>
+              <img id="mission-deploy-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+            </button>
+            <button id="mission-briefing-back" onclick="{backAction}">
+              <div id="mission-briefing-back-signal" class="console-command-signal" />
+              <div id="mission-briefing-back-legend" class="console-key-legend">BACK</div>
+              <img id="mission-briefing-back-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+            </button>
           </div>
         </div>
 
         <div id="mission-debug-drawer" class="{debugDrawerClasses}">
-          <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">{debugToggleLabel}</button>
+          <button id="mission-debug-toggle" class="{debugToggleClasses}" disabled="{debugToggleDisabled}" onclick="{debugToggleAction}">
+            <div id="mission-debug-toggle-lamp" class="console-toggle-lamp" />
+            <div id="mission-debug-toggle-legend" class="console-key-legend">{debugToggleLabel}</div>
+          </button>
           <div id="mission-debug-workspace" class="{debugWorkspaceClasses}">
             <div id="mission-debug-rack-header" class="console-header debug-rack-header">
               <img id="mission-debug-service-plate" class="debug-service-plate" src="graphics/ui/console/service-plate.svg" />
@@ -137,6 +156,7 @@
             <div id="mission-tier-summary" class="label tone-edge tier-summary console-readout">{tierSummary}</div>
             <div id="mission-tier-track" class="mission-tier-track">
               <button each="step in tierSteps" key="{step.id}" id="{step.id}" class="{step.classes}" disabled="{step.disabled}" onclick="{step.action}">
+                <div id="{step.indicatorId}" class="console-tier-lamp" />
                 <div id="{step.numeralId}" class="label heading tier-numeral">{step.numeral}</div>
                 <div id="{step.labelId}" class="label tier-label">{step.label}</div>
               </button>
@@ -158,8 +178,14 @@
             <div id="mission-debug-air" class="mission-debug-air">
               <div each="air in airRows" key="{air.id}" id="{air.id}" class="debug-air-row console-readout">
                 <div id="{air.labelId}" class="label heading tone-muted debug-air-label">{air.label}</div>
-                <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">{air.attackLabel}</button>
-                <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">{air.defendLabel}</button>
+                <button id="{air.attackId}" class="{air.attackClasses}" onclick="{air.attackAction}">
+                  <img id="{air.attackIndicatorId}" class="console-rocker" src="{air.attackIndicatorSource}" />
+                  <div id="{air.attackLegendId}" class="console-key-legend">{air.attackLabel}</div>
+                </button>
+                <button id="{air.defendId}" class="{air.defendClasses}" onclick="{air.defendAction}">
+                  <img id="{air.defendIndicatorId}" class="console-rocker" src="{air.defendIndicatorSource}" />
+                  <div id="{air.defendLegendId}" class="console-key-legend">{air.defendLabel}</div>
+                </button>
               </div>
             </div>
           </div>
@@ -192,7 +218,7 @@
   .mission-captain-block { flex-direction: column; height: 286px; padding: 8px; gap: 5px; border-width: 2px; }
   .mission-captain-list, .choice-list { flex-direction: column; gap: 4px; overflow: scroll; }
   .mission-captain-list { height: 239px; }
-  .choice-row { flex-direction: row; height: 48px; padding: 7px; gap: 8px; border-width: 1px; text-align: left; }
+  .choice-row { flex-direction: row; height: 48px; padding: 7px; gap: 8px; border-width: 2px; text-align: left; }
 
   .choice-icon { width: 34px; height: 34px; }
   .choice-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
@@ -201,15 +227,15 @@
   .empty-copy { height: 18px; padding: 3px; }
   .mission-planning { flex-direction: row; width: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .debug-drawer { flex-direction: column; width: 432px; gap: 6px; overflow: hidden; }
-  .debug-drawer.collapsed { width: 82px; gap: 0px; }
+  .debug-drawer.collapsed { width: 104px; gap: 0px; }
   .debug-drawer.absent { width: 0px; gap: 0px; }
-  .debug-drawer-toggle { height: 28px; padding: 6px 4px; border-width: 2px; font-family: heading; text-align: center; }
+  .debug-drawer-toggle { flex-direction: row; height: 28px; padding: 6px; gap: 8px; border-width: 3px; font-family: heading; text-align: center; }
   .debug-drawer-toggle-hidden { width: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   .debug-workspace { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 8px; border-width: 2px; overflow: hidden; }
   .debug-workspace-collapsed { width: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; }
   .tier-summary { height: 30px; padding: 6px; border-width: 1px; white-space: normal; }
   .mission-tier-track { flex-direction: row; height: 70px; gap: 4px; }
-  .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 4px; border-width: 1px; text-align: center; }
+  .tier-step { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 2px; text-align: center; }
 
   .tier-step.locked { opacity: 0.28; }
   .tier-numeral { height: 17px; text-align: center; }
@@ -226,7 +252,7 @@
   .mission-debug-air { flex-direction: column; height: 158px; gap: 5px; overflow: scroll; }
   .debug-air-row { flex-direction: row; height: 32px; gap: 4px; padding: 2px; border-width: 1px; }
   .debug-air-label { width: 0px; flex-grow: 1; padding: 6px 3px; }
-  .debug-air-row button { width: 80px; padding: 4px; border-width: 1px; font-family: heading; text-align: center; }
+  .debug-air-row button { flex-direction: row; width: 80px; padding: 3px; gap: 5px; border-width: 2px; font-family: heading; text-align: center; }
   .mission-commitment { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 7px; border-width: 1px; overflow: hidden; }
   .commitment-section { flex-direction: column; padding: 8px; gap: 5px; border-width: 1px; }
   .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
@@ -250,12 +276,16 @@
   .section-heading-row { flex-direction: row; height: 21px; }
   .section-heading-row .label { width: 0px; flex-grow: 1; }
   #mission-command-summary { text-align: right; }
-  .mission-briefing-actions { flex-direction: row; height: 38px; gap: 7px; }
-  .mission-briefing-actions button { width: 0px; flex-grow: 1; padding: 7px; border-width: 1px; font-family: heading; text-align: center; }
+  .mission-briefing-actions { flex-direction: row; height: 44px; padding: 7px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .mission-briefing-actions button { flex-direction: row; width: 0px; flex-grow: 1; padding: 4px 6px; gap: 8px; border-width: 3px; font-family: heading; text-align: center; }
   .mission-briefing-actions .briefing-assign-hidden { width: 0px; flex-grow: 0; padding: 0px; border-width: 0px; overflow: hidden; }
-  .briefing-deploy { color: #78d494; }
-  .briefing-blocked { color: #e98b83; }
   .debug-rack-header { flex-direction: row; height: 38px; padding: 6px; gap: 8px; border-width: 1px; }
   .debug-service-plate { width: 64px; height: 32px; pointer-events: none; }
   #mission-debug-heading { width: 0px; flex-grow: 1; height: 34px; white-space: normal; }
+  .console-rocker { width: 22px; height: 36px; pointer-events: none; }
+  .debug-air-row .console-rocker { width: 14px; height: 24px; }
+  .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
+  .console-toggle-lamp { width: 8px; height: 22px; border-width: 2px; pointer-events: none; }
+  .debug-air-row .console-key-legend { height: 24px; padding: 3px 0px; }
+  .debug-drawer-toggle .console-key-legend { height: 26px; padding: 4px 0px; }
 </style>
