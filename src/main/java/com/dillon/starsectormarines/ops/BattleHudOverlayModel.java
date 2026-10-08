@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,7 +61,11 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> commandPanelClasses;
     private final MutableSignal<String> commandPhase;
     private final MutableSignal<String> commandForce;
+    private final MutableSignal<String> commandTitle;
     private final MutableSignal<List<ConquestLane>> conquestLanes;
+    private final MutableSignal<String> conquestLaneClasses;
+    private final MutableSignal<String> conquestGroupClasses;
+    private final MutableSignal<List<ConquestGroup>> conquestGroups;
 
     private final Consumer<Float> speedSetter;
     private final String[] speedLabels;
@@ -88,7 +93,11 @@ final class BattleHudOverlayModel {
         commandPanelClasses = reactor.signal(COMMAND_PANEL_HIDDEN);
         commandPhase = reactor.signal("");
         commandForce = reactor.signal("");
+        commandTitle = reactor.signal("COMMANDER");
         conquestLanes = reactor.signal(List.of());
+        conquestLaneClasses = reactor.signal("conquest-lanes");
+        conquestGroupClasses = reactor.signal("conquest-groups conquest-groups-hidden");
+        conquestGroups = reactor.signal(List.of());
     }
 
     Map<String, Object> props() {
@@ -120,7 +129,11 @@ final class BattleHudOverlayModel {
         props.put("commandPanelClasses", commandPanelClasses);
         props.put("commandPhase", commandPhase);
         props.put("commandForce", commandForce);
+        props.put("commandTitle", commandTitle);
         props.put("conquestLanes", conquestLanes);
+        props.put("conquestLaneClasses", conquestLaneClasses);
+        props.put("conquestGroupClasses", conquestGroupClasses);
+        props.put("conquestGroups", conquestGroups);
         return props;
     }
 
@@ -223,19 +236,84 @@ final class BattleHudOverlayModel {
             commandPhase.set("");
             commandForce.set("");
             conquestLanes.set(List.of());
+            conquestGroups.set(List.of());
+            conquestGroupClasses.set("conquest-groups conquest-groups-hidden");
             return false;
         }
 
         commandPanelClasses.set(COMMAND_PANEL);
         commandPhase.set(phaseLabel(front.phase()));
+        boolean grouped = !front.groups().isEmpty();
+        commandTitle.set(grouped ? "COMMAND GROUPS" : "COMMANDER");
         commandForce.set(commander.commandPoolSize() + " SQUADS  ·  "
+                + (grouped ? front.groups().size() + " GROUPS  ·  " : "")
                 + commander.reserveCount() + " RESERVE");
+        conquestLaneClasses.set(grouped ? "conquest-lanes conquest-lanes-hidden" : "conquest-lanes");
+        conquestGroupClasses.set(grouped ? "conquest-groups"
+                : "conquest-groups conquest-groups-hidden");
+        conquestGroups.set(grouped ? projectGroups(front) : List.of());
         List<ConquestLane> lanes = new ArrayList<>(front.tracks().size());
-        front.tracks().stream()
+        if (!grouped) front.tracks().stream()
                 .sorted((left, right) -> Integer.compare(left.index(), right.index()))
                 .forEach(track -> lanes.add(projectLane(front, track)));
         conquestLanes.set(List.copyOf(lanes));
         return true;
+    }
+
+    /** Three bounded rows: named leaders first, then an explicitly aggregated remainder. */
+    private static List<ConquestGroup> projectGroups(ConquestFrontSnapshot front) {
+        List<ConquestFrontSnapshot.GroupState> ordered = front.groups().stream()
+                .sorted(Comparator.comparing((ConquestFrontSnapshot.GroupState group) ->
+                                !group.identity().namedOfficer())
+                        .thenComparing(group -> group.identity().groupId())).toList();
+        int individualRows = ordered.size() <= 3 ? ordered.size() : 2;
+        List<ConquestGroup> rows = new ArrayList<>(3);
+        for (int index = 0; index < individualRows; index++) {
+            ConquestFrontSnapshot.GroupState group = ordered.get(index);
+            String id = "battle-conquest-group-" + index;
+            String intent = group.task() + (group.rallying() ? " · RALLY" : "");
+            String target = group.targetKind() == null ? "NO TARGET" : switch (group.targetKind()) {
+                case SECURE_COMPOUND -> "COMPOUND";
+                case CLEAR_ZONE -> "OBJECTIVE AREA";
+                case ADVANCE_TRACK, ATTACK_MOVE -> "ROUTE";
+                case HOLD_NODE, DEFEND_AREA, DEFEND_TRACK, DEFEND_SITE -> "POSITION";
+                default -> group.targetKind().name().replace('_', ' ');
+            };
+            rows.add(new ConquestGroup(id, group.identity().label(),
+                    groupForce(front, group.squadIds()), intent, target,
+                    "conquest-group" + (group.rallying() ? " conquest-group-rally" : "")));
+        }
+        if (individualRows < ordered.size()) {
+            List<ConquestFrontSnapshot.GroupState> rest = ordered.subList(individualRows, ordered.size());
+            long officers = rest.stream().filter(group -> group.identity().namedOfficer()).count();
+            long ncos = rest.size() - officers;
+            String label = officers > 0 ? officers + " OFFICERS + " + ncos + " NCO GROUPS"
+                    : ncos + " ACTING NCO GROUPS";
+            Map<String, Integer> tasks = new LinkedHashMap<>();
+            for (String task : List.of("HOLD", "ASSAULT", "MIXED", "UNASSIGNED")) {
+                int count = (int) rest.stream().filter(group -> task.equals(group.task())).count();
+                if (count > 0) tasks.put(task, count);
+            }
+            String intent = String.join(" · ", tasks.entrySet().stream()
+                    .map(entry -> entry.getValue() + " " + entry.getKey()).toList());
+            long rallying = rest.stream().filter(ConquestFrontSnapshot.GroupState::rallying).count();
+            rows.add(new ConquestGroup("battle-conquest-group-summary", label,
+                    groupForce(front, rest.stream().flatMap(group -> group.squadIds().stream()).toList()),
+                    intent, rallying > 0 ? rallying + " RALLYING" : "VARIED TARGETS",
+                    "conquest-group conquest-group-summary"));
+        }
+        return List.copyOf(rows);
+    }
+
+    private static String groupForce(ConquestFrontSnapshot front, List<Integer> squadIds) {
+        int live = 0;
+        boolean complete = true;
+        for (int squadId : squadIds) {
+            ConquestFrontSnapshot.SquadState state = front.squadFor(squadId);
+            if (state == null) complete = false;
+            else live += state.aliveMembers();
+        }
+        return squadIds.size() + " SQ" + (complete ? " · " + live + " LIVE" : "");
     }
 
     private static ConquestLane projectLane(
@@ -356,6 +434,27 @@ final class BattleHudOverlayModel {
     }
 
     record Presentation(boolean objectivesVisible, boolean commandVisible) {
+    }
+
+    record ConquestGroup(String id, String label, String force, String intent,
+                         String target, String classes) implements MarkupPropertySource {
+        @Override public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "nameId" -> id + "-name";
+                case "forceId" -> id + "-force";
+                case "intentId" -> id + "-intent";
+                case "targetId" -> id + "-target";
+                case "identityLineId" -> id + "-identity-line";
+                case "taskLineId" -> id + "-task-line";
+                case "label" -> label;
+                case "force" -> force;
+                case "intent" -> intent;
+                case "target" -> target;
+                case "classes" -> classes;
+                default -> throw new IllegalArgumentException("Unknown Conquest group property: " + name);
+            };
+        }
     }
 
     record ConquestLane(String id, String nameId, String forceId, String intentId,

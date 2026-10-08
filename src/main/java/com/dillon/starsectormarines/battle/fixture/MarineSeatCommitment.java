@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -28,7 +29,23 @@ public record MarineSeatCommitment(
         String campaignSquadLabel,
         boolean campaignSquadLeader,
         int campaignSquadStrength,
-        int campaignFireTeamIndex) {
+        int campaignFireTeamIndex,
+        CommandGroupIdentity commandGroupIdentity) {
+
+    public MarineSeatCommitment(String campaignSoldierId, String primaryWeaponId,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            String specialEquipmentId, LayeredArmorFamily armorFamily,
+            float armorCapacity, float armorRating, float armorMoveSpeedMult,
+            float armorIncomingAccuracyMult, String campaignSquadId,
+            String campaignSquadLabel, boolean campaignSquadLeader,
+            int campaignSquadStrength, int campaignFireTeamIndex) {
+        this(campaignSoldierId, primaryWeaponId, equipmentGrade, soldierProfile,
+                specialEquipmentId, armorFamily, armorCapacity, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquadId,
+                campaignSquadLabel, campaignSquadLeader, campaignSquadStrength,
+                campaignFireTeamIndex, campaignSquadId != null
+                        ? CommandGroupIdentity.actingNco(campaignSquadId, campaignSquadLabel) : null);
+    }
 
     public MarineSeatCommitment {
         if (primaryWeaponId == null || primaryWeaponId.isBlank()) {
@@ -88,7 +105,8 @@ public record MarineSeatCommitment(
                 squad != null ? squad.label : null,
                 squad != null && squad.leader,
                 squad != null ? squad.strength : 0,
-                squad != null ? squad.fireTeamIndex : Squad.NO_FIRE_TEAM);
+                squad != null ? squad.fireTeamIndex : Squad.NO_FIRE_TEAM,
+                squad != null ? squad.commandGroupIdentity : null);
     }
 
     /**
@@ -99,7 +117,7 @@ public record MarineSeatCommitment(
     public MarineLoadout toLoadout() {
         CampaignSquadTag squad = campaignSquadId != null
                 ? new CampaignSquadTag(campaignSquadId, campaignSquadLabel,
-                campaignSquadLeader, campaignSquadStrength, campaignFireTeamIndex)
+                campaignSquadLeader, campaignSquadStrength, campaignFireTeamIndex, commandGroupIdentity)
                 : null;
         return MarineLoadout.fromCatalog(
                 UnitRole.COMBATANT,

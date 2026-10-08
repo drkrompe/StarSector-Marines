@@ -35,7 +35,7 @@ final class BriefingViewModel {
     static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("screenHeader", "Mission Briefing");
-        props.put("captainHeader", "Commanding Officer");
+        props.put("captainHeader", "Operation Officer / Optional");
         props.put("debugHeader", "Mission DEBUG");
         props.put("commitmentHeader", "01 / FORCE COMMITMENT");
         props.put("commandHeader", "02 / COMMAND DECK");
@@ -50,6 +50,17 @@ final class BriefingViewModel {
         props.put("assignClasses", "");
         props.put("assignDisabled", false);
         putDebugDrawer(props, false, false, () -> { });
+        return withEmptyStyles(props);
+    }
+
+    static Map<String, Object> actingNcoPreviewProps() {
+        Map<String, Object> props = campaignPreviewProps(false);
+        props.put("captains", List.of(new ChoiceRow("captain-acting-nco", "choice-row selected",
+                "No operation officer", "Home officers retain groups; remaining squads use acting NCOs",
+                false, () -> { }, null)));
+        props.put("captainEmpty", "");
+        props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01 / Acting NCO",
+                "1 squad · 12 marines", null, "", false)));
         return withEmptyStyles(props);
     }
 
@@ -76,7 +87,7 @@ final class BriefingViewModel {
         props.put("rewardTerms", "Payable on successful completion");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                "Mira Hale", "Lieutenant · 1 squad command", false, none, "graphics/portraits/portrait_mercenary01.png")));
+                late ? "Hale" : "Mira Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
@@ -106,12 +117,14 @@ final class BriefingViewModel {
         props.put("personnelClasses", "label tone-good commitment-summary");
         props.put("experienceSummary", late ? "Campaign army" : "Conscript / opening company");
         props.put("taskForceRows", late ? List.of(
-                forceCard("tf-1", "Major Hale", "34 squads · western lane",
+                forceCard("tf-1", "Colonel Hale", "24 squads · 288 marines",
                         "graphics/portraits/portrait_mercenary01.png", ""),
-                forceCard("tf-2", "Captain Venn", "25 squads · central lane",
+                forceCard("tf-2", "Colonel Venn", "24 squads · 288 marines",
                         "graphics/portraits/portrait_mercenary02.png", ""),
-                forceCard("tf-3", "Captain Okafor", "25 squads · eastern lane",
-                        "graphics/portraits/portrait_mercenary03.png", "")) : List.of());
+                forceCard("tf-3", "Colonel Okafor", "24 squads · 288 marines",
+                        "graphics/portraits/portrait_mercenary03.png", ""),
+                forceCard("tf-4", "Colonel Reyes", "12 squads · 144 marines",
+                        "graphics/portraits/portrait_mercenary04.png", "")) : List.of());
         props.put("commandSummary", "5 / 5 slots");
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
@@ -318,8 +331,10 @@ final class BriefingViewModel {
         props.put("carrierEmpty", hasCarriers ? "" : "No fighter cover");
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
-        props.put("forceSummaryStyle", hasForceCards ? "height: 270px" : "height: 174px");
-        props.put("forceCardsStyle", hasForceCards ? "height: 86px" : "height: 0px");
+        int cards = ((List<?>) props.getOrDefault("taskForceRows", List.of())).size();
+        int cardsHeight = cards > 4 ? 144 : 72;
+        props.put("forceSummaryStyle", hasForceCards ? "height: " + (184 + cardsHeight) + "px" : "height: 174px");
+        props.put("forceCardsStyle", hasForceCards ? "height: " + cardsHeight + "px" : "height: 0px");
         for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
             props.put(key + "Style", text.isBlank()
@@ -369,11 +384,17 @@ final class BriefingViewModel {
     }
 
     static ForceCard forceCard(String key, String name, String detail, String portrait, String tone) {
-        return new ForceCard("briefing-info-" + key, name, detail, portrait,
-                "label force-card-detail " + tone);
+        return forceCard(key, name, detail, portrait, tone, true);
     }
 
-    record ForceCard(String id, String name, String detail, String portrait, String detailClasses)
+    static ForceCard forceCard(String key, String name, String detail, String portrait,
+                               String tone, boolean namedOfficer) {
+        return new ForceCard("briefing-info-" + key, name, detail, portrait,
+                "label force-card-detail " + tone, namedOfficer);
+    }
+
+    record ForceCard(String id, String name, String detail, String portrait, String detailClasses,
+                     boolean namedOfficer)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {

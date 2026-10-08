@@ -32,7 +32,7 @@ class CaptainDeploymentPolicyTest {
     }
 
     @Test
-    void borrowingStopsAtWholeSquadRankCap() {
+    void overflowDeploysUnderNcoButCannotBeStationed() {
         int cap = Rank.LIEUTENANT.squadCommandCap();
         MarineRoster roster = roster((cap + 1) * MarineSquad.CAPACITY);
         MarineCaptain captain = captain(Rank.LIEUTENANT);
@@ -41,28 +41,30 @@ class CaptainDeploymentPolicyTest {
         for (int i = 0; i < cap; i++) selected.add(roster.squads().get(i).id());
         MarineSquad beyondCap = roster.squads().get(cap);
 
-        assertFalse(CaptainDeploymentPolicy.canAdd(
+        assertTrue(CaptainDeploymentPolicy.canAdd(
                 roster, captain, selected, beyondCap.id()));
         assertTrue(CaptainDeploymentPolicy.isValidCommand(
                 roster, captain, selected));
 
+        assertTrue(CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selected));
         selected.add(beyondCap.id());
-        assertFalse(CaptainDeploymentPolicy.isValidCommand(
+        assertFalse(CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selected));
+        assertEquals(1, TaskForce.of(roster, captain, selected).unledSquads());
+        assertTrue(CaptainDeploymentPolicy.isValidCommand(
                 roster, captain, selected));
     }
 
     @Test
-    void unavailableCaptainCannotLeadOrBorrow() {
+    void unavailableCaptainFallsBackToNcoForOrdinaryDeployment() {
         MarineRoster roster = roster(MarineSquad.CAPACITY);
         MarineCaptain captain = captain(Rank.COLONEL);
         roster.add(captain);
         captain.setStatus(Status.INJURED);
 
-        assertTrue(CaptainDeploymentPolicy.defaultSquadIds(
-                roster, captain).isEmpty());
-        assertFalse(CaptainDeploymentPolicy.canAdd(roster, captain,
+        assertEquals(1, CaptainDeploymentPolicy.defaultSquadIds(roster, captain).size());
+        assertTrue(CaptainDeploymentPolicy.canAdd(roster, captain,
                 Set.of(), roster.squads().get(0).id()));
-        assertFalse(CaptainDeploymentPolicy.isValidCommand(
+        assertTrue(CaptainDeploymentPolicy.isValidCommand(
                 roster, captain, Set.of()));
     }
 

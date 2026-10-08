@@ -377,6 +377,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int GARRISON_MARGIN = 2;
 
     private final TraversalAxis axis;
+    private final ConquestGroupCommand groupCommand = new ConquestGroupCommand();
+    private CommandTopology groupTopology;
+    private final Map<String, Integer> groupTracks = new TreeMap<>();
     /** Shared production geometry; lazily synthesized only by the legacy axis constructor used in tests. */
     private ConquestTrackLayout trackLayout;
 
@@ -545,6 +548,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final int[] memberCellXs;
         final int[] memberCellYs;
         final ObjectiveAssignment originalAssignment;
+        final CommandGroupIdentity commandGroup;
         ObjectiveAssignment assignedObjective;
 
         PlanningSquad(CommandSquadState state) {
@@ -576,6 +580,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             memberCellXs = state.memberCellXs();
             memberCellYs = state.memberCellYs();
             originalAssignment = state.assignment();
+            commandGroup = state.commandGroup();
             assignedObjective = state.assignment();
         }
     }
@@ -660,6 +665,19 @@ public final class ConquestCommand implements ConquestFrontCommand,
         }
 
         IntOpenHashSet committed = new IntOpenHashSet();
+        // An explicit mission hold is a standing obligation, not spare assault strength.
+        // Higher ownership was filtered above; this cannot claim a delivered garrison.
+        List<PlanningSquad> holding = new ArrayList<>();
+        for (PlanningSquad squad : squads) {
+            if (squad.commandGroup == null
+                    || !ConquestGroupCommand.isHold(squad.originalAssignment)
+                    || !validGroupHold(squad, frame)) continue;
+            holding.add(squad);
+            int preferred = stripFor(squad);
+            directives.put(squad.id, directive(squad, preferred, preferred,
+                    AssignmentReason.GROUP_HOLD_PRESERVED));
+        }
+        squads.removeAll(holding);
         CompoundTarget keep = canonicalKeep();
         int remainingCompounds = remainingCompounds();
         CompoundTarget soleRemaining = remainingCompounds == 1
@@ -816,13 +834,54 @@ public final class ConquestCommand implements ConquestFrontCommand,
             }
         }
 
+        List<ConquestGroupCommand.Member> groupMembers = new ArrayList<>();
+        for (CommandSquadState state : frame.squads()) {
+            PlanningSquad planned = allSquads.get(state.squadId());
+            if (planned == null) continue;
+            groupMembers.add(new ConquestGroupCommand.Member(state,
+                    planned.assignedObjective, squads.contains(planned)));
+        }
+        if (groupTopology != frame.topology()) {
+            groupCommand.invalidateZoneTargets();
+            groupTopology = frame.topology();
+        }
+        ConquestGroupCommand.Result groups = groupCommand.plan(frame.tick(), groupMembers,
+                (state, target) -> legalGroupTarget(allSquads.get(state.squadId()), target, frame),
+                state -> groupRouteProgress(allSquads.get(state.squadId())),
+                this::rebindGroupTarget,
+                state -> frame.topology().inBounds(state.anchorCellX(), state.anchorCellY())
+                        && frame.topology().isWalkable(state.anchorCellX(), state.anchorCellY()));
+        for (Map.Entry<Integer, ConquestGroupCommand.Decision> entry : groups.decisions().entrySet()) {
+            PlanningSquad squad = allSquads.get(entry.getKey());
+            ObjectiveAssignment proposed = entry.getValue().assignment();
+            ObjectiveAssignment baseline = squad.assignedObjective;
+            boolean redirectedClear = proposed.kind() == AssignmentKind.CLEAR_ZONE
+                    && (baseline == null || baseline.kind() != AssignmentKind.CLEAR_ZONE
+                    || baseline.targetZoneId() != proposed.targetZoneId());
+            if (redirectedClear && zoneTargetIsFull(proposed.targetZoneId())) continue;
+            if (redirectedClear) {
+                if (baseline != null && baseline.kind() == AssignmentKind.CLEAR_ZONE
+                        && baseline.targetZoneId() >= 0
+                        && baseline.targetZoneId() < zoneTargetSquads.length) {
+                    zoneTargetSquads[baseline.targetZoneId()]--;
+                }
+                noteZoneTarget(proposed.targetZoneId());
+            }
+            squad.assignedObjective = proposed;
+            int preferred = stripFor(squad);
+            int effective = squad.assignedObjective.targetZoneId() >= 0
+                    ? effectiveTrackFor(squad.assignedObjective.targetZoneId(), preferred)
+                    : preferred;
+            directives.put(squad.id, directive(squad, preferred, effective,
+                    AssignmentReason.valueOf(entry.getValue().reason())));
+        }
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
-                remainingCompounds, keep, directives, allSquads);
+                remainingCompounds, keep, directives, allSquads).withGroups(groups.groups());
         List<CommandProposal> proposals = buildProposals(
                 frame, allSquads, directives, phase);
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 frame.influence() != null ? frame.influence().updatedTick() : -1,
-                squads.size(), 0,
+                squads.size() + holding.size(), 0,
                 List.of("remaining compounds=" + remainingCompounds),
                 proposals, detail);
     }
@@ -1224,24 +1283,25 @@ public final class ConquestCommand implements ConquestFrontCommand,
         IntOpenHashSet actionable = new IntOpenHashSet();
         for (PlanningSquad squad : squads) {
             if (committed.contains(squad.id)) continue;
-            if (squad.executionSuspension != null) continue;
-            if (squad.localContact) {
-                actionable.add(squad.id);
-                continue;
-            }
-            int preferredTrack = stripFor(squad);
             // A scout advance into a track nobody has seen anything in is not
             // front resistance, and must not consume the front reserve that
             // holds squads back from distant captures. The reserve exists so
             // somebody stays on live work; staging blind is what a squad does
             // precisely when there is none.
-            if (targetChoice(squad, preferredTrack, frame).targetZoneId >= 0
-                    || (trackFront(squad, preferredTrack, frame).believed()
-                    && laneStageChoice(squad, preferredTrack, frame) != null)) {
+            if (hasActionableFrontWork(squad, frame)) {
                 actionable.add(squad.id);
             }
         }
         return actionable;
+    }
+
+    private boolean hasActionableFrontWork(PlanningSquad squad, ConquestCommandFrame frame) {
+        if (squad.executionSuspension != null) return false;
+        if (squad.localContact) return true;
+        int preferredTrack = stripFor(squad);
+        return targetChoice(squad, preferredTrack, frame).targetZoneId >= 0
+                || trackFront(squad, preferredTrack, frame).believed()
+                && laneStageChoice(squad, preferredTrack, frame) != null;
     }
 
     private void commitCapture(PlanningSquad squad, CompoundTarget t,
@@ -1684,8 +1744,69 @@ public final class ConquestCommand implements ConquestFrontCommand,
         int idx = stripIndexForLateral(lateral);
         if (idx < 0) idx = 0;
         if (idx >= STRIP_COUNT) idx = STRIP_COUNT - 1;
+        if (squad.commandGroup != null && squad.commandGroup.namedOfficer()) {
+            idx = groupTracks.computeIfAbsent(squad.commandGroup.groupId(), key -> idxForGroup(squad));
+        }
         squadStripIdx.put(squad.id, idx);
         return idx;
+    }
+
+    private int idxForGroup(PlanningSquad squad) {
+        float lateral = axis == TraversalAxis.SOUTH_TO_NORTH ? squad.centroidX : squad.centroidY;
+        return Math.max(0, Math.min(STRIP_COUNT - 1, stripIndexForLateral(lateral)));
+    }
+
+    private double groupRouteProgress(PlanningSquad squad) {
+        int track = stripFor(squad);
+        if (laneChainInForce() && laneChain.routeLength(track) > 0) {
+            return laneChain.routeIndexNear(track, squad.centroidX, squad.centroidY);
+        }
+        return trackLayout.forwardCoordinate(squad.centroidX, squad.centroidY);
+    }
+
+    private boolean legalGroupTarget(PlanningSquad squad, ObjectiveAssignment target,
+                                     ConquestCommandFrame frame) {
+        if (squad == null || target == null) return false;
+        if (target.kind() == AssignmentKind.SECURE_COMPOUND) {
+            CompoundTarget compound = compoundTarget(target.targetNode(), target.targetZoneId());
+            return compound != null && compound.state != CompoundService.CompoundState.MARINE_HELD
+                    && isContested(compound, frame)
+                    && (squad.assignedObjective != null
+                    && squad.assignedObjective.targetZoneId() == compound.captureZoneId
+                    || squadAdjacentToCompound(squad, compound, frame)
+                    && !hasActionableFrontWork(squad, frame))
+                    && reachableZone(squad, compound.captureZoneId, frame);
+        }
+        if (target.kind() == AssignmentKind.CLEAR_ZONE) {
+            return hasKnownHostileInZone(target.targetZoneId(), frame)
+                    && reachableZone(squad, target.targetZoneId(), frame);
+        }
+        // Cell stages are recomputed by the lane-chain policy every pulse. Keep its
+        // per-squad route markers rather than concentrating a group on one cell.
+        return false;
+    }
+
+    private ObjectiveAssignment rebindGroupTarget(ObjectiveAssignment target) {
+        if (target.kind() != AssignmentKind.SECURE_COMPOUND) return target;
+        CompoundTarget current = compoundTarget(target.targetNode(), target.targetZoneId());
+        return current != null ? ObjectiveAssignment.secureCompound(target.squadId(),
+                current.captureZoneId, current.node) : null;
+    }
+
+    private boolean validGroupHold(PlanningSquad squad, ConquestCommandFrame frame) {
+        ObjectiveAssignment hold = squad.originalAssignment;
+        TacticalNode node = hold.targetNode();
+        if (hold.kind() == AssignmentKind.HOLD_NODE) {
+            if (node == null) return false;
+            for (TacticalNode.StandPosition position : node.standPositions()) {
+                if (frame.topology().reachable(squad.anchorCellX, squad.anchorCellY,
+                        position.x(), position.y())) return true;
+            }
+            return frame.topology().reachable(squad.anchorCellX, squad.anchorCellY,
+                    node.anchorX, node.anchorY);
+        }
+        return frame.topology().reachable(squad.anchorCellX, squad.anchorCellY,
+                hold.targetCellX(), hold.targetCellY());
     }
 
     private int trackForZone(int zoneId) {
@@ -2606,6 +2727,13 @@ public final class ConquestCommand implements ConquestFrontCommand,
             return CommandStabilityBreak.NONE;
         }
         ObjectiveAssignment old = incumbent.assignment();
+        if (squad.commandGroup != null && ConquestGroupCommand.isHold(old)
+                && !validGroupHold(squad, frame)) {
+            return CommandStabilityBreak.TARGET_UNREACHABLE;
+        }
+        if (reason == AssignmentReason.GROUP_BOUNDED_RALLY) {
+            return CommandStabilityBreak.CONTEXT_INVALIDATED;
+        }
         if (old.kind() == AssignmentKind.SECURE_COMPOUND
                 && squad.assignedObjective != null
                 && squad.assignedObjective.kind()

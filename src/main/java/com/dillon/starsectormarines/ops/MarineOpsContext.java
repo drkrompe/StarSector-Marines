@@ -73,6 +73,7 @@ public class MarineOpsContext {
     private Mission selectedMission;
     /** Captain chosen to lead the accepted mission. Sticky across screen swaps. */
     private String selectedCaptainId;
+    private boolean captainSelectionInitialized;
     /** Persistent squads selected for the current mission's player-controlled seats. */
     private final LinkedHashSet<String> selectedMarineSquadIds = new LinkedHashSet<>();
     private String squadSelectionMissionId;
@@ -445,7 +446,12 @@ public class MarineOpsContext {
         return selectedCaptainId;
     }
 
+    public boolean isCaptainSelectionInitialized() {
+        return captainSelectionInitialized;
+    }
+
     public void setSelectedCaptainId(String captainId) {
+        captainSelectionInitialized = true;
         if (selectedCaptainId == null ? captainId != null
                 : !selectedCaptainId.equals(captainId)) {
             selectedMarineSquadIds.clear();

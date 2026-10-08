@@ -93,7 +93,7 @@
             <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
             <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
             <div id="mission-task-force" class="force-card-grid" style="{forceCardsStyle}">
-              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="force-card console-readout">
+              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="force-card console-readout" tabindex="0">
                 <img id="{row.portraitId}" class="{row.portraitClasses}" src="{row.portrait}" />
                 <div id="{row.copyId}" class="force-card-copy">
                   <div id="{row.nameId}" class="label heading tone-edge force-card-title">{row.name}</div>
@@ -296,10 +296,10 @@
   .debug-air-row { flex-direction: row; align-items: center; height: 24px; gap: 4px; padding: 2px; border-width: 1px; }
   .debug-air-label { width: 0px; flex-grow: 1; height: auto; padding: 0px; }
   .debug-air-row button { flex-direction: row; align-items: center; width: 72px; height: 18px; padding: 1px 3px; gap: 5px; border-width: 2px; font-family: heading; text-align: center; }
-  .force-card { flex-direction: row; align-items: center; width: 270px; height: 64px; padding: 7px; gap: 8px; border-width: 1px; }
-  .force-card-portrait { width: 60px; height: 60px; padding: 1px; border-width: 1px; pointer-events: none; }
+  .force-card { flex-direction: row; align-items: center; width: 202px; height: 52px; padding: 5px; gap: 6px; border-width: 1px; }
+  .force-card-portrait { width: 44px; height: 44px; padding: 1px; border-width: 1px; pointer-events: none; }
   .force-card-portrait.portrait-absent { width: 0px; height: 0px; padding: 0px; border-width: 0px; }
-  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 58px; gap: 6px; overflow: hidden; }
+  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 46px; gap: 3px; overflow: hidden; }
   .force-card-title { height: auto; white-space: normal; }
   .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }

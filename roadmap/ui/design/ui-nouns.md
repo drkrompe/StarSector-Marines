@@ -338,7 +338,10 @@ The force breakdown uses compact read-only cards that keep each commander's name
 squad and Marine counts, and attachment state together. The captain's existing
 portrait anchors the card beside its text and also appears in the commanding-officer
 picker. Portrait identity comes from the captain; an unassigned force never borrows
-another officer's image. Cards keep a bounded
+another officer's image. Acting-NCO cards remain valid independent groups, and
+an explicitly omitted operation officer remains omitted across screen rebuilds.
+Named group hints describe Conquest coordination without promising a passive
+stat bonus or permanent ownership of a compass lane. Cards keep a bounded
 reading width as the briefing expands; they wrap into a scrolling gallery instead
 of spreading a name and its counts across the screen. Existing readiness warnings
 remain on their values. An empty officer breakdown reserves no gallery space.
@@ -413,7 +416,12 @@ center wins, with stable entity identity breaking an exact tie. This preserves t
 single-selection command model while leaving room for a later multi-selection
 authority rather than pretending a set exists today.
 Player-facing Conquest command intent occupies the top-left opposite the top-right
-time/objective rail. Tick Profile and DEBUG share one centred developer cluster.
+time/objective rail. When organizational groups are published, this bounded
+readout shows named leaders, deployed squad strength, task and regrouping state;
+additional groups are explicitly summarized rather than extending over the
+battlefield. Semantic target labels keep internal zone IDs out of the player HUD.
+Legacy scenes without group identities retain the approach view. Tick Profile
+and DEBUG share one centred developer cluster.
 The selected player squad replaces the force plate with a 3-column by 4-slot
 fire-team roster; its default cards expose health and equipment shorthand while
 hover reveals the marine's full primary, special equipment, suit system, profile,

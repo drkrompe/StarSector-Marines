@@ -512,6 +512,35 @@ public final class CommandTraceRecorder {
             if (i > 0) out.append(',');
             action(out, actions.get(i));
         }
+        out.append(']');
+        List<ConquestFrontSnapshot.GroupState> groups = new ArrayList<>(snapshot.groups());
+        groups.sort(Comparator.comparing(group -> group.identity().groupId()));
+        out.append(",\"groups\":[");
+        for (int i = 0; i < groups.size(); i++) {
+            if (i > 0) out.append(',');
+            ConquestFrontSnapshot.GroupState group = groups.get(i);
+            out.append('{');
+            rawField(out, "groupId", group.identity().groupId());
+            nullableField(out, "officerId", group.identity().officerId());
+            field(out, "label", group.identity().label());
+            booleanField(out, "namedOfficer", group.identity().namedOfficer());
+            field(out, "task", group.task());
+            nullableField(out, "targetKind", group.targetKind() != null
+                    ? group.targetKind().name() : null);
+            numberField(out, "targetZoneId", group.targetZoneId());
+            numberField(out, "targetCellX", group.targetCellX());
+            numberField(out, "targetCellY", group.targetCellY());
+            field(out, "reason", group.reason());
+            booleanField(out, "rallying", group.rallying());
+            out.append(",\"squadIds\":[");
+            List<Integer> ids = new ArrayList<>(group.squadIds());
+            ids.sort(Integer::compareTo);
+            for (int j = 0; j < ids.size(); j++) {
+                if (j > 0) out.append(',');
+                out.append(ids.get(j));
+            }
+            out.append("]}");
+        }
         out.append("]}");
     }
 

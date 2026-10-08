@@ -92,7 +92,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         int wia = selectedStatusCount(roster, MarineSoldierStatus.WIA);
         boolean commandValid = state != null && marketId() != null && selectedSquads > 0
                 && active > 0
-                && CaptainDeploymentPolicy.isValidCommand(roster, captain, selectedSquadIds)
+                && CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selectedSquadIds)
                 && selectionAvailable(roster);
 
         Map<String, Object> props = commonProps(Strings.get("postingTitle"),
@@ -146,7 +146,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         StationingContractTerms terms = StationingContractTerms.create(
                 type, rank, active + wia, requestedMonths);
         boolean commandValid = selectedSquads > 0 && active > 0
-                && CaptainDeploymentPolicy.isValidCommand(roster, captain, selectedSquadIds)
+                && CaptainDeploymentPolicy.isValidNamedCommand(roster, captain, selectedSquadIds)
                 && selectionAvailable(roster);
 
         Map<String, Object> props = commonProps(displayType(type) + " contract",

@@ -4,8 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-09-27 — strategic-resolution evidence separates propagation
-connectivity, scalar spatial precision, rebuild wall stages and host CPU.
+Updated: 2026-10-08 — frozen command groups distinguish named-officer coordination
+from independent acting-NCO leadership and physical mission routes.
 Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
 the underlying directive remains authoritative and resumes on release.
@@ -120,6 +120,40 @@ Repeating an unchanged directive renews neither clock.
 Form-up is execution suspension, not ownership transfer. The authoritative
 directive remains visible while its executable assignment is withheld until
 the squad assembles or the suspension times out.
+
+## Subordinate command groups
+
+A **command group** is the stable organizational identity of selected campaign
+squads under one named officer, or one independently led squad under its acting
+NCO. Deployment freezes that identity with the squad and carries it through
+later lifts; a landing area, route, lane, or first observed position cannot
+replace it. The operation commander may coordinate unattached squads within
+available rank capacity. Squads beyond that capacity retain competent basic
+mission execution under their own NCOs rather than becoming undeployable.
+
+A named officer adds coordination across their squads, not a passive increase
+to damage, accuracy, morale, or movement. A subordinate task is intent within
+the faction's existing mission strategy. It produces ordinary squad proposals
+through the same arbiter and acquires no competing assignment authority.
+Mission law, global allocation budgets, player leases, delivery ownership and
+born garrisons still determine which squads may execute it.
+
+Conquest currently supplies this group coordinator. It preserves useful assault
+work, supports the group's selected objective without multiplying capture
+quotas, and keeps explicit hold obligations separate from assault strength.
+Hold and assault may coexist in one command picture; this is a foundation for
+mixed obligations, not an authoring system for new mixed missions. Other mission
+adapters retain their existing allocation policies until they explicitly adopt
+group coordination.
+
+Group cohesion concerns useful separation along an authorized route, not
+morale or individual formation. Quiet leading squads may briefly pause at a
+reachable own-force rally while the nearby body closes. The pause is bounded,
+ignores distant late arrivals, and yields to contact, incoming fire, broken
+morale and execution suspension. Local squad AI still owns fighting, survival
+and movement. Objective completion or loss of useful reachable work releases
+an assault task for fresh mission allocation. Published group identity, task,
+target and reason explain this decision alongside the committed squad orders.
 
 ## Mission strategy adapter
 

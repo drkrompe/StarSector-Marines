@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -74,6 +75,25 @@ public final class CampaignMarineDeployment {
             MarineRoster roster, Set<String> selectedSquadIds,
             int requiredSeats) {
         return freeze(roster, selectedSquadIds, requiredSeats, true);
+    }
+
+    public static CampaignMarineDeployment freezeSelection(MarineRoster roster,
+            Set<String> selectedSquadIds, int requiredSeats, MarineCaptain commander) {
+        CampaignMarineDeployment deployment = freezeSelection(roster, selectedSquadIds, requiredSeats);
+        TaskForce force = TaskForce.of(roster, commander, selectedSquadIds);
+        List<MarineLoadout> seats = new ArrayList<>();
+        for (MarineLoadout seat : deployment.seats) {
+            CampaignSquadTag prior = seat.campaignSquad;
+            CampaignSquadTag tag = prior == null ? null : new CampaignSquadTag(prior.squadId,
+                    prior.label, prior.leader, prior.strength, prior.fireTeamIndex,
+                    force.groupForSquad(prior.squadId));
+            seats.add(new MarineLoadout(seat.role, seat.objective, seat.primaryWeaponId,
+                    seat.equipmentGrade, seat.soldierProfile, seat.specialEquipmentId,
+                    seat.secondaryAmmo, seat.campaignSoldierId, seat.armorFamily,
+                    seat.armorCapacity, seat.armorRating, seat.armorMoveSpeedMult,
+                    seat.armorIncomingAccuracyMult, tag, seat.integralSystem));
+        }
+        return new CampaignMarineDeployment(seats);
     }
 
     private static CampaignMarineDeployment freeze(

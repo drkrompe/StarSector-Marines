@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -14,6 +15,33 @@ class CampaignSquadIndexTest {
 
     private final Map<Integer, Squad> squads = new HashMap<>();
     private int nextId = 0;
+
+    @Test
+    void lateLiftsAndSplitLandingsRetainFrozenOfficerMembership() {
+        CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
+        CommandGroupIdentity group = new CommandGroupIdentity("officer:o1", "o1", "Vance", true);
+        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", true, 12, 0, group);
+        int first = resolve(index, tag, 10, 20);
+        int late = resolve(index, tag, 10, 20);
+        int split = resolve(index, tag, 40, 60);
+        assertEquals(first, late);
+        assertEquals(group, squads.get(first).commandGroupIdentity);
+        assertEquals(group, squads.get(split).commandGroupIdentity);
+        int another = resolve(index, new CampaignSquadTag("cs-2", "Squad 02", true, 12, 0, group), 10, 20);
+        assertNotEquals(first, another);
+        assertEquals(group, squads.get(another).commandGroupIdentity);
+    }
+
+    @Test
+    void actingNcoLateArrivalsRemainIndependentFromOtherSquads() {
+        CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
+        CampaignSquadTag tag = new CampaignSquadTag("cs-1", "Squad 01", true, 12);
+        int first = resolve(index, tag, 10, 20);
+        assertEquals(first, resolve(index, tag, 10, 20));
+        int second = resolve(index, new CampaignSquadTag("cs-2", "Squad 02", true, 12), 10, 20);
+        assertEquals(tag.commandGroupIdentity, squads.get(first).commandGroupIdentity);
+        assertNotEquals(squads.get(first).commandGroupIdentity, squads.get(second).commandGroupIdentity);
+    }
 
     @Test
     void aSquadCrossingInThreeLiftsIsOneSquadOnTheGround() {

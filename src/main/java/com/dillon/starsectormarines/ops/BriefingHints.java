@@ -16,10 +16,21 @@ final class BriefingHints {
 
     static SpecSheetBinder install(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
         SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-        bindChoices(binder, markup, props, "captains", "Commanding officer");
+        bindChoices(binder, markup, props, "captains",
+                "Stationed Officer".equals(props.get("captainHeader"))
+                        ? "Stationed officer" : "Operation officer / optional");
         bindChoices(binder, markup, props, "powerRows", "Command power");
         bindChoices(binder, markup, props, "sourceRows", "Power source");
         bindChoices(binder, markup, props, "carrierRows", "Fighter cover");
+        for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
+            BriefingViewModel.ForceCard row = (BriefingViewModel.ForceCard) value;
+            binder.bind(markup.requireElement(row.id()), new SpecSheet(row.name(),
+                    row.namedOfficer() ? "Coordinated command group" : "Independent squad command",
+                    row.portrait(), "command", List.of(), List.of(row.detail(),
+                    row.namedOfficer()
+                            ? "In Conquest, this officer coordinates these squads as one group and retasks them together."
+                            : "The acting NCO follows basic squad orders independently. In Conquest, a home officer or operation officer enables multi-squad coordination.")));
+        }
         if (props.get("forceComparisonHint") instanceof SpecSheet force) {
             binder.bind(markup.requireElement("mission-force-comparison"), force);
         }

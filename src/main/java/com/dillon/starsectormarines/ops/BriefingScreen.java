@@ -279,7 +279,7 @@ public class BriefingScreen implements Screen {
 
         // Default to the first ACTIVE captain if nothing's selected yet — saves
         // a click for the common case. User's pick survives across re-attaches.
-        if (ctx.getSelectedCaptainId() == null) {
+        if (!ctx.isCaptainSelectionInitialized()) {
             MarineRosterScript script = MarineRosterScript.getInstance();
             if (script != null) {
                 List<MarineCaptain> active = script.roster().active();
@@ -383,9 +383,11 @@ public class BriefingScreen implements Screen {
         BriefingViewModel.putSurvey(props, preparedSurvey != null ? preparedSurvey.map() : null,
                 surveyFailure != null ? "Survey unavailable / retry to prepare terrain" : "Compiling terrain and landing intelligence...");
         props.put("termActions", retainedTermActions(mission));
+        props.put("captainHeader", mission.source == MissionSource.STATIONING
+                ? "Stationed Officer" : "Operation Officer / Optional");
         props.put("captains", retainedCaptainRows(mission));
         props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()
-                ? Strings.get("briefingNoCaptains") : "");
+                ? "Acting NCOs lead squads independently" : "");
 
         boolean debug = mission.source.isDebug();
         BriefingViewModel.putDebugDrawer(props, debug, debugDrawerExpanded, this::toggleDebugDrawer);
@@ -473,6 +475,12 @@ public class BriefingScreen implements Screen {
             captains = script != null ? script.roster().active() : List.of();
         }
         List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
+        if (mission.source != MissionSource.STATIONING) {
+            rows.add(new BriefingViewModel.ChoiceRow("captain-acting-nco",
+                    "choice-row" + (ctx.getSelectedCaptainId() == null ? " selected" : ""),
+                    "No operation officer", "Home officers retain groups; remaining squads use acting NCOs",
+                    false, () -> { ctx.setSelectedCaptainId(null); rebuild(); }, null));
+        }
         for (int i = 0; i < captains.size(); i++) {
             MarineCaptain captain = captains.get(i);
             boolean selected = captain.id().equals(ctx.getSelectedCaptainId());
@@ -728,19 +736,19 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.ForceCard> retainedTaskForceRows() {
         TaskForce force = selectedTaskForce();
-        if (force.officerCount() < 2) return List.of();
+        if (force.elements().isEmpty()) return List.of();
         List<BriefingViewModel.ForceCard> rows = new ArrayList<>();
         int index = 0;
         for (TaskForce.Element element : force.elements()) {
             boolean bad = !element.fit() || element.overCap();
             String name = element.officer != null
                     ? element.officer.rank().displayName() + " " + element.officer.name()
-                    : "Unassigned";
-            String detail = element.squads.size() + " squads  ·  " + element.marines
+                    : element.displayName();
+            String detail = element.squads.size() + (element.squads.size() == 1 ? " squad  ·  " : " squads  ·  ") + element.marines
                     + " marines" + (element.inherited ? "  ·  attached" : "");
             rows.add(BriefingViewModel.forceCard("task-force-" + index++, name, detail,
                     element.officer != null ? element.officer.portraitSprite() : null,
-                    bad ? "tone-danger" : ""));
+                    bad ? "tone-danger" : "", element.officer != null));
         }
         return List.copyOf(rows);
     }
@@ -850,7 +858,7 @@ public class BriefingScreen implements Screen {
                 : this::openSquadDeployment;
         String label = canAccept ? "DEPLOY"
                 : !transportOk ? "INSUFFICIENT TRANSPORT"
-                : !commandOk ? "SELECT COMMANDER"
+                : !commandOk ? "CHECK COMMAND GROUPS"
                 : readiness != null && readiness.needsPersonnel()
                         ? canReinforce ? "REINFORCE +" + reinforcement + "  ·  " + cargoCost + " CARGO"
                                 : "NEED " + shortfall + "  ·  NO MARINES"
@@ -1035,7 +1043,7 @@ public class BriefingScreen implements Screen {
         }
 
         if (captains.isEmpty()) {
-            widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingNoCaptains"),
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Acting NCOs lead squads independently",
                     x, listTop, LABEL_COLOR));
             return;
         }
@@ -1167,8 +1175,7 @@ public class BriefingScreen implements Screen {
             y -= ROW_GAP;
         }
 
-        // Task force — one row per officer once the operation needs more than
-        // one. A single-officer deployment says nothing new, so it stays quiet.
+        // Every command group is shown, including independent acting NCOs.
         if (!m.source.isDebug() && m.source != MissionSource.STATIONING) {
             y = buildTaskForceRows(x, y, rowW, floor);
         }
@@ -1406,7 +1413,7 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 canAccept ? Strings.get("briefingAccept")
                         : !transportOk ? Strings.get("briefingAcceptBlocked")
-                        : !commandOk ? "Select Commander"
+                        : !commandOk ? "Check Command Groups"
                         : readiness.needsPersonnel()
                                 ? reinforcementAvailable > 0
                                         ? "Reinforce +" + reinforcementAvailable
@@ -1503,13 +1510,13 @@ public class BriefingScreen implements Screen {
      */
     private float buildTaskForceRows(float x, float y, float rowW, float floor) {
         TaskForce force = selectedTaskForce();
-        if (force.officerCount() < 2) return y;
+        if (force.elements().isEmpty()) return y;
         for (TaskForce.Element element : force.elements()) {
             if (y < floor) return y;
             boolean bad = !element.fit() || element.overCap();
             String name = element.officer != null
                     ? element.officer.rank().displayName() + " " + element.officer.name()
-                    : "Unassigned";
+                    : element.displayName();
             String detail = element.squads.size()
                     + (element.squads.size() == 1 ? " squad · " : " squads · ")
                     + element.marines + " marines"

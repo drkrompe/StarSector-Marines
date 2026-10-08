@@ -33,7 +33,42 @@ public record CommandSquadState(
         int coolingDownMembers,
         int[] memberZoneIds,
         int[] memberCellXs,
+        int[] memberCellYs,
+        CommandGroupIdentity commandGroup) {
+
+    /** Compatibility seam for strategies without persistent command groups. */
+    public CommandSquadState(
+        int squadId,
+        Faction faction,
+        int aliveMembers,
+        float centroidX,
+        float centroidY,
+        int anchorCellX,
+        int anchorCellY,
+        int currentZoneId,
+        UnitRole role,
+        boolean localContact,
+        boolean underFireRecently,
+        boolean moraleBroken,
+        String currentGoal,
+        String currentAction,
+        String executionSuspension,
+        ObjectiveAssignment assignment,
+        CommandDirective directive,
+        int activePathMembers,
+        int movingMembers,
+        int coveredFromPrimaryMembers,
+        int primaryEngageableMembers,
+        int primaryEngageableFireTeams,
+        String contactPosture,
+        String contactDoctrine,
+        String contactInitiative,
+        int coolingDownMembers,
+        int[] memberZoneIds,
+        int[] memberCellXs,
         int[] memberCellYs) {
+        this(squadId, faction, aliveMembers, centroidX, centroidY, anchorCellX, anchorCellY, currentZoneId, role, localContact, underFireRecently, moraleBroken, currentGoal, currentAction, executionSuspension, assignment, directive, activePathMembers, movingMembers, coveredFromPrimaryMembers, primaryEngageableMembers, primaryEngageableFireTeams, contactPosture, contactDoctrine, contactInitiative, coolingDownMembers, memberZoneIds, memberCellXs, memberCellYs, null);
+    }
 
     public CommandSquadState {
         memberZoneIds = memberZoneIds.clone();

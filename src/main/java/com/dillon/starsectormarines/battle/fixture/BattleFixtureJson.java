@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
+
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -511,6 +513,15 @@ public final class BattleFixtureJson {
                 squad.put("leader", seat.campaignSquadLeader());
                 squad.put("strength", seat.campaignSquadStrength());
                 squad.put("fireTeamIndex", seat.campaignFireTeamIndex());
+                CommandGroupIdentity identity = seat.commandGroupIdentity();
+                if (identity != null) {
+                    JSONObject group = new JSONObject();
+                    group.put("groupId", identity.groupId());
+                    putNullable(group, "officerId", identity.officerId());
+                    group.put("label", identity.label());
+                    group.put("namedOfficer", identity.namedOfficer());
+                    squad.put("commandGroup", group);
+                }
                 encoded.put("campaignSquad", squad);
             }
             seats.put(encoded);
@@ -524,6 +535,13 @@ public final class BattleFixtureJson {
         for (int i = 0; i < encodedSeats.length(); i++) {
             JSONObject encoded = encodedSeats.getJSONObject(i);
             JSONObject squad = encoded.optJSONObject("campaignSquad");
+            JSONObject group = squad != null ? squad.optJSONObject("commandGroup") : null;
+            CommandGroupIdentity identity = group != null
+                    ? new CommandGroupIdentity(group.getString("groupId"),
+                            nullableString(group, "officerId"), group.getString("label"),
+                            group.getBoolean("namedOfficer"))
+                    : squad != null ? CommandGroupIdentity.actingNco(
+                            squad.getString("squadId"), squad.getString("label")) : null;
             seats.add(new MarineSeatCommitment(
                     nullableString(encoded, "campaignSoldierId"),
                     encoded.getString("primaryWeaponId"),
@@ -541,7 +559,7 @@ public final class BattleFixtureJson {
                     squad != null ? squad.getString("label") : null,
                     squad != null && squad.getBoolean("leader"),
                     squad != null ? squad.getInt("strength") : 0,
-                    squad != null ? squad.getInt("fireTeamIndex") : -1));
+                    squad != null ? squad.getInt("fireTeamIndex") : -1, identity));
         }
         return List.copyOf(seats);
     }

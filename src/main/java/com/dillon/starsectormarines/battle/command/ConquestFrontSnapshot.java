@@ -19,7 +19,36 @@ public record ConquestFrontSnapshot(
         CompoundState keepState,
         List<TrackState> tracks,
         List<SquadState> squads,
-        List<SquadDirective> directives) {
+        List<SquadDirective> directives,
+        List<GroupState> groups) {
+
+    /** Subordinate intent; own living squads only, including acting NCO groups. */
+    public record GroupState(CommandGroupIdentity identity, List<Integer> squadIds,
+                             String task, AssignmentKind targetKind,
+                             int targetZoneId, int targetCellX, int targetCellY,
+                             String reason, boolean rallying) {
+        public GroupState { squadIds = List.copyOf(squadIds); }
+    }
+
+    public ConquestFrontSnapshot(int tick, int influenceTick, Faction perspective,
+                                TraversalAxis axis, Phase phase, int remainingCompounds,
+                                int keepZoneId, CompoundState keepState,
+                                List<TrackState> tracks, List<SquadState> squads,
+                                List<SquadDirective> directives) {
+        this(tick, influenceTick, perspective, axis, phase, remainingCompounds,
+                keepZoneId, keepState, tracks, squads, directives, List.of());
+    }
+
+    public ConquestFrontSnapshot withGroups(List<GroupState> groups) {
+        return new ConquestFrontSnapshot(tick, influenceTick, perspective, axis,
+                phase, remainingCompounds, keepZoneId, keepState, tracks, squads,
+                directives, groups);
+    }
+
+    public GroupState groupForSquad(int squadId) {
+        for (GroupState group : groups) if (group.squadIds().contains(squadId)) return group;
+        return null;
+    }
 
     public enum Phase {
         LANE_ADVANCE,
@@ -31,6 +60,10 @@ public record ConquestFrontSnapshot(
     public enum AssignmentReason {
         GARRISON_HOLD,
         EXTERNAL_OWNERSHIP_PRESERVED,
+        GROUP_HOLD_PRESERVED,
+        GROUP_TASK_SELECTED,
+        GROUP_TASK_PRESERVED,
+        GROUP_BOUNDED_RALLY,
         COMPOUND_CAPTURE_PRESERVED,
         COMPOUND_CAPTURE_UNCONTESTED,
         COMPOUND_ASSAULT_ADJACENT,
@@ -271,6 +304,7 @@ public record ConquestFrontSnapshot(
         tracks = List.copyOf(tracks);
         squads = List.copyOf(squads);
         directives = List.copyOf(directives);
+        groups = List.copyOf(groups);
     }
 
     public ConquestFrontSnapshot(int tick, int influenceTick,
@@ -369,9 +403,18 @@ public record ConquestFrontSnapshot(
                     targetCellX, targetCellY, markerCellX, markerCellY,
                     planned.distantCaptureDeferred()));
         }
+        List<GroupState> effectiveGroups = new ArrayList<>(groups.size());
+        for (GroupState group : groups) {
+            boolean rallying = group.squadIds().stream().map(committed::directiveFor)
+                    .anyMatch(result -> result != null
+                            && "GROUP_BOUNDED_RALLY".equals(result.reason()));
+            effectiveGroups.add(new GroupState(group.identity(), group.squadIds(),
+                    group.task(), group.targetKind(), group.targetZoneId(),
+                    group.targetCellX(), group.targetCellY(), group.reason(), rallying));
+        }
         return new ConquestFrontSnapshot(tick, influenceTick, perspective,
                 axis, phase, remainingCompounds, keepZoneId, keepState,
-                tracks, squads, reconciled);
+                tracks, squads, reconciled, effectiveGroups);
     }
 
     public static ConquestFrontSnapshot empty(Faction perspective,

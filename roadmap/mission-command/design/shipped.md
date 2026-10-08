@@ -12,3 +12,4 @@ Written: 2026-08-27
 | `extraction-objective-contract.md` | Extraction | 2026-08-27 | `34ce388a` | `extraction-command.md`, `mission-command-nouns.md` |
 | `rescue-corridor-command-picture.md` | Civilian Rescue | 2026-08-27 | `4687398f`; deterministic `commanderEvidence -Pmission=extraction` result at tick 3,502 | `extraction-command.md`, `mission-command-nouns.md` |
 | `lane-chain-tug-of-war.md` | Conquest | 2026-09-02 | `aa30b91d8`, this commit | `conquest-command.md` — the chain is the front and the track is the fence, on by default; the measured matrix both ways, the three capture-gate openings that were not the cause, and why a reading that walks a ladder cannot be judged against a ladder with a rung missing |
+| `officer-command-groups.md` | Conquest / deployment | 2026-10-08 | this commit; focused planner/deployment/UI tests and 3,000-tick production launch replay | `mission-command-nouns.md`, `conquest-nouns.md`, `company-view-nouns.md`, `ui-nouns.md` |
