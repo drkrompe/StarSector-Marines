@@ -5,12 +5,14 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * A ship's boat leaves her bay and comes back to it, as a flight.
@@ -27,6 +29,55 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * because something landed on it.
  */
 class ABoatGoesOutAndComesBackTest {
+
+    @Test
+    void managedShipDepartureCrossesItsOpeningAndReturnsTheSameHull() {
+        BattleSimulation sim = openSim();
+        AirfieldService field = sim.getAirfieldService();
+        field.setOwner(Faction.MARINE);
+        Gantry stand = Gantry.covering(13, 24, 5, 7, Gantry.Facing.EAST, Gantry.Holds.BOAT);
+        BayAperture opening = new BayAperture(1, 22f, 19.5f, 0, -1, 8);
+        ShipBayRoute route = ShipBayRoute.from(stand, opening, 16f);
+        AirfieldService.Berth berth = field.addBayBerth(stand, ShuttleType.AEROSHUTTLE,
+                new float[]{route.outside().x(), route.outside().y()});
+        berth.shipRoute = route;
+        berth.hullHp = 37f;
+        boolean departure = false, crossed = false, returning = false, recovered = false;
+        long craft = -1;
+        ShuttleMission previous = null;
+        for (int tick = 0; tick < 180 * 20; tick++) {
+            sim.advance(1f / 20f);
+            for (long id : sim.getAirEntityIds()) {
+                ShuttleMission mission = sim.world().mission(id);
+                if (mission.homeBerth != berth) continue;
+                if (craft < 0) craft = id;
+                assertEquals(craft, id, "round trip replaced its air entity");
+                assertSame(berth, mission.homeBerth);
+                assertEquals(37f, sim.world().hp(id), 0.001f);
+                previous = mission;
+                AirBody body = sim.world().kinematics(id);
+                if (mission.state == ShuttleState.SHIP_DEPARTURE) {
+                    departure = true;
+                    if (body.y < opening.centerY()) {
+                        crossed = true;
+                        assertEquals(opening.centerX(), body.x, 0.0001f,
+                                "crossed the hull away from the aperture axis");
+                    }
+                }
+                if (mission.state == ShuttleState.SHIP_RETURN) returning = true;
+            }
+            if (departure && berth.state == AirfieldService.BerthState.REFITTING) {
+                recovered = true;
+                assertEquals(37f, berth.hullHp, 0.001f);
+                assertEquals(ShuttleState.GONE, previous.state);
+                break;
+            }
+        }
+        assertTrue(departure, "managed ship departure never began");
+        assertTrue(crossed, "boat never passed through the opening");
+        assertTrue(returning, "boat never followed its return corridor");
+        assertTrue(recovered, "same berth never received the borrowed hull");
+    }
 
     private static final int W = 60;
     private static final int H = 60;

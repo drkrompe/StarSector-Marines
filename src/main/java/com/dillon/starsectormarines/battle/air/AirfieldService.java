@@ -155,6 +155,8 @@ public final class AirfieldService {
          * because a hull with two bays has two doors on two sides.
          */
         public float[] offship;
+        /** Collision-clear indoor hover corridor, published by the ship host. */
+        public ShipBayRoute shipRoute;
 
         /** Whether this berth's craft has somewhere off this map to go. */
         public boolean hasOffship() {

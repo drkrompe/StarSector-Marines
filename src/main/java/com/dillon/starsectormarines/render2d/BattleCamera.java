@@ -156,6 +156,16 @@ public final class BattleCamera {
     }
 
     /**
+     * Centers an authored room view exactly, including space beyond the grid.
+     * Visible terrain remains grid-clipped; later interactive pan/zoom calls
+     * restore the usual world bounds.
+     */
+    public void frameCenter(float cellX, float cellY) {
+        panCellX = cellX;
+        panCellY = cellY;
+    }
+
+    /**
      * Applies one wheel-notch worth of zoom centered on ({@code anchorScreenX},
      * {@code anchorScreenY}). {@code notches} is the signed wheel delta — sign
      * determines direction, magnitude scales the step. The world point under

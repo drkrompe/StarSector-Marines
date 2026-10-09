@@ -802,6 +802,24 @@ public class AirSystem {
             Airframe frame = world.airframe(id);
             AirHandling flight = frame.flight();
             switch (mission.state) {
+                case SHIP_DEPARTURE:
+                case SHIP_RETURN:
+                    ShipBayTransit transit = mission.shipTransit;
+                    boolean complete = transit.advance(body, flight, dt);
+                    world.setAltitudeT(id, transit.altitude(body));
+                    world.setFlightPhase(id, world.flightPhase(id)
+                            + dt * 2f * (float) Math.PI * AirAppearance.WOBBLE_HZ);
+                    if (complete) {
+                        if (mission.state == ShuttleState.SHIP_DEPARTURE) {
+                            mission.shipTransit = new ShipBayTransit(transit.route, true);
+                            mission.state = ShuttleState.SHIP_RETURN;
+                        } else {
+                            handBackToField(mission, true, world.hp(id));
+                            mission.state = ShuttleState.GONE;
+                        }
+                    }
+                    break;
+
                 case PENDING:
                     mission.pendingDelay -= dt;
                     if (mission.pendingDelay <= 0f && fieldPresence.admit(mission)) {

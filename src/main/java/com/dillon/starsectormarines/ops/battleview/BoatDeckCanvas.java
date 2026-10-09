@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
@@ -44,6 +47,10 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private static final float DASH = 0.5f;
     /** Hull kept around the bay, so its door is not clipped into a gap. */
     private static final int SURROUND_CELLS = 2;
+    private static final int OUTBOARD_CELLS = 8;
+    private static final Color SPACE = new Color(0x03, 0x07, 0x10);
+    private static final Color STAR = new Color(0x86, 0xA2, 0xBC, 155);
+    private static final Color THRESHOLD = new Color(0x6A, 0xD5, 0xE0, 180);
 
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
@@ -110,8 +117,8 @@ public final class BoatDeckCanvas implements CanvasProducer {
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
-        ShipDeckBattleScene.RoomView view =
-                ShipDeckBattleScene.RoomView.of(hangar, SURROUND_CELLS);
+        BayAperture aperture = aboard.bayDoor(hangar);
+        ShipDeckBattleScene.RoomView view = hangarView(hangar, aperture);
 
         CanvasHostViewport[] host = new CanvasHostViewport[1];
         BattleSceneHostPass backdrop = aboard.pass(view, BACKDROP_LAYERS);
@@ -134,9 +141,82 @@ public final class BoatDeckCanvas implements CanvasProducer {
             return;
         }
 
-        markBerths(context, Projection.forHost(aboard, view, host[0]),
-                boatBerthsIn(aboard, hangar));
+        Projection projection = Projection.forHost(aboard, view, host[0]);
+        space(context, projection, aboard.simulation().getTopology());
+        if (aperture != null) threshold(context, projection, aperture);
+        markBerths(context, projection, boatBerthsIn(aboard, hangar));
         context.hostPass(aboard.pass(view, ACTOR_LAYERS));
+    }
+
+    /** Keep the exit and the space beyond it in view along with every berth. */
+    private static ShipDeckBattleScene.RoomView hangarView(
+            DeckGraph.Compartment room, BayAperture door) {
+        int left = room.left() - SURROUND_CELLS;
+        int top = room.top() - SURROUND_CELLS;
+        int across = room.width() + 2 * SURROUND_CELLS;
+        int down = room.depth() + 2 * SURROUND_CELLS;
+        if (door != null) {
+            if (door.outDx() < 0) left -= OUTBOARD_CELLS;
+            if (door.outDy() < 0) top -= OUTBOARD_CELLS;
+            across += Math.abs(door.outDx()) * OUTBOARD_CELLS;
+            down += Math.abs(door.outDy()) * OUTBOARD_CELLS;
+        }
+        return new ShipDeckBattleScene.RoomView(left, top, across, down,
+                left + across * 0.5f, top + down * 0.5f, 0f);
+    }
+
+    /** Decorative stars only where the generated topology actually has no deck. */
+    private static void space(CanvasContext context, Projection p, CellTopology topology) {
+        BattleCamera camera = p.camera();
+        int left = (int) Math.floor(camera.screenToCellX(camera.vpX()));
+        int right = (int) Math.ceil(camera.screenToCellX(camera.vpX() + camera.vpW()));
+        int bottom = (int) Math.floor(camera.screenToCellY(camera.vpY()));
+        int top = (int) Math.ceil(camera.screenToCellY(camera.vpY() + camera.vpH()));
+        for (int y = bottom; y < top; y++) {
+            for (int x = left; x < right; x++) {
+                if (topology.inBounds(x, y)
+                        && topology.getGroundKind(x, y) != CellTopology.GroundKind.VOID) continue;
+                float px = (float) Math.floor(p.x(x));
+                float py = (float) Math.floor(p.y(y + 1f));
+                context.fillRect(px, py, (float) Math.ceil(p.x(x + 1f)) - px,
+                        (float) Math.ceil(p.y(y)) - py, SPACE);
+                int hash = (x * 73856093) ^ (y * 19349663);
+                hash ^= hash >>> 13;
+                if ((hash & 7) != 0) continue;
+                float sx = p.x(x + 0.15f + ((hash >>> 4) & 255) / 365f);
+                float sy = p.y(y + 0.15f + ((hash >>> 12) & 255) / 365f);
+                float size = (hash & 256) == 0 ? 1f : 2f;
+                context.fillRect(sx, sy, size, size, STAR);
+            }
+        }
+    }
+
+    /** Navigation lights mark the real opening; the blue line is its pressure screen. */
+    private static void threshold(CanvasContext context, Projection p, BayAperture door) {
+        float tangentX = -door.outDy();
+        float tangentY = door.outDx();
+        float half = door.widthCells() * 0.5f;
+        float x = door.centerX();
+        float y = door.centerY();
+        context.line(p.x(x - tangentX * half), p.y(y - tangentY * half),
+                p.x(x + tangentX * half), p.y(y + tangentY * half), THRESHOLD, 2f);
+        for (int side : new int[]{-1, 1}) {
+            float jambX = x + tangentX * (half + 0.15f) * side;
+            float jambY = y + tangentY * (half + 0.15f) * side;
+            context.line(p.x(jambX - door.outDx() * 0.8f),
+                    p.y(jambY - door.outDy() * 0.8f),
+                    p.x(jambX + door.outDx() * 0.8f),
+                    p.y(jambY + door.outDy() * 0.8f), MARK, 4f);
+        }
+        for (int step = 2; step <= 4; step += 2) {
+            float tipX = x - door.outDx() * step;
+            float tipY = y - door.outDy() * step;
+            for (int side : new int[]{-1, 1}) {
+                context.line(p.x(tipX - door.outDx() * 0.6f + tangentX * side * 0.6f),
+                        p.y(tipY - door.outDy() * 0.6f + tangentY * side * 0.6f),
+                        p.x(tipX), p.y(tipY), THRESHOLD, 2f);
+            }
+        }
     }
 
     /** Records hover over the berths drawn during the last frame. */

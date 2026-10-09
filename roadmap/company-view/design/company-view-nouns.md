@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — HQ consolidates learned intel streams and displays client
-faction crests through persistent affiliation.
+Updated: 2026-10-09 — HQ source windows and report selection drive a focused
+briefing; client faction crests follow persistent affiliation.
 
 ## Purpose
 
@@ -818,10 +818,15 @@ The retained bridge dashboard has four concerns:
   deadlines and live stationing term endings. Overdue clocks are due now, never
   rendered as negative time. One contract may own both clocks. An intel terminal
   consolidates company dispatches, confirmed reports and unverified traffic into
-  visibly connected intake channels and stable bulletins. These are editorial
+  source windows, a compact report rundown and a focused briefing. Each source
+  window previews actual received reports; choosing a source filters the rundown,
+  and choosing a report brings its confidence, timing and detail into focus.
+  Selection survives refresh by report identity and remains view-local. These are editorial
   categories over known information, not invented agencies or simulated new
-  messages. The newest bulletin leads the archive; recent validated Chronicle
-  facts remain newest-first. Intake counts describe the displayed rows. It reads only learned Chronicle rows,
+  messages. Company operation reports belong to their own stream; political
+  reports belong to the sector stream even when they concern the company.
+  The newest bulletin opens the archive; recent validated Chronicle facts remain
+  newest-first. Counts describe the bounded report window. It reads only learned Chronicle rows,
   preserves rumor versus confirmed confidence, and cannot expose undiscovered world
   state.
 

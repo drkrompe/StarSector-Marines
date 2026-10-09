@@ -1,4 +1,4 @@
-<template props="dispatchCount,confirmedCount,unverifiedCount,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -73,24 +73,6 @@
           <div id="company-hq-board-title" class="label heading tone-edge">{boardHeader}</div>
           <div id="company-hq-board-intro" class="label tone-muted">{boardIntro}</div>
         </div>
-        <div id="company-hq-intake" class="intake-channels">
-          <div id="company-hq-dispatch-channel" class="intake-channel console-readout">
-            <div id="company-hq-dispatch-channel-heading" class="label heading tone-accent">01 / COMPANY DISPATCH</div>
-            <div id="company-hq-dispatch-channel-count" class="label">{dispatchCount}</div>
-            <div id="company-hq-dispatch-channel-source" class="label tone-muted">Company operations / duty notices</div>
-          </div>
-          <div id="company-hq-confirmed-channel" class="intake-channel console-readout">
-            <div id="company-hq-confirmed-channel-heading" class="label heading tone-edge">02 / CONFIRMED REPORTS</div>
-            <div id="company-hq-confirmed-channel-count" class="label">{confirmedCount}</div>
-            <div id="company-hq-confirmed-channel-source" class="label tone-muted">Sector reports / verified outcomes</div>
-          </div>
-          <div id="company-hq-unverified-channel" class="intake-channel console-readout">
-            <div id="company-hq-unverified-channel-heading" class="label heading tone-muted">03 / UNVERIFIED TRAFFIC</div>
-            <div id="company-hq-unverified-channel-count" class="label">{unverifiedCount}</div>
-            <div id="company-hq-unverified-channel-source" class="label tone-muted">Open traffic / awaiting confirmation</div>
-          </div>
-        </div>
-        <img id="company-hq-intel-routing" class="intel-routing" src="graphics/ui/console/intel-routing.svg" />
         <div id="company-hq-board-columns" class="board-columns">
           <div id="company-hq-obligations" class="board-column obligations-column">
             <div id="company-hq-obligations-header" class="label heading tone-accent column-header">{obligationsHeader}</div>
@@ -108,19 +90,56 @@
           </div>
 
           <div id="company-hq-news" class="board-column news-column">
-            <div id="company-hq-terminal-header" class="terminal-header console-header">
-              <div id="company-hq-terminal-lamp" class="terminal-lamp" />
-              <div id="company-hq-news-header" class="label heading tone-accent column-header">{newsHeader}</div>
-              <div id="company-hq-terminal-mode" class="label tone-muted terminal-mode">INTEL ARCHIVE</div>
-            </div>
-            <div id="company-hq-news-list" class="post-list">
-              <div each="post in newsPosts" key="{post.id}" id="{post.id}" class="{post.classes}">
-                <div id="{post.kickerId}" class="label heading tone-edge post-kicker">{post.kicker}</div>
-                <div id="{post.headlineId}" class="label post-headline">{post.headline}</div>
-                <div id="{post.detailId}" class="label tone-muted post-detail">{post.detail}</div>
+            <div id="company-hq-source-windows" class="source-windows">
+              <div each="channel in newsDesk.sources" key="{channel.id}" id="{channel.id}" class="source-window console-readout">
+                <div id="{channel.headerId}" class="source-heading">
+                  <img id="{channel.iconId}" class="source-icon" src="{channel.icon}" />
+                  <div id="{channel.copyId}" class="source-heading-copy">
+                    <div id="{channel.labelId}" class="label heading tone-accent source-label">{channel.label}</div>
+                    <div id="{channel.countId}" class="label tone-muted source-count">{channel.count}</div>
+                  </div>
+                </div>
+                <div id="{channel.listId}" class="source-teasers">
+                  <button each="report in channel.reports" key="{report.id}" id="{report.id}" class="{report.classes}" onclick="{report.action}">
+                    <div id="{report.kickerId}" class="label heading tone-muted teaser-kicker">{report.kicker}</div>
+                    <div id="{report.headlineId}" class="label teaser-headline">{report.headline}</div>
+                  </button>
+                </div>
+                <div id="{channel.emptyId}" class="{channel.emptyClasses}">{channel.empty}</div>
               </div>
             </div>
-            <div id="company-hq-news-empty" class="label tone-muted empty-copy">{newsEmpty}</div>
+            <div id="company-hq-editorial-desk" class="editorial-desk">
+              <div id="company-hq-focus" class="{newsDesk.classes}">
+                <div id="company-hq-focus-header" class="focus-header">
+                  <img id="company-hq-focus-lock" class="focus-lock" src="graphics/ui/console/locking-plate.svg" />
+                  <div id="company-hq-focus-slug" class="label heading tone-accent">SELECTED BRIEF / INTELLIGENCE DESK</div>
+                </div>
+                <div id="company-hq-focus-kicker" class="label heading focus-kicker">{newsDesk.kicker}</div>
+                <div id="company-hq-focus-headline" class="label title focus-headline">{newsDesk.headline}</div>
+                <div id="company-hq-focus-story" class="focus-story">
+                  <div id="company-hq-focus-source" class="label heading tone-muted focus-source">{newsDesk.source}</div>
+                  <div id="company-hq-focus-detail" class="label focus-detail">{newsDesk.detail}</div>
+                </div>
+                <div id="company-hq-focus-caution" class="label tone-accent focus-caution">{newsDesk.caution}</div>
+              </div>
+              <div id="company-hq-rundown" class="news-rundown">
+                <div id="company-hq-rundown-header" class="rundown-header">
+                  <div id="company-hq-rundown-heading" class="label heading tone-accent">REPORT RUNDOWN</div>
+                  <div id="company-hq-rundown-count" class="label tone-muted">{newsDesk.count}</div>
+                </div>
+                <div id="company-hq-channel-tabs" class="channel-tabs">
+                  <button each="tab in newsDesk.tabs" key="{tab.id}" id="{tab.id}" class="{tab.classes}" onclick="{tab.action}">{tab.label}</button>
+                </div>
+                <div id="company-hq-news-list" class="rundown-list">
+                  <button each="report in newsDesk.reports" key="{report.id}" id="{report.id}" class="{report.classes}" onclick="{report.action}">
+                    <div id="{report.kickerId}" class="label heading tone-muted teaser-kicker">{report.kicker}</div>
+                    <div id="{report.headlineId}" class="label teaser-headline">{report.headline}</div>
+                    <div id="{report.sourceId}" class="label tone-muted rundown-source">{report.source}</div>
+                  </button>
+                </div>
+                <div id="company-hq-news-empty" class="{newsDesk.emptyClasses}">{newsDesk.empty}</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -160,30 +179,27 @@
   .employer-name { width: 100%; flex-grow: 0; height: auto; white-space: normal; }
   .employer-score { width: 38px; text-align: left; }
   .employer-record { width: 100%; text-align: left; flex-grow: 0; height: auto; white-space: normal; }
-  .company-hq-board { flex-direction: column; flex-grow: 1; padding: 12px; gap: 14px; border-width: 2px; overflow: hidden; }
-  .board-heading { flex-direction: column; height: 48px; padding: 10px; gap: 8px; border-width: 2px; }
-  .board-columns { flex-direction: row; flex-grow: 1; gap: 18px; overflow: hidden; }
+  .company-hq-board { flex-direction: column; flex-grow: 1; padding: 9px; gap: 9px; border-width: 2px; overflow: hidden; }
+  .board-heading { flex-direction: column; height: 38px; padding: 7px 9px; gap: 5px; border-width: 2px; }
+  .board-columns { flex-direction: row; flex-grow: 1; gap: 10px; overflow: hidden; height: 0px; }
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
-  .obligations-column { width: 38%; }
-  .news-column { flex-grow: 1; }
+  .obligations-column { width: 260px; }
+  .news-column { flex-grow: 1; width: 0px; gap: 10px; }
   .column-header { height: 20px; padding: 2px 3px; }
   .post-list { flex-direction: column; flex-grow: 1; gap: 10px; overflow: scroll; }
-  .post-card { flex-direction: row; align-items: center; height: 88px; padding: 10px; gap: 10px; border-width: 2px; background-color: #20282d; border-color: #526065; }
-  .post-body { flex-direction: column; height: 88px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  .post-card { flex-direction: column; align-items: stretch; height: 132px; padding: 8px; gap: 7px; border-width: 2px; background-color: #20282d; border-color: #526065; }
+  .post-body { flex-direction: column; height: 84px; flex-grow: 0; gap: 7px; overflow: hidden; }
   .post-kicker { height: 16px; }
-  .post-headline { height: auto; white-space: normal; }
-  .post-detail { height: auto; white-space: normal; }
-  .post-action { width: 104px; padding: 4px; border-width: 3px; font-family: heading; text-align: center; height: 34px; }
-  .news-card { flex-direction: column; height: 80px; padding: 10px; gap: 9px; border-width: 1px; background-color: #20282d; border-color: #526065; }
-  .lead-bulletin { height: 142px; padding: 16px; gap: 16px; border-width: 2px; border-color: #7e9793; background-color: #172322; }
-  .lead-bulletin .post-headline { font-family: title; }
+  .post-headline { height: 26px; white-space: normal; }
+  .post-detail { height: 34px; white-space: normal; }
+  .post-action { width: 110px; padding: 4px 8px; border-width: 2px; font-family: heading; text-align: center; height: 20px; }
   .warning-surface { background-color: #332b1c; border-color: #ffd464; }
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
   .empty-copy { height: 22px; padding: 3px; }
   .hq-ship-button { width: 100%; height: 30px; padding: 3px; border-width: 3px; border-color: #31485f; }
   .hq-ship-waiting { border-color: #2d4250; background-color: #101a22; }
   .hq-ship-waiting-label { color: #6f8797; }
-  .hq-ship-label { width: 100%; height: 18px; text-align: center; }
+  .hq-ship-label { width: 100%; height: auto; text-align: center; white-space: normal; }
   .hq-ship-track-idle { width: 100%; height: 4px; flex-direction: row; }
   .hq-ship-track { width: 100%; height: 4px; flex-direction: row; background-color: #0c1620; }
   .hq-ship-fill { height: 100%; background-color: #4d7ea0; }
@@ -191,16 +207,43 @@
   #company-hq-board-intro { height: auto; white-space: normal; }
   .hq-ship-actions { flex-direction: row; height: 42px; gap: 6px; }
   .hq-ship-actions button { width: 0px; flex-grow: 1; }
-  .hq-ship-label { white-space: normal; height: auto; }
   .employer-crest { width: 40px; height: 40px; pointer-events: none; }
   .employer-crest.crest-absent { width: 0px; height: 0px; }
   .employer-copy { flex-direction: column; height: 40px; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
-  .intake-channels { flex-direction: row; height: 90px; gap: 10px; }
-  .intake-channel { flex-direction: column; width: 0px; flex-grow: 1; height: 68px; padding: 9px; gap: 7px; border-width: 2px; }
-  .intake-channel .label { height: auto; white-space: normal; }
-  .intel-routing { width: 100%; height: 32px; pointer-events: none; }
-  .terminal-header { flex-direction: row; align-items: center; height: 30px; padding: 5px 8px; gap: 8px; border-width: 2px; }
-  .terminal-lamp { width: 6px; height: 6px; background-color: #8fae98; border-width: 1px; border-color: #34433a; }
-  #company-hq-news-header { width: 0px; flex-grow: 1; height: auto; }
-  .terminal-mode { width: 160px; height: auto; text-align: right; }
+  .source-windows { flex-direction: row; height: 140px; gap: 7px; }
+  .source-window { flex-direction: column; width: 0px; flex-grow: 1; height: 118px; padding: 8px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .source-label { height: 16px; }
+  .source-count { height: 14px; }
+  .source-teasers { flex-direction: column; height: 65px; gap: 6px; overflow: hidden; }
+  .wire-report { flex-direction: column; height: 63px; padding: 5px 7px; gap: 4px; border-width: 1px; text-align: left; }
+  .teaser-kicker { height: 15px; }
+  .teaser-headline { height: 36px; white-space: normal; }
+  .source-empty { height: 30px; white-space: normal; }
+  .editorial-desk { flex-direction: column; height: 0px; flex-grow: 1; gap: 10px; overflow: hidden; }
+  .lead-story { flex-direction: column; width: auto; flex-grow: 0; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; height: 226px; }
+  .focus-header { flex-direction: row; height: 26px; gap: 8px; align-items: center; }
+  .focus-lock { width: 20px; height: 24px; }
+  #company-hq-focus-slug { width: 0px; flex-grow: 1; height: 18px; white-space: normal; }
+  .focus-kicker { height: 18px; }
+  .focus-headline { height: 46px; white-space: normal; }
+  .focus-source { height: 42px; padding: 7px; border-width: 1px; border-color: #697c7b; white-space: normal; width: 220px; }
+  .focus-detail { height: 56px; white-space: normal; width: 0px; flex-grow: 1; padding: 4px 0px; }
+  .focus-caution { height: 24px; white-space: normal; }
+  .rumor-story { border-color: #b09a64; }
+  .news-rundown { flex-direction: column; width: auto; padding: 8px; gap: 7px; border-width: 0px; overflow: hidden; height: 260px; flex-grow: 0; background-color: #303837; }
+  #company-hq-rundown-heading { height: 18px; width: 0px; flex-grow: 1; }
+  #company-hq-rundown-count { height: 16px; width: 220px; text-align: right; }
+  .channel-tabs { display: flex; height: 34px; gap: 6px; overflow: hidden; flex-direction: row; }
+  .wire-tab { width: 190px; height: 20px; padding: 5px 8px; border-width: 1px; text-align: center; font-family: compact; }
+  .rundown-list { flex-direction: column; height: 184px; flex-grow: 0; gap: 7px; overflow: scroll; display: grid; width: 100%; }
+  .rundown-list .wire-report { height: 74px; width: 330px; padding: 6px 8px; }
+  .rundown-source { height: 15px; }
+  .source-heading { flex-direction: row; height: 34px; gap: 9px; align-items: center; }
+  .source-icon { width: 32px; height: 32px; }
+  .source-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 34px; gap: 2px; }
+  .source-teasers .wire-report { height: 50px; padding: 5px 7px; gap: 3px; }
+  .source-teasers .teaser-headline { height: 32px; }
+  .source-empty-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
+  .focus-story { flex-direction: row; height: 64px; gap: 12px; }
+  .rundown-header { flex-direction: row; height: 20px; gap: 12px; }
 </style>

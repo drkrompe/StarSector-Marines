@@ -16,6 +16,7 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.List;
+import java.util.Map;
 
 /** Planet-free Company HQ dashboard for readiness, standing, obligations, and news. */
 public final class CompanyHqScreen implements Screen {
@@ -26,6 +27,7 @@ public final class CompanyHqScreen implements Screen {
             "data/ui/components/company/company-hq.mlx");
 
     private final Reactor reactor = new Reactor();
+    private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
@@ -77,8 +79,10 @@ public final class CompanyHqScreen implements Screen {
                 this::onShipView,
                 this::onClose,
                 this::responseAction);
+        Map<String, Object> props = viewModel.props();
+        newsDesk.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
-                reactor, ROOT_COMPONENT, viewModel.props());
+                reactor, ROOT_COMPONENT, props);
         UiDocument built;
         try {
             requireWiredElements(candidate);

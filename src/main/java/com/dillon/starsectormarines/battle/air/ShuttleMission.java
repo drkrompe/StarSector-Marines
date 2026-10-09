@@ -42,6 +42,9 @@ public final class ShuttleMission {
 
     /** Stagger / re-arm countdown burned down during PENDING before launch. */
     public float pendingDelay;
+
+    /** Ship-only managed corridor and its current segment; absent on ground sorties. */
+    public ShipBayTransit shipTransit;
     /** Countdown to the next marine deboard while LANDED. */
     public float deboardCountdown;
     /** Marines still aboard for the current sortie. */
@@ -513,7 +516,7 @@ public final class ShuttleMission {
                  LOADING, PAD_ASCENT,
                  TAXI_OUT, HOLDING_SHORT, TAKEOFF_ROLL,
                  LANDING_ROLL, TAXI_IN -> false;
-            case INCOMING, PAD_DESCENT, ATTACK_RUN, REPOSITION,
+            case SHIP_DEPARTURE, SHIP_RETURN, INCOMING, PAD_DESCENT, ATTACK_RUN, REPOSITION,
                  LANDED, DEPARTING, RETURNING -> true;
         };
     }

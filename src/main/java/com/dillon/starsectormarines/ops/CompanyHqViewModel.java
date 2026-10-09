@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ChronicleConfidence;
+import com.dillon.starsectormarines.campaign.ChronicleEventType;
 import com.dillon.starsectormarines.campaign.CompanyAssessmentComposer;
 import com.dillon.starsectormarines.campaign.CompanyClocks;
 import com.dillon.starsectormarines.campaign.CompanyNews;
@@ -35,7 +36,7 @@ import java.util.function.Function;
 final class CompanyHqViewModel {
 
     private static final int EMPLOYER_LIMIT = 4;
-    private static final int NEWS_LIMIT = 5;
+    private static final int NEWS_LIMIT = 12;
     private static final int OBLIGATION_LIMIT = 6;
     private static final int URGENT_DAYS = 2;
     private static final int SOON_DAYS = 7;
@@ -126,12 +127,9 @@ final class CompanyHqViewModel {
 
         List<NewsPost> newsPosts = new ArrayList<>();
         for (int index = 0; index < news.size(); index++) {
-            newsPosts.add(newsPost(index, news.get(index), day));
+            newsPosts.add(newsPost(news.get(index), day));
         }
         props.put("newsPosts", List.copyOf(newsPosts));
-        putIntake(props, intake(obligationCount, news));
-        props.put("newsEmpty", news.isEmpty()
-                ? Strings.get("companyHqNewsEmpty") : "");
 
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
@@ -263,7 +261,6 @@ final class CompanyHqViewModel {
         props.put("boardHeader", "BRIDGE INTELLIGENCE / SECTOR WIRE");
         props.put("boardIntro", "Company dispatches, verified sector reports, and open traffic. Priority notices keep their deadlines; rumors await confirmation.");
         props.put("obligationsHeader", "ACTIVE OBLIGATIONS");
-        props.put("newsHeader", "CONSOLIDATED SECTOR BULLETINS");
         props.put("runway", "8.4 MONTHS");
         props.put("runwayCaption", "payroll runway  /  against last month's upkeep");
         props.put("runwayClasses", "runway-value tone-accent");
@@ -287,11 +284,9 @@ final class CompanyHqViewModel {
                 new ObligationPost("preview-obligation-2", "post-card", "12 DAYS", "Stationing term ends", "Kazeron  /  Compact Security Board", "TRACKING", true, () -> { })));
         props.put("obligationEmpty", "");
         props.put("newsPosts", List.of(
-                new NewsPost("preview-news-1", "news-card lead-bulletin", "CONFIRMED  /  TODAY", "House Cavor displaces House Tobin", "Eochu Bres  /  learned through company channels"),
+                new NewsPost("preview-news-1", "news-card", "CONFIRMED  /  TODAY", "House Cavor displaces House Tobin", "Eochu Bres  /  received through company channels"),
                 new NewsPost("preview-news-2", "news-card rumor-surface", "RUMOR  /  4 DAYS AGO", "Reports of Compact action against House Umbra", "Kazeron  /  outcome remains unconfirmed"),
-                new NewsPost("preview-news-3", "news-card", "CONFIRMED  /  11 DAYS AGO", "Silent colony operation concluded", "17 of 22 survivors recovered  /  archive secured")));
-        props.put("newsEmpty", "");
-        putIntake(props, new Intake(2, 2, 1));
+                new NewsPost("preview-news-3", "news-card", "CONFIRMED  /  11 DAYS AGO", "Silent colony operation concluded", "17 of 22 survivors recovered  /  archive secured", false, true)));
         return new CompanyHqViewModel(props);
     }
 
@@ -306,7 +301,6 @@ final class CompanyHqViewModel {
         props.put("boardHeader", Strings.get("companyHqBoardHeader"));
         props.put("boardIntro", Strings.get("companyHqBoardIntro"));
         props.put("obligationsHeader", Strings.get("companyHqClocksHeader"));
-        props.put("newsHeader", Strings.get("companyHqNewsHeader"));
         props.put("runwayCaption", Strings.get("companyHqRunwayCaption"));
         return props;
     }
@@ -403,23 +397,6 @@ final class CompanyHqViewModel {
         return faction == null ? "" : faction.getCrest();
     }
 
-    record Intake(int dispatch, int confirmed, int unverified) {}
-
-    /** Counts describe the bounded rows on this terminal, not all known sector events. */
-    static Intake intake(int dispatch, List<CompanyNews.Entry> news) {
-        int unverified = 0;
-        for (CompanyNews.Entry entry : news) {
-            if (entry.confidence() == ChronicleConfidence.RUMOR) unverified++;
-        }
-        return new Intake(dispatch, news.size() - unverified, unverified);
-    }
-
-    private static void putIntake(Map<String, Object> props, Intake intake) {
-        props.put("dispatchCount", intake.dispatch() + " dispatches in view");
-        props.put("confirmedCount", intake.confirmed() + " reports in view");
-        props.put("unverifiedCount", intake.unverified() + " unverified in view");
-    }
-
     private static ObligationPost obligationPost(int index, CompanyClocks.Entry entry,
                                                   int day, Runnable respond) {
         int days = entry.daysRemaining(day);
@@ -444,7 +421,7 @@ final class CompanyHqViewModel {
                 !actionable, respond);
     }
 
-    private static NewsPost newsPost(int index, CompanyNews.Entry entry, int day) {
+    private static NewsPost newsPost(CompanyNews.Entry entry, int day) {
         int age = Math.max(0, day - entry.happenedDay());
         String confidence = entry.confidence() == ChronicleConfidence.RUMOR
                 ? Strings.get("companyHqNewsRumor")
@@ -476,11 +453,12 @@ final class CompanyHqViewModel {
             }
             default -> throw new IllegalStateException("Unhandled Chronicle event " + entry.type());
         }
-        return new NewsPost("hq-news-" + index,
+        return new NewsPost("hq-news-" + entry.id(),
                 (entry.confidence() == ChronicleConfidence.RUMOR
-                        ? "news-card rumor-surface" : "news-card")
-                        + (index == 0 ? " lead-bulletin" : ""),
-                kicker, headline, detail);
+                        ? "news-card rumor-surface" : "news-card"),
+                kicker, headline, detail + "  /  received " + ageText(Math.max(0, day - entry.learnedDay())),
+                entry.confidence() == ChronicleConfidence.RUMOR,
+                entry.type() == ChronicleEventType.SILENT_COLONY);
     }
 
     private static String archiveLabel(AbandonedColonyArchiveOutcome outcome) {
@@ -622,7 +600,11 @@ final class CompanyHqViewModel {
     }
 
     record NewsPost(String id, String classes, String kicker, String headline,
-                    String detail) implements MarkupPropertySource {
+                    String detail, boolean rumor, boolean companyReport) implements MarkupPropertySource {
+        NewsPost(String id, String classes, String kicker, String headline, String detail) {
+            this(id, classes, kicker, headline, detail, classes.contains("rumor-surface"), false);
+        }
+
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "classes" -> classes; case "kicker" -> kicker;
