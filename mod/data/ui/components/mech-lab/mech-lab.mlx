@@ -111,7 +111,7 @@
                 <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
                 <div id="mech-garage-status" class="label heading tone-muted garage-status">SELECT MOUNT / DRAG TO FIT</div>
               </div>
-              <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="580" />
+              <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="1060" height="790" />
               <div id="mech-overview-rail" class="{overviewRailClasses}">
                 <div id="mech-overview-gantries" class="overview-gantry-list">
                   <button each="gantry in gantryRows" key="{gantry.id}" id="{gantry.id}" class="{gantry.classes}" disabled="{gantry.disabled}" onclick="{gantry.select}">
@@ -211,8 +211,8 @@
   .asset-name { width: 210px; height: 27px; font-family: title; }
   .mech-call-sign-editor { flex-direction: row; width: 300px; height: 27px; gap: 4px; overflow: hidden; }
   .call-sign-label { width: 78px; height: 27px; padding-top: 7px; }
-  .mech-call-sign-input { width: 0px; flex-grow: 1; height: 27px; padding: 4px 7px; border-width: 1px; background-color: #0d1622; color: #d5deea; font-family: title; }
-  .mech-call-sign-input:focus { border-color: #a5c6bc; background-color: #14263a; }
+  .mech-call-sign-input { width: 0px; flex-grow: 1; height: 27px; padding: 4px 7px; border-width: 1px; background-color: #171b18; color: #d3d0c5; font-family: title; }
+  .mech-call-sign-input:focus { border-color: #dfc588; background-color: #292e27; }
   .call-sign-action { width: 48px; height: 27px; text-align: center; }
   .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
   .gantry-navigator { flex-direction: row; width: 290px; height: 34px; gap: 3px; }
@@ -227,41 +227,41 @@
   .meter-label { width: 82px; height: 16px; }
   .meter-value { width: 90px; height: 16px; text-align: right; }
   .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #121719; border-width: 1px; }
-  .meter-fill { height: 100%; background-color: #76b9d4; }
+  .meter-fill { height: 100%; background-color: #acae96; }
   .meter-ghost { height: 100%; }
   .meter-ghost.gain { background-color: #52ba7c; opacity: 0.85; }
   .meter-ghost.loss { background-color: #d65858; opacity: 0.85; }
 
   .fitting-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .catalog-panel { flex-direction: column; width: 440px; padding: 9px; gap: 5px; border-width: 1px; overflow: hidden; }
+  .catalog-panel { flex-direction: column; width: 410px; padding: 7px; gap: 5px; border-width: 1px; overflow: hidden; }
   .catalog-heading { height: 25px; font-family: title; }
   .catalog-copy { height: 32px; white-space: normal; }
   .catalog-rule { height: 28px; padding: 4px; }
   .category-filters { flex-direction: row; width: 100%; height: 26px; gap: 3px; }
-  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 4px 2px; text-align: center; background-color: #121719; border-width: 1px; border-color: #2a3c4f; }
-  .catalog-filter-pill.selected { background-color: #1a3b50; border-color: #c0dbcf; color: #c0dbcf; }
-  .catalog-filter-pill:hover { background-color: #152c3c; border-color: #dfc588; }
+  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 4px 2px; text-align: center; background-color: #121719; border-width: 1px; border-color: #596052; }
+  .catalog-filter-pill.selected { background-color: #343a30; border-color: #d3d0c5; color: #d3d0c5; }
+  .catalog-filter-pill:hover { background-color: #34382e; border-color: #dfc588; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-  .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 148px; padding: 5px; gap: 3px; border-width: 1px; }
-  .catalog-card-body { flex-direction: row; width: 100%; height: 108px; gap: 6px; }
-  .catalog-item-copy { flex-direction: column; width: 0px; height: 108px; flex-grow: 1; gap: 2px; }
+  .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 128px; padding: 5px; gap: 3px; border-width: 1px; }
+  .catalog-card-body { flex-direction: row; width: 100%; height: 90px; gap: 6px; }
+  .catalog-item-copy { flex-direction: column; width: 0px; height: 90px; flex-grow: 1; gap: 2px; }
   .catalog-card-header { flex-direction: row; width: 100%; height: 18px; gap: 4px; }
   .catalog-name { width: 0px; flex-grow: 1; height: 18px; }
   .catalog-badge { width: 84px; height: 16px; padding: 1px 3px; text-align: center; border-width: 1px; }
   .catalog-badge.in-cargo { background-color: #102d20; border-color: #52ba7c; color: #78d494; }
   .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #dfc588; }
-  .catalog-badge.chassis { background-color: #162a3a; border-color: #4b8ba8; color: #c0dbcf; }
-  .catalog-preview { width: 92px; height: 108px; border-width: 1px; }
+  .catalog-badge.chassis { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
+  .catalog-preview { width: 76px; height: 90px; border-width: 1px; }
   .catalog-stock, .catalog-detail { height: 16px; }
   .catalog-telemetry { height: 16px; }
   .catalog-delta { height: 16px; }
   .catalog-delta.positive { color: #78d494; }
   .catalog-delta.negative { color: #e98b83; }
-  .catalog-delta.neutral { color: #8b9aaf; }
+  .catalog-delta.neutral { color: #979c90; }
   .material-costs { flex-direction: column; width: 100%; height: 38px; gap: 2px; overflow: hidden; }
-  .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 238px; }
-  .requires-fabrication .catalog-card-body, .chassis-pattern .catalog-card-body { height: 198px; }
-  .requires-fabrication .catalog-item-copy, .chassis-pattern .catalog-item-copy { height: 198px; }
+  .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 220px; }
+  .requires-fabrication .catalog-card-body, .chassis-pattern .catalog-card-body { height: 180px; }
+  .requires-fabrication .catalog-item-copy, .chassis-pattern .catalog-item-copy { height: 180px; }
   .requires-fabrication .material-costs, .chassis-pattern .material-costs { height: 96px; }
   .material-cost { flex-direction: row; width: 100%; height: 17px; padding: 1px 3px; gap: 3px; background-color: #121719; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
@@ -280,9 +280,9 @@
   .overview-rail { flex-direction: row; align-items: center; width: 100%; height: 76px; gap: 5px; }
   .overview-gantry-list { flex-direction: row; width: 0px; height: 76px; flex-grow: 1; gap: 5px; }
   .overview-gantry { flex-direction: column; width: 0px; height: 76px; flex-grow: 1; padding: 6px; gap: 1px; border-width: 1px; text-align: left; }
-  .overview-gantry.occupied { background-color: #252d2f; border-color: #4c93b5; }
-  .overview-gantry.occupied:hover { background-color: #1b435a; border-color: #dfc588; }
-  .overview-gantry.vacant { background-color: #121719; border-color: #243849; opacity: 0.72; }
+  .overview-gantry.occupied { background-color: #252d2f; border-color: #737b6c; }
+  .overview-gantry.occupied:hover { background-color: #383e32; border-color: #dfc588; }
+  .overview-gantry.vacant { background-color: #121719; border-color: #464e42; opacity: 0.72; }
   .overview-station, .overview-name, .overview-detail { height: 18px; }
   .overview-browse { width: 142px; height: 30px; padding: 4px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
@@ -296,9 +296,9 @@
   .slot-row-header { flex-direction: row; width: 100%; height: 16px; gap: 3px; }
   .slot-name { width: 0px; flex-grow: 1; height: 16px; }
   .slot-badge { width: 46px; height: 14px; padding: 1px 2px; text-align: center; border-width: 1px; }
-  .slot-badge.armed { background-color: #122838; border-color: #4c8ca8; color: #c0dbcf; }
+  .slot-badge.armed { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
   .slot-badge.empty { background-color: #2c2014; border-color: #946830; color: #dfc588; }
-  .slot-badge.locked { background-color: #161d24; border-color: #384856; color: #708090; }
+  .slot-badge.locked { background-color: #20241f; border-color: #4b5446; color: #8d9687; }
   .slot-telemetry { height: 15px; }
   .slot-component { height: 16px; }
   .slot-type { height: 15px; }

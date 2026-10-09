@@ -73,6 +73,28 @@ class AnimatedGifWriterTest {
         }
     }
 
+    @Test
+    void adaptiveReviewPreservesDarkNeutralGradients() throws Exception {
+        BufferedImage gradient = new BufferedImage(128, 8, BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < 128; x++) {
+            for (int y = 0; y < 8; y++) {
+                gradient.setRGB(x, y, new Color(x, x + 3, x + 1).getRGB());
+            }
+        }
+        Path gif = tempDir.resolve("shading.gif");
+        try (AnimatedGifWriter writer = new AnimatedGifWriter(gif, 100,
+                AnimatedGifWriter.Palette.ADAPTIVE)) {
+            writer.append(gradient);
+        }
+        BufferedImage decoded = ImageIO.read(gif.toFile());
+        for (int x = 0; x < 128; x++) {
+            Color actual = new Color(decoded.getRGB(x, 4));
+            assertTrue(Math.abs(actual.getRed() - x) <= 3, "red shading at " + x);
+            assertTrue(Math.abs(actual.getGreen() - x - 3) <= 3, "green shading at " + x);
+            assertTrue(Math.abs(actual.getBlue() - x - 1) <= 3, "blue shading at " + x);
+        }
+    }
+
     private static BufferedImage frame(Color color) {
         BufferedImage image = new BufferedImage(
                 8, 8, BufferedImage.TYPE_INT_ARGB);

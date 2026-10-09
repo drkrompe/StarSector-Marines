@@ -52,8 +52,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color WHITE = Color.WHITE;
-    private static final Color VACANT_FILL = new Color(0x08, 0x18, 0x24, 214);
-    private static final Color VACANT_EDGE = new Color(0x6D, 0xD5, 0xF2, 226);
+    private static final Color VACANT_FILL = new Color(0x18, 0x1c, 0x19, 214);
+    private static final Color VACANT_EDGE = new Color(0xb3, 0xb4, 0xa6, 226);
     private static final Color VACANT_HOVER = new Color(0xFF, 0xD4, 0x64, 246);
     private static final float VACANT_PAD_INSET_RATIO = 0.045f;
 
@@ -411,7 +411,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 projection.actorX(), projection.actorY(), projection.hullX(), projection.hullY(),
                 canvasWidth, canvasHeight, cos, sin,
                 deployment, deployment != null ? deployment.variant() : null);
-        c.fillRect(0, 0, canvasWidth, canvasHeight, new Color(3, 8, 6, 68));
+        c.fillRect(0, 0, canvasWidth, canvasHeight, new Color(5, 6, 5, 30));
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
             boolean selected = socket.id() == selectedSocket;
@@ -682,8 +682,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 this.anchorX = actorX + anchorWorldX;
                 this.anchorY = actorY - anchorWorldY;
 
-                this.width = socket.factoryLocked() ? 160f : Math.max(180f, socket.footprintWidthHull() * hullWidth);
-                this.height = socket.factoryLocked() ? 58f : Math.max(142f, socket.footprintHeightHull() * hullHeight);
+                this.width = socket.factoryLocked() ? 160f : Math.max(164f, socket.footprintWidthHull() * hullWidth);
+                this.height = socket.factoryLocked() ? 54f : Math.max(116f, socket.footprintHeightHull() * hullHeight);
 
                 float dockLocalX = socket.dockRight();
                 float dockLocalY = socket.dockForward();
