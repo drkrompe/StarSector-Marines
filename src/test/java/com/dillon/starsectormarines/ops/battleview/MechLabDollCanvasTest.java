@@ -20,22 +20,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechLabDollCanvasTest {
 
     @Test
-    void weldingFxFollowWorkInTheFramedBayRatherThanAnActorBodyType() {
+    void weldingIsReservedForMachineServiceInTheFramedBay() {
         int bay = 7;
-
         assertTrue(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay, Affordance.SERVICE, 2), bay, false));
-        assertTrue(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay, Affordance.FABRICATE), bay, false));
-        assertTrue(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay, Affordance.REPAIR), bay, true));
+                JobBoard.group(bay, Affordance.SERVICE, 2), bay));
+        for (Affordance job : List.of(Affordance.FABRICATE, Affordance.REPAIR,
+                Affordance.READOUT, Affordance.STOW)) {
+            assertFalse(MechLabDollCanvas.isWeldingJob(JobBoard.group(bay, job), bay),
+                    "Non-machine work must not light a welding torch: " + job);
+        }
         assertFalse(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay, Affordance.REPAIR), bay, false));
-        assertFalse(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay, Affordance.READOUT), bay, true));
-        assertFalse(MechLabDollCanvas.isWeldingJob(
-                JobBoard.group(bay + 1, Affordance.SERVICE, 2), bay, true));
-        assertFalse(MechLabDollCanvas.isWeldingJob(null, bay, true));
+                JobBoard.group(bay + 1, Affordance.SERVICE, 2), bay));
+        assertFalse(MechLabDollCanvas.isWeldingJob(null, bay));
+        assertFalse(MechLabDollCanvas.isWeldingJob(JobBoard.group(bay, Affordance.SERVICE), -1));
     }
 
     @Test
@@ -53,17 +50,6 @@ class MechLabDollCanvasTest {
         assertEquals(7f, pad.height());
         assertEquals(13.5f, north.worldCenterX());
         assertEquals(11f, north.worldCenterY());
-    }
-
-    @Test
-    void repairFocusOnTheServicePadIsNotPresentedAsMachineWelding() {
-        Gantry berth = Gantry.covering(12, 8, 3, 6,
-                Gantry.Facing.NORTH, Gantry.Holds.MACHINE);
-
-        assertTrue(MechLabDollCanvas.focusInsideServicePad(
-                List.of(berth), 13.5f, 8.5f));
-        assertFalse(MechLabDollCanvas.focusInsideServicePad(
-                List.of(berth), 18.5f, 8.5f));
     }
 
     @Test
