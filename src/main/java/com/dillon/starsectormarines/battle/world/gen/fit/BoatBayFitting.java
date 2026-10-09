@@ -6,67 +6,24 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 /**
- * A boat bay as a door with a room behind it: the outboard bulkhead clear from
- * end to end, a rank of boats nosed at it from the fuelling run along the
- * inboard side, and the deck office and the ready stores worked down the two
- * ends.
+ * A hull-side hangar with a clear route from each berth to its outboard apron.
  *
- * <p>The clear middle is not the room. It is a <em>constraint</em> on the room —
- * a boat has to be moved through it, and troops form up on it to embark — and
- * for a long time the bay was fitted as though the constraint were the whole
- * design: gear ranked round the walls at a pitch, publishing stowage and nothing
- * else. That is a hold with an empty middle. What actually happens on a boat
- * deck is cargo going up and down, boats being fuelled and turned round between
- * lifts, a tally kept of both, and a snag list that never quite empties; the
- * clear deck is what all of that is arranged around rather than what it amounts
- * to.
+ * <p>A full establishment parks in two facing banks around a central taxi
+ * aisle: three boats down either side in the standard room. Their noses point
+ * into the aisle, which leads to the bare outboard bulkhead. Smaller rooms keep
+ * the single rank backed onto the inboard fuelling run; a frigate retains its
+ * one smaller gig rather than losing its only boat to the full-size envelope.
  *
- * <p><b>And the boats stand in it.</b> A rank of them along the fuelling side,
- * which is why the fuelling run and the bowser are on that side at all, with the
- * rest of the clear deck left open in front of them — the lane a boat is moved
- * out through and the deck a landing party forms up on. Each boat publishes
- * {@link Affordance#SERVICE}, so the trade that turns an aircraft round on a
- * garrison apron is the trade that turns a boat round here; it is the same work
- * on the same kind of machine, and modelling it twice would give a ship's boats
- * a second, quietly different opinion about what servicing costs.
+ * <p>Berth footprints and capacity share one fit constraint. They are reserved
+ * deck, never fixtures, so the same finite boats can be installed as ordinary
+ * airfield berths and serviced through {@link Affordance#SERVICE}. The office,
+ * ready stores and fuelling machinery occupy the other three bulkhead bands;
+ * circulation and door approaches are reserved before anything is furnished.
  *
- * <p>How many and how big is the bay's own answer, at a pitch, the way its
- * perimeter work already is. A gig bay on a frigate holds one small boat and a
- * cruiser's boat deck holds a rank of launches, and neither number is written
- * down here.
- *
- * <p>Their side is the fuelled side and their front is the deck. A boat nosed
- * into the fuelling run would have to be backed out past the bowser every lift,
- * and one ranked against the cargo side would put the tankage across the bay
- * from the things it fuels.
- *
- * <p>So the deck stays clear and the perimeter is worked hard. Three of the
- * bulkheads carry a run {@link #WORKING_BAND} cells deep, and the first cell of
- * clear deck inboard of each is where somebody stands — which makes the standing
- * cells one continuous lane rather than pockets between stacks, and is why this
- * room can be worked heavily without ever risking its own circulation.
- *
- * <p><b>The fourth bulkhead is the door, and nothing stands against it.</b> The
- * bay names that side as its {@linkplain #outboard() outboard} and the placer
- * puts it on the hull, so the fitting knows where the door is rather than
- * finding out afterwards. It used to work all four sides alike and leave the
- * placer free to use whichever it could reach, and the result was a store with
- * two boats in the middle: the hull door somewhere behind a rank of crates, and
- * the boats as often as not parked facing away from it. A hangar is legible by
- * its exit. So the door wall is bare deck the whole way along, the boats face
- * it across the lane they leave by, and the cargo that used to line that side
- * is pushed into the corners where it was always going to end up.
- *
- * <p>Jobs go at {@link #WORK_PITCH}, so the bay's capacity is its perimeter
- * rather than a number written here. A gig bay on a frigate and a boat deck on a
- * cruiser are the same arrangement holding different amounts of work, which is
- * the same rule the gantry bays follow.
- *
- * <p>Not {@linkplain RoomFitting#handed() handed} and publishing no
- * {@linkplain RoomFitting#hookups hookups}. The two ends and the inboard side
- * are worked alike and any of them can take a hatch; only the outboard side is
- * spoken for, and that is the one constraint that matters here, since a boat
- * bay buried amidships opens onto nothing.
+ * <p>The canonical top is the declared outboard side. The hull placer supplies
+ * the real aperture there; this fitting supplies clear deck up to it. It does
+ * not open a bulkhead or move aircraft: ground taxi and launch remain air
+ * simulation responsibilities, separate from this physical arrangement.
  */
 public final class BoatBayFitting implements RoomFitting {
 
@@ -110,6 +67,9 @@ public final class BoatBayFitting implements RoomFitting {
 
     /** Cells of open deck between one boat and the next, to get round them by. */
     private static final int BOAT_GAP = 1;
+
+    /** Two facing banks feed a hull-side launch apron through this clear aisle. */
+    public static final int TAXI_AISLE = 8;
 
     /**
      * Clear deck that must remain between the rank and the door wall.
@@ -373,6 +333,8 @@ public final class BoatBayFitting implements RoomFitting {
     public static int boatsIn(int along, int across) {
         int band = band(along, across);
         if (band < 1) return 0;
+        int banks = bankRows(along, across, band);
+        if (banks > 0) return 2 * banks;
         int rim = band + 1;
         int depth = depth(across - rim);
         if (depth < MIN_BOAT_DEPTH) return 0;
@@ -381,6 +343,11 @@ public final class BoatBayFitting implements RoomFitting {
     }
 
     private void layBoats(RoomFloor floor, int along, int across, int band) {
+        int rows = bankRows(along, across, band);
+        if (rows > 0) {
+            layBanks(floor, along, across, band, rows);
+            return;
+        }
         // Inside the ring, not on it. The first clear cell inboard of every
         // bulkhead is where that run's work is done from, so a boat laid on the
         // ring stands on the fuelling party — and because a berth reserves deck
@@ -413,6 +380,40 @@ public final class BoatBayFitting implements RoomFitting {
             int berth = floor.berth(rect[0], rect[1], rect[2], rect[3],
                     Gantry.Facing.of(out[0], out[1]), Gantry.Holds.BOAT);
             layBoatWork(floor, start, rankAcross, span, berth);
+        }
+    }
+
+    /** The same fit constraint answers both hull capacity and the physical layout. */
+    private static int bankRows(int along, int across, int band) {
+        int rim = band + 1;
+        if (along - 2 * rim < 2 * BOAT_DEPTH + TAXI_AISLE) return 0;
+        int rows = (across - rim - DOOR_LANE + BOAT_GAP) / (BOAT_SPAN + BOAT_GAP);
+        return rows >= 3 ? rows : 0;
+    }
+
+    /**
+     * Three or more berths down each side, nosed into the common taxi aisle.
+     * The outboard four rows remain a clear launch apron; nothing in either
+     * bank or the servicing ring intrudes on the aisle leading to it.
+     */
+    private void layBanks(RoomFloor floor, int along, int across, int band, int rows) {
+        int rim = band + 1;
+        int spread = rows * (BOAT_SPAN + BOAT_GAP) - BOAT_GAP;
+        int first = DOOR_LANE + (across - rim - DOOR_LANE - spread) / 2;
+        for (int side = 0; side < 2; side++) {
+            int start = side == 0 ? rim : along - rim - BOAT_DEPTH;
+            int nose = side == 0 ? start + BOAT_DEPTH : start - 1;
+            int focus = side == 0 ? nose - 1 : nose + 1;
+            int[] direction = floor.pose().mapDirection(side == 0 ? 1 : -1, 0);
+            for (int row = 0; row < rows; row++) {
+                int at = first + row * (BOAT_SPAN + BOAT_GAP);
+                int[] rect = floor.toLocalRect(start, at, BOAT_DEPTH, BOAT_SPAN);
+                int berth = floor.berth(rect[0], rect[1], rect[2], rect[3],
+                        Gantry.Facing.of(direction[0], direction[1]), Gantry.Holds.BOAT);
+                berthTask(floor, nose, at + 1, berth, focus, at + 1);
+                berthTask(floor, nose, at + BOAT_SPAN - 2, berth,
+                        focus, at + BOAT_SPAN - 2);
+            }
         }
     }
 

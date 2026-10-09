@@ -1,14 +1,12 @@
 # Ship interior nouns
 
-Status: ACTIVE — the model is authored; no generator, facility, or adoption slice has shipped.
+Status: ACTIVE — procedural interiors and company room views are retained;
+facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-09-01 — a pocket no passage can reach is not deck, so a refused
-placement strikes its own ground off the search and the rooms behind it find
-the open deck instead of going unplaced; and the whole-ship view keeps a boat
-in sight after it leaves its berth, where a berthed one was always drawn as the
-unit it is.
+Updated: 2026-10-09 — the default substantial hull consolidates six shuttle
+berths around one clear central aisle; capacity follows physical fit.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -205,7 +203,7 @@ authored content.
   a legal spawn.
 - A bay holds **as many boats as it has deck for, at the size it has depth for**,
   which is the rule its perimeter work already follows. A cruiser's boat deck
-  keeps a rank of launches and a frigate's gig bay keeps one gig; neither number
+  keeps facing banks of launches and a frigate's gig bay keeps one gig; neither number
   is authored. The failure worth naming is the small one — a bay too shallow for
   the standard boat must keep a smaller boat rather than none, because the hull
   whose only way off the ship is her gig is exactly the hull that cannot afford
@@ -228,13 +226,16 @@ authored content.
   One type per hull rather than a mixed bill, because a ship's boats are a class
   she carries several of and a bay holding one of each would be a fleet in
   miniature.
-- **A hull's establishment is six boats**, which is the number the missions are
-  written around, and it is met by owing her three bays rather than by making
-  two bays longer. That was measured rather than chosen: a longer bay reaches
-  six in two rooms and packs worse, taking cruisers and capitals from one deck
-  in twelve short of rooms to four in twelve, because one long room is harder to
-  place than its area suggests. Three ordinary bays cost nothing and pack better
-  than the two she carried before.
+- **A substantial hull's default establishment is six boats together in one
+  hangar.** Two facing banks of three keep the whole complement legible from
+  one room view, with a clear central taxi aisle joining the outboard apron.
+  Larger lift programs add complete establishments; a frigate retains its small
+  gig bay. Capacity and physical berth placement use the same fit constraints.
+  Hull sizing must leave enough beam for the bay with its aperture facing the
+  flank: rotating the footprint to fit cannot turn the exit into the bow.
+  The aisle provides space for future ground movement; current ambient sorties
+  still lift directly from their berths. Physical taxiing and aperture opening
+  require a departure/return lifecycle and are not implied by clear floor space.
 - **The lift is the boats aboard, and there is nothing to choose.** A briefing
   reads out the establishment — how many, of what, off which ship — rather than
   offering a per-hull commitment, because holding one of your own boats back is
@@ -270,7 +271,7 @@ authored content.
   the hull. What changed is that a room may declare an **outboard side** in its
   own frame, and the placer puts that side on the ship's skin rather than using
   whichever side it can reach. So the door is on the bulkhead the arrangement
-  was built around — the deck behind it clear, the boats facing it — instead of
+  was built around — the deck behind it clear, the berth exits joining it — instead of
   turning up wherever the packing happened to leave vacuum. A room that names
   its outboard side is orientation-sensitive by definition, so it is placed as a
   handed room: poses that differ only in which side faces out are exactly the
@@ -290,12 +291,10 @@ authored content.
   it goes to the inboard corners, where it was always going to end up. A hangar
   is legible by its exit, and one lined with stores read as a store that happened
   to have boats in the middle of it.
-- **A berth's heading is the way out of the berth.** A boat is parked backed onto
-  the fuelling run and nosed at the door, across the lane it leaves by. The
-  earlier reading — that the door is wherever the hull turned out to be,
-  sometimes behind the boats — described the defect this replaced rather than a
-  property worth keeping. The lane is still what a boat deck is arranged around:
-  it is not a drive-through, and a boat is moved.
+- **A berth's heading is the way out of the berth.** The full establishment
+  noses into its central aisle, while a small single rank noses toward the
+  outboard apron. Berth heading and outboard heading can therefore differ;
+  ground movement must join the aisle before turning toward the aperture.
 - A **small hull's boat may go unserviced**, and today does: a frigate's single
   gig bay competes for a forty-hand ship's bunks and comes out with nobody at the
   berth, while a destroyer and up turn their boats round. That is the manning

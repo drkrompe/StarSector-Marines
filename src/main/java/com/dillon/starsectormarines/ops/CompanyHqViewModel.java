@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 import java.text.MessageFormat;
@@ -102,7 +104,9 @@ final class CompanyHqViewModel {
         props.put("runway", runwayText(standing.finances.runwayMonths()));
         props.put("runwayClasses", runwayClasses(standing.finances.runwayMonths()));
         props.put("financeRows", financeRows(standing, credits));
-        props.put("employers", employerRows(standing.employers));
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        props.put("employers", employerRows(standing.employers,
+                script == null ? null : script.state()));
         props.put("employerEmpty", standing.employers.isEmpty()
                 ? Strings.get("companyHqNoEmployers") : "");
 
@@ -125,6 +129,7 @@ final class CompanyHqViewModel {
             newsPosts.add(newsPost(index, news.get(index), day));
         }
         props.put("newsPosts", List.copyOf(newsPosts));
+        putIntake(props, intake(obligationCount, news));
         props.put("newsEmpty", news.isEmpty()
                 ? Strings.get("companyHqNewsEmpty") : "");
 
@@ -255,10 +260,10 @@ final class CompanyHqViewModel {
         props.put("statusHeader", "FORCE STATUS");
         props.put("financeHeader", "COMPANY FINANCE");
         props.put("standingHeader", "CLIENT STANDING");
-        props.put("boardHeader", "SITUATION BOARD");
-        props.put("boardIntro", "Obligations that can hurt the company, followed by confirmed reports and rumors already learned.");
+        props.put("boardHeader", "BRIDGE INTELLIGENCE / SECTOR WIRE");
+        props.put("boardIntro", "Company dispatches, verified sector reports, and open traffic. Priority notices keep their deadlines; rumors await confirmation.");
         props.put("obligationsHeader", "ACTIVE OBLIGATIONS");
-        props.put("newsHeader", "SECTOR POSTS");
+        props.put("newsHeader", "CONSOLIDATED SECTOR BULLETINS");
         props.put("runway", "8.4 MONTHS");
         props.put("runwayCaption", "payroll runway  /  against last month's upkeep");
         props.put("runwayClasses", "runway-value tone-accent");
@@ -273,19 +278,20 @@ final class CompanyHqViewModel {
                 new InfoRow("preview-net", "tone-good", "Last net", "+Cr. 18,400"),
                 new InfoRow("preview-retainer", "tone-good", "Retainers", "Cr. 12,000 / mo")));
         props.put("employers", List.of(
-                new EmployerRow("preview-employer-1", "", "Kazeron Compact", "+42", "5 completed  /  0 failed"),
-                new EmployerRow("preview-employer-2", "", "Sindrian Diktat", "+18", "2 completed  /  1 failed"),
-                new EmployerRow("preview-employer-3", "tone-danger", "House Umbra", "-6", "1 completed  /  2 failed")));
+                new EmployerRow("preview-employer-1", "", "Kazeron Compact", "+42", "5 completed  /  0 failed", "graphics/factions/crest_persean_league.png"),
+                new EmployerRow("preview-employer-2", "", "Sindrian Diktat", "+18", "2 completed  /  1 failed", "graphics/factions/crest_sindrian_diktat.png"),
+                new EmployerRow("preview-employer-3", "tone-danger", "House Umbra", "-6", "1 completed  /  2 failed", "")));
         props.put("employerEmpty", "");
         props.put("obligations", List.of(
                 new ObligationPost("preview-obligation-1", "post-card danger-surface", "DUE IN 1 DAY", "Garrison defense", "Sindria  /  House Kardos  /  FAILS IF MISSED", "RESPOND", false, () -> { }),
                 new ObligationPost("preview-obligation-2", "post-card", "12 DAYS", "Stationing term ends", "Kazeron  /  Compact Security Board", "TRACKING", true, () -> { })));
         props.put("obligationEmpty", "");
         props.put("newsPosts", List.of(
-                new NewsPost("preview-news-1", "news-card", "CONFIRMED  /  TODAY", "House Cavor displaces House Tobin", "Eochu Bres  /  learned through company channels"),
+                new NewsPost("preview-news-1", "news-card lead-bulletin", "CONFIRMED  /  TODAY", "House Cavor displaces House Tobin", "Eochu Bres  /  learned through company channels"),
                 new NewsPost("preview-news-2", "news-card rumor-surface", "RUMOR  /  4 DAYS AGO", "Reports of Compact action against House Umbra", "Kazeron  /  outcome remains unconfirmed"),
                 new NewsPost("preview-news-3", "news-card", "CONFIRMED  /  11 DAYS AGO", "Silent colony operation concluded", "17 of 22 survivors recovered  /  archive secured")));
         props.put("newsEmpty", "");
+        putIntake(props, new Intake(2, 2, 1));
         return new CompanyHqViewModel(props);
     }
 
@@ -366,7 +372,7 @@ final class CompanyHqViewModel {
     }
 
     private static List<EmployerRow> employerRows(
-            List<CompanyStanding.Employer> employers) {
+            List<CompanyStanding.Employer> employers, CampaignState state) {
         List<EmployerRow> rows = new ArrayList<>();
         for (int index = 0; index < employers.size(); index++) {
             CompanyStanding.Employer employer = employers.get(index);
@@ -374,9 +380,44 @@ final class CompanyHqViewModel {
                     employer.reputation < 0 ? "tone-danger" : "",
                     employer.name, signedInt(employer.reputation),
                     MessageFormat.format(Strings.get("companyHqEmployerRecord"),
-                            employer.contractsCompleted, employer.contractsFailed)));
+                            employer.contractsCompleted, employer.contractsFailed),
+                    employerCrest(state, employer.houseId, CompanyHqViewModel::factionCrest)));
         }
         return List.copyOf(rows);
+    }
+
+    /** Resolve affiliation by persistent house identity, never by display-name guesses. */
+    static String employerCrest(CampaignState state, long houseId,
+                                Function<String, String> resolve) {
+        if (state == null) return "";
+        int house = state.houseIndex(houseId);
+        if (house < 0) return "";
+        String faction = state.factionRegistry.get(state.houseFactionId[house]);
+        if (faction == null || faction.isBlank()) return "";
+        String crest = resolve.apply(faction);
+        return crest == null ? "" : crest;
+    }
+
+    private static String factionCrest(String id) {
+        FactionAPI faction = Global.getSector() == null ? null : Global.getSector().getFaction(id);
+        return faction == null ? "" : faction.getCrest();
+    }
+
+    record Intake(int dispatch, int confirmed, int unverified) {}
+
+    /** Counts describe the bounded rows on this terminal, not all known sector events. */
+    static Intake intake(int dispatch, List<CompanyNews.Entry> news) {
+        int unverified = 0;
+        for (CompanyNews.Entry entry : news) {
+            if (entry.confidence() == ChronicleConfidence.RUMOR) unverified++;
+        }
+        return new Intake(dispatch, news.size() - unverified, unverified);
+    }
+
+    private static void putIntake(Map<String, Object> props, Intake intake) {
+        props.put("dispatchCount", intake.dispatch() + " dispatches in view");
+        props.put("confirmedCount", intake.confirmed() + " reports in view");
+        props.put("unverifiedCount", intake.unverified() + " unverified in view");
     }
 
     private static ObligationPost obligationPost(int index, CompanyClocks.Entry entry,
@@ -436,8 +477,9 @@ final class CompanyHqViewModel {
             default -> throw new IllegalStateException("Unhandled Chronicle event " + entry.type());
         }
         return new NewsPost("hq-news-" + index,
-                entry.confidence() == ChronicleConfidence.RUMOR
-                        ? "news-card rumor-surface" : "news-card",
+                (entry.confidence() == ChronicleConfidence.RUMOR
+                        ? "news-card rumor-surface" : "news-card")
+                        + (index == 0 ? " lead-bulletin" : ""),
                 kicker, headline, detail);
     }
 
@@ -545,11 +587,15 @@ final class CompanyHqViewModel {
     }
 
     record EmployerRow(String id, String classes, String name, String score,
-                       String record) implements MarkupPropertySource {
+                       String record, String crest) implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "classes" -> classes; case "name" -> name;
                 case "score" -> score; case "record" -> record;
+                case "crest" -> crest; case "crestId" -> id + ":crest";
+                case "copyId" -> id + ":copy";
+                case "crestClasses" -> crest == null || crest.isBlank()
+                        ? "employer-crest crest-absent" : "employer-crest";
                 case "nameId" -> id + ":name"; case "scoreId" -> id + ":score";
                 case "recordId" -> id + ":record";
                 case "scoreClasses" -> "label employer-score " + classes;

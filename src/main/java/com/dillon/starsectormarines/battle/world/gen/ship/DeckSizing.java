@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -239,11 +240,19 @@ public final class DeckSizing {
 
     /**
      * A deck must at least fit its deepest room either side of the spine. A room
-     * may be turned, so what has to fit is the shorter side of its footprint.
+     * may be turned unless doing so would turn its declared outboard side away
+     * from the hull flank; those bays need their canonical depth.
      */
     private static int minimumHeight(List<RoomRecipe> rooms) {
         int deepest = 0;
-        for (RoomRecipe room : rooms) deepest = Math.max(deepest, room.shape().minExtent());
+        for (RoomRecipe room : rooms) {
+            // A hangar's named outboard side is its canonical top: a turn that
+            // makes its footprint shallower also turns its door toward the
+            // bow/stern. Leave enough beam for the actual flank-facing pose.
+            int depth = room.purpose() == RoomPurpose.HANGAR
+                    ? room.shape().height() : room.shape().minExtent();
+            deepest = Math.max(deepest, depth);
+        }
         return deepest * 2 + 10;
     }
 

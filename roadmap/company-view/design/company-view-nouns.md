@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — deployment freezes officer command groups and independent
-acting-NCO leadership; rank limits coordination rather than deployment.
+Updated: 2026-10-09 — HQ consolidates learned intel streams and displays client
+faction crests through persistent affiliation.
 
 ## Purpose
 
@@ -806,7 +806,8 @@ The retained bridge dashboard has four concerns:
   shows the earliest known return only when recovery exists.
 - **Finance and standing** explain cash, reputation, employers, and runway from live
   campaign authorities. Only live stationing retainers count as income. Missing
-  monthly data is unknown, never zero.
+  monthly data is unknown, never zero. Client crests follow the employer house's
+  actual faction identity; an unknown identity never borrows a guessed flag.
 - **Mercenary rating and assessment** make the company's industry position and
   immediate posture readable without conflating them. `CompanyRating` is a
   presentation band over authoritative MRB credibility, never a second reputation
@@ -815,8 +816,12 @@ The retained bridge dashboard has four concerns:
   without rewriting that rating.
 - **Situation board** leads with obligations that can hurt the company: pending response
   deadlines and live stationing term endings. Overdue clocks are due now, never
-  rendered as negative time. One contract may own both clocks. Below them it shows
-  recent validated Chronicle facts newest-first. It reads only learned Chronicle rows,
+  rendered as negative time. One contract may own both clocks. An intel terminal
+  consolidates company dispatches, confirmed reports and unverified traffic into
+  visibly connected intake channels and stable bulletins. These are editorial
+  categories over known information, not invented agencies or simulated new
+  messages. The newest bulletin leads the archive; recent validated Chronicle
+  facts remain newest-first. Intake counts describe the displayed rows. It reads only learned Chronicle rows,
   preserves rumor versus confirmed confidence, and cannot expose undiscovered world
   state.
 

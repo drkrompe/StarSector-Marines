@@ -35,6 +35,57 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ABoatBayHoldsBoatsTest {
 
+    @Test
+    void sixBerthsFaceOneClearTaxiAisleInEveryPose() {
+        for (RoomPose pose : RoomPose.all()) {
+            GenContext ctx = bay(24, 30, pose);
+            List<Gantry> berths = boats(ctx);
+            assertEquals(BoatBayFitting.boatsIn(24, 30), berths.size());
+            assertEquals(6, berths.size());
+            assertEquals(3, berths.stream().filter(berth -> {
+                int[] direction = pose.mapDirection(1, 0);
+                return berth.facing == Gantry.Facing.of(direction[0], direction[1]);
+            }).count());
+            Map<Integer, Integer> service = perBerth(ctx);
+            for (int index = 0; index < berths.size(); index++) {
+                assertEquals(2, service.getOrDefault(index, 0));
+                Gantry berth = berths.get(index);
+                assertEquals(35, berth.width() * berth.height());
+                for (int x = berth.left(); x <= berth.right(); x++) {
+                    for (int y = berth.bottom(); y <= berth.top(); y++) {
+                        assertTrue(ctx.grid.isWalkable(x, y), "fixture inside boat berth");
+                    }
+                }
+            }
+            // Eight cells across leave clearance for the full seven-cell span
+            // while turning. The entire path reaches the real outboard side,
+            // rather than ending behind the inboard stores or a fixture.
+            for (int across = 0; across <= 27; across++) {
+                for (int along = 8; along <= 15; along++) {
+                    int[] cell = pose.map(along, across, 24, 30);
+                    int x = ORIGIN + cell[0];
+                    int y = ORIGIN + cell[1];
+                    assertTrue(ctx.grid.isWalkable(x, y), "blocked taxi aisle");
+                    for (Gantry berth : berths) {
+                        assertTrue(x < berth.left() || x > berth.right()
+                                        || y < berth.bottom() || y > berth.top(),
+                                "a parked boat occupies the taxi aisle");
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void twoBanksRequireTheirFullBoatAndAisleEnvelope() {
+        assertEquals(6, BoatBayFitting.boatsIn(24, 30));
+        assertTrue(BoatBayFitting.boatsIn(23, 30) < 6,
+                "a narrow room fitted two banks by shrinking the taxi aisle");
+        assertTrue(BoatBayFitting.boatsIn(24, 29) < 6,
+                "a shallow room fitted three ranks by shrinking the launch apron");
+        assertEquals(1, BoatBayFitting.boatsIn(16, 10));
+    }
+
     private record Room(RoomShape shape, int originX, int originY, RoomPose pose,
                         RoomPurpose purpose, List<Doorway> doors)
             implements FurnishableRoom { }
