@@ -1,28 +1,124 @@
-<template props="contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="command,contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="barracks-root" class="barracks-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="barracks-room-bar" class="panel barracks-room-bar console-header">
       <img id="shipboard-barracks-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
-      <div id="barracks-room-title" class="label heading tone-edge">BARRACKS  //  COMPANY QUARTERS</div>
-      <div id="barracks-room-copy" class="label tone-muted">Browse the formations aboard the company ship between planetary operations.</div>
+      <div id="barracks-room-title" class="label heading tone-edge">BARRACKS  //  PERSONNEL COMMAND</div>
+      <div id="barracks-room-copy" class="label tone-muted">{command.summary}</div>
     </div>
 
-    <div id="barracks-body" class="barracks-body">
-      <div id="barracks-squad-rail" class="panel squad-rail console-section">
-        <div id="barracks-squad-heading" class="label heading tone-edge section-heading">LINE SQUADS</div>
-        <div id="barracks-squad-copy" class="label tone-muted rail-copy">Select a formation.</div>
-        <div id="barracks-squad-list" class="squad-list">
-          <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">
-            <div id="{squad.nameId}" class="label squad-name">{squad.name}</div>
-            <div id="{squad.statusId}" class="label heading tone-accent squad-status">{squad.status}</div>
-            <div id="{squad.detailId}" class="label tone-muted squad-detail">{squad.detail}</div>
-            <div id="{squad.recordId}" class="label tone-muted squad-record">{squad.record}</div>
+    <div id="barracks-command-board" class="{command.overviewClasses}">
+      <div id="barracks-command-rail" class="command-rail panel console-section">
+        <div id="barracks-section-heading" class="label heading section-heading">OFFICER COMMANDS</div>
+        <div id="barracks-rail-note" class="label muted wrap rail-note">Named officers coordinate their squads. Independent squads act under their NCOs.</div>
+        <div id="barracks-command-list" class="command-list">
+          <button each="group in command.commands" key="{group.id}" id="{group.id}" class="{group.classes}" onclick="{group.select}">
+            <img id="{group.commanderportraitId}" class="commander-portrait" src="{group.portrait}" />
+            <div id="{group.commandercopyId}" class="commander-copy">
+              <div id="{group.commandnameId}" class="label heading wrap command-name">{group.name}</div>
+              <div id="{group.commandsummaryId}" class="label warm wrap command-summary">{group.summary}</div>
+              <div id="{group.commandcapacityId}" class="label muted wrap command-capacity">{group.capacity}</div>
+            </div>
           </button>
         </div>
       </div>
-
+      <div id="barracks-formation-board" class="formation-board panel console-section">
+        <div id="barracks-board-title" class="label heading board-title">{command.title}</div>
+        <div id="barracks-board-tools" class="board-tools">
+          <div id="barracks-search-label" class="label search-label">SEARCH</div>
+          <input id="barracks-search" class="roster-search" value="{command.search}" maxlength="64" oninput="{command.editSearch}" />
+          <button id="barracks-attention" class="tool-button console-action" onclick="{command.attention}">{command.attentionLabel}</button>
+          <button id="barracks-profile-filter" class="profile-filter console-action" onclick="{command.filter}">{command.filterLabel}</button>
+        </div>
+        <div id="barracks-selection-tools" class="selection-tools">
+          <div id="barracks-scope-count" class="label muted scope-count">{command.scopeSummary}</div>
+          <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">SELECT ALL IN VIEW</button>
+          <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">CLEAR</button>
+        </div>
+        <div id="barracks-column-key" class="label muted column-key">FORMATION / PROFILE / READINESS</div>
+        <div id="barracks-empty" class="label muted wrap empty-message">{command.empty}</div>
+        <div id="barracks-formation-list" class="formation-list">
+          <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
+            <button id="{squad.markId}" class="mark-button console-action" disabled="{squad.disabled}" onclick="{squad.toggle}">{squad.mark}</button>
+            <div id="{squad.formationidentityId}" class="formation-identity">
+              <div id="{squad.formationnameId}" class="label heading formation-name">{squad.name}</div>
+              <div id="{squad.formationstatusId}" class="label muted formation-status">{squad.status}</div>
+            </div>
+            <div id="{squad.formationreadinessId}" class="formation-readiness">
+              <div id="{squad.formationprofileId}" class="label warm formation-profile">{squad.profile}</div>
+              <div id="{squad.formationdetailId}" class="label muted formation-detail">{squad.detail}</div>
+            </div>
+            <button id="{squad.inspectId}" class="inspect-button console-action" onclick="{squad.inspect}">INSPECT</button>
+          </div>
+        </div>
+        <div id="barracks-page-tools" class="page-tools">
+          <button id="barracks-page-previous" class="tool-button console-action" disabled="{command.previousDisabled}" onclick="{command.previous}">PREVIOUS</button>
+          <div id="barracks-page-label" class="label heading page-label">{command.pageLabel}</div>
+          <button id="barracks-page-next" class="tool-button console-action" disabled="{command.nextDisabled}" onclick="{command.next}">NEXT</button>
+        </div>
+      </div>
+      <div id="barracks-orders" class="orders panel console-section">
+        <div id="barracks-order-heading" class="label heading order-heading">{command.selection}</div>
+        <div id="barracks-orders-body" class="{command.ordersClasses}">
+          <div id="barracks-order-caption" class="label heading warm order-caption">HOME COMMAND</div>
+          <div id="barracks-selector" class="selector">
+            <button id="barracks-target-previous" class="step console-action" onclick="{command.targetPrevious}">&lt;</button>
+            <div id="barracks-selector-value" class="label wrap selector-value">{command.target}</div>
+            <button id="barracks-target-next" class="step console-action" onclick="{command.targetNext}">&gt;</button>
+          </div>
+          <div id="barracks-assignment-reason" class="label muted wrap assignment-reason">{command.assignmentReason}</div>
+          <button id="barracks-assign-command" class="order-button console-action" disabled="{command.assignmentDisabled}" onclick="{command.assignCommand}">ASSIGN COMMAND</button>
+          <div id="barracks-profile-heading" class="profile-heading">
+            <div id="barracks-order-caption-71" class="label heading warm order-caption">SQUAD PROFILES</div>
+            <button id="barracks-new-profile" class="new-profile console-action" onclick="{command.newProfile}">NEW</button>
+          </div>
+          <div id="barracks-profile-list" class="profile-list">
+            <button each="profile in command.profiles" key="{profile.id}" id="{profile.id}" class="{profile.classes}" onclick="{profile.select}">
+              <div id="{profile.profilenameId}" class="label heading profile-name">{profile.name}</div>
+              <div id="{profile.profiledetailId}" class="label muted wrap profile-detail">{profile.detail}</div>
+            </button>
+          </div>
+          <div id="barracks-profiles-empty" class="label muted wrap empty-message">{command.profilesEmpty}</div>
+          <button id="barracks-assign-profile" class="order-button console-action" disabled="{command.profileDisabled}" onclick="{command.assignProfile}">ASSIGN PROFILE</button>
+          <div id="barracks-profile-note" class="label muted wrap profile-note">Profiles name the intended loadout and tactic sheet. Assignment spends no cargo.</div>
+          <div id="barracks-order-caption-82" class="label heading warm order-caption">PERSONNEL REPLACEMENTS</div>
+          <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
+          <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
+          <div id="barracks-order-caption-85" class="label heading warm order-caption">EQUIPMENT ISSUE</div>
+          <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
+          <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
+          <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
+          <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">ISSUE ASSIGNED EQUIPMENT</button>
+        </div>
+        <div id="barracks-profile-editor" class="{command.editorClasses}">
+          <div id="barracks-order-caption-92" class="label heading warm order-caption">SAVE SQUAD PROFILE</div>
+          <div id="barracks-editor-copy" class="label muted wrap editor-copy">Pair a known weapon loadout with an armour tactic sheet. Design new weapon loadouts in Armory.</div>
+          <div id="barracks-order-caption-94" class="label muted order-caption">PROFILE NAME</div>
+          <input id="barracks-profile-name" class="profile-name-input" value="{command.draftName}" maxlength="48" oninput="{command.editName}" />
+          <div id="barracks-order-caption-96" class="label heading warm order-caption">WEAPON LOADOUT</div>
+          <div id="barracks-selector-97" class="selector">
+            <button id="barracks-weapon-previous" class="step console-action" onclick="{command.weaponPrevious}">&lt;</button>
+            <div id="barracks-selector-value-99" class="label wrap selector-value">{command.draftWeapon}</div>
+            <button id="barracks-weapon-next" class="step console-action" onclick="{command.weaponNext}">&gt;</button>
+          </div>
+          <div id="barracks-order-caption-102" class="label heading warm order-caption">ARMOUR / TACTIC SHEET</div>
+          <div id="barracks-selector-103" class="selector">
+            <button id="barracks-armor-previous" class="step console-action" onclick="{command.armorPrevious}">&lt;</button>
+            <div id="barracks-selector-value-105" class="label wrap selector-value">{command.draftArmor}</div>
+            <button id="barracks-armor-next" class="step console-action" onclick="{command.armorNext}">&gt;</button>
+          </div>
+          <div id="barracks-editor-copy-108" class="label muted wrap editor-copy">Saving creates a reusable profile. Existing profiles and issued equipment stay as they are.</div>
+          <button id="barracks-save-profile" class="order-button console-action" disabled="{command.saveDisabled}" onclick="{command.saveProfile}">SAVE PROFILE</button>
+          <button id="barracks-cancel-profile" class="order-button console-action" onclick="{command.cancelProfile}">BACK TO ORDERS</button>
+        </div>
+      </div>
+    </div>
+    <div id="barracks-body" class="{command.detailClasses}">
       <div id="barracks-stage" class="panel barracks-stage console-section">
+        <div id="barracks-detail-tools" class="detail-tools">
+          <button id="barracks-back-command" class="back-command console-action" onclick="{command.back}">BACK TO COMMAND</button>
+        </div>
         <div id="barracks-selected-heading" class="selected-heading console-header">
           <div id="barracks-selected-copy" class="selected-copy">
             <div id="barracks-selected-name" class="label selected-name tone-accent">{selectedSquadName}</div>
@@ -54,6 +150,7 @@
         </div>
       </div>
     </div>
+    <div id="barracks-feedback" class="label command-feedback">{command.feedback}</div>
   </div>
 </template>
 
@@ -97,4 +194,59 @@
   .squad-detail, .squad-record { height: auto; white-space: normal; }
   #barracks-selected-summary { height: auto; white-space: normal; }
   .record-label, .record-value { height: auto; white-space: normal; }
+  .command-board { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .command-rail { flex-direction: column; width: 294px; padding: 8px; gap: 6px; border-width: 1px; }
+  .muted { color: #a5b0a9; } .warm { color: #dfc588; } .wrap { white-space: normal; }
+  .rail-note { height: 46px; }
+  .command-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .command-card { flex-direction: row; width: 100%; height: 108px; gap: 8px; padding: 8px; border-width: 1px; text-align: left; background-color: #242b28; border-color: #60685c; }
+  .command-card.selected, .profile-card.selected, .formation.selected { background-color: #393b2e; border-color: #dfc588; }
+  .command-card:hover, .profile-card:hover { border-color: #dfc588; }
+  .commander-portrait { width: 58px; height: 58px; }
+  .commander-copy { flex-direction: column; width: 0px; height: 102px; flex-grow: 1; gap: 4px; }
+  .command-name { height: 34px; } .command-summary { height: 30px; } .command-capacity { height: 30px; }
+  .formation-board { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .board-title { height: 26px; color: #dfc588; }
+  .board-tools, .selection-tools, .page-tools { flex-direction: row; align-items: center; height: 32px; gap: 6px; }
+  .search-label { width: 65px; height: 20px; color: #a5b0a9; }
+  .roster-search { width: 0px; flex-grow: 1; height: 24px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
+  .tool-button { width: 126px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .profile-filter { width: 192px; height: 26px; padding: 0px 4px; text-align: center; }
+  .scope-count { width: 0px; flex-grow: 1; height: 20px; }
+  .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .clear-selection { width: 66px; height: 26px; padding: 0px 4px; text-align: center; }
+  .column-key { height: 17px; }
+  .formation-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
+  .formation { flex-direction: row; align-items: center; width: 100%; height: 46px; gap: 9px; padding: 6px; border-width: 1px; border-color: #586154; background-color: #232b26; }
+  .mark-button { width: 30px; height: 30px; padding: 0px; text-align: center; }
+  .formation-identity { flex-direction: column; width: 190px; height: 39px; gap: 2px; }
+  .formation-name { height: 20px; } .formation-status { height: 17px; }
+  .formation-readiness { flex-direction: column; width: 0px; height: 39px; flex-grow: 1; gap: 2px; }
+  .formation-profile { height: 20px; } .formation-detail { height: 17px; }
+  .inspect-button { width: 80px; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .empty-message { height: auto; }
+  .page-label { width: 0px; flex-grow: 1; text-align: center; }
+  .orders { flex-direction: column; width: 356px; padding: 10px; gap: 8px; border-width: 1px; }
+  .order-heading { height: 26px; }
+  .order-body { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .order-caption { height: 19px; }
+  .selector { flex-direction: row; align-items: center; height: 48px; gap: 5px; }
+  .step { width: 26px; height: 26px; padding: 0px; text-align: center; }
+  .selector-value { width: 0px; flex-grow: 1; height: 44px; text-align: center; }
+  .assignment-reason { height: 35px; }
+  .order-button { width: 100%; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
+  .profile-heading { flex-direction: row; align-items: center; height: 27px; gap: 8px; }
+  .profile-heading .order-caption { width: 0px; flex-grow: 1; }
+  .new-profile { width: 60px; height: 25px; padding: 0px 4px; text-align: center; }
+  .profile-list { flex-direction: column; height: 118px; gap: 4px; overflow: scroll; }
+  .profile-card { flex-direction: column; width: 100%; height: 60px; padding: 5px; gap: 4px; text-align: left; border-width: 1px; border-color: #626b5c; background-color: #252d28; }
+  .profile-name { height: 18px; } .profile-detail { height: 34px; }
+  .profile-note { height: 42px; } .recruitment { height: 58px; }
+  .issue-summary { height: 20px; } .issue-cost { height: 42px; } .issue-reason { height: 42px; }
+  .editor-copy { height: 65px; }
+  .profile-name-input { width: 100%; height: 28px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
+  .detail-tools { flex-direction: row; height: 28px; }
+  .back-command { width: 210px; height: 28px; padding: 0px 4px; font-family: heading; text-align: center; }
+  .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
+  .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
 </style>

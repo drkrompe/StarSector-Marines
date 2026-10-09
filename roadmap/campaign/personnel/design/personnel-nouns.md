@@ -4,8 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-06 — bulk home-officer organization is one atomic, capacity-safe
-roster transition with no new persisted selection state.
+Updated: 2026-10-09 — squad profiles preserve desired equipment independently of
+issued kit; bulk replenishment retains named personnel and wounded billets.
 
 ## Purpose
 
@@ -50,6 +50,13 @@ Existing assignments to the destination are counted once. Stationed squads canno
 pool cannot be assigned. A failed transaction leaves every assignment intact.
 Only existing home-officer ids persist; selection and destination drafts belong
 to the surface, so legacy saves need no additional organization state.
+
+A squad may also name a saved equipment profile, as defined in
+`company-view-nouns.md`. This is desired issue, not another formation identity:
+assigning it preserves personnel, history, current kit and the last issued doctrine
+pair. Bulk replenishment uses the same reserves-first personnel draw and exact
+equipment transactions as individual administration. Wounded retain their billets;
+stationed squads remain unavailable for organization, replacement and refit.
 
 ## Availability and deployment
 

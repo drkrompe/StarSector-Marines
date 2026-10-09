@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — HQ presents the intelligence network as animated receivers,
-carrier routes and a selected dossier over learned reports; Mech Lab welding effects
-identify work on occupied machines, with close service stands resolved from the parked body.
+Updated: 2026-10-09 — Barracks organizes officer commands and saved squad profiles,
+with explicit bulk personnel replacement and cargo-backed equipment issue.
 
 ## Purpose
 
@@ -14,12 +13,11 @@ Company view makes the player's force legible as an organization wherever a
 decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
-player-order layer. The Fleet Armory, the Mech Lab and the Boat Deck are its
-deliberate authoring
-seams: the first assigns reusable weapon and armor equipment definitions to
-whole squads while preserving exact materialized kits and stages home-officer
-organization; the second refits
-persistent support squads.
+player-order layer. Barracks, Fleet Armory, Mech Lab and Boat Deck are deliberate
+authoring seams. Barracks organizes officer commands and saved squad profiles,
+and issues explicit replenishment orders. Fleet Armory authors detailed equipment
+and founds formations. Mech Lab and Boat Deck refit their persistent machines.
+Each surface acts through the corresponding campaign authority.
 
 This domain owns the shared language and presentation shape of the company. It
 does not own personnel persistence, equipment progression, contract resolution,
@@ -45,6 +43,10 @@ company view composes their stable outputs.
 - **Armor doctrine** — one reusable squad-wide definition of twelve ordered armor
   issues. It is independent of the weapon doctrine, so either half may change
   without redefining the other.
+- **Squad profile** — a named, reusable pairing of a known weapon loadout and an
+  armor tactic sheet. Assignment records desired equipment without issuing it.
+  The tactic sheet resolves against current template ownership at issue time;
+  the profile does not freeze twelve armor patterns or hold equipment stock.
 - **Squad equipment issue** — the explicit atomic transaction that resolves one
   weapon doctrine and one armor doctrine into the selected squad's exact twelve
   materialized kits.
@@ -74,9 +76,10 @@ company view composes their stable outputs.
   mech component stock defined by `mechs-nouns.md`. It presents and refits typed
   hardpoints, and uses vacant gantries to fabricate persistent chassis, but mutates
   them only through the cargo-backed campaign workshop authority.
-- **Barracks** — the read-only shipboard quarters browser for squads currently
-  carried aboard the flagship. It presents roster truth through a physical room;
-  it does not author equipment, recovery, stationing, or personnel state.
+- **Barracks** — the officer-command and squad-profile administration surface.
+  Its individual squad drill-down presents quarters, muster and service record.
+  Its bulk orders use roster and cargo authorities; it never simulates recovery
+  or owns a second inventory.
 - **Boat Deck** — the shipboard room over the company's ship's boats, standing
   in the hull's own hangars. It presents the deck and refits one boat at a time,
   mutating nothing except through the cargo-backed boat workshop.
@@ -106,8 +109,9 @@ company view composes their stable outputs.
 ## Surface boundary
 
 The retained Company -> Squad -> Fire Team hierarchy is shared across two rooms
-with different intent. Barracks is the ordinary read-only browse path: selecting a
-squad visits its assigned quarters and muster. Fleet Armory is the deliberate
+with different intent. Barracks opens on officer commands and an independent
+acting-NCO group, with squad selection for bulk orders. Inspecting one squad
+visits its assigned quarters and muster. Fleet Armory is the detailed
 inspect/edit path for equipment definitions, exact billet comparison, and issue.
 Its selectable company and squad cards retain readiness, recovery, and reinforcement
 in formation context. A reinforcement control is a secondary card action; selecting
@@ -536,17 +540,39 @@ faster on the deck.
 
 ## Shipboard Barracks
 
-Barracks represents the marine habitation deck while the flagship is carrying the
-company between planets. A scalable squad rail selects one line formation at a time;
-the main region shows that squad's quarters and a twelve-billet muster without exposing
-Armory authoring controls. The room is casual company browsing, not a second roster or
-equipment authority.
+Barracks opens on company formations grouped by their home officer, with an
+independent acting-NCO group for squads without an officer. Commander portraits,
+readiness and occupied command slots make the organization visible. Search,
+profile and attention filters bound the roster; pagination limits rendered squads.
+Select-all includes every matching available squad across pages and shows the
+selected total. Changing a filter clears selection; inspecting a squad and returning
+preserves it. Stationed formations can be inspected but cannot receive bulk orders.
 
-Barracks is also where a formation's **service record** is read. Each rail entry
-carries a one-line career summary so squads compare at a glance, and the selected
-squad's record opens as operations, confirmed kills, rounds on target, casualties,
-and friendly-fire damage. That last measure is reported rather than netted into
-damage dealt, because a squad being dangerous to stand near is part of who it is.
+A saved **squad profile** pairs an existing weapon loadout with an armor tactic
+sheet. Saving and assigning it is free and can include understrength or recovering
+squads. It records intent separately from the last issued doctrine pair and each
+marine's real kit. A successful manual issue of a different pair clears the desired
+profile. Weapon definitions referenced by saved profiles cannot be deleted.
+Existing saves start without profiles and retain their exact personnel and equipment.
+
+Home-command assignment uses the same atomic capacity checks as Fleet Armory.
+Personnel replacement uses ready reserves first, then the existing one-Marine-per-
+billet cargo transaction, in roster order. It stops when personnel run out; wounded
+marines keep their billets and are never replaced to make a readiness counter green.
+The preview shows available replacements and remaining vacancies. Replacements and
+equipment issue are separate explicit orders, so assigning a role never silently spends.
+
+Equipment issue previews the combined existing refit bill for eligible selected
+squads. Incomplete, recovering and stationed formations are explicitly skipped.
+The whole eligible bill must be affordable and paid before any of those squads
+change kit; there is no partial issue caused by cargo shortage. Current template
+ownership and exact issued equipment remain authoritative. This introduces no
+finite rifle or suit stock, automatic purchasing, or new inventory economy.
+
+The individual drill-down retains the physical quarters, twelve-billet muster,
+and formation **service record**: operations, confirmed kills, rounds on target,
+casualties, and friendly-fire damage. That last measure is reported rather than
+netted into damage dealt, because a squad being dangerous to stand near is part of who it is.
 The record is read-only evidence: `progression-nouns.md` forbids a career from
 becoming a combat input, so nothing shown here changes how the squad fights.
 A formation with no operations says so rather than rendering a row of zeroes, and
@@ -870,9 +896,10 @@ that the formation, whereabouts, and contract-board stories will expand.
 
 ## Presentation boundaries
 
-Company reporting surfaces are read-only explanations. The Fleet Armory and Mech
-Lab are the exceptions that author equipment, and Fleet Armory additionally
-authors home-officer organization, through roster, armory, and mech-bay services.
+Company reporting surfaces are read-only explanations. Barracks, Fleet Armory,
+Mech Lab and Boat Deck provide explicit authoring through the roster, armory and
+workshop authorities. Barracks shares home-officer organization with Fleet Armory
+and adds saved profile intent and bulk replenishment.
 Their UIs do not mutate those facts independently. Mission
 command owns battle assignments; `Selection` remains view state. Campaign
 surfaces consume the live roster, while battle and results surfaces consume the
