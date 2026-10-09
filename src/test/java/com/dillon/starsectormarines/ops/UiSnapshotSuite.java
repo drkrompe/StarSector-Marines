@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.BarracksFlowCompany;
+import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
+
 import org.json.JSONObject;
 import org.json.JSONArray;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
@@ -1589,7 +1592,93 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderRelative(renderer, document, 1920, 1080, 1f)));
             }
         }
+        images.addAll(renderBarracksFlow(context, renderer));
         return images;
+    }
+
+    /** One company, real pointer actions and personnel/cargo transactions at every frame. */
+    private static List<SnapshotArtifact> renderBarracksFlow(
+            SnapshotContext context, HeadlessUiRenderer renderer) throws Exception {
+        BarracksFlowCompany company = new BarracksFlowCompany(snapshotCommodities());
+        Reactor reactor = new Reactor();
+        BarracksViewModel model = new BarracksViewModel(reactor, company.roster, () -> 100d,
+                company, company::recruits, company::reinforce);
+        CompanyDeck ship = companyShip(List::of, () -> MarineOpsContext.companyMarines(company.roster));
+        Map<String, Object> properties = props(model, ship);
+        properties.put("contextLabel", reactor.computed(() -> model.command().inspecting()
+                ? ShipBreadcrumb.of(ship.ship(), ship.quartersFor(model.sceneMarines()))
+                : ShipBreadcrumb.of(ship.ship(), null) + " / PERSONNEL COMMAND"));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
+        loader.reload();
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        try (MarkupInstance instance = loader.build(reactor, "shipboard-barracks", properties)) {
+            UiDocument document = new UiDocument(instance.root());
+            instance.styles().forEach(document::addStyleSheet);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
+            SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
+            for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
+                hints.bindLive(instance.requireElement(id), model.command()::recruitSheet);
+            }
+            renderRelative(renderer, document, 1920, 1080, 1f);
+            clickBarracksFlow(document, instance, "command:" + company.captain.id());
+            for (int i = 0; i < 2; i++) clickBarracksFlow(document, instance, "formation:" + company.squads.get(i).id() + ":mark");
+            frames.add(new SnapshotArtifact("flow-01-selected.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-recruit-stock"));
+            frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            document.deactivateInput();
+            hints.update();
+            clickBarracksFlow(document, instance, "barracks-new-profile");
+            frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            clickBarracksFlow(document, instance, "barracks-save-profile");
+            var originalCargo = company.available();
+            clickBarracksFlow(document, instance, "barracks-assign-profile");
+            String profileId = company.roster.armory().squadProfiles().get(0).id();
+            if (company.recruits() != 20 || !company.available().equals(originalCargo)
+                    || company.squads.subList(0, 2).stream().anyMatch(s -> !profileId.equals(s.squadProfileId()))) {
+                throw new IllegalStateException("Profile assignment failed or spent recruits");
+            }
+            frames.add(new SnapshotArtifact("flow-04-profile-assigned.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            clickBarracksFlow(document, instance, "barracks-reinforce");
+            if (company.recruits() != 17 || company.roster.readyReserveCount() != 0
+                    || company.squads.subList(0, 2).stream().anyMatch(s -> company.roster.readyCount(s) != 12)
+                    || company.roster.readyCount(company.squads.get(2)) != 11) {
+                throw new IllegalStateException("Replenishment did not transfer one reserve then enlist three recruits");
+            }
+            frames.add(new SnapshotArtifact("flow-05-replenished.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            var equipment = new BarracksEquipmentIssue(company.roster, company);
+            var bill = equipment.preview(model.command().selected()).cost();
+            clickBarracksFlow(document, instance, "barracks-issue");
+            if (bill.isZero() || !company.available().plus(bill).equals(originalCargo)
+                    || !equipment.preview(model.command().selected()).cost().isZero() || company.recruits() != 17) {
+                throw new IllegalStateException("Equipment issue did not pay its separate combined bill");
+            }
+            frames.add(new SnapshotArtifact("flow-06-equipped.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            clickBarracksFlow(document, instance, "formation:" + company.squads.get(0).id() + ":inspect");
+            if (!model.command().inspecting()) throw new IllegalStateException("Squad drill-down did not open");
+            frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            clickBarracksFlow(document, instance, "barracks-back-command");
+            if (model.command().inspecting() || model.command().selected().size() != 2) {
+                throw new IllegalStateException("Return lost the command selection");
+            }
+            hints.clear();
+        }
+        return frames;
+    }
+
+    private static void clickBarracksFlow(UiDocument document, MarkupInstance instance, String id) {
+        Rect box = instance.requireElement(id).box().borderBox();
+        if (box.width() <= 0 || box.height() <= 0 || box.y() < 0 || box.bottom() > 1080) {
+            throw new IllegalStateException("Barracks control outside viewport: " + id);
+        }
+        float x = box.x() + box.width() / 2f, y = box.y() + box.height() / 2f;
+        document.pointerMoved(x, y);
+        if (!document.pointerDown(x, y) || !document.pointerUp(x, y)) {
+            throw new IllegalStateException("Barracks control did not consume click: " + id);
+        }
+        instance.flush();
+        // Let the production selection/disabled transitions reach the new state.
+        document.advance(0.25f);
     }
 
     private static BufferedImage renderBarracks(
