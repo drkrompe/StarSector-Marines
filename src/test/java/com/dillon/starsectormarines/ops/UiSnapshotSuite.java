@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.JobBoard;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
@@ -1963,7 +1966,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         List<BufferedImage> bulwark = new ArrayList<>();
         BufferedImage heavy = renderMechLab(context, renderer, 1920, 1080, 1f,
                 false, false, false, false, bulwark);
-        return List.of(new SnapshotArtifact("mech-overview-1920x1080.png",
+        return List.of(new SnapshotArtifact("mech-welding-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f,
+                                false, false, false, false, null, null, true)),
+                new SnapshotArtifact("mech-overview-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f)),
                 new SnapshotArtifact("mech-picker-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, true)),
@@ -1994,6 +2000,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant, boolean specSheet,
             List<BufferedImage> motionFrames, String materialHint) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, pickerOpen,
+                selectHound, selectVacant, specSheet, motionFrames, materialHint, false);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant, boolean specSheet,
+            List<BufferedImage> motionFrames, String materialHint, boolean weldingEvidence) throws Exception {
         double[] seconds = {0};
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
@@ -2018,6 +2033,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (!selectHound) viewModel.gantryRows().get().get(0).select().run();
             else viewModel.stripWeapon(viewModel.selectedSocket());
         }
+        if (weldingEvidence) viewModel.gantryRows().get().get(0).select().run();
         if (selectVacant) viewModel.previousGantryAction().run();
         if (pickerOpen) viewModel.openAssetPickerAction().run();
         // The lab is photographed aboard the same ship it is in game. There is
@@ -2025,6 +2041,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // would be evidence about a room the player never sees.
         CompanyDeck ship = companyShip(viewModel::gantryVariants, List::of);
         DeckGraph.Compartment vehicleBay = ship.room(RoomPurpose.VEHICLE_BAY);
+        if (weldingEvidence) seekMachineService(ship, vehicleBay, viewModel.selectedGantryIndex());
         ShipDeckBattleScene.RoomView framing =
                 ShipDeckBattleScene.RoomView.of(vehicleBay, MECH_LAB_SURROUND_CELLS);
         MechLabCameraController camera = new MechLabCameraController(
@@ -2114,6 +2131,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             return renderRelative(renderer, document, width, height, uiScale);
         }
+    }
+
+    /** Wait for a real servicing job on the framed machine; never pose a worker for the image. */
+    private static void seekMachineService(CompanyDeck ship, DeckGraph.Compartment bay, int gantry) {
+        Gantry berth = ship.scene().berthsIn(bay).get(gantry);
+        String service = JobBoard.group(bay.id(), Affordance.SERVICE);
+        for (int step = 0; step < 1800; step++) {
+            var tasks = ship.scene().simulation().ambientTasks();
+            for (long actor : tasks.assigned()) {
+                String job = tasks.jobInHand(actor);
+                var pose = tasks.pose(actor);
+                if (job == null || !job.startsWith(service + "@") || pose == null
+                        || pose.activity() != AmbientActivity.WORKING) continue;
+                if (Math.hypot(pose.focusX() - berth.worldCenterX(),
+                        pose.focusY() - berth.worldCenterY()) < 1.5) return;
+            }
+            ship.advance(.1f);
+        }
+        throw new IllegalStateException("No technician serviced the framed machine during the evidence window");
     }
 
     /**
