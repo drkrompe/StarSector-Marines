@@ -28,10 +28,10 @@
 
   .company-card {
     flex-direction: column;
-    width: 134px;
-    height: 446px;
-    padding: 10px;
-    gap: 6px;
+    width: 232px;
+    height: 300px;
+    padding: 8px;
+    gap: 4px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
@@ -39,38 +39,37 @@
   }
 
   .company-designation { height: 18px; }
-  .company-name { height: 38px; }
+  .company-name { height: 28px; font-family: title; }
 
   .company-status {
-    height: 30px;
-    padding: 5px;
+    height: 22px;
+    padding: 3px;
     border-width: 1px;
     text-align: center;
   }
 
   .company-stat {
-    height: 36px;
-    padding: 6px;
-    border-width: 1px;
+    height: 18px;
+    padding: 2px 1px;
+    border-width: 0px;
   }
 
   .company-readiness {
-    height: 44px;
-    padding: 7px 6px;
+    height: 24px;
+    padding: 4px 6px;
     border-width: 1px;
   }
 
-  .company-recovery { height: 42px; padding: 5px 1px; }
+  .company-recovery { height: 18px; padding: 2px 1px; }
 
   .company-stationing {
-    height: 42px;
-    flex-grow: 1;
-    padding: 6px;
+    height: 20px;
+    padding: 2px;
   }
 
   .company-open {
-    height: 30px;
-    padding: 5px 6px;
+    height: 22px;
+    padding: 3px 6px;
     border-width: 1px;
     text-align: center;
   }

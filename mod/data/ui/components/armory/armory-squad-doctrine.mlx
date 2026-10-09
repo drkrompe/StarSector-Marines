@@ -85,7 +85,7 @@
 
     <div id="squad-equip-row">
       <div id="transaction-result" class="{transactionClasses}">{transactionSummary}</div>
-      <button id="apply-squad-equipment" class="apply-button" disabled="{applyDisabled}" onclick="{apply}">{applyLabel}</button>
+      <button id="apply-squad-equipment" class="apply-button console-action" disabled="{applyDisabled}" onclick="{apply}">{applyLabel}</button>
     </div>
   </div>
 </template>
@@ -97,7 +97,7 @@
   #equipment-picker-tabs { flex-direction: row; height: 30px; gap: 6px; }
   #equipment-picker-heading { width: 94px; padding: 5px 2px; }
   .equipment-picker-tab { width: 190px; padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
-  .equipment-picker-tab.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
+  .equipment-picker-tab.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
 
   #loadout-browser-tools { flex-direction: row; height: 26px; gap: 5px; }
   #loadout-browser-summary { width: 84px; padding: 4px 2px; }
@@ -105,8 +105,8 @@
   #loadout-filter-list { flex-direction: row; height: 28px; gap: 3px; }
   .loadout-filter { width: 0px; height: 26px; flex-grow: 1; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
   .supply-filter { width: 132px; height: 26px; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
-  .supply-filter.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
-  .loadout-filter.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
+  .supply-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
+  .loadout-filter.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; overflow: hidden; }
   .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
@@ -115,12 +115,12 @@
   #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
   #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 476px; height: 214px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
+  .doctrine-tile { flex-direction: column; width: 476px; height: 214px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #191e20; }
   .doctrine-tile.rarity-common { border-color: #607188; }
-  .doctrine-tile.rarity-uncommon { border-color: #53c6e8; background-color: #10202c; }
+  .doctrine-tile.rarity-uncommon { border-color: #a5c6bc; background-color: #10202c; }
   .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
   .doctrine-tile.rarity-exotic { border-color: #c77dff; background-color: #21162c; }
-  .doctrine-tile.selected { background-color: #345a7c; border-color: #f2cf68; }
+  .doctrine-tile.selected { background-color: #35433f; border-color: #f2cf68; }
   .doctrine-header { flex-direction: row; height: 18px; gap: 5px; }
   .doctrine-metadata-row { flex-direction: row; height: 26px; gap: 7px; }
   .doctrine-name, .doctrine-metadata { width: 0px; flex-grow: 1; }
@@ -133,7 +133,7 @@
   .doctrine-rating.rating-high { color: #8fd6a6; border-color: #4f9c6b; }
   .doctrine-rarity { width: 74px; padding: 1px 4px; border-width: 1px; text-align: center; }
   .doctrine-rarity.rarity-common { color: #b4c0ce; border-color: #607188; }
-  .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #53c6e8; }
+  .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #a5c6bc; }
   .doctrine-rarity.rarity-rare { color: #f2cf68; border-color: #dfb84d; }
   .doctrine-rarity.rarity-exotic { color: #dda8ff; border-color: #c77dff; }
   .doctrine-lore { height: 64px; white-space: normal; }

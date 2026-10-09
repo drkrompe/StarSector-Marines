@@ -50,7 +50,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("squadRows", personnel);
         props.put("personnelEmpty", personnel.isEmpty() ? noPersonnelMessage(outcome) : "");
         if (manifest != null && !manifest.isEmpty()) {
-            props.put("secondaryClasses", "danger-surface");
+            props.put("secondaryClasses", "danger-surface console-action");
             props.put("secondaryLabel", Strings.get("resultsForfeitSalvage"));
             props.put("secondaryAction", (Runnable) this::returnToMissions);
             props.put("primaryLabel", Strings.get("resultsReviewSalvage"));
@@ -88,7 +88,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                         "12R 0W 0M 0K", "label heading results-squad-summary tone-good",
                         "Vale R · Sato R · Moss R · Holt R · Venn R · Ward R")));
         props.put("personnelEmpty", "");
-        props.put("secondaryClasses", salvage ? "danger-surface" : "hidden");
+        props.put("secondaryClasses", salvage ? "danger-surface console-action" : "hidden");
         props.put("secondaryLabel", salvage ? "FORFEIT SALVAGE" : "");
         props.put("secondaryAction", none);
         props.put("primaryLabel", salvage ? "REVIEW SALVAGE" : "RETURN");

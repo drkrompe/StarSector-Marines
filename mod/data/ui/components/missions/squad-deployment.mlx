@@ -1,6 +1,7 @@
 <template props="title,missionName,missionMeta,readinessTone,readinessSummary,commandSummary,capacitySummary,reserveSummary,squadRows,emptyMessage,inspectorClasses,inspectorTitle,inspectorContext,inspectorFirepower,inspectorProtection,inspectorPrimary,inspectorArmor,inspectorSpecial,inspectorSystem,inspectorProfile,backAction,armoryAction">
   <div id="squad-deployment-root" class="squad-deployment-root">
-    <div id="squad-deployment-header" class="mission-flow-header surface-dark">
+    <div id="squad-deployment-header" class="mission-flow-header console-header">
+      <img id="squad-deployment-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="squad-deployment-heading" class="mission-flow-heading">
         <div id="squad-deployment-title" class="label title tone-edge">{title}</div>
         <div id="squad-deployment-mission" class="label tone-muted">{missionName}</div>
@@ -8,22 +9,22 @@
       <div id="squad-deployment-context" class="label heading tone-accent mission-flow-context">PRE-BATTLE MUSTER</div>
     </div>
     <div id="squad-deployment-body" class="mission-flow-body">
-      <div id="squad-deployment-summary" class="panel deployment-summary">
+      <div id="squad-deployment-summary" class="console-section deployment-summary">
         <div id="squad-deployment-summary-heading" class="label heading tone-edge section-heading">FORCE ENVELOPE</div>
         <div id="squad-deployment-meta" class="label title deployment-mission">{missionMeta}</div>
-        <div id="squad-deployment-ready-block" class="summary-block surface-dark">
+        <div id="squad-deployment-ready-block" class="summary-block console-readout">
           <div id="squad-deployment-ready-label" class="label heading tone-muted">READY PERSONNEL</div>
           <div id="squad-deployment-readiness" class="{readinessTone}">{readinessSummary}</div>
         </div>
-        <div id="squad-deployment-command-block" class="summary-block surface-dark">
+        <div id="squad-deployment-command-block" class="summary-block console-readout">
           <div id="squad-deployment-command-label" class="label heading tone-muted">TASK FORCE COMMAND</div>
           <div id="squad-deployment-command-value" class="label summary-value">{commandSummary}</div>
         </div>
-        <div id="squad-deployment-capacity-block" class="summary-block surface-dark">
+        <div id="squad-deployment-capacity-block" class="summary-block console-readout">
           <div id="squad-deployment-capacity-label" class="label heading tone-muted">LIFT CAPACITY</div>
           <div id="squad-deployment-capacity-value" class="label summary-value">{capacitySummary}</div>
         </div>
-        <div id="squad-deployment-reserve-block" class="summary-block surface-dark">
+        <div id="squad-deployment-reserve-block" class="summary-block console-readout">
           <div id="squad-deployment-reserve-label" class="label heading tone-muted">RESERVE POLICY</div>
           <div id="squad-deployment-reserve-value" class="label summary-value">{reserveSummary}</div>
         </div>
@@ -44,7 +45,7 @@
           <div id="squad-deployment-inspector-caveat" class="label tone-muted inspector-caveat">Ratings omit reach, abilities, morale, terrain, and orders.</div>
         </div>
       </div>
-      <div id="squad-deployment-roster" class="panel deployment-roster">
+      <div id="squad-deployment-roster" class="console-section deployment-roster">
         <div id="squad-deployment-roster-heading" class="roster-heading surface-dark">
           <div id="squad-deployment-roster-copy" class="roster-heading-copy">
             <div id="squad-deployment-roster-title" class="label heading tone-edge section-heading">AVAILABLE LINE SQUADS</div>
@@ -96,9 +97,9 @@
         <div id="squad-deployment-empty" class="label tone-muted empty-copy">{emptyMessage}</div>
       </div>
     </div>
-    <div id="squad-deployment-actions" class="mission-flow-actions panel surface-dark">
-      <button id="squad-deployment-back" onclick="{backAction}">BACK TO BRIEFING</button>
-      <button id="squad-deployment-armory" onclick="{armoryAction}">MANAGE PERSONNEL</button>
+    <div id="squad-deployment-actions" class="mission-flow-actions console-section">
+      <button id="squad-deployment-back" onclick="{backAction}" class="console-action">BACK TO BRIEFING</button>
+      <button id="squad-deployment-armory" onclick="{armoryAction}" class="console-action">MANAGE PERSONNEL</button>
     </div>
   </div>
 </template>
@@ -106,7 +107,7 @@
 <style>
   .squad-deployment-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 7px 10px; gap: 10px; border-width: 1px; }
   .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
   .mission-flow-heading .title { height: 24px; }
   .mission-flow-context { width: 330px; padding: 11px 4px; text-align: right; }
@@ -173,4 +174,17 @@
   .mission-flow-actions { flex-direction: row; height: 42px; padding: 4px; gap: 8px; border-width: 1px; }
   .mission-flow-actions button { width: 240px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .empty-copy { height: 20px; }
+  .flow-header-lock { width: 32px; height: 38px; }
+  .mission-flow-actions button { height: 32px; padding: 5px 10px; }
+  .deployment-summary { width: 360px; padding: 9px; gap: 7px; }
+  .deployment-mission { height: 46px; padding: 7px; }
+  .summary-block { height: 60px; padding: 7px 9px; gap: 5px; }
+  .summary-value { height: 28px; white-space: normal; }
+  .deployment-note { height: 52px; padding: 7px; }
+  .roster-heading { height: 54px; padding: 7px 9px; }
+  .deployment-squad-card { width: 450px; height: 266px; background-color: #252b30; border-color: #64717b; }
+  .deployment-squad-card:hover { background-color: #354047; border-color: #91a9b8; }
+  .deployment-squad-card.selected { background-color: #253b42; border-color: #d4b569; }
+  .deployment-fireteam { background-color: #151e23; border-color: #485861; }
+  .deployment-member { background-color: #202a30; border-color: #43535c; }
 </style>

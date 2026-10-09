@@ -114,16 +114,17 @@ class FleetArmoryOverviewViewModelTest {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
 
-            document.layout(1744f, 938f);
+            document.layout(1920f, 1080f);
             UiElement list = instance.requireElement("company-list");
             UiElement card = list.childAt(0);
-            assertEquals(1f / 3f,
-                    card.box().borderBox().width() / card.box().borderBox().height(),
-                    EPSILON);
+            // A compact card keeps its own reading width and contains its final action.
+            assertTrue(card.box().borderBox().width() < list.box().contentBox().width());
+            assertTrue(card.childAt(card.childCount() - 1).box().borderBox().bottom()
+                    <= card.box().contentBox().bottom() + EPSILON);
             assertTrue(card.box().borderBox().right()
                     <= list.box().contentBox().right() + EPSILON);
 
-            document.layout(1163f, 625f);
+            document.layout(480f, 420f);
             assertTrue(list.box().maxScrollTop() > 0f);
         }
     }

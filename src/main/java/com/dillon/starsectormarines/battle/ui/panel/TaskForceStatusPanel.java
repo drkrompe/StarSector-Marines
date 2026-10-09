@@ -36,9 +36,9 @@ public final class TaskForceStatusPanel implements HudPanel {
     private static final float MORALE_BAR_H = 4f;
     private static final float DOT_RADIUS = 4f;
 
-    private static final Color BG = new Color(0x10, 0x18, 0x22, 0xD8);
-    private static final Color BORDER = new Color(0x60, 0x80, 0xA0);
-    private static final Color HEADER_FG = new Color(0xC8, 0xE0, 0xFF);
+    private static final Color BG = new Color(0x14, 0x1E, 0x19, 0xEE);
+    private static final Color BORDER = new Color(0x72, 0x7B, 0x79);
+    private static final Color HEADER_FG = new Color(0xA7, 0xCC, 0xC4);
     private static final Color VALUE_FG = new Color(0xE0, 0xE0, 0xE0);
     private static final Color ALERT_UNAWARE = new Color(0x60, 0xC0, 0x60);
     private static final Color ALERT_SUSPICIOUS = new Color(0xE0, 0xC0, 0x40);

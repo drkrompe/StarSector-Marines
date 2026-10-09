@@ -1,20 +1,21 @@
 <template props="title,missionName,budgetLabel,budgetTone,poolLabel,instructions,lootRows,carryLabel,fenceLabel,noticeClasses,notice,backAction,confirmDisabled,confirmAction">
   <div id="mission-loot-root" class="mission-loot-root">
-    <div id="mission-loot-header" class="mission-flow-header surface-dark">
+    <div id="mission-loot-header" class="mission-flow-header console-header">
+      <img id="mission-loot-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="mission-loot-heading" class="mission-flow-heading">
         <div id="mission-loot-title" class="label title tone-edge">{title}</div>
         <div id="mission-loot-mission" class="label tone-muted">{missionName}</div>
       </div>
       <div id="mission-loot-context" class="label heading tone-accent mission-flow-context">RECOVERY CLAIM</div>
     </div>
-    <div id="mission-loot-summary" class="loot-summary panel">
+    <div id="mission-loot-summary" class="loot-summary console-section">
       <div id="mission-loot-summary-copy" class="loot-summary-copy">
         <div id="mission-loot-budget" class="{budgetTone}">{budgetLabel}</div>
         <div id="mission-loot-pool" class="label tone-muted">{poolLabel}</div>
       </div>
       <div id="mission-loot-instructions" class="label loot-instructions surface-dark">{instructions}</div>
     </div>
-    <div id="mission-loot-grid" class="loot-grid panel">
+    <div id="mission-loot-grid" class="loot-grid console-section">
       <button each="loot in lootRows" key="{loot.id}" id="{loot.id}" class="{loot.classes}" disabled="{loot.disabled}" onclick="{loot.action}">
         <img id="{loot.iconId}" class="loot-icon" src="{loot.icon}" />
         <div id="{loot.copyId}" class="loot-card-copy">
@@ -25,7 +26,7 @@
         </div>
       </button>
     </div>
-    <div id="mission-loot-settlement" class="loot-settlement panel surface-dark">
+    <div id="mission-loot-settlement" class="loot-settlement console-readout">
       <div id="mission-loot-carry" class="settlement-cell">
         <div id="mission-loot-carry-heading" class="label heading tone-muted">CARRY</div>
         <div id="mission-loot-carry-value" class="label tone-good">{carryLabel}</div>
@@ -36,10 +37,10 @@
       </div>
       <div id="mission-loot-notice" class="{noticeClasses}">{notice}</div>
     </div>
-    <div id="mission-loot-actions" class="mission-flow-actions panel surface-dark">
-      <button id="mission-loot-back" onclick="{backAction}">BACK TO DEBRIEF</button>
+    <div id="mission-loot-actions" class="mission-flow-actions console-section">
+      <button id="mission-loot-back" onclick="{backAction}" class="console-action">BACK TO DEBRIEF</button>
       <div id="mission-loot-action-spacer" class="action-spacer"></div>
-      <button id="mission-loot-confirm" class="good-surface" disabled="{confirmDisabled}" onclick="{confirmAction}">CONFIRM SALVAGE</button>
+      <button id="mission-loot-confirm" class="good-surface console-action" disabled="{confirmDisabled}" onclick="{confirmAction}">CONFIRM SALVAGE</button>
     </div>
   </div>
 </template>
@@ -47,7 +48,7 @@
 <style>
   .mission-loot-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 7px 10px; gap: 10px; border-width: 1px; }
   .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
   .mission-flow-heading .title { height: 24px; }
   .mission-flow-context { width: 300px; padding: 11px 4px; text-align: right; }
@@ -71,4 +72,16 @@
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }
   .hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .flow-header-lock { width: 32px; height: 38px; }
+  .mission-flow-actions button { height: 32px; padding: 5px 10px; }
+  .loot-summary { height: 78px; padding: 8px 10px; gap: 10px; }
+  .loot-summary-copy { width: 470px; gap: 6px; }
+  .loot-instructions { padding: 10px; white-space: normal; }
+  .loot-card { width: 350px; height: 118px; padding: 8px; gap: 9px; background-color: #252b30; border-color: #64717b; }
+  .loot-card:hover { background-color: #354047; border-color: #91a9b8; }
+  .loot-card.selected { background-color: #253b42; border-color: #d4b569; }
+  .loot-icon { width: 68px; height: 68px; }
+  .loot-card-copy { gap: 5px; }
+  .loot-settlement { height: 68px; padding: 8px 10px; }
+  .settlement-cell { width: 360px; gap: 5px; }
 </style>

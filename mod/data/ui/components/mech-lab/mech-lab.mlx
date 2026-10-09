@@ -3,11 +3,12 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="mech-lab-room-bar" class="panel room-bar">
+      <img id="mech-lab-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="mech-lab-room-name" class="label heading tone-edge">MECH LAB  //  FABRICATION GANTRY</div>
       <div id="mech-bay-navigator" class="{bayNavigatorClasses}">
-        <button id="mech-previous-bay" class="bay-step" onclick="{previousBay}">‹</button>
+        <button id="mech-previous-bay" class="bay-step console-action" onclick="{previousBay}">‹</button>
         <div id="mech-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
-        <button id="mech-next-bay" class="bay-step" onclick="{nextBay}">›</button>
+        <button id="mech-next-bay" class="bay-step console-action" onclick="{nextBay}">›</button>
       </div>
       <div id="mech-lab-summary" class="label tone-muted room-summary">{labSummary}</div>
     </div>
@@ -19,7 +20,7 @@
             <div id="mech-picker-title" class="label title-copy tone-accent">SELECT HEAVY ASSET</div>
             <div id="mech-picker-copy" class="label tone-muted">Choose a support lance and assigned chassis to open its gantry.</div>
           </div>
-          <button id="mech-picker-close" class="compact-action" onclick="{closeAssetPicker}">BACK TO GANTRY</button>
+          <button id="mech-picker-close" class="compact-action console-action" onclick="{closeAssetPicker}">BACK TO GANTRY</button>
         </div>
         <div id="mech-picker-body" class="picker-body">
           <div id="mech-picker-lances" class="picker-lances surface-dark">
@@ -53,17 +54,17 @@
               <div id="mech-call-sign-editor" class="{callSignEditorClasses}">
                 <div id="mech-call-sign-label" class="label heading tone-muted call-sign-label">CALLSIGN</div>
                 <input id="mech-call-sign-input" class="mech-call-sign-input" value="{callSignDraft}" maxlength="48" oninput="{editCallSign}" />
-                <button id="mech-call-sign-set" class="call-sign-action" disabled="{callSignRenameDisabled}" onclick="{renameCallSign}">SET</button>
+                <button id="mech-call-sign-set" class="call-sign-action console-action" disabled="{callSignRenameDisabled}" onclick="{renameCallSign}">SET</button>
               </div>
               <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
             </div>
             <div id="mech-gantry-navigator" class="gantry-navigator">
-              <button id="mech-previous-gantry" class="gantry-step" onclick="{previousGantry}">‹ PREV</button>
+              <button id="mech-previous-gantry" class="gantry-step console-action" onclick="{previousGantry}">‹ PREV</button>
               <div id="mech-active-gantry" class="label heading tone-accent gantry-position">{activeGantryLabel}</div>
-              <button id="mech-next-gantry" class="gantry-step" onclick="{nextGantry}">NEXT ›</button>
+              <button id="mech-next-gantry" class="gantry-step console-action" onclick="{nextGantry}">NEXT ›</button>
             </div>
             <div id="selected-mech-doctrine" class="label heading tone-edge doctrine">{selectedMechDoctrine}</div>
-            <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
+            <button id="mech-change-asset" class="compact-action console-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
           </div>
 
           <div id="mech-fitting-body" class="fitting-body">
@@ -96,7 +97,7 @@
                       </div>
                     </div>
                   </div>
-                  <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
+                  <button id="{item.actionId}" class="catalog-action console-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
                 </div>
               </div>
               <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
@@ -119,7 +120,7 @@
                     <div id="{gantry.detailId}" class="label tone-muted overview-detail">{gantry.detail}</div>
                   </button>
                 </div>
-                <button id="mech-overview-browse" class="overview-browse" onclick="{openAssetPicker}">BROWSE LANCES</button>
+                <button id="mech-overview-browse" class="overview-browse console-action" onclick="{openAssetPicker}">BROWSE LANCES</button>
               </div>
             </div>
 
@@ -194,9 +195,9 @@
   .squad-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
   .mech-squad-row { flex-direction: column; width: 100%; height: 66px; padding: 7px; gap: 2px; border-width: 1px; text-align: left; }
   .picker-assets { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 5px; overflow: hidden; }
-  .mech-list { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
+  .mech-list { flex-direction: row; align-items: start; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
   .mech-row { flex-direction: column; width: 250px; height: 190px; padding: 10px; gap: 5px; border-width: 1px; text-align: left; }
-  .mech-squad-row.selected, .mech-row.selected, .doll-slot.selected, .catalog-row.selected { background-color: #183b50; border-color: #ffd464; }
+  .mech-squad-row.selected, .mech-row.selected, .doll-slot.selected, .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
   .row-name { height: 18px; }
   .row-small { height: 16px; }
   .mech-card-name { height: 28px; font-family: title; }
@@ -208,14 +209,14 @@
   .asset-strip-copy { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; }
   .asset-name { width: 210px; height: 27px; font-family: title; }
   .mech-call-sign-editor { flex-direction: row; width: 300px; height: 27px; gap: 4px; overflow: hidden; }
-  .call-sign-label { width: 65px; height: 27px; padding-top: 7px; }
+  .call-sign-label { width: 78px; height: 27px; padding-top: 7px; }
   .mech-call-sign-input { width: 0px; flex-grow: 1; height: 27px; padding: 4px 7px; border-width: 1px; background-color: #0d1622; color: #d5deea; font-family: title; }
-  .mech-call-sign-input:focus { border-color: #53c6e8; background-color: #14263a; }
+  .mech-call-sign-input:focus { border-color: #a5c6bc; background-color: #14263a; }
   .call-sign-action { width: 48px; height: 27px; text-align: center; }
   .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
   .gantry-navigator { flex-direction: row; width: 290px; height: 34px; gap: 3px; }
   .gantry-step { width: 60px; height: 34px; padding: 5px; }
-  .gantry-position { width: 0px; flex-grow: 1; height: 34px; padding: 7px 5px; text-align: center; background-color: #0c1620; border-width: 1px; }
+  .gantry-position { width: 0px; flex-grow: 1; height: 34px; padding: 7px 5px; text-align: center; background-color: #121719; border-width: 1px; }
   .doctrine { width: 0px; flex-grow: 1; padding-top: 5px; text-align: right; }
   .performance-card { flex-direction: column; width: 100%; height: 112px; padding: 5px 6px; gap: 3px; border-width: 1px; }
   .specs-header { flex-direction: row; width: 100%; height: 16px; }
@@ -224,31 +225,31 @@
   .performance-meter { flex-direction: row; width: 100%; height: 18px; padding: 1px 2px; gap: 4px; }
   .meter-label { width: 82px; height: 16px; }
   .meter-value { width: 90px; height: 16px; text-align: right; }
-  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #121719; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #76b9d4; }
   .meter-ghost { height: 100%; }
   .meter-ghost.gain { background-color: #52ba7c; opacity: 0.85; }
   .meter-ghost.loss { background-color: #d65858; opacity: 0.85; }
 
   .fitting-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
-  .catalog-panel { flex-direction: column; width: 490px; padding: 7px; gap: 4px; overflow: hidden; }
+  .catalog-panel { flex-direction: column; width: 440px; padding: 9px; gap: 5px; border-width: 1px; overflow: hidden; }
   .catalog-heading { height: 25px; font-family: title; }
-  .catalog-copy { height: 32px; }
-  .catalog-rule { height: 34px; padding: 4px; }
+  .catalog-copy { height: 32px; white-space: normal; }
+  .catalog-rule { height: 28px; padding: 4px; }
   .category-filters { flex-direction: row; width: 100%; height: 26px; gap: 3px; }
-  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 4px 2px; text-align: center; background-color: #0c1620; border-width: 1px; border-color: #2a3c4f; }
-  .catalog-filter-pill.selected { background-color: #1a3b50; border-color: #6ed7ff; color: #6ed7ff; }
-  .catalog-filter-pill:hover { background-color: #152c3c; border-color: #ffd464; }
+  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 4px 2px; text-align: center; background-color: #121719; border-width: 1px; border-color: #2a3c4f; }
+  .catalog-filter-pill.selected { background-color: #1a3b50; border-color: #c0dbcf; color: #c0dbcf; }
+  .catalog-filter-pill:hover { background-color: #152c3c; border-color: #dfc588; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-  .catalog-row { flex-direction: column; width: 100%; height: 148px; padding: 5px; gap: 3px; border-width: 1px; }
+  .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 148px; padding: 5px; gap: 3px; border-width: 1px; }
   .catalog-card-body { flex-direction: row; width: 100%; height: 108px; gap: 6px; }
   .catalog-item-copy { flex-direction: column; width: 0px; height: 108px; flex-grow: 1; gap: 2px; }
   .catalog-card-header { flex-direction: row; width: 100%; height: 18px; gap: 4px; }
   .catalog-name { width: 0px; flex-grow: 1; height: 18px; }
   .catalog-badge { width: 84px; height: 16px; padding: 1px 3px; text-align: center; border-width: 1px; }
   .catalog-badge.in-cargo { background-color: #102d20; border-color: #52ba7c; color: #78d494; }
-  .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #ffd464; }
-  .catalog-badge.chassis { background-color: #162a3a; border-color: #4b8ba8; color: #6ed7ff; }
+  .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #dfc588; }
+  .catalog-badge.chassis { background-color: #162a3a; border-color: #4b8ba8; color: #c0dbcf; }
   .catalog-preview { width: 92px; height: 108px; border-width: 1px; }
   .catalog-stock, .catalog-detail { height: 16px; }
   .catalog-telemetry { height: 16px; }
@@ -257,11 +258,11 @@
   .catalog-delta.negative { color: #e98b83; }
   .catalog-delta.neutral { color: #8b9aaf; }
   .material-costs { flex-direction: column; width: 100%; height: 38px; gap: 2px; overflow: hidden; }
-  .material-cost { flex-direction: row; width: 100%; height: 17px; padding: 1px 3px; gap: 3px; background-color: #0c1620; border-width: 1px; }
+  .material-cost { flex-direction: row; width: 100%; height: 17px; padding: 1px 3px; gap: 3px; background-color: #121719; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
   .material-icon { width: 13px; height: 13px; }
   .material-label { width: 0px; height: 14px; flex-grow: 1; }
-  .catalog-action { width: 100%; height: 26px; text-align: center; }
+  .catalog-action { width: 220px; height: 26px; padding: 3px 8px; border-width: 3px; text-align: center; font-family: heading; }
   .drag-drop-note { flex-direction: column; height: 42px; padding: 4px; gap: 1px; }
   #mech-drag-drop-title, #mech-drag-drop-types { height: 16px; }
 
@@ -270,17 +271,17 @@
   #mech-garage-title { width: 300px; }
   .garage-status { width: 0px; flex-grow: 1; text-align: right; }
   .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
-  .overview-rail { flex-direction: row; width: 100%; height: 76px; gap: 5px; }
+  .overview-rail { flex-direction: row; align-items: center; width: 100%; height: 76px; gap: 5px; }
   .overview-gantry-list { flex-direction: row; width: 0px; height: 76px; flex-grow: 1; gap: 5px; }
   .overview-gantry { flex-direction: column; width: 0px; height: 76px; flex-grow: 1; padding: 6px; gap: 1px; border-width: 1px; text-align: left; }
-  .overview-gantry.occupied { background-color: #132c3d; border-color: #4c93b5; }
-  .overview-gantry.occupied:hover { background-color: #1b435a; border-color: #ffd464; }
-  .overview-gantry.vacant { background-color: #0c1620; border-color: #243849; opacity: 0.72; }
+  .overview-gantry.occupied { background-color: #252d2f; border-color: #4c93b5; }
+  .overview-gantry.occupied:hover { background-color: #1b435a; border-color: #dfc588; }
+  .overview-gantry.vacant { background-color: #121719; border-color: #243849; opacity: 0.72; }
   .overview-station, .overview-name, .overview-detail { height: 18px; }
-  .overview-browse { width: 142px; height: 76px; padding: 7px; text-align: center; }
+  .overview-browse { width: 142px; height: 30px; padding: 4px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
   .slot-panel { flex-direction: column; width: 325px; padding: 6px; gap: 4px; overflow: hidden; }
-  .slot-copy { height: 32px; }
+  .slot-copy { height: 20px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .doll-slot { flex-direction: row; width: 100%; height: 86px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
   .slot-row-content { flex-direction: row; width: 100%; height: 100%; gap: 3px; }
@@ -289,8 +290,8 @@
   .slot-row-header { flex-direction: row; width: 100%; height: 16px; gap: 3px; }
   .slot-name { width: 0px; flex-grow: 1; height: 16px; }
   .slot-badge { width: 46px; height: 14px; padding: 1px 2px; text-align: center; border-width: 1px; }
-  .slot-badge.armed { background-color: #122838; border-color: #4c8ca8; color: #6ed7ff; }
-  .slot-badge.empty { background-color: #2c2014; border-color: #946830; color: #ffd464; }
+  .slot-badge.armed { background-color: #122838; border-color: #4c8ca8; color: #c0dbcf; }
+  .slot-badge.empty { background-color: #2c2014; border-color: #946830; color: #dfc588; }
   .slot-badge.locked { background-color: #161d24; border-color: #384856; color: #708090; }
   .slot-telemetry { height: 15px; }
   .slot-component { height: 16px; }
@@ -300,4 +301,7 @@
   .slot-strip-action:hover { background-color: #451a1a; border-color: #ff6e6e; }
   .mech-lab-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .workshop-service-plate { width: 42px; height: 22px; pointer-events: none; }
+  .room-bar { border-width: 1px; background-color: #252b2c; border-color: #596362; }
+  .garage-heading, .stage-heading { border-width: 0px; border-color: #596362; }
 </style>

@@ -27,7 +27,7 @@ final class BattlePowerOverlay {
     static final float DECK_HEIGHT = 64f;
     static final float TARGETING_HEIGHT = 88f;
     private static final float RESOURCE_WIDTH = 96f;
-    private static final float CARD_WIDTH = 112f;
+    private static final float CARD_WIDTH = 146f;
     private static final float GAP = 5f;
     private static final float HORIZONTAL_PADDING = 12f;
     private static final float BOTTOM_INSET = 12f;

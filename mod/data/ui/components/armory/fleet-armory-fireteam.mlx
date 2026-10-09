@@ -2,7 +2,7 @@
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
 
-    <div id="fireteam-breadcrumb" class="panel">
+    <div id="fireteam-breadcrumb" class="panel console-command-rail">
       <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
       <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
       <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>

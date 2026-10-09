@@ -3,8 +3,8 @@
     <button id="battle-exit-action" class="{actionClasses}" onclick="{action}">{actionLabel}</button>
     <div id="battle-retreat-confirm" class="{confirmClasses}">
       <div id="battle-retreat-confirm-label" class="label heading retreat-prompt">{confirmPrompt}</div>
-      <button id="battle-retreat-cancel" class="retreat-cancel" onclick="{cancelAction}">{cancelLabel}</button>
-      <button id="battle-retreat-confirm-action" class="retreat-confirm-action" onclick="{confirmAction}">{confirmLabel}</button>
+      <button id="battle-retreat-cancel" class="retreat-cancel console-action" onclick="{cancelAction}">{cancelLabel}</button>
+      <button id="battle-retreat-confirm-action" class="retreat-confirm-action console-action danger-surface" onclick="{confirmAction}">{confirmLabel}</button>
     </div>
   </div>
 </template>
@@ -25,20 +25,20 @@
     height: 34px;
     padding: 8px 10px;
     border-width: 1px;
-    border-color: #4f6d8e;
-    background-color: #0b111bd9;
+    border-color: #727b79;
+    background-color: #141e19ee;
     font-family: heading;
     text-align: center;
-    color: #aebdce;
+    color: #c1cbc3;
   }
 
   .battle-exit-action:hover {
-    background-color: #243d56;
-    border-color: #6ed7ff;
-    color: #d7f3ff;
+    background-color: #46524a;
+    border-color: #a7ccc4;
+    color: #e4e7df;
   }
 
-  .battle-exit-action:active { background-color: #315070; }
+  .battle-exit-action:active { background-color: #222b24; }
 
   .battle-exit-action-hidden {
     width: 0px;
@@ -87,9 +87,9 @@
 
   .retreat-cancel {
     width: 66px;
-    border-color: #45596f;
-    background-color: #142131;
-    color: #aebdce;
+    border-color: #65756b;
+    background-color: #303a32;
+    color: #c1cbc3;
   }
 
   .retreat-confirm-action {
@@ -100,8 +100,8 @@
   }
 
   .retreat-cancel:hover {
-    border-color: #6ed7ff;
-    background-color: #243d56;
+    border-color: #a7ccc4;
+    background-color: #46524a;
   }
 
   .retreat-confirm-action:hover {
@@ -110,6 +110,6 @@
     color: #ffd0d0;
   }
 
-  .retreat-cancel:active { background-color: #315070; }
+  .retreat-cancel:active { background-color: #222b24; }
   .retreat-confirm-action:active { background-color: #762e38; }
 </style>

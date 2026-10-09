@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -120,7 +121,7 @@ final class BattlePowerOverlayModel {
                     cardId + "-cost", cardId + "-status",
                     compactName(power.name()), cost, status,
                     armed ? ARMED : ready ? READY : DISABLED,
-                    armed ? ARMED_STYLE : NORMAL_STYLE, !ready && !armed, action));
+                    armed ? ARMED_STYLE : NORMAL_STYLE, !ready && !armed, action, SpecSheets.commandPowerIcon(power.id())));
         }
         powerCards.set(List.copyOf(cards));
         boolean targeting = armedName != null;
@@ -158,13 +159,16 @@ final class BattlePowerOverlayModel {
     record PowerCard(String id, String nameId, String metaId,
                      String costId, String statusId,
                      String name, String cost, String status,
-                     String classes, String style, boolean disabled, Runnable action)
+                     String classes, String style, boolean disabled, Runnable action, String icon)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
                 case "nameId" -> nameId;
+                case "headerId" -> id + "-header";
+                case "iconId" -> id + "-icon";
+                case "icon" -> icon;
                 case "metaId" -> metaId;
                 case "costId" -> costId;
                 case "statusId" -> statusId;

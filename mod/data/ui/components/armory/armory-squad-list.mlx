@@ -62,7 +62,7 @@
     padding: 6px;
     gap: 4px;
     border-width: 2px;
-    background-color: #0c1620;
+    background-color: #121719;
     overflow: hidden;
     font-family: body;
     text-align: left;
@@ -85,9 +85,9 @@
   .squad-card.locked .squad-open { opacity: 1; }
   .squad-dossier-stripe { height: 3px; background-color: #51758c; }
   .squad-card.company-card-ready .squad-dossier-stripe { background-color: #78d494; }
-  .squad-card.company-card-operational .squad-dossier-stripe { background-color: #ffd464; }
+  .squad-card.company-card-operational .squad-dossier-stripe { background-color: #dfc588; }
   .squad-card.company-card-unready .squad-dossier-stripe { background-color: #e98b83; }
-  .squad-card.selected .squad-dossier-stripe { background-color: #ffd464; }
+  .squad-card.selected .squad-dossier-stripe { background-color: #dfc588; }
   .squad-organization-notice { height: 18px; padding: 0px 4px; font-family: compact; }
   .squad-name { height: 24px; padding: 1px 4px; white-space: normal; }
   .squad-status-line { flex-direction: row; height: 20px; gap: 4px; }
@@ -139,9 +139,9 @@
     overflow: hidden;
     font-family: body;
     text-align: center;
-    background-color: #0c1620;
+    background-color: #121719;
   }
-  .squad-founder-card:hover { background-color: #132c3d; border-color: #ffd464; }
+  .squad-founder-card:hover { background-color: #252d2f; border-color: #dfc588; }
   .found-squad-cta-icon { width: 80px; height: 80px; }
   .found-squad-heading { height: 30px; white-space: normal; text-align: center; }
   .found-squad-copy { height: 32px; white-space: normal; text-align: center; }

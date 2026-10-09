@@ -337,7 +337,7 @@ public final class ShipTransferViewModel {
                     + (ship.quarters() ? "" : " unsupported");
             String id = "transfer-ship:" + ship.id();
             rows.add(new CandidateRow(id, id + ":name", id + ":hull", id + ":detail",
-                    id + ":cost", classes, ship.name(), ship.designation(),
+                    id + ":cost", classes, ship.name(), ship.designation(), ship.ship().art(),
                     interior == null ? "laying out her deck" : berths(interior),
                     rowCost(ship, quarters, interior, here),
                     () -> selectedShipId.set(ship.id())));
@@ -714,13 +714,16 @@ public final class ShipTransferViewModel {
 
     /** One ship in the fleet, as a place the company could live. */
     public record CandidateRow(String id, String nameId, String hullId, String detailId,
-                               String costId, String classes, String name, String hull,
+                               String costId, String classes, String name, String hull, String image,
                                String detail, String cost, Runnable select)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "imageId" -> id + ":image";
+                case "image" -> image;
+                case "copyId" -> id + ":copy";
                 case "nameId" -> nameId;
                 case "hullId" -> hullId;
                 case "detailId" -> detailId;

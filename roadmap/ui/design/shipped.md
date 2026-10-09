@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — briefing faction identities and fit folded into `ui-nouns.md`.
+Updated: 2026-10-09 — shared player UI presentation folded into `ui-nouns.md`.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -27,3 +27,4 @@ Updated: 2026-10-09 — briefing faction identities and fit folded into `ui-noun
 | Spec sheet — one hover overlay for every catalog item | 2026-09-02 | `e145dc894`, `0cc533099`, `2c7226554`, `13e9d2b9c`..`944453e9f` | `ui-nouns.md` (vocabulary, law 6, extension points); `company-view-nouns.md` dossier overlay redirected |
 | `briefing-command-roles.md` | 2026-10-08 | this commit | `ui-nouns.md` — visible command roles and essential behavior explanation |
 | `briefing-faction-flags.md` | 2026-10-09 | this commit | `ui-nouns.md` — faction crests and compact briefing fit |
+| `shared-console-language.md` | 2026-10-09 | this commit | `ui-nouns.md` — shared console presentation |

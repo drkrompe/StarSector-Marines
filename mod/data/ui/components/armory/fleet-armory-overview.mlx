@@ -3,7 +3,10 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / COMPANY ROSTER" />
 
     <div id="company-overview-intro" class="panel">
-      <div id="company-overview-heading" class="label heading tone-edge">SELECT A COMPANY</div>
+      <div id="company-overview-heading-row" class="armory-heading-row">
+        <img id="company-overview-service-plate" class="armory-service-plate" src="graphics/ui/console/service-plate.svg" />
+        <div id="company-overview-heading" class="label heading tone-edge">FLEET ARMORY / COMPANIES</div>
+      </div>
       <div id="company-overview-copy" class="label tone-muted">Choose a company to inspect its squads, marines, readiness, and finite equipment.</div>
       <div id="company-overview-summary" class="label surface-dark">{fleetSummary}</div>
       <div id="template-collection-summary" class="label surface-dark tone-edge">{templateCollectionSummary}</div>
@@ -30,7 +33,7 @@
 
   #company-overview-intro {
     flex-direction: column;
-    height: 132px;
+    height: 144px;
     padding: 7px 8px;
     gap: 3px;
   }
@@ -41,5 +44,8 @@
   #template-collection-summary { height: 19px; padding: 2px 6px; }
   #equipment-access-status { height: 17px; }
   #equipment-access-next { height: 17px; }
+  .armory-heading-row { flex-direction: row; height: 26px; gap: 10px; align-items: center; }
+  .armory-service-plate { width: 46px; height: 24px; pointer-events: none; }
+  #company-overview-intro { border-width: 0px; background-color: transparent; }
 
 </style>

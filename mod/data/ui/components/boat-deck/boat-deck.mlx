@@ -3,11 +3,12 @@
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
     <div id="boat-deck-room-bar" class="panel room-bar">
+      <img id="boat-deck-service-plate" class="workshop-service-plate" src="graphics/ui/console/service-plate.svg" />
       <div id="boat-deck-room-name" class="label heading tone-edge">BOAT DECK  //  HANGAR</div>
       <div id="boat-bay-navigator" class="{bayNavigatorClasses}">
-        <button id="boat-previous-bay" class="bay-step" onclick="{previousBay}">‹</button>
+        <button id="boat-previous-bay" class="bay-step console-action" onclick="{previousBay}">‹</button>
         <div id="boat-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
-        <button id="boat-next-bay" class="bay-step" onclick="{nextBay}">›</button>
+        <button id="boat-next-bay" class="bay-step console-action" onclick="{nextBay}">›</button>
       </div>
       <div id="boat-deck-summary" class="label tone-muted room-summary">{deckSummary}</div>
     </div>
@@ -16,7 +17,7 @@
       <div id="boat-deck-stage" class="bay-stage">
         <div id="boat-deck-stage-heading" class="stage-heading">
           <div id="boat-deck-stage-title" class="label heading tone-edge">BOAT BAY  //  BERTHS</div>
-          <div id="boat-deck-stage-status" class="label heading tone-muted stage-status">DECK CREW ON WATCH  //  TURNAROUND IN HAND-SECONDS</div>
+          <div id="boat-deck-stage-status" class="label heading tone-muted stage-status">DECK CREW ON WATCH</div>
         </div>
         <canvas id="boat-deck-canvas" class="bay-canvas" width="900" height="520" />
       </div>
@@ -38,7 +39,7 @@
         <div id="boat-fabrication-header" class="panel boat-strip">
           <div id="boat-fabrication-berth" class="label boat-name tone-accent">{fabricationBerthLabel}</div>
           <div id="boat-fabrication-pattern" class="label tone-muted boat-identity">{fabricationPatternName}</div>
-          <button id="boat-fabrication-back" class="compact-action" onclick="{backToDeck}">BACK TO DECK</button>
+          <button id="boat-fabrication-back" class="compact-action console-action" onclick="{backToDeck}">BACK TO DECK</button>
         </div>
 
         <div id="boat-fabrication-yard" class="panel fabrication-yard">
@@ -60,7 +61,7 @@
           <div id="boat-fitting-header" class="panel boat-strip">
             <div id="selected-boat-name" class="label boat-name tone-accent">{selectedBoatName}</div>
             <div id="selected-boat-identity" class="label tone-muted boat-identity">{selectedBoatIdentity}</div>
-            <button id="boat-back-to-deck" class="compact-action" onclick="{backToDeck}">BACK TO DECK</button>
+            <button id="boat-back-to-deck" class="compact-action console-action" onclick="{backToDeck}">BACK TO DECK</button>
           </div>
 
           <div id="boat-performance-grid" class="panel performance-grid">
@@ -106,7 +107,7 @@
                 </div>
               </div>
               <div id="{item.reasonId}" class="label heading tone-muted catalog-reason">{item.reason}</div>
-              <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
+              <button id="{item.actionId}" class="catalog-action console-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
             </div>
           </div>
         </div>
@@ -122,7 +123,7 @@
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   .section-title { height: 19px; padding: 1px 3px; }
-  .compact-action { width: 100%; height: 26px; text-align: center; }
+  .compact-action { width: 146px; height: 26px; padding: 3px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
   .room-bar { flex-direction: row; height: 34px; padding: 6px 8px; gap: 10px; }
   #boat-deck-room-name { width: 300px; }
@@ -139,12 +140,12 @@
   .stage-status { width: 0px; flex-grow: 1; text-align: right; }
   .bay-canvas { width: 100%; height: 0px; flex-grow: 1; }
 
-  .boat-overview { flex-direction: column; width: 430px; padding: 7px; gap: 5px; overflow: hidden; }
+  .boat-overview { flex-direction: column; width: 380px; padding: 9px; gap: 7px; border-width: 1px; overflow: hidden; }
   .boat-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .boat-card { flex-direction: column; width: 100%; height: 96px; padding: 7px; gap: 1px; border-width: 1px; text-align: left; }
-  .boat-card.selected { background-color: #183b50; border-color: #ffd464; }
-  .boat-card.vacant { background-color: #0c1620; border-color: #243849; opacity: 0.72; }
-  .boat-card.vacant.selected { background-color: #183b50; border-color: #ffd464; opacity: 1; }
+  .boat-card { flex-direction: column; width: 100%; height: 112px; padding: 9px; gap: 2px; border-width: 1px; text-align: left; }
+  .boat-card.selected { background-color: #2a3632; border-color: #dfc588; }
+  .boat-card.vacant { background-color: #121719; border-color: #243849; opacity: 0.72; }
+  .boat-card.vacant.selected { background-color: #2a3632; border-color: #dfc588; opacity: 1; }
   .boat-card-berth { height: 16px; }
   .boat-card-name { height: 22px; font-family: title; }
   .boat-card-line { height: 17px; }
@@ -158,7 +159,7 @@
 
   .boat-fitting { flex-direction: row; width: 800px; gap: 7px; overflow: hidden; }
   .fitting-side { flex-direction: column; width: 310px; gap: 6px; overflow: hidden; }
-  .boat-strip { flex-direction: column; height: 96px; padding: 7px; gap: 3px; }
+  .boat-strip { flex-direction: column; align-items: start; height: 96px; padding: 7px; gap: 3px; }
   .boat-name { height: 27px; font-family: title; }
   .boat-identity { height: 18px; }
 
@@ -166,13 +167,13 @@
   .performance-meter { flex-direction: row; width: 100%; height: 22px; padding: 3px 5px; gap: 5px; border-width: 1px; }
   .meter-label { width: 88px; padding-top: 1px; }
   .meter-value { width: 84px; padding-top: 1px; text-align: right; }
-  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 8px; padding-top: 4px; background-color: #0c1620; border-width: 1px; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 8px; padding-top: 4px; background-color: #121719; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #76b9d4; }
 
   .slot-panel { flex-direction: column; height: 0px; flex-grow: 1; padding: 7px; gap: 5px; overflow: hidden; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .boat-slot { flex-direction: column; width: 100%; height: 61px; padding: 5px; gap: 1px; border-width: 1px; text-align: left; }
-  .boat-slot.selected, .catalog-row.selected { background-color: #183b50; border-color: #ffd464; }
+  .boat-slot.selected, .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
   .slot-name, .slot-tier { height: 16px; }
   .slot-fitting { height: 17px; }
 
@@ -180,7 +181,7 @@
   .catalog-heading { height: 25px; font-family: title; }
   .catalog-copy { height: 36px; white-space: normal; overflow: hidden; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .catalog-row { flex-direction: column; width: 100%; height: 220px; padding: 7px; gap: 3px; border-width: 1px; }
+  .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 220px; padding: 7px; gap: 3px; border-width: 1px; }
   .catalog-item-copy { flex-direction: column; width: 100%; height: 158px; gap: 2px; }
   .catalog-name { height: 19px; }
   .catalog-line { flex-direction: row; width: 100%; height: 17px; gap: 6px; }
@@ -188,13 +189,16 @@
   .catalog-effect { width: 0px; flex-grow: 1; }
   .catalog-provenance { height: 64px; white-space: normal; overflow: hidden; }
   .material-costs { flex-direction: column; width: 100%; height: 52px; gap: 2px; overflow: hidden; }
-  .material-cost { flex-direction: row; width: 100%; height: 16px; padding: 0px 3px; gap: 4px; background-color: #0c1620; border-width: 1px; }
+  .material-cost { flex-direction: row; width: 100%; height: 16px; padding: 0px 3px; gap: 4px; background-color: #121719; border-width: 1px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
   .material-icon { width: 13px; height: 13px; }
   .material-label { width: 0px; height: 14px; flex-grow: 1; }
   .catalog-reason { height: 16px; padding: 0px 2px; }
-  .catalog-action { width: 100%; height: 26px; text-align: center; }
+  .catalog-action { width: 182px; height: 26px; padding: 3px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
   .boat-deck-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  .workshop-service-plate { width: 42px; height: 22px; pointer-events: none; }
+  .room-bar { border-width: 1px; background-color: #252b2c; border-color: #596362; }
+  .garage-heading, .stage-heading { border-width: 0px; border-color: #596362; }
 </style>

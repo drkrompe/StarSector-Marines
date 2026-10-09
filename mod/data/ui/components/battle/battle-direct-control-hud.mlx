@@ -19,14 +19,14 @@
   .direct-hud { width: 100%; height: 100%; gap: 2px; overflow: hidden; }
   .meter { height: 3px; width: 100%; flex-direction: row; background-color: #253344; }
   .health-fill { height: 100%; background-color: #7cd89c; }
-  .armor-fill { height: 100%; background-color: #6ed7ff; }
+  .armor-fill { height: 100%; background-color: #a7ccc4; }
   .capacity-low { background-color: #f07c72; }
   .weapons { height: 42px; flex-direction: row; gap: 5px; }
   .weapons-single { gap: 0px; }
   .mounts { width: 0px; flex-grow: 1; flex-direction: row; gap: 5px; }
   .all { width: 44px; height: 38px; padding: 1px; text-align: center; font-family: compact; border-width: 1px; }
   .all-hidden { position: absolute; width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
-  .weapon { width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 1px; border-color: #45596f; background-color: #142131; overflow: hidden; }
+  .weapon { width: 0px; flex-grow: 1; padding: 3px; gap: 2px; border-width: 1px; border-color: #65756b; background-color: #303a32; overflow: hidden; }
   .ability { width: 128px; flex-grow: 0; }
   .sprint { border-color: #b58b43; }
   .weapon-top { height: 14px; flex-direction: row; gap: 4px; }
@@ -35,8 +35,8 @@
   .weapon-busy { color: #ffd464; }
   .weapon-empty { color: #f07c72; }
   .weapon-data { height: 13px; flex-direction: row; gap: 4px; }
-  .weapon-detail { flex-grow: 1; color: #aebdce; font-family: compact; overflow: hidden; white-space: nowrap; }
-  .weapon-ammo { color: #d7f3ff; font-family: compact; white-space: nowrap; }
+  .weapon-detail { flex-grow: 1; color: #c1cbc3; font-family: compact; overflow: hidden; white-space: nowrap; }
+  .weapon-ammo { color: #e4e7df; font-family: compact; white-space: nowrap; }
   .weapon-cycle { width: 100%; height: 2px; flex-direction: row; background-color: #253344; }
-  .cycle-fill { height: 100%; background-color: #6ed7ff; }
+  .cycle-fill { height: 100%; background-color: #a7ccc4; }
 </style>
