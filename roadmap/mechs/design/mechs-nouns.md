@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-02 — defined a campaign mech callsign as a display label frozen into support deployment.
+Updated: 2026-10-09 — aligned missile rack footprints and compact material-cost presentation.
 
 ## Purpose
 
@@ -93,10 +93,14 @@ increasing an encounter's total armored threat.
   over campaign authorities, not a second inventory or a battle debug picker.
 - A **socket** is one spatial equipment location on a heavy asset. Refittable
   sockets declare a compatibility type—ballistic, energy, missile, or
-  omni—and an active rectangular region within the common three-column by
-  two-row fitting grid. A component declares a compatible type and its own
+  omni—and an active rectangular region bounded by three columns and three rows.
+  A component declares a compatible type and its own
   column-by-row footprint. It fits only when that complete rectangle lies inside
-  the socket's active region; equal scalar area is not interchangeable geometry.
+  the socket's active region, allowing a quarter-turn; equal scalar area alone is
+  not interchangeable geometry. SRM-5 and LRM-5 racks both occupy two columns by
+  two rows; SRM-15 and LRM-15 occupy two columns by three rows. Large shoulder
+  sockets present that same upright grid. Range and delivery distinguish SRM
+  direct fire from LRM artillery, rather than different footprints within a size class.
   Each asset-class layout owns the socket's physical mount anchor,
   its equipment-dock center around the doll, and its doll-relative interaction
   footprint as well as compatibility and capacity. A leader preserves the
@@ -595,8 +599,11 @@ support sortie, subject only to practical runtime resources.
   than rendering chassis controls against nothing. Lance browsing remains a
   separate direct-jump surface.
 - Fabrication spends ordinary player-fleet supplies, heavy machinery, metals, and
-  rare metals. Cost rows resolve their names and icon paths from the base game's live
-  commodity specifications, so the Mech Lab does not copy or re-author cargo art.
+  rare metals. A shared icon-and-count strip shows fleet material stock; each
+  fabrication pattern shows only its required quantities beside commodity icons.
+  Hover details supply material names, exact cargo counts and shortages. Icons and
+  names resolve from the base game's live commodity specifications, so the Mech Lab
+  does not copy or re-author cargo art.
 - A weapon commit uses a free owned assembly when available. Otherwise it rechecks the
   complete material bill, consumes it atomically, creates one finite owned assembly,
   and installs it; the outgoing assembly becomes free stock. A chassis commit performs

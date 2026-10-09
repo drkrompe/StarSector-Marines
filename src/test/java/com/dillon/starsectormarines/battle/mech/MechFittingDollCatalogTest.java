@@ -20,8 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechFittingDollCatalogTest {
 
     @Test
-    void loadsBuiltinCatalogFromDisk() {
-        MechFittingDollCatalog catalog = MechFittingDollCatalog.installed();
+    void loadsBuiltinCatalogFromDisk() throws Exception {
+        MechFittingDollCatalog catalog = MechFittingDollCatalog.parse(new JSONObject(
+                Files.readString(Path.of("mod", MechFittingDollCatalog.CONTENT_PATH))));
         assertNotNull(catalog);
         assertTrue(catalog.hasDoll(MechVariant.HOUND));
         assertTrue(catalog.hasDoll(MechVariant.SIROCCO));
@@ -51,12 +52,12 @@ class MechFittingDollCatalogTest {
         assertEquals(2, siroccoNose.gridRows());
 
         SocketDef siroccoL = socket(sirocco, SocketId.LEFT_SHOULDER);
-        assertEquals(3, siroccoL.gridColumns());
-        assertEquals(2, siroccoL.gridRows());
+        assertEquals(2, siroccoL.gridColumns());
+        assertEquals(3, siroccoL.gridRows());
 
         SocketDef siroccoR = socket(sirocco, SocketId.RIGHT_SHOULDER);
-        assertEquals(3, siroccoR.gridColumns());
-        assertEquals(2, siroccoR.gridRows());
+        assertEquals(2, siroccoR.gridColumns());
+        assertEquals(3, siroccoR.gridRows());
 
         // Bulwark: Arm Assembly (3x2) and 2 Shoulders (3x2)
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);

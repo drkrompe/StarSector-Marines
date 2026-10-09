@@ -18,7 +18,7 @@ import java.util.Map;
 public final class MechFittingLayout {
 
     public static final int MAX_GRID_COLUMNS = 3;
-    public static final int MAX_GRID_ROWS = 2;
+    public static final int MAX_GRID_ROWS = 3;
 
     public enum SocketId {
         CORE("ENGINE CORE"),
@@ -162,9 +162,9 @@ public final class MechFittingLayout {
                         0f, 0.03f, 0f, -1.50f, 1.70f, 0.68f, true),
                 socket(SocketId.ARMS, SocketType.OMNI, 3, 2,
                         0f, 0.72f, 0f, 1.50f, 2.20f, 0.68f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3, 2,
+                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.72f, 0.08f, -1.38f, -0.48f, 1.40f, 0.72f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 3, 2,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.72f, 0.08f, 1.38f, -0.48f, 1.40f, 0.72f, false),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 3, 1,
                         0f, -0.58f, -1.38f, 0.72f, 1.70f, 0.68f, true),
@@ -175,9 +175,9 @@ public final class MechFittingLayout {
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, true),
                 socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 2,
                         0f, 0.66f, 0f, 1.45f, 2.00f, 0.68f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 1, 1,
+                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 2,
                         -0.62f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 1, 1,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.62f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 1,
                         0f, -0.54f, -1.34f, 0.68f, 1.64f, 0.68f, true),
@@ -188,9 +188,9 @@ public final class MechFittingLayout {
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, true),
                 socket(SocketId.ARMS, SocketType.BALLISTIC, 3, 2,
                         0f, 0.72f, 0f, 1.45f, 2.08f, 0.68f, false),
-                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 1, 2,
+                socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
-                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 1, 2,
+                socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1, 2,
                         0f, -0.55f, -1.34f, 0.68f, 1.64f, 0.68f, true),

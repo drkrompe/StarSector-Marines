@@ -250,7 +250,13 @@ class MechLabViewModelTest {
         assertEquals(4, pulse.materials().size());
         assertTrue(pulse.materials().stream().allMatch(row -> row.icon().startsWith(
                 "graphics/icons/cargo/")));
+        assertEquals("30", pulse.materials().get(0).label());
+        assertEquals(2000, pulse.materials().get(0).available());
+        assertEquals(30, pulse.materials().get(0).required());
+        assertEquals("MANUFACTURING COST", MechLabSpecSheets.materialSheet(pulse.materials().get(0)).subtitle());
+        assertEquals("2000", viewModel.materialStock().get().get(0).label());
         pulse.action().run();
+        assertEquals("1970", viewModel.materialStock().get().get(0).label());
         assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
                 bay.mechById(MechBay.STARTER_MECH_ID).arms());
 
@@ -322,6 +328,7 @@ class MechLabViewModelTest {
             SpecSheetBinder binder = new SpecSheetBinder(document, layer);
             List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
             MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
+            MechLabSpecSheets.bindMaterials(binder, instance, viewModel);
             document.layout(1744f, 938f);
 
             int subjects = 0;
@@ -332,7 +339,15 @@ class MechLabViewModelTest {
                         row.nameId() + " is bound the wrong way round");
             }
             assertTrue(subjects > 0, "the catalog offered nothing to describe");
-            assertEquals(subjects, binder.size());
+            assertEquals(subjects + 4 + rows.stream().mapToInt(row -> row.materials().size()).sum(), binder.size());
+            for (MechLabViewModel.MaterialRow material : viewModel.materialStock().get()) {
+                assertTrue(binder.isBound(instance.requireElement(material.id())));
+            }
+            for (MechLabViewModel.CatalogRow row : rows) {
+                for (MechLabViewModel.MaterialRow material : row.materials()) {
+                    assertTrue(binder.isBound(instance.requireElement(material.id())));
+                }
+            }
 
             UiElement name = instance.requireElement(
                     MechLabSpecSheets.firstSpecSheetAnchorId(rows));
@@ -520,6 +535,7 @@ class MechLabViewModelTest {
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("materialStock", viewModel.materialStock());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
