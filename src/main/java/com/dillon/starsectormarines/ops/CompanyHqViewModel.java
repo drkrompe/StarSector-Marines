@@ -258,8 +258,8 @@ final class CompanyHqViewModel {
         props.put("statusHeader", "FORCE STATUS");
         props.put("financeHeader", "COMPANY FINANCE");
         props.put("standingHeader", "CLIENT STANDING");
-        props.put("boardHeader", "BRIDGE INTELLIGENCE / SECTOR WIRE");
-        props.put("boardIntro", "Company dispatches, verified sector reports, and open traffic. Priority notices keep their deadlines; rumors await confirmation.");
+        props.put("boardHeader", "SIGNALS INTELLIGENCE / COMPANY NET");
+        props.put("boardIntro", "Fleet dispatch, sector relays and open-band intercepts. Select a transmission to open its dossier.");
         props.put("obligationsHeader", "ACTIVE OBLIGATIONS");
         props.put("runway", "8.4 MONTHS");
         props.put("runwayCaption", "payroll runway  /  against last month's upkeep");
@@ -284,8 +284,8 @@ final class CompanyHqViewModel {
                 new ObligationPost("preview-obligation-2", "post-card", "12 DAYS", "Stationing term ends", "Kazeron  /  Compact Security Board", "TRACKING", true, () -> { })));
         props.put("obligationEmpty", "");
         props.put("newsPosts", List.of(
-                new NewsPost("preview-news-1", "news-card", "CONFIRMED  /  TODAY", "House Cavor displaces House Tobin", "Eochu Bres  /  received through company channels"),
-                new NewsPost("preview-news-2", "news-card rumor-surface", "RUMOR  /  4 DAYS AGO", "Reports of Compact action against House Umbra", "Kazeron  /  outcome remains unconfirmed"),
+                new NewsPost("preview-news-1", "news-card", "CONFIRMED  /  TODAY", "House Cavor displaces House Tobin", "Eochu Bres  /  received through company channels", false, false, "graphics/factions/crest_persean_league.png", "House Cavor"),
+                new NewsPost("preview-news-2", "news-card rumor-surface", "RUMOR  /  4 DAYS AGO", "Reports of Compact action against House Umbra", "Kazeron  /  outcome remains unconfirmed", true, false, "graphics/factions/crest_persean_league.png", "Kazeron Compact"),
                 new NewsPost("preview-news-3", "news-card", "CONFIRMED  /  11 DAYS AGO", "Silent colony operation concluded", "17 of 22 survivors recovered  /  archive secured", false, true)));
         return new CompanyHqViewModel(props);
     }
@@ -458,7 +458,9 @@ final class CompanyHqViewModel {
                         ? "news-card rumor-surface" : "news-card"),
                 kicker, headline, detail + "  /  received " + ageText(Math.max(0, day - entry.learnedDay())),
                 entry.confidence() == ChronicleConfidence.RUMOR,
-                entry.type() == ChronicleEventType.SILENT_COLONY);
+                entry.type() == ChronicleEventType.SILENT_COLONY,
+                entry.actorFactionId() == null ? "" : factionCrest(entry.actorFactionId()),
+                entry.actorName() == null ? "" : entry.actorName());
     }
 
     private static String archiveLabel(AbandonedColonyArchiveOutcome outcome) {
@@ -600,7 +602,16 @@ final class CompanyHqViewModel {
     }
 
     record NewsPost(String id, String classes, String kicker, String headline,
-                    String detail, boolean rumor, boolean companyReport) implements MarkupPropertySource {
+                    String detail, boolean rumor, boolean companyReport, String crest,
+                    String subject) implements MarkupPropertySource {
+        NewsPost {
+            crest = crest == null ? "" : crest;
+            subject = subject == null ? "" : subject;
+        }
+        NewsPost(String id, String classes, String kicker, String headline, String detail,
+                 boolean rumor, boolean companyReport) {
+            this(id, classes, kicker, headline, detail, rumor, companyReport, "", "");
+        }
         NewsPost(String id, String classes, String kicker, String headline, String detail) {
             this(id, classes, kicker, headline, detail, classes.contains("rumor-surface"), false);
         }

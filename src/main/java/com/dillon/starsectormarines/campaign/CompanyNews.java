@@ -22,7 +22,7 @@ public final class CompanyNews {
             int survivorsAtRisk,
             int survivorsRescued,
             int happenedDay,
-            int learnedDay) {
+            int learnedDay, String actorFactionId) {
     }
 
     private CompanyNews() {
@@ -73,7 +73,13 @@ public final class CompanyNews {
         return new Entry(id, type, confidence, band, actor, target,
                 marketName.apply(state.chronicleMarketId[row]), outcome, archive,
                 state.chronicleSurvivorsAtRisk[row],
-                state.chronicleSurvivorsRescued[row], happened, learned);
+                state.chronicleSurvivorsRescued[row], happened, learned,
+                houseFaction(state, state.chronicleActorHouseId[row]));
+    }
+
+    private static String houseFaction(CampaignState state, long houseId) {
+        int row = state.houseIndex(houseId);
+        return row < 0 ? null : state.factionRegistry.get(state.houseFactionId[row]);
     }
 
     private static String houseName(CampaignState state, long houseId) {

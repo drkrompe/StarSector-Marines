@@ -1011,6 +1011,7 @@ The discovered suite ids and default output directories are:
 | `ships-boats` | One hull's own boats: a bay with its rank of shuttles, every bay ringed with the door it launches through, and an animated turnaround — a boat leaving its berth, the berth standing empty, and the boat home again | `build/snapshots/ships-boats/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
 | `ui` | Marine Ops screens at authored viewport sizes, including the scale-invariant battle task-force plate and MLX command rail | `build/snapshots/ui/` |
+| `hq-intel` | Animated HQ receivers, dossier selection and a labelled fixture arrival at 1920x1080, 100% scale | `build/snapshots/hq-intel/` |
 | `firing-line` | Two animated loops of six marines in column in a corridor: the file shooting through its own men, and the same file stepping a cell out of each other's lanes. The acceptance for the friendly-lane step-aside | `build/snapshots/firing-line/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 | `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |

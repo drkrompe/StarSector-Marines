@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — compact console language shared across player surfaces.
+Updated: 2026-10-09 — animated intelligence instruments share the live and headless canvas path.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -658,6 +658,15 @@ This is an explicit vector subset rather than a second markup tree: unsupported
 constructs fail when loading the asset. Gradients, references, masks, clip paths,
 and opacity that requires compositing overlapping paints are outside the current
 subset.
+
+A surface may animate cached vector artwork and procedural primitives with its
+presentation clock. Motion advances independently of painting; rendering the same
+state twice cannot consume an event or advance an effect. The clock and transient
+effect state belong to the surface rather than the rebuilt document or campaign.
+HQ receiver motion follows this model: continuous instrument activity remains
+visually distinct from report-arrival bursts, and selection sweeps leave the
+readable dossier stable after their short reveal. Motion evidence uses the same
+producer, document and clock at 1920x1080 and 100% scale.
 
 SVG text comes from the host resource reader: Starsector resource access in
 game, an explicitly installed disk reader in headless tooling. Changing hosts

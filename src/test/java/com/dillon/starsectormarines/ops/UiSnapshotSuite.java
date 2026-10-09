@@ -1329,6 +1329,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            CompanyIntelTerminal terminal = new CompanyIntelTerminal(desk);
+            terminal.bind(document, instance);
+            terminal.advance(0f);
+            terminal.advance(1f);
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }

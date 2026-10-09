@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — HQ source windows and report selection drive a focused
-briefing; client faction crests follow persistent affiliation.
+Updated: 2026-10-09 — HQ presents the intelligence network as animated receivers,
+carrier routes and a selected dossier over learned reports.
 
 ## Purpose
 
@@ -828,7 +828,16 @@ The retained bridge dashboard has four concerns:
   The newest bulletin opens the archive; recent validated Chronicle facts remain
   newest-first. Counts describe the bounded report window. It reads only learned Chronicle rows,
   preserves rumor versus confirmed confidence, and cannot expose undiscovered world
-  state.
+  state. The network display gives each source a receiver and a route through
+  collation to the archive. Scans and traveling carrier traces are ambient
+  instrument activity; only newly observed report identities produce a received
+  report burst. The initial archive and unchanged hourly refreshes do not replay
+  arrivals. Presentation remembers seen identities while the screen lives, even
+  when a report falls outside the bounded window and later returns.
+  Selecting a dossier triggers a brief read sweep; its text, source, confidence
+  and subject remain ordinary readable content. A known subject's faction crest
+  follows persistent affiliation, never a guess from its name. Receiver motion,
+  selection and effect timing remain view-local and survive document refresh.
 
 The clock owns obligations; the future contract board owns offers. Ignoring an
 obligation can cause failure or end a retainer, while ignoring an offer merely

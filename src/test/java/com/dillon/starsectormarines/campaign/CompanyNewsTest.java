@@ -27,6 +27,7 @@ class CompanyNewsTest {
         assertEquals(ChronicleEventType.ACTIVE_CHAIN_RUMOR, entries.get(0).type());
         assertEquals(ChronicleEventType.CHAIN_OUTCOME, entries.get(1).type());
         assertEquals("House Current", entries.get(0).actorName());
+        assertEquals("hegemony", entries.get(0).actorFactionId());
         assertEquals("Jangala", entries.get(0).marketName());
     }
 
