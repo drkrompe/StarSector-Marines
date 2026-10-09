@@ -1,4 +1,4 @@
-<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="dispatchCount,confirmedCount,unverifiedCount,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -56,9 +56,12 @@
           <div id="company-hq-standing-header" class="label heading tone-edge section-header">{standingHeader}</div>
           <div id="company-hq-employers" class="employer-list">
             <div each="employer in employers" key="{employer.id}" id="{employer.id}" class="employer-row">
-              <div id="{employer.nameId}" class="label employer-name">{employer.name}</div>
+              <img id="{employer.crestId}" class="{employer.crestClasses}" src="{employer.crest}" />
+              <div id="{employer.copyId}" class="employer-copy">
+                <div id="{employer.nameId}" class="label employer-name">{employer.name}</div>
+                <div id="{employer.recordId}" class="label tone-muted employer-record">{employer.record}</div>
+              </div>
               <div id="{employer.scoreId}" class="{employer.scoreClasses}">{employer.score}</div>
-              <div id="{employer.recordId}" class="label tone-muted employer-record">{employer.record}</div>
             </div>
           </div>
           <div id="company-hq-employer-empty" class="label tone-muted empty-copy">{employerEmpty}</div>
@@ -70,6 +73,24 @@
           <div id="company-hq-board-title" class="label heading tone-edge">{boardHeader}</div>
           <div id="company-hq-board-intro" class="label tone-muted">{boardIntro}</div>
         </div>
+        <div id="company-hq-intake" class="intake-channels">
+          <div id="company-hq-dispatch-channel" class="intake-channel console-readout">
+            <div id="company-hq-dispatch-channel-heading" class="label heading tone-accent">01 / COMPANY DISPATCH</div>
+            <div id="company-hq-dispatch-channel-count" class="label">{dispatchCount}</div>
+            <div id="company-hq-dispatch-channel-source" class="label tone-muted">Company operations / duty notices</div>
+          </div>
+          <div id="company-hq-confirmed-channel" class="intake-channel console-readout">
+            <div id="company-hq-confirmed-channel-heading" class="label heading tone-edge">02 / CONFIRMED REPORTS</div>
+            <div id="company-hq-confirmed-channel-count" class="label">{confirmedCount}</div>
+            <div id="company-hq-confirmed-channel-source" class="label tone-muted">Sector reports / verified outcomes</div>
+          </div>
+          <div id="company-hq-unverified-channel" class="intake-channel console-readout">
+            <div id="company-hq-unverified-channel-heading" class="label heading tone-muted">03 / UNVERIFIED TRAFFIC</div>
+            <div id="company-hq-unverified-channel-count" class="label">{unverifiedCount}</div>
+            <div id="company-hq-unverified-channel-source" class="label tone-muted">Open traffic / awaiting confirmation</div>
+          </div>
+        </div>
+        <img id="company-hq-intel-routing" class="intel-routing" src="graphics/ui/console/intel-routing.svg" />
         <div id="company-hq-board-columns" class="board-columns">
           <div id="company-hq-obligations" class="board-column obligations-column">
             <div id="company-hq-obligations-header" class="label heading tone-accent column-header">{obligationsHeader}</div>
@@ -87,7 +108,11 @@
           </div>
 
           <div id="company-hq-news" class="board-column news-column">
-            <div id="company-hq-news-header" class="label heading tone-accent column-header">{newsHeader}</div>
+            <div id="company-hq-terminal-header" class="terminal-header console-header">
+              <div id="company-hq-terminal-lamp" class="terminal-lamp" />
+              <div id="company-hq-news-header" class="label heading tone-accent column-header">{newsHeader}</div>
+              <div id="company-hq-terminal-mode" class="label tone-muted terminal-mode">INTEL ARCHIVE</div>
+            </div>
             <div id="company-hq-news-list" class="post-list">
               <div each="post in newsPosts" key="{post.id}" id="{post.id}" class="{post.classes}">
                 <div id="{post.kickerId}" class="label heading tone-edge post-kicker">{post.kicker}</div>
@@ -131,15 +156,15 @@
   .info-value { width: 100%; text-align: left; height: 22px; white-space: normal; }
   .standing-section { height: 222px; }
   .employer-list { flex-direction: column; flex-grow: 1; overflow: scroll; }
-  .employer-row { flex-direction: row; height: 40px; padding: 6px; gap: 8px; border-width: 0px; border-color: #263b51; }
-  .employer-name { width: 118px; flex-grow: 0; height: auto; white-space: normal; }
+  .employer-row { flex-direction: row; align-items: center; height: 40px; padding: 6px; gap: 8px; border-width: 0px; border-color: #263b51; }
+  .employer-name { width: 100%; flex-grow: 0; height: auto; white-space: normal; }
   .employer-score { width: 38px; text-align: left; }
-  .employer-record { width: 0px; text-align: left; flex-grow: 1; height: auto; white-space: normal; }
+  .employer-record { width: 100%; text-align: left; flex-grow: 0; height: auto; white-space: normal; }
   .company-hq-board { flex-direction: column; flex-grow: 1; padding: 12px; gap: 14px; border-width: 2px; overflow: hidden; }
-  .board-heading { flex-direction: column; height: 76px; padding: 10px; gap: 8px; border-width: 2px; }
+  .board-heading { flex-direction: column; height: 48px; padding: 10px; gap: 8px; border-width: 2px; }
   .board-columns { flex-direction: row; flex-grow: 1; gap: 18px; overflow: hidden; }
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
-  .obligations-column { width: 46%; }
+  .obligations-column { width: 38%; }
   .news-column { flex-grow: 1; }
   .column-header { height: 20px; padding: 2px 3px; }
   .post-list { flex-direction: column; flex-grow: 1; gap: 10px; overflow: scroll; }
@@ -150,6 +175,8 @@
   .post-detail { height: auto; white-space: normal; }
   .post-action { width: 104px; padding: 4px; border-width: 3px; font-family: heading; text-align: center; height: 34px; }
   .news-card { flex-direction: column; height: 80px; padding: 10px; gap: 9px; border-width: 1px; background-color: #20282d; border-color: #526065; }
+  .lead-bulletin { height: 142px; padding: 16px; gap: 16px; border-width: 2px; border-color: #7e9793; background-color: #172322; }
+  .lead-bulletin .post-headline { font-family: title; }
   .warning-surface { background-color: #332b1c; border-color: #ffd464; }
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
   .empty-copy { height: 22px; padding: 3px; }
@@ -165,4 +192,15 @@
   .hq-ship-actions { flex-direction: row; height: 42px; gap: 6px; }
   .hq-ship-actions button { width: 0px; flex-grow: 1; }
   .hq-ship-label { white-space: normal; height: auto; }
+  .employer-crest { width: 40px; height: 40px; pointer-events: none; }
+  .employer-crest.crest-absent { width: 0px; height: 0px; }
+  .employer-copy { flex-direction: column; height: 40px; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
+  .intake-channels { flex-direction: row; height: 90px; gap: 10px; }
+  .intake-channel { flex-direction: column; width: 0px; flex-grow: 1; height: 68px; padding: 9px; gap: 7px; border-width: 2px; }
+  .intake-channel .label { height: auto; white-space: normal; }
+  .intel-routing { width: 100%; height: 32px; pointer-events: none; }
+  .terminal-header { flex-direction: row; align-items: center; height: 30px; padding: 5px 8px; gap: 8px; border-width: 2px; }
+  .terminal-lamp { width: 6px; height: 6px; background-color: #8fae98; border-width: 1px; border-color: #34433a; }
+  #company-hq-news-header { width: 0px; flex-grow: 1; height: auto; }
+  .terminal-mode { width: 160px; height: auto; text-align: right; }
 </style>

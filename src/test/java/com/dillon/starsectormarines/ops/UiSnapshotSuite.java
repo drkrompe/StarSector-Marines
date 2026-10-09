@@ -2026,9 +2026,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         BoatDeck[] campaign = new BoatDeck[1];
         // The berth struck has to be one the camera is looking at, and the page
-        // opens on her first hangar. A transport spreads six berths over three
-        // bays, so striking the deck's third boat would put the hole in a bay
-        // nobody can see and photograph two intact ones.
+        // opens on her first hangar. Larger programs can have additional bays,
+        // so derive a visible berth rather than assuming campaign numbering.
         int[] struck = {-1};
         CompanyDeck ship = companyShip(List::of, List::of, hull -> {
             campaign[0] = boatsAboard(hull);

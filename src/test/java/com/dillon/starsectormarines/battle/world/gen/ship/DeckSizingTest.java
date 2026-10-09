@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.gen.fit.BoatBayFitting;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,6 +18,37 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * an assignment rather than an amenity.
  */
 class DeckSizingTest {
+
+    @Test
+    void aDefaultSubstantialHullKeepsAllSixBoatsInOneHangar() {
+        for (HullClass hull : List.of(HullClass.DESTROYER, HullClass.CRUISER, HullClass.CAPITAL)) {
+            List<RoomRecipe> bays = DeckSizing.programFor(hull,
+                            HullRole.TROOP_TRANSPORT, 10, 250, 200).stream()
+                    .filter(room -> room.purpose() == RoomPurpose.HANGAR).toList();
+            assertEquals(1, bays.size());
+            RoomRecipe bay = bays.get(0);
+            assertEquals(6, BoatBayFitting.boatsIn(bay.shape().width(), bay.shape().height()));
+        }
+    }
+
+    @Test
+    void additionalLiftAddsCompleteSixBoatEstablishments() {
+        assertEquals(1, count(transport(10, 340), RoomPurpose.HANGAR));
+        assertEquals(2, count(transport(10, 341), RoomPurpose.HANGAR));
+        List<RoomRecipe> frigate = DeckSizing.programFor(HullClass.FRIGATE,
+                HullRole.WARSHIP, 10, 20, 30);
+        RoomRecipe gig = frigate.stream().filter(room -> room.purpose() == RoomPurpose.HANGAR)
+                .findFirst().orElseThrow();
+        assertEquals(1, BoatBayFitting.boatsIn(gig.shape().width(), gig.shape().height()));
+    }
+
+    @Test
+    void aNarrowHullStillHasBeamForTheFlankFacingHangar() {
+        DeckSizing.DeckPlan plan = DeckSizing.planFor(HullClass.DESTROYER,
+                HullRole.TROOP_TRANSPORT, 10, 250, 0, 0.1f);
+        assertTrue(plan.height() >= 2 * RoomRecipe.SHUTTLE_BAY.shape().height() + 10,
+                "minimum beam only fits a pose whose aperture faces fore or aft");
+    }
 
     private static int count(List<RoomRecipe> program, RoomPurpose purpose) {
         return (int) program.stream().filter(room -> room.purpose() == purpose).count();

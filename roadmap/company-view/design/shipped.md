@@ -16,3 +16,4 @@ Updated: 2026-09-01 — folded the late-arrival rejoin state into the company-vi
 | `c17-the-boat-deck.md` | 2026-09-01 | this change | `company-view-nouns.md` — Boat Deck room, campaign boats, fittings and the boat workshop; `air-nouns.md` — boat pattern versus fitted boat; `ui-nouns.md` — the BOATS page route |
 | `c18-a-lost-boat-is-lost.md` | 2026-09-01 | this change | `company-view-nouns.md` — lost boats, vacant berths, passenger casualties and boat fabrication; `air-nouns.md` — the air-loss ledger |
 | `c8-lift-capacity-and-multi-pass-drops.md` | 2026-09-01 | this change | `company-view-nouns.md` — Lift and arrival: the rejoining late arrival; `ai-nouns.md` — where the rejoin reflex ranks |
+| `hq-intel-terminal.md` | 2026-10-09 | this change | `company-view-nouns.md` — HQ intel channels, lead bulletin, bounded counts and client faction crests |
