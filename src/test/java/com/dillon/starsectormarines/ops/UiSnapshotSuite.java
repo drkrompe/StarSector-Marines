@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -69,6 +70,7 @@ import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -1945,6 +1947,35 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant, boolean specSheet)
             throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, pickerOpen,
+                selectHound, selectVacant, specSheet, null);
+    }
+
+    static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        List<BufferedImage> frames = new ArrayList<>();
+        BufferedImage idle = renderMechLab(context, renderer, 1920, 1080, 1f,
+                false, true, false, false, frames);
+        List<BufferedImage> bulwark = new ArrayList<>();
+        BufferedImage heavy = renderMechLab(context, renderer, 1920, 1080, 1f,
+                false, false, false, false, bulwark);
+        return List.of(new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
+                new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
+                new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
+                new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
+                SnapshotArtifact.animation("mech-fitting-1920x1080.gif", frames, 100));
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant, boolean specSheet,
+            List<BufferedImage> motionFrames) throws Exception {
+        double[] seconds = {0};
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -1963,6 +1994,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.slotRows().get().stream()
                     .filter(row -> row.name().contains("SHOULDER"))
                     .findFirst().orElseThrow().select().run();
+        }
+        if (motionFrames != null) {
+            if (!selectHound) viewModel.gantryRows().get().get(0).select().run();
+            else viewModel.stripWeapon(viewModel.selectedSocket());
         }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (pickerOpen) viewModel.openAssetPickerAction().run();
@@ -1986,8 +2021,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::gantryDeployments,
+            MechLabDollCanvas fittingCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
                             viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
@@ -1997,8 +2031,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             () -> framing.lookingAt(camera.pose().worldX(),
                                     camera.pose().worldY(), camera.pose().zoomNotches()),
                             () -> ship.scene().berthsIn(vehicleBay), vehicleBay::id,
-                            () -> 0d,
-                            viewModel::hoveredWeapon));
+                            () -> seconds[0],
+                            viewModel::hoveredWeapon);
+            document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
                 if (row.chassisPreview() != null) {
                     document.canvases().set(instance.requireElement(row.previewId()),
@@ -2027,6 +2062,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
                 openSpecSheet(document, binder, width, height, instance.requireElement(
                         MechLabSpecSheets.firstSpecSheetAnchorId(rows)));
+            }
+            if (motionFrames != null) {
+                MechWeaponDragCanvas ghost = new MechWeaponDragCanvas(MechLabDollCanvas::headlessAssets);
+                UiElement ghostElement = instance.requireElement("mech-drag-ghost");
+                document.canvases().set(ghostElement, ghost);
+                for (int frame = 0; frame < (selectHound ? 44 : 1); frame++) {
+                    seconds[0] = frame * .1;
+                    if (frame >= 12 && frame < 28) {
+                        fittingCanvas.previewWeaponDrag(MechWeaponComponent.SRM_5, null,
+                                viewModel.selectedSocket(), viewModel.canDropCatalogWeapon(
+                                        MechWeaponComponent.SRM_5, viewModel.selectedSocket()));
+                    } else if (frame >= 28 && frame < 40) {
+                        fittingCanvas.previewWeaponDrag(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+                                null, viewModel.selectedSocket(), false);
+                    } else fittingCanvas.clearWeaponDragPreview();
+                    // A controlled carried-item pose; the well state above is a preview, not a campaign commit.
+                    if (frame >= 12 && frame < 40) {
+                        var box = instance.requireElement("mech-doll-canvas").box().contentBox();
+                        ghost.show(frame < 28 ? MechWeaponComponent.SRM_5 : MechWeaponComponent.SINGLE_HEAVY_CANNON,
+                                box.x() + box.width() * .82f, box.y() + box.height() * .25f);
+                    } else ghost.clear();
+                    document.canvases().invalidate(ghostElement);
+                    document.canvases().invalidate(instance.requireElement("mech-doll-canvas"));
+                    document.advance(.1f);
+                    motionFrames.add(renderRelative(renderer, document, width, height, uiScale));
+                }
+                return motionFrames.get(Math.min(5, motionFrames.size() - 1));
             }
             return renderRelative(renderer, document, width, height, uiScale);
         }

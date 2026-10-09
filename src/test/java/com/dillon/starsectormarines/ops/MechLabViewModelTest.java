@@ -40,6 +40,48 @@ class MechLabViewModelTest {
             "mod/data/ui/components/mech-lab/mech-lab.mlx");
 
     @Test
+    void dragCommandsFitMoveAndReturnWeaponsWithoutDuplicatingInventory() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        TestResources resources = TestResources.stocked(2_000);
+        AtomicInteger changes = new AtomicInteger();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                new Reactor(), bay, resources, changes::incrementAndGet);
+        viewModel.gantryRows().get().get(0).select().run();
+
+        assertTrue(viewModel.canDropCatalogWeapon(
+                MechWeaponComponent.DUAL_PULSE_LASERS, SocketId.ARMS));
+        assertTrue(viewModel.dropCatalogWeapon(
+                MechWeaponComponent.DUAL_PULSE_LASERS, SocketId.ARMS));
+        assertEquals(MechWeaponComponent.DUAL_PULSE_LASERS,
+                viewModel.installedWeapon(SocketId.ARMS));
+
+        assertTrue(viewModel.removeInstalledWeapon(SocketId.RIGHT_SHOULDER));
+        assertTrue(viewModel.canMoveInstalledWeapon(
+                SocketId.LEFT_SHOULDER, SocketId.RIGHT_SHOULDER));
+        assertTrue(viewModel.moveInstalledWeapon(
+                SocketId.LEFT_SHOULDER, SocketId.RIGHT_SHOULDER));
+        assertNull(viewModel.installedWeapon(SocketId.LEFT_SHOULDER));
+        assertEquals(MechWeaponComponent.SRM_15,
+                viewModel.installedWeapon(SocketId.RIGHT_SHOULDER));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.SRM_15.id));
+        assertEquals(3, changes.get());
+    }
+
+    @Test
+    void dragValidationRejectsOccupiedAndIncompatibleTargets() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        viewModel.gantryRows().get().get(0).select().run();
+
+        assertFalse(viewModel.canMoveInstalledWeapon(
+                SocketId.LEFT_SHOULDER, SocketId.RIGHT_SHOULDER));
+        assertFalse(viewModel.canMoveInstalledWeapon(
+                SocketId.ARMS, SocketId.LEFT_SHOULDER));
+        assertFalse(viewModel.canDropCatalogWeapon(
+                MechWeaponComponent.SINGLE_HEAVY_CANNON, SocketId.LEFT_SHOULDER));
+    }
+
+    @Test
     void installCommandUsesFiniteMechBayStockAndReturnsCurrentComponent() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);

@@ -11,10 +11,14 @@ import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechChassisPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.MechEquipmentGridCanvas;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
+import com.dillon.starsectormarines.ops.battleview.MechWeaponDragCanvas;
+import org.lwjgl.input.Keyboard;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.PointerButton;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
@@ -77,7 +81,14 @@ public final class MechLabScreen implements Screen {
     private StarsectorUiInputAdapter input;
     private MechLabDollCanvas dollCanvas;
     private UiElement dollElement;
+    private UiElement ghostElement;
+    private MechWeaponDragCanvas dragGhost;
+    private UiElement inventoryDropElement;
+    private UiElement returnDropNote;
+    private WeaponDrag weaponDrag;
+    private boolean weaponDragMoved;
     private double previewSeconds;
+    private static final float DRAG_THRESHOLD_SQUARED = 16f;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -111,6 +122,7 @@ public final class MechLabScreen implements Screen {
     }
 
     private void installDocument() {
+        cancelDrag();
         MarkupInstance candidate = markup.reloadAndBuild(reactor, ROOT_COMPONENT, props());
         UiDocument built;
         SpecSheetBinder candidateSheets = null;
@@ -139,11 +151,16 @@ public final class MechLabScreen implements Screen {
                             () -> previewSeconds,
                             viewModel::hoveredWeapon);
             built.canvases().set(dollElement, dollCanvas);
+            inventoryDropElement = candidate.requireElement("mech-component-catalog");
+            returnDropNote = candidate.requireElement("mech-drag-drop-note");
+            ghostElement = candidate.requireElement("mech-drag-ghost");
+            dragGhost = new MechWeaponDragCanvas(() -> previewSprites().layeredMechSprites());
+            built.canvases().set(ghostElement, dragGhost);
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             wireEquipmentPreviews(candidate, built, candidateSheets);
-            dollElement.onPointerMove(this::pointAtDoll);
+            dollElement.onPointerMove(this::moveOverDoll);
             dollElement.onPointerDown(this::pressDoll);
-            dollElement.onPointerUp(this::activateDoll);
+            dollElement.onPointerUp(this::releaseDoll);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -235,6 +252,11 @@ public final class MechLabScreen implements Screen {
                             row.weaponPreview(), row.replenisherPreview(),
                             () -> previewSprites().layeredMechSprites()));
                 }
+                if (row.weaponPreview() != null) {
+                    canvas.onPointerDown(event -> beginCatalogWeaponDrag(event, row.weaponPreview()));
+                    canvas.onPointerMove(this::moveWeaponDrag);
+                    canvas.onPointerUp(this::finishWeaponDrag);
+                }
             }
             UiElement card = instance.requireElement(row.id());
             card.onPointerMove(event -> {
@@ -270,7 +292,7 @@ public final class MechLabScreen implements Screen {
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
                 "mech-overview-rail", "mech-overview-gantries", "mech-overview-browse",
                 "mech-slot-rack", "mech-component-catalog",
-                "mech-catalog-list",
+                "mech-catalog-list", "mech-drag-drop-note",
                 "mech-lab-feedback")) {
             component.requireElement(id);
         }
@@ -280,7 +302,11 @@ public final class MechLabScreen implements Screen {
         if (dismissDialog != null) dismissDialog.run();
     }
 
-    private void pointAtDoll(UiPointerEvent event) {
+    private void moveOverDoll(UiPointerEvent event) {
+        if (weaponDrag != null) {
+            moveWeaponDrag(event);
+            return;
+        }
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
         dollCanvas.pointAt(point.x(), point.y());
@@ -288,16 +314,32 @@ public final class MechLabScreen implements Screen {
     }
 
     private void pressDoll(UiPointerEvent event) {
+        if (event.button() != PointerButton.PRIMARY) return;
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
-        if (dollCanvas.vacantGantryAt(point.x(), point.y()) >= 0
-                || dollCanvas.socketAt(point.x(), point.y()) != null) {
-            event.capturePointer();
-            event.preventDefault();
+        SocketId socket = dollCanvas.socketAt(point.x(), point.y());
+        MechWeaponComponent component = socket != null
+                ? viewModel.installedWeapon(socket) : null;
+        if (component != null) {
+            beginWeaponDrag(event, component, socket);
+            return;
         }
+        if (socket != null) {
+            viewModel.selectSocket(socket);
+            document.canvases().invalidate(dollElement);
+            event.preventDefault();
+            return;
+        }
+        if (dollCanvas.vacantGantryAt(point.x(), point.y()) < 0) return;
+        event.capturePointer();
+        event.preventDefault();
     }
 
-    private void activateDoll(UiPointerEvent event) {
+    private void releaseDoll(UiPointerEvent event) {
+        if (weaponDrag != null) {
+            finishWeaponDrag(event);
+            return;
+        }
         CanvasPoint point = canvasPoint(event);
         event.releasePointerCapture();
         if (point == null) return;
@@ -314,6 +356,77 @@ public final class MechLabScreen implements Screen {
             document.canvases().invalidate(dollElement);
             event.preventDefault();
         }
+    }
+
+    private void beginCatalogWeaponDrag(UiPointerEvent event,
+                                        MechWeaponComponent component) {
+        if (event.button() != PointerButton.PRIMARY || component == null) return;
+        beginWeaponDrag(event, component, null);
+    }
+
+    private void beginWeaponDrag(UiPointerEvent event, MechWeaponComponent component,
+                                 SocketId source) {
+        weaponDrag = new WeaponDrag(component, source, event.x(), event.y());
+        weaponDragMoved = false;
+        event.capturePointer();
+        event.preventDefault();
+    }
+
+    private void moveWeaponDrag(UiPointerEvent event) {
+        if (weaponDrag == null) return;
+        float dx = event.x() - weaponDrag.startX();
+        float dy = event.y() - weaponDrag.startY();
+        if (!weaponDragMoved && dx * dx + dy * dy < DRAG_THRESHOLD_SQUARED) return;
+        weaponDragMoved = true;
+        dragGhost.show(weaponDrag.component(), event.x(), event.y());
+        document.canvases().invalidate(ghostElement);
+        CanvasPoint point = canvasPoint(event);
+        SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
+        boolean valid = target != null && (weaponDrag.source() == null
+                ? viewModel.canDropCatalogWeapon(weaponDrag.component(), target)
+                : viewModel.canMoveInstalledWeapon(weaponDrag.source(), target));
+        dollCanvas.previewWeaponDrag(weaponDrag.component(), weaponDrag.source(), target, valid);
+        boolean returning = weaponDrag.source() != null && overInventory(event);
+        returnDropNote.classed("drop-active", returning);
+        document.canvases().invalidate(dollElement);
+        event.preventDefault();
+    }
+
+    private void finishWeaponDrag(UiPointerEvent event) {
+        if (event.button() != PointerButton.PRIMARY) return;
+        WeaponDrag drag = weaponDrag;
+        if (drag == null) return;
+        event.releasePointerCapture();
+        CanvasPoint point = canvasPoint(event);
+        SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
+        if (!weaponDragMoved) {
+            if (drag.source() != null) viewModel.selectSocket(drag.source());
+        } else if (target != null && target != drag.source()) {
+            if (drag.source() == null) {
+                viewModel.dropCatalogWeapon(drag.component(), target);
+            } else {
+                viewModel.moveInstalledWeapon(drag.source(), target);
+            }
+        } else if (drag.source() != null && overInventory(event)) {
+            viewModel.removeInstalledWeapon(drag.source());
+        } else if (drag.source() != null && target == drag.source()) {
+            viewModel.selectSocket(target);
+        } else {
+            viewModel.cancelWeaponDrag();
+        }
+        weaponDrag = null;
+        weaponDragMoved = false;
+        dragGhost.clear();
+        document.canvases().invalidate(ghostElement);
+        dollCanvas.clearWeaponDragPreview();
+        returnDropNote.removeClass("drop-active");
+        document.canvases().invalidate(dollElement);
+        event.preventDefault();
+    }
+
+    private boolean overInventory(UiPointerEvent event) {
+        return inventoryDropElement != null
+                && inventoryDropElement.box().borderBox().contains(event.x(), event.y());
     }
 
     private CanvasPoint canvasPoint(UiPointerEvent event) {
@@ -415,7 +528,7 @@ public final class MechLabScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        previewSeconds += Math.max(0f, dt);
+        if (Float.isFinite(dt)) previewSeconds = (previewSeconds + Math.max(0f, dt)) % 3600d;
         if (viewModel != null) {
             cameraController.target(viewModel.fittingFocused(),
                     viewModel.selectedGantryIndex(), viewModel.gantryVariants().size());
@@ -427,8 +540,16 @@ public final class MechLabScreen implements Screen {
                 wireEquipmentPreviews(markupInstance, document, specSheets);
             }
         }
+        if (document != null && weaponDrag == null && viewModel.hoveredWeapon() != null) {
+            boolean overCatalog = document.hoverChain().stream().anyMatch(element ->
+                    viewModel.catalogRows().get().stream().anyMatch(row -> row.id().equals(element.id())));
+            if (!overCatalog) viewModel.clearHoverWeapon();
+        }
         if (specSheets != null) specSheets.update();
-        if (document != null) document.advance(dt);
+        if (document != null) {
+            document.advance(dt);
+            if (dollElement != null) document.canvases().invalidate(dollElement);
+        }
     }
 
     @Override
@@ -438,11 +559,36 @@ public final class MechLabScreen implements Screen {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
+        if (weaponDrag != null) {
+            for (InputEventAPI event : events) {
+                if (!event.isConsumed() && event.isKeyDownEvent()
+                        && event.getEventValue() == Keyboard.KEY_ESCAPE) {
+                    cancelDrag();
+                    event.consume();
+                }
+            }
+        }
         if (input != null) input.process(events);
+    }
+
+    private void cancelDrag() {
+        if (weaponDrag == null) return;
+        weaponDrag = null;
+        weaponDragMoved = false;
+        if (dragGhost != null) dragGhost.clear();
+        if (dollCanvas != null) dollCanvas.clearWeaponDragPreview();
+        if (returnDropNote != null) returnDropNote.removeClass("drop-active");
+        if (document != null) {
+            document.releasePointerCapture();
+            if (ghostElement != null) document.canvases().invalidate(ghostElement);
+            if (dollElement != null) document.canvases().invalidate(dollElement);
+        }
+        viewModel.cancelWeaponDrag();
     }
 
     @Override
     public void detach() {
+        cancelDrag();
         if (document != null) document.deactivateInput();
         if (specSheets != null) specSheets.clear();
         input = null;
@@ -451,6 +597,7 @@ public final class MechLabScreen implements Screen {
     }
 
     private void closeDocument() {
+        cancelDrag();
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
         if (specSheets != null) specSheets.clear();
@@ -459,8 +606,14 @@ public final class MechLabScreen implements Screen {
         specSheets = null;
         dollCanvas = null;
         dollElement = null;
+        inventoryDropElement = null;
+        returnDropNote = null;
+        weaponDrag = null;
         input = null;
     }
 
     private record CanvasPoint(float x, float y) { }
+
+    private record WeaponDrag(MechWeaponComponent component, SocketId source,
+                              float startX, float startY) { }
 }

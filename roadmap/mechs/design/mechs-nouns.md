@@ -546,16 +546,21 @@ support sortie, subject only to practical runtime resources.
   a closer framing, but it may not canvas-fit the
   selected asset or distort its physical size relative to technicians, tiles,
   props, or another chassis.
-- Socket overlays consume the selected asset's authored fitting layout. Their
-  strongly translucent type color, large hull-relative drop footprint, and common
-  three-by-two cell frame occupy the gantry around the physical doll, with a light leader returning
-  to the authored mount anchor. The doll remains readable instead of becoming a
-  pile of UI rectangles, and the rendered room becomes useful fitting space.
-  The whole footprint is the pointer target; active, occupied, and blocked cells
-  project the same rectangular component and socket dimensions used by the atomic
-  campaign refit. A future drag preview may occupy those cells but cannot redefine
-  them. An authored empty socket stays visible
-  while an absent socket produces no footprint.
+- Socket overlays consume the selected asset's authored fitting layout. Recessed
+  metal equipment wells frame the actual weapon art around the physical doll;
+  quiet internal grids retain the socket's authored dimensions. Empty mounts show
+  a hardware silhouette and compatibility label, while factory-sealed systems
+  occupy smaller read-only plates. Thin routed leaders return to physical anchors.
+  Amber corners identify selection; green alignment scans and a release prompt
+  identify an accepted proposed drop, and red corners explicitly reject one.
+  Motion follows the presentation clock without mutating campaign hardware.
+  The complete well is the pointer target. Catalog art can be dragged onto a
+  compatible mount, installed weapons can move to a compatible vacant mount, and
+  dropping them over stores returns them to finite inventory. The carried weapon
+  stays visible above the document; Escape or an outside drop cancels the gesture.
+  All commits use the atomic campaign refit commands. An explicit empty weapon
+  mount remains empty in the frozen deployment and fixture serialization. An
+  authored empty socket stays visible while an absent socket produces no well.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real
   battle entities consumed by the ordinary unit render system. The retained host
