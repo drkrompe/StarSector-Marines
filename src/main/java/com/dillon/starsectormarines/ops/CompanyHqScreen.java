@@ -28,6 +28,7 @@ public final class CompanyHqScreen implements Screen {
 
     private final Reactor reactor = new Reactor();
     private final CompanyHqNewsDesk newsDesk = new CompanyHqNewsDesk(reactor);
+    private final CompanyIntelTerminal intelTerminal = new CompanyIntelTerminal(newsDesk);
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
@@ -89,6 +90,7 @@ public final class CompanyHqScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onClose);
+            intelTerminal.bind(built, candidate);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -183,6 +185,7 @@ public final class CompanyHqScreen implements Screen {
             installDocument();
             input = new StarsectorUiInputAdapter(document, viewport);
         }
+        intelTerminal.advance(dt);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }

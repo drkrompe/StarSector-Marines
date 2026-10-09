@@ -18,3 +18,4 @@ Updated: 2026-09-01 — folded the late-arrival rejoin state into the company-vi
 | `c8-lift-capacity-and-multi-pass-drops.md` | 2026-09-01 | this change | `company-view-nouns.md` — Lift and arrival: the rejoining late arrival; `ai-nouns.md` — where the rejoin reflex ranks |
 | `hq-intel-terminal.md` | 2026-10-09 | this change | `company-view-nouns.md` — HQ intel channels, lead bulletin, bounded counts and client faction crests |
 | `hq-news-desk.md` | 2026-10-09 | this change | `company-view-nouns.md` — source windows, view-local report selection and focused briefings |
+| `hq-intel-motion.md` | 2026-10-09 | this change | `company-view-nouns.md`, `ui-nouns.md` — animated receiver network, real arrival distinction and persistent dossier motion |

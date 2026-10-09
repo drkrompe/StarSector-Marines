@@ -59,6 +59,13 @@ final class CompanyHqNewsDesk {
 
     Desk snapshot() { return project(); }
 
+    List<CompanyHqViewModel.NewsPost> posts() { return posts; }
+
+    CompanyHqViewModel.NewsPost selectedPost() {
+        for (var post : posts) if (post.id().equals(selectedId)) return post;
+        return null;
+    }
+
     private void reconcile() {
         var visible = posts.stream().filter(channel::accepts).toList();
         if (visible.stream().noneMatch(post -> post.id().equals(selectedId))) {
@@ -98,7 +105,9 @@ final class CompanyHqNewsDesk {
                         ? "UNCONFIRMED / Awaiting corroboration."
                         : "CONFIRMED / Company intelligence archive.",
                 rundown.size() + (rundown.size() == 1 ? " report in this view" : " reports in this view"),
-                rundown.isEmpty() ? "No reports received on this channel." : "");
+                rundown.isEmpty() ? "No reports received on this channel." : "",
+                selected == null ? "" : selected.crest(),
+                selected == null ? "" : selected.subject());
     }
 
     private Report report(CompanyHqViewModel.NewsPost post, String id) {
@@ -149,13 +158,15 @@ final class CompanyHqNewsDesk {
     }
     record Desk(List<Key> tabs, List<Source> sources, List<Report> reports, String kicker,
                 String headline, String detail, String source, String classes, String caution,
-                String count, String empty) implements MarkupPropertySource {
+                String count, String empty, String crest, String subject) implements MarkupPropertySource {
         public Object markupProperty(String property) {
             return switch (property) {
                 case "tabs" -> tabs; case "sources" -> sources; case "reports" -> reports;
                 case "kicker" -> kicker; case "headline" -> headline; case "detail" -> detail;
                 case "source" -> source; case "classes" -> classes; case "caution" -> caution;
                 case "count" -> count; case "empty" -> empty;
+                case "crest" -> crest; case "subject" -> subject;
+                case "crestClasses" -> crest.isEmpty() ? "dossier-crest crest-absent" : "dossier-crest";
                 case "emptyClasses" -> empty.isEmpty() ? "source-empty-hidden" : "label tone-muted source-empty";
                 default -> throw new IllegalArgumentException(property);
             };

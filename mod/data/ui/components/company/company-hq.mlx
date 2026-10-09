@@ -90,6 +90,7 @@
           </div>
 
           <div id="company-hq-news" class="board-column news-column">
+            <canvas id="company-hq-network-canvas" class="network-canvas" width="1180" height="300" />
             <div id="company-hq-source-windows" class="source-windows">
               <div each="channel in newsDesk.sources" key="{channel.id}" id="{channel.id}" class="source-window console-readout">
                 <div id="{channel.headerId}" class="source-heading">
@@ -112,19 +113,26 @@
               <div id="company-hq-focus" class="{newsDesk.classes}">
                 <div id="company-hq-focus-header" class="focus-header">
                   <img id="company-hq-focus-lock" class="focus-lock" src="graphics/ui/console/locking-plate.svg" />
-                  <div id="company-hq-focus-slug" class="label heading tone-accent">SELECTED BRIEF / INTELLIGENCE DESK</div>
+                  <div id="company-hq-focus-slug" class="label heading tone-accent">DECRYPTED DOSSIER / COMMAND ACCESS</div>
                 </div>
-                <div id="company-hq-focus-kicker" class="label heading focus-kicker">{newsDesk.kicker}</div>
-                <div id="company-hq-focus-headline" class="label title focus-headline">{newsDesk.headline}</div>
+                <div id="company-hq-dossier-heading" class="dossier-heading">
+                  <img id="company-hq-dossier-crest" class="{newsDesk.crestClasses}" src="{newsDesk.crest}" />
+                  <div id="company-hq-dossier-copy" class="dossier-copy">
+                    <div id="company-hq-focus-kicker" class="label heading focus-kicker">{newsDesk.kicker}</div>
+                    <div id="company-hq-focus-headline" class="label title focus-headline">{newsDesk.headline}</div>
+                    <div id="company-hq-dossier-subject" class="label tone-muted dossier-subject">{newsDesk.subject}</div>
+                  </div>
+                </div>
                 <div id="company-hq-focus-story" class="focus-story">
                   <div id="company-hq-focus-source" class="label heading tone-muted focus-source">{newsDesk.source}</div>
                   <div id="company-hq-focus-detail" class="label focus-detail">{newsDesk.detail}</div>
                 </div>
                 <div id="company-hq-focus-caution" class="label tone-accent focus-caution">{newsDesk.caution}</div>
+                <canvas id="company-hq-dossier-scan" class="dossier-scan" width="1180" height="190" />
               </div>
               <div id="company-hq-rundown" class="news-rundown">
                 <div id="company-hq-rundown-header" class="rundown-header">
-                  <div id="company-hq-rundown-heading" class="label heading tone-accent">REPORT RUNDOWN</div>
+                  <div id="company-hq-rundown-heading" class="label heading tone-accent">TRANSMISSION ARCHIVE</div>
                   <div id="company-hq-rundown-count" class="label tone-muted">{newsDesk.count}</div>
                 </div>
                 <div id="company-hq-channel-tabs" class="channel-tabs">
@@ -210,40 +218,48 @@
   .employer-crest { width: 40px; height: 40px; pointer-events: none; }
   .employer-crest.crest-absent { width: 0px; height: 0px; }
   .employer-copy { flex-direction: column; height: 40px; width: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
-  .source-windows { flex-direction: row; height: 140px; gap: 7px; }
-  .source-window { flex-direction: column; width: 0px; flex-grow: 1; height: 118px; padding: 8px; gap: 7px; border-width: 2px; overflow: hidden; }
-  .source-label { height: 16px; }
-  .source-count { height: 14px; }
-  .source-teasers { flex-direction: column; height: 65px; gap: 6px; overflow: hidden; }
+  .source-windows { flex-direction: row; height: 96px; gap: 7px; }
+  .source-window { flex-direction: column; width: 0px; flex-grow: 1; height: 76px; padding: 6px; gap: 3px; border-width: 2px; overflow: hidden; }
+  .source-label { height: 16px; width: 0px; flex-grow: 1; }
+  .source-count { height: 14px; width: 90px; font-family: compact; }
+  .source-teasers { flex-direction: column; height: 40px; overflow: hidden; }
   .wire-report { flex-direction: column; height: 63px; padding: 5px 7px; gap: 4px; border-width: 1px; text-align: left; }
   .teaser-kicker { height: 15px; }
   .teaser-headline { height: 36px; white-space: normal; }
   .source-empty { height: 30px; white-space: normal; }
   .editorial-desk { flex-direction: column; height: 0px; flex-grow: 1; gap: 10px; overflow: hidden; }
-  .lead-story { flex-direction: column; width: auto; flex-grow: 0; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; height: 226px; }
-  .focus-header { flex-direction: row; height: 26px; gap: 8px; align-items: center; }
+  .lead-story { flex-direction: column; width: auto; flex-grow: 0; padding: 8px 10px; gap: 5px; border-width: 2px; overflow: hidden; height: 166px; }
+  .focus-header { flex-direction: row; height: 20px; gap: 8px; align-items: center; }
   .focus-lock { width: 20px; height: 24px; }
   #company-hq-focus-slug { width: 0px; flex-grow: 1; height: 18px; white-space: normal; }
-  .focus-kicker { height: 18px; }
-  .focus-headline { height: 46px; white-space: normal; }
-  .focus-source { height: 42px; padding: 7px; border-width: 1px; border-color: #697c7b; white-space: normal; width: 220px; }
-  .focus-detail { height: 56px; white-space: normal; width: 0px; flex-grow: 1; padding: 4px 0px; }
-  .focus-caution { height: 24px; white-space: normal; }
+  .focus-kicker { height: 14px; }
+  .focus-headline { height: 25px; white-space: normal; }
+  .focus-source { height: 26px; padding: 5px; border-width: 1px; border-color: #697c7b; white-space: normal; width: 220px; font-family: compact; }
+  .focus-detail { height: 40px; white-space: normal; width: 0px; flex-grow: 1; padding: 0px; }
+  .focus-caution { height: 16px; white-space: normal; }
   .rumor-story { border-color: #b09a64; }
-  .news-rundown { flex-direction: column; width: auto; padding: 8px; gap: 7px; border-width: 0px; overflow: hidden; height: 260px; flex-grow: 0; background-color: #303837; }
+  .news-rundown { flex-direction: column; width: auto; padding: 6px; gap: 5px; border-width: 0px; overflow: hidden; height: 0px; flex-grow: 1; background-color: #1a2426; }
   #company-hq-rundown-heading { height: 18px; width: 0px; flex-grow: 1; }
   #company-hq-rundown-count { height: 16px; width: 220px; text-align: right; }
-  .channel-tabs { display: flex; height: 34px; gap: 6px; overflow: hidden; flex-direction: row; }
-  .wire-tab { width: 190px; height: 20px; padding: 5px 8px; border-width: 1px; text-align: center; font-family: compact; }
-  .rundown-list { flex-direction: column; height: 184px; flex-grow: 0; gap: 7px; overflow: scroll; display: grid; width: 100%; }
-  .rundown-list .wire-report { height: 74px; width: 330px; padding: 6px 8px; }
-  .rundown-source { height: 15px; }
-  .source-heading { flex-direction: row; height: 34px; gap: 9px; align-items: center; }
-  .source-icon { width: 32px; height: 32px; }
-  .source-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 34px; gap: 2px; }
-  .source-teasers .wire-report { height: 50px; padding: 5px 7px; gap: 3px; }
+  .channel-tabs { display: flex; height: 30px; gap: 6px; overflow: hidden; flex-direction: row; }
+  .wire-tab { width: 190px; height: 18px; padding: 4px 8px; border-width: 1px; text-align: center; font-family: compact; }
+  .rundown-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; width: 100%; }
+  .rundown-list .wire-report { height: 62px; width: 330px; padding: 5px 7px; gap: 3px; }
+  .rundown-source { height: 0px; }
+  .source-heading { flex-direction: row; height: 28px; gap: 7px; align-items: center; }
+  .source-icon { width: 24px; height: 24px; }
+  .source-heading-copy { flex-direction: row; width: 0px; flex-grow: 1; height: 28px; gap: 8px; align-items: center; }
+  .source-teasers .wire-report { height: 32px; padding: 2px 5px; gap: 0px; }
   .source-teasers .teaser-headline { height: 32px; }
   .source-empty-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
-  .focus-story { flex-direction: row; height: 64px; gap: 12px; }
+  .focus-story { flex-direction: row; height: 42px; gap: 12px; }
   .rundown-header { flex-direction: row; height: 20px; gap: 12px; }
+  .network-canvas { width: 100%; height: 300px; pointer-events: none; }
+  .source-teasers .teaser-kicker { height: 0px; }
+  .dossier-heading { flex-direction: row; height: 62px; gap: 12px; }
+  .dossier-crest { width: 56px; height: 56px; pointer-events: none; }
+  .dossier-crest.crest-absent { width: 0px; height: 0px; }
+  .dossier-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 3px; }
+  .dossier-subject { height: 14px; }
+  .dossier-scan { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
 </style>
