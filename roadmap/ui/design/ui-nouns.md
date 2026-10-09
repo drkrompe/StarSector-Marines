@@ -262,6 +262,11 @@ visibly distinct. Mechanical SVG plates frame major sections rather than adding
 ornament to every data item. Battle overlays retain their bounded footprint and
 transparent world surround while sharing the console materials.
 
+Ordinary headings use warm silver lettering on dark gunmetal plates with a
+shallow edge highlight. Broad glossy bands and cyan heading accents compete with
+the instruments; cyan belongs to signal activity and readouts, while amber marks
+selection and emphasis. The high-contrast theme keeps its distinct palette.
+
 Information determines the layout. Related counts and labels remain close in
 compact cards or groups; an expanding viewport is not a reason to stretch a
 sparse row. Action labels fit their control, and primary actions remain distinct

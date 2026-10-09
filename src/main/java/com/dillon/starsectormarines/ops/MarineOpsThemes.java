@@ -43,6 +43,7 @@ final class MarineOpsThemes {
                     border-style: inset;
                 }
                 .tone-edge { color: #a7ccc4; }
+                .heading.tone-edge, .title.tone-edge { color: #d3d0c5; }
                 .tone-muted { color: #a0ada8; }
                 .tone-accent { color: #edc273; }
                 .tone-good { color: #78d494; }
@@ -99,10 +100,10 @@ final class MarineOpsThemes {
                     border-style: inset;
                 }
                 #marine-ops-page-nav {
-                    background-color: #444c4b;
-                    border-color: #929a94;
+                    background-color: #343634;
+                    border-color: #82857c;
                     border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff24 0%, #ffffff08 45%, #00000020 48%, #00000044 100%);
+                    background-image: linear-gradient(to bottom, #ffffff10 0%, #ffffff00 18%, #00000026 100%);
                 }
                 #marine-ops-page-context {
                     background-color: #111b18;
@@ -119,16 +120,16 @@ final class MarineOpsThemes {
                 }
                 #marine-ops-page-routes .page-nav-current:hover { background-color: #50452e; }
                 .console-header {
-                    background-color: #444c4b;
-                    border-color: #929a94;
+                    background-color: #343634;
+                    border-color: #82857c;
                     border-style: outset;
-                    background-image: linear-gradient(to bottom, #ffffff24 0%, #ffffff08 45%, #00000020 48%, #00000044 100%);
+                    background-image: linear-gradient(to bottom, #ffffff10 0%, #ffffff00 18%, #00000026 100%);
                 }
                 .console-header-lock { width: 44px; height: 44px; pointer-events: none; }
                 .console-header-vent { width: 100px; height: 44px; pointer-events: none; }
                 .console-section, .mission-briefing-root .section-heading-row {
-                    background-color: #353e3a;
-                    border-color: #727b79;
+                    background-color: #303430;
+                    border-color: #6f736c;
                     border-style: outset;
                 }
                 .console-readout {
