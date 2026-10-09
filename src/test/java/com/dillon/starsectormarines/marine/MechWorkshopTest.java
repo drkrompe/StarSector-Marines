@@ -12,6 +12,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechWorkshopTest {
@@ -49,6 +50,42 @@ class MechWorkshopTest {
                 bay.mechById(MechBay.STARTER_MECH_ID).arms());
         assertEquals(5, resources.available(Commodities.SUPPLIES));
         assertEquals(0, bay.ownedWeapon(MechWeaponComponent.DUAL_PULSE_LASERS.id));
+    }
+
+    @Test
+    void removedWeaponReturnsToStoresAndLeavesTheDeploymentMountEmpty() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(0));
+
+        MechWorkshop.Result result = workshop.stripWeapon(MechBay.STARTER_MECH_ID,
+                MechMountSlot.ARMS);
+
+        assertEquals(MechWorkshop.Status.STRIPPED, result.status());
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.DUAL_CHAINGUNS.id));
+        assertNull(bay.mechById(MechBay.STARTER_MECH_ID).arms());
+        assertNull(bay.activeDeployment().get(0).arms());
+    }
+
+    @Test
+    void installedWeaponMovesAtomicallyOnlyToACompatibleVacantMount() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(0));
+        assertTrue(bay.stripWeapon(MechBay.STARTER_MECH_ID,
+                MechMountSlot.RIGHT_SHOULDER));
+
+        MechWorkshop.Result moved = workshop.moveWeapon(MechBay.STARTER_MECH_ID,
+                MechMountSlot.LEFT_SHOULDER, MechMountSlot.RIGHT_SHOULDER);
+
+        assertEquals(MechWorkshop.Status.MOVED, moved.status());
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        assertNull(mech.leftShoulder());
+        assertEquals(MechWeaponComponent.SRM_15, mech.rightShoulder());
+
+        MechWorkshop.Result occupied = workshop.moveWeapon(MechBay.STARTER_MECH_ID,
+                MechMountSlot.ARMS, MechMountSlot.RIGHT_SHOULDER);
+        assertEquals(MechWorkshop.Status.TARGET_OCCUPIED, occupied.status());
+        assertEquals(MechWeaponComponent.DUAL_CHAINGUNS, mech.arms());
+        assertEquals(MechWeaponComponent.SRM_15, mech.rightShoulder());
     }
 
     @Test

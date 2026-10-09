@@ -19,7 +19,6 @@ public record MechDeploymentSpec(
         if (missileReplenisher == null) {
             missileReplenisher = MissileReplenisherComponent.STANDARD;
         }
-        if (arms == null) arms = variant.arms;
         if (displayName != null) {
             displayName = displayName.trim();
             if (displayName.isEmpty()) displayName = null;

@@ -331,4 +331,16 @@ public final class MechBay implements Serializable {
         nextFabricatedSerial = Math.max(1, nextFabricatedSerial);
         return this;
     }
+    public boolean moveWeapon(String mechId, MechMountSlot source, MechMountSlot target) {
+        CampaignMech mech = mechById(mechId);
+        if (mech == null || source == null || target == null || source == target) return false;
+        MechWeaponComponent component = mech.weaponAt(source);
+        if (component == null || mech.weaponAt(target) != null
+                || !canInstallWeapon(mechId, source, component.id)
+                || !canInstallWeapon(mechId, target, component.id)) return false;
+        mech.installWeapon(target, component);
+        mech.installWeapon(source, null);
+        return true;
+    }
+
 }

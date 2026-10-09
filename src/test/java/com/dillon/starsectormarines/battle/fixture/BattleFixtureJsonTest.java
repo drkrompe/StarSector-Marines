@@ -325,7 +325,7 @@ class BattleFixtureJsonTest {
                                 new MechDeploymentSpec(MechVariant.SIROCCO,
                                         MechRole.LR_SUPPORT,
                                         MissileReplenisherComponent.ACCELERATED_FEED,
-                                        MechWeaponComponent.QUARRY_BREAKER_CANNON,
+                                        null,
                                         MechWeaponComponent.LRM_5,
                                         MechWeaponComponent.THERMAL_LANCE)))),
                 37,

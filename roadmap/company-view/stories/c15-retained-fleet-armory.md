@@ -190,5 +190,7 @@ breadcrumb keeps every completed level directly reachable.
   pager occupies no space on a one-bay ship.
 - Location selection changes catalog context without mutating hardware. Unsupported
   core, weapon, and ammunition locations remain visibly factory locked.
-- Future drag-and-drop placement validates socket type, sized capacity, chassis
-  budgets, and finite inventory atomically; the gesture itself never owns mutation.
+- Drag-and-drop placement validates socket type, sized capacity, chassis budgets,
+  and finite inventory atomically; catalog-to-doll fitting, vacant doll-to-doll
+  movement, and doll-to-catalog removal all route through campaign commands, while
+  the gesture and hover preview never own mutation.

@@ -86,6 +86,19 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<MechWeaponComponent> candidateWeapon;
     private List<VacantGantryTarget> vacantGantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
+    private DragPreview dragPreview;
+    private SocketId hoveredSocket;
+
+    public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
+                                  SocketId target, boolean valid) {
+        dragPreview = component != null ? new DragPreview(component, source, target, valid) : null;
+    }
+
+    public void clearWeaponDragPreview() { dragPreview = null; }
+
+    private record DragPreview(MechWeaponComponent component, SocketId source,
+                               SocketId target, boolean valid) { }
+
     private int hoveredVacantGantry = -1;
 
     public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
@@ -150,12 +163,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
         int gantryIndex = selectedIndex(selectedGantry.getAsInt());
         MechDeploymentSpec selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
         MechVariant selectedVariant = selected != null ? selected.variant() : null;
-        if (assets.get() == null) return;
+        if (assets.get() == null) {
+            lastSocketTargets = List.of();
+            return;
+        }
 
         ShipDeckBattleScene aboard = ship.get();
         ShipDeckBattleScene.RoomView bay = aboard != null ? roomView.get() : null;
         if (bay == null) {
             vacantGantryTargets = List.of();
+            lastSocketTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
@@ -176,6 +193,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         });
         if (!rendered || host[0] == null) {
             vacantGantryTargets = List.of();
+            lastSocketTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
         }
@@ -190,6 +208,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 : null;
 
         context.hostPass(aboard.pass(bay, ACTOR_LAYERS));
+        drawTechnicianFx(context, sceneCamera, host[0],
+                workingPoses(aboard, standing, workSite.getAsInt()), time,
+                weldingTorch.get(), weldingSparks.get());
         drawVacantGantryActions(context, sceneCamera, host[0], standing, lance.size());
         if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
@@ -198,14 +219,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
         } else {
             lastSocketTargets = List.of();
         }
-        drawTechnicianFx(context, sceneCamera, host[0],
-                workingPoses(aboard, standing, workSite.getAsInt()), time,
-                weldingTorch.get(), weldingSparks.get());
     }
 
     /** Records hover over the physical vacant-pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
         hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
+        hoveredSocket = socketAt(canvasX, canvasY);
     }
 
     /** The socket dock target at this canvas-local point, or null outside all sockets. */
@@ -392,138 +411,47 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 projection.actorX(), projection.actorY(), projection.hullX(), projection.hullY(),
                 canvasWidth, canvasHeight, cos, sin,
                 deployment, deployment != null ? deployment.variant() : null);
+        c.fillRect(0, 0, canvasWidth, canvasHeight, new Color(3, 8, 6, 68));
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
-            boolean occupied = occupied(deployment, socket.id());
             boolean selected = socket.id() == selectedSocket;
-            boolean locked = socket.factoryLocked();
-            boolean hasCandidate = candidate != null;
-            boolean compatible = hasCandidate && isSocketCompatible(socket, candidate);
-            boolean incompatible = hasCandidate && !compatible && mountFor(socket.id()) != null;
-
-            Color base = locked ? new Color(0x3A, 0x5B, 0x72) : socketColor(socket.type());
-            if (incompatible) {
-                base = withAlpha(base, 80);
-            }
-            // CAD dog-leg leader path to perimeter dock
-            List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
-            float leaderStroke = selected ? 3.0f : 2.0f;
-            Color leaderColor = selected ? new Color(0xFF, 0xD4, 0x64, 255)
-                    : compatible ? new Color(0x69, 0xE7, 0x81, 245)
-                    : withAlpha(base, 240);
-
-            // High-contrast dark outer silhouette for crisp readability on any deck pattern
-            for (int i = 0; i < path.size() - 1; i++) {
-                c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
-                        new Color(0x02, 0x07, 0x0F, 220), leaderStroke + 2.0f);
-            }
-            // Main illuminated CAD line
-            for (int i = 0; i < path.size() - 1; i++) {
-                c.line(path.get(i)[0], path.get(i)[1], path.get(i + 1)[0], path.get(i + 1)[1],
-                        leaderColor, leaderStroke);
-            }
-
-            // Distinct mechanical tick at hull anchor
-            drawAnchorMechanicalTick(c, target.anchorX(), target.anchorY(), base, selected);
-
-            // Dock background fill
-            int fillAlpha = selected ? 138 : occupied ? 72 : 112;
-            c.fillRect(target.left(), target.top(), target.width(), target.height(),
-                    withAlpha(base, fillAlpha));
-
-            // Chamfered corner brackets & state styling
-            float bracketLen = selected ? 18f : locked ? 10f : 14f;
-            float bracketStroke = selected ? 2.5f : locked ? 1f : 1.5f;
-            Color bracketColor = compatible ? new Color(0x69, 0xE7, 0x81, 245)
-                    : selected ? new Color(0xFF, 0xD4, 0x64, 255)
-                    : withAlpha(base, selected ? 245 : occupied ? 130 : 210);
-            drawCornerBrackets(c, target.left(), target.top(), target.width(), target.height(),
-                    bracketColor, bracketStroke, bracketLen, 5f);
-
-            // Empty state: ambient warning accent ticks
-            if (!occupied && !locked) {
-                Color warnAccent = new Color(0xE5, 0xA8, 0x45, 215);
-                c.line(target.left() + 2f, target.top() + 2f, target.left() + 7f, target.top() + 2f, warnAccent, 1.5f);
-                c.line(target.left() + 2f, target.top() + 2f, target.left() + 2f, target.top() + 7f, warnAccent, 1.5f);
-            }
-
-            // Selected state: glowing inner bracket corners
-            if (selected) {
-                drawCornerBrackets(c, target.left() + 3f, target.top() + 3f,
-                        target.width() - 6f, target.height() - 6f,
-                        withAlpha(base, 160), 1f, bracketLen - 4f, 3f);
-            }
-
-            // Incompatible candidate state: crossing warning indicator
-            if (incompatible) {
-                c.line(target.left() + 8f, target.top() + 8f,
-                        target.right() - 8f, target.bottom() - 8f,
-                        new Color(0xE5, 0x45, 0x45, 140), 1.5f);
-            }
-
-            // Technical mount callout title pill (rendered cleanly above the dock box)
-            String callout = mountCallout(socket);
-            Color calloutColor = compatible ? new Color(0x69, 0xE7, 0x81, 255)
-                    : selected ? new Color(0xFF, 0xD4, 0x64, 255)
-                    : new Color(0xED, 0xF5, 0xFA, 245);
-
-            float textWidth = Fonts.ORBITRON_10.measureWidth(callout);
-            if (textWidth <= 0f) textWidth = callout.length() * 7.5f;
-            float pillW = textWidth + 14f;
-            float pillH = 16f;
-            float pillX = target.left();
-            float pillY = target.top() - pillH - 4f;
-            if (pillY < 20f) {
-                pillY = target.bottom() + 4f;
-            }
-            // High-contrast dark tactical badge
-            c.fillRect(pillX, pillY, pillW, pillH, new Color(0x06, 0x10, 0x1A, 250));
-            // 1px border matching state
-            Color pillBorder = selected ? new Color(0xFF, 0xD4, 0x64, 255)
-                    : compatible ? new Color(0x69, 0xE7, 0x81, 230)
-                    : withAlpha(base, 200);
-            c.strokeRect(pillX, pillY, pillW, pillH, pillBorder, 1f);
-            // Crisp Orbitron title text (top-aligned)
-            c.text(Fonts.ORBITRON_10, callout, pillX + 6f, pillY + 3f, calloutColor);
-
-            // Capacity footprint cells
             MechWeaponComponent component = weaponAt(deployment, socket.id());
-            int occupiedColumns = component != null ? socket.gridColumns()
-                    : occupied ? socket.gridColumns() : 0;
-            int occupiedRows = component != null ? socket.gridRows()
-                    : occupied ? socket.gridRows() : 0;
-            drawCapacityCells(c, target, base, selected,
-                    occupiedColumns, occupiedRows);
-
-            // Item preview icon rendered inside the dock slot
-            MechWeaponComponent previewWeapon = (hasCandidate && compatible) ? candidate : component;
-            if (previewWeapon != null && assets.get() != null) {
-                float alpha = (hasCandidate && compatible && candidate != component) ? 0.72f : selected ? 1.0f : 0.95f;
-                drawDockEquipment(c, target, previewWeapon, alpha);
+            MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
+            boolean compatible = active != null && isSocketCompatible(socket, active);
+            boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
+            boolean rejected = draggingHere && !dragPreview.valid();
+            if (draggingHere) compatible = dragPreview.valid();
+            Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0x78d494)
+                    : selected ? new Color(0xedc273) : new Color(0x859082);
+            List<float[]> path = leaderDogLegPath(target.anchorX(), target.anchorY(), target);
+            for (int i = 0; i < path.size() - 1; i++) {
+                float[] a = path.get(i), b = path.get(i + 1);
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 170), 3f);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, selected ? 215 : 95), 1f);
+                if (selected || compatible) {
+                    float phase = (float) ((elapsedSeconds.getAsDouble() * .45 + i * .18) % 1);
+                    float px = a[0] + (b[0] - a[0]) * phase;
+                    float py = a[1] + (b[1] - a[1]) * phase;
+                    c.fillRect(px - 1.5f, py - 1.5f, 3, 3, wire);
+                }
             }
+            drawAnchorMechanicalTick(c, target.anchorX(), target.anchorY(), wire, selected);
+        }
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = layout.socket(target.id());
+            boolean selected = socket.id() == selectedSocket;
+            MechWeaponComponent component = weaponAt(deployment, socket.id());
+            MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
+            boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
+            boolean rejected = draggingHere && !dragPreview.valid();
+            boolean compatible = draggingHere ? dragPreview.valid()
+                    : active != null && isSocketCompatible(socket, active);
+            MechSocketConsole.draw(c, target, socket, component,
+                    draggingHere ? active : null, assets.get(), selected,
+                    hoveredSocket == socket.id(), compatible, rejected, draggingHere,
+                    elapsedSeconds.getAsDouble());
         }
         lastSocketTargets = List.copyOf(targets);
-    }
-
-    private void drawDockEquipment(CanvasContext c, SocketDropTarget target,
-                                   MechWeaponComponent component, float alpha) {
-        LayeredSpriteCache sprite = MechEquipmentGridCanvas.spriteFor(assets.get(), component);
-        if (sprite == null) return;
-
-        float availableWidth = target.width() - CAPACITY_INSET * 2f;
-        float availableHeight = target.height() - CAPACITY_INSET * 2f;
-        float scale = Math.min(availableWidth * 0.85f / sprite.pxWidth,
-                availableHeight * 0.85f / sprite.pxHeight);
-        float drawW = sprite.pxWidth * scale;
-        float drawH = sprite.pxHeight * scale;
-
-        // Subtle dark backing badge for clear weapon silhouette contrast over gantry tiles
-        c.fillRect(target.centerX() - drawW * 0.5f - 2f, target.centerY() - drawH * 0.5f - 2f,
-                drawW + 4f, drawH + 4f, new Color(0x04, 0x08, 0x10, (int) (140 * alpha)));
-
-        c.sprite(sprite.sourcePath, sprite.sprite,
-                target.centerX(), target.centerY(),
-                drawW, drawH, 0f, new Color(1f, 1f, 1f, alpha));
     }
 
     static List<float[]> leaderDogLegPath(float anchorX, float anchorY, SocketDropTarget target) {
@@ -621,7 +549,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (mount == null || !candidate.accepts(mount)) return false;
         boolean typeMatches = socket.type() == SocketType.OMNI
                 || socket.type().name().equals(candidate.hardpointType.name());
-        return typeMatches && socket.accommodates(candidate.footprintColumns, candidate.footprintRows);
+        return !socket.factoryLocked() && typeMatches && socket.accommodates(candidate.footprintColumns, candidate.footprintRows);
     }
 
     static String mountCallout(SocketDef socket) {
@@ -754,8 +682,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 this.anchorX = actorX + anchorWorldX;
                 this.anchorY = actorY - anchorWorldY;
 
-                this.width = Math.max(MIN_DROP_TARGET_WIDTH, socket.footprintWidthHull() * hullWidth);
-                this.height = Math.max(MIN_DROP_TARGET_HEIGHT, socket.footprintHeightHull() * hullHeight);
+                this.width = socket.factoryLocked() ? 160f : Math.max(180f, socket.footprintWidthHull() * hullWidth);
+                this.height = socket.factoryLocked() ? 58f : Math.max(142f, socket.footprintHeightHull() * hullHeight);
 
                 float dockLocalX = socket.dockRight();
                 float dockLocalY = socket.dockForward();
@@ -905,18 +833,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
             }
         }
         return List.copyOf(cells);
-    }
-
-    private static void drawCapacityCells(CanvasContext c, SocketDropTarget target,
-                                          Color base, boolean selected,
-                                          int occupiedColumns, int occupiedRows) {
-        for (CapacityCell cell : capacityCells(target)) {
-            boolean filled = cell.column() < occupiedColumns && cell.row() < occupiedRows;
-            c.fillRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    withAlpha(base, filled ? (selected ? 220 : 135) : 32));
-            c.strokeRect(cell.x(), cell.y(), cell.width(), cell.height(),
-                    withAlpha(base, selected ? 240 : 180), 1f);
-        }
     }
 
     record SocketDropTarget(SocketId id, int gridColumns, int gridRows,
