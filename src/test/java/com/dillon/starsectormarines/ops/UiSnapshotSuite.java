@@ -1963,7 +1963,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         List<BufferedImage> bulwark = new ArrayList<>();
         BufferedImage heavy = renderMechLab(context, renderer, 1920, 1080, 1f,
                 false, false, false, false, bulwark);
-        return List.of(new SnapshotArtifact("mech-material-cost-hint-1920x1080.png",
+        return List.of(new SnapshotArtifact("mech-overview-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f)),
+                new SnapshotArtifact("mech-picker-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, true)),
+                new SnapshotArtifact("mech-vacant-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, true)),
+                new SnapshotArtifact("mech-material-cost-hint-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "cost")),
                 new SnapshotArtifact("mech-material-stock-hint-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "stock")),

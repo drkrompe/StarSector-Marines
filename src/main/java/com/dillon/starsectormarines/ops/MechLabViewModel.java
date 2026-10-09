@@ -702,9 +702,7 @@ public final class MechLabViewModel {
                     recipe.provenance(),
                     "SPEED " + number(variant.moveSpeed) + " · ARMOR " + Math.round(variant.armorCapacity),
                     "", "catalog-delta hidden",
-                    Math.round(variant.armorCapacity) + " ARMOR  ·  "
-                            + number(variant.moveSpeed) + " MOBILITY  ·  "
-                            + roleLabel(variant.defaultRole),
+                    roleLabel(variant.defaultRole),
                     !hasSpace ? "LANCE FULL" : "FABRICATE CHASSIS",
                     !hasSpace || !affordable, materialRows(base, recipe.cost()), "material-costs",
                     () -> fabricateChassis(variant)));
@@ -1264,6 +1262,7 @@ public final class MechLabViewModel {
             case "copyId" -> copyId; case "headerId" -> headerId; case "nameId" -> nameId; case "badgeId" -> badgeId;
             case "componentId" -> componentId; case "telemetryId" -> telemetryId;
             case "gridId" -> gridId; case "typeId" -> typeId; case "classes" -> classes;
+            case "hardwareId" -> id + ":hardware";
             case "name" -> name; case "badge" -> badge; case "badgeClasses" -> badgeClasses;
             case "component" -> component; case "telemetry" -> telemetry; case "type" -> type;
             case "canStrip" -> canStrip; case "stripClasses" -> stripClasses;

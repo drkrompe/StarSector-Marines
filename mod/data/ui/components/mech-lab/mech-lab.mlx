@@ -156,13 +156,15 @@
                       <div id="{slot.copyId}" class="slot-row-copy">
                         <div id="{slot.headerId}" class="slot-row-header">
                           <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
-                          <div id="{slot.badgeId}" class="{slot.badgeClasses}">{slot.badge}</div>
                         </div>
                         <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
                         <div id="{slot.telemetryId}" class="label heading tone-muted slot-telemetry">{slot.telemetry}</div>
                         <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
                       </div>
-                      <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
+                      <div id="{slot.hardwareId}" class="slot-hardware">
+                        <div id="{slot.badgeId}" class="{slot.badgeClasses}">{slot.badge}</div>
+                        <canvas id="{slot.gridId}" class="slot-grid" width="180" height="112" />
+                      </div>
                     </button>
                     <button id="{slot.stripId}" class="{slot.stripClasses}" disabled="{slot.stripDisabled}" onclick="{slot.stripAction}">STRIP</button>
                   </div>
@@ -182,20 +184,20 @@
   .mech-lab-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .section-title { height: 19px; padding: 1px 3px; }
-  .compact-action { width: 132px; height: 28px; text-align: center; }
+  .section-title { height: 16px; padding: 2px 0px; }
+  .compact-action { width: 132px; height: 28px; padding: 0px 5px; font-family: heading; text-align: center; }
 
-  .room-bar { flex-direction: row; height: 34px; padding: 6px 8px; gap: 10px; }
-  #mech-lab-room-name { width: 300px; }
-  .bay-navigator { flex-direction: row; width: 205px; height: 24px; gap: 3px; }
+  .room-bar { flex-direction: row; align-items: center; height: 30px; padding: 6px 8px; gap: 10px; }
+  #mech-lab-room-name { width: 300px; height: 16px; }
+  .bay-navigator { flex-direction: row; align-items: center; width: 205px; height: 24px; gap: 3px; }
   .bay-step { width: 32px; height: 24px; padding: 2px; }
   .bay-position { width: 0px; height: 24px; flex-grow: 1; padding: 4px; text-align: center; border-width: 1px; }
-  .room-summary { width: 0px; flex-grow: 1; text-align: right; }
+  .room-summary { height: 16px; width: 0px; flex-grow: 1; text-align: right; }
   .lab-body { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; overflow: hidden; }
 
   .asset-picker { flex-direction: column; width: 100%; height: 100%; padding: 8px; gap: 8px; overflow: hidden; }
-  .picker-heading { flex-direction: row; height: 64px; padding: 8px; gap: 10px; }
-  .picker-title-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 3px; }
+  .picker-heading { flex-direction: row; align-items: center; height: 64px; padding: 8px; gap: 10px; }
+  .picker-title-copy { flex-direction: column; height: 48px; width: 0px; flex-grow: 1; gap: 3px; }
   .title-copy { height: 27px; font-family: title; }
   .picker-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .picker-lances { flex-direction: column; width: 270px; padding: 8px; gap: 5px; }
@@ -203,36 +205,36 @@
   .mech-squad-row { flex-direction: column; width: 100%; height: 66px; padding: 7px; gap: 2px; border-width: 1px; text-align: left; }
   .picker-assets { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 5px; overflow: hidden; }
   .mech-list { flex-direction: row; align-items: start; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .mech-row { flex-direction: column; width: 250px; height: 190px; padding: 10px; gap: 5px; border-width: 1px; text-align: left; }
+  .mech-row { flex-direction: column; width: 250px; height: 110px; padding: 10px; gap: 5px; border-width: 1px; text-align: left; }
   .mech-squad-row.selected, .mech-row.selected, .doll-slot.selected, .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
   .row-name { height: 18px; }
   .row-small { height: 16px; }
   .mech-card-name { height: 28px; font-family: title; }
   .mech-card-line { height: 20px; }
-  .mech-card-action { height: 24px; padding-top: 3px; text-align: right; }
+  .mech-card-action { height: 20px; padding-top: 0px; text-align: right; }
 
   .fitting-workspace { flex-direction: column; width: 100%; height: 100%; gap: 6px; overflow: hidden; }
-  .asset-strip { flex-direction: row; height: 44px; padding: 4px 8px; gap: 8px; }
-  .asset-strip-copy { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; }
+  .asset-strip { flex-direction: row; align-items: center; height: 44px; padding: 4px 8px; gap: 8px; }
+  .asset-strip-copy { flex-direction: row; align-items: center; height: 36px; width: 0px; flex-grow: 1; gap: 10px; }
   .asset-name { width: 210px; height: 27px; font-family: title; }
-  .mech-call-sign-editor { flex-direction: row; width: 300px; height: 27px; gap: 4px; overflow: hidden; }
-  .call-sign-label { width: 78px; height: 27px; padding-top: 7px; }
+  .mech-call-sign-editor { flex-direction: row; align-items: center; width: 300px; height: 27px; gap: 4px; overflow: hidden; }
+  .call-sign-label { width: 74px; height: 16px; }
   .mech-call-sign-input { width: 0px; flex-grow: 1; height: 27px; padding: 4px 7px; border-width: 1px; background-color: #171b18; color: #d3d0c5; font-family: title; }
   .mech-call-sign-input:focus { border-color: #dfc588; background-color: #292e27; }
-  .call-sign-action { width: 48px; height: 27px; text-align: center; }
-  .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
-  .gantry-navigator { flex-direction: row; width: 290px; height: 34px; gap: 3px; }
-  .gantry-step { width: 60px; height: 34px; padding: 5px; }
-  .gantry-position { width: 0px; flex-grow: 1; height: 34px; padding: 7px 5px; text-align: center; background-color: #121719; border-width: 1px; }
-  .doctrine { width: 0px; flex-grow: 1; padding-top: 5px; text-align: right; }
+  .call-sign-action { width: 48px; height: 27px; padding: 0px 3px; font-family: heading; text-align: center; }
+  .asset-identity { width: 0px; height: 16px; flex-grow: 1; }
+  .gantry-navigator { flex-direction: row; align-items: center; width: 400px; height: 34px; gap: 3px; }
+  .gantry-step { width: 60px; height: 28px; padding: 0px 5px; font-family: heading; }
+  .gantry-position { width: 0px; flex-grow: 1; height: 16px; padding: 7px 5px; text-align: center; background-color: #121719; border-width: 1px; }
+  .doctrine { width: 0px; height: 16px; flex-grow: 1; text-align: right; }
   .performance-card { flex-direction: column; width: 100%; height: 112px; padding: 5px 6px; gap: 3px; border-width: 1px; }
-  .specs-header { flex-direction: row; width: 100%; height: 16px; }
+  .specs-header { flex-direction: row; align-items: center; width: 100%; height: 16px; }
   .specs-doctrine { width: 0px; flex-grow: 1; height: 16px; text-align: right; }
   .performance-grid { flex-direction: column; width: 100%; height: 82px; gap: 2px; }
-  .performance-meter { flex-direction: row; width: 100%; height: 18px; padding: 1px 2px; gap: 4px; }
+  .performance-meter { flex-direction: row; align-items: center; width: 100%; height: 18px; padding: 1px 2px; gap: 4px; }
   .meter-label { width: 82px; height: 16px; }
   .meter-value { width: 90px; height: 16px; text-align: right; }
-  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 9px; padding-top: 4px; background-color: #121719; border-width: 1px; }
+  .meter-track { flex-direction: row; width: 0px; flex-grow: 1; height: 8px; padding: 0px; background-color: #121719; border-width: 1px; }
   .meter-fill { height: 100%; background-color: #acae96; }
   .meter-ghost { height: 100%; }
   .meter-ghost.gain { background-color: #52ba7c; opacity: 0.85; }
@@ -242,18 +244,18 @@
   .catalog-panel { flex-direction: column; width: 410px; padding: 7px; gap: 5px; border-width: 1px; overflow: hidden; }
   .catalog-heading { height: 25px; font-family: title; }
   .catalog-copy { height: 32px; white-space: normal; }
-  .catalog-rule { height: 28px; padding: 4px; }
-  .category-filters { flex-direction: row; width: 100%; height: 26px; gap: 3px; }
-  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 4px 2px; text-align: center; background-color: #121719; border-width: 1px; border-color: #596052; }
+  .catalog-rule { height: 16px; padding: 7px 5px; }
+  .category-filters { flex-direction: row; align-items: center; width: 100%; height: 26px; gap: 3px; }
+  .catalog-filter-pill { width: 0px; flex-grow: 1; height: 24px; padding: 0px 2px; font-family: heading; text-align: center; background-color: #121719; border-width: 1px; border-color: #596052; }
   .catalog-filter-pill.selected { background-color: #343a30; border-color: #d3d0c5; color: #d3d0c5; }
   .catalog-filter-pill:hover { background-color: #34382e; border-color: #dfc588; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .catalog-row { flex-direction: column; align-items: start; width: 100%; height: 128px; padding: 5px; gap: 3px; border-width: 1px; }
-  .catalog-card-body { flex-direction: row; width: 100%; height: 90px; gap: 6px; }
+  .catalog-card-body { flex-direction: row; align-items: center; width: 100%; height: 90px; gap: 6px; }
   .catalog-item-copy { flex-direction: column; width: 0px; height: 90px; flex-grow: 1; gap: 2px; }
-  .catalog-card-header { flex-direction: row; width: 100%; height: 18px; gap: 4px; }
-  .catalog-name { width: 0px; flex-grow: 1; height: 18px; }
-  .catalog-badge { width: 84px; height: 16px; padding: 1px 3px; text-align: center; border-width: 1px; }
+  .catalog-card-header { flex-direction: row; align-items: center; width: 100%; height: 18px; gap: 4px; }
+  .catalog-name { width: 0px; flex-grow: 1; height: 16px; }
+  .catalog-badge { width: 84px; height: 14px; padding: 2px 3px; text-align: center; border-width: 1px; }
   .catalog-badge.in-cargo { background-color: #102d20; border-color: #52ba7c; color: #78d494; }
   .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #dfc588; }
   .catalog-badge.chassis { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
@@ -264,21 +266,21 @@
   .catalog-delta.positive { color: #78d494; }
   .catalog-delta.negative { color: #e98b83; }
   .catalog-delta.neutral { color: #979c90; }
-  .material-costs { flex-direction: row; width: 100%; height: 24px; gap: 5px; overflow: hidden; }
+  .material-costs { flex-direction: row; align-items: center; width: 100%; height: 24px; gap: 5px; overflow: hidden; }
   .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 155px; }
-  .material-cost { flex-direction: row; width: 0px; flex-grow: 1; height: 20px; padding: 1px 4px; gap: 5px; background-color: #121719; border-width: 1px; }
-  .material-stock-strip { flex-direction: row; width: 380px; height: 24px; gap: 6px; }
-  .material-stock { flex-direction: row; width: 0px; flex-grow: 1; height: 22px; gap: 5px; padding: 1px 4px; }
+  .material-cost { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 20px; padding: 1px 4px; gap: 5px; background-color: #121719; border-width: 1px; }
+  .material-stock-strip { flex-direction: row; align-items: center; width: 380px; height: 24px; gap: 6px; }
+  .material-stock { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 5px; padding: 1px 4px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
   .material-icon { width: 18px; height: 18px; }
-  .material-label { width: 0px; height: 18px; flex-grow: 1; padding-top: 2px; }
+  .material-label { width: 0px; height: 14px; flex-grow: 1; }
   .catalog-action { width: 220px; height: 26px; padding: 3px 8px; border-width: 3px; text-align: center; font-family: heading; }
   .drag-drop-note { flex-direction: column; height: 42px; padding: 4px; gap: 1px; }
   .drag-drop-note.drop-active { background-color: #203a29; border-color: #78d494; border-width: 2px; }
   #mech-drag-drop-title, #mech-drag-drop-types { height: 16px; }
 
   .garage-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
-  .garage-heading { flex-direction: row; width: 100%; height: 19px; padding: 0px 3px; }
+  .garage-heading { flex-direction: row; align-items: center; width: 100%; height: 19px; padding: 0px; }
   #mech-garage-title { width: 300px; }
   .garage-status { width: 0px; flex-grow: 1; text-align: right; }
   .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
@@ -291,28 +293,33 @@
   .overview-station, .overview-name, .overview-detail { height: 18px; }
   .overview-browse { width: 142px; height: 30px; padding: 4px 7px; border-width: 3px; text-align: center; font-family: heading; }
 
-  .slot-panel { flex-direction: column; width: 325px; padding: 6px; gap: 4px; overflow: hidden; }
+  .slot-panel { flex-direction: column; width: 340px; padding: 6px; gap: 4px; overflow: hidden; }
   .slot-copy { height: 20px; }
   .slot-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .doll-slot { flex-direction: row; width: 100%; height: 86px; padding: 3px; gap: 3px; border-width: 1px; text-align: left; }
-  .slot-row-content { flex-direction: row; width: 100%; height: 100%; gap: 3px; }
-  .slot-select-button { flex-direction: row; width: 0px; flex-grow: 1; height: 100%; padding: 2px; gap: 4px; border-width: 0px; background-color: transparent; text-align: left; }
-  .slot-row-copy { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; gap: 1px; }
-  .slot-row-header { flex-direction: row; width: 100%; height: 16px; gap: 3px; }
+  .slot-row-content { flex-direction: row; align-items: center; width: 100%; height: 100%; gap: 3px; }
+  .slot-select-button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 100%; padding: 2px; gap: 4px; border-width: 0px; background-color: transparent; text-align: left; }
+  .slot-row-copy { flex-direction: column; width: 0px; height: 70px; flex-grow: 1; gap: 2px; }
+  .slot-row-header { flex-direction: row; align-items: center; width: 100%; height: 16px; gap: 3px; }
   .slot-name { width: 0px; flex-grow: 1; height: 16px; }
-  .slot-badge { width: 46px; height: 14px; padding: 1px 2px; text-align: center; border-width: 1px; }
+  .slot-badge { width: 54px; height: 14px; padding: 1px 2px; text-align: center; border-width: 1px; }
   .slot-badge.armed { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
   .slot-badge.empty { background-color: #2c2014; border-color: #946830; color: #dfc588; }
   .slot-badge.locked { background-color: #20241f; border-color: #4b5446; color: #8d9687; }
-  .slot-telemetry { height: 15px; }
+  .slot-telemetry { font-family: body; height: 15px; }
   .slot-component { height: 16px; }
   .slot-type { height: 15px; }
-  .slot-grid { width: 78px; height: 52px; border-width: 1px; }
-  .slot-strip-action { width: 46px; height: 100%; padding: 4px; text-align: center; background-color: #2a1515; border-color: #8c3838; color: #e98b83; }
+  .slot-hardware { flex-direction: column; align-items: center; width: 62px; height: 66px; gap: 4px; }
+  .slot-grid { width: 58px; height: 44px; border-width: 1px; }
+  .slot-strip-action { font-family: heading; width: 46px; height: 100%; padding: 4px; text-align: center; background-color: #2a1515; border-color: #8c3838; color: #e98b83; }
   .slot-strip-action:hover { background-color: #451a1a; border-color: #ff6e6e; }
-  .mech-lab-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
+  .mech-lab-feedback { height: 18px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
   .mech-drag-ghost { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; }
+  /* The shared navigation stays scoped here; other rooms own their own rhythm. */
+  #mech-lab-root #marine-ops-page-nav { align-items: center; }
+  #mech-lab-root #marine-ops-page-routes { height: 34px; }
+  #mech-lab-root #marine-ops-page-context { height: 16px; padding: 5px 7px; }
   .workshop-service-plate { width: 42px; height: 22px; pointer-events: none; }
   .room-bar { border-width: 1px; background-color: #252b2c; border-color: #596362; }
   .garage-heading, .stage-heading { border-width: 0px; border-color: #596362; }
