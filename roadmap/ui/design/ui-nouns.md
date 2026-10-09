@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — briefing intelligence projects the prepared battlefield, with contract payment and fleet-support imagery.
+Updated: 2026-10-09 — briefing faction identity and content fit.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -305,6 +305,12 @@ The briefing groups a compact mission dossier beside the selected force and its
 command deck, with a tactical survey on the right. Contract payment is a prominent
 employer authorization readout, using the negotiated cash multiplier and salvage
 rights rather than a second reward calculation. Zero-payment operations say so.
+Labeled employer and opposition identities use the factions' existing crest
+resources. The employer belongs to the contract patron or verified authored-job
+client; opposition belongs to the prepared scenario, including its defender
+override. Unknown and unaffiliated forces never borrow the local world's flag.
+Compact section heights avoid scrolling through unused space at 1920x1080 and
+100% scale; larger rosters and content retain their bounded scrolling areas.
 The survey is an immutable projection of the unstarted production battlefield:
 terrain, strategic objective footprints, insertion berths, and authored approach
 routes. It exposes no enemy unit positions. Dense maps emphasize the command

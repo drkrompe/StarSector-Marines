@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilWarOfferAcceptance;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.ContractEligibility;
@@ -55,6 +56,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -377,6 +379,7 @@ public class BriefingScreen implements Screen {
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
         props.put("missionRows", retainedMissionRows(mission));
         BriefingViewModel.putReward(props, mission);
+        putFactionIdentities(props, mission);
         PreparedSurvey preparedSurvey = survey.peek();
         Throwable surveyFailure = surveyCaptureFailure != null ? surveyCaptureFailure : survey.failure();
         props.put("surveyFailed", surveyFailure != null);
@@ -432,6 +435,39 @@ public class BriefingScreen implements Screen {
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
         return BriefingViewModel.withEmptyStyles(props);
+    }
+
+    private void putFactionIdentities(Map<String, Object> props, Mission mission) {
+        putFactionIdentity(props, "opposition", surveyPlan != null
+                ? surveyPlan.defenderFactionId() : null);
+        if (OpeningOperationKind.fromMission(mission) != null) {
+            BriefingViewModel.putFactionIdentity(props, "opposition", "Local bandits", null);
+        }
+        // Authored jobs belong to their offering client; verify membership before using it.
+        Client client = ctx.getSelectedClient();
+        if (mission.source == MissionSource.STORY && client != null
+                && ctx.getMissionsFor(client).contains(mission)) {
+            putFactionIdentity(props, "employer", client.factionId);
+            return;
+        }
+        // Resolve the employer from this contract, not a client left selected on another screen.
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null || mission.contractId < 0) return;
+        CampaignState state = script.state();
+        int contract = state.contractIndex(mission.contractId);
+        if (contract < 0) return;
+        int patron = state.houseIndex(state.contractPatronHouseId[contract]);
+        if (patron < 0) return;
+        putFactionIdentity(props, "employer",
+                state.factionRegistry.get(state.houseFactionId[patron]));
+    }
+
+    private static void putFactionIdentity(Map<String, Object> props, String role,
+                                           String factionId) {
+        FactionAPI faction = factionId != null && !factionId.isBlank() && Global.getSector() != null
+                ? Global.getSector().getFaction(factionId) : null;
+        if (faction == null) return;
+        BriefingViewModel.putFactionIdentity(props, role, faction.getDisplayName(), faction.getCrest());
     }
 
     static Map<String, Object> previewProps(boolean conquest) {

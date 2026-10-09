@@ -44,6 +44,8 @@ final class BriefingViewModel {
         props.put("carrierHeader", "Fighter Cover");
         props.put("employerHeader", "Employer Provides");
         props.put("rewardHeader", "CONTRACT AUTHORIZATION");
+        putFactionIdentity(props, "employer", "Undisclosed", null);
+        putFactionIdentity(props, "opposition", "Unidentified", null);
         props.put("rewardValue", "Payment not specified");
         props.put("rewardTerms", "Terms supplied by the employer");
         putSurvey(props, null, "Compiling terrain and landing intelligence...");
@@ -86,6 +88,8 @@ final class BriefingViewModel {
         props.put("deploymentStatus", "Ready to deploy");
         props.put("rewardValue", late ? "480,000 credits" : "18,000 credits");
         props.put("rewardTerms", "Payable on successful completion");
+        putFactionIdentity(props, "employer", "Hegemony", "graphics/factions/crest_hegemony.png");
+        putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
                 late ? "Hale" : "Mira Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
@@ -338,7 +342,16 @@ final class BriefingViewModel {
                 : "Home officers lead their assigned squads. Acting NCOs lead squads without an available officer.");
     }
 
+    static void putFactionIdentity(Map<String, Object> props, String role, String name, String crest) {
+        props.put(role + "FactionName", name);
+        props.put(role + "FactionCrest", crest);
+        props.put(role + "FactionCrestStyle", crest == null || crest.isBlank()
+                ? "width: 0px; height: 0px" : "width: 40px; height: 40px");
+    }
+
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
+        props.put("termActionsStyle", ((List<?>) props.getOrDefault("termActions", List.of())).isEmpty()
+                ? "height: 0px; overflow: hidden" : "height: 100px");
         boolean hasCarriers = !((List<?>) props.getOrDefault("carrierRows", List.of())).isEmpty();
         props.put("carrierEmpty", hasCarriers ? "" : "No fighter cover");
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
