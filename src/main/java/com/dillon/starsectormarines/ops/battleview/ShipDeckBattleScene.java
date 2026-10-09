@@ -836,16 +836,16 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 fixtureTasks, occupiedBerths, AmbientThreatPolicy.HOSTILE_COMBATANT);
         for (JobSite site : bill.sites()) {
             JobBoard.publish(simulation.taskPoints(), fixtureTasks, site, occupiedBerths,
-                    this::taskFocus);
+                    this::taskPlacement);
         }
         return bill;
     }
 
     /**
      * Resolves berth-bound servicing against the body that is actually parked.
-     * Fixture jobs keep the focus authored by their fitting.
+     * Fixture jobs keep the stand and focus authored by their fitting.
      */
-    private JobBoard.Focus taskFocus(FixtureTask task) {
+    private JobBoard.Placement taskPlacement(FixtureTask task) {
         if (task.affordance() != Affordance.SERVICE
                 || task.berth() == FixtureTask.NO_BERTH
                 || task.berth() < 0 || task.berth() >= berthedMachines.length) {
@@ -863,9 +863,16 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         BerthedMachineServiceTarget target = new BerthedMachineServiceTarget(
                 simulation.world().x(occupant), simulation.world().y(occupant),
                 berth.facing.dx, berth.facing.dy, diameter * 0.5f, diameter * 0.5f);
-        BerthedMachineServiceTarget.Focus focus = target.focusFrom(
-                task.cellX() + 0.5f, task.cellY() + 0.5f);
-        return new JobBoard.Focus(focus.worldX(), focus.worldY());
+        BerthedMachineServiceTarget.Focus stand = target.standFrom(
+                task.cellX() + 0.5f, task.cellY() + 0.5f,
+                simulation.getRoster().radius(occupant) + UnitType.ENGINEER.radius + .05f,
+                (x, y) -> simulation.getGrid().inBounds(x, y)
+                        && simulation.getGrid().isWalkable(x, y)
+                        && !simulation.taskPoints().hasPointAt(x, y)
+                        && fixtureTasks.stream().noneMatch(other -> other != task
+                                && other.cellX() == x && other.cellY() == y));
+        BerthedMachineServiceTarget.Focus focus = target.focusFrom(stand.worldX(), stand.worldY());
+        return new JobBoard.Placement(stand.worldX(), stand.worldY(), focus.worldX(), focus.worldY());
     }
 
     /**

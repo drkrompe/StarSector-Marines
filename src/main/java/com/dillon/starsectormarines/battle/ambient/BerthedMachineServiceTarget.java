@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ambient;
 
+import java.util.function.BiPredicate;
+
 /**
  * The oriented body a technician works on while it occupies a berth.
  *
@@ -67,6 +69,50 @@ public record BerthedMachineServiceTarget(
         return new Focus(
                 centerX + rightX * localX + forwardX * localY,
                 centerY + rightY * localX + forwardY * localY);
+    }
+
+    /**
+     * Closest reachable cell toward the body from an authored access point.
+     * Keeps the worker on the same side of the machine and outside its collision
+     * clearance. Cell centres match ordinary ambient path arrival; no render-only
+     * relocation or final teleport is needed. If access is blocked, keep the
+     * original stand.
+     */
+    public Focus standFrom(float workX, float workY, float clearance,
+                           BiPredicate<Integer, Integer> available) {
+        Focus best = new Focus(workX, workY);
+        Focus originalContact = focusFrom(workX, workY);
+        float bestDistance = length(workX - originalContact.worldX(), workY - originalContact.worldY());
+        for (int y = (int) Math.floor(Math.min(workY, centerY));
+             y <= (int) Math.floor(Math.max(workY, centerY)); y++) {
+            for (int x = (int) Math.floor(Math.min(workX, centerX));
+                 x <= (int) Math.floor(Math.max(workX, centerX)); x++) {
+                float px = x + .5f, py = y + .5f;
+                if (!sameSide(px - centerX, workX - centerX)
+                        || !sameSide(py - centerY, workY - centerY)
+                        || length(px - centerX, py - centerY) < clearance
+                        || !available.test(x, y)) continue;
+                float approach = (px - centerX) * (workX - centerX)
+                        + (py - centerY) * (workY - centerY);
+                if (approach < .8f * length(px - centerX, py - centerY)
+                        * length(workX - centerX, workY - centerY)) continue;
+                Focus contact = focusFrom(px, py);
+                float surfaceRadius = length(contact.worldX() - centerX,
+                        contact.worldY() - centerY) / PAINTED_BODY_INSET;
+                if (length(px - centerX, py - centerY) + EPSILON < surfaceRadius) continue;
+                float distance = length(px - contact.worldX(), py - contact.worldY());
+                if (distance < bestDistance) {
+                    best = new Focus(px, py);
+                    bestDistance = distance;
+                }
+            }
+        }
+        return best;
+    }
+
+    private static boolean sameSide(float candidate, float authored) {
+        return Math.abs(authored) < EPSILON ? Math.abs(candidate) < EPSILON
+                : candidate * authored >= 0f;
     }
 
     private static float length(float x, float y) {

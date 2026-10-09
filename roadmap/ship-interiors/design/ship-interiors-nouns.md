@@ -6,7 +6,8 @@ facility layout and circulation continue to evolve.
 Written: 2026-08-26
 
 Updated: 2026-10-09 — the six-berth hangar opens to space on its central aisle;
-ship boats follow that aisle and aperture on departure and return.
+ship boats follow that aisle and aperture on departure and return; machine servicing
+resolves close standing positions against the parked body.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -517,10 +518,13 @@ know what the host parks; occupancy is a runtime fact about a deck, so an empty
 bay is somewhere to walk through rather than somewhere to weld.
 
 A vehicle-bay berth publishes five distinct access points around an occupied machine:
-two at its shoulders, two at its waist, and one at its head. Those are safe places for
-people to stand, not guesses about the occupant's surface. When the host publishes the
-live task, it intersects each stand-to-centre line with the occupant's oriented service
-envelope and draws the focus slightly inside the painted body. A compact walker can
+two at its shoulders, two at its waist, and one at its head. Those reserve access,
+not the final distance to the occupant's surface. When the host publishes the live
+task, it brings the stand inward to a free walkable cell on the same side of the
+parked body, preserving collision clearance and exclusive standing cells. Blocked
+access retains the authored stand. Workers reach these cells through ordinary
+movement. The stand-to-centre line intersects the occupant's oriented service
+envelope, with the contact slightly inside the painted body. A compact walker can
 therefore expose a short round envelope while a tracked or wheeled vehicle exposes a
 long one. Work on a fixture keeps the point of interest its fitting authored. Any
 room-view effect projects those world coordinates through the same camera as the deck;
