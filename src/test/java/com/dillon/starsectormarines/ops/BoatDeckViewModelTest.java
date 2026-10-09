@@ -332,6 +332,41 @@ class BoatDeckViewModelTest {
         }
     }
 
+    @Test
+    void berthAndBackControlsNavigateWithPointerAt1080p() throws Exception {
+        Reactor reactor = new Reactor();
+        BoatDeckViewModel viewModel = new BoatDeckViewModel(
+                reactor, deckOneBoatDown(), TestResources.stocked(2000), "Valkyrie");
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, "boat-deck", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(1920, 1080);
+            click(document, instance, instance.requireElement(viewModel.boatRows().get().get(0).id()));
+            assertTrue(viewModel.fittingFocused());
+            click(document, instance, instance.requireElement("boat-back-to-deck"));
+            assertFalse(viewModel.fittingFocused());
+            click(document, instance, instance.requireElement(viewModel.boatRows().get().get(2).id()));
+            assertTrue(viewModel.fabricationFocused());
+            click(document, instance, instance.requireElement("boat-fabrication-back"));
+            assertFalse(viewModel.fabricationFocused());
+        }
+    }
+
+    private static void click(UiDocument document, MarkupInstance instance, UiElement element) {
+        var bounds = element.box().borderBox();
+        float x = bounds.x() + bounds.width() * .5f;
+        float y = bounds.y() + bounds.height() * .5f;
+        document.pointerMoved(x, y);
+        document.pointerDown(x, y);
+        document.pointerUp(x, y);
+        instance.flush();
+        document.advance(0f);
+    }
+
     private static void assertWithinRoot(UiDocument document, MarkupInstance instance,
                                          float width, float height) {
         document.layout(width, height);

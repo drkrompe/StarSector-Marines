@@ -1979,6 +1979,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "cost")),
                 new SnapshotArtifact("mech-material-stock-hint-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "stock")),
+                new SnapshotArtifact("mech-disabled-action-hint-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "action")),
+                new SnapshotArtifact("mech-replenisher-hint-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "replenisher")),
+                new SnapshotArtifact("mech-no-spare-hint-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "no-spare")),
+                new SnapshotArtifact("mech-long-callsign-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, true, false, false, false, null, "long-name")),
                 new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
@@ -2019,6 +2027,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        if ("no-spare".equals(materialHint)) bay.loseSpares();
+        if ("long-name".equals(materialHint)) {
+            if (!bay.mechById(MechBay.STARTER_MECH_ID)
+                    .rename("Ironclad of the Persean Expeditionary Vanguard 1")) {
+                throw new IllegalStateException("Maximum-length callsign fixture was rejected");
+            }
+        }
         MechLabViewModel viewModel = new MechLabViewModel(
                 reactor, bay, snapshotMechResources());
         if (selectHound) {
@@ -2032,6 +2047,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (motionFrames != null) {
             if (!selectHound) viewModel.gantryRows().get().get(0).select().run();
             else viewModel.stripWeapon(viewModel.selectedSocket());
+        }
+        if ("action".equals(materialHint) || "replenisher".equals(materialHint)
+                || "no-spare".equals(materialHint)) {
+            viewModel.gantryRows().get().get(0).select().run();
         }
         if (weldingEvidence) viewModel.gantryRows().get().get(0).select().run();
         if (selectVacant) viewModel.previousGantryAction().run();
@@ -2091,13 +2110,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
             }
-            if (specSheet || materialHint != null) {
+            if (specSheet || materialHint != null && !"long-name".equals(materialHint)) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
                 MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
                 MechLabSpecSheets.bindMaterials(binder, instance, viewModel);
-                String anchor = "stock".equals(materialHint) ? viewModel.materialStock().get().get(0).id()
+                MechLabSpecSheets.bindActions(binder, instance, viewModel);
+                String anchor = "no-spare".equals(materialHint) ? rows.get(1).actionId()
+                        : "action".equals(materialHint) ? rows.get(0).actionId()
+                        : "replenisher".equals(materialHint) ? rows.get(1).nameId()
+                        : "stock".equals(materialHint) ? viewModel.materialStock().get().get(0).id()
                         : "cost".equals(materialHint) ? rows.stream().flatMap(row -> row.materials().stream())
                         .findFirst().orElseThrow().id() : MechLabSpecSheets.firstSpecSheetAnchorId(rows);
                 openSpecSheet(document, binder, width, height, instance.requireElement(anchor));
@@ -2608,6 +2631,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
+        props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

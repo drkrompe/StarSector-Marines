@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
@@ -21,7 +22,7 @@ final class MechSocketConsole {
 
     static void draw(CanvasContext c, MechLabDollCanvas.SocketDropTarget t,
                      SocketDef socket, MechWeaponComponent installed,
-                     MechWeaponComponent preview, LayeredMechAssets assets,
+                     MechWeaponComponent preview, MissileReplenisherComponent replenisher, LayeredMechAssets assets,
                      boolean selected, boolean hovered, boolean compatible,
                      boolean rejected, boolean draggingHere, double time) {
         boolean fixed = socket.factoryLocked();
@@ -63,6 +64,9 @@ final class MechSocketConsole {
                             sprite.pxWidth * scale, sprite.pxHeight * scale, 0,
                             new Color(255, 255, 255, preview != null ? 195 : 255));
                 }
+            } else if (socket.type() == SocketType.UTILITY && replenisher != null) {
+                MechReplenisherArt.draw(c, replenisher, x + w * .5f, iy + ih * .5f,
+                        Math.min(iw - 12, ih - 8));
             } else {
                 socketGlyph(c, socket.type(), x + w * .5f, iy + ih * .5f - 5, MUTED);
                 centered(c, socket.type() == SocketType.UTILITY ? "REPLENISHER" : "EMPTY MOUNT",

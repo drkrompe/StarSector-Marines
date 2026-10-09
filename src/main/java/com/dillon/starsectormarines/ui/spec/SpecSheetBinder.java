@@ -3,9 +3,11 @@ package com.dillon.starsectormarines.ui.spec;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 
+import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -21,7 +23,8 @@ import java.util.function.Supplier;
  * element in that chain is the deepest one — a bound row inside a bound panel
  * shows the row's sheet, which is what a reader pointing at the row means.
  *
- * <p>Nothing happens while the hovered binding is unchanged, so a screen that
+ * <p>Ordinary bindings do no work while the hovered element is unchanged; live
+ * bindings recheck their value and redraw only on a change. A screen that
  * binds nothing pays one walk of a short list per frame and never touches the
  * layer.
  */
@@ -32,7 +35,9 @@ public final class SpecSheetBinder {
     private final boolean keyboardHints;
     private final Map<UiElement, Supplier<SpecSheet>> bindings = new IdentityHashMap<>();
 
+    private final Set<UiElement> liveBindings = Collections.newSetFromMap(new IdentityHashMap<>());
     private UiElement open;
+    private SpecSheet shown;
 
     public SpecSheetBinder(UiDocument document, SpecSheetLayer layer) {
         this(document, layer, false);
@@ -59,7 +64,15 @@ public final class SpecSheetBinder {
     public SpecSheetBinder bind(UiElement target, Supplier<SpecSheet> sheet) {
         Objects.requireNonNull(target, "target");
         Objects.requireNonNull(sheet, "sheet");
+        liveBindings.remove(target);
         bindings.put(target, sheet);
+        return this;
+    }
+
+    /** Rechecks the hovered value each pass; redraws only when its content changes. */
+    public SpecSheetBinder bindLive(UiElement target, Supplier<SpecSheet> sheet) {
+        bind(target, sheet);
+        liveBindings.add(target);
         return this;
     }
 
@@ -69,12 +82,14 @@ public final class SpecSheetBinder {
     }
 
     public void unbind(UiElement target) {
+        liveBindings.remove(target);
         if (bindings.remove(target) != null && open == target) closeOpen();
     }
 
     /** Drops every binding and closes the overlay. Called when a document is replaced. */
     public void clear() {
         bindings.clear();
+        liveBindings.clear();
         closeOpen();
     }
 
@@ -119,9 +134,11 @@ public final class SpecSheetBinder {
                 }
             }
         }
-        if (next == open) return;
-        open = next;
+        if (next == open && !liveBindings.contains(next)) return;
         SpecSheet sheet = next == null ? null : bindings.get(next).get();
+        if (next == open && Objects.equals(sheet, shown)) return;
+        open = next;
+        shown = sheet;
         if (sheet == null) layer.hide();
         else layer.show(sheet, next);
     }
@@ -129,6 +146,7 @@ public final class SpecSheetBinder {
     private void closeOpen() {
         if (open == null) return;
         open = null;
+        shown = null;
         layer.hide();
     }
 }

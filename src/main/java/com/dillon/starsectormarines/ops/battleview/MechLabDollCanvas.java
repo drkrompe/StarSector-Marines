@@ -404,7 +404,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             boolean compatible = draggingHere ? dragPreview.valid()
                     : active != null && isSocketCompatible(socket, active);
             MechSocketConsole.draw(c, target, socket, component,
-                    draggingHere ? active : null, assets.get(), selected,
+                    draggingHere ? active : null, deployment != null ? deployment.missileReplenisher() : null,
+                    assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }

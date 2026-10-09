@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.ops.battleview.MechReplenisherArt;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -21,9 +23,7 @@ import java.util.function.Supplier;
  *
  * <p>Catalog rows arrive after the document is installed — a player moving from
  * a fitted gantry to a vacant one grows the list — so this is called again from
- * the screen's advance and skips what it has already bound. A row whose subject
- * is a replenisher carries no sheet; the mech catalog describes chassis and
- * hardware, and there is nothing authored to say about a magazine feed.
+ * the screen's advance and skips what it has already bound.
  */
 final class MechLabSpecSheets {
 
@@ -39,8 +39,34 @@ final class MechLabSpecSheets {
                 binder.bind(name, SpecSheets.mech(row.chassisPreview()));
             } else if (row.weaponPreview() != null) {
                 binder.bind(name, SpecSheets.mechWeapon(row.weaponPreview()));
+            } else if (row.replenisherPreview() != null) {
+                binder.bind(name, replenisherSheet(row.replenisherPreview()));
             }
         }
+    }
+
+    static void bindActions(SpecSheetBinder binder, MarkupInstance markup,
+                            MechLabViewModel viewModel) {
+        if (binder == null) return;
+        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+            UiElement action = markup.requireElement(row.actionId());
+            if (!binder.isBound(action)) {
+                binder.bindLive(action, () -> viewModel.catalogRows().get().stream()
+                        .filter(current -> current.id().equals(row.id()))
+                        .findFirst().map(current -> new SpecSheet(current.name(),
+                                current.actionLabel(), null, "item", List.of(),
+                                List.of(current.actionHint()))).orElse(null));
+            }
+        }
+    }
+
+    private static SpecSheet replenisherSheet(MissileReplenisherComponent component) {
+        return new SpecSheet(component.displayName(), "MISSILE MINI-FAB",
+                MechReplenisherArt.icon(component), "item", List.of(
+                        SpecSheet.Stat.of("SRM cycle", component.srmReplenishmentSeconds() + " s"),
+                        SpecSheet.Stat.of("LRM cycle", component.lrmReplenishmentSeconds() + " s")),
+                List.of("Builds one missile trigger pack per cycle until the magazine is full.",
+                        "Install from fleet spares; this system cannot be fabricated in the lab."));
     }
 
     static void bindMaterials(SpecSheetBinder binder, MarkupInstance markup,
