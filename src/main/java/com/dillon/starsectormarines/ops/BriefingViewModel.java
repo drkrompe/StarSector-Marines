@@ -35,7 +35,7 @@ final class BriefingViewModel {
     static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("screenHeader", "Mission Briefing");
-        props.put("captainHeader", "Operation Officer / Optional");
+        putLeadership(props, false, false);
         props.put("debugHeader", "Mission DEBUG");
         props.put("commitmentHeader", "01 / FORCE COMMITMENT");
         props.put("commandHeader", "02 / COMMAND DECK");
@@ -56,10 +56,10 @@ final class BriefingViewModel {
     static Map<String, Object> actingNcoPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
         props.put("captains", List.of(new ChoiceRow("captain-acting-nco", "choice-row selected",
-                "No operation officer", "Home officers retain groups; remaining squads use acting NCOs",
+                "No operation commander", "Home officers retain groups; remaining squads use acting NCOs",
                 false, () -> { }, null)));
         props.put("captainEmpty", "");
-        props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01 / Acting NCO",
+        props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01",
                 "1 squad · 12 marines", null, "", false)));
         return withEmptyStyles(props);
     }
@@ -72,6 +72,7 @@ final class BriefingViewModel {
         Map<String, Object> props = baseProps();
         Runnable none = () -> { };
         boolean late = conquest;
+        putLeadership(props, conquest, false);
         props.put("missionKicker", late ? "CONQUEST  ·  SEVERE COMMITMENT" : "SABOTAGE  ·  MEDIUM RISK");
         props.put("missionTitle", late ? "CONQUEST — Full Strength" : "SABOTAGE — First Contract");
         props.put("missionFlavor", late
@@ -118,7 +119,7 @@ final class BriefingViewModel {
         props.put("experienceSummary", late ? "Campaign army" : "Conscript / opening company");
         props.put("taskForceRows", late ? List.of(
                 forceCard("tf-1", "Colonel Hale", "24 squads · 288 marines",
-                        "graphics/portraits/portrait_mercenary01.png", ""),
+                        "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander(),
                 forceCard("tf-2", "Colonel Venn", "24 squads · 288 marines",
                         "graphics/portraits/portrait_mercenary02.png", ""),
                 forceCard("tf-3", "Colonel Okafor", "24 squads · 288 marines",
@@ -326,14 +327,26 @@ final class BriefingViewModel {
                         : "Boat type and berths come from the company ship. The Boat Deck retains losses and fittings.")));
     }
 
+    static void putLeadership(Map<String, Object> props, boolean conquest, boolean stationed) {
+        props.put("captainHeader", stationed ? "Stationed Officer" : "Operation Commander / Optional");
+        props.put("captainRoleSummary", stationed
+                ? "Leads the force assigned to this posting."
+                : "Takes squads without a home officer, up to rank capacity. Other officers keep their groups.");
+        props.put("groupCommandHeading", conquest ? "FIELD COMMAND / CONQUEST" : "FIELD LEADERSHIP");
+        props.put("groupCommandSummary", conquest
+                ? "Officers coordinate their squads' advance, regrouping and objective changes. Acting NCOs lead one squad independently."
+                : "Home officers lead their assigned squads. Acting NCOs lead squads without an available officer.");
+    }
+
     static Map<String, Object> withEmptyStyles(Map<String, Object> props) {
         boolean hasCarriers = !((List<?>) props.getOrDefault("carrierRows", List.of())).isEmpty();
         props.put("carrierEmpty", hasCarriers ? "" : "No fighter cover");
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();
         int cards = ((List<?>) props.getOrDefault("taskForceRows", List.of())).size();
-        int cardsHeight = cards > 4 ? 144 : 72;
-        props.put("forceSummaryStyle", hasForceCards ? "height: " + (184 + cardsHeight) + "px" : "height: 174px");
+        int cardsHeight = cards > 4 ? 168 : 84;
+        props.put("forceSummaryStyle", hasForceCards ? "height: " + (248 + cardsHeight) + "px" : "height: 174px");
+        props.put("groupCommandStyle", hasForceCards ? "height: 54px" : "height: 0px; gap: 0px; overflow: hidden");
         props.put("forceCardsStyle", hasForceCards ? "height: " + cardsHeight + "px" : "height: 0px");
         for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
@@ -390,17 +403,24 @@ final class BriefingViewModel {
     static ForceCard forceCard(String key, String name, String detail, String portrait,
                                String tone, boolean namedOfficer) {
         return new ForceCard("briefing-info-" + key, name, detail, portrait,
-                "label force-card-detail " + tone, namedOfficer);
+                "label force-card-detail " + tone, namedOfficer,
+                namedOfficer ? "SUB-COMMANDER" : "ACTING NCO");
     }
 
     record ForceCard(String id, String name, String detail, String portrait, String detailClasses,
-                     boolean namedOfficer)
+                     boolean namedOfficer, String role)
             implements MarkupPropertySource {
+        ForceCard asOperationCommander() {
+            return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer, "OP COMMANDER");
+        }
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
                 case "nameId" -> id + "-label"; case "detailId" -> id + "-value";
                 case "copyId" -> id + "-copy"; case "portraitId" -> id + "-portrait";
+                case "roleId" -> id + "-role"; case "role" -> role;
+                case "roleClasses" -> "label heading force-card-role "
+                        + ("OP COMMANDER".equals(role) ? "tone-accent" : "tone-muted");
                 case "name" -> name; case "detail" -> detail; case "portrait" -> portrait;
                 case "detailClasses" -> detailClasses;
                 case "portraitClasses" -> "force-card-portrait console-well"

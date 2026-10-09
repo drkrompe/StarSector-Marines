@@ -1,4 +1,4 @@
-<template props="rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -50,6 +50,7 @@
         </div>
         <div id="mission-captain-block" class="mission-captain-block">
           <div id="mission-captain-heading" class="label heading tone-edge section-heading">{captainHeader}</div>
+          <div id="mission-captain-role" class="label captain-role-summary">{captainRoleSummary}</div>
           <div id="mission-captain-list" class="mission-captain-list">
             <button each="captain in captains" key="{captain.id}" id="{captain.id}" class="{captain.classes}" disabled="{captain.disabled}" onclick="{captain.action}">
               <img id="{captain.indicatorId}" class="console-rocker" src="{captain.indicatorSource}" />
@@ -92,10 +93,15 @@
             </div>
             <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
             <div id="mission-experience-summary" class="label tone-muted commitment-note">{experienceSummary}</div>
+            <div id="mission-group-command" class="group-command-copy" style="{groupCommandStyle}">
+              <div id="mission-group-command-heading" class="label heading tone-edge">{groupCommandHeading}</div>
+              <div id="mission-group-command-summary" class="label group-command-summary">{groupCommandSummary}</div>
+            </div>
             <div id="mission-task-force" class="force-card-grid" style="{forceCardsStyle}">
               <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="force-card console-readout" tabindex="0">
                 <img id="{row.portraitId}" class="{row.portraitClasses}" src="{row.portrait}" />
                 <div id="{row.copyId}" class="force-card-copy">
+                  <div id="{row.roleId}" class="{row.roleClasses}">{row.role}</div>
                   <div id="{row.nameId}" class="label heading tone-edge force-card-title">{row.name}</div>
                   <div id="{row.detailId}" class="{row.detailClasses}">{row.detail}</div>
                 </div>
@@ -296,10 +302,14 @@
   .debug-air-row { flex-direction: row; align-items: center; height: 24px; gap: 4px; padding: 2px; border-width: 1px; }
   .debug-air-label { width: 0px; flex-grow: 1; height: auto; padding: 0px; }
   .debug-air-row button { flex-direction: row; align-items: center; width: 72px; height: 18px; padding: 1px 3px; gap: 5px; border-width: 2px; font-family: heading; text-align: center; }
-  .force-card { flex-direction: row; align-items: center; width: 202px; height: 52px; padding: 5px; gap: 6px; border-width: 1px; }
+  .force-card { flex-direction: row; align-items: center; width: 202px; height: 64px; padding: 5px; gap: 6px; border-width: 1px; }
   .force-card-portrait { width: 44px; height: 44px; padding: 1px; border-width: 1px; pointer-events: none; }
   .force-card-portrait.portrait-absent { width: 0px; height: 0px; padding: 0px; border-width: 0px; }
-  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 46px; gap: 3px; overflow: hidden; }
+  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 58px; gap: 3px; overflow: hidden; }
+  .force-card-role { height: 12px; }
+  .group-command-copy { width: 100%; flex-direction: column; gap: 4px; }
+  .group-command-summary { width: 100%; height: auto; white-space: normal; }
+  .captain-role-summary { height: 48px; white-space: normal; }
   .force-card-title { height: auto; white-space: normal; }
   .force-card-detail { height: auto; text-align: left; white-space: normal; }
   .commitment-grid { flex-direction: column; width: 0px; flex-grow: 1; gap: 7px; }
@@ -337,7 +347,7 @@
   .info-row { flex-direction: column; align-items: start; height: 46px; padding: 0px; gap: 4px; border-width: 0px; }
   .info-label { width: auto; white-space: normal; height: auto; }
   .info-value { width: auto; flex-grow: 0; text-align: left; white-space: normal; height: auto; }
-  .mission-captain-block { flex-direction: column; height: 172px; padding: 0px; gap: 4px; border-width: 0px; background-color: transparent; }
+  .mission-captain-block { flex-direction: column; height: 226px; padding: 0px; gap: 4px; border-width: 0px; background-color: transparent; }
   .mission-captain-list { height: 142px; }
   .mission-captain-list .choice-row { height: 52px; }
   .mission-captain-list .choice-icon { width: 46px; height: 46px; }
