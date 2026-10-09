@@ -278,12 +278,15 @@ public final class MissionLaunch {
                 m.alliedGarrisonStrengthMult, constructionDetachment.shuttleManifest,
                 FighterWingCommitment.captureRoster(constructionDetachment.marineWings),
                 FighterWingCommitment.captureRoster(m.enemyFighterSupport));
-        return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder);
+        return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder,
+                openingOperation != null || isSilentColonyBattle(m) || isCivilianRescueBattle(m)
+                        ? "" : profile.factionId());
     }
 
     /** Pure construction input; contains no campaign API handles. */
     record ScenarioPlan(Object key, Detachment detachment, int firstPlayerShuttle,
-                        BattleFixture fixture, Supplier<BattleSimulation> builder) { }
+                        BattleFixture fixture, Supplier<BattleSimulation> builder,
+                        String defenderFactionId) { }
 
     /** Applies campaign state only after the player explicitly accepts deployment. */
     static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,

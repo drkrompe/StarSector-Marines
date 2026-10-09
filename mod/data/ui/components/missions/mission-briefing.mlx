@@ -1,4 +1,4 @@
-<template props="rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
+<template props="employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -29,6 +29,22 @@
               <div id="mission-risk-name" class="label heading tone-accent">{operationRisk}</div>
             </div>
           </div>
+          <div id="mission-factions" class="mission-factions">
+            <div id="mission-employer-identity" class="faction-identity">
+              <img id="mission-employer-crest" class="faction-crest" style="{employerFactionCrestStyle}" src="{employerFactionCrest}" />
+              <div id="mission-employer-identity-copy" class="faction-identity-copy">
+                <div id="mission-employer-identity-label" class="label heading tone-muted">EMPLOYER</div>
+                <div id="mission-employer-faction-name" class="label faction-name">{employerFactionName}</div>
+              </div>
+            </div>
+            <div id="mission-opposition-identity" class="faction-identity">
+              <img id="mission-opposition-crest" class="faction-crest" style="{oppositionFactionCrestStyle}" src="{oppositionFactionCrest}" />
+              <div id="mission-opposition-identity-copy" class="faction-identity-copy">
+                <div id="mission-opposition-identity-label" class="label heading tone-muted">OPPOSITION</div>
+                <div id="mission-opposition-faction-name" class="label faction-name">{oppositionFactionName}</div>
+              </div>
+            </div>
+          </div>
           <div id="mission-reward" class="mission-reward console-readout">
             <div id="mission-reward-header" class="label heading tone-accent">{rewardHeader}</div>
             <div id="mission-reward-value" class="label title tone-good">{rewardValue}</div>
@@ -41,7 +57,7 @@
               <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
             </div>
           </div>
-          <div id="mission-term-actions" class="mission-term-actions">
+          <div id="mission-term-actions" class="mission-term-actions" style="{termActionsStyle}">
             <button each="term in termActions" key="{term.id}" id="{term.id}" class="{term.classes}" disabled="{term.disabled}" onclick="{term.action}">
               <div id="{term.titleId}" class="label heading choice-title">{term.title}</div>
               <div id="{term.detailId}" class="label tone-muted choice-detail">{term.detail}</div>
@@ -365,7 +381,7 @@
   .force-meter { flex-direction: row; height: 9px; gap: 4px; }
   .force-meter .indicator { width: 42px; height: 9px; border-width: 1px; background-color: #8fae98; }
   .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
-  .mission-loadout-grid { flex-direction: column; height: 540px; gap: 22px; overflow: hidden; }
+  .mission-loadout-grid { flex-direction: column; height: 498px; gap: 22px; overflow: hidden; }
   .command-deck { height: 178px; align-items: start; }
   .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
   .command-power-list { display: grid; height: 145px; gap: 8px; overflow: scroll; width: 100%; }
@@ -375,12 +391,12 @@
   .command-power-list .choice-copy { width: 128px; height: 45px; flex-grow: 0; gap: 4px; }
   .command-power-list .choice-title { height: 25px; white-space: normal; text-align: center; }
   .command-power-list .choice-detail { height: 14px; text-align: center; }
-  .mission-logistics { flex-direction: column; height: 330px; gap: 20px; overflow: hidden; }
+  .mission-logistics { flex-direction: column; height: 298px; gap: 20px; overflow: hidden; }
   #mission-source-block { height: 78px; }
   #mission-source-list { height: 46px; flex-grow: 0; display: grid; gap: 8px; }
   .source-list .choice-row { width: 280px; height: 30px; }
   .source-list .choice-icon { width: 32px; height: 28px; }
-  .mission-support-stack { flex-direction: row; height: 220px; gap: 18px; overflow: scroll; display: grid; }
+  .mission-support-stack { flex-direction: row; height: 182px; gap: 18px; overflow: scroll; display: grid; }
   #mission-transport-block, #mission-carrier-block, #mission-employer-block { width: 290px; height: 170px; flex-grow: 0; }
   .landing-craft-readout { flex-direction: row; align-items: center; height: 100px; padding: 4px; gap: 7px; background-color: transparent; }
   .landing-craft-copy { flex-direction: column; height: 96px; width: 0px; flex-grow: 1; gap: 2px; }
@@ -394,7 +410,7 @@
   #mission-deployment-status { width: 360px; height: 32px; text-align: right; white-space: normal; }
   .force-heading-row { flex-direction: row; align-items: center; height: 30px; width: 100%; gap: 20px; }
   #mission-force-heading { width: 0px; flex-grow: 1; }
-  #mission-assign { flex-direction: row; align-items: center; width: 154px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
+  #mission-assign { flex-direction: row; align-items: center; width: 192px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
   #mission-assign.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   #mission-force-summary { align-items: start; }
   #mission-task-force { width: 100%; }
@@ -418,4 +434,9 @@
   .source-list .choice-icon { width: 54px; height: 44px; }
   #mission-source-block { height: 96px; }
   #mission-source-list { height: 64px; }
+  .mission-factions { flex-direction: row; height: 62px; gap: 10px; width: 100%; }
+  .faction-identity { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; gap: 6px; }
+  .faction-crest { pointer-events: none; }
+  .faction-identity-copy { flex-direction: column; height: 50px; width: 0px; flex-grow: 1; gap: 4px; }
+  .faction-name { height: auto; white-space: normal; }
 </style>
