@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -14,11 +16,14 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
+import java.util.function.Function;
 
-/** Read-only projection of line squads into their shipboard quarters. */
+/** Commander board and drill-down projection of persistent squads into their quarters. */
 public final class BarracksViewModel {
 
     private final MarineRoster roster;
+    private final BarracksCommandModel command;
     private final DoubleSupplier currentDay;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> revision;
@@ -31,6 +36,13 @@ public final class BarracksViewModel {
 
     public BarracksViewModel(Reactor reactor, MarineRoster roster,
                              DoubleSupplier currentDay) {
+        this(reactor, roster, currentDay, EquipmentIssueResources.UNLIMITED, () -> 0,
+                id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
+    }
+
+    public BarracksViewModel(Reactor reactor, MarineRoster roster, DoubleSupplier currentDay,
+                            EquipmentIssueResources resources, IntSupplier cargoMarines,
+                            Function<String, PersonnelDrawResult> reinforce) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
@@ -48,8 +60,11 @@ public final class BarracksViewModel {
         });
         selectedSquadSummary = reactor.computed(this::buildSelectedSummary);
         quartersStatus = reactor.computed(this::buildQuartersStatus);
+        command = new BarracksCommandModel(reactor, roster, resources, cargoMarines, reinforce,
+                selectedSquadId::set, this::refresh);
     }
 
+    public BarracksCommandModel command() { return command; }
     public Signal<List<SquadRow>> squadRows() { return squadRows; }
     public Signal<List<MusterRow>> musterRows() { return musterRows; }
     public Signal<List<RecordCell>> recordCells() { return recordCells; }
@@ -74,6 +89,7 @@ public final class BarracksViewModel {
     public void refresh() {
         if (selectedSquad() == null) selectedSquadId.set(firstSquadId());
         revision.update(value -> value + 1);
+        command.refresh();
     }
 
     private List<SquadRow> buildSquadRows() {
@@ -95,7 +111,7 @@ public final class BarracksViewModel {
                     ready + " / " + MarineSquad.CAPACITY + " RTD"
                             + (wounded > 0 ? "  ·  " + wounded + " WIA" : ""),
                     compactRecord(squad.career()),
-                    () -> selectedSquadId.set(squad.id())));
+                    () -> command.inspect(squad.id())));
         }
         return List.copyOf(rows);
     }

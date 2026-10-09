@@ -341,6 +341,17 @@ public class MarineRoster implements Serializable {
         return Collections.unmodifiableSet(completedStoryIds);
     }
 
+    /** Assigns reusable intent atomically, including to formations awaiting replacements. */
+    public boolean assignSquadProfile(Set<String> squadIds, String profileId) {
+        if (squadIds == null || squadIds.isEmpty() || armory.squadProfile(profileId) == null) return false;
+        for (String id : squadIds) {
+            MarineSquad squad = squadById(id);
+            if (squad == null || squad.reserve() || squad.stationed()) return false;
+        }
+        for (String id : squadIds) squadById(id).setSquadProfileId(profileId);
+        return true;
+    }
+
     public MarineArmory armory() { return armory; }
     public MechBay mechBay() { return mechBay; }
     public BoatDeck boatDeck() { return boatDeck; }
@@ -1110,6 +1121,11 @@ public class MarineRoster implements Serializable {
             soldier.setArmor(billet.armorId());
         }
         squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);
+        SquadProfile profile = armory.squadProfile(squad.squadProfileId());
+        if (profile != null && (!profile.weaponDoctrineId().equals(weaponDoctrineId)
+                || !profile.armorDoctrineId().equals(armorDoctrineId))) {
+            squad.setSquadProfileId(null);
+        }
         refreshLeadership();
         return SquadEquipmentResult.APPLIED;
     }

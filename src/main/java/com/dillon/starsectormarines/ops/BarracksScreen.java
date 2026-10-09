@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
@@ -20,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Planet-free, read-only shipboard room for casually browsing line squads.
+ * Shipboard command administration with an individual quarters drill-down.
  *
  * <p>A camera on the company ship's berthing, not a room beside her. The
  * marines in the panel are the roster's own, mustered into the compartment the
@@ -65,7 +67,9 @@ public final class BarracksScreen implements Screen {
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new BarracksViewModel(reactor, roster, CampaignClock::dayFloat);
+            viewModel = new BarracksViewModel(reactor, roster, CampaignClock::dayFloat,
+                    new CampaignEquipmentIssueResources(), MarinePersonnelLogistics::availableCargoMarines,
+                    id -> MarinePersonnelLogistics.reinforceSquad(roster, id));
         } else {
             viewModel.refresh();
         }
@@ -82,7 +86,10 @@ public final class BarracksScreen implements Screen {
             requireWiredElements(candidate);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            built.theme(MarineOpsThemes.standard()).onCancel(() -> {
+                if (viewModel.command().inspecting()) viewModel.command().showOverview();
+                else close();
+            });
             built.canvases().set(candidate.requireElement("barracks-canvas"),
                     new BarracksCanvas(context.companyDeck(), viewModel::sceneMarines));
             if (viewport != null) {
@@ -103,6 +110,7 @@ public final class BarracksScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("command", viewModel.command().props());
         props.put("squadRows", viewModel.squadRows());
         props.put("musterRows", viewModel.musterRows());
         props.put("recordCells", viewModel.recordCells());
@@ -112,14 +120,14 @@ public final class BarracksScreen implements Screen {
         // Computed rather than fixed: selecting a formation moves the camera to
         // that squad's own berthing, and a heading that stayed put would name a
         // different compartment from the one on screen.
-        props.put("contextLabel", reactor.computed(() -> ShipBreadcrumb.of(
-                context.companyDeck().ship(),
-                context.companyDeck().quartersFor(viewModel.sceneMarines()))));
+        props.put("contextLabel", reactor.computed(() -> viewModel.command().inspecting()
+                ? ShipBreadcrumb.of(context.companyDeck().ship(), context.companyDeck().quartersFor(viewModel.sceneMarines()))
+                : ShipBreadcrumb.of(context.companyDeck().ship(), null) + " / PERSONNEL COMMAND"));
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
                 context::roomAboard,
                 this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
-                () -> { },
+                viewModel.command()::showOverview,
                 () -> context.openCompanyArmoryFrom(ScreenId.BARRACKS),
                 () -> context.goTo(ScreenId.MECH_LAB),
                 () -> context.goTo(ScreenId.BOAT_DECK));
@@ -132,7 +140,7 @@ public final class BarracksScreen implements Screen {
                 "page-nav-hq", "page-nav-barracks", "page-nav-armory",
                 "page-nav-mech-lab", "page-nav-boats",
                 "barracks-room-bar", "barracks-body",
-                "barracks-squad-list", "barracks-stage", "barracks-canvas",
+                "barracks-formation-list", "barracks-stage", "barracks-canvas",
                 "barracks-muster-list")) {
             component.requireElement(id);
         }
@@ -180,6 +188,7 @@ public final class BarracksScreen implements Screen {
         // continuity every other room view depends on; the panel puts her away
         // with the dialog.
         if (document != null) document.deactivateInput();
+        if (viewModel != null) viewModel.command().leave();
         input = null;
     }
 

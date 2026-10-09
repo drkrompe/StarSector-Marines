@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
 import com.fs.starfarer.api.campaign.CargoAPI;
+import com.dillon.starsectormarines.ops.BarracksViewModel;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -13,6 +15,32 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MarinePersonnelLogisticsTest {
+
+    @Test
+    void barracksBulkReplacementsStopAtAvailableCargoAndKeepWoundedBillets() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(2 * MarineSquad.CAPACITY);
+        var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
+        String wounded = squads.get(1).memberIds().get(1);
+        roster.applySoldierOutcome(Map.of(squads.get(0).memberIds().get(0), MarineSoldierStatus.KIA,
+                squads.get(1).memberIds().get(0), MarineSoldierStatus.KIA,
+                squads.get(1).memberIds().get(2), MarineSoldierStatus.KIA,
+                wounded, MarineSoldierStatus.WIA), 20f, 3f);
+        var reserve = roster.recruitToSquad(roster.reserveSquad().id());
+        float[] quantity = {1f};
+        CargoAPI cargo = cargo(quantity);
+        var model = new BarracksViewModel(new Reactor(), roster, () -> 20d,
+                EquipmentIssueResources.UNLIMITED, () -> (int) quantity[0],
+                id -> MarinePersonnelLogistics.reinforceSquad(roster, id, cargo)).command();
+        squads.forEach(s -> model.toggle(s.id()));
+        model.reinforceSelected();
+        assertEquals(0f, quantity[0]);
+        assertTrue(squads.get(0).memberIds().contains(reserve.id()));
+        assertEquals(0, roster.vacancies(squads.get(0)));
+        assertEquals(1, roster.vacancies(squads.get(1)));
+        assertEquals(MarineSoldierStatus.WIA, roster.soldierById(wounded).status());
+        assertTrue(squads.get(1).memberIds().contains(wounded));
+    }
 
     @Test
     void drawingPersonnelConsumesOneCargoMarineAndReturningReserveRestoresIt() {

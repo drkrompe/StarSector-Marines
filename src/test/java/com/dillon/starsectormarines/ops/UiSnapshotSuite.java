@@ -105,6 +105,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -1525,6 +1526,72 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
+        HeadlessSvgAssets.install(context.modRoot());
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()),
+                context.modRoot(), context.starsectorCore());
+        List<SnapshotArtifact> images = new ArrayList<>();
+        for (String state : List.of("command", "profiles", "quarters", "empty", "large")) {
+            Reactor reactor = new Reactor();
+            MarineRoster roster = new MarineRoster();
+            int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
+            roster.bootstrapInitialComplement(count * MarineSquad.CAPACITY);
+            MarineCaptain captain = new MarineCaptain("Tamsin Vale", "graphics/portraits/portrait_hegemony06.png", Rank.MAJOR, 0f);
+            roster.add(captain);
+            MarineCaptain second = new MarineCaptain("Rafael Kade", "graphics/portraits/portrait_mercenary04.png", Rank.CAPTAIN, 0f);
+            roster.add(second);
+            var squads = roster.squads().stream().filter(q -> !q.reserve()).toList();
+            var profile = roster.armory().saveSquadProfile("Line infantry", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                    roster.armory().armorDoctrines().get(0).id());
+            for (int i = 0; i < squads.size(); i++) {
+                if (i < 8) roster.assignCaptainToSquad(captain.id(), squads.get(i).id());
+                else if (i < 12) roster.assignCaptainToSquad(second.id(), squads.get(i).id());
+                roster.assignSquadProfile(Set.of(squads.get(i).id()), profile.id());
+            }
+            if (!squads.isEmpty()) {
+                roster.applySoldierOutcome(Map.of(squads.get(1).memberIds().get(0), MarineSoldierStatus.WIA,
+                        squads.get(2).memberIds().get(0), MarineSoldierStatus.KIA), 100f, 2f);
+                roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
+            }
+            BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d);
+            if (state.equals("command") || state.equals("profiles")) {
+                viewModel.command().selectCommand(captain.id());
+                viewModel.command().toggle(squads.get(0).id());
+                viewModel.command().toggle(squads.get(1).id());
+                viewModel.command().toggle(squads.get(2).id());
+                viewModel.command().selectProfile(profile.id());
+            }
+            if (state.equals("profiles")) ((Runnable) viewModel.command().props().get("newProfile")).run();
+            if (state.equals("quarters")) viewModel.command().inspect(squads.get(0).id());
+            CompanyDeck ship = state.equals("quarters") ? companyShip(List::of,
+                    () -> MarineOpsContext.companyMarines(roster).stream().limit(36).toList()) : null;
+            Map<String, Object> properties = new LinkedHashMap<>();
+            properties.put("command", viewModel.command().props());
+            properties.put("contextLabel", "FLAGSHIP / PERSONNEL COMMAND");
+            properties.put("squadRows", viewModel.squadRows());
+            properties.put("musterRows", viewModel.musterRows());
+            properties.put("recordCells", viewModel.recordCells());
+            properties.put("selectedSquadName", viewModel.selectedSquadName());
+            properties.put("selectedSquadSummary", viewModel.selectedSquadSummary());
+            properties.put("quartersStatus", viewModel.quartersStatus());
+            MarineOpsPageNav.put(properties, MarineOpsPageNav.Page.BARRACKS, MarineOpsPageNav.ANY_SHIP,
+                    () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+            MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
+            loader.reload();
+            try (MarkupInstance instance = loader.build(reactor, "shipboard-barracks", properties)) {
+                UiDocument document = new UiDocument(instance.root());
+                for (var style : instance.styles()) document.addStyleSheet(style);
+                document.theme(MarineOpsThemes.standard());
+                if (ship != null) document.canvases().set(instance.requireElement("barracks-canvas"),
+                        new BarracksCanvas(ship, viewModel::sceneMarines));
+                images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
+                        renderRelative(renderer, document, 1920, 1080, 1f)));
+            }
+        }
+        return images;
+    }
+
     private static BufferedImage renderBarracks(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -2442,6 +2509,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", ShipBreadcrumb.of(ship.ship(),
                 ship.quartersFor(viewModel.sceneMarines())));
+        props.put("command", viewModel.command().props());
         props.put("squadRows", viewModel.squadRows());
         props.put("musterRows", viewModel.musterRows());
         props.put("recordCells", viewModel.recordCells());

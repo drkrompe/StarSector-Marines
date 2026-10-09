@@ -31,6 +31,8 @@ public final class MarineSquad implements Serializable {
     private boolean reserve;
     /** Durable organizational default; mission borrowing does not rewrite it. */
     private String homeCaptainId;
+    /** Desired profile; assigning it never rewrites the equipment already issued. */
+    private String squadProfileId;
     /** Active named-stationing assignment; {@code -1} while available at home. */
     private long stationingContractId = -1L;
     /** The NCO leading this squad; null while it has nobody fit to lead. Derived by the roster. */
@@ -61,6 +63,8 @@ public final class MarineSquad implements Serializable {
     public String id() { return id; }
     public String name() { return name; }
     public boolean reserve() { return reserve; }
+    public String squadProfileId() { return squadProfileId; }
+    void setSquadProfileId(String id) { squadProfileId = id; }
     public String homeCaptainId() { return homeCaptainId; }
     public String leaderSoldierId() { return leaderSoldierId; }
     public long stationingContractId() { return stationingContractId; }
