@@ -356,6 +356,8 @@ final class AirfieldSortieScene {
             case LOADING -> "LOADING on the pad  •  " + mission.marinesRemaining
                     + " aboard  •  " + aboardTimeLeft(mission) + "s to go";
             case PAD_ASCENT -> "climbing off the pad  •  " + mission.marinesRemaining + " aboard";
+            case SHIP_DEPARTURE -> "leaving the ship";
+            case SHIP_RETURN -> "returning to berth";
             case INCOMING -> "airborne  •  " + mission.marinesRemaining + " aboard";
             case PAD_DESCENT -> "settling onto the LZ  •  " + mission.marinesRemaining + " aboard";
             case LANDED -> "landed  •  " + mission.marinesRemaining + " still aboard";

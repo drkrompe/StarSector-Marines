@@ -9,6 +9,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BattleCameraTest {
 
     @Test
+    void authoredRoomFrameIncludesSpaceBeyondGridWhileTerrainStaysClipped() {
+        BattleCamera camera = new BattleCamera(100, 100);
+        camera.setViewport(0f, 0f, 800f, 600f, 20f);
+        camera.frameCenter(50f, 5f);
+
+        assertEquals(-10f, camera.screenToCellY(0f), 1e-6f);
+        assertEquals(200f, camera.cellToScreenY(0f), 1e-6f);
+        assertEquals(0, camera.visibleCells().minY());
+        assertEquals(20, camera.visibleCells().maxY());
+
+        camera.centerOn(50f, 5f);
+        assertEquals(0f, camera.screenToCellY(0f), 1e-6f);
+    }
+
+    @Test
     void wheelZoomReachesExtendedTacticalCloseUp() {
         BattleCamera camera = new BattleCamera(112, 64);
         camera.setViewport(0f, 0f, 1120f, 640f, 10f);

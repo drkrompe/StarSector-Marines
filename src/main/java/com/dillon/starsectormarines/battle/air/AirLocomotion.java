@@ -80,6 +80,8 @@ public enum AirLocomotion {
             case LANDING_ROLL:
             case TAXI_IN:
                 return GROUNDED;
+            case SHIP_DEPARTURE:
+            case SHIP_RETURN:
             case RETURNING:
             case PAD_DESCENT:
             case PAD_ASCENT:

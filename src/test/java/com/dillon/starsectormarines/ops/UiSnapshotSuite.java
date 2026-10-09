@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.campaign.CommodityPresentation;
@@ -209,6 +212,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new HeadlessBattleSceneRenderer(context.modRoot());
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(battleScenes,
                 context.modRoot(), context.starsectorCore());
+        // Live departures emit GL-owned engine glow. Keep their real hull and
+        // simulation pose; this raster preview omits only that decorative pass.
+        HeadlessUiRenderer boatRenderer = new HeadlessUiRenderer(
+                new HeadlessBattleSceneRenderer(context.modRoot(), true),
+                context.modRoot(), context.starsectorCore());
         return List.of(
                 new SnapshotArtifact("mission-squad-deployment-wide.png",
                         renderMissionFlow(context, renderer, SQUAD_DEPLOYMENT_COMPONENTS,
@@ -240,6 +248,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("company-hq-bridge-wide.png",
                         renderCompanyHq(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
+                new SnapshotArtifact("company-hq-rumor-wide.png",
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
+                                CompanyHqViewModel.preview(), CompanyHqNewsDesk.Channel.RUMOR)),
                 // The one state the shell can be in that nothing else draws:
                 // her deck is still being laid out, so the rooms aboard read as
                 // pending rather than as places the hull does not have.
@@ -348,13 +360,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f,
                                 false, true, false, true)),
                 new SnapshotArtifact("boat-deck-wide.png",
-                        renderBoatDeck(context, renderer,
+                        renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false)),
+                new SnapshotArtifact("boat-deck-departure-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, true)),
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
-                        renderBoatDeck(context, renderer,
+                        renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("boat-deck-vacant-wide.png",
-                        renderBoatDeck(context, renderer,
+                        renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, true)),
                 new SnapshotArtifact("battle-hud-task-force-wide.png",
                         renderBattleHudTaskForce(
@@ -1292,13 +1307,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale,
             CompanyHqViewModel viewModel) throws Exception {
+        return renderCompanyHq(context, renderer, width, height, uiScale, viewModel,
+                CompanyHqNewsDesk.Channel.ALL);
+    }
+
+    private static BufferedImage renderCompanyHq(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, CompanyHqViewModel viewModel,
+            CompanyHqNewsDesk.Channel channel) throws Exception {
         Reactor reactor = new Reactor();
+        CompanyHqNewsDesk desk = new CompanyHqNewsDesk(reactor);
+        Map<String, Object> hqProps = viewModel.props();
+        desk.put(hqProps);
+        desk.choose(channel);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
         loader.reload();
 
         try (MarkupInstance instance = loader.build(
-                reactor, "company-hq", viewModel.props())) {
+                reactor, "company-hq", hqProps)) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
@@ -2023,6 +2050,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean openBoat, boolean strikeABoat)
             throws Exception {
+        return renderBoatDeck(context, renderer, width, height, openBoat, strikeABoat, false);
+    }
+
+    private static BufferedImage renderBoatDeck(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean openBoat, boolean strikeABoat, boolean departing)
+            throws Exception {
         Reactor reactor = new Reactor();
         BoatDeck[] campaign = new BoatDeck[1];
         // The berth struck has to be one the camera is looking at, and the page
@@ -2062,6 +2096,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (openBoat) viewModel.selectBoatAction(0).run();
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
+        if (departing) seekHangarDeparture(ship, bay);
 
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
@@ -2078,6 +2113,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     || deck.boats().get(berth) != null));
             return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    /** Photograph the actual managed departure at the opening, never a posed sprite. */
+    private static void seekHangarDeparture(CompanyDeck ship, DeckGraph.Compartment bay) {
+        BayAperture door = ship.scene().bayDoor(bay);
+        if (door == null) throw new IllegalStateException("Snapshot hangar has no opening to space");
+        for (int step = 0; step < 1800; step++) {
+            ship.advance(0.1f);
+            var sim = ship.scene().simulation();
+            for (long id : sim.getAirEntityIds()) {
+                var mission = sim.world().mission(id);
+                AirBody body = sim.world().kinematics(id);
+                if (mission != null && mission.state == ShuttleState.SHIP_DEPARTURE
+                        && body.distanceTo(door.centerX(), door.centerY()) < 0.6f) return;
+            }
+        }
+        throw new IllegalStateException("No shuttle crossed the hangar opening during the evidence window");
     }
 
     /**

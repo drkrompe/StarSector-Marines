@@ -134,9 +134,18 @@ public final class RoomPacker {
         }
     }
 
-    /** One room to place: what it is, the floor it needs, and where it belongs. */
+    /**
+     * One room to place: what it is, the floor it needs, and where it belongs.
+     * A positive outboard opening width additionally requires a centered clear
+     * exit into the outside envelope on the fitting's named side. Zero retains
+     * ordinary edge-contact placement.
+     */
     public record Request(RoomPurpose purpose, RoomShape shape,
-                          Affinity affinity, EdgeContact contact) {
+                          Affinity affinity, EdgeContact contact, int outboardOpeningWidth) {
+
+        public Request(RoomPurpose purpose, RoomShape shape, Affinity affinity, EdgeContact contact) {
+            this(purpose, shape, affinity, contact, 0);
+        }
 
         public Request(RoomPurpose purpose, RoomShape shape) {
             this(purpose, shape, Affinity.ANYWHERE, EdgeContact.NONE);
@@ -874,7 +883,8 @@ public final class RoomPacker {
                     int contact = solid ? ringContact(x, y, w, h)
                             : wallContact(shape, x, y);
                     if (contact < 0) continue;
-                    if (!meetsEdge(request.contact(), shape, x, y, side)) continue;
+                    if (!meetsEdge(request.contact(), shape, x, y, side,
+                            request.outboardOpeningWidth())) continue;
                     int belongs = request.affinity().prefers(x + w / 2, y + h / 2)
                             ? AFFINITY_BONUS : 0;
                     int excess = massing.sharedSeamAllowance() == Integer.MAX_VALUE ? 0
@@ -953,7 +963,8 @@ public final class RoomPacker {
      *     a room that will take any side
      */
     private boolean meetsEdge(EdgeContact contact, RoomShape shape, int ox, int oy,
-                              int[] side) {
+                              int[] side, int openingWidth) {
+        if (openingWidth > 0) return centeredOpening(shape, ox, oy, side, openingWidth);
         if (contact == EdgeContact.NONE) return true;
         for (int[] cell : shape.wall()) {
             if (contact == EdgeContact.TRAILING && cell[0] != shape.width()) continue;
@@ -963,6 +974,34 @@ public final class RoomPacker {
             if (!inBounds(x, y) || !outside[x + 1][y + 1]) return true;
         }
         return false;
+    }
+
+    /**
+     * A physical opening requires its whole central window to face the outside,
+     * rather than one arbitrary ring cell. All outward rays stay outside the
+     * buildable envelope, so later rooms and circulation cannot consume egress.
+     */
+    private boolean centeredOpening(RoomShape shape, int ox, int oy,
+                                     int[] side, int requestedWidth) {
+        if (side == null) return false;
+        boolean vertical = side[0] != 0;
+        int extent = vertical ? shape.height() : shape.width();
+        int span = Math.min(requestedWidth, extent);
+        if ((span & 1) != (extent & 1)) span--;
+        if (span <= 0) return false;
+        int start = (extent - span) / 2;
+        int fixed = side[0] < 0 ? -1 : side[0] > 0 ? shape.width()
+                : side[1] < 0 ? -1 : shape.height();
+        for (int i = 0; i < span; i++) {
+            int lx = vertical ? fixed : start + i;
+            int ly = vertical ? start + i : fixed;
+            if (!shape.contains(lx - side[0], ly - side[1])) return false;
+            for (int x = ox + lx, y = oy + ly; inBounds(x, y);
+                 x += side[0], y += side[1]) {
+                if (outside[x + 1][y + 1] || floor[x + 1][y + 1]) return false;
+            }
+        }
+        return true;
     }
 
     /** Whether a ring cell lies along the given side of the shape, corners excluded. */

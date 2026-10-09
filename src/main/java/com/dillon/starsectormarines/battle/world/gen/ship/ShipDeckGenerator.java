@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentFillStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.BayApertureStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.SpineStage;
@@ -61,7 +62,8 @@ public final class ShipDeckGenerator {
                 new CompartmentFillStage(fit),           // furnish each room at the deck refit
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
-                new FinalizeStage()));                   // wall HP / cover / wall tags / buildings
+                new FinalizeStage(),                    // wall HP / cover / wall tags / buildings
+                new BayApertureStage()));                // sight-clear vacuum beyond pressure openings
     }
 
     /**

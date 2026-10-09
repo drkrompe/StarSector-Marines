@@ -375,9 +375,17 @@ off the hull, and back. On a deck view there is no elsewhere to fly to, and
 inventing one would be a second world nobody is looking at. What the flight is
 for is the time the berth stands empty, the hull it comes home with, and the
 crew having something to turn round; a mission that means something replaces the
-destination and keeps all of that. Measured on a transport: about half a minute
-off the ship and four minutes in turnaround, with the boat crossing its own
-door 2.4 cells off centre at worst against a 3.5-cell half-width.
+destination and keeps all of that.
+
+**An indoor departure follows the room's clear corridor.** The boat lifts into
+a low hover, clears its own berth into the central aisle, stops to turn, and
+crosses the actual opening on its centreline. It climbs beyond the opening and
+returns along the same corridor to the same berth, stopping before each turn
+and settling before the field takes it back. A single rank clears its noses
+into the apron before aligning with the opening. These are managed flight
+phases over the same air body, with the hull's acceleration and turning limits;
+they are neither wheeled taxi nor a free-flight shortcut across occupied banks.
+The pressure screen at the opening passes aircraft while keeping infantry aboard.
 
 `BoatSortieSystem` is the sibling of {@code AirStrikeSystem} and is gated on the
 one thing that separates the two places: a berth with somewhere off this map to

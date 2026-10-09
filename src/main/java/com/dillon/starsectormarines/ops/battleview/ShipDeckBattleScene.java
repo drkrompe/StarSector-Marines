@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.ShipBayRoute;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
@@ -456,7 +457,10 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             boatBerth++;
             if (!held) continue;
             fieldBerth[index] = bays.berths().size();
-            bays.addBayBerth(berth, boats, offshipFrom(berth));
+            ShipBayRoute route = routeFrom(berth);
+            AirfieldService.Berth registered = bays.addBayBerth(berth, boats,
+                    route == null ? null : new float[]{route.outside().x(), route.outside().y()});
+            registered.shipRoute = route;
             occupiedBerths[index] = true;
         }
         if (bays.berths().isEmpty()) return;
@@ -485,20 +489,20 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private static final float OFFSHIP_CELLS = 16f;
 
     /**
-     * Where a boat kept in this berth goes when it leaves, or null when its bay
-     * has no door.
+     * The berth-to-aisle corridor through the actual opening, or null when its
+     * bay has no opening.
      *
      * <p>Found by which bay the berth stands in rather than by which berth the
      * door belongs to, because a door belongs to a room and a berth is a place
      * in one. A berth in a bay the placer could not give a flank has nowhere to
      * go and simply never launches.
      */
-    private float[] offshipFrom(Gantry berth) {
+    private ShipBayRoute routeFrom(Gantry berth) {
         if (rooms == null) return null;
         for (DeckGraph.Compartment room : rooms.compartments()) {
             if (!room.contains(berth.centerX, berth.centerY)) continue;
             BayAperture door = rooms.apertureOf(room.id());
-            return door == null ? null : door.offshipAt(OFFSHIP_CELLS);
+            return door == null ? null : ShipBayRoute.from(berth, door, OFFSHIP_CELLS);
         }
         return null;
     }
@@ -979,7 +983,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
         camera.setViewport(screenX, screenY, width, height, view.fittedCellPx(width, height));
         camera.zoomAt(view.zoomNotches(), screenX + width * 0.5f, screenY + height * 0.5f);
-        camera.centerOn(view.centerCellX(), view.centerCellY());
+        camera.frameCenter(view.centerCellX(), view.centerCellY());
         return camera;
     }
 

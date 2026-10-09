@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-09 — the default substantial hull consolidates six shuttle
-berths around one clear central aisle; capacity follows physical fit.
+Updated: 2026-10-09 — the six-berth hangar opens to space on its central aisle;
+ship boats follow that aisle and aperture on departure and return.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -233,9 +233,10 @@ authored content.
   gig bay. Capacity and physical berth placement use the same fit constraints.
   Hull sizing must leave enough beam for the bay with its aperture facing the
   flank: rotating the footprint to fit cannot turn the exit into the bow.
-  The aisle provides space for future ground movement; current ambient sorties
-  still lift directly from their berths. Physical taxiing and aperture opening
-  require a departure/return lifecycle and are not implied by clear floor space.
+  Ambient sorties follow a managed low hover from their berth into the aisle,
+  through the aperture and off the hull, then reverse the route home. They stop
+  at corners before turning so a flight never cuts diagonally across another
+  berth. The ordinary berth still owns launch, hull recovery and servicing.
 - **The lift is the boats aboard, and there is nothing to choose.** A briefing
   reads out the establishment — how many, of what, off which ship — rather than
   offering a per-hull commitment, because holding one of your own boats back is
@@ -266,10 +267,12 @@ authored content.
   map edge — which way is off, and from where.
 - **A fitting cannot see the hull, but it may name the side that has to be it.**
   A fitting still sees only a floor, a pose and a set of doors, and could not
-  say which of its bulkheads has vacuum behind it; the aperture is still
-  recovered at placement from the run of the room's own ring that lies outside
-  the hull. What changed is that a room may declare an **outboard side** in its
-  own frame, and the placer puts that side on the ship's skin rather than using
+  say which of its bulkheads has vacuum behind it. A room declares an
+  **outboard side** in its own frame, and the placer puts that side on the
+  ship's skin. Placement reserves the full centered opening onto the exterior,
+  keeping later rooms and circulation out of its exit corridor. The completed
+  deck is checked before opening the hull. The aperture does not drift along the wall to use
+  whichever exposed run happens to be longest. The placer respects the named side rather than using
   whichever side it can reach. So the door is on the bulkhead the arrangement
   was built around — the deck behind it clear, the berth exits joining it — instead of
   turning up wherever the packing happened to leave vacuum. A room that names
@@ -281,11 +284,13 @@ authored content.
   different things: a flank is where a bay launches something, a transom is where
   an engine room has to sit to be driving anything. Treating them alike would
   publish an opening onto space at the back of every ship in the fleet.
-- **A door is not a hole.** Nothing is cut, the cells stay bulkhead, and the deck
-  stays sealed — what is recorded is where the door is and which way is out, so
-  whatever opens it has geometry rather than a guess. The cell just inboard is
-  deck, because that is where a boat is moved before it goes and the first thing
-  it stands on coming back.
+- **A hangar aperture is an opening to space.** Its clear width is centered on
+  the taxi aisle, with a pressure-screen threshold and navigation lights in the
+  Boat Deck view. Beyond that threshold is void, clear to sight and aircraft,
+  never walkable floor for the crew. Opening it cannot erase a neighboring room
+  or passage. The cell just inboard remains deck. The room camera includes the
+  exit and the space beyond it so departing boats remain visible across the
+  threshold. The pressure screen is presentation; decompression is not simulated.
 - **The door wall is a door, and nothing stands against it.** Three of a bay's
   bulkheads are worked and the fourth is bare deck end to end; what used to line
   it goes to the inboard corners, where it was always going to end up. A hangar

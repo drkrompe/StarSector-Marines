@@ -93,16 +93,15 @@ public final class BoatSortieSystem {
      * end is the errand: an aircraft off a field flies to somewhere on this
      * map, and a boat off a ship flies to the one place that is not on it.
      *
-     * <p>It starts climbing off the stand rather than already under way.
-     * Without that the craft is at cruise altitude on the first tick of its
-     * flight leg, which reads as the boat vanishing off the deck rather than
-     * lifting from it — the same discontinuity the settle onto a pad exists to
-     * remove, the other way round.
+     * <p>A ship host publishes the actual corridor through the bay opening.
+     * Managed hover follows it out and back, remaining low inside the room.
+     * Older hosts that publish only an offship point retain their vertical
+     * hardstand procedure.
      */
     private static void send(BattleSimulation sim, AirfieldService field,
                              AirfieldService.Berth boat) {
-        float padX = boat.centerX + 0.5f;
-        float padY = boat.centerY + 0.5f;
+        float padX = boat.shipRoute == null ? boat.centerX + 0.5f : boat.shipRoute.home().x();
+        float padY = boat.shipRoute == null ? boat.centerY + 0.5f : boat.shipRoute.home().y();
         float[] out = boat.offship;
         long craft = sim.spawnShuttle((ShuttleType) boat.airframe, field.owner(),
                 out[0], out[1], padX, padY, padX, padY, 0f);
@@ -115,7 +114,8 @@ public final class BoatSortieSystem {
         mission.totalCycles = 1;
         sim.world().kinematics(craft).teleport(padX, padY, boat.facingDegrees);
         mission.padPhaseElapsed = 0f;
-        mission.state = ShuttleState.PAD_ASCENT;
+        mission.shipTransit = boat.shipRoute == null ? null : new ShipBayTransit(boat.shipRoute, false);
+        mission.state = mission.shipTransit == null ? ShuttleState.PAD_ASCENT : ShuttleState.SHIP_DEPARTURE;
     }
 
     /**

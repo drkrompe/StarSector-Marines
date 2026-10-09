@@ -10,23 +10,17 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  * hold with boats in it. It is the ship's answer to the question a battle map
  * answers with a map edge: which way is off, and from where.
  *
- * <p><b>Published where the hull is known, not where the room is fitted.</b> A
- * fitting sees a floor, a pose and a set of doors, and could not say which of
- * its four bulkheads has vacuum behind it — the placer is what pushed the room
- * against the ship's side, and is deliberately left free to use whichever side
- * it can reach. So the aperture is derived at placement from the run of the
- * room's own ring that lies outside the hull, and a bay that somehow reached the
- * outside on two sides takes the longer run rather than being refused: the
- * mistake to avoid is a bay with no way out, and a bay with an awkward one is
- * still a bay.
+ * <p>Placement aligns the pressure opening with the bay's central aisle on
+ * its authored outboard side. The outward strip may cross unused hull plating,
+ * but never another room or circulation. A ship-only generation stage opens
+ * that strip after structural finalization.
  *
- * <p><b>It is a door, not a hole.</b> Nothing here is cut: the cells stay
- * bulkhead, the deck stays sealed, and the ship does not vent because a bay
- * exists. What this records is where the door is and which way is out, so that
- * whatever opens it — a boat leaving, a boarding party arriving — has geometry
- * to work from rather than a guess about which side of the room faces space.
+ * <p>The opening is sight-clear vacuum rather than infantry floor. Its
+ * pressure-screen boundary allows boats to depart while ordinary deck
+ * navigation remains confined to the room's inboard apron.
  *
- * <p>Coordinates are cell centres in continuous cell space, the same space an
+ * <p>Coordinates are continuous world coordinates (cell centres lie at index
+ * plus one half), the same space an
  * {@link com.dillon.starsectormarines.battle.air.AirBody} flies in, so a craft
  * can be steered at the door without converting. The direction is a unit
  * cardinal pointing <em>out</em> of the hull.

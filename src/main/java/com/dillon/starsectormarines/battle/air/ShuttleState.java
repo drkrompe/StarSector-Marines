@@ -83,6 +83,10 @@ public enum ShuttleState {
      * strip reaches it over the length of the {@link #TAKEOFF_ROLL}.
      */
     PAD_ASCENT,
+    /** Managed low hover from a ship berth through its aperture. */
+    SHIP_DEPARTURE,
+    /** Reverse corridor to the same berth, including the final settle. */
+    SHIP_RETURN,
     INCOMING,
     /**
      * Over its landing zone, settling onto it.
