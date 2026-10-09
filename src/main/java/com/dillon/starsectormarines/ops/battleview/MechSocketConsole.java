@@ -36,7 +36,7 @@ final class MechSocketConsole {
         c.fillRect(x + 8, y + 24, w - 16, h - 44, WELL);
         c.line(x + 8, y + 24, x + w - 8, y + 24, new Color(0x070a08), 2f);
         c.fillRect(x + 9, y + 9, 4, 7, accent);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 34), x + 19, y + 7, SILVER);
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 34), x + 19, y + (24f - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
 
         if (fixed) {
             c.text(Fonts.ORBITRON_12_BOLD, rejected ? "CANNOT FIT" : "SEALED", x + 12, y + 31,
@@ -72,7 +72,7 @@ final class MechSocketConsole {
                     : socket.type() == SocketType.UTILITY ? "SELECT TO REFIT"
                     : installed != null ? installed.displayName : socket.type().label() + " / "
                     + socket.gridColumns() + "x" + socket.gridRows();
-            c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 23), x + 12, y + h - 17,
+            c.text(Fonts.ORBITRON_12_BOLD, fit(caption, w - 23), x + 12, y + h - 20f + (20f - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f,
                     draggingHere ? accent : installed != null ? SILVER : AMBER);
         }
         if (selected || hovered || compatible || rejected) {
