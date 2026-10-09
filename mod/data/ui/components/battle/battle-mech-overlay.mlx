@@ -2,7 +2,7 @@
   <div id="battle-mech-overlay" class="battle-mech-overlay">
     <div id="battle-mech-panel" class="mech-panel">
       <div id="battle-mech-header" class="mech-header">
-        <button id="battle-mech-back" class="mech-back" onclick="{backAction}">&lt; BACK</button>
+        <button id="battle-mech-back" class="mech-back console-action" onclick="{backAction}">&lt; BACK</button>
         <div id="battle-mech-title" class="label heading mech-title">{mechTitle}</div>
         <div id="battle-mech-state" class="{doctrineStateClasses}">{doctrineState}</div>
       </div>
@@ -52,7 +52,7 @@
 
       <div id="battle-mech-footer" class="mech-footer">
         <div id="battle-mech-hint" class="label mech-hint">LANCE ORDERS · MECH DOCTRINE</div>
-        <button id="battle-mech-default" class="mech-default" onclick="{defaultAction}">RESET DOCTRINE</button>
+        <button id="battle-mech-default" class="mech-default console-action" onclick="{defaultAction}">RESET DOCTRINE</button>
       </div>
     </div>
   </div>
@@ -76,8 +76,8 @@
     padding: 7px;
     gap: 6px;
     border-width: 1px;
-    border-color: #4f6d8e;
-    background-color: #0b111be8;
+    border-color: #727b79;
+    background-color: #141e19f2;
     overflow: hidden;
   }
 
@@ -102,11 +102,11 @@
     height: 18px;
     flex-grow: 1;
     padding: 6px 0px;
-    color: #c8e0ff;
+    color: #c5d6cb;
   }
 
   .doctrine-state {
-    width: 144px;
+    width: 164px;
     height: 16px;
     padding: 5px 2px;
     border-width: 1px;
@@ -133,8 +133,8 @@
     padding: 4px 5px;
     gap: 8px;
     border-width: 1px;
-    border-color: #31485f;
-    background-color: #101925df;
+    border-color: #56675c;
+    background-color: #202b27ee;
   }
 
   .mech-identity {
@@ -142,7 +142,7 @@
     height: 15px;
     flex-grow: 1;
     padding: 8px 0px;
-    color: #8b9aaf;
+    color: #a0ada8;
   }
 
   .mech-doctrine-summary {
@@ -153,8 +153,8 @@
   }
 
   .doctrine-summary-line { width: 100%; height: 14px; text-align: right; }
-  .doctrine-deployed { color: #8294a8; }
-  .doctrine-effective { color: #6ed7ff; }
+  .doctrine-deployed { color: #a0ada8; }
+  .doctrine-effective { color: #a7ccc4; }
 
   .section-heading-row {
     width: 100%;
@@ -166,14 +166,14 @@
     width: 0px;
     height: 13px;
     flex-grow: 1;
-    color: #8b9aaf;
+    color: #a0ada8;
   }
 
   .section-scope {
-    width: 104px;
+    width: 120px;
     height: 13px;
     text-align: right;
-    color: #667789;
+    color: #829083;
   }
 
   .lance-order-cards {
@@ -192,23 +192,23 @@
     padding: 6px;
     gap: 5px;
     border-width: 1px;
-    border-color: #31485f;
-    background-color: #142131e8;
-    color: #aebdce;
+    border-color: #56675c;
+    background-color: #303a32f2;
+    color: #c1cbc3;
     overflow: hidden;
   }
 
-  .lance-order-card:hover { background-color: #243d56; border-color: #6ed7ff; }
-  .lance-order-card:active { background-color: #315070; }
+  .lance-order-card:hover { background-color: #46524a; border-color: #a7ccc4; }
+  .lance-order-card:active { background-color: #222b24; }
   .lance-order-card-active {
-    border-color: #6ed7ff;
+    border-color: #a7ccc4;
     background-color: #173548;
-    color: #6ed7ff;
+    color: #a7ccc4;
   }
 
-  .lance-order-name { width: 0px; height: 16px; flex-grow: 1; color: #c8e0ff; }
-  .lance-order-meta { width: 48px; height: 13px; text-align: right; color: #8294a8; }
-  .lance-order-card-active .lance-order-name { color: #6ed7ff; }
+  .lance-order-name { width: 0px; height: 16px; flex-grow: 1; color: #c5d6cb; }
+  .lance-order-meta { width: 48px; height: 13px; text-align: right; color: #a0ada8; }
+  .lance-order-card-active .lance-order-name { color: #a7ccc4; }
   .lance-order-card-active .lance-order-meta { color: #8ee3ff; }
 
   .mech-defend-area {
@@ -218,17 +218,17 @@
     padding: 6px;
     gap: 8px;
     border-width: 1px;
-    border-color: #4f6d8e;
-    background-color: #142131e8;
-    color: #6ed7ff;
+    border-color: #727b79;
+    background-color: #303a32f2;
+    color: #a7ccc4;
     text-align: left;
     overflow: hidden;
   }
 
-  .mech-defend-area:hover { background-color: #243d56; border-color: #6ed7ff; }
-  .mech-defend-area:active { background-color: #315070; }
-  .mech-defend-area-name { width: 0px; height: 16px; flex-grow: 1; color: #6ed7ff; }
-  .mech-defend-area-meta { width: 138px; height: 13px; text-align: right; color: #8294a8; }
+  .mech-defend-area:hover { background-color: #46524a; border-color: #a7ccc4; }
+  .mech-defend-area:active { background-color: #222b24; }
+  .mech-defend-area-name { width: 0px; height: 16px; flex-grow: 1; color: #a7ccc4; }
+  .mech-defend-area-meta { width: 138px; height: 13px; text-align: right; color: #a0ada8; }
   .mech-defend-area-active {
     border-color: #ffd464;
     background-color: #3a3018;
@@ -253,15 +253,15 @@
     padding: 5px;
     gap: 3px;
     border-width: 1px;
-    border-color: #31485f;
-    background-color: #142131e8;
-    color: #aebdce;
+    border-color: #56675c;
+    background-color: #303a32f2;
+    color: #c1cbc3;
     text-align: left;
     overflow: hidden;
   }
 
-  .doctrine-card:hover { background-color: #243d56; border-color: #6ed7ff; }
-  .doctrine-card:active { background-color: #315070; }
+  .doctrine-card:hover { background-color: #46524a; border-color: #a7ccc4; }
+  .doctrine-card:active { background-color: #222b24; }
   .doctrine-card-deployed { border-color: #3f7354; }
   .doctrine-card-long-range { padding: 5px 0px; flex-grow: 1.12; }
   .doctrine-card-active {
@@ -270,8 +270,8 @@
     color: #ffd464;
   }
 
-  .doctrine-name { width: 100%; height: 16px; color: #c8e0ff; }
-  .doctrine-meta { width: 100%; height: 13px; color: #8294a8; }
+  .doctrine-name { width: 100%; height: 16px; color: #c5d6cb; }
+  .doctrine-meta { width: 100%; height: 13px; color: #a0ada8; }
   .doctrine-card-active .doctrine-name { color: #ffd464; }
   .doctrine-card-active .doctrine-meta { color: #bcae82; }
 
@@ -287,19 +287,19 @@
     height: 14px;
     flex-grow: 1;
     padding: 5px 0px;
-    color: #667789;
+    color: #829083;
   }
 
   .mech-default {
-    width: 116px;
+    width: 142px;
     height: 14px;
     padding: 5px 6px;
     border-width: 1px;
-    border-color: #4f6d8e;
+    border-color: #727b79;
     font-family: heading;
     text-align: center;
-    color: #aebdce;
+    color: #c1cbc3;
   }
 
-  .mech-default:hover { border-color: #6ed7ff; color: #c8e0ff; }
+  .mech-default:hover { border-color: #a7ccc4; color: #c5d6cb; }
 </style>

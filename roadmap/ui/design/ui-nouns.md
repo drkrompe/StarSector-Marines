@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — briefing faction identity and content fit.
+Updated: 2026-10-09 — compact console language shared across player surfaces.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -251,6 +251,30 @@ the retained model.
     but abandoning live work requires a nearby confirmation state that names the
     consequence and offers cancellation. Confirmation invokes the feature command;
     the retained surface does not synthesize an outcome or become lifecycle authority.
+
+## Shared console presentation
+
+Player surfaces share the briefing's metal housing, dark instrument wells and
+restrained amber, green and red status accents. Raised command keys perform an
+action; inset selections and small lamps communicate a latched choice. Room
+navigation uses the same vocabulary, with absent and preparing rooms still
+visibly distinct. Mechanical SVG plates frame major sections rather than adding
+ornament to every data item. Battle overlays retain their bounded footprint and
+transparent world surround while sharing the console materials.
+
+Information determines the layout. Related counts and labels remain close in
+compact cards or groups; an expanding viewport is not a reason to stretch a
+sparse row. Action labels fit their control, and primary actions remain distinct
+from navigation and cancellation. Empty content reserves no large filler panel.
+Lists scroll when their useful content exceeds the allotted area, rather than
+because fixed padding inflated an otherwise fitting screen.
+
+Recognition comes from existing art: officer portraits, hull sprites, faction
+crests, commodity icons and the same command-power symbols in briefing and battle.
+Essential state, cost, scope and consequences stay visible; existing spec sheets
+and contextual hints own secondary detail. Presentation never supplies another
+catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at
+100% scale; live viewport fitting still honors the host and user settings.
 
 ## Intrinsic text and typography
 

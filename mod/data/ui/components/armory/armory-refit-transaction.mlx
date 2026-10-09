@@ -94,7 +94,7 @@
   #viewer-context { flex-direction: row; height: 30px; gap: 6px; }
   #fireteam-tabs { flex-direction: row; width: 296px; height: 28px; gap: 4px; }
   .fire-team-tab { width: 80px; height: 28px; padding: 4px 7px; border-width: 1px; font-family: body; text-align: center; }
-  .fire-team-tab.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
+  .fire-team-tab.selected { background-color: #35433f; border-color: #a5c6bc; color: #d5deea; }
   #target-summary { width: 240px; padding: 5px 7px; }
   #candidate-summary { width: 0px; flex-grow: 1; padding: 5px 7px; }
 
@@ -112,8 +112,8 @@
     height: 400px;
     border-width: 1px;
     overflow: hidden;
-    background-color: #0e1621;
-    border-color: #405a78;
+    background-color: #191e20;
+    border-color: #505c60;
   }
 
   .marine-card-content { flex-direction: column; width: 100%; height: 100%; padding: 8px; gap: 3px; overflow: hidden; }
@@ -126,8 +126,8 @@
   .marine-name { width: 0px; height: 24px; flex-grow: 1; padding: 3px 1px; font-family: body; }
   .marine-badges { flex-direction: row; width: 158px; height: 24px; gap: 3px; }
   .marine-badge { height: 22px; padding: 3px 5px; border-width: 1px; text-align: center; }
-  .class-badge { width: 52px; background-color: #172b3b; border-color: #53c6e8; }
-  .weapon-badge { width: 32px; background-color: #102633; border-color: #53c6e8; }
+  .class-badge { width: 52px; background-color: #172b3b; border-color: #a5c6bc; }
+  .weapon-badge { width: 32px; background-color: #102633; border-color: #a5c6bc; }
   .armor-badge { width: 32px; background-color: #2b2718; border-color: #dfb84d; }
   .marine-hero { flex-direction: row; height: 100px; gap: 7px; overflow: hidden; }
   .marine-identity { flex-direction: column; width: 0px; height: 100px; flex-grow: 1; gap: 2px; }
@@ -142,12 +142,12 @@
   .marine-equipment-title { flex-direction: row; height: 22px; padding: 3px 5px; border-width: 1px; gap: 5px; overflow: hidden; }
   .marine-equipment-title-text { width: 0px; height: 16px; flex-grow: 1; overflow: hidden; }
   .equipment-faction-logo { width: 28px; height: 14px; }
-  .equipment-note-target:hover { background-color: #173044; border-color: #6ed7ff; color: #e8f5ff; }
+  .equipment-note-target:hover { background-color: #173044; border-color: #c0dbcf; color: #e8f5ff; }
   .marine-equipment-detail { flex-direction: row; height: 62px; overflow: hidden; }
   .marine-stat-group { flex-direction: column; gap: 2px; }
   .weapon-stat-group, .armor-stat-group { width: 100%; height: 58px; }
   .marine-stat-row { flex-direction: row; height: 13px; gap: 4px; }
-  .marine-stat-label { width: 44px; }
+  .marine-stat-label { width: 58px; }
   .marine-stat-track {
     flex-direction: row;
     width: 0px;
@@ -156,10 +156,10 @@
     border-width: 1px;
     overflow: hidden;
     background-color: #101a25;
-    border-color: #405a78;
+    border-color: #505c60;
   }
   .marine-stat-fill { height: 100%; }
-  .weapon-stat-fill { background-color: #53c6e8; }
+  .weapon-stat-fill { background-color: #a5c6bc; }
   .armor-stat-fill { background-color: #dfb84d; }
   .marine-stat-value { width: 34px; text-align: right; }
   .marine-delta { height: 18px; }

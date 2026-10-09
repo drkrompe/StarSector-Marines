@@ -1,6 +1,7 @@
 <template props="title,subtitle,kicker,overviewRows,captainHeader,captainRows,formationHeader,formationSummary,squadRows,noticeClasses,noticeTitle,noticeBody,termClasses,termLabel,termValue,retainerLabel,retainerValue,minusDisabled,minusAction,plusDisabled,plusAction,backAction,primaryDisabled,primaryClasses,primaryLabel,primaryAction,secondaryDisabled,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="stationing-root" class="stationing-root">
-    <div id="stationing-header" class="mission-flow-header surface-dark">
+    <div id="stationing-header" class="mission-flow-header console-header">
+      <img id="stationing-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="stationing-heading" class="mission-flow-heading">
         <div id="stationing-title" class="label title tone-edge">{title}</div>
         <div id="stationing-subtitle" class="label tone-muted">{subtitle}</div>
@@ -8,9 +9,9 @@
       <div id="stationing-kicker" class="label heading tone-accent mission-flow-context">{kicker}</div>
     </div>
     <div id="stationing-body" class="stationing-body">
-      <div id="stationing-overview" class="panel stationing-overview">
+      <div id="stationing-overview" class="console-section stationing-overview">
         <div id="stationing-overview-heading" class="label heading tone-edge section-heading">ASSIGNMENT TERMS</div>
-        <div id="stationing-overview-rows" class="stationing-overview-rows surface-dark">
+        <div id="stationing-overview-rows" class="stationing-overview-rows console-readout">
           <div each="row in overviewRows" key="{row.id}" id="{row.id}" class="stationing-overview-row">
             <div id="{row.labelId}" class="label heading tone-muted">{row.label}</div>
             <div id="{row.valueId}" class="label stationing-overview-value">{row.value}</div>
@@ -21,10 +22,10 @@
             <div id="stationing-term-label" class="label heading tone-muted">{termLabel}</div>
             <div id="stationing-term-value" class="label title tone-accent">{termValue}</div>
           </div>
-          <button id="stationing-term-minus" disabled="{minusDisabled}" onclick="{minusAction}">-</button>
-          <button id="stationing-term-plus" disabled="{plusDisabled}" onclick="{plusAction}">+</button>
+          <button id="stationing-term-minus" disabled="{minusDisabled}" onclick="{minusAction}" class="console-action">-</button>
+          <button id="stationing-term-plus" disabled="{plusDisabled}" onclick="{plusAction}" class="console-action">+</button>
         </div>
-        <div id="stationing-retainer" class="stationing-retainer surface-dark">
+        <div id="stationing-retainer" class="stationing-retainer console-readout">
           <div id="stationing-retainer-label" class="label heading tone-muted">{retainerLabel}</div>
           <div id="stationing-retainer-value" class="label title tone-good">{retainerValue}</div>
         </div>
@@ -33,7 +34,7 @@
           <div id="stationing-notice-body" class="label">{noticeBody}</div>
         </div>
       </div>
-      <div id="stationing-formation" class="panel stationing-formation">
+      <div id="stationing-formation" class="console-section stationing-formation">
         <div id="stationing-formation-heading" class="formation-heading surface-dark">
           <div id="stationing-formation-heading-copy" class="formation-heading-copy">
             <div id="stationing-captain-header" class="label heading tone-edge">{captainHeader}</div>
@@ -62,8 +63,8 @@
         </div>
       </div>
     </div>
-    <div id="stationing-actions" class="mission-flow-actions panel surface-dark">
-      <button id="stationing-back" onclick="{backAction}">BACK</button>
+    <div id="stationing-actions" class="mission-flow-actions console-section">
+      <button id="stationing-back" onclick="{backAction}" class="console-action">BACK</button>
       <div id="stationing-action-spacer" class="action-spacer"></div>
       <button id="stationing-secondary" class="{secondaryClasses}" disabled="{secondaryDisabled}" onclick="{secondaryAction}">{secondaryLabel}</button>
       <button id="stationing-primary" class="{primaryClasses}" disabled="{primaryDisabled}" onclick="{primaryAction}">{primaryLabel}</button>
@@ -74,8 +75,8 @@
 <style>
   .stationing-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
-  .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 7px 10px; gap: 10px; border-width: 1px; }
+  .mission-flow-heading { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
   .mission-flow-heading .title { height: 24px; }
   .mission-flow-context { width: 360px; padding: 11px 4px; text-align: right; }
   .stationing-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
@@ -113,4 +114,24 @@
   .mission-flow-actions button { width: 250px; padding: 7px; border-width: 1px; text-align: center; font-family: heading; }
   .action-spacer { width: 0px; flex-grow: 1; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
+  .flow-header-lock { width: 32px; height: 38px; }
+  .mission-flow-actions button { height: 32px; padding: 5px 10px; }
+  .stationing-overview { width: 390px; gap: 7px; }
+  .stationing-overview-rows { height: 210px; padding: 5px; }
+  .stationing-overview-row { height: 34px; padding: 7px; border-color: #46545e; }
+  .stationing-term-controls { height: 54px; padding: 8px; align-items: center; background-color: #182228; border-color: #4c5b64; }
+  .stationing-retainer { height: 72px; padding: 8px; gap: 6px; }
+  .stationing-notice .label { white-space: normal; }
+  .formation-heading { height: 56px; padding: 7px 9px; }
+  .formation-summary { width: 360px; padding: 10px 4px; }
+  .captain-strip { height: 98px; overflow: scroll; }
+  .captain-card { width: 280px; height: 74px; gap: 6px; background-color: #252b30; border-color: #64717b; }
+  .stationing-squad-card { width: 345px; height: 74px; gap: 6px; background-color: #252b30; border-color: #64717b; }
+  .captain-card:hover, .stationing-squad-card:hover { background-color: #354047; border-color: #91a9b8; }
+  .captain-card.selected, .stationing-squad-card.selected { background-color: #253b42; border-color: #d4b569; }
+  .stationing-term-copy { height: 48px; }
+  .stationing-term-copy .heading { height: 16px; }
+  .stationing-term-copy .title { height: 24px; }
+  .stationing-term-controls button { width: 38px; height: 20px; padding: 5px 8px; }
+  .mission-flow-actions .hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
 </style>

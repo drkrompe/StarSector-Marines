@@ -48,7 +48,7 @@
       </div>
       <div id="organization-commit-row" class="organization-commit-row">
         <div id="organization-summary" class="{organization.summaryClasses}">{organization.summary}</div>
-        <button id="apply-squad-organization" class="organization-apply" disabled="{organization.applyDisabled}" onclick="{organization.applyAction}">{organization.applyLabel}</button>
+        <button id="apply-squad-organization" class="organization-apply console-action" disabled="{organization.applyDisabled}" onclick="{organization.applyAction}">{organization.applyLabel}</button>
       </div>
     </div>
 
@@ -95,8 +95,8 @@
   .organization-target-list { display: grid; height: 124px; gap: 6px; padding: 1px; overflow: scroll; }
   .organization-target { flex-direction: column; width: 216px; height: 104px; padding: 5px; gap: 2px; border-width: 2px; font-family: body; text-align: left; overflow: hidden; }
   .organization-target-identity { flex-direction: row; height: 56px; gap: 6px; }
-  .organization-target-portrait { width: 56px; height: 56px; border-width: 1px; border-color: #51758b; background-color: #0c1620; }
-  .organization-target-fallback { width: 54px; height: 54px; padding: 1px; border-width: 1px; border-color: #51758b; background-color: #0c1620; font-family: title; text-align: center; }
+  .organization-target-portrait { width: 56px; height: 56px; border-width: 1px; border-color: #51758b; background-color: #121719; }
+  .organization-target-fallback { width: 54px; height: 54px; padding: 1px; border-width: 1px; border-color: #51758b; background-color: #121719; font-family: title; text-align: center; }
   .organization-target-dossier { flex-direction: column; width: 0px; flex-grow: 1; height: 56px; }
   .organization-target-rank-row { flex-direction: row; height: 16px; gap: 4px; }
   .organization-target-rank { width: 16px; height: 16px; }

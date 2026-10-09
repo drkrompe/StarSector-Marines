@@ -1,6 +1,7 @@
 <template props="title,subtitle,kicker,doctrineHeader,pointsLabel,pointsValue,doctrineCaption,axisRows,fieldsHeader,fieldRows,noteClasses,noteText,releaseHeader,releaseCaption,releasableRows,releasableEmpty,releasedHeader,releasedRows,releasedEmpty,commonFloorNote,backAction">
   <div id="polity-doctrine-root" class="polity-root">
-    <div id="polity-doctrine-header" class="mission-flow-header surface-dark">
+    <div id="polity-doctrine-header" class="mission-flow-header console-header">
+      <img id="polity-doctrine-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
       <div id="polity-doctrine-heading" class="mission-flow-heading">
         <div id="polity-doctrine-title" class="label title tone-edge">{title}</div>
         <div id="polity-doctrine-subtitle" class="label tone-muted">{subtitle}</div>
@@ -8,26 +9,26 @@
       <div id="polity-doctrine-kicker" class="label heading tone-accent mission-flow-context">{kicker}</div>
     </div>
     <div id="polity-doctrine-body" class="polity-body">
-      <div id="polity-doctrine-points" class="panel polity-column">
+      <div id="polity-doctrine-points" class="console-section polity-column">
         <div id="polity-doctrine-points-heading" class="label heading tone-edge section-heading">{doctrineHeader}</div>
-        <div id="polity-doctrine-points-remaining" class="polity-points surface-dark">
+        <div id="polity-doctrine-points-remaining" class="polity-points console-readout">
           <div id="polity-doctrine-points-label" class="label heading tone-muted">{pointsLabel}</div>
           <div id="polity-doctrine-points-value" class="label title tone-accent polity-points-value">{pointsValue}</div>
         </div>
         <div id="polity-doctrine-axes" class="polity-axes">
-          <div each="axis in axisRows" key="{axis.id}" id="{axis.id}" class="polity-axis surface-dark">
+          <div each="axis in axisRows" key="{axis.id}" id="{axis.id}" class="polity-axis console-readout">
             <div id="{axis.copyId}" class="polity-axis-copy">
               <div id="{axis.labelId}" class="label heading tone-edge polity-axis-name">{axis.label}</div>
               <div id="{axis.detailId}" class="label tone-muted polity-axis-detail">{axis.detail}</div>
             </div>
             <div id="{axis.valueId}" class="label title tone-accent polity-axis-value">{axis.value}</div>
-            <button id="{axis.minusId}" disabled="{axis.minusDisabled}" onclick="{axis.minusAction}">-</button>
-            <button id="{axis.plusId}" disabled="{axis.plusDisabled}" onclick="{axis.plusAction}">+</button>
+            <button id="{axis.minusId}" disabled="{axis.minusDisabled}" onclick="{axis.minusAction}" class="console-action">-</button>
+            <button id="{axis.plusId}" disabled="{axis.plusDisabled}" onclick="{axis.plusAction}" class="console-action">+</button>
           </div>
         </div>
         <div id="polity-doctrine-caption" class="label tone-muted polity-caption">{doctrineCaption}</div>
       </div>
-      <div id="polity-doctrine-fields" class="panel polity-column">
+      <div id="polity-doctrine-fields" class="console-section polity-column">
         <div id="polity-doctrine-fields-heading" class="label heading tone-edge section-heading">{fieldsHeader}</div>
         <div id="polity-doctrine-field-rows" class="polity-field-rows">
           <div each="field in fieldRows" key="{field.id}" id="{field.id}" class="{field.classes}">
@@ -43,7 +44,7 @@
           <div id="polity-doctrine-note-text" class="label tone-muted">{noteText}</div>
         </div>
       </div>
-      <div id="polity-doctrine-release" class="panel polity-release">
+      <div id="polity-doctrine-release" class="console-section polity-release">
         <div id="polity-doctrine-release-heading" class="label heading tone-edge section-heading">{releaseHeader}</div>
         <div id="polity-doctrine-release-caption" class="label tone-danger polity-caption">{releaseCaption}</div>
         <div id="polity-doctrine-releasable" class="polity-release-list polity-release-list-wide">
@@ -52,7 +53,7 @@
               <div id="{card.nameId}" class="label heading tone-edge">{card.name}</div>
               <div id="{card.detailId}" class="label tone-muted">{card.detail}</div>
             </div>
-            <button id="{card.actionId}" class="good-surface polity-release-button" onclick="{card.action}">{card.actionLabel}</button>
+            <button id="{card.actionId}" class="good-surface polity-release-button console-action" onclick="{card.action}">{card.actionLabel}</button>
           </div>
         </div>
         <div id="polity-doctrine-releasable-empty" class="label tone-muted polity-empty">{releasableEmpty}</div>
@@ -70,8 +71,8 @@
         <div id="polity-doctrine-common" class="label tone-muted polity-caption">{commonFloorNote}</div>
       </div>
     </div>
-    <div id="polity-doctrine-actions" class="mission-flow-actions panel surface-dark">
-      <button id="polity-doctrine-back" onclick="{backAction}">BACK</button>
+    <div id="polity-doctrine-actions" class="mission-flow-actions console-section">
+      <button id="polity-doctrine-back" onclick="{backAction}" class="console-action">BACK</button>
       <div id="polity-doctrine-action-spacer" class="action-spacer"></div>
     </div>
   </div>
@@ -80,7 +81,7 @@
 <style>
   .polity-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
-  .mission-flow-header { flex-direction: row; height: 58px; padding: 8px 10px; border-width: 1px; }
+  .mission-flow-header { flex-direction: row; height: 58px; padding: 7px 10px; gap: 10px; border-width: 1px; }
   .mission-flow-heading { flex-direction: column; flex-grow: 1; gap: 4px; }
   .mission-flow-heading .title { height: 24px; }
   .mission-flow-context { width: 360px; padding: 11px 4px; text-align: right; }
@@ -127,4 +128,19 @@
   /* Same as .hidden, plus the flex-grow reset a growing field box needs: a
      hidden value line that still grows would halve the space its spans want. */
   .polity-field-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; opacity: 0; overflow: hidden; }
+  .flow-header-lock { width: 32px; height: 38px; }
+  .mission-flow-actions button { height: 32px; padding: 5px 10px; }
+  .polity-column { width: 455px; padding: 9px; gap: 7px; }
+  .polity-points { height: 48px; padding: 9px; }
+  .polity-axes { flex-grow: 0; height: 420px; gap: 7px; overflow: scroll; }
+  .polity-axis { height: 116px; padding: 8px; gap: 6px; align-items: center; }
+  .polity-axis-copy { height: 98px; }
+  .polity-axis-detail { height: 72px; flex-grow: 0; }
+  .polity-axis-value { width: 44px; height: 24px; padding: 0px; }
+  .polity-axis button { width: 38px; height: 20px; padding: 5px 8px; }
+  .polity-field-rows { height: 538px; overflow: scroll; }
+  .polity-release-card { height: 48px; padding: 9px; align-items: center; background-color: #182228; border-color: #4c5b64; }
+  .polity-released-card { background-color: #182228; border-color: #4c5b64; }
+  .polity-release-copy { height: 42px; }
+  .polity-release-button { width: 135px; height: 22px; padding: 5px 7px; }
 </style>

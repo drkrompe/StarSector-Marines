@@ -70,7 +70,12 @@ public final class SpecSheets {
 
     /** Shared pictograms for ability recognition in briefings and their detail sheets. */
     public static String commandPowerIcon(CommandPower power) {
-        String symbol = switch (power.id) {
+        return commandPowerIcon(power.id);
+    }
+
+    /** The battle tray already holds stable ability IDs, so it shares the same pictogram catalog. */
+    public static String commandPowerIcon(String powerId) {
+        String symbol = switch (powerId) {
             case OrbitalBarrage.ID -> "barrage";
             case MarineInsertion.ID -> "insertion";
             case VehicleSupport.ID -> "armour";

@@ -1,7 +1,7 @@
 <template props="label,hint,disabled,toggle,pauseLabel,pauseClasses,pauseDisabled,togglePause">
   <div id="battle-direct-control" class="direct-control">
     <div id="battle-direct-control-actions" class="direct-actions">
-      <button id="battle-direct-control-toggle" class="direct-toggle" disabled="{disabled}" onclick="{toggle}">{label}</button>
+      <button id="battle-direct-control-toggle" class="direct-toggle console-action" disabled="{disabled}" onclick="{toggle}">{label}</button>
       <button id="battle-direct-control-pause" class="{pauseClasses}" disabled="{pauseDisabled}" onclick="{togglePause}">{pauseLabel}</button>
     </div>
     <div id="battle-direct-control-hint" class="direct-hint">{hint}</div>
@@ -15,8 +15,8 @@
     padding: 0px;
     gap: 3px;
     border-width: 0px;
-    border-color: #4f6d8e;
-    background-color: #0b111be8;
+    border-color: #727b79;
+    background-color: #141e19f2;
     overflow: hidden;
   }
   .direct-actions { width: 100%; height: 28px; flex-direction: row; gap: 4px; }
@@ -26,20 +26,20 @@
     height: 26px;
     font-family: heading;
     text-align: center;
-    color: #d7f3ff;
-    background-color: #243d56;
+    color: #e4e7df;
+    background-color: #46524a;
     border-width: 1px;
-    border-color: #6ed7ff;
+    border-color: #a7ccc4;
   }
-  .direct-toggle:hover { background-color: #315070; }
-  .direct-pause:hover { background-color: #315070; }
-  .direct-toggle:disabled { color: #8b98a6; border-color: #45596f; background-color: #142131; }
+  .direct-toggle:hover { background-color: #222b24; }
+  .direct-pause:hover { background-color: #222b24; }
+  .direct-toggle:disabled { color: #8b98a6; border-color: #65756b; background-color: #303a32; }
   .direct-pause-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
   .direct-hint {
     height: 20px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
-    color: #aebdce;
+    color: #c1cbc3;
   }
 </style>

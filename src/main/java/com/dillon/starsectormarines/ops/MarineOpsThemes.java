@@ -62,6 +62,7 @@ final class MarineOpsThemes {
                 button:active { background-color: #222c2a; border-style: inset; }
                 button:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 button:disabled { opacity: 0.38; }
+                .doctrine-card-active:disabled, .lance-order-card-active:disabled { opacity: 1; }
                 .good-surface { background-color: #132b22; border-color: #78d494; }
                 .warning-surface { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
@@ -202,6 +203,54 @@ final class MarineOpsThemes {
                 }
                 .mission-briefing-root .spec-sheet-title { color: #edc273; }
                 .mission-briefing-root .spec-sheet-subtitle, .mission-briefing-root .spec-sheet-stat-label { color: #a0ada8; }
+
+                /* Shared command keys and latching selectors; dimensions belong to each surface. */
+                .console-action, .organization-start, .organization-cancel,
+                .squad-reinforce, .slot-strip-action, .fabricate-action,
+                #compare-armor-patterns, #squad-breadcrumb button, #fireteam-breadcrumb button,
+                #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
+                .console-toggle, .fire-team-tab, .equipment-picker-tab,
+                .loadout-filter, .supply-filter, .catalog-filter-pill,
+                .team-tab {
+                    color: #dfe3d4; background-color: #3c453e; border-color: #919887;
+                    border-style: outset;
+                    background-image: linear-gradient(to bottom, #ffffff15 0%, #ffffff00 12%, #00000000 80%, #00000044 82%, #00000044 100%);
+                }
+                .console-action:hover, .organization-start:hover, .organization-cancel:hover,
+                .squad-reinforce:hover, .slot-strip-action:hover, .fabricate-action:hover,
+                #compare-armor-patterns:hover, #squad-breadcrumb button:hover, #fireteam-breadcrumb button:hover,
+                #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
+                .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
+                .team-tab:hover { background-color: #525d4e; }
+                .console-action:active, .organization-start:active, .organization-cancel:active,
+                .squad-reinforce:active, .slot-strip-action:active, .fabricate-action:active,
+                #compare-armor-patterns:active, #squad-breadcrumb button:active, #fireteam-breadcrumb button:active,
+                #comparison-breadcrumb button:active, #designer-breadcrumb button:active, #marine-ops-page-routes button:active,
+                .console-toggle:active, .fire-team-tab:active, .equipment-picker-tab:active,
+                .loadout-filter:active, .supply-filter:active, .catalog-filter-pill:active,
+                .team-tab:active { background-color: #222b24; border-style: inset; }
+                .console-action:focus-visible, .organization-start:focus-visible, .organization-cancel:focus-visible,
+                .squad-reinforce:focus-visible, .slot-strip-action:focus-visible, .fabricate-action:focus-visible,
+                #compare-armor-patterns:focus-visible, #squad-breadcrumb button:focus-visible, #fireteam-breadcrumb button:focus-visible,
+                #comparison-breadcrumb button:focus-visible, #designer-breadcrumb button:focus-visible, #marine-ops-page-routes button:focus-visible,
+                .console-toggle:focus-visible, .fire-team-tab:focus-visible, .equipment-picker-tab:focus-visible,
+                .loadout-filter:focus-visible, .supply-filter:focus-visible, .catalog-filter-pill:focus-visible,
+                .team-tab:focus-visible { border-color: #ffe1a0; border-style: solid; }
+                .console-toggle.selected, .fire-team-tab.selected, .equipment-picker-tab.selected,
+                .loadout-filter.selected, .supply-filter.selected, .catalog-filter-pill.selected,
+                .team-tab.selected {
+                    background-color: #20291f; border-color: #a89b70; color: #e9d29b;
+                    border-style: inset; background-image: none;
+                }
+                .console-action.danger-surface { color: #e98b83; border-color: #a4756c; }
+                .console-action.good-surface { color: #e8d9a7; }
+                .console-toggle-lamp { width: 6px; height: 6px; border-width: 1px; pointer-events: none; }
+                .console-toggle.selected .console-toggle-lamp,
+                .page-nav-current .console-toggle-lamp { background-color: #edc273; border-color: #edc273; }
+                .spec-sheet { background-color: #141e19; border-color: #b9a16b; color: #e4e7df; }
+                .spec-sheet-title { color: #edc273; }
+                .spec-sheet-subtitle, .spec-sheet-stat-label { color: #a0ada8; }
                 .console-key-legend {
                     width: 0px; flex-grow: 1; height: auto; padding: 0px;
                     font-family: heading; text-align: center; overflow: hidden; pointer-events: none;
@@ -246,6 +295,7 @@ final class MarineOpsThemes {
                 button:active { background-color: #2185b4; }
                 button:focus-visible { border-color: #ffe45c; }
                 button:disabled { opacity: 0.32; }
+                .doctrine-card-active:disabled, .lance-order-card-active:disabled { opacity: 1; }
                 .good-surface { background-color: #06361b; border-color: #78ff9d; }
                 .warning-surface { background-color: #3a3018; border-color: #ffe45c; color: #ffe45c; }
                 .danger-surface { background-color: #501c16; border-color: #ff9d91; }
@@ -277,6 +327,28 @@ final class MarineOpsThemes {
                     background-color: #ffe45c; border-color: #ffe45c;
                 }
 
+                .console-action, .organization-start, .organization-cancel,
+                .squad-reinforce, .slot-strip-action, .fabricate-action,
+                #compare-armor-patterns, #squad-breadcrumb button, #fireteam-breadcrumb button,
+                #comparison-breadcrumb button, #designer-breadcrumb button, #marine-ops-page-routes button,
+                .console-toggle, .fire-team-tab, .equipment-picker-tab,
+                .loadout-filter, .supply-filter, .catalog-filter-pill,
+                .team-tab { background-color: #102b42; border-color: #d2f3ff; color: #ffffff; }
+                .console-action:hover, .organization-start:hover, .organization-cancel:hover,
+                .squad-reinforce:hover, .slot-strip-action:hover, .fabricate-action:hover,
+                #compare-armor-patterns:hover, #squad-breadcrumb button:hover, #fireteam-breadcrumb button:hover,
+                #comparison-breadcrumb button:hover, #designer-breadcrumb button:hover, #marine-ops-page-routes button:hover,
+                .console-toggle:hover, .fire-team-tab:hover, .equipment-picker-tab:hover,
+                .loadout-filter:hover, .supply-filter:hover, .catalog-filter-pill:hover,
+                .team-tab:hover { background-color: #15577b; }
+                .console-toggle.selected, .fire-team-tab.selected, .equipment-picker-tab.selected,
+                .loadout-filter.selected, .supply-filter.selected, .catalog-filter-pill.selected,
+                .team-tab.selected { background-color: #225b75; border-color: #ffe45c; }
+                .console-action.danger-surface { color: #ff9d91; border-color: #ff9d91; }
+                .console-action.good-surface { color: #78ff9d; border-color: #78ff9d; }
+                .console-action.warning-surface { color: #ffe45c; border-color: #ffe45c; }
+                .console-toggle-lamp { width: 6px; height: 6px; border-width: 1px; pointer-events: none; }
+                .page-nav-current .console-toggle-lamp { background-color: #ffe45c; }
                 .console-key-legend {
                     width: 0px; flex-grow: 1; height: auto; padding: 0px;
                     font-family: heading; text-align: center; overflow: hidden; pointer-events: none;

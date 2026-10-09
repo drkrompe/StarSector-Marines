@@ -114,7 +114,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         props.put("noticeBody", Strings.get("postingTermsNotice"));
         putNoTerms(props);
         props.put("primaryDisabled", !commandValid);
-        props.put("primaryClasses", "good-surface");
+        props.put("primaryClasses", "good-surface console-action");
         props.put("primaryLabel", Strings.get("postingAccept"));
         props.put("primaryAction", (Runnable) this::onPost);
         hideSecondary(props);
@@ -175,7 +175,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         props.put("plusDisabled", requestedMonths >= 6);
         props.put("plusAction", (Runnable) () -> adjustMonths(1));
         props.put("primaryDisabled", terms == null || !commandValid);
-        props.put("primaryClasses", "good-surface");
+        props.put("primaryClasses", "good-surface console-action");
         props.put("primaryLabel", Strings.get("stationingAccept"));
         props.put("primaryAction", (Runnable) this::onAccept);
         hideSecondary(props);
@@ -251,7 +251,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                     + MessageFormat.format(Strings.get("stationingIncidentDetachment"),
                     captainName, incident.committedMarines));
             props.put("secondaryDisabled", false);
-            props.put("secondaryClasses", "warning-surface");
+            props.put("secondaryClasses", "warning-surface console-action");
             props.put("secondaryLabel", Strings.get("stationingIncidentRespond"));
             props.put("secondaryAction", (Runnable) () -> onRespond(incident));
             configureWithdraw(props, false, posting);
@@ -262,7 +262,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                     + MessageFormat.format(Strings.get("stationingIncidentDetachment"),
                     captainName, defense.committedMarines));
             props.put("secondaryDisabled", false);
-            props.put("secondaryClasses", "warning-surface");
+            props.put("secondaryClasses", "warning-surface console-action");
             props.put("secondaryLabel", Strings.get("stationingIncidentRespond"));
             props.put("secondaryAction", (Runnable) () -> onRespond(defense));
             configureWithdraw(props, true, posting);
@@ -287,7 +287,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
     private void configureWithdraw(Map<String, Object> props, boolean blocked,
                                    boolean posting) {
         props.put("primaryDisabled", blocked);
-        props.put("primaryClasses", "danger-surface");
+        props.put("primaryClasses", "danger-surface console-action");
         props.put("primaryLabel", Strings.get(blocked ? "garrisonDefenseResolveFirst"
                 : posting ? "postingRelease" : "stationingWithdraw"));
         props.put("primaryAction", (Runnable) this::onWithdraw);
@@ -361,12 +361,12 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                 : "Selected squads and their captain remain unavailable until this posting settles.");
         props.put("backAction", none);
         props.put("primaryDisabled", responsePending);
-        props.put("primaryClasses", management ? "danger-surface" : "good-surface");
+        props.put("primaryClasses", management ? "danger-surface console-action" : "good-surface console-action");
         props.put("primaryLabel", responsePending ? "RESOLVE RESPONSE FIRST"
                 : management ? "WITHDRAW EARLY" : "ACCEPT ASSIGNMENT");
         props.put("primaryAction", none);
         if (responsePending) {
-            props.put("secondaryDisabled", false); props.put("secondaryClasses", "warning-surface");
+            props.put("secondaryDisabled", false); props.put("secondaryClasses", "warning-surface console-action");
             props.put("secondaryLabel", "RESPOND"); props.put("secondaryAction", none);
         } else hideSecondary(props);
         return props;
@@ -427,14 +427,14 @@ public final class StationingScreen extends MissionFlowMlxScreen {
 
     private static CaptainRow captainCard(String id, String name, String detail,
                                            boolean selected, Runnable action) {
-        return new CaptainRow(id, "captain-card" + (selected ? " selected" : ""),
+        return new CaptainRow(id, "captain-card console-toggle" + (selected ? " selected" : ""),
                 name, detail, action);
     }
 
     private static SquadRow squadCard(String id, String name, String status,
                                       String detail, boolean selected,
                                       boolean disabled, Runnable action) {
-        return new SquadRow(id, "stationing-squad-card" + (selected ? " selected" : ""),
+        return new SquadRow(id, "stationing-squad-card console-toggle" + (selected ? " selected" : ""),
                 name, status, "label heading stationing-squad-status "
                         + (selected ? "tone-good" : disabled ? "tone-danger" : "tone-edge"),
                 detail, disabled, action);

@@ -72,14 +72,14 @@ public final class LootScreen extends MissionFlowMlxScreen {
         props.put("poolLabel", "8 recovered stacks · Cr. 31,400 total pool value");
         props.put("instructions", "Choose complete recovered stacks up to the negotiated claim budget. Overflow that does not fit cargo is fenced automatically at settlement.");
         props.put("lootRows", List.of(
-                previewRow(0, "Heavy Machinery", "18 recovered", "Cr. 4,500", "SELECTED", true, false, none),
-                previewRow(1, "Supplies", "40 recovered", "Cr. 4,000", "SELECTED", true, false, none),
-                previewRow(2, "Heavy Autocannon", "1 recovered", "Cr. 1,300", "SELECTED", true, false, none),
-                previewRow(3, "Volturnian Lobster", "12 recovered", "Cr. 2,400", "AVAILABLE", false, false, none),
-                previewRow(4, "AI Core", "1 recovered", "Cr. 8,000", "OVER BUDGET", false, true, none),
-                previewRow(5, "Fuel", "70 recovered", "Cr. 1,750", "AVAILABLE", false, false, none),
-                previewRow(6, "Marines", "10 recovered", "Cr. 1,000", "AVAILABLE", false, false, none),
-                previewRow(7, "Field Armour Pattern", "1 recovered", "Cr. 8,450", "OVER BUDGET", false, true, none)));
+                previewRow(0, "graphics/icons/cargo/heavymachinery.png", "Heavy Machinery", "18 recovered", "Cr. 4,500", "SELECTED", true, false, none),
+                previewRow(1, "graphics/icons/cargo/supplies.png", "Supplies", "40 recovered", "Cr. 4,000", "SELECTED", true, false, none),
+                previewRow(2, null, "Heavy Autocannon", "1 recovered", "Cr. 1,300", "SELECTED", true, false, none),
+                previewRow(3, "graphics/icons/cargo/lobster.png", "Volturnian Lobster", "12 recovered", "Cr. 2,400", "AVAILABLE", false, false, none),
+                previewRow(4, "graphics/icons/cargo/ai_core_alpha.png", "AI Core", "1 recovered", "Cr. 8,000", "OVER BUDGET", false, true, none),
+                previewRow(5, "graphics/icons/cargo/fuel.png", "Fuel", "70 recovered", "Cr. 1,750", "AVAILABLE", false, false, none),
+                previewRow(6, "graphics/icons/cargo/marine.png", "Marines", "10 recovered", "Cr. 1,000", "AVAILABLE", false, false, none),
+                previewRow(7, null, "Field Armour Pattern", "1 recovered", "Cr. 8,450", "OVER BUDGET", false, true, none)));
         props.put("carryLabel", "59 units · Cr. 9,800 value");
         props.put("fenceLabel", "0 units · Cr. 0 paid");
         props.put("noticeClasses", "label tone-muted");
@@ -104,7 +104,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
             boolean canSelect = selection.canSelect(i);
             int index = i;
             rows.add(new LootRow("loot-stack-" + i,
-                    "loot-card" + (selected ? " selected" : !canSelect ? " blocked" : ""),
+                    "loot-card console-toggle" + (selected ? " selected" : !canSelect ? " blocked" : ""),
                     stack.iconPath, stack.displayName,
                     MessageFormat.format(Strings.get("lootQuantityFmt"), stack.quantity),
                     MessageFormat.format(Strings.get("lootValueFmt"), number(stack.totalValue())),
@@ -117,12 +117,12 @@ public final class LootScreen extends MissionFlowMlxScreen {
         return List.copyOf(rows);
     }
 
-    private static LootRow previewRow(int index, String name, String quantity,
+    private static LootRow previewRow(int index, String icon, String name, String quantity,
                                       String value, String status, boolean selected,
                                       boolean blocked, Runnable action) {
         String id = "loot-preview-" + index;
-        return new LootRow(id, "loot-card" + (selected ? " selected" : blocked ? " blocked" : ""),
-                null, name, quantity, value, status,
+        return new LootRow(id, "loot-card console-toggle" + (selected ? " selected" : blocked ? " blocked" : ""),
+                icon, name, quantity, value, status,
                 "label heading "
                         + (selected ? "tone-good" : blocked ? "tone-danger" : "tone-edge"),
                 blocked, action);

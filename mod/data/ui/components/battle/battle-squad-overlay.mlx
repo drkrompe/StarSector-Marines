@@ -3,7 +3,7 @@
     <div id="battle-squad-panel" class="squad-panel">
       <div id="battle-squad-header" class="squad-header">
         <div id="battle-squad-summary" class="squad-summary">
-          <button id="battle-squad-back" class="squad-back" onclick="{backAction}">&lt; BACK</button>
+          <button id="battle-squad-back" class="squad-back console-action" onclick="{backAction}">&lt; BACK</button>
           <div id="battle-squad-title" class="label heading squad-title">{squadTitle}</div>
           <div id="battle-squad-strength" class="label heading squad-strength">{squadStrength}</div>
           <div id="battle-squad-morale" class="squad-morale">
@@ -70,8 +70,8 @@
     padding: 7px;
     gap: 6px;
     border-width: 1px;
-    border-color: #4f6d8e;
-    background-color: #0b111be8;
+    border-color: #727b79;
+    background-color: #141e19f2;
     overflow: hidden;
   }
 
@@ -103,14 +103,14 @@
     height: 18px;
     flex-grow: 1;
     padding: 6px 0px;
-    color: #c8e0ff;
+    color: #c5d6cb;
   }
 
   .squad-strength {
     width: 40px;
     height: 18px;
     padding: 6px 0px;
-    color: #c8e0ff;
+    color: #c5d6cb;
   }
 
   .squad-defend-area {
@@ -118,10 +118,10 @@
     height: 18px;
     padding: 5px;
     border-width: 1px;
-    border-color: #4f6d8e;
+    border-color: #727b79;
     font-family: heading;
     text-align: center;
-    color: #6ed7ff;
+    color: #a7ccc4;
   }
 
   .squad-defend-area-active {
@@ -138,8 +138,8 @@
     padding: 2px 0px;
   }
 
-  .morale-label { width: 100%; height: 13px; text-align: right; color: #8b9aaf; }
-  .morale-track { width: 100%; height: 3px; background-color: #172231; }
+  .morale-label { width: 100%; height: 13px; text-align: right; color: #a0ada8; }
+  .morale-track { width: 100%; height: 3px; background-color: #101713; }
   .morale-fill { height: 100%; background-color: #78d494; }
 
   .squad-orders {
@@ -153,7 +153,7 @@
     width: 128px;
     height: 18px;
     padding: 6px 0px;
-    color: #8b9aaf;
+    color: #a0ada8;
   }
 
   .squad-order-spacer { width: 0px; height: 1px; flex-grow: 1; }
@@ -173,14 +173,14 @@
     padding: 5px;
     gap: 4px;
     border-width: 1px;
-    border-color: #31485f;
-    background-color: #101925df;
+    border-color: #56675c;
+    background-color: #202b27ee;
     overflow: hidden;
   }
 
   .fireteam-header { width: 100%; height: 14px; flex-direction: row; }
-  .fireteam-name { width: 0px; height: 14px; flex-grow: 1; color: #6ed7ff; }
-  .fireteam-strength { width: 26px; height: 14px; text-align: right; color: #8b9aaf; }
+  .fireteam-name { width: 0px; height: 14px; flex-grow: 1; color: #a7ccc4; }
+  .fireteam-strength { width: 26px; height: 14px; text-align: right; color: #a0ada8; }
 
   .fireteam-members {
     width: 100%;
@@ -196,16 +196,16 @@
     padding: 2px 3px;
     gap: 2px;
     border-width: 1px;
-    border-color: #31485f;
-    background-color: #142131e8;
+    border-color: #56675c;
+    background-color: #303a32f2;
     overflow: hidden;
   }
 
-  .member-card:hover { background-color: #243d56; border-color: #6ed7ff; }
+  .member-card:hover { background-color: #46524a; border-color: #a7ccc4; }
   .member-leader { border-color: #806b35; }
   .member-leader .member-name { color: #ffd464; }
   .member-critical { border-color: #8e4d49; }
-  .member-empty { opacity: 0.28; background-color: #0c121a; }
+  .member-empty { opacity: 0.28; background-color: #101713; }
 
   .member-line {
     width: 100%;
@@ -214,7 +214,7 @@
     gap: 3px;
     font-family: compact;
   }
-  .member-name { width: 0px; height: 13px; flex-grow: 1; color: #c8e0ff; }
+  .member-name { width: 0px; height: 13px; flex-grow: 1; color: #c5d6cb; }
   .member-primary { width: 38px; height: 13px; text-align: right; color: #78d494; }
   .member-special {
     width: 24px;
@@ -223,7 +223,7 @@
     text-align: right;
     color: #ffd464;
   }
-  .member-hp-track { width: 100%; height: 3px; background-color: #172231; }
+  .member-hp-track { width: 100%; height: 3px; background-color: #101713; }
   .member-hp-fill { height: 100%; background-color: #78d494; }
 
   .squad-tooltip {
@@ -233,8 +233,8 @@
     padding: 7px;
     gap: 5px;
     border-width: 1px;
-    border-color: #6ed7ff;
-    background-color: #091019f5;
+    border-color: #a7ccc4;
+    background-color: #141e19f5;
     overflow: hidden;
   }
 
@@ -247,11 +247,11 @@
     opacity: 0;
   }
 
-  .tooltip-title { width: 100%; height: 16px; color: #c8e0ff; }
-  .tooltip-team { width: 100%; height: 14px; color: #8b9aaf; }
-  .tooltip-line { width: 100%; height: 14px; color: #aebdce; }
+  .tooltip-title { width: 100%; height: 16px; color: #c5d6cb; }
+  .tooltip-team { width: 100%; height: 14px; color: #a0ada8; }
+  .tooltip-line { width: 100%; height: 14px; color: #c1cbc3; }
   .tooltip-primary { color: #78d494; }
   .tooltip-special { color: #ffd464; }
-  .tooltip-system { color: #6ed7ff; }
-  .tooltip-profile { color: #aebdce; }
+  .tooltip-system { color: #a7ccc4; }
+  .tooltip-profile { color: #c1cbc3; }
 </style>

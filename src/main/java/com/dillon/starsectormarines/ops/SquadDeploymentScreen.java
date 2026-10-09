@@ -135,7 +135,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
             String casualties = casualtySummary(wia, mia, kia);
             String base = "deployment-squad-" + rows.size();
             CommanderRow commander = commanderRow(squad, selected, canToggle);
-            rows.add(new SquadRow(base, "deployment-squad-card"
+            rows.add(new SquadRow(base, "deployment-squad-card console-toggle"
                     + (selected ? " selected" : ""), squad.name(),
                     ready + " / " + MarineSquad.CAPACITY + " RTD",
                     "label heading squad-card-readiness " + (selected ? "tone-accent"
@@ -152,7 +152,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
     private static SquadRow previewRow(int index, String name, String readiness,
                                        String status, boolean selected, Runnable action) {
         String base = "deployment-preview-" + index;
-        return new SquadRow(base, "deployment-squad-card" + (selected ? " selected" : ""),
+        return new SquadRow(base, "deployment-squad-card console-toggle" + (selected ? " selected" : ""),
                 name, readiness, "label heading squad-card-readiness "
                         + (selected ? "tone-accent" : "tone-good"),
                 "Field Rifles / Standard Plate",
