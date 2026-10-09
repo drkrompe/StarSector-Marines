@@ -18,14 +18,14 @@ final class BriefingHints {
         SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
         bindChoices(binder, markup, props, "captains",
                 "Stationed Officer".equals(props.get("captainHeader"))
-                        ? "Stationed officer" : "Operation officer / optional");
+                        ? "Stationed officer" : "Operation commander / optional");
         bindChoices(binder, markup, props, "powerRows", "Command power");
         bindChoices(binder, markup, props, "sourceRows", "Power source");
         bindChoices(binder, markup, props, "carrierRows", "Fighter cover");
         for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
             BriefingViewModel.ForceCard row = (BriefingViewModel.ForceCard) value;
             binder.bind(markup.requireElement(row.id()), new SpecSheet(row.name(),
-                    row.namedOfficer() ? "Coordinated command group" : "Independent squad command",
+                    row.role() + (row.namedOfficer() ? " / coordinated group" : " / independent squad"),
                     row.portrait(), "command", List.of(), List.of(row.detail(),
                     row.namedOfficer()
                             ? "In Conquest, this officer coordinates these squads as one group and retasks them together."

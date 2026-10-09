@@ -340,8 +340,12 @@ portrait anchors the card beside its text and also appears in the commanding-off
 picker. Portrait identity comes from the captain; an unassigned force never borrows
 another officer's image. Acting-NCO cards remain valid independent groups, and
 an explicitly omitted operation officer remains omitted across screen rebuilds.
-Named group hints describe Conquest coordination without promising a passive
-stat bonus or permanent ownership of a compass lane. Cards keep a bounded
+Cards visibly distinguish the operation commander, sub-commanders and acting
+NCOs. A brief always-visible explanation names Conquest advance, regrouping and
+objective coordination, while the commander picker explains unattached-squad
+leadership and rank capacity. Essential role and behavior meaning never relies
+on discovering a hover target. Hints expand these rules without promising a
+passive stat bonus or permanent ownership of a compass lane. Cards keep a bounded
 reading width as the briefing expands; they wrap into a scrolling gallery instead
 of spreading a name and its counts across the screen. Existing readiness warnings
 remain on their values. An empty officer breakdown reserves no gallery space.

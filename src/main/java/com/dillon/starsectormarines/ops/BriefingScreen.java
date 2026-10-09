@@ -383,8 +383,8 @@ public class BriefingScreen implements Screen {
         BriefingViewModel.putSurvey(props, preparedSurvey != null ? preparedSurvey.map() : null,
                 surveyFailure != null ? "Survey unavailable / retry to prepare terrain" : "Compiling terrain and landing intelligence...");
         props.put("termActions", retainedTermActions(mission));
-        props.put("captainHeader", mission.source == MissionSource.STATIONING
-                ? "Stationed Officer" : "Operation Officer / Optional");
+        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST,
+                mission.source == MissionSource.STATIONING);
         props.put("captains", retainedCaptainRows(mission));
         props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()
                 ? "Acting NCOs lead squads independently" : "");
@@ -478,7 +478,7 @@ public class BriefingScreen implements Screen {
         if (mission.source != MissionSource.STATIONING) {
             rows.add(new BriefingViewModel.ChoiceRow("captain-acting-nco",
                     "choice-row" + (ctx.getSelectedCaptainId() == null ? " selected" : ""),
-                    "No operation officer", "Home officers retain groups; remaining squads use acting NCOs",
+                    "No operation commander", "Home officers retain groups; remaining squads use acting NCOs",
                     false, () -> { ctx.setSelectedCaptainId(null); rebuild(); }, null));
         }
         for (int i = 0; i < captains.size(); i++) {
@@ -486,7 +486,7 @@ public class BriefingScreen implements Screen {
             boolean selected = captain.id().equals(ctx.getSelectedCaptainId());
             rows.add(new BriefingViewModel.ChoiceRow("captain-" + i,
                     "choice-row" + (selected ? " selected" : ""),
-                    captain.name(), captain.rank().displayName() + "  ·  command cap "
+                    captain.name(), captain.rank().displayName() + "  ·  coordinates up to "
                             + captain.rank().squadCommandCap() + " squads",
                     false, () -> selectCaptain(captain, mission), captain.portraitSprite()));
         }
@@ -743,12 +743,15 @@ public class BriefingScreen implements Screen {
             boolean bad = !element.fit() || element.overCap();
             String name = element.officer != null
                     ? element.officer.rank().displayName() + " " + element.officer.name()
-                    : element.displayName();
+                    : element.squads.get(0).name();
             String detail = element.squads.size() + (element.squads.size() == 1 ? " squad  ·  " : " squads  ·  ") + element.marines
                     + " marines" + (element.inherited ? "  ·  attached" : "");
-            rows.add(BriefingViewModel.forceCard("task-force-" + index++, name, detail,
+            BriefingViewModel.ForceCard card = BriefingViewModel.forceCard("task-force-" + index++, name, detail,
                     element.officer != null ? element.officer.portraitSprite() : null,
-                    bad ? "tone-danger" : "", element.officer != null));
+                    bad ? "tone-danger" : "", element.officer != null);
+            boolean operationCommander = element.officer != null && force.commander() != null
+                    && element.officer.id().equals(force.commander().id());
+            rows.add(operationCommander ? card.asOperationCommander() : card);
         }
         return List.copyOf(rows);
     }

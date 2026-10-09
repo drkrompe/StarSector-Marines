@@ -25,3 +25,4 @@ Updated: 2026-10-08 — briefing map folded into `ui-nouns.md` and `campaign-bat
 | U4 — MLX components and bindings | 2026-08-24 | `7b229fb1` | `ui-nouns.md` |
 | U5 — headless retained-view renderer | 2026-08-24 | `ccb9eb89` | `ui-nouns.md` |
 | Spec sheet — one hover overlay for every catalog item | 2026-09-02 | `e145dc894`, `0cc533099`, `2c7226554`, `13e9d2b9c`..`944453e9f` | `ui-nouns.md` (vocabulary, law 6, extension points); `company-view-nouns.md` dossier overlay redirected |
+| `briefing-command-roles.md` | 2026-10-08 | this commit | `ui-nouns.md` — visible command roles and essential behavior explanation |
