@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.marine.SquadProfile;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -30,6 +32,7 @@ public final class BarracksCommandModel {
     private static final int PAGE_SIZE = 10;
     private final MarineRoster roster;
     private final BarracksEquipmentIssue equipment;
+    private final EquipmentIssueResources resources;
     private final IntSupplier cargoMarines;
     private final Function<String, PersonnelDrawResult> reinforce;
     private final Consumer<String> inspect;
@@ -56,6 +59,7 @@ public final class BarracksCommandModel {
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
                                 Consumer<String> inspect, Runnable changed) {
         this.roster = roster;
+        this.resources = resources;
         this.equipment = new BarracksEquipmentIssue(roster, resources);
         this.cargoMarines = cargoMarines;
         this.reinforce = reinforce;
@@ -65,6 +69,9 @@ public final class BarracksCommandModel {
         bind(reactor, "commands", this::commands);
         bind(reactor, "squads", this::squads);
         bind(reactor, "profiles", this::profiles);
+        bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
+        bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
+        bind(reactor, "recruitDraw", () -> Integer.toString(recruitsRequired()));
         bind(reactor, "profilesEmpty", () -> roster.armory().squadProfiles().isEmpty()
                 ? "No saved profiles. Choose NEW to pair a loadout and tactic sheet." : "");
         bind(reactor, "overviewClasses", () -> detail ? "command-board hidden" : "command-board");
@@ -278,9 +285,21 @@ public final class BarracksCommandModel {
     private String recruitment() {
         int vacancies = vacancies();
         int reserves = Math.min(vacancies, roster.readyReserveCount());
-        int cargo = Math.min(vacancies - reserves, cargoMarines.getAsInt());
-        return vacancies + " open billets / " + reserves + " reserves + " + cargo + " cargo marines\n"
-                + (vacancies - reserves - cargo) + " remain vacant. Wounded retain their billets.";
+        return vacancies + " vacancies / " + reserves + " from reserves\n"
+                + (vacancies - reserves - recruitsRequired()) + " remain unfilled";
+    }
+    private int recruitsRequired() {
+        return Math.min(Math.max(0, vacancies() - roster.readyReserveCount()), cargoMarines.getAsInt());
+    }
+    public SpecSheet recruitSheet() {
+        return new SpecSheet("Marines / available recruits", "UNENLISTED PERSONNEL IN FLEET CARGO",
+                resources.commodityIcon(Commodities.MARINES), "item",
+                List.of(SpecSheet.Stat.of("In cargo", Integer.toString(cargoMarines.getAsInt())),
+                        SpecSheet.Stat.of("Named reserves", Integer.toString(roster.readyReserveCount())),
+                        SpecSheet.Stat.of("Will enlist", Integer.toString(recruitsRequired()))),
+                List.of("The Marines commodity represents personnel outside your company's named roster. They remain tradable until enlisted.",
+                        "Fill vacancies transfers ready company reserves first, then enlists one cargo Marine per open billet. Wounded personnel keep their billets.",
+                        "Equipment issue is a separate order."));
     }
     public void reinforceSelected() {
         int reserves = 0;
@@ -291,7 +310,7 @@ public final class BarracksCommandModel {
             reserves += result.reservesAssigned(); cargo += result.cargoMarinesConsumed();
         }
         feedback = "Filled " + (reserves + cargo) + " billets: " + reserves + " reserves, " + cargo
-                + " cargo marines. Equipment issue remains a separate order.";
+                + " recruits enlisted. Equipment issue remains a separate order.";
         changed.run();
     }
     public void issueSelected() {

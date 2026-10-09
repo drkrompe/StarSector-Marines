@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
@@ -48,6 +50,7 @@ public final class BarracksScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private SpecSheetBinder specSheets;
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
@@ -82,6 +85,7 @@ public final class BarracksScreen implements Screen {
     private void installDocument() {
         MarkupInstance candidate = markup.reloadAndBuild(reactor, ROOT_COMPONENT, props());
         UiDocument built;
+        SpecSheetBinder candidateSheets;
         try {
             requireWiredElements(candidate);
             built = new UiDocument(candidate.root());
@@ -92,6 +96,10 @@ public final class BarracksScreen implements Screen {
             });
             built.canvases().set(candidate.requireElement("barracks-canvas"),
                     new BarracksCanvas(context.companyDeck(), viewModel::sceneMarines));
+            candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built), true);
+            for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
+                candidateSheets.bindLive(candidate.requireElement(id), viewModel.command()::recruitSheet);
+            }
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -102,6 +110,8 @@ public final class BarracksScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
+        if (specSheets != null) specSheets.clear();
+        specSheets = candidateSheets;
         document = built;
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
@@ -166,6 +176,7 @@ public final class BarracksScreen implements Screen {
         }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
+        if (specSheets != null) specSheets.update();
     }
 
     private static int campaignHour() {
@@ -189,10 +200,13 @@ public final class BarracksScreen implements Screen {
         // with the dialog.
         if (document != null) document.deactivateInput();
         if (viewModel != null) viewModel.command().leave();
+        if (specSheets != null) specSheets.update();
         input = null;
     }
 
     private void closeDocument() {
+        if (specSheets != null) specSheets.clear();
+        specSheets = null;
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
         document = null;

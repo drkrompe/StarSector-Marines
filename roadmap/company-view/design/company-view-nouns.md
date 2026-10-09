@@ -5,7 +5,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 Written: 2026-08-23
 
 Updated: 2026-10-09 — Barracks organizes officer commands and saved squad profiles,
-with explicit bulk personnel replacement and cargo-backed equipment issue.
+with explicit bulk personnel replacement, unenlisted cargo recruits, and cargo-backed equipment issue.
 
 ## Purpose
 
@@ -559,7 +559,11 @@ Home-command assignment uses the same atomic capacity checks as Fleet Armory.
 Personnel replacement uses ready reserves first, then the existing one-Marine-per-
 billet cargo transaction, in roster order. It stops when personnel run out; wounded
 marines keep their billets and are never replaced to make a readiness counter green.
-The preview shows available replacements and remaining vacancies. Replacements and
+The preview shows available replacements and remaining vacancies. The base-game
+Marines commodity icon marks unenlisted recruits in fleet cargo; its stock remains
+tradable until enlistment. Named reserves already belong to the company and are
+counted separately. Compact stock and enlistment amounts expose the distinction,
+with hover details explaining the transfer. Replacements and
 equipment issue are separate explicit orders, so assigning a role never silently spends.
 
 Equipment issue previews the combined existing refit bill for eligible selected
