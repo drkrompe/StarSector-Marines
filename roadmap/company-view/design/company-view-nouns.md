@@ -6,7 +6,7 @@ Written: 2026-08-23
 
 Updated: 2026-10-09 — HQ presents the intelligence network as animated receivers,
 carrier routes and a selected dossier over learned reports; Mech Lab welding effects
-identify work on occupied machines, not general fixture maintenance.
+identify work on occupied machines, with close service stands resolved from the parked body.
 
 ## Purpose
 
@@ -401,8 +401,9 @@ renderer and the same room vocabulary as generated facilities. The selected mech
 the battle compositor's actual layer order and hull-relative mount transforms, while
 workers use real layered infantry dolls on shared ambient routes for welding, parts
 movement, inspection, and coordination. Every occupied berth publishes two shoulder,
-two waist, and one head places to stand. At runtime, their focus resolves against the
-parked asset's oriented service envelope, whose beam and length belong to that asset
+two waist, and one head access points. At runtime, each resolves to a close, free
+standing cell outside the body and a contact on the parked asset's oriented service
+envelope, whose beam and length belong to that asset
 rather than to a mech-only UI assumption. Fixture work retains its authored point of
 interest, but only active machine servicing receives the welding torch and sparks.
 General repairs, bench fabrication, parts runs and readouts keep their ordinary work

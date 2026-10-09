@@ -39,6 +39,50 @@ class BerthedMachineServiceTargetTest {
         assertTrue(inside(target, flank));
     }
 
+    @Test
+    void closeServiceStandKeepsCollisionClearanceAndTheAuthoredSide() {
+        BerthedMachineServiceTarget target = new BerthedMachineServiceTarget(
+                10.5f, 10f, 0f, 1f, .92f, .92f);
+        var stand = target.standFrom(8.5f, 9.5f, .95f, (x, y) -> true);
+        var contact = target.focusFrom(stand.worldX(), stand.worldY());
+        assertEquals(9.5f, stand.worldX());
+        assertEquals(9.5f, stand.worldY());
+        assertTrue(Math.hypot(stand.worldX() - 10.5f, stand.worldY() - 10f) >= .95f);
+        assertTrue(Math.hypot(stand.worldX() - contact.worldX(),
+                stand.worldY() - contact.worldY()) < .45f);
+    }
+
+    @Test
+    void blockedOrAlreadyReservedCloseStandKeepsTheAuthoredAccessPoint() {
+        BerthedMachineServiceTarget target = new BerthedMachineServiceTarget(
+                10.5f, 10f, 0f, 1f, .92f, .92f);
+        var stand = target.standFrom(8.5f, 9.5f, .95f, (x, y) -> x != 9);
+        assertEquals(8.5f, stand.worldX());
+        assertEquals(9.5f, stand.worldY());
+    }
+
+    @Test
+    void longVehicleStandStaysOutsideItsBodyWhenFacingEast() {
+        BerthedMachineServiceTarget target = new BerthedMachineServiceTarget(
+                20.5f, 30.5f, 1f, 0f, 1f, 3f);
+        var stand = target.standFrom(26.5f, 30.5f, 1f, (x, y) -> true);
+        assertEquals(23.5f, stand.worldX());
+        assertEquals(30.5f, stand.worldY());
+    }
+
+    @Test
+    void headAccessDoesNotTakeTheFlankWorkersCloseCell() {
+        BerthedMachineServiceTarget target = new BerthedMachineServiceTarget(
+                146.5f, 26f, 0f, 1f, .92f, .92f);
+        var head = target.standFrom(145.5f, 22.5f, .95f, (x, y) -> true);
+        var flank = target.standFrom(144.5f, 25.5f, .95f,
+                (x, y) -> x != (int) head.worldX() || y != (int) head.worldY());
+        assertEquals(146.5f, head.worldX());
+        assertEquals(24.5f, head.worldY());
+        assertEquals(145.5f, flank.worldX());
+        assertEquals(25.5f, flank.worldY());
+    }
+
     private static boolean inside(BerthedMachineServiceTarget target,
                                   BerthedMachineServiceTarget.Focus focus) {
         float dx = focus.worldX() - target.centerX();

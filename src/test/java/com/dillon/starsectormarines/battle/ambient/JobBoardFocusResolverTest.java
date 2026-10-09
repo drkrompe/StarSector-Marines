@@ -24,7 +24,7 @@ class JobBoardFocusResolverTest {
     }
 
     @Test
-    void runtimeBodyFocusDoesNotMoveTheAuthoredPlaceToStand() {
+    void runtimePlacementMovesTheStandAndContactTogether() {
         NavigationGrid grid = new NavigationGrid(12, 12);
         for (int y = 0; y < 12; y++) {
             for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
@@ -34,13 +34,13 @@ class JobBoardFocusResolverTest {
         Site bay = new Site(7, RoomPurpose.VEHICLE_BAY, 6, 6);
 
         JobBoard.publish(points, List.of(task), bay, new boolean[]{true},
-                ignored -> new JobBoard.Focus(5.25f, 6.75f));
+                ignored -> new JobBoard.Placement(4.5f, 6.5f, 5.25f, 6.75f));
         TaskPoint published = points.claimNearest(
                 1L, JobBoard.group(bay.id(), task.affordance(), task.berth()), 0f, 0f);
 
         assertNotNull(published);
-        assertEquals(2.5f, published.worldX(), 0.001f);
-        assertEquals(3.5f, published.worldY(), 0.001f);
+        assertEquals(4.5f, published.worldX(), 0.001f);
+        assertEquals(6.5f, published.worldY(), 0.001f);
         assertEquals(5.25f, published.focusX(), 0.001f);
         assertEquals(6.75f, published.focusY(), 0.001f);
     }

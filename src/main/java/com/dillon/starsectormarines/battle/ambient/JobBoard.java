@@ -28,22 +28,23 @@ public final class JobBoard {
 
     private JobBoard() { }
 
-    /** A runtime replacement for an authored fixture focus. */
-    public record Focus(float worldX, float worldY) {
-        public Focus {
-            if (!Float.isFinite(worldX) || !Float.isFinite(worldY)) {
-                throw new IllegalArgumentException("task focus must be finite");
+    /** A runtime replacement for a work stand and its point of contact. */
+    public record Placement(float worldX, float worldY, float focusX, float focusY) {
+        public Placement {
+            if (!Float.isFinite(worldX) || !Float.isFinite(worldY)
+                    || !Float.isFinite(focusX) || !Float.isFinite(focusY)) {
+                throw new IllegalArgumentException("task placement must be finite");
             }
         }
     }
 
     /**
      * Resolves what a live task is performed on, or returns {@code null} to use
-     * the fixture focus generation authored.
+     * the stand and focus generation authored.
      */
     @FunctionalInterface
-    public interface FocusResolver {
-        Focus resolve(FixtureTask task);
+    public interface PlacementResolver {
+        Placement resolve(FixtureTask task);
     }
 
     /**
@@ -109,19 +110,19 @@ public final class JobBoard {
     /**
      * Publishes live jobs while allowing a host to bind work to a runtime body.
      *
-     * <p>Fixtures retain their authored focus. Berths are different: generation
+     * <p>Fixtures retain their authored stand and focus. Berths are different: generation
      * can reserve access and name the berth, but only its host knows whether the
      * occupant is a compact walker or a long vehicle. The resolver supplies
-     * that last spatial fact without moving the standing point or changing the
-     * task's ownership and claim group.
+     * a reachable stand beside that body and its contact point without changing
+     * the task's ownership and claim group.
      */
     public static List<Affordance> publish(TaskPointService service,
                                            List<FixtureTask> authored,
                                            JobSite site,
                                            boolean[] berthed,
-                                           FocusResolver focusResolver) {
-        if (focusResolver == null) {
-            throw new IllegalArgumentException("task focus resolver is required");
+                                           PlacementResolver placementResolver) {
+        if (placementResolver == null) {
+            throw new IllegalArgumentException("task placement resolver is required");
         }
         Map<Affordance, Integer> counts = new EnumMap<>(Affordance.class);
         // Ids are numbered within their own group, so the two flanks of one
@@ -135,11 +136,12 @@ public final class JobBoard {
             int index = withinGroup.merge(group, 1, Integer::sum) - 1;
             String id = group + "#" + index;
             if (service.isRegistered(id)) continue;
-            Focus resolved = focusResolver.resolve(task);
-            float focusX = resolved != null ? resolved.worldX() : task.fixtureX() + 0.5f;
-            float focusY = resolved != null ? resolved.worldY() : task.fixtureY() + 0.5f;
+            Placement resolved = placementResolver.resolve(task);
+            float focusX = resolved != null ? resolved.focusX() : task.fixtureX() + 0.5f;
+            float focusY = resolved != null ? resolved.focusY() : task.fixtureY() + 0.5f;
             service.register(new TaskPoint(id, group,
-                    task.cellX() + 0.5f, task.cellY() + 0.5f,
+                    resolved != null ? resolved.worldX() : task.cellX() + 0.5f,
+                    resolved != null ? resolved.worldY() : task.cellY() + 0.5f,
                     focusX, focusY));
         }
         return List.copyOf(counts.keySet());

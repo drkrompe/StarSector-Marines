@@ -32,6 +32,14 @@ public final class TaskPointService {
         return points.containsKey(id);
     }
 
+    /** A resolved work stand cannot share a cell with another published task. */
+    public boolean hasPointAt(int cellX, int cellY) {
+        for (TaskPoint point : points.values()) {
+            if (point.cellX() == cellX && point.cellY() == cellY) return true;
+        }
+        return false;
+    }
+
     public void register(TaskPoint point) {
         if (point == null) throw new IllegalArgumentException("task point is required");
         if (!grid.inBounds(point.cellX(), point.cellY())
