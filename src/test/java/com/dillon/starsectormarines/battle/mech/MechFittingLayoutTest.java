@@ -15,6 +15,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechFittingLayoutTest {
 
     @Test
+    void missileFamiliesShareRackSizesAndRespectLightAndHeavyShoulders() {
+        SocketDef small = MechFittingLayout.forVariant(MechVariant.HOUND).socket(SocketId.LEFT_SHOULDER);
+        SocketDef large = MechFittingLayout.forVariant(MechVariant.BULWARK).socket(SocketId.LEFT_SHOULDER);
+        assertEquals(2, large.gridColumns());
+        assertEquals(3, large.gridRows());
+        for (MechWeaponComponent component : new MechWeaponComponent[]{
+                MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5,
+                MechWeaponComponent.SRM_15, MechWeaponComponent.LRM_15}) {
+            boolean five = component == MechWeaponComponent.SRM_5 || component == MechWeaponComponent.LRM_5;
+            assertEquals(2, component.footprintColumns);
+            assertEquals(five ? 2 : 3, component.footprintRows);
+            assertEquals(five, small.accommodates(component.footprintColumns, component.footprintRows));
+            assertTrue(large.accommodates(component.footprintColumns, component.footprintRows));
+        }
+    }
+
+    @Test
     void everyChassisOwnsACompleteUniquePositiveSizedSocketLayout() {
         for (MechVariant variant : MechVariant.values()) {
             MechFittingLayout layout = MechFittingLayout.forVariant(variant);

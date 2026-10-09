@@ -1963,7 +1963,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         List<BufferedImage> bulwark = new ArrayList<>();
         BufferedImage heavy = renderMechLab(context, renderer, 1920, 1080, 1f,
                 false, false, false, false, bulwark);
-        return List.of(new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
+        return List.of(new SnapshotArtifact("mech-material-cost-hint-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "cost")),
+                new SnapshotArtifact("mech-material-stock-hint-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "stock")),
+                new SnapshotArtifact("mech-fitting-bulwark-1920x1080.png", heavy),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
@@ -1975,6 +1979,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant, boolean specSheet,
             List<BufferedImage> motionFrames) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, pickerOpen,
+                selectHound, selectVacant, specSheet, motionFrames, null);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant, boolean specSheet,
+            List<BufferedImage> motionFrames, String materialHint) throws Exception {
         double[] seconds = {0};
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
@@ -2055,13 +2068,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
             }
-            if (specSheet) {
+            if (specSheet || materialHint != null) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
                 MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
-                openSpecSheet(document, binder, width, height, instance.requireElement(
-                        MechLabSpecSheets.firstSpecSheetAnchorId(rows)));
+                MechLabSpecSheets.bindMaterials(binder, instance, viewModel);
+                String anchor = "stock".equals(materialHint) ? viewModel.materialStock().get().get(0).id()
+                        : "cost".equals(materialHint) ? rows.stream().flatMap(row -> row.materials().stream())
+                        .findFirst().orElseThrow().id() : MechLabSpecSheets.firstSpecSheetAnchorId(rows);
+                openSpecSheet(document, binder, width, height, instance.requireElement(anchor));
             }
             if (motionFrames != null) {
                 MechWeaponDragCanvas ghost = new MechWeaponDragCanvas(MechLabDollCanvas::headlessAssets);
@@ -2534,6 +2550,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
+        props.put("materialStock", viewModel.materialStock());
         props.put("catalogRows", viewModel.catalogRows());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());

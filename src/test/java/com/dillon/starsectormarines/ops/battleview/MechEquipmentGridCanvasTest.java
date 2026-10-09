@@ -14,11 +14,11 @@ class MechEquipmentGridCanvasTest {
 
     @Test
     void catalogItemsResolveExactFootprintDimensionsWithoutThreeByTwoGhostFrames() {
-        // 1x1 missile weapon
+        // 2x2 missile weapon
         var srm5 = MechEquipmentGridCanvas.resolveGridMetrics(null, MechWeaponComponent.SRM_5,
                 120f, 80f, 6f, 3f);
-        assertEquals(1, srm5.columns());
-        assertEquals(1, srm5.rows());
+        assertEquals(2, srm5.columns());
+        assertEquals(2, srm5.rows());
         assertTrue(srm5.cellWidth() > 0f);
         assertTrue(srm5.cellHeight() > 0f);
 

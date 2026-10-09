@@ -208,6 +208,7 @@ public final class MechLabScreen implements Screen {
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("materialStock", viewModel.materialStock());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
@@ -241,6 +242,7 @@ public final class MechLabScreen implements Screen {
     private void wireEquipmentPreviews(MarkupInstance instance, UiDocument target,
                                        SpecSheetBinder sheets) {
         MechLabSpecSheets.bindCatalogRows(sheets, instance, viewModel.catalogRows().get());
+        MechLabSpecSheets.bindMaterials(sheets, instance, viewModel);
         for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
             UiElement canvas = instance.requireElement(row.previewId());
             if (target.canvases().producerOf(canvas) == null) {

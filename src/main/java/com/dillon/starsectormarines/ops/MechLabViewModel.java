@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,6 +68,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<String> selectedSlotRule;
     private final ComputedSignal<List<CatalogRow>> catalogRows;
+    private final ComputedSignal<List<MaterialRow>> materialStock;
     private final ComputedSignal<String> pickerClasses;
     private final ComputedSignal<String> workspaceClasses;
     private final ComputedSignal<String> fittingHeaderClasses;
@@ -176,6 +178,7 @@ public final class MechLabViewModel {
         selectedSlotCopy = reactor.computed(this::buildSelectedSlotCopy);
         selectedSlotRule = reactor.computed(this::buildSelectedSlotRule);
         catalogRows = reactor.computed(this::buildCatalogRows);
+        materialStock = reactor.computed(this::buildMaterialStock);
         pickerClasses = reactor.computed(() -> assetPickerOpen.get()
                 ? "asset-picker panel" : "asset-picker panel hidden");
         workspaceClasses = reactor.computed(() -> assetPickerOpen.get()
@@ -738,6 +741,20 @@ public final class MechLabViewModel {
         return List.copyOf(rows);
     }
 
+    public Signal<List<MaterialRow>> materialStock() { return materialStock; }
+
+    private List<MaterialRow> buildMaterialStock() {
+        revision.get();
+        return List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY,
+                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity -> {
+            String id = "mech-material-stock:" + commodity;
+            int available = resources.available(commodity);
+            return new MaterialRow(id, id + ":icon", id + ":label", "material-stock",
+                    resources.commodityIcon(commodity), Integer.toString(available),
+                    resources.commodityName(commodity), available, 0);
+        }).toList();
+    }
+
     private List<MaterialRow> materialRows(String ownerId, FabricationCost cost) {
         List<MaterialRow> rows = new ArrayList<>();
         for (FabricationCost.Line line : cost.lines()) {
@@ -746,8 +763,8 @@ public final class MechLabViewModel {
             rows.add(new MaterialRow(id, id + ":icon", id + ":label",
                     available >= line.quantity() ? "material-cost" : "material-cost short",
                     resources.commodityIcon(line.commodityId()),
-                    resources.commodityName(line.commodityId()).toUpperCase(Locale.ROOT)
-                            + " " + available + " / " + line.quantity()));
+                    Integer.toString(line.quantity()), resources.commodityName(line.commodityId()),
+                    available, line.quantity()));
         }
         return List.copyOf(rows);
     }
@@ -1289,7 +1306,8 @@ public final class MechLabViewModel {
     }
 
     public record MaterialRow(String id, String iconId, String labelId,
-                              String classes, String icon, String label)
+                              String classes, String icon, String label,
+                              String name, int available, int required)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "iconId" -> iconId; case "labelId" -> labelId;

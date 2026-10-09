@@ -3,9 +3,11 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Which names in the Mech Lab's catalog a player can ask about
@@ -39,6 +41,44 @@ final class MechLabSpecSheets {
                 binder.bind(name, SpecSheets.mechWeapon(row.weaponPreview()));
             }
         }
+    }
+
+    static void bindMaterials(SpecSheetBinder binder, MarkupInstance markup,
+                              MechLabViewModel viewModel) {
+        if (binder == null) return;
+        for (MechLabViewModel.MaterialRow material : viewModel.materialStock().get()) {
+            bindMaterial(binder, markup, material, () -> viewModel.materialStock().get());
+        }
+        for (MechLabViewModel.CatalogRow row : viewModel.catalogRows().get()) {
+            for (MechLabViewModel.MaterialRow material : row.materials()) {
+                bindMaterial(binder, markup, material, () -> viewModel.catalogRows().get().stream()
+                        .flatMap(current -> current.materials().stream()).toList());
+            }
+        }
+    }
+
+    private static void bindMaterial(SpecSheetBinder binder, MarkupInstance markup,
+                                     MechLabViewModel.MaterialRow material,
+                                     Supplier<List<MechLabViewModel.MaterialRow>> currentRows) {
+        UiElement target = markup.requireElement(material.id());
+        if (!binder.isBound(target)) {
+            binder.bind(target, () -> currentRows.get().stream()
+                    .filter(current -> current.id().equals(material.id()))
+                    .findFirst().map(MechLabSpecSheets::materialSheet).orElse(null));
+        }
+    }
+
+    static SpecSheet materialSheet(MechLabViewModel.MaterialRow material) {
+        boolean cost = material.required() > 0;
+        return new SpecSheet(material.name(), cost ? "MANUFACTURING COST" : "FLEET MATERIALS",
+                material.icon(), "item", cost ? List.of(
+                        SpecSheet.Stat.of("Required", Integer.toString(material.required())),
+                        SpecSheet.Stat.of("In cargo", Integer.toString(material.available())))
+                        : List.of(SpecSheet.Stat.of("In cargo", Integer.toString(material.available()))),
+                List.of(cost ? material.available() >= material.required()
+                        ? "Enough in cargo for this material cost."
+                        : "Short by " + (material.required() - material.available()) + "."
+                        : "Shared fleet cargo used by fabrication."));
     }
 
     /** The first row this binds, for headless evidence. */

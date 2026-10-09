@@ -1,4 +1,4 @@
-<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechNameClasses,callSignDraft,callSignEditorClasses,callSignRenameDisabled,editCallSign,renameCallSign,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,categoryFilterPills,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechNameClasses,callSignDraft,callSignEditorClasses,callSignRenameDisabled,editCallSign,renameCallSign,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,materialStock,categoryFilterPills,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -9,6 +9,12 @@
         <button id="mech-previous-bay" class="bay-step console-action" onclick="{previousBay}">‹</button>
         <div id="mech-active-bay" class="label heading tone-accent bay-position">{activeBayLabel}</div>
         <button id="mech-next-bay" class="bay-step console-action" onclick="{nextBay}">›</button>
+      </div>
+      <div id="mech-material-stock" class="material-stock-strip">
+        <div each="material in materialStock" key="{material.id}" id="{material.id}" class="{material.classes}">
+          <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+          <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
+        </div>
       </div>
       <div id="mech-lab-summary" class="label tone-muted room-summary">{labSummary}</div>
     </div>
@@ -89,12 +95,12 @@
                       <div id="{item.telemetryId}" class="label heading tone-muted catalog-telemetry">{item.telemetry}</div>
                       <div id="{item.deltaId}" class="{item.deltaClasses}">{item.delta}</div>
                       <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
-                      <div id="{item.materialsId}" class="{item.materialsClasses}">
-                        <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
-                          <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
-                          <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
-                        </div>
-                      </div>
+                    </div>
+                  </div>
+                  <div id="{item.materialsId}" class="{item.materialsClasses}">
+                    <div each="material in item.materials" key="{material.id}" id="{material.id}" class="{material.classes}">
+                      <img id="{material.iconId}" class="material-icon" src="{material.icon}" />
+                      <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
                     </div>
                   </div>
                   <button id="{item.actionId}" class="catalog-action console-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
@@ -258,15 +264,14 @@
   .catalog-delta.positive { color: #78d494; }
   .catalog-delta.negative { color: #e98b83; }
   .catalog-delta.neutral { color: #979c90; }
-  .material-costs { flex-direction: column; width: 100%; height: 38px; gap: 2px; overflow: hidden; }
-  .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 220px; }
-  .requires-fabrication .catalog-card-body, .chassis-pattern .catalog-card-body { height: 180px; }
-  .requires-fabrication .catalog-item-copy, .chassis-pattern .catalog-item-copy { height: 180px; }
-  .requires-fabrication .material-costs, .chassis-pattern .material-costs { height: 96px; }
-  .material-cost { flex-direction: row; width: 100%; height: 17px; padding: 1px 3px; gap: 3px; background-color: #121719; border-width: 1px; }
+  .material-costs { flex-direction: row; width: 100%; height: 24px; gap: 5px; overflow: hidden; }
+  .catalog-row.requires-fabrication, .catalog-row.chassis-pattern { height: 155px; }
+  .material-cost { flex-direction: row; width: 0px; flex-grow: 1; height: 20px; padding: 1px 4px; gap: 5px; background-color: #121719; border-width: 1px; }
+  .material-stock-strip { flex-direction: row; width: 380px; height: 24px; gap: 6px; }
+  .material-stock { flex-direction: row; width: 0px; flex-grow: 1; height: 22px; gap: 5px; padding: 1px 4px; }
   .material-cost.short { border-color: #8f3f44; background-color: #251419; }
-  .material-icon { width: 13px; height: 13px; }
-  .material-label { width: 0px; height: 14px; flex-grow: 1; }
+  .material-icon { width: 18px; height: 18px; }
+  .material-label { width: 0px; height: 18px; flex-grow: 1; padding-top: 2px; }
   .catalog-action { width: 220px; height: 26px; padding: 3px 8px; border-width: 3px; text-align: center; font-family: heading; }
   .drag-drop-note { flex-direction: column; height: 42px; padding: 4px; gap: 1px; }
   .drag-drop-note.drop-active { background-color: #203a29; border-color: #78d494; border-width: 2px; }
