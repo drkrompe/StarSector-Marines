@@ -1967,7 +1967,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
-                SnapshotArtifact.animation("mech-fitting-1920x1080.gif", frames, 100));
+                SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
     }
 
     private static BufferedImage renderMechLab(

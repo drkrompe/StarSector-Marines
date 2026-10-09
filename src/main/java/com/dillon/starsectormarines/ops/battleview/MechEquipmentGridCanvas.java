@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /** Canonical fitting-grid projection shared by catalog cards and socket rows. */
 public final class MechEquipmentGridCanvas implements CanvasProducer {
 
-    private static final Color BACKGROUND = new Color(0x07, 0x11, 0x19);
+    private static final Color BACKGROUND = new Color(0x10, 0x13, 0x11);
 
     private final Supplier<SocketDef> socket;
     private final Supplier<MechWeaponComponent> weapon;
@@ -69,8 +69,6 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         itemRows = Math.min(gridRows, itemRows);
         int itemStartColumn = Math.max(0, (gridColumns - itemColumns) / 2);
         int itemStartRow = Math.max(0, (gridRows - itemRows) / 2);
-        Color accent = color(definition != null ? definition.type()
-                : component != null ? socketType(component) : SocketType.UTILITY);
 
         for (int row = 0; row < gridRows; row++) {
             for (int column = 0; column < gridColumns; column++) {
@@ -80,7 +78,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                         && column < itemStartColumn + itemColumns
                         && row >= itemStartRow && row < itemStartRow + itemRows;
                 context.fillRect(x, y, cellWidth, cellHeight,
-                        withAlpha(accent, filled ? 116 : 28));
+                        filled ? new Color(0x34, 0x39, 0x32) : new Color(0x1a, 0x1e, 0x1b));
             }
         }
 
@@ -93,7 +91,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                 float x = inset + column * (cellWidth + gap);
                 float y = inset + row * (cellHeight + gap);
                 context.strokeRect(x, y, cellWidth, cellHeight,
-                        withAlpha(accent, 205), 1.5f);
+                        new Color(0x78, 0x7e, 0x71), 1.5f);
             }
         }
     }

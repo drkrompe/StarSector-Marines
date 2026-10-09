@@ -68,7 +68,7 @@ public final class SnapshotRunner {
             return;
         }
         try (AnimatedGifWriter gif =
-                     new AnimatedGifWriter(output, artifact.frameDelayMillis())) {
+                     new AnimatedGifWriter(output, artifact.frameDelayMillis(), artifact.palette())) {
             for (BufferedImage frame : artifact.frames()) gif.append(frame);
         }
     }

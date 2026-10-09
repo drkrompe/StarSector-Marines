@@ -16,10 +16,14 @@ import java.util.List;
  * forbids.
  */
 public record SnapshotArtifact(Path relativePath, List<BufferedImage> frames,
-                               int frameDelayMillis) {
+                               int frameDelayMillis, AnimatedGifWriter.Palette palette) {
 
     /** Default GIF pacing — eight frames a second, slow enough to read a battlefield. */
     public static final int DEFAULT_FRAME_DELAY_MILLIS = 125;
+
+    public SnapshotArtifact(Path relativePath, List<BufferedImage> frames, int frameDelayMillis) {
+        this(relativePath, frames, frameDelayMillis, AnimatedGifWriter.Palette.COMPACT);
+    }
 
     public SnapshotArtifact(String relativePath, BufferedImage image) {
         this(Path.of(relativePath), image);
@@ -36,9 +40,17 @@ public record SnapshotArtifact(Path relativePath, List<BufferedImage> frames,
         return new SnapshotArtifact(Path.of(relativePath), frames, frameDelayMillis);
     }
 
+    /** Colour-sensitive UI/art review; retains shading at the cost of a larger GIF. */
+    public static SnapshotArtifact colorAnimation(String relativePath,
+                                                  List<BufferedImage> frames,
+                                                  int frameDelayMillis) {
+        return new SnapshotArtifact(Path.of(relativePath), frames, frameDelayMillis,
+                AnimatedGifWriter.Palette.ADAPTIVE);
+    }
+
     public SnapshotArtifact {
-        if (relativePath == null || frames == null) {
-            throw new IllegalArgumentException("snapshot path and frames are required");
+        if (relativePath == null || frames == null || palette == null) {
+            throw new IllegalArgumentException("snapshot path, frames and palette are required");
         }
         if (relativePath.isAbsolute()) {
             throw new IllegalArgumentException("snapshot path must be relative: " + relativePath);

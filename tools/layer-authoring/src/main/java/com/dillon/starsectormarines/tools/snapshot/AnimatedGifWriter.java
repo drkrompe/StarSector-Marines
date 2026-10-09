@@ -27,6 +27,10 @@ import java.util.Iterator;
  * review loop. One encoder, in the module both can reach.
  */
 public final class AnimatedGifWriter implements AutoCloseable {
+    /** Compact battlefield evidence or faithful UI/art colour review. */
+    public enum Palette { COMPACT, ADAPTIVE }
+
+    private final Palette palette;
     private final ImageWriter writer;
     private final ImageWriteParam params;
     private final ImageOutputStream output;
@@ -35,6 +39,12 @@ public final class AnimatedGifWriter implements AutoCloseable {
     private boolean closed;
 
     public AnimatedGifWriter(Path path, int frameDelayMillis) throws IOException {
+        this(path, frameDelayMillis, Palette.COMPACT);
+    }
+
+    public AnimatedGifWriter(Path path, int frameDelayMillis, Palette palette) throws IOException {
+        if (palette == null) throw new IllegalArgumentException("GIF palette is required");
+        this.palette = palette;
         if (frameDelayMillis < 10) {
             throw new IllegalArgumentException(
                     "GIF frame delay must be at least 10 milliseconds");
@@ -67,7 +77,10 @@ public final class AnimatedGifWriter implements AutoCloseable {
 
     public void append(BufferedImage image) throws IOException {
         if (closed) throw new IllegalStateException("GIF writer is closed");
-        BufferedImage indexed = quantize(image);
+        // ImageIO builds an adaptive palette from the truecolour source. Keep
+        // the compact fixed cube for long battlefield recordings; its coarse
+        // dark tones cannot represent the metallic gradients of UI evidence.
+        BufferedImage indexed = palette == Palette.ADAPTIVE ? image : quantize(image);
         ImageTypeSpecifier type = ImageTypeSpecifier
                 .createFromRenderedImage(indexed);
         IIOMetadata metadata = writer.getDefaultImageMetadata(type, params);
