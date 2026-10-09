@@ -160,8 +160,9 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             case DUAL_CHAINGUNS, NOSE_CHAINGUN -> assets.chaingunArm;
             case DUAL_LINEAR_CANNONS -> assets.linearCannon;
             case SINGLE_HEAVY_CANNON -> assets.heavyCannon;
-            case SRM_5, SRM_15 -> assets.srmPod;
-            case LRM_5, LRM_15 -> assets.lrmPod;
+            // The rack art follows tube count, independently of missile range.
+            case SRM_5, LRM_5 -> assets.srmPod;
+            case SRM_15, LRM_15 -> assets.lrmPod;
             case SHOULDER_LASER_CANNON -> assets.shoulderLaser;
             case DUAL_PULSE_LASERS -> assets.pulseLaserArm;
             case DUAL_BASTION_AUTOCANNONS -> assets.bastionAutocannon;
