@@ -1,4 +1,4 @@
-<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechNameClasses,callSignDraft,callSignEditorClasses,callSignRenameDisabled,editCallSign,renameCallSign,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,materialStock,categoryFilterPills,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechNameClasses,callSignDraft,callSignEditorClasses,callSignRenameDisabled,editCallSign,renameCallSign,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,materialStock,categoryFilterPills,categoryFilterClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -79,7 +79,7 @@
               <div id="mech-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
               <div id="mech-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
               <div id="mech-catalog-rule" class="label heading surface-dark catalog-rule">{selectedSlotRule}</div>
-              <div id="mech-category-filters" class="category-filters">
+              <div id="mech-category-filters" class="{categoryFilterClasses}">
                 <button each="pill in categoryFilterPills" key="{pill.id}" id="{pill.id}" class="{pill.classes}" onclick="{pill.select}">{pill.label}</button>
               </div>
               <div id="mech-catalog-list" class="catalog-list">
@@ -209,7 +209,7 @@
   .mech-squad-row.selected, .mech-row.selected, .doll-slot.selected, .catalog-row.selected { background-color: #2a3632; border-color: #dfc588; }
   .row-name { height: 18px; }
   .row-small { height: 16px; }
-  .mech-card-name { height: 28px; font-family: title; }
+  .mech-card-name { height: 32px; white-space: normal; font-family: title; }
   .mech-card-line { height: 20px; }
   .mech-card-action { height: 20px; padding-top: 0px; text-align: right; }
 
@@ -258,6 +258,7 @@
   .catalog-badge { width: 84px; height: 14px; padding: 2px 3px; text-align: center; border-width: 1px; }
   .catalog-badge.in-cargo { background-color: #102d20; border-color: #52ba7c; color: #78d494; }
   .catalog-badge.fabrication { background-color: #241e12; border-color: #8c6a28; color: #dfc588; }
+  .catalog-badge.unavailable { background-color: #20241f; border-color: #596052; color: #979c90; }
   .catalog-badge.chassis { background-color: #292e27; border-color: #818574; color: #d3d0c5; }
   .catalog-preview { width: 76px; height: 90px; border-width: 1px; }
   .catalog-stock, .catalog-detail { height: 16px; }

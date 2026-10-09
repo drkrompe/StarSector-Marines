@@ -276,7 +276,7 @@ class FleetArmoryViewModelTest {
             SpecSheetLayer layer = SpecSheetLayer.install(document);
             SpecSheetBinder binder = new SpecSheetBinder(document, layer);
             ArmorySpecSheets.bindMarineCards(binder, instance, viewModel.marineCards());
-            document.layout(1744f, 938f);
+            document.layout(1920f, 1080f);
 
             // Every equipment label a card shows is a subject, and nothing else is.
             for (String elementId : List.of(marine.primaryId(), marine.armorId(),
@@ -349,7 +349,7 @@ class FleetArmoryViewModelTest {
                     binder, instance, viewModel.weaponDoctrineTiles());
             ArmorySpecSheets.bindDoctrineTiles(
                     binder, instance, viewModel.armorDoctrineTiles());
-            document.layout(1744f, 938f);
+            document.layout(1920f, 1080f);
 
             List<FleetArmoryViewModel.DoctrineTile> weapons =
                     viewModel.weaponDoctrineTiles().get();
@@ -607,7 +607,7 @@ class FleetArmoryViewModelTest {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.layout(1744f, 938f);
+            document.layout(1920f, 1080f);
 
             assertFalse(viewModel.armorComparisonCards().get().isEmpty(),
                     "a fresh company holds something to compare");
@@ -700,7 +700,7 @@ class FleetArmoryViewModelTest {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.layout(1163f, 938f);
+            document.layout(1920f, 1080f);
             click(document, instance.requireElement("found-squad"));
         }
 
@@ -731,7 +731,7 @@ class FleetArmoryViewModelTest {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.layout(1163f, 938f);
+            document.layout(1920f, 1080f);
 
             FleetArmoryViewModel.SquadCard card = viewModel.squadCards().get().get(0);
             UiElement inspect = instance.requireElement(card.openId());

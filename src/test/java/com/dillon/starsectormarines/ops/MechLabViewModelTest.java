@@ -329,7 +329,7 @@ class MechLabViewModelTest {
             List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
             MechLabSpecSheets.bindCatalogRows(binder, instance, rows);
             MechLabSpecSheets.bindMaterials(binder, instance, viewModel);
-            document.layout(1744f, 938f);
+            document.layout(1920f, 1080f);
 
             int subjects = 0;
             for (MechLabViewModel.CatalogRow row : rows) {
@@ -361,6 +361,58 @@ class MechLabViewModelTest {
         }
     }
 
+    @Test
+    void fittingActionsExplainDisabledStateAndRefreshAfterPointerInstallAt1080p() throws Exception {
+        Reactor reactor = new Reactor();
+        MechBay bay = MechBay.legacyStarterFixture();
+        AtomicInteger commits = new AtomicInteger();
+        MechLabViewModel viewModel = new MechLabViewModel(
+                reactor, bay, TestResources.stocked(2000), commits::incrementAndGet);
+        viewModel.gantryRows().get().get(0).select().run();
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, "mech-lab", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            SpecSheetBinder binder = new SpecSheetBinder(document, layer);
+            MechLabSpecSheets.bindCatalogRows(binder, instance, viewModel.catalogRows().get());
+            MechLabSpecSheets.bindActions(binder, instance, viewModel);
+            document.layout(1920, 1080);
+            UiElement installed = instance.requireElement("mech-catalog:standard_replenisher:action");
+            document.pointerMoved(centerX(installed), centerY(installed));
+            binder.update();
+            document.advance(0f);
+            assertTrue(layer.visible(), "Disabled controls must still explain themselves on hover");
+            assertEquals(installed, binder.openTarget());
+            document.pointerDown(centerX(installed), centerY(installed));
+            document.pointerUp(centerX(installed), centerY(installed));
+            assertEquals(0, commits.get(), "Clicking installed hardware must not mutate inventory");
+
+            UiElement install = instance.requireElement("mech-catalog:accelerated_feed:action");
+            document.pointerMoved(centerX(install), centerY(install));
+            binder.update();
+            document.advance(0f);
+            assertEquals("INSTALL SPARE", instance.requireElement(
+                    SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
+            document.pointerDown(centerX(install), centerY(install));
+            document.pointerUp(centerX(install), centerY(install));
+            instance.flush();
+            document.advance(0f);
+            assertEquals(1, commits.get());
+            assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
+                    viewModel.installedReplenisher(SocketId.MINI_FAB));
+            binder.update();
+            document.advance(0f);
+            assertTrue(layer.visible());
+            assertEquals("INSTALLED", instance.requireElement(
+                    SpecSheetLayer.ELEMENT_ID + "-subtitle").text());
+            assertTrue(binder.isBound(instance.requireElement("mech-catalog:accelerated_feed:name")));
+        }
+    }
+
     private static float centerX(UiElement element) {
         return element.box().borderBox().x() + element.box().borderBox().width() * 0.5f;
     }
@@ -384,7 +436,7 @@ class MechLabViewModelTest {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.layout(1744f, 938f);
+            document.layout(1920f, 1080f);
             UiElement route = instance.requireElement("page-nav-mech-lab");
             float centerX = route.box().borderBox().x()
                     + route.box().borderBox().width() * 0.5f;
@@ -401,9 +453,12 @@ class MechLabViewModelTest {
     @Test
     void categoryFiltersControlCatalogDisplay() {
         Reactor reactor = new Reactor();
-        MechBay bay = new MechBay();
+        MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        viewModel.gantryRows().get().get(0).select().run();
+        assertTrue(viewModel.categoryFilterPills().get().isEmpty(), "Mini-fabs have no weapon categories");
         viewModel.selectSlot(SocketId.ARMS);
+        assertFalse(viewModel.categoryFilterPills().get().isEmpty());
 
         assertEquals(MechLabViewModel.CategoryFilter.ALL, viewModel.filter());
         int totalRows = viewModel.catalogRows().get().size();
@@ -550,6 +605,7 @@ class MechLabViewModelTest {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("categoryFilterPills", viewModel.categoryFilterPills());
+        props.put("categoryFilterClasses", viewModel.categoryFilterClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });

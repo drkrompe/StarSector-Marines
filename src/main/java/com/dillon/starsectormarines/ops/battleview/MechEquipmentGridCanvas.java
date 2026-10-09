@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
-import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -136,22 +135,10 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             }
         }
         if (subsystem != null) {
-            Color utility = color(SocketType.UTILITY);
-            float pad = Math.min(areaWidth, areaHeight) * 0.18f;
-            context.fillRect(left + pad, top + pad, areaWidth - pad * 2f,
-                    areaHeight - pad * 2f, withAlpha(utility, 185));
-            context.line(left + areaWidth * 0.5f, top + pad,
-                    left + areaWidth * 0.5f, top + areaHeight - pad,
-                    new Color(0xD6, 0xF0, 0xC5), 2f);
+            MechReplenisherArt.draw(context, subsystem,
+                    left + areaWidth * .5f, top + areaHeight * .5f,
+                    Math.min(areaWidth, areaHeight) * .88f);
         }
-    }
-
-    private static SocketType socketType(MechWeaponComponent component) {
-        return switch (component.hardpointType) {
-            case BALLISTIC -> SocketType.BALLISTIC;
-            case ENERGY -> SocketType.OMNI;
-            case MISSILE -> SocketType.MISSILE;
-        };
     }
 
     static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
@@ -174,18 +161,4 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         };
     }
 
-    private static Color color(SocketType type) {
-        return switch (type) {
-            case CORE -> new Color(0xF0, 0xC9, 0x52);
-            case BALLISTIC -> new Color(0xE5, 0x83, 0x45);
-            case MISSILE -> new Color(0x6D, 0xD5, 0xF2);
-            case OMNI -> new Color(0xB5, 0x87, 0xF4);
-            case AMMO -> new Color(0x9E, 0xBD, 0x6A);
-            case UTILITY -> new Color(0x8F, 0xC7, 0x85);
-        };
-    }
-
-    private static Color withAlpha(Color color, int alpha) {
-        return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
-    }
 }

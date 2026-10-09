@@ -49,6 +49,7 @@ public final class MechLabViewModel {
     private final MutableSignal<CategoryFilter> catalogFilter;
     private final MutableSignal<MechWeaponComponent> hoveredWeapon;
     private final ComputedSignal<List<FilterPill>> categoryFilterPills;
+    private final ComputedSignal<String> categoryFilterClasses;
     private final ComputedSignal<String> labSummary;
     private final ComputedSignal<List<SquadRow>> squadRows;
     private final ComputedSignal<List<MechRow>> mechRows;
@@ -113,6 +114,8 @@ public final class MechLabViewModel {
         catalogFilter = reactor.signal(CategoryFilter.ALL);
         hoveredWeapon = reactor.signal(null);
         categoryFilterPills = reactor.computed(this::buildFilterPills);
+        categoryFilterClasses = reactor.computed(() -> categoryFilterPills.get().isEmpty()
+                ? "category-filters hidden" : "category-filters");
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
         mechRows = reactor.computed(this::buildMechRows);
@@ -233,6 +236,7 @@ public final class MechLabViewModel {
     public Runnable overviewAction() { return this::showLanceOverview; }
     public Consumer<String> editCallSignAction() { return this::editCallSign; }
     public Runnable renameCallSignAction() { return this::renameSelectedMech; }
+    public Signal<String> categoryFilterClasses() { return categoryFilterClasses; }
     public Signal<List<FilterPill>> categoryFilterPills() { return categoryFilterPills; }
     public Signal<CategoryFilter> catalogFilter() { return catalogFilter; }
     public void setFilter(CategoryFilter filter) {
@@ -596,7 +600,10 @@ public final class MechLabViewModel {
                 occupied ? "INSTALLED ASSEMBLY" : "EMPTY SOCKET",
                 "", "", "catalog-delta hidden",
                 buildSelectedSlotRule(), definition != null && definition.factoryLocked()
-                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, List.of(), "material-costs hidden", () -> { }));
+                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK",
+                definition != null && definition.factoryLocked()
+                        ? "Integral chassis equipment cannot be replaced."
+                        : "No compatible fitting is available for this socket.", true, List.of(), "material-costs hidden", () -> { }));
     }
 
     private List<CatalogRow> weaponCatalog(CampaignMech mech, MechMountSlot mount) {
@@ -660,7 +667,7 @@ public final class MechLabViewModel {
             }
 
             String actionLabel = installed ? "INSTALLED" : !fits ? "TOO LARGE"
-                    : inCargo ? "INSTALL SPARE" : "FABRICATE + INSTALL";
+                    : inCargo ? "INSTALL SPARE" : !affordable ? "MATERIALS SHORT" : "FABRICATE + INSTALL";
 
             String base = "mech-catalog:" + component.id;
             boolean showMaterials = !inCargo && !installed && fits;
@@ -679,7 +686,13 @@ public final class MechLabViewModel {
                     telemetry, deltaText, deltaClasses,
                     component.hardpointType + "  ·  " + component.footprintColumns
                             + "×" + component.footprintRows + " GRID",
-                    actionLabel, disabled, materials, materialsClasses,
+                    actionLabel,
+                    installed ? "Already installed in this mount."
+                            : !fits ? "This assembly exceeds the selected fitting grid."
+                            : !inCargo && !affordable ? "Not enough materials. Hover a cost for its shortfall."
+                            : inCargo ? "Install a spare; return the current assembly to stores."
+                            : "Build and install this assembly using the listed materials.",
+                    disabled, materials, materialsClasses,
                     () -> fitWeapon(mount, component)));
         }
         return List.copyOf(rows);
@@ -703,7 +716,10 @@ public final class MechLabViewModel {
                     "SPEED " + number(variant.moveSpeed) + " · ARMOR " + Math.round(variant.armorCapacity),
                     "", "catalog-delta hidden",
                     roleLabel(variant.defaultRole),
-                    !hasSpace ? "LANCE FULL" : "FABRICATE CHASSIS",
+                    !hasSpace ? "LANCE FULL" : !affordable ? "MATERIALS SHORT" : "FABRICATE CHASSIS",
+                    !hasSpace ? "All four gantries in this lance are occupied."
+                            : !affordable ? "Not enough materials. Hover a cost for its shortfall."
+                            : "Build this chassis into the vacant gantry.",
                     !hasSpace || !affordable, materialRows(base, recipe.cost()), "material-costs",
                     () -> fabricateChassis(variant)));
         }
@@ -726,14 +742,18 @@ public final class MechLabViewModel {
                     base + ":preview",
                     "catalog-preview", null, null, component,
                     installed ? "catalog-row selected" : "catalog-row", component.displayName(),
-                    inCargo ? "IN CARGO" : "FABRICATION", inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication",
+                    installed ? "FITTED" : inCargo ? "IN CARGO" : "NO SPARE",
+                    installed || inCargo ? "catalog-badge in-cargo" : "catalog-badge unavailable",
                     "OWN " + owned + "  ·  FIELD " + fielded + "  ·  FREE " + free,
                     "SRM " + number(component.srmReplenishmentSeconds()) + "S · LRM "
                             + number(component.lrmReplenishmentSeconds()) + "S",
                     "", "catalog-delta hidden",
-                    "SRM " + number(component.srmReplenishmentSeconds()) + "s  ·  LRM "
-                            + number(component.lrmReplenishmentSeconds()) + "s",
-                    installed ? "INSTALLED" : inCargo ? "INSTALL SPARE" : "FABRICATE + INSTALL",
+                    "Restores one missile trigger pack.",
+                    installed ? "INSTALLED" : inCargo ? "INSTALL SPARE" : "NO SPARE IN STORES",
+                    installed ? "Already installed in this mech."
+                            : mech == null ? "Select a mech before fitting a replenisher."
+                            : !inCargo ? "No spare available. Replenishers cannot be fabricated here."
+                            : "Install this spare and return the current replenisher to stores.",
                     disabled, List.of(), "material-costs hidden", () -> install(component.id())));
         }
         return List.copyOf(rows);
@@ -1027,7 +1047,7 @@ public final class MechLabViewModel {
             case ARMS -> componentName(mech.arms());
             case LEFT_SHOULDER -> componentName(mech.leftShoulder());
             case RIGHT_SHOULDER -> componentName(mech.rightShoulder());
-            case AMMO_RESERVE -> ammoSummary(mech);
+            case AMMO_RESERVE -> "Integral missile bins";
             case MINI_FAB -> mech.missileReplenisherId().equals(
                     MissileReplenisherComponent.ACCELERATED_FEED.id())
                     ? "Accelerated feed" : "Standard replenisher";
@@ -1130,6 +1150,7 @@ public final class MechLabViewModel {
     }
 
     private List<FilterPill> buildFilterPills() {
+        if (selectedMech() == null || mountFor(selectedSlot.get()) == null) return List.of();
         CategoryFilter current = catalogFilter.get();
         List<FilterPill> pills = new ArrayList<>();
         for (CategoryFilter f : CategoryFilter.values()) {
@@ -1280,7 +1301,7 @@ public final class MechLabViewModel {
                              MissileReplenisherComponent replenisherPreview,
                              String classes, String name, String badge, String badgeClasses,
                              String stock, String telemetry, String delta, String deltaClasses,
-                             String detail, String actionLabel,
+                             String detail, String actionLabel, String actionHint,
                              boolean actionDisabled, List<MaterialRow> materials,
                              String materialsClasses,
                              Runnable action)
