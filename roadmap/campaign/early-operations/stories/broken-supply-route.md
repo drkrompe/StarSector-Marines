@@ -2,7 +2,7 @@
 
 Status: PROPOSED — detailed alpha mission design; gameplay and campaign implementation remain open.
 Written: 2026-10-10
-Updated: 2026-10-10 — distinct mission beats, branch consequences, recurring work and prototype acceptance targets.
+Updated: 2026-10-10 — persistent civilian outcomes and retries for remaining people accepted; mission implementation and prototype tuning remain open.
 
 ## Scope and dramatic question
 
@@ -230,7 +230,7 @@ payment and recurring access arrive only with a qualifying successful settlement
 A failed selected branch leaves its own objective unresolved; it does not undo
 the other crew's already-issued withdrawal order or mark both missions failed.
 
-**Recommended evacuation retry policy, pending player direction:** rescued and
+**Accepted evacuation retry policy:** rescued and
 confirmed lost people persist. A later attempt concerns only the still-stranded
 members, using stable campaign cohort identities mapped to new battle entities.
 Already rescued people cannot be rescued or paid for twice; known dead people
@@ -310,7 +310,7 @@ live campaign acceptance remains open. This plan does not mark that gate complet
    Relay Nine, prove hold/assault duties and the one finite road reserve. Use
    larger maps only where traversal creates decisions rather than empty walking.
 4. **Campaign record and settlement.** Implement branch/target persistence,
-   rescue retry accounting after its policy is agreed, one-time payments and
+   the accepted persistent rescue accounting, one-time payments and
    separate recurring access. Preserve the existing loss and Retreat boundaries.
 5. **Choice and correspondence.** Integrate broker/HQ choice, completed history
    and contact offers. Add confirmed hooks; audio assets are later content work.
@@ -334,6 +334,6 @@ Acceptance must cover:
   timeouts remain unresolved. Review renders at 1920×1080 / 100%, then complete
   campaign/save and live mission acceptance.
 
-Prototype numbers remain adjustable after evidence. The open design decision is
-Last Lift's retry treatment; its persistence cost and casualty honesty must be
-settled before implementing campaign progression for that branch.
+Prototype numbers remain adjustable after evidence. Last Lift's persistent
+civilian outcomes and retries for remaining people are accepted design. Implement
+and verify that accounting before enabling campaign progression for the branch.
