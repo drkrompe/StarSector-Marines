@@ -1593,13 +1593,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         new BarracksCanvas(ship, viewModel::sceneMarines));
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 BarracksCardBindings bindings = new BarracksCardBindings();
-                bindings.update(document, instance, viewModel.command(), hints);
+                bindings.update(document, instance, viewModel, hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderRelative(renderer, document, 1920, 1080, 1f)));
                 if (state.equals("large")) {
                     clickBarracksFlow(document, instance, "barracks-select-all");
                     clickBarracksFlow(document, instance, "barracks-page-next");
-                    bindings.update(document, instance, viewModel.command(), hints);
+                    bindings.update(document, instance, viewModel, hints);
                     if (viewModel.command().selected().size() != 119 || viewModel.command().cards().size() != 12) {
                         throw new IllegalStateException("Paged card selection lost matching available squads");
                     }
@@ -1634,10 +1634,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.canvases().set(instance.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             BarracksCardBindings cardBindings = new BarracksCardBindings();
-            cardBindings.update(document, instance, model.command(), hints);
+            cardBindings.update(document, instance, model, hints);
             Consumer<String> click = id -> {
                 clickBarracksFlow(document, instance, id);
-                cardBindings.update(document, instance, model.command(), hints);
+                cardBindings.update(document, instance, model, hints);
             };
             for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
                 hints.bindLive(instance.requireElement(id), model.command()::recruitSheet);
@@ -1654,6 +1654,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
+            click.accept("formation:" + company.squads.get(0).id() + ":inspect");
+            frames.add(new SnapshotArtifact("muster-vacancies.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:11:vacancy"));
+            frames.add(new SnapshotArtifact("muster-vacancy-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            document.deactivateInput();
+            hints.update();
+            click.accept("barracks-back-command");
             click.accept("barracks-new-profile");
             frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderRelative(renderer, document, 1920, 1080, 1f)));
             click.accept("barracks-save-profile");
@@ -1683,10 +1690,40 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             click.accept("formation:" + company.squads.get(0).id() + ":inspect");
             if (!model.command().inspecting()) throw new IllegalStateException("Squad drill-down did not open");
             frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            for (var marine : model.musterRows().get()) {
+                Rect card = instance.requireElement(marine.id()).box().borderBox();
+                Rect tray = instance.requireElement("barracks-muster-list").box().contentBox();
+                if (card.x() < tray.x() || card.y() < tray.y() || card.right() > tray.right() || card.bottom() > tray.bottom()) {
+                    throw new IllegalStateException("Muster card requires scrolling at 1920x1080: " + marine.id());
+                }
+                for (var item : marine.items()) {
+                    Rect slot = instance.requireElement(item.id()).box().borderBox();
+                    if (slot.x() < card.x() || slot.y() < card.y() || slot.right() > card.right() || slot.bottom() > card.bottom()) {
+                        throw new IllegalStateException("Muster equipment clips its card: " + item.id());
+                    }
+                }
+            }
+            document.deactivateInput();
+            UiElement focusSlot = instance.requireElement("barracks-billet:0:armor");
+            document.requestFocus(focusSlot, true);
+            hints.update();
+            if (hints.openTarget() != focusSlot) throw new IllegalStateException("Muster equipment keyboard hint missing");
+            document.deactivateInput();
+            hints.update();
+            for (String slot : List.of("armor", "primary", "system")) {
+                openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0:" + slot));
+                frames.add(new SnapshotArtifact("muster-" + slot + "-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+                document.deactivateInput();
+                hints.update();
+            }
             click.accept("barracks-back-command");
             if (model.command().inspecting() || model.command().selected().size() != 2) {
                 throw new IllegalStateException("Return lost the command selection");
             }
+            click.accept("formation:" + company.squads.get(2).id() + ":inspect");
+            frames.add(new SnapshotArtifact("muster-recovery.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0"));
+            frames.add(new SnapshotArtifact("muster-recovery-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
             hints.clear();
         }
         return frames;
@@ -1733,7 +1770,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.canvases().set(instance.requireElement("barracks-canvas"),
                     new BarracksCanvas(ship, viewModel::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
-            new BarracksCardBindings().update(document, instance, viewModel.command(), hints);
+            new BarracksCardBindings().update(document, instance, viewModel, hints);
             return renderRelative(renderer, document, width, height, 1f);
         }
     }

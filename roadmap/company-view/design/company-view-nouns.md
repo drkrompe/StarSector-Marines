@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — Barracks uses visual formation cards for officer commands,
-saved squad profiles, and explicit bulk personnel replacement and equipment issue.
+Updated: 2026-10-09 — Barracks pairs visual formation cards and individual issued-kit
+musters with squad profiles and explicit bulk personnel replacement and equipment issue.
 
 ## Purpose
 
@@ -583,7 +583,15 @@ ownership and exact issued equipment remain authoritative. This introduces no
 finite rifle or suit stock, automatic purchasing, or new inventory economy.
 
 The individual drill-down retains the physical quarters, twelve-billet muster,
-and formation **service record**: operations, confirmed kills, rounds on target,
+and formation **service record**. Each occupied muster card pairs the marine's
+name, fire-team position and readiness with actual issued armor, held-weapon,
+specialty and integral-system resource images. Hover or keyboard focus exposes
+catalog specifications; a medical return clock stays visible for wounded
+personnel. Vacancies show a hollow marine instead of equipment, and recovering
+marines retain their kit and billet. No card implies that an assigned profile
+has already been issued.
+
+The formation service record reports operations, confirmed kills, rounds on target,
 casualties, and friendly-fire damage. That last measure is reported rather than
 netted into damage dealt, because a squad being dangerous to stand near is part of who it is.
 The record is read-only evidence: `progression-nouns.md` forbids a career from

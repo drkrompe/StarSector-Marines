@@ -103,7 +103,7 @@ public final class BarracksScreen implements Screen {
                 candidateSheets.bindLive(candidate.requireElement(id), viewModel.command()::recruitSheet);
             }
             candidateCards = new BarracksCardBindings();
-            candidateCards.update(built, candidate, viewModel.command(), candidateSheets);
+            candidateCards.update(built, candidate, viewModel, candidateSheets);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -180,7 +180,7 @@ public final class BarracksScreen implements Screen {
             viewModel.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
-        if (cardBindings != null) cardBindings.update(document, markupInstance, viewModel.command(), specSheets);
+        if (cardBindings != null) cardBindings.update(document, markupInstance, viewModel, specSheets);
         if (document != null) document.advance(dt);
         if (specSheets != null) specSheets.update();
     }

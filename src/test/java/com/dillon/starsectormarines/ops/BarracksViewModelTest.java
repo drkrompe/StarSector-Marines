@@ -38,7 +38,9 @@ class BarracksViewModelTest {
         // What this test is about is that an additive catalog pattern renders by
         // its catalogued name at all, which one row showing it proves.
         assertTrue(viewModel.musterRows().get().stream()
-                .anyMatch(row -> row.detail().contains("Aegis composite line suit")));
+                .flatMap(row -> row.items().stream())
+                .anyMatch(item -> item.sheet().title().equals("Aegis composite line suit")
+                        && item.icon().startsWith("graphics/ui/armory/armor-")));
     }
 
     @Test
@@ -60,6 +62,9 @@ class BarracksViewModelTest {
         assertEquals(MarineSquad.CAPACITY, viewModel.musterRows().get().size());
         assertTrue(viewModel.musterRows().get().get(0).classes().contains("wounded"));
         assertTrue(viewModel.quartersStatus().get().contains("1 in recovery"));
+        assertTrue(viewModel.musterRows().get().get(0).sheet().subtitle().contains("Wounded"));
+        assertTrue(viewModel.musterRows().get().get(0).items().size() >= 2,
+                "Recovery retains the marine's actual issued equipment");
 
         viewModel.squadRows().get().get(1).select().run();
         assertTrue(viewModel.selectedSquadName().get().contains("02"));
@@ -106,6 +111,10 @@ class BarracksViewModelTest {
                 "friendly fire is reported, not netted away");
         assertTrue(viewModel.squadRows().get().get(0).record().contains("1W / 1 ops"));
         assertTrue(viewModel.squadRows().get().get(0).record().contains("7 confirmed"));
+        var vacancy = viewModel.musterRows().get().get(11);
+        assertTrue(vacancy.classes().contains("vacant"));
+        assertEquals(1, vacancy.items().size());
+        assertTrue(vacancy.items().get(0).icon().endsWith("marine-cutout-vacant.svg"));
     }
 
     private static String cellValue(BarracksViewModel viewModel, String key) {
