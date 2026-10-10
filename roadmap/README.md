@@ -56,9 +56,10 @@ separate recurring jobs. Relief has an authored freight checkpoint and finite
 road arrivals; Counterattack has a larger freight depot with a joint gate-to-yard
 advance, rear guards and a contact-driven reserve. Both have fitted-boat headless
 replays. Next, complete the linked opening arc's live campaign acceptance. The
-follow-on choice arc is planned in `broken-supply-route.md`; a small Conquest
-profile is a prerequisite. The opening arc still awaits a live play pass. Its
-standing mission model lives in `early-operation-nouns.md`; first-offer
+follow-on choice arc in `broken-supply-route.md` now specifies escort/boarding
+versus territorial recovery, branch consequences and recurring contact work;
+a small Conquest profile is its first implementation prerequisite. The opening
+arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 
 ### Battle tier
