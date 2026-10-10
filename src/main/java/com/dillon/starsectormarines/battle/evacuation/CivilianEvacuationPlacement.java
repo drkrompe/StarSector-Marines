@@ -107,6 +107,20 @@ public final class CivilianEvacuationPlacement {
         return spawnCells.length / 2;
     }
 
+    /** Authored story geometry, validated through the same physical navigation grid. */
+    public static CivilianEvacuationPlacement authored(NavigationGrid grid, CellTopology topology,
+            PointOfInterest shelter, int liftX, int liftY, int count) {
+        if (count <= 0 || !clearLiftFootprint(grid, topology, liftX, liftY))
+            throw new IllegalArgumentException("Invalid authored lift");
+        int[] spawns = reachableSpawnCells(grid, shelter, shelter.interiorAnchorX,
+                shelter.interiorAnchorY, liftX, liftY, count);
+        int[] formation = formationCells(grid, liftX, liftY, PICKUP_FORMATION_RADIUS);
+        if (spawns == null || formation == null) throw new IllegalArgumentException("Disconnected authored cohort");
+        return new CivilianEvacuationPlacement(shelter.interiorAnchorX, shelter.interiorAnchorY,
+                shelter.anchorCellX, shelter.anchorCellY, liftX, liftY,
+                PICKUP_FORMATION_RADIUS, spawns, formation);
+    }
+
     public int spawnX(int index) {
         checkSpawnIndex(index);
         return spawnCells[index * 2];

@@ -28,6 +28,9 @@ public final class CampaignState implements Serializable {
 
     private static final int INITIAL_CAPACITY = 16;
 
+    /** Null before the authored Rill evacuation is commissioned; absent in older saves. */
+    public LastLiftProgress lastLift;
+
     // ---------- Id registries (interned vanilla strings) ----------
 
     public final IdRegistry factionRegistry = new IdRegistry();

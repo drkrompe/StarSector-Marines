@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -37,6 +39,27 @@ public final class CivilianEvacuationSystem {
     private boolean evacuationTriggered;
     private boolean respondingMarineObserved;
     private long pickupShuttleId;
+    private boolean storyEscort;
+    private int securedTicks;
+    private int nextBoardTick;
+    private int escortSquad = -1;
+    public enum HoldReason { NONE, NO_ESCORT, REGROUPING, ROUTE_BLOCKED, PICKUP_WAITING }
+    private int unescorted, blocked, awaitingPickup;
+    public HoldReason holdReason() {
+        if (!storyEscort || !evacuationTriggered || tracker.activeCount() == 0) return HoldReason.NONE;
+        if (blocked > 0) return HoldReason.ROUTE_BLOCKED;
+        if (awaitingPickup > 0) return HoldReason.PICKUP_WAITING;
+        if (unescorted >= tracker.activeCount()) return HoldReason.NO_ESCORT;
+        return unescorted > 0 ? HoldReason.REGROUPING : HoldReason.NONE;
+    }
+    public void requireStoryEscort() { storyEscort = true; }
+    private int assignedEscort(BattleSimulation sim) {
+        if (!(sim.getCommander(Faction.MARINE) instanceof RescueEscortCommand command)
+                || command.rescueSnapshot() == null) return -1;
+        return command.rescueSnapshot().squadIntents().stream()
+                .filter(s -> s.role() == RescueCommandSnapshot.Role.COHORT_ESCORT)
+                .mapToInt(s -> s.squadId()).findFirst().orElse(-1);
+    }
     /**
      * The squad sealed in the shelter with the cohort, or {@link Squad#NO_SQUAD}.
      *
@@ -101,13 +124,21 @@ public final class CivilianEvacuationSystem {
 
     public void tick(BattleSimulation sim) {
         if (!configured || tracker.isSealed()) return;
+        if (storyEscort) escortSquad = assignedEscort(sim);
+        unescorted = 0; blocked = 0; awaitingPickup = 0;
         if (!evacuationTriggered) {
             boolean respondingMarineAlive = hasRespondingMarine(sim);
             respondingMarineObserved |= respondingMarineAlive;
-            if (marineWithin(shelterApproachX, shelterApproachY,
-                    RELIEF_TRIGGER_RADIUS, sim)
-                    || (respondingMarineObserved
-                    && !respondingMarineAlive)) {
+            boolean reached = marineWithin(shelterApproachX, shelterApproachY, RELIEF_TRIGGER_RADIUS, sim);
+            if (storyEscort) {
+                boolean threat = false;
+                for (int i = 0; i < tracker.registeredCount(); i++) {
+                    long id = tracker.entityIdAt(i);
+                    if (sim.resolveUnit(id) != 0L && nearestThreat(id, sim) != 0L) threat = true;
+                }
+                securedTicks = reached && !threat ? securedTicks + 1 : 0;
+                evacuationTriggered = securedTicks >= 60;
+            } else if (reached || (respondingMarineObserved && !respondingMarineAlive)) {
                 evacuationTriggered = true;
             }
         }
@@ -125,12 +156,14 @@ public final class CivilianEvacuationSystem {
                 if (pickupReady(sim)) {
                     board(id, sim);
                 } else {
+                    awaitingPickup++;
                     sim.clearPath(id);
                 }
                 continue;
             }
             long escort = evacuationTriggered ? nearestMarine(id, sim) : 0L;
             if (escort == 0L || !withinLeash(id, escort, sim)) {
+                unescorted++;
                 sim.clearPath(id);
                 continue;
             }
@@ -166,6 +199,7 @@ public final class CivilianEvacuationSystem {
                         sim.world().cellX(id), sim.world().cellY(id),
                         destinationX, destinationY, sim.getOccupancyMap()));
             }
+            if (Paths.isEmpty(sim.movement().path(id))) blocked++;
             sim.advanceMovement(id);
             if (insideLiftZone(sim.world().cellX(id),
                     sim.world().cellY(id))) {
@@ -206,6 +240,7 @@ public final class CivilianEvacuationSystem {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) != Faction.MARINE) continue;
             if (isShelterGuard(unit, sim)) continue;
+            if (storyEscort && (sim.squadOf(unit) == null || sim.squadOf(unit).id != escortSquad)) continue;
             float distance = distanceSquared(civilian, unit, sim);
             if (distance < bestDistance
                     || (distance == bestDistance && (best == 0L || unit < best))) {
@@ -313,6 +348,7 @@ public final class CivilianEvacuationSystem {
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long unit = sim.liveUnitAt(i);
             if (!isRespondingMarine(unit, sim)) continue;
+            if (storyEscort && (sim.squadOf(unit) == null || sim.squadOf(unit).id != escortSquad)) continue;
             int dx = sim.world().cellX(unit) - x;
             int dy = sim.world().cellY(unit) - y;
             if (dx * dx + dy * dy <= distance * distance) return true;
@@ -342,7 +378,9 @@ public final class CivilianEvacuationSystem {
     }
 
     private void board(long id, BattleSimulation sim) {
+        if (storyEscort && sim.getSimTickIndex() < nextBoardTick) return;
         if (!tracker.markEvacuated(id)) return;
+        nextBoardTick = sim.getSimTickIndex() + 24;
         ShuttleMission pickup = pickupMission(sim);
         if (pickup != null && pickup.evacueesAboard < pickup.evacueeCapacity) {
             pickup.evacueesAboard++;
@@ -359,7 +397,8 @@ public final class CivilianEvacuationSystem {
     private boolean pickupReady(BattleSimulation sim) {
         if (pickupShuttleId == 0L) return true;
         ShuttleMission pickup = pickupMission(sim);
-        return pickup != null && pickup.state == ShuttleState.LANDED;
+        return pickup != null && pickup.state == ShuttleState.LANDED
+                && pickup.evacueesAboard < pickup.evacueeCapacity;
     }
 
     private ShuttleMission pickupMission(BattleSimulation sim) {

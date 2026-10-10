@@ -59,7 +59,9 @@ replays. Next, complete the linked opening arc's live campaign acceptance. The
 follow-on choice arc in `broken-supply-route.md` now specifies escort/boarding
 versus territorial recovery, branch consequences and recurring contact work;
 Junction now has a finite territorial battle prototype and fitted-boat evidence.
-Next implement Last Lift and Relay Nine, then the persisted campaign choice. The opening
+Last Lift now has physical escort/boarding, finite road attackers and a save-owned
+cohort ledger with retries only for stranded people. Next implement Relay Nine,
+then connect both prototypes to campaign choice, launch and settlement. The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 

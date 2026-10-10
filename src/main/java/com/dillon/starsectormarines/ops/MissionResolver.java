@@ -370,6 +370,7 @@ public final class MissionResolver {
         }
 
         return MissionOutcome.builder()
+                .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)
                 .victory(victory)
                 .payoutEarned(payoutEarned)

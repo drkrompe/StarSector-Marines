@@ -26,6 +26,7 @@ public final class CivilianEvacuationTracker {
 
     private long[] entityIds;
     private byte[] states;
+    private boolean[] confirmedDead;
     private int registered;
     private int active;
     private int evacuated;
@@ -43,6 +44,7 @@ public final class CivilianEvacuationTracker {
         }
         entityIds = new long[expectedCount];
         states = new byte[expectedCount];
+        confirmedDead = new boolean[expectedCount];
         Arrays.fill(entityIds, -1L);
     }
 
@@ -55,6 +57,7 @@ public final class CivilianEvacuationTracker {
         if (entityIds.length == expectedCount) return true;
         entityIds = new long[expectedCount];
         states = new byte[expectedCount];
+        confirmedDead = new boolean[expectedCount];
         Arrays.fill(entityIds, -1L);
         return true;
     }
@@ -83,6 +86,18 @@ public final class CivilianEvacuationTracker {
     /** Marks a registered active civilian as dead or otherwise unrecoverable. */
     public boolean markLost(long entityId) {
         return transition(entityId, LOST);
+    }
+
+    /** A death event, unlike terminal abandonment, is irreversible across story retries. */
+    public boolean markDead(long entityId) {
+        if (!transition(entityId, LOST)) return false;
+        confirmedDead[indexOf(entityId)] = true;
+        return true;
+    }
+
+    public boolean isConfirmedDead(long entityId) {
+        int index = indexOf(entityId);
+        return index >= 0 && confirmedDead[index];
     }
 
     /**

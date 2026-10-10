@@ -29,6 +29,15 @@
  * The hold beat requires a live ally under the accepted hold directive inside
  * the secured capture room. These hooks never settle the campaign chapter.
  *
+ * <p>Last Lift uses {@code supply_route.last_lift.}: {@code start},
+ * {@code crew_contacted}, {@code crew_released}, {@code crossing_cleared},
+ * {@code first_boarding}, {@code last_boarding}, {@code cohort_resolved},
+ * {@code escort_hold}, and the three terminal keys. Last boarding requires an
+ * actual new boarding on the cohort's resolution tick; if the last person dies,
+ * only cohort resolution fires. Abandonment is not cohort resolution. The two
+ * {@code road_arrival_1/2} beats are observer-only. These observations do not
+ * drive road timing, which reads physical progress independently.
+ *
  * <p>To add a beat, give it a stable key, consume a confirmed post-tick fact in
  * the mission policy, classify its audience and exercise the policy directly.
  * Do not infer an earlier stage from a later one, or expose an enemy decision

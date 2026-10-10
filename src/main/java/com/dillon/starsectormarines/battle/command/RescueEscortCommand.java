@@ -165,12 +165,7 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
     }
 
     private void assignStableRoles(List<CommandSquadState> pool) {
-        if (!roles.containsValue(Role.COHORT_ESCORT)) {
-            pool.stream().filter(squad -> !roles.containsKey(squad.squadId()))
-                    .min(Comparator.comparingInt(CommandSquadState::squadId))
-                    .ifPresent(squad -> roles.put(squad.squadId(),
-                            Role.COHORT_ESCORT));
-        }
+        restoreEscortRole(pool.stream().map(CommandSquadState::squadId).toList(), roles);
         Map<Role, Integer> loads = new EnumMap<>(Role.class);
         for (Role role : roles.values()) loads.merge(role, 1, Integer::sum);
         for (CommandSquadState squad : pool) {
@@ -184,6 +179,13 @@ public final class RescueEscortCommand implements AutonomousMissionCommand<
             roles.put(squad.squadId(), selected);
             loads.merge(selected, 1, Integer::sum);
         }
+    }
+
+    /** Loss or an external player duty may remove the escort while every survivor already has a screen role. */
+    static void restoreEscortRole(List<Integer> eligible, Map<Integer, Role> roles) {
+        roles.keySet().retainAll(eligible);
+        if (!roles.containsValue(Role.COHORT_ESCORT)) eligible.stream().min(Integer::compareTo)
+                .ifPresent(id -> roles.put(id, Role.COHORT_ESCORT));
     }
 
     private boolean locallySlow(CommandSquadState squad, int tick,
