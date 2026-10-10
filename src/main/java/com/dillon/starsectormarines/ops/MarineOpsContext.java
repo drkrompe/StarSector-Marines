@@ -751,7 +751,11 @@ public class MarineOpsContext {
     /** Adds an ordinary faction contact only when its authored projection is non-empty. */
     private static void appendIfWorkExists(List<Client> out, PlanetAPI planet,
                                            Client client) {
-        if (!MissionGenerator.generate(planet, client).isEmpty()) out.add(client);
+        boolean referral = client.patronHouseId == -1L && Factions.INDEPENDENT.equals(client.factionId)
+                && OpeningBroker.introductionPending() && OpeningBroker.current() != null;
+        if (referral || !MissionGenerator.generate(planet, client).isEmpty()) {
+            out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet)));
+        }
     }
 
     /**

@@ -1348,7 +1348,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (hqProps.get("openingGuide") instanceof OpeningWorkGuide guide && guide.visible()) {
                 Rect panel = instance.requireElement("company-hq-opening-guide").box().borderBox();
                 for (String id : List.of("company-hq-opening-heading", "company-hq-opening-mission",
-                        "company-hq-opening-payment", "company-hq-opening-route", "company-hq-opening-preparation")) {
+                        "company-hq-opening-payment", "company-hq-opening-route", "company-hq-opening-preparation",
+                        "company-hq-opening-contact", "company-hq-opening-location", "company-hq-opening-course")) {
                     Rect child = instance.requireElement(id).box().borderBox();
                     if (child.y() < panel.y() || child.bottom() > panel.bottom()) {
                         throw new IllegalStateException("Opening guidance exceeds its panel: " + id);

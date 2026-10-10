@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.Posting;
@@ -24,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /** MLX-authored client, contract, and mission-detail workspace. */
 public final class MissionSelectScreen implements Screen {
@@ -94,13 +96,18 @@ public final class MissionSelectScreen implements Screen {
         props.put("missionHeader", selectedClient != null
                 ? selectedClient.displayName : "Contracts");
         props.put("missionSummary", missionSummary(selectedClient, missions));
-        props.put("missions", missionRows(missions, selectedMission));
+        props.put("missions", missionRows(missions, selectedMission, this::selectMission));
         props.put("stationingRows", stationing);
         props.put("missionEmpty", selectedClient == null
                 ? "Choose a client to inspect their current work."
                 : missions.isEmpty() && stationing.isEmpty()
                         ? "Nothing pending from this client." : "");
-        putDetail(props, selectedMission);
+        putBroker(props, selectedClient);
+        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        OpeningBroker.Destination office = OpeningBroker.current();
+        String referral = OpeningBroker.referral(selectedClient, script == null ? null : script.roster(), office);
+        putDetail(props, selectedMission, this::briefSelected, this::collapseSelected);
+        if (!referral.isEmpty()) putReferral(props, office, referral);
         return props;
     }
 
@@ -178,6 +185,7 @@ public final class MissionSelectScreen implements Screen {
             String status = client.locked && client.lockReason != null
                     ? "Unavailable"
                     : client.repLevel != null ? client.repLevel.getDisplayName() : "";
+            if (OpeningBroker.isContact(client)) status = "Independent broker";
             rows.add(new ClientRow(base, base + "-name", base + "-rep",
                     client.crestPath,
                     "client-card" + (isSelected ? " selected" : "")
@@ -188,7 +196,7 @@ public final class MissionSelectScreen implements Screen {
         return List.copyOf(rows);
     }
 
-    private List<MissionRow> missionRows(List<Mission> missions, Mission selected) {
+    static List<MissionRow> missionRows(List<Mission> missions, Mission selected, Consumer<Mission> select) {
         List<MissionRow> rows = new ArrayList<>();
         NumberFormat credits = NumberFormat.getIntegerInstance();
         for (int i = 0; i < missions.size(); i++) {
@@ -209,7 +217,7 @@ public final class MissionSelectScreen implements Screen {
                     Character.toString(mission.type.glyph), mission.name,
                     mission.tier.displayName + "  ·  " + recommended
                             + (recommended == 1 ? " squad" : " squads") + active,
-                    credits.format(payout) + " cr", () -> selectMission(mission)));
+                    credits.format(payout) + " cr", () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -260,7 +268,7 @@ public final class MissionSelectScreen implements Screen {
                         this::openPolityDoctrine));
     }
 
-    private void putDetail(Map<String, Object> props, Mission mission) {
+    static void putDetail(Map<String, Object> props, Mission mission, Runnable brief, Runnable collapse) {
         boolean present = mission != null;
         props.put("detailClasses", "mission-detail panel" + (present ? "" : " empty-detail"));
         props.put("detailKicker", present
@@ -270,26 +278,31 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailMeta", present
                 ? mission.tier.displayName + "  ·  "
                         + MissionForceEnvelope.recommendedSquads(mission)
-                        + " squads recommended"
+                        + (MissionForceEnvelope.recommendedSquads(mission) == 1 ? " squad recommended" : " squads recommended")
                 : "Choose a row in the contract list.");
         props.put("detailFlavor", present ? mission.flavor :
                 "The selected operation's scale, field-presence limit, opposition, lift, and payout will appear here before you enter deployment planning.");
         props.put("detailRows", present ? detailRows(mission) : List.of());
         props.put("briefDisabled", !present);
-        props.put("briefAction", (Runnable) this::briefSelected);
+        props.put("briefAction", brief);
         props.put("declineDisabled", !present);
-        props.put("declineAction", (Runnable) this::collapseSelected);
+        props.put("declineAction", collapse);
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
         int multiplier = mission.cashMultiplier & 0xFF;
         if (multiplier <= 0) multiplier = 100;
         long payout = (long) mission.payout * multiplier / 100L;
+        boolean opening = OpeningOperationKind.fromMission(mission) != null;
+        String lift = opening
+                ? Math.max(0, mission.requiredDrops - mission.employerShuttles) + " player / "
+                    + mission.employerShuttles + " employer sorties"
+                : mission.requiredDrops + (mission.requiredDrops == 1 ? " sortie" : " sorties");
         return List.of(
                 detailRow("tier", "Operation scale", mission.tier.displayName),
                 detailRow("presence", "Field presence", mission.fieldPresencePolicy.briefingText()),
-                detailRow("opposition", "Opposition", MissionForceEnvelope.oppositionExpectation(mission.risk)),
-                detailRow("lift", "Lift required", mission.requiredDrops + (mission.requiredDrops == 1 ? " sortie" : " sorties")),
+                detailRow("opposition", "Opposition", opening ? "Bandit militia / finite force" : MissionForceEnvelope.oppositionExpectation(mission.risk)),
+                detailRow("lift", "Lift required", lift),
                 detailRow("payout", "Payout", NumberFormat.getIntegerInstance().format(payout) + " credits"));
     }
 
@@ -300,11 +313,30 @@ public final class MissionSelectScreen implements Screen {
 
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
+        putBroker(props, null);
         props.put("screenTitle", "Marine Operations");
         props.put("clientHeader", "Clients");
         props.put("catalogHeader", "Contracts");
         props.put("detailHeader", "Dossier");
         return props;
+    }
+
+    static void putReferral(Map<String, Object> props, OpeningBroker.Destination office, String referral) {
+        props.put("missionEmpty", "Mara Venn handles new companies. Her office is on " + office.label() + ".");
+        props.put("missionSummary", "New company referral / " + OpeningBroker.NAME);
+        props.put("detailKicker", "FIRST CONTRACT LEAD");
+        props.put("detailTitle", "Meet " + OpeningBroker.NAME);
+        props.put("detailMeta", office.label() + " / Independent broker");
+        props.put("detailFlavor", referral);
+    }
+
+    static void putBroker(Map<String, Object> props, Client client) {
+        boolean contact = OpeningBroker.isContact(client);
+        props.put("brokerClasses", contact ? "broker-dossier console-readout" : "broker-hidden");
+        props.put("brokerPortrait", contact ? OpeningBroker.PORTRAIT : null);
+        props.put("brokerName", contact ? OpeningBroker.NAME : "");
+        props.put("brokerRole", contact ? "INDEPENDENT / WAYLINE COOPERATIVE" : "");
+        props.put("brokerIntroduction", contact ? OpeningBroker.INTRODUCTION : "");
     }
 
     private String locationLabel() {
@@ -317,6 +349,7 @@ public final class MissionSelectScreen implements Screen {
 
     private static String missionSummary(Client client, List<Mission> missions) {
         if (client == null) return "Choose a client to inspect current work.";
+        if (OpeningBroker.isContact(client)) return "Wayline cooperative / militia support / repeatable work";
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return "Developer catalogue  ·  " + missions.size() + " eligible operation fixtures";
         }

@@ -80,10 +80,22 @@
                 <img id="company-hq-opening-crest" class="opening-crest" src="{openingGuide.crest}" />
                 <div id="company-hq-opening-label" class="label heading tone-accent opening-label">{openingGuide.heading}</div>
               </div>
+              <div id="company-hq-opening-contact" class="opening-contact">
+                <img id="company-hq-opening-portrait" class="opening-portrait" src="{openingGuide.portrait}" />
+                <div id="company-hq-opening-identity" class="opening-identity">
+                  <div id="company-hq-opening-name" class="label heading opening-copy">{openingGuide.broker}</div>
+                  <div id="company-hq-opening-affiliation" class="label tone-muted opening-copy">{openingGuide.affiliation}</div>
+                </div>
+              </div>
+              <div id="company-hq-opening-location" class="label tone-accent opening-copy">{openingGuide.location}</div>
               <div id="company-hq-opening-mission" class="label opening-mission">{openingGuide.mission}</div>
               <div id="company-hq-opening-payment" class="label tone-accent opening-copy">{openingGuide.payment}</div>
               <div id="company-hq-opening-route" class="label opening-copy">{openingGuide.route}</div>
               <div id="company-hq-opening-preparation" class="label tone-muted opening-copy">{openingGuide.preparation}</div>
+              <button id="company-hq-opening-course" class="opening-course" disabled="{openingGuide.courseDisabled}" onclick="{openingGuide.courseAction}">
+                <div id="company-hq-opening-course-label" class="console-key-legend">PLOT COURSE</div>
+                <img id="company-hq-opening-course-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+              </button>
             </div>
             <div id="company-hq-obligations-header" class="label heading tone-accent column-header">{obligationsHeader}</div>
             <div id="company-hq-obligation-list" class="post-list">
@@ -201,8 +213,13 @@
   .board-heading { flex-direction: column; height: 38px; padding: 7px 9px; gap: 5px; border-width: 2px; }
   .board-columns { flex-direction: row; flex-grow: 1; gap: 10px; overflow: hidden; height: 0px; }
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
-  .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #8c815d; height: 186px; flex-grow: 0; }
+  .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #8c815d; height: 286px; flex-grow: 0; }
+  .opening-unavailable { height: 320px; }
   .opening-guide-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+  .opening-contact { flex-direction: row; height: 64px; gap: 9px; align-items: center; }
+  .opening-portrait { width: 64px; height: 64px; }
+  .opening-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
+  .opening-course { flex-direction: row; align-items: center; height: 28px; padding: 2px 6px; gap: 5px; border-width: 3px; }
   .opening-heading { flex-direction: row; align-items: center; height: 32px; gap: 8px; }
   .opening-crest { width: 32px; height: 32px; }
   .opening-label { height: auto; white-space: normal; width: 0px; flex-grow: 1; }

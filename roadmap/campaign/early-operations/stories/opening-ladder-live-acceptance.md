@@ -4,7 +4,7 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-02 — aligned acceptance with recurring work and separated command intent from victory authority.
+Updated: 2026-10-10 — Jangala introduction precedes recurring work at other brokers.
 
 Read `early-operation-nouns.md` before accepting this story.
 
@@ -19,7 +19,7 @@ disappear on victory or company growth.
 ## Acceptance
 
 - Relief's first victory does not retire it; it remains eligible for the
-  ordinary Independent offer. Its local line survives long enough for a slow
+  offer at Mara Venn's office. Its local line survives long enough for a slow
   player transport to matter, but cannot win unattended.
 - Relief's defensive anchor reads as a communications/logistics place the local
   militia must preserve, not an arbitrary patch of ground. It supplies mission
@@ -30,8 +30,8 @@ disappear on victory or company growth.
   pressure without adding regulars, mechs, turrets, fighters, or reinforcements.
 - Defeat leaves the relevant operation retryable. Completing Relief unlocks
   Counterattack even if the company has grown or suffered losses. After
-  unlock, both operations remain eligible for their ordinary Independent
-  offers after completion.
+  unlock, both operations remain eligible at Venn's office. Completing both
+  opens recurring work at other Independent brokers.
 - Squad assembly at the landing zone reads as deliberate rather than stalled
   before the finite-force commander pressure begins.
 - Counterattack makes the bandit depot visible and names it as the reason for

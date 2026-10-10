@@ -28,7 +28,8 @@ Its current direction is toned-down Conquest for early progression, with one
 to twenty Marine squads and two to eight heavy lances of up to four chassis
 each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
 with a smaller combat area. The Conquest opening sequence and lance caps across rosters remain open.
-Independent opening work is dependable with HQ guidance; live discovery
+The opening sequence is anchored to Mara Venn on Jangala, with HQ navigation
+and later repeatable Independent work; live discovery
 acceptance remains open. The tracker identifies existing
 stories and areas with no covering story yet.
 Confirmed Retreat now uses ordinary defeat settlement; its remaining live

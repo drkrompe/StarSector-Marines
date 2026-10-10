@@ -63,7 +63,7 @@ final class CompanyHqViewModel {
             Runnable openShipTransfer,
             Runnable openShipView,
             Runnable close,
-            Function<CompanyClocks.Entry, Runnable> respond) {
+            Function<CompanyClocks.Entry, Runnable> respond, Runnable openingCourse) {
         int day = CampaignClock.day();
         CompanyStanding standing = CompanyStanding.current(EMPLOYER_LIMIT);
         List<CompanyClocks.Entry> clocks = CompanyClocks.current();
@@ -73,7 +73,7 @@ final class CompanyHqViewModel {
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
         return build(standing, clocks, news, day, aboard, shipView,
                 openBarracks, openArmory,
-                openMechLab, openBoatDeck, openShipTransfer, openShipView, close, respond);
+                openMechLab, openBoatDeck, openShipTransfer, openShipView, close, respond, openingCourse);
     }
 
     private static CompanyHqViewModel build(
@@ -90,7 +90,7 @@ final class CompanyHqViewModel {
             Runnable openShipTransfer,
             Runnable openShipView,
             Runnable close,
-            Function<CompanyClocks.Entry, Runnable> respond) {
+            Function<CompanyClocks.Entry, Runnable> respond, Runnable openingCourse) {
         Map<String, Object> props = baseLabels();
         NumberFormat credits = NumberFormat.getIntegerInstance();
         CompanyRating rating = CompanyRating.fromMrbCredibility(
@@ -134,7 +134,8 @@ final class CompanyHqViewModel {
         props.put("newsPosts", List.copyOf(newsPosts));
 
         MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
-        props.put("openingGuide", OpeningWorkGuide.from(rosterScript == null ? null : rosterScript.roster()));
+        props.put("openingGuide", OpeningWorkGuide.from(rosterScript == null ? null : rosterScript.roster(),
+                OpeningBroker.current(), openingCourse));
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
@@ -246,10 +247,14 @@ final class CompanyHqViewModel {
 
     /** Opening-company fixture; guidance itself reads the real roster projection. */
     static CompanyHqViewModel openingPreview(MarineRoster roster) {
+        return openingPreview(roster, new OpeningBroker.Destination("jangala", "Jangala", "Corvus", null), () -> { });
+    }
+
+    static CompanyHqViewModel openingPreview(MarineRoster roster, OpeningBroker.Destination destination, Runnable course) {
         Map<String, Object> props = preview().props();
         int squads = (int) roster.squads().stream().filter(squad -> !squad.reserve()).count();
         int ready = roster.squads().stream().filter(squad -> !squad.reserve()).mapToInt(roster::readyCount).sum();
-        props.put("openingGuide", OpeningWorkGuide.from(roster));
+        props.put("openingGuide", OpeningWorkGuide.from(roster, destination, course));
         props.put("rating", "UNPROVEN");
         props.put("ratingScore", "MRB credibility  0");
         props.put("assessment", squads == 0 ? "No line squads on the company roll. Establish a squad before taking the field."

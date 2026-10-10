@@ -38,6 +38,8 @@ class OpeningOperationStoryTest {
         assertEquals(OpeningOperationKind.RELIEF.missionId, mission.id);
         assertEquals(MissionSource.STORY, mission.source);
         assertEquals(RiskLevel.LOW, mission.risk);
+        assertTrue(mission.flavor.contains("Mara Venn"));
+        assertTrue(mission.flavor.contains("Wayline"));
         assertEquals(2, mission.requiredDrops);
         assertEquals(1, mission.employerShuttles);
         assertTrue(mission.clientFighterSupport.isEmpty());
@@ -51,6 +53,7 @@ class OpeningOperationStoryTest {
         assertTrue(COUNTERATTACK.isEligible(depotBroker));
 
         Mission followup = COUNTERATTACK.build(depotBroker);
+        assertTrue(followup.flavor.contains("You kept Wayline's line intact"));
         assertEquals(3, followup.requiredDrops);
         assertEquals(1, followup.employerShuttles);
     }
@@ -87,7 +90,7 @@ class OpeningOperationStoryTest {
     }
 
     @Test
-    void everyBrokerCarriesReliefEvenBeforeTheCompanyHasItsFirstSquad() {
+    void theOpeningBrokerCarriesReliefAtEverySeedBeforeTheFirstSquad() {
         MarineRoster roster = new MarineRoster();
         for (long seed : new long[]{0, 1, 2, 17, 29, -19, Long.MAX_VALUE}) {
             StoryEligibilityContext context = context(roster, seed);
@@ -124,7 +127,32 @@ class OpeningOperationStoryTest {
                 null, factionClient, null, roster, 17L)));
     }
 
+    @Test
+    void otherBrokersWaitForTheWholeIntroductionButExistingVictoriesStillCount() {
+        MarineRoster roster = new MarineRoster();
+        StoryEligibilityContext remote = new StoryEligibilityContext(null, INDEPENDENT, null, roster, 17L, false);
+        assertFalse(RELIEF.isEligible(remote));
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        assertFalse(RELIEF.isEligible(remote));
+        assertFalse(COUNTERATTACK.isEligible(remote));
+        assertTrue(COUNTERATTACK.isEligible(context(roster, 17L)));
+        roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
+        assertTrue(RELIEF.isEligible(remote));
+        assertTrue(COUNTERATTACK.isEligible(remote));
+        assertFalse(RELIEF.build(remote).flavor.contains("Mara Venn"));
+    }
+
+    @Test
+    void patronsAndLockedClientsNeverBorrowTheOpeningSequence() {
+        MarineRoster roster = new MarineRoster();
+        for (Client client : new Client[]{
+                new Client("independent", "House", null, RepLevel.NEUTRAL, false, null, 42L),
+                new Client("independent", "Locked", null, RepLevel.HOSTILE, true, "hostile")}) {
+            assertFalse(RELIEF.isEligible(new StoryEligibilityContext(null, client, null, roster, 0, true)));
+        }
+    }
+
     private static StoryEligibilityContext context(MarineRoster roster, long seed) {
-        return new StoryEligibilityContext(null, INDEPENDENT, null, roster, seed);
+        return new StoryEligibilityContext(null, INDEPENDENT, null, roster, seed, true);
     }
 }
