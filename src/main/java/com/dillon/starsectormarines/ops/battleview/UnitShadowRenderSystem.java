@@ -267,7 +267,7 @@ public final class UnitShadowRenderSystem implements RenderSystem {
 
             Airframe frame = world.airframe(id);
             if (frame == null) continue;
-            ShuttleSpriteCache cache = sprites.airframeSprites().get(frame);
+            ShuttleSpriteCache cache = sprites.airframeSprite(frame);
             if (cache == null) continue;
 
             // The hull's real extent, from the same resolver the hull sprite
