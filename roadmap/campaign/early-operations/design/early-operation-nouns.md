@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — finite Wayline chapters, completed correspondence, and separate recurring work.
+Updated: 2026-10-10 — Relief post, assault approach, and arriving-force duties.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -108,6 +108,20 @@ their shared campaign tier does not erase their different scenario roles.
 The finite-force command duel uses one public scenario place rather than hidden
 enemy positions. In Relief, the local line keeps authored garrison ownership,
 mobile friendly squads preserve its anchor, and raiders advance on that anchor.
+The local line occupies the finished COMMS post, rather than a separate patch
+of cover selected before that building exists. Employer troops arriving by
+shuttle reinforce that same post under allied garrison authority. They do not
+become player squads or remain stationed at their landing pad.
+
+Relief opens with a finite bandit force already on a connected approach to the
+post. Transport approach starts after a short interval for the local engagement
+to develop; touchdown still depends on the craft and landing geometry. The
+militia should have a line left to relieve, while delaying the company risks
+losing it. Local cover is a temporary advantage, not enough extra manpower to
+make the player irrelevant. Force and timing changes are checked against both
+ordinary arrival and delayed/absent-player controls. A timeout in those controls
+is unresolved observation, not a new defeat rule.
+
 In Counterattack, the joint force advances on the bandit-depot anchor while the
 finite raider force defends it. Each side plans from a frozen own-force frame;
 contact response remains squad doctrine. The anchor/depot intent does not alter

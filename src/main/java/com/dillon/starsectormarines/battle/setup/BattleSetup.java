@@ -193,6 +193,10 @@ public final class BattleSetup {
     private static final int OPENING_RAIDERS = 12;
     private static final int OPENING_FIRETEAM_SIZE = 4;
     private static final int OPENING_LINE_OFFSET = 9;
+    private static final int RELIEF_RAIDERS = 16;
+    private static final int RELIEF_APPROACH_STEPS = 12;
+    /** Give the local line time to make contact before transport descent. */
+    private static final float RELIEF_LIFT_DELAY_SEC = 6f;
 
     /** Keeps the allied garrison's kit rolls off the setup stream the defenders share. */
     private static final long ALLIED_GARRISON_SEED_SALT = 0x414C4C59474152L;
@@ -1155,6 +1159,24 @@ public final class BattleSetup {
                 scale.width, scale.height, seed, effectiveProfile, openingPlan);
         MapResult map = generated.map();
         PointOfInterest authoredPlace = generated.place();
+        if (kind == OpeningOperationKind.RELIEF) {
+            // Occupy the actual post, not cover in a neighboring building chosen
+            // before the facility existed. The shared node also brings later
+            // employer troops forward from their landing pad.
+            localMilitiaCells = pickSpawnCluster(map.grid, authoredPlace.interiorAnchorX,
+                    authoredPlace.interiorAnchorY, OPENING_LOCAL_MILITIA);
+            int[] approach = GridPathfinder.findPath(map.grid,
+                    authoredPlace.anchorCellX, authoredPlace.anchorCellY,
+                    raiderAnchor[0], raiderAnchor[1]);
+            if (Paths.isEmpty(approach)) throw new IllegalStateException(
+                    "Relief raiders have no approach to the COMMS post");
+            int step = Math.min(RELIEF_APPROACH_STEPS, Paths.cellCount(approach) - 1);
+            raiderCells = pickSpawnCluster(map.grid, Paths.cellX(approach, step),
+                    Paths.cellY(approach, step), RELIEF_RAIDERS);
+        }
+        TacticalNode reliefPost = kind == OpeningOperationKind.RELIEF
+                ? openingDefenseNode(authoredPlace.interiorAnchorX,
+                        authoredPlace.interiorAnchorY, Faction.ALLY, map.grid) : null;
 
         Random rng = new Random(seed);
         boolean[][] vehicleReservations = openingVehicleReservations(
@@ -1187,19 +1209,17 @@ public final class BattleSetup {
                     localMilitia ? Faction.ALLY : Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1], entry[2], entry[3],
-                    i * SHUTTLE_DROP_STAGGER_SEC,
+                    (kind == OpeningOperationKind.RELIEF ? RELIEF_LIFT_DELAY_SEC : 0f)
+                            + i * SHUTTLE_DROP_STAGGER_SEC,
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
             if (localMilitia) {
-                // The employer's lift carries the employer's troops, and the
-                // marine commander cannot claim them: the arbiter refuses a
-                // directive whose perspective is not the squad's own. So they
-                // land owned by garrison authority instead, holding the pad
-                // they came ashore on — which is what a client's militia
-                // arriving at a relief job is actually for.
-                shuttleMission.garrisonNode = openingDefenseNode(
-                        lz.centerX, lz.centerY, Faction.ALLY, sim.getGrid());
+                // Allied reinforcements retain their own garrison authority.
+                // Relief sends them to the COMMS post; Counterattack keeps its
+                // existing landing-pad guard while the company attacks.
+                shuttleMission.garrisonNode = reliefPost != null ? reliefPost
+                        : openingDefenseNode(lz.centerX, lz.centerY, Faction.ALLY, sim.getGrid());
             } else {
                 shuttleMission.commandClaim = SquadCommandClaim.mission(
                         OpeningOperationCommand.issuer(Faction.MARINE),
@@ -1224,10 +1244,10 @@ public final class BattleSetup {
 
         if (kind == OpeningOperationKind.RELIEF) {
             spawnOpeningMilitiaSquads(sim, localMilitiaCells, Faction.ALLY,
-                    "local", true, rng);
+                    "local", reliefPost, rng);
         }
         spawnOpeningMilitiaSquads(sim, raiderCells, Faction.DEFENDER,
-                "raider", false, rng);
+                "raider", null, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
 
@@ -3089,7 +3109,8 @@ public final class BattleSetup {
     /** Spawns intentionally low-grade four-person militia squads for either side. */
     private static void spawnOpeningMilitiaSquads(
             BattleSimulation sim, List<int[]> cells, Faction faction,
-            String idPrefix, boolean localGarrison, Random rng) {
+            String idPrefix, TacticalNode post, Random rng) {
+        boolean localGarrison = post != null;
         Squad squad = null;
         int squadMembers = 0;
         int squadIndex = -1;
@@ -3102,8 +3123,7 @@ public final class BattleSetup {
                 int squadId = sim.mintSquad(faction, UnitType.MILITIA);
                 squad = sim.getSquad(squadId);
                 if (localGarrison) {
-                    squad.assignedNode = openingDefenseNode(
-                            cell[0], cell[1], faction, sim.getGrid());
+                    squad.assignedNode = post;
                     squad.patrolRadius = 4;
                     sim.assignSquadCommand(ObjectiveAssignment.holdNode(
                                     squad.id, squad.assignedNode),

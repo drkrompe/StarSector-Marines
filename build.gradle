@@ -150,7 +150,7 @@ test {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
                 'squad-firing-evidence',
                 'commander-balance',
-                'sabotage-command-evidence', 'assault-command-evidence',
+                'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence'
     }
@@ -210,6 +210,7 @@ def commanderEvidenceTags = [
         conquest: 'commander-balance',
         sabotage: 'sabotage-command-evidence',
         assault: 'assault-command-evidence',
+        relief: 'relief-command-evidence',
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
 ]
@@ -322,6 +323,7 @@ tasks.register('commanderEvidence', Test) {
                 conquest: 'commander.balance',
                 sabotage: 'sabotage.command.evidence',
                 assault: 'assault.command.evidence',
+                relief: 'relief.command.evidence',
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
         ][commanderEvidenceMission]
@@ -370,7 +372,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, raid, or extraction')
+                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, relief, raid, or extraction')
         }
     }
     testLogging {

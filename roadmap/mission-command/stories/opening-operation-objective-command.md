@@ -6,7 +6,7 @@ implemented; structural and live acceptance remain.
 Written: 2026-08-25
 
 Updated: 2026-10-02 — added per-call authored-place map generation while
-preserving resolved landing and force staging.
+preserving resolved landing and force staging. Relief now restages its forces from the finished COMMS post; live acceptance remains.
 
 Read `mission-command-nouns.md`, `assault-command.md`,
 `early-operation-nouns.md`, and
@@ -43,7 +43,7 @@ objectives and victory.
   defend or locally counter from legally known context.
 - [ ] Relief's disclosed anchor is an authored COMMS place, and Counterattack's
   disclosed anchor is an authored DEPOT place; each has legible structure and
-  usable ingress without displacing the current landing and force staging.
+  usable ingress without displacing landing pads; Relief stages its local line and assault approach from the finished place.
 - [x] Reversing commander dispatch order does not change the command result.
 - [x] Neither side receives a hidden hostile cell from mission command.
 - [x] Command intent does not change terminal outcome authority; any new
@@ -61,7 +61,7 @@ Both perspectives now freeze before either plans, and neither strategy receives
 `BattleView`. Relief discloses the local-line anchor; Counterattack discloses a
 deterministic walkable bandit-depot anchor. Predeployed local squads retain
 `GARRISON` authority, raiders enter the defender mission pool at spawn, and
-every opening shuttle conveys Marine mission ownership to the squad it mints.
+player shuttles convey Marine mission ownership; employer shuttles retain allied garrison authority.
 Stable nearby rallies use existing `DEFEND_AREA` and `SWEEP_SECTOR` execution,
 so preserve/secure remains command intent rather than a fabricated interaction
 or victory condition.

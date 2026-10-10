@@ -216,6 +216,7 @@ public final class BattleReviewFrameRenderer {
         return switch (faction) {
             case MARINE -> MARINE_MARKER;
             case DEFENDER -> DEFENDER_MARKER;
+            case ALLY -> new Color(130, 240, 120);
             case CIVILIAN -> CIVILIAN_MARKER;
             default -> null;
         };
