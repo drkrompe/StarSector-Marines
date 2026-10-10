@@ -328,7 +328,16 @@ interior anchor. Both road mouths and every landing berth must connect to the
 gate on the finished grid. The mission consumes the published approach routes;
 it cannot recover them from unrelated spawn points after generation. A fixed
 story layout may vary interiors and the world's wild surfaces without moving
-its core tactical relationships. Counterattack retains its fitted depot recipe.
+its core tactical relationships.
+
+Counterattack likewise owns its layout before staging. Its 160 by 96 freight
+depot separates the western boat apron, gate, loading yard and dispatch
+warehouse; a weigh office breaks the straight firing corridor with a freight
+road dogleg. Published stage destinations and finished interior anchors remain
+reachable from the apron, all three authored berths are clear, and the road
+graph follows walkable circulation. The shared small-company campaign tier does
+not force this second chapter into Relief's smaller footprint. Mission command
+consumes these public places without learning occupant identities.
 
 City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also

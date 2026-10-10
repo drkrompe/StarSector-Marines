@@ -4,7 +4,7 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — finite Wayline chapters lead to separate recurring postings; Relief has headless arrival/control evidence; live pacing and Counterattack remain.
+Updated: 2026-10-10 — both authored Wayline chapters have headless fitted-boat evidence; the linked campaign and live pacing remain.
 
 Read `early-operation-nouns.md` before accepting this story.
 
@@ -25,6 +25,14 @@ not establish Jangala campaign balance or slow-craft acceptance. Check those in
 live acceptance; the delayed cases are a controlled intervention, not a slow
 transport model.
 
+Counterattack's corresponding harness uses three depot interiors with ordinary,
+delayed and absent player arrival, plus two fitted boats arriving together.
+Ordinary and delayed cases carry twelve marines in two sorties on one six-seat
+boat; the paired control carries the same force on two boats. It records gate,
+yard and warehouse vicinity, defensive orders, losses and terminal outcome.
+Vicinity is not occupancy or capture; the mission still ends by elimination.
+The 300s absent-player observation does not establish a new failure rule.
+
 ## Acceptance
 
 - Relief's first victory retires that chapter and opens Counterattack at Mara
@@ -43,8 +51,12 @@ transport model.
   recurring work at Venn's office and other Independent brokers.
 - Squad assembly at the landing zone reads as deliberate rather than stalled
   before the finite-force commander pressure begins.
-- Counterattack makes the bandit depot visible and names it as the reason for
-  the joint advance. The briefing states the current elimination victory rule;
+- Counterattack's joint force advances from the apron through the gate and
+  loading yard toward dispatch. The rear guard remains distinct from the
+  reserve; contact and own casualties drive commitment and fallback. Confirm
+  these beats with actual campaign fittings and mixed equipment, including a
+  slow boat and two boats sharing the apron.
+- The briefing states the current elimination victory rule;
   the preserve/secure command picture does not imply that holding the depot
   itself wins the battle.
 - The two missions introduce preserve/secure command language consistent with

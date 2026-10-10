@@ -43,6 +43,13 @@ public record OpeningOperationCommandPicture(
         RELIEF_ANCHOR_ASSAULT,
         BANDIT_DEPOT_SECURE,
         BANDIT_DEPOT_DEFEND,
+        DEPOT_APPROACH_GATE,
+        DEPOT_CROSS_YARD,
+        DEPOT_GATE_GUARD,
+        DEPOT_YARD_GUARD,
+        DEPOT_REAR_GUARD,
+        DEPOT_RESERVE_COMMITTED,
+        DEPOT_FALLBACK,
         OBJECTIVE_UNREACHABLE
     }
 

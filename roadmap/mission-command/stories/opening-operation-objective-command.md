@@ -5,8 +5,8 @@ implemented; structural and live acceptance remain.
 
 Written: 2026-08-25
 
-Updated: 2026-10-02 — added per-call authored-place map generation while
-preserving resolved landing and force staging. Relief now owns a checkpoint compound and finite road arrivals with explicit handoff; live acceptance remains.
+Updated: 2026-10-10 — both chapters own mission-first maps; Counterattack adds a
+joint staged advance and own-report defense. Live acceptance remains.
 
 Read `mission-command-nouns.md`, `assault-command.md`,
 `early-operation-nouns.md`, and
@@ -57,24 +57,24 @@ objectives and victory.
 
 ## Implemented architecture checkpoint
 
-Both perspectives now freeze before either plans, and neither strategy receives
-`BattleView`. Relief discloses the local-line anchor; Counterattack discloses a
-deterministic walkable bandit-depot anchor. Predeployed local squads retain
-`GARRISON` authority, raiders enter the defender mission pool at spawn, and
-player shuttles convey Marine mission ownership; employer shuttles retain allied garrison authority.
-Stable nearby rallies use existing `DEFEND_AREA` and `SWEEP_SECTOR` execution,
-so preserve/secure remains command intent rather than a fabricated interaction
-or victory condition.
+All fighting perspectives freeze before planning, and no strategy receives
+`BattleView`. Relief discloses the checkpoint gate; its local and arriving allied
+garrisons preserve it while the company and finite road assault have mission
+ownership. Counterattack discloses gate, yard and dispatch destinations. Employer
+boats convey separate allied mission ownership so their troops join the advance.
+Company ownership and player intervention remain separate.
 
-Opening operations now request a COMMS or DEPOT place through a per-call mapgen
-plan. Setup first resolves the ordinary map's landing and force positions, then
-the plan reserves those cells while the legacy district recipe fits a dedicated
-facility near the existing command anchor. Relief uses a command-room COMMS
-building; Counterattack uses an industrial DEPOT. The command discloses the
-exact generated place, and setup checks ingress, reachability, and staging
-clearance. Structural acceptance across representative seeds and live operation
-pacing remain open; the live review stays with
-`opening-ladder-live-acceptance.md`.
+Counterattack uses attack-move duties through those public stages and bounded
+defensive duties at the posts. Own contact and losses commit the reserve or
+cause fallback, while a permanent warehouse guard retains the rear. Pure policy
+checks cover those decisions; the production-factory matrix checks ordinary,
+late, absent and paired fitted-boat arrivals with repeated command traces.
+
+Both chapters now author their layout before staging: Relief owns a checkpoint
+compound and Counterattack a larger freight depot. Finished interior anchors,
+connected roads and clear berths are checked during construction. Preserve and
+secure remain command intent, not fabricated interactions or victory rules.
+Live operation pacing stays with `opening-ladder-live-acceptance.md`.
 
 ## Constraints
 
