@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, and `extraction`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, and `relief`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -137,6 +137,13 @@ Do not run builds or leave generated task files there.
   simulation rather than evidence about the battle, so it does not need to ride
   along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
   restores the double replay here when a particular balance run wants it.
+  Relief's default matrix is three neutral-profile production maps with one
+  six-seat player sortie, repeated with +30s player delay and no player arrival
+  within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
+  with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
+  (additional seconds). Employer lift remains one six-seat Aeroshuttle. Reports
+  separate original militia from arriving allies; timeout is not defeat. This
+  is controlled construction evidence, not a Jangala campaign/loadout capture.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —

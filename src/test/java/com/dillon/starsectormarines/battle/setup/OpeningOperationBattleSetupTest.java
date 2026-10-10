@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpeningOperationBattleSetupTest {
 
@@ -34,13 +36,12 @@ class OpeningOperationBattleSetupTest {
                 TargetProfile.NEUTRAL);
 
         // The local line is the client's own, so it is on the field as ALLY.
-        // Everything else about it is unchanged: eight bodies, two posts,
-        // garrison authority.
+        // Eight bodies in two fireteams share the actual COMMS post.
         assertEquals(8, count(sim, Faction.ALLY, UnitType.MILITIA));
         assertEquals(0, count(sim, Faction.MARINE, UnitType.MILITIA),
                 "the player's company does not field the employer's militia");
-        assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
-        assertEquals(12, combatants(sim, Faction.DEFENDER));
+        assertEquals(16, count(sim, Faction.DEFENDER, UnitType.MILITIA));
+        assertEquals(16, combatants(sim, Faction.DEFENDER));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.MARINE_RED));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.HEAVY_MECH));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.TURRET));
@@ -67,7 +68,7 @@ class OpeningOperationBattleSetupTest {
             }
         }
         assertEquals(2, localPosts);
-        assertEquals(3, raiderPool);
+        assertEquals(4, raiderPool);
 
         long[] shuttles = sim.getAirEntityIds();
         assertEquals(2, shuttles.length);
@@ -77,10 +78,8 @@ class OpeningOperationBattleSetupTest {
         assertNull(player.deboardUnitType);
         assertEquals(Faction.ALLY, sim.world().airFaction(shuttles[0]));
         assertEquals(Faction.MARINE, sim.world().airFaction(shuttles[1]));
-        // The employer lift carries no marine command claim: a directive from
-        // the player's commander over an allied squad is refused by the
-        // arbiter, so the seats land under garrison authority holding the pad
-        // they came ashore on instead.
+        // The employer still owns its troops, but they reinforce the same
+        // COMMS post as the starting line instead of guarding their pad.
         assertNull(employer.commandClaim);
         assertNotNull(employer.garrisonNode);
         assertEquals(Faction.ALLY, employer.garrisonNode.defaultGuard);
@@ -89,6 +88,15 @@ class OpeningOperationBattleSetupTest {
         assertEquals(CommandAuthority.MISSION_COMMAND,
                 player.commandClaim.authority());
         assertNull(player.garrisonNode);
+        assertEquals(6f, employer.pendingDelay);
+        assertEquals(7.5f, player.pendingDelay);
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction == Faction.ALLY) assertSame(employer.garrisonNode, squad.assignedNode);
+        }
+        assertTrue(Math.hypot(employer.garrisonNode.anchorX - employer.lzX,
+                employer.garrisonNode.anchorY - employer.lzY) > 3,
+                "employer reinforcement destination must be the post, not its landing pad");
+        sim.close();
     }
 
     @Test
@@ -100,6 +108,9 @@ class OpeningOperationBattleSetupTest {
         assertEquals(0, count(sim, Faction.ALLY, UnitType.MILITIA));
         assertEquals(0, count(sim, Faction.MARINE, UnitType.MILITIA));
         assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
+        assertEquals(0f, sim.world().mission(sim.getAirEntityIds()[0]).pendingDelay);
+        assertEquals(1.5f, sim.world().mission(sim.getAirEntityIds()[1]).pendingDelay);
+        sim.close();
     }
 
     private static int count(BattleSimulation sim, Faction faction,

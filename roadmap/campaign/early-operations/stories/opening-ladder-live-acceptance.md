@@ -4,7 +4,7 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — finite Wayline chapters lead to separate recurring postings; mission gameplay review is next.
+Updated: 2026-10-10 — finite Wayline chapters lead to separate recurring postings; Relief has headless arrival/control evidence; live pacing and Counterattack remain.
 
 Read `early-operation-nouns.md` before accepting this story.
 
@@ -14,6 +14,16 @@ Verify that the finite Wayline story arc gives a newly formed
 company a readable, winnable introduction to First Contract work, using the
 current twelve-marine squad and lift behavior. Story chapters retire on victory; separate Militia Relief and Depot Clearance
 postings unlock after the arc. Company growth does not remove access to small work.
+
+## Headless review boundary
+
+`commanderEvidence -Pmission=relief` compares three production-factory maps
+with ordinary, delayed, and absent player arrival. It records original militia
+survival separately from employer reinforcements and supports 1920x1080 review
+frames and exact replay checks. These neutral-profile, factory-loadout cases do
+not establish Jangala campaign balance or slow-craft acceptance. Check those in
+live acceptance; the delayed cases are a controlled intervention, not a slow
+transport model.
 
 ## Acceptance
 

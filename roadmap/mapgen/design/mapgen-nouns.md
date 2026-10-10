@@ -314,6 +314,13 @@ on one of them and a single-axis check would have hidden it.
 
 ## City, station, and ship families
 
+An opening-operation facility publishes an interior destination from its
+**finished, furnished floor**. A shell's earlier center can become a desk or
+partition; its nearest reachable interior floor is the useful mission fact.
+The entry must still connect to that destination after furnishing. The mission
+places its local garrison from this final place rather than asking generation
+to preserve an unrelated preselected defensive position.
+
 City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation

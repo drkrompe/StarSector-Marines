@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.model.BuildingKind;
@@ -59,11 +61,30 @@ public final class OpeningOperationFacilityFiller {
             throw new IllegalStateException(
                     "opening-operation facility did not open its planned frontage");
         }
+        int[] interior = usableInterior(carved, ctx, exteriorAnchor);
         PointOfInterest place = new PointOfInterest(carved.kind,
                 carved.left, carved.top, carved.right, carved.bottom,
                 exteriorAnchor[0], exteriorAnchor[1],
-                carved.interiorAnchorX, carved.interiorAnchorY);
+                interior[0], interior[1]);
         ctx.pois.add(place);
+    }
+
+    /** Furniture is applied after the shell chooses its anchor. Publish a
+     * reachable floor cell in the finished room, never a desk or partition. */
+    private static int[] usableInterior(PointOfInterest place, GenContext ctx, int[] entry) {
+        int[] best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int y = place.top + 1; y < place.bottom; y++) {
+            for (int x = place.left + 1; x < place.right; x++) {
+                int distance = Math.abs(x - place.interiorAnchorX) + Math.abs(y - place.interiorAnchorY);
+                if (distance >= bestDistance || !ctx.grid.isWalkable(x, y)) continue;
+                if (Paths.isEmpty(GridPathfinder.findPath(ctx.grid, entry[0], entry[1], x, y))) continue;
+                best = new int[]{x, y};
+                bestDistance = distance;
+            }
+        }
+        if (best == null) throw new IllegalStateException("Opening-operation facility has no reachable interior");
+        return best;
     }
 
     private static BuildingPlacement.Side toBuildingSide(Frontage frontage) {
