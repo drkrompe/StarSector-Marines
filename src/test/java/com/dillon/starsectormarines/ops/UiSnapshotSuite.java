@@ -1314,7 +1314,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 CompanyHqViewModel.preview());
     }
 
-    private static BufferedImage renderCompanyHq(
+    static BufferedImage renderCompanyHq(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale,
             CompanyHqViewModel viewModel) throws Exception {
@@ -1344,7 +1344,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             terminal.bind(document, instance);
             terminal.advance(0f);
             terminal.advance(1f);
-            return renderRelative(renderer, document, width, height, uiScale);
+            BufferedImage frame = renderRelative(renderer, document, width, height, uiScale);
+            if (hqProps.get("openingGuide") instanceof OpeningWorkGuide guide && guide.visible()) {
+                Rect panel = instance.requireElement("company-hq-opening-guide").box().borderBox();
+                for (String id : List.of("company-hq-opening-heading", "company-hq-opening-mission",
+                        "company-hq-opening-payment", "company-hq-opening-route", "company-hq-opening-preparation")) {
+                    Rect child = instance.requireElement(id).box().borderBox();
+                    if (child.y() < panel.y() || child.bottom() > panel.bottom()) {
+                        throw new IllegalStateException("Opening guidance exceeds its panel: " + id);
+                    }
+                }
+                if (instance.requireElement("company-hq-obligations-header").box().borderBox().y() < panel.bottom()) {
+                    throw new IllegalStateException("Opening guidance overlaps obligations");
+                }
+            }
+            return frame;
         }
     }
 

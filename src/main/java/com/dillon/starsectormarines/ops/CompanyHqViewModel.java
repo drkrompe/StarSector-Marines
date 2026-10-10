@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.campaign.CompanyStanding;
 import com.dillon.starsectormarines.campaign.OfficerMoodReader;
 import com.dillon.starsectormarines.campaign.PlayerEventNotice;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.event.PlayerEventTarget;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -131,6 +133,8 @@ final class CompanyHqViewModel {
         }
         props.put("newsPosts", List.copyOf(newsPosts));
 
+        MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        props.put("openingGuide", OpeningWorkGuide.from(rosterScript == null ? null : rosterScript.roster()));
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
@@ -240,9 +244,35 @@ final class CompanyHqViewModel {
         return new CompanyHqViewModel(props);
     }
 
+    /** Opening-company fixture; guidance itself reads the real roster projection. */
+    static CompanyHqViewModel openingPreview(MarineRoster roster) {
+        Map<String, Object> props = preview().props();
+        int squads = (int) roster.squads().stream().filter(squad -> !squad.reserve()).count();
+        int ready = roster.squads().stream().filter(squad -> !squad.reserve()).mapToInt(roster::readyCount).sum();
+        props.put("openingGuide", OpeningWorkGuide.from(roster));
+        props.put("rating", "UNPROVEN");
+        props.put("ratingScore", "MRB credibility  0");
+        props.put("assessment", squads == 0 ? "No line squads on the company roll. Establish a squad before taking the field."
+                : ready + " marines ready. Review equipment and lift before committing to work.");
+        props.put("statusCards", List.of(
+                new StatCard("opening-ready", "stat-card", ready + " / " + ready, "READY / ON BOOKS", "All personnel available"),
+                new StatCard("opening-squads", "stat-card", Integer.toString(squads), "LINE SQUADS", "No stationed formations"),
+                new StatCard("opening-recovery", "stat-card", "CLEAR", "RECOVERY", "No wounded personnel"),
+                new StatCard("opening-fleet", "stat-card", "1", "FLEET HULLS", "Company transport")));
+        props.put("runway", "NO RECORD");
+        props.put("financeRows", List.of(new InfoRow("opening-cash", "", "On hand", "Cr. 25,000")));
+        props.put("employers", List.of());
+        props.put("employerEmpty", "No patron record yet");
+        props.put("obligations", List.of());
+        props.put("obligationEmpty", "No active obligations");
+        props.put("newsPosts", List.of());
+        return new CompanyHqViewModel(props);
+    }
+
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("openingGuide", OpeningWorkGuide.from(null));
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
         props.put("shipAction", (Runnable) () -> { });
         props.put("shipLabel", "VALKYRIE  ·  CHANGE SHIP");

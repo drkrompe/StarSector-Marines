@@ -1,4 +1,4 @@
-<template props="newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -75,6 +75,16 @@
         </div>
         <div id="company-hq-board-columns" class="board-columns">
           <div id="company-hq-obligations" class="board-column obligations-column">
+            <div id="company-hq-opening-guide" class="{openingGuide.classes}">
+              <div id="company-hq-opening-heading" class="opening-heading">
+                <img id="company-hq-opening-crest" class="opening-crest" src="{openingGuide.crest}" />
+                <div id="company-hq-opening-label" class="label heading tone-accent opening-label">{openingGuide.heading}</div>
+              </div>
+              <div id="company-hq-opening-mission" class="label opening-mission">{openingGuide.mission}</div>
+              <div id="company-hq-opening-payment" class="label tone-accent opening-copy">{openingGuide.payment}</div>
+              <div id="company-hq-opening-route" class="label opening-copy">{openingGuide.route}</div>
+              <div id="company-hq-opening-preparation" class="label tone-muted opening-copy">{openingGuide.preparation}</div>
+            </div>
             <div id="company-hq-obligations-header" class="label heading tone-accent column-header">{obligationsHeader}</div>
             <div id="company-hq-obligation-list" class="post-list">
               <div each="post in obligations" key="{post.id}" id="{post.id}" class="{post.classes}">
@@ -191,6 +201,13 @@
   .board-heading { flex-direction: column; height: 38px; padding: 7px 9px; gap: 5px; border-width: 2px; }
   .board-columns { flex-direction: row; flex-grow: 1; gap: 10px; overflow: hidden; height: 0px; }
   .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
+  .opening-guide { flex-direction: column; padding: 9px; gap: 8px; border-width: 1px; border-color: #8c815d; height: 186px; flex-grow: 0; }
+  .opening-guide-hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; flex-grow: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+  .opening-heading { flex-direction: row; align-items: center; height: 32px; gap: 8px; }
+  .opening-crest { width: 32px; height: 32px; }
+  .opening-label { height: auto; white-space: normal; width: 0px; flex-grow: 1; }
+  .opening-mission { font-family: title; height: auto; white-space: normal; }
+  .opening-copy { height: auto; white-space: normal; }
   .obligations-column { width: 260px; }
   .news-column { flex-grow: 1; width: 0px; gap: 10px; }
   .column-header { height: 20px; padding: 2px 3px; }

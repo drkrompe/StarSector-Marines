@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-02 — reconciled recurring Independent work with current live-acceptance scope.
+Updated: 2026-10-10 — dependable Independent offers and roster-driven HQ directions.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -25,11 +25,18 @@ green or small.
 
 The Independent broker is the pair's sole owner. Offers use the ordinary client
 surface rather than a synthetic tutorial client or a planet-specific route.
-The seeded availability roll is stable for the same planet and client, though
-completing Relief can add the newly unlocked Counterattack. Currently each
-operation appears at roughly one in three eligible Independent brokers. Whether
-that is a dependable first-offer route is an open alpha discovery question in
-`v0.1-alpha.md`.
+Every eligible Independent broker offers Relief, including before the company
+has founded its first squad. Completing Relief adds Counterattack at every such
+broker. The planet/client seed places the offers consistently; it never decides
+whether the opening work exists. Faction-client access and deployment checks
+still apply. This authored exception does not refill ordinary patron contracts.
+
+HQ provides opening-work guidance through the existing company roster: the
+Independent crest, exact mission name and payment, directions to a populated
+planet's Marine operations menu and independent client, and basic preparation
+advice. Relief completion advances the notice to Counterattack. Completing both
+retires the notice, not the work. No extra tutorial flag, news event, accepted
+contract, or remote launch route is created by reading those directions.
 
 ## Small-company promise
 
@@ -77,6 +84,6 @@ extension point rather than a bounded early-operation story.
 
 The remaining live play is tracked by `opening-ladder-live-acceptance.md`: it
 must validate arrival timing, actual lift requirements, force ratios, and
-briefing claims before another opening variant is contracted. Whether a new
-player can dependably discover the first offer remains a separate alpha gate.
+briefing claims before another opening variant is contracted. Live first-offer discovery and save/reload acceptance remains a separate alpha
+gate tracked in `first-contract-discovery.md`.
 Shipped implementation evidence is in `shipped.md`.
