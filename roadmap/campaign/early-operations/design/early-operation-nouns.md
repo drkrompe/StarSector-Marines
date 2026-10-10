@@ -166,6 +166,37 @@ Reaching a stage is travel progress, not capture. The depot intent leaves the
 existing elimination objective and victory authority intact: defeat the finite
 bandit force. These scenario duties are not rules later Assault missions inherit.
 
+## Story beats and presentation hooks
+
+A **story beat** is a confirmed event in one battle attempt, identified by a
+stable scenario key and simulation tick. It is a presentation hook, not a new
+objective, a wave-release rule, or a campaign completion flag. Opening scenarios
+publish the start, actual company/employer arrival, proximity to authored
+places, and terminal victory, defeat or retreat. Relief additionally reports
+the original militia line weakening or being lost and actual road arrivals;
+Counterattack reports reserve commitment and defensive fallback.
+
+Each key fires once per attempt. Events remain in an immutable, ordered history
+so a slow presentation frame cannot miss a beat and multiple consumers cannot
+drain each other's events. A new battle or retry starts a new history and new
+consumer cursors. Completion closes the attempt; later observations cannot add
+another outcome. Reaching a place means proximity, never proof of capture or
+warehouse entry. Lost militia cannot produce a surviving-line announcement.
+
+Player presentation reads only public events. Hidden road arrivals and defender
+orders are observer-only facts for authoring and evidence, not intelligence for
+radio or AI. A later sighting-based announcement needs its own confirmed public
+trigger. Scenario keys work for both chapters and recurring work; the enclosing
+mission identity chooses story-specific content, so a recurring job cannot
+replay Mara's historic chapter dialogue accidentally.
+
+The battle publishes facts without running presentation callbacks or consuming
+randomness. A future dialogue/voice adapter maps keys to content after simulation
+advance and handles queueing, expiry, subtitles and audio under the shared radio
+budget in `battle-radio-nouns.md`. Generated voice assets and their provider are
+content-production concerns; neither network access nor playback belongs in the
+simulation. Hooks alone do not enable spoken lines.
+
 ## Boundaries and acceptance
 
 Operation tier supplies the shared scale vocabulary; it does not replace the

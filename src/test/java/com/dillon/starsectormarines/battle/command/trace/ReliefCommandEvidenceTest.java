@@ -166,6 +166,7 @@ class ReliefCommandEvidenceTest {
             return new Result(new JSONObject().put("seed", seed).put("profile", surface.name() + " / controlled construction, no campaign loadout")
                     .put("playerBoatId", boat.boatId()).put("playerType", boat.pattern().name())
                     .put("playerPlating", boat.plating().id()).put("playerDrive", boat.drive().id())
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim))
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
                     .put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstMilitiaOrRaiderShotTick", firstShot)

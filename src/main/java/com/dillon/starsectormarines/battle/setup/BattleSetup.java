@@ -1251,6 +1251,7 @@ public final class BattleSetup {
                 new OpeningOperationCommand(Faction.DEFENDER), disclosure);
         if (depot != null) sim.setAutonomousCommander(Faction.ALLY,
                 new OpeningOperationCommand(Faction.ALLY), disclosure);
+        sim.installOpeningStoryHooks(commandFacts);
         return sim;
     }
 
