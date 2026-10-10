@@ -1,4 +1,4 @@
-<template props="screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -41,6 +41,15 @@
           <div id="mission-catalog-title" class="label title">{missionHeader}</div>
           <div id="mission-catalog-summary" class="label tone-muted">{missionSummary}</div>
         </div>
+        <div id="mission-broker-dossier" class="{brokerClasses}">
+          <img id="mission-broker-portrait" class="broker-portrait" src="{brokerPortrait}" />
+          <div id="mission-broker-copy" class="broker-copy">
+            <div id="mission-broker-name" class="label heading">{brokerName}</div>
+            <div id="mission-broker-role" class="label tone-accent broker-role">{brokerRole}</div>
+            <div id="mission-broker-introduction" class="label broker-introduction">{brokerIntroduction}</div>
+          </div>
+        </div>
+        <div id="mission-list-empty" class="label tone-muted empty-copy">{missionEmpty}</div>
         <div id="mission-stationing-list" class="stationing-list">
           <button each="stationing in stationingRows" key="{stationing.id}" id="{stationing.id}" class="stationing-card good-surface" onclick="{stationing.action}">
             <div id="{stationing.titleId}" class="label heading">{stationing.title}</div>
@@ -57,7 +66,6 @@
             <div id="{mission.payoutId}" class="label heading mission-card-payout">{mission.payout}</div>
           </button>
         </div>
-        <div id="mission-list-empty" class="label tone-muted empty-copy">{missionEmpty}</div>
       </div>
       <div id="mission-detail-panel" class="{detailClasses}">
         <div id="mission-detail-image-wrap" class="mission-detail-image-wrap surface-dark">
@@ -122,6 +130,12 @@
   #mission-catalog-kicker { height: 16px; }
   #mission-catalog-title { height: 23px; }
   #mission-catalog-summary { height: 18px; }
+  .broker-dossier { flex-direction: row; height: 145px; padding: 10px; gap: 12px; border-width: 1px; }
+  .broker-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; pointer-events: none; }
+  .broker-portrait { width: 96px; height: 96px; }
+  .broker-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 8px; }
+  .broker-role { height: auto; white-space: normal; }
+  .broker-introduction { height: auto; white-space: normal; }
   .stationing-list { flex-direction: column; gap: 5px; }
   .stationing-card { flex-direction: row; height: 38px; padding: 8px; border-width: 1px; text-align: left; }
   .stationing-card .label { width: 0px; flex-grow: 1; }
@@ -156,5 +170,5 @@
   .detail-value { height: 30px; white-space: normal; }
   .mission-detail-actions { flex-direction: row; height: 32px; padding: 3px; gap: 5px; border-width: 2px; }
   .mission-detail-actions button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
-  .empty-copy { height: 20px; padding: 4px; }
+  .empty-copy { height: auto; padding: 4px; white-space: normal; }
 </style>

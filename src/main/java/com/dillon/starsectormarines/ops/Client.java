@@ -28,6 +28,8 @@ public final class Client {
     public final boolean  locked;
     public final String   lockReason;
     public final long     patronHouseId;
+    /** Optional authored contact identity; faction and patron still own access and settlement. */
+    public final String   contactId;
 
     /** Faction-direct constructor — equivalent to the patron-aware ctor with {@code patronHouseId = -1L}. */
     public Client(String factionId,
@@ -46,6 +48,12 @@ public final class Client {
                   boolean locked,
                   String lockReason,
                   long patronHouseId) {
+        this(factionId, displayName, crestPath, repLevel, locked, lockReason, patronHouseId, null);
+    }
+
+    public Client(String factionId, String displayName, String crestPath, RepLevel repLevel,
+                  boolean locked, String lockReason, long patronHouseId, String contactId) {
+        this.contactId     = contactId;
         this.factionId     = factionId;
         this.displayName   = displayName;
         this.crestPath     = crestPath;

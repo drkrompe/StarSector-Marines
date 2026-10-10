@@ -1,44 +1,49 @@
-# Reliable first-contract discovery
+# Jangala first-contract discovery
 
 Status: READY FOR LIVE ACCEPTANCE
 Written: 2026-10-10
-Updated: 2026-10-10 — implementation and headless checks complete; campaign acceptance remains.
+Updated: 2026-10-10 — named broker, location policy, linked briefings and headless flow implemented.
 
 ## Scope
 
-Every eligible Independent broker offers Relief. Completing Relief unlocks
-Counterattack at those brokers; both remain repeatable. Keep mission mechanics,
-payment, reputation locks and the normal planet/client/briefing launch path.
-HQ supplies a compact opening-work notice with the Independent crest, exact
-mission name and payment, preparation guidance, and the route to the broker.
-The notice follows roster completion and retires after both opening victories.
-It does not create a contract, a news report, or a remote launch action.
+Mara Venn, an Independent broker based canonically on Jangala, introduces the
+company to Relief and Counterattack for the Wayline freight cooperative. HQ
+shows her portrait, office, payment, local menu route and Plot Course. Other
+Independent brokers refer new companies to her; both opening victories unlock
+their recurring militia work. Existing story completion survives unchanged.
+The shared office policy provides an accessible planetary fallback when needed.
 
 Canonical model: `early-operation-nouns.md`; presentation boundaries:
 `company-view-nouns.md`. Alpha gate: `v0.1-alpha.md`.
 
 ## Acceptance
 
-- Fresh and veteran companies receive Relief independent of the planet seed.
-- Counterattack stays locked until Relief succeeds, then recurs alongside it.
-- Faction ownership and missing-roster exclusions remain intact.
-- HQ distinguishes a company without squads, first work, unlocked follow-up,
-  and completed guidance using existing roster facts.
-- Verify the production HQ layout at 1920x1080 and 100% UI scale.
-- Live campaign discovery/save-reload acceptance remains with
-  `opening-ladder-live-acceptance.md`; headless evidence must not close that gate.
+- Jangala takes precedence over Independent markets when accessible.
+- Hidden, hostile, player-owned and non-planetary markets cannot be fallback offices.
+- Stable market ordering makes fallback selection repeatable across save/reload.
+- Relief exists at the office regardless of seed or company size; Counterattack
+  requires Relief victory. Defeat never sets a completion fact.
+- Other brokers offer referrals before both victories and recurring work after.
+- Patron clients and locked clients cannot borrow the opening sequence.
+- HQ distinguishes no squads, first work, follow-up and completed introduction.
+- No available office is explained and cannot be plotted.
+- The production HQ and contract board render at 1920x1080 and 100% UI scale.
 
-## Verification and remaining acceptance
+## Remaining live acceptance
 
-The focused opening-operation, HQ and guidance suite passes 13 tests.
-`createSnapshots -Psnapshot=first-contract` exercises the production HQ at
-1920x1080 and 100% for no squads, one squad, Relief completed, and both missions
-completed. It checks the notice stays inside its panel and clear of obligations.
-The shipped-jar boundary and assembly pass.
+From a normal new save, follow HQ's Plot Course to Jangala. Open Marine operations,
+choose Mara Venn, inspect her affiliation and Relief, and confirm normal deployment
+requirements. Save/reload before and after Relief; confirm Counterattack remains
+available and her briefing acknowledges the same militia and cooperative.
+Complete Counterattack and verify the HQ lead retires while Venn retains the jobs
+and other Independent brokers offer recurring local work. Check a preexisting save
+with opening victories, fallback routing without accessible Jangala, and the
+no-accessible-office state. Verify that Plot Course dismisses the HQ cleanly from
+both campaign-map and planetary hosts without launching combat.
 
-Remaining live checks, coordinated with `opening-ladder-live-acceptance.md`:
-start a normal new save, follow HQ directions at two populated planets, confirm
-the Independent client's Relief entry, save/reload, complete Relief and confirm
-Counterattack, then complete it and confirm the notice retires while both jobs
-remain offered. Client access and briefing personnel/lift checks must still apply.
-No live campaign was launched for the headless evidence above.
+The focused suite passes 24 tests, including the retained course-button interaction.
+Assembly and the shipped-jar boundary pass.
+`createSnapshots -Psnapshot=first-contract` supplies nine controlled headless HQ and
+contract-board frames, including referrals, fallback and unavailable offices. It does not establish live navigation or save/reload
+acceptance. Battle pacing, force ratios and objective readability remain in
+`opening-ladder-live-acceptance.md`.

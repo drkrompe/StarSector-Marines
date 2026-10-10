@@ -79,7 +79,7 @@ public final class CompanyHqScreen implements Screen {
                 this::onShipTransfer,
                 this::onShipView,
                 this::onClose,
-                this::responseAction);
+                this::responseAction, this::onOpeningCourse);
         Map<String, Object> props = viewModel.props();
         newsDesk.put(props);
         MarkupInstance candidate = markup.reloadAndBuild(
@@ -128,6 +128,13 @@ public final class CompanyHqScreen implements Screen {
             PlayerEventPresenter.requestDeployment(entry.notice);
             onClose();
         };
+    }
+
+    private void onOpeningCourse() {
+        OpeningBroker.Destination destination = OpeningBroker.current();
+        if (destination == null || destination.planet() == null) return;
+        Global.getSector().getCampaignUI().layInCourseForNextStep(destination.planet());
+        onClose();
     }
 
     private void onArmory() {

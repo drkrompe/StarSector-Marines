@@ -897,10 +897,13 @@ The retained bridge dashboard has four concerns:
   follows persistent affiliation, never a guess from its name. Receiver motion,
   selection and effect timing remain view-local and survive document refresh.
 
-HQ also presents roster-derived directions to the Independent opening work:
-the current mission, payment, preparation advice and the populated-planet client
-route. The notice advances after Relief and disappears after Counterattack;
-it never starts work, invents a received report, or consumes company resources.
+HQ also presents roster-derived directions to Mara Venn's opening work, canonically
+on Jangala: her portrait and Independent crest, current planet/system, mission,
+payment, preparation advice and local client route. Plot Course sets the ordinary
+campaign navigation destination and dismisses HQ. The notice advances after Relief
+and disappears after Counterattack; it never starts work, invents a received report,
+or consumes company resources. Location availability and fallback are campaign facts,
+not a location invented by the view.
 `early-operation-nouns.md` owns availability and progression.
 
 The clock owns obligations; the future contract board owns offers. Ignoring an

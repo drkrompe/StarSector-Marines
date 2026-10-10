@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — dependable Independent offers and roster-driven HQ directions.
+Updated: 2026-10-10 — Jangala introduction through Mara Venn and the Wayline opening sequence.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -23,20 +23,42 @@ Completing Relief unlocks Counterattack permanently, even if the company later
 grows or suffers losses. Neither operation is gated on the roster remaining
 green or small.
 
-The Independent broker is the pair's sole owner. Offers use the ordinary client
-surface rather than a synthetic tutorial client or a planet-specific route.
-Every eligible Independent broker offers Relief, including before the company
-has founded its first squad. Completing Relief adds Counterattack at every such
-broker. The planet/client seed places the offers consistently; it never decides
-whether the opening work exists. Faction-client access and deployment checks
-still apply. This authored exception does not refill ordinary patron contracts.
+**Mara Venn** is the named Independent broker who introduces the company to
+this work. Her canonical office is on **Jangala in Corvus**. She represents the
+**Wayline freight cooperative**, an authored local commercial interest; neither
+her affiliation nor its militia implies that Jangala's government is Independent.
+Relief protects Wayline's militia line; the survivors identify its occupied
+freight depot for Counterattack. HQ and the local client board show her portrait
+and affiliation; the mission briefings carry her name and consistent voice.
 
-HQ provides opening-work guidance through the existing company roster: the
-Independent crest, exact mission name and payment, directions to a populated
-planet's Marine operations menu and independent client, and basic preparation
-advice. Relief completion advances the notice to Counterattack. Completing both
-retires the notice, not the work. No extra tutorial flag, news event, accepted
-contract, or remote launch route is created by reading those directions.
+Before the first Counterattack victory, the pair is offered only at Venn's
+current office. Other Independent brokers refer the company there. Relief is
+available before the first squad is founded; deployment still owns personnel
+and lift checks. Relief victory unlocks Counterattack at that office while
+leaving Relief retryable and repeatable. Completing both opens recurring militia
+work at other eligible Independent brokers. Those local jobs use local employer
+copy rather than pretending Venn is present everywhere. Existing completion
+facts carry forward unchanged, including victories earned before the named
+introduction existed. No meeting or acceptance flag can reset that progress.
+
+The office uses reachable campaign geography. Prefer Jangala when it is a visible,
+populated, non-player planetary market whose owner is not hostile to the player.
+Otherwise use a qualifying Independent planet, then another qualifying planet,
+with stable market-id ordering within each preference. Stations, hidden markets,
+and player colonies cannot become an office. This is a read-only location policy,
+not a simulated travelling contact: current campaign facts determine its location,
+and HQ and local offers consult the same answer. If no office is accessible, HQ
+says so and disables its course control. It never points to an absent planet.
+
+HQ provides opening guidance with Venn's portrait, the Independent crest, her
+current planet/system, the exact mission and payment, and preparation advice.
+The local route is **Marine operations → Mara Venn**. **Plot Course** lays in a
+vanilla navigation course and dismisses HQ; it neither launches an operation nor
+accepts work. Relief completion advances the notice to the depot job. Completing
+both retires the notice, not the work. The broker is an authored Marine Operations
+client, not an additional vanilla comm-directory person or relationship track.
+Faction-client access and deployment checks still apply; this exception does not
+refill ordinary patron contracts or add invented news events.
 
 ## Small-company promise
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.mission.story;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.Client;
+import com.dillon.starsectormarines.ops.OpeningBroker;
 import com.dillon.starsectormarines.ops.intel.PlanetIntel;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 
@@ -22,9 +23,16 @@ public final class StoryEligibilityContext {
     public final PlanetIntel  intel;
     public final MarineRoster roster;
     public final long         seed;
+    public final boolean openingBrokerPresent;
 
     public StoryEligibilityContext(PlanetAPI planet, Client client, PlanetIntel intel,
                                    MarineRoster roster, long seed) {
+        this(planet, client, intel, roster, seed, OpeningBroker.isAt(planet));
+    }
+
+    public StoryEligibilityContext(PlanetAPI planet, Client client, PlanetIntel intel,
+                                   MarineRoster roster, long seed, boolean openingBrokerPresent) {
+        this.openingBrokerPresent = openingBrokerPresent;
         this.planet = planet;
         this.client = client;
         this.intel  = intel;
