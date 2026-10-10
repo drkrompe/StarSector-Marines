@@ -82,6 +82,9 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.command.ReliefAssault;
+import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.story.OpeningOperationStoryObserver;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.CommandStrategy;
 import com.dillon.starsectormarines.battle.command.CommandFrame;
 import com.dillon.starsectormarines.battle.command.CommandFrameDisclosure;
@@ -392,6 +395,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Reinforcement data owner — trigger registry + means provider list + request queue. Mission setup registers triggers/means. Full design: {@code reinforcement-nouns.md}. */
     private final ReinforcementService reinforcement = new ReinforcementService();
+    private final StoryBeatLog storyBeats = new StoryBeatLog();
+    private OpeningOperationStoryObserver openingStory;
+
+    /** Setup seam: scenario observation is independent of command and audio. */
+    public void installOpeningStoryHooks(OpeningOperationCommandFacts facts) {
+        if (openingStory != null || simTickIndex != 0) throw new IllegalStateException("Install story hooks once at setup");
+        openingStory = new OpeningOperationStoryObserver(this, facts, storyBeats);
+    }
+    /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
+    public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
+    /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */
+    public List<StoryBeatLog.Event> getPlayerStoryBeatsAfter(int sequence) { return storyBeats.playerEventsAfter(sequence); }
+
     private ReliefAssault reliefAssault;
 
     public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
@@ -1169,7 +1185,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Freezes an active operation as defeat without fabricating additional casualties. */
     public boolean retreat() {
-        return completion.retreat();
+        boolean accepted = completion.retreat();
+        if (accepted && openingStory != null) openingStory.retreat(simTickIndex);
+        return accepted;
     }
 
     /**
@@ -2266,6 +2284,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 completion.finish(result.winner());
             }
         }
+        if (openingStory != null) openingStory.observe(this);
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         // Authors every live sheet-drawn unit's SPRITE (facing/pose frame) from
         // this tick's settled state — the tail placement is load-bearing: it

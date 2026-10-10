@@ -170,6 +170,7 @@ class CounterattackCommandEvidenceTest {
                     .put("profile", surface.name() + " / controlled factory loadouts")
                     .put("playerBoatId", boat.boatId()).put("playerType", boat.pattern().name())
                     .put("playerPlating", boat.plating().id()).put("playerDrive", boat.drive().id())
+                    .put("storyBeats", StoryBeatEvidence.snapshot(sim))
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
                     .put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstPlayerLandingTick", firstLanding)

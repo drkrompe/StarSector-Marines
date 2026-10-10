@@ -85,3 +85,11 @@ host-specific shortcut, compete under the same voice budget, and preserve the
 presentation-only boundary. New identity treatments (faction, patron, alien,
 or named-captain nets) may vary content or treatment but must not weaken those
 laws.
+
+Authored opening operations also expose a retained story-beat history, as defined
+in `early-operation-nouns.md`. It is a future dialogue input, separate from the
+current transient combat cues. Player presentation consumes only the public
+projection; observer-only wave and defender-order events cannot become radio
+intelligence. Any future story voice adapter must share this voice budget and
+choose content by the enclosing chapter or recurring-job identity. Stable event
+keys do not by themselves grant a speaker, a sound asset, or playback priority.
