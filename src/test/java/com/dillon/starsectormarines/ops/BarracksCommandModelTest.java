@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -23,18 +25,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class BarracksCommandModelTest {
     @Test void selectionSpansPagesButNotStationedSquadsAndFiltersDiscardIt() {
         var roster = new MarineRoster();
-        roster.bootstrapInitialComplement(11 * MarineSquad.CAPACITY);
+        roster.bootstrapInitialComplement(13 * MarineSquad.CAPACITY);
         var captain = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f);
         roster.add(captain);
         var squads = roster.squads().stream().filter(s -> !s.reserve()).toList();
         assertTrue(roster.bindStationing(1L, captain.id(), List.of(squads.get(0).id())));
         var model = new BarracksViewModel(new Reactor(), roster, () -> 1d).command();
         action(model, "selectAll");
-        assertEquals(10, model.selected().size());
+        assertEquals(12, model.selected().size());
         assertFalse(model.selected().contains(squads.get(0).id()));
         action(model, "next");
         assertEquals("PAGE 2 / 2", value(model, "pageLabel"));
-        assertEquals(10, model.selected().size());
+        assertEquals(12, model.selected().size());
         action(model, "attention");
         assertTrue(model.selected().isEmpty());
         assertEquals("PAGE 1 / 1", value(model, "pageLabel"));
@@ -63,7 +65,16 @@ class BarracksCommandModelTest {
                 var document = new UiDocument(instance.root());
                 instance.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard()); document.layout(1920, 1080);
+                var hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
+                var bindings = new BarracksCardBindings();
+                bindings.update(document, instance, model, hints);
+                long canvasRevision = document.canvases().revision();
                 click(document, instance, "barracks-select-all");
+                bindings.update(document, instance, model, hints);
+                assertTrue(document.canvases().revision() > canvasRevision, "Changed cards must invalidate the cached muster");
+                canvasRevision = document.canvases().revision();
+                bindings.update(document, instance, model, hints);
+                assertEquals(canvasRevision, document.canvases().revision(), "Unchanged cards should reuse the cached muster");
                 assertEquals(1, model.selected().size());
                 click(document, instance, "barracks-new-profile");
                 click(document, instance, "barracks-save-profile");

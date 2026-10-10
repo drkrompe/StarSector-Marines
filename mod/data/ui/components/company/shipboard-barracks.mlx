@@ -41,20 +41,29 @@
           <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">SELECT ALL IN VIEW</button>
           <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">CLEAR</button>
         </div>
-        <div id="barracks-column-key" class="label muted column-key">FORMATION / PROFILE / READINESS</div>
+        <div id="barracks-column-key" class="label muted column-key">SELECT CARDS FOR BULK ORDERS  //  FILLED: READY   +: WOUNDED   OUTLINE: VACANT</div>
         <div id="barracks-empty" class="label muted wrap empty-message">{command.empty}</div>
         <div id="barracks-formation-list" class="formation-list">
           <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
-            <button id="{squad.markId}" class="mark-button console-action" disabled="{squad.disabled}" onclick="{squad.toggle}">{squad.mark}</button>
-            <div id="{squad.formationidentityId}" class="formation-identity">
-              <div id="{squad.formationnameId}" class="label heading formation-name">{squad.name}</div>
-              <div id="{squad.formationstatusId}" class="label muted formation-status">{squad.status}</div>
+            <button id="{squad.markId}" class="formation-select" disabled="{squad.disabled}" onclick="{squad.toggle}">
+              <div id="{squad.headerId}" class="formation-header">
+                <div id="{squad.checkId}" class="label card-check">{squad.mark}</div>
+                <div id="{squad.formationnameId}" class="label heading formation-name">{squad.name}</div>
+                <div id="{squad.strengthId}" class="label heading card-strength">{squad.strength}</div>
+              </div>
+              <div id="{squad.profileRowId}" class="card-profile-row">
+                <img id="{squad.armorIconId}" class="card-armor-icon" src="{squad.armorIcon}" />
+                <div id="{squad.formationidentityId}" class="formation-identity">
+                  <div id="{squad.formationprofileId}" class="label warm formation-profile">{squad.profile}</div>
+                  <div id="{squad.formationstatusId}" class="{squad.personnelClasses}">{squad.personnel}</div>
+                </div>
+              </div>
+              <canvas id="{squad.musterId}" class="formation-muster" width="260" height="78" />
+            </button>
+            <div id="{squad.footerId}" class="card-footer">
+              <div id="{squad.kitId}" class="{squad.kitClasses}">{squad.kit}</div>
+              <button id="{squad.inspectId}" class="inspect-button console-action" onclick="{squad.inspect}">INSPECT</button>
             </div>
-            <div id="{squad.formationreadinessId}" class="formation-readiness">
-              <div id="{squad.formationprofileId}" class="label warm formation-profile">{squad.profile}</div>
-              <div id="{squad.formationdetailId}" class="label muted formation-detail">{squad.detail}</div>
-            </div>
-            <button id="{squad.inspectId}" class="inspect-button console-action" onclick="{squad.inspect}">INSPECT</button>
           </div>
         </div>
         <div id="barracks-page-tools" class="page-tools">
@@ -226,13 +235,27 @@
   .select-all { width: 174px; height: 26px; padding: 0px 4px; text-align: center; font-family: heading; }
   .clear-selection { width: 66px; height: 26px; padding: 0px 4px; text-align: center; }
   .column-key { height: 17px; }
-  .formation-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .formation { flex-direction: row; align-items: center; width: 100%; height: 46px; gap: 9px; padding: 6px; border-width: 1px; border-color: #586154; background-color: #232b26; }
-  .mark-button { width: 30px; height: 30px; padding: 0px; text-align: center; }
-  .formation-identity { flex-direction: column; width: 190px; height: 39px; gap: 2px; }
-  .formation-name { height: 20px; } .formation-status { height: 17px; }
-  .formation-readiness { flex-direction: column; width: 0px; height: 39px; flex-grow: 1; gap: 2px; }
-  .formation-profile { height: 20px; } .formation-detail { height: 17px; }
+  .formation-list { display: grid; height: 0px; flex-grow: 1; gap: 10px; overflow: scroll; }
+  .formation { flex-direction: column; width: 260px; height: 190px; gap: 6px; padding: 8px; border-width: 2px; border-color: #586154; background-color: #202922; }
+  .formation.selected { border-color: #dfc588; background-color: #383c2d; }
+  .formation-select { flex-direction: column; width: 100%; height: 150px; gap: 6px; padding: 0px; border-width: 0px; text-align: left; background-color: #202922; }
+  .formation-select:hover { background-color: #303b30; }
+  .formation.selected .formation-select { background-color: #383c2d; }
+  .formation.stationed .formation-select { opacity: 1; }
+  .formation-header { flex-direction: row; align-items: center; height: 24px; gap: 6px; }
+  .card-check { width: 20px; height: 20px; text-align: center; border-width: 1px; border-color: #718068; color: #b6c1ad; }
+  .formation.selected .card-check { background-color: #dfc588; color: #20261e; border-color: #dfc588; }
+  .formation-name { width: 0px; flex-grow: 1; height: 20px; }
+  .card-strength { width: 54px; height: 20px; text-align: right; }
+  .card-profile-row { flex-direction: row; height: 36px; gap: 6px; }
+  .card-armor-icon { width: 36px; height: 36px; }
+  .formation-identity { flex-direction: column; width: 0px; flex-grow: 1; height: 36px; gap: 2px; }
+  .formation-profile { height: 18px; }
+  .card-personnel { height: 16px; font-family: body; }
+  .good { color: #a8cd99; }
+  .formation-muster { width: 260px; height: 78px; pointer-events: none; }
+  .card-footer { flex-direction: row; align-items: center; height: 28px; gap: 6px; }
+  .card-kit { width: 0px; flex-grow: 1; height: 18px; font-family: body; }
   .inspect-button { width: 80px; height: 28px; padding: 0px 4px; text-align: center; font-family: heading; }
   .empty-message { height: auto; }
   .page-label { width: 0px; flex-grow: 1; text-align: center; }

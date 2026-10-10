@@ -61,7 +61,7 @@ public final class BarracksViewModel {
         selectedSquadSummary = reactor.computed(this::buildSelectedSummary);
         quartersStatus = reactor.computed(this::buildQuartersStatus);
         command = new BarracksCommandModel(reactor, roster, resources, cargoMarines, reinforce,
-                selectedSquadId::set, this::refresh);
+                selectedSquadId::set, this::refresh, currentDay);
     }
 
     public BarracksCommandModel command() { return command; }
