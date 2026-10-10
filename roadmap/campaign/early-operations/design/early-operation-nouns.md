@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — authored checkpoint and depot chapters with fitted-boat replay evidence.
+Updated: 2026-10-10 — finite Junction territorial profile, separate militia hold duty and capture-based story beats.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -166,6 +166,37 @@ Reaching a stage is travel progress, not capture. The depot intent leaves the
 existing elimination objective and victory authority intact: defeat the finite
 bandit force. These scenario duties are not rules later Assault missions inherit.
 
+## Small territorial chapters
+
+A **small territorial profile** reuses compound capture, reversal, resolved
+capture rooms and territorial victory without inheriting the generic Conquest
+siege. Its map, finite force, arrival manifest and support duties are authored
+for that chapter. It has no required airfield, fighter or mech complement,
+resource production, open-ended reinforcement layer or free garrison sorties.
+This is a mission-scoped exception, not a lower risk setting for a large siege.
+
+**Open the Junction** is the common battle planned for Broken Supply Route.
+Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
+four required territories. Dispatch is the canonical command post. Decorative
+warehouses and the roads toward Rill and Relay Nine add no capture requirements.
+Those roads do not choose the later campaign branch.
+
+The company takes the first outstanding site in approach order, returning to
+lost ground when needed. Employer militia initially cover the landing, then
+move to hold the first confirmed gain and retain that duty through reversals.
+They remain a separate allied force. Site guards retain garrison authority;
+one finite reserve waits in the maintenance building until a hostile site is
+confirmed captured, then approaches the first lost site along a screened
+service route. No repeated capture creates additional raiders. A reserve killed
+before commitment cannot produce an announcement that it counterattacked.
+
+Command reads frozen territory state and own-force reports, never live opposing
+positions. Local contact, survival and cohesion remain squad decisions. External
+player duties are preserved. Company boats fly their committed fitted airframes;
+employer lift is separately identified. Victory requires all four territories
+held together and a company participant in play, including committed inbound
+personnel. Killing every raider alone does not close the mission.
+
 ## Story beats and presentation hooks
 
 A **story beat** is a confirmed event in one battle attempt, identified by a
@@ -174,7 +205,10 @@ objective, a wave-release rule, or a campaign completion flag. Opening scenarios
 publish the start, actual company/employer arrival, proximity to authored
 places, and terminal victory, defeat or retreat. Relief additionally reports
 the original militia line weakening or being lost and actual road arrivals;
-Counterattack reports reserve commitment and defensive fallback.
+Counterattack reports reserve commitment and defensive fallback. Junction
+reports completed captures and the first confirmed recapture of each site. Its
+militia hold beat requires an accepted hold order and a living ally actually
+inside the secured capture room; ordering the move is insufficient.
 
 Each key fires once per attempt. Events remain in an immutable, ordered history
 so a slow presentation frame cannot miss a beat and multiple consumers cannot
@@ -216,7 +250,7 @@ must validate arrival timing, actual lift requirements, force ratios, and
 briefing claims. Both chapters have production-factory headless replay evidence;
 actual campaign loadouts and the linked live sequence remain to be accepted.
 `broken-supply-route.md` plans a follow-on alpha arc with a committed choice;
-its implementation depends on that mission pass and a small Conquest envelope.
+its Junction battle has a finite territorial prototype; branch battles and campaign progression remain open.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.
 Shipped implementation evidence is in `shipped.md`.

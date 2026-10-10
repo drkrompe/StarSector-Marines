@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — kept the DEBUG catalog as a tier-aware developer surface.
+Updated: 2026-10-10 — explicit small territorial chapter profiles preserve generic Conquest scale.
 
 Mission difficulty is described by two independent axes: **operation tier**
 states how large and consequential the work is, while **risk** states how far
@@ -34,6 +34,14 @@ more than one scale. Conquest's map scale is the one mission-owned exception:
 it is the authored siege, its three tracks and its fortress with a city around
 it were measured at 560x336, and it takes that scale at every tier it is
 offered at.
+
+An authored small territorial chapter is a separate profile, not a generic
+Conquest offer below its tier floor. It states its own map, recommendation,
+finite opposition and fitted-boat arrivals while reusing Conquest's capture and
+victory law. It omits siege production, free garrisons and airfield requirements.
+`early-operation-nouns.md` owns these chapter semantics; generic Conquest keeps
+its existing floors and scale. A factory prototype alone does not establish
+campaign deployment gates or persistent squad acceptance.
 
 Tier establishes the baseline rather than rubber-banding a battle. Once a
 mission is made, its map and base infantry force do not grow merely because the

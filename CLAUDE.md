@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, and `counterattack`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, and `junction`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -158,6 +158,16 @@ Do not run builds or leave generated task files there.
   defender orders and casualties; vicinity is not capture. The harness verifies
   that the production air entities retain each committed player airframe. These
   are factory-loadout controls, not current campaign roster acceptance.
+  Junction's default matrix covers three interiors with two twelve-person squads,
+  four squads, and two understrength four-person squads, plus reserve/hold,
+  single-ferry, absent-player and refitted-boat controls. `-Pmission=junction`
+  replays the production finite territorial factory; it does not create a campaign
+  offer. Custom fixture fields are `id`, `seed`, `playerType`, `playerBoats`,
+  `playerSeats`, and `playerCycles`, plus optional fitting ids and `playerDelay`.
+  `holdAtLanding` is an explicit diagnostic player-order control that keeps the
+  employer force at the apron. Reports include territory reversals, actual boat
+  identities, casualties, accepted story beats and reserve positions. Source
+  frames use 1920x1080. Timeout remains unresolved, not a win or a defeat.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —

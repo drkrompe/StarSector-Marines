@@ -20,6 +20,15 @@
  * and {@code defenders_falling_back}. Wave and defender-decision events are
  * observer-only. Reached means a player combatant within six cells, not capture.
  *
+ * <p>Junction keys use {@code supply_route.junction.} with the common arrival
+ * and terminal suffixes, {@code militia_hold_established}, and the private
+ * {@code reserve_committed}. Each of {@code turnout}, {@code weigh_station},
+ * {@code freight_yard}, {@code dispatch} can report {@code _retaken}; the three
+ * initially hostile sites report {@code _secured}. These mean completed
+ * territory transitions, not proximity. Retaken fires once per site per attempt.
+ * The hold beat requires a live ally under the accepted hold directive inside
+ * the secured capture room. These hooks never settle the campaign chapter.
+ *
  * <p>To add a beat, give it a stable key, consume a confirmed post-tick fact in
  * the mission policy, classify its audience and exercise the policy directly.
  * Do not infer an earlier stage from a later one, or expose an enemy decision

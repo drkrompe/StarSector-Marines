@@ -58,7 +58,8 @@ advance, rear guards and a contact-driven reserve. Both have fitted-boat headles
 replays. Next, complete the linked opening arc's live campaign acceptance. The
 follow-on choice arc in `broken-supply-route.md` now specifies escort/boarding
 versus territorial recovery, branch consequences and recurring contact work;
-a small Conquest profile is its first implementation prerequisite. The opening
+Junction now has a finite territorial battle prototype and fitted-boat evidence.
+Next implement Last Lift and Relay Nine, then the persisted campaign choice. The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 
