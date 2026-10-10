@@ -424,7 +424,7 @@ public final class UnitRenderService implements RenderSystem {
     private void emitWreck(DrawList out, BattleCamera cam, Object wreckKey,
                            float padCellX, float padCellY, float facingDegrees, Airframe airframe,
                            int seedX, int seedY, float cellPx, float alphaMult) {
-        ShuttleSpriteCache cache = sprites.airframeSprites().get(airframe);
+        ShuttleSpriteCache cache = sprites.airframeSprite(airframe);
         if (cache == null || cache.sprite == null) return;
         if (cache.pxW <= 0 || cache.pxH <= 0) {
             emitHull(out, cam, airframe, facingDegrees, padCellX, padCellY, cellPx,
@@ -609,7 +609,7 @@ public final class UnitRenderService implements RenderSystem {
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,
                           float r, float g, float b, float alphaMult) {
-        ShuttleSpriteCache cache = sprites.airframeSprites().get(airframe);
+        ShuttleSpriteCache cache = sprites.airframeSprite(airframe);
         if (cache == null || cache.sprite == null) return;
         float hullLenCells = HullFootprintResolver.visualLengthCells(airframe.renderHullId());
         float[] pivot = HullPivotResolver.pivotOffset(airframe.renderHullId());

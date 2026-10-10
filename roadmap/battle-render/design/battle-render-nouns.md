@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-09-29 — live and headless aim-lane rendering share read-only terrain geometry.
+Updated: 2026-10-10 — fitted aircraft share pattern artwork across ground, flight and shadow rendering.
 
 ## Vocabulary
 
@@ -85,6 +85,12 @@ Updated: 2026-09-29 — live and headless aim-lane rendering share read-only ter
 `BattleScreen` owns the session loop, input, audio, host chrome, and the outer scissor boundary. For each world frame it supplies a frame context to the battle renderer. The renderer asks its ordered systems to collect the current presentation into one draw list, then drains selected layers in `RenderLayer` order.
 
 Systems pull fresh state every render frame, so camera motion, interpolation, visibility fades, recoil, and live pose remain responsive even when the simulation advances at a lower cadence. Simulation objects carry conceptual identity and state; render-side flyweights and the asset service resolve that identity into sheets, sprites, frames, and presentation policy. No simulation entity owns a `SpriteAPI` or a mutable renderer handle.
+
+A fitted boat's artwork belongs to its hull pattern, while its campaign identity,
+handling and durability belong to the actual boat. Flying hulls, grounded hulls
+and shadows use the same render-side pattern lookup. Asset caches never require
+an entry for each named boat or fitting combination; fitting a boat cannot make
+its hull disappear. Live and headless hosts share this resolution.
 
 A controlled Marine's applied sprint lowers its primary weapon in both sheet
 and layered appearance while retaining manual cursor bearing. A valid aim point

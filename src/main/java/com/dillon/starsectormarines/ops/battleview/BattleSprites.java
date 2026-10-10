@@ -260,6 +260,13 @@ public class BattleSprites {
     public int doodadSheetPxW()                     { return doodadTex.pxW(); }
     public int doodadSheetPxH()                     { return doodadTex.pxH(); }
     public java.util.Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframeSprites; }
+
+    /** Hull art belongs to the pattern; a boat's identity and fittings are not asset keys. */
+    public ShuttleSpriteCache airframeSprite(Airframe frame) {
+        ShuttleType pattern = ShuttleType.fromAirframe(frame);
+        return airframeSprites().get(pattern != null ? pattern : frame);
+    }
+
     public java.util.EnumMap<com.dillon.starsectormarines.battle.vehicle.VehicleType, UnitSpriteCache> convoySprites() { return convoySprites; }
     public SpriteAPI engineFlameSprite()           { return engineFlameSprite; }
     public SpriteAPI engineGlowSprite()            { return engineGlowSprite; }

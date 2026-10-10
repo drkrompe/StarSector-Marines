@@ -14,6 +14,10 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.marine.BoatFitting;
 
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashMap;
@@ -103,6 +107,20 @@ class AircraftOnTheGroundIsDrawnTest {
             sim.world().kinematics(craft).teleport(20f, 15f, 0f);
 
             assertEquals(1, hullDraws(sim), "nothing drawn while " + phase);
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ShuttleState.class, names = {"INCOMING", "LANDED", "DEPARTING", "LOADING", "TAXI_OUT", "SHIP_RETURN"})
+    void aNamedFittedBoatDrawsItsPatternsHull(ShuttleState phase) {
+        try (BattleSimulation sim = openSim()) {
+            FittedBoat boat = new FittedBoat(ShuttleType.AEROSHUTTLE,
+                    BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, "player-boat-02");
+            long craft = sim.spawnShuttle(boat.pattern(), boat, Faction.MARINE,
+                    20f, 20f, 2f, 2f, 2f, 2f, 0f, 6);
+            sim.world().mission(craft).state = phase;
+            sim.world().kinematics(craft).teleport(20f, 15f, 0f);
+            assertEquals(1, hullDraws(sim), "fitted boat invisible while " + phase);
         }
     }
 
