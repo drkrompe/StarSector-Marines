@@ -92,8 +92,9 @@ final class MarineOpsThemes {
                     border-color: #edc273;
                     border-style: inset;
                 }
-                .squad-open { background-color: transparent; background-image: none; }
-                .squad-open:hover { background-color: #ffffff08; }
+                .squad-open, .formation-select { background-color: transparent; background-image: none; }
+                .squad-open:hover, .formation-select:hover { background-color: #ffffff08; }
+                .formation.stationed .formation-select:disabled { opacity: 0.72; }
                 .squad-command-block, .squad-card-status {
                     background-color: #121e1c;
                     border-color: #657771;

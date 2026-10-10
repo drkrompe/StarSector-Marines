@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — Barracks organizes officer commands and saved squad profiles,
-with explicit bulk personnel replacement, unenlisted cargo recruits, and cargo-backed equipment issue.
+Updated: 2026-10-09 — Barracks uses visual formation cards for officer commands,
+saved squad profiles, and explicit bulk personnel replacement and equipment issue.
 
 ## Purpose
 
@@ -547,6 +547,15 @@ profile and attention filters bound the roster; pagination limits rendered squad
 Select-all includes every matching available squad across pages and shows the
 selected total. Changing a filter clears selection; inspecting a squad and returning
 preserves it. Stationed formations can be inspected but cannot receive bulk orders.
+
+Formations are compact selectable cards. Each carries the squad name, intended
+profile, ready count and twelve current billets grouped into three fire teams.
+Filled silhouettes, medical marks and hollow silhouettes distinguish ready,
+wounded and vacant places without relying on color. Selection has its own frame
+and checkbox; inspection is a separate action. The armor image represents the
+most common current issue, never the profile's unissued intent or an invented
+squad class. Short personnel and equipment states stay visible, while hover and
+keyboard-focus details explain recovery, command, profile and refit requirements.
 
 A saved **squad profile** pairs an existing weapon loadout with an armor tactic
 sheet. Saving and assigning it is free and can include understrength or recovering

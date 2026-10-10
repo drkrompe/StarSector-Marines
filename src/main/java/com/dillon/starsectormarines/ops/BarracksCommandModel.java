@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -10,6 +12,8 @@ import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadProfile;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
+import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
+import com.dillon.starsectormarines.ops.battleview.SquadMuster;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -23,13 +27,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /** View-local selection and drafts over campaign commands, profiles and exact issue. */
 public final class BarracksCommandModel {
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_SIZE = 12;
     private final MarineRoster roster;
     private final BarracksEquipmentIssue equipment;
     private final EquipmentIssueResources resources;
@@ -38,6 +43,8 @@ public final class BarracksCommandModel {
     private final Consumer<String> inspect;
     private final Runnable changed;
     private final MutableSignal<Integer> revision;
+    private final ComputedSignal<List<Map<String, Object>>> cards;
+    private final DoubleSupplier currentDay;
     private final Map<String, Object> props = new LinkedHashMap<>();
     private final Set<String> selected = new LinkedHashSet<>();
     private String command = "all";
@@ -57,7 +64,7 @@ public final class BarracksCommandModel {
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
-                                Consumer<String> inspect, Runnable changed) {
+                                Consumer<String> inspect, Runnable changed, DoubleSupplier currentDay) {
         this.roster = roster;
         this.resources = resources;
         this.equipment = new BarracksEquipmentIssue(roster, resources);
@@ -65,9 +72,11 @@ public final class BarracksCommandModel {
         this.reinforce = reinforce;
         this.inspect = inspect;
         this.changed = changed;
+        this.currentDay = currentDay;
         revision = reactor.signal(0);
         bind(reactor, "commands", this::commands);
-        bind(reactor, "squads", this::squads);
+        cards = reactor.computed(() -> { revision.get(); return squads(); });
+        props.put("squads", cards);
         bind(reactor, "profiles", this::profiles);
         bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
         bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
@@ -147,6 +156,8 @@ public final class BarracksCommandModel {
         props.put(key, reactor.computed(() -> { revision.get(); return supplier.get(); }));
     }
     public Map<String, Object> props() { return props; }
+    public List<Map<String, Object>> cards() { return cards.get(); }
+    public SquadMuster muster(String id) { return SquadMuster.from(roster, id, (float) currentDay.getAsDouble()); }
     public Set<String> selected() { return Set.copyOf(selected); }
     public boolean inspecting() { revision.get(); return detail; }
     public void refresh() { revision.update(n -> n + 1); }
@@ -222,25 +233,71 @@ public final class BarracksCommandModel {
         for (MarineSquad squad : filtered.subList(Math.min(filtered.size(), pageNumber() * PAGE_SIZE),
                 Math.min(filtered.size(), (pageNumber() + 1) * PAGE_SIZE))) {
             int ready = roster.readyCount(squad);
-            String status = squad.stationed() ? "ON STATION" : ready == MarineSquad.CAPACITY ? "READY" : roster.vacancies(squad) > 0 ? "UNDERSTRENGTH" : "RECOVERING";
             var plan = equipment.preview(Set.of(squad.id()));
-            String equipmentState = plan.eligible() == 0 ? plan.entries().get(0).reason()
-                    : plan.cost().isZero() ? "Equipment conforms" : "Refit pending";
+            SquadMuster muster = muster(squad.id());
+            MarineArmorCatalogDef armor = representativeArmor(squad);
+            String personnel = squad.stationed() ? "ON STATION" : muster.vacantCount() > 0
+                    ? muster.vacantCount() + " VACANT" : muster.woundedCount() > 0 ? muster.woundedCount() + " WIA" : "FULL STRENGTH";
+            String kit = squad.squadProfileId() == null && squad.weaponDoctrineId() == null ? "NO PROFILE"
+                    : plan.eligible() == 0 ? "ISSUE HELD" : plan.cost().isZero() ? "EQUIPPED" : "REFIT";
             rows.add(row("id", "formation:" + squad.id(), "markId", "formation:" + squad.id() + ":mark",
+                    "squadId", squad.id(), "musterId", "formation:" + squad.id() + ":muster",
+                    "headerId", "formation:" + squad.id() + ":header", "checkId", "formation:" + squad.id() + ":check",
+                    "strengthId", "formation:" + squad.id() + ":strength", "profileRowId", "formation:" + squad.id() + ":profile-row",
+                    "armorIconId", "formation:" + squad.id() + ":armor-icon", "footerId", "formation:" + squad.id() + ":footer",
+                    "kitId", "formation:" + squad.id() + ":kit", "armorIcon", armor == null ? "" : armor.iconPath(),
+                    "strength", ready + "/12", "personnel", personnel, "kit", kit,
+                    "personnelClasses", "label card-personnel " + (squad.stationed() ? "muted" : ready == 12 ? "good" : "warm"),
+                    "kitClasses", "label card-kit " + (kit.equals("EQUIPPED") ? "good" : "muted"),
                     "formationidentityId", "formation:" + squad.id() + ":identity",
                     "formationnameId", "formation:" + squad.id() + ":name",
                     "formationstatusId", "formation:" + squad.id() + ":status",
-                    "formationreadinessId", "formation:" + squad.id() + ":readiness",
                     "formationprofileId", "formation:" + squad.id() + ":profile",
-                    "formationdetailId", "formation:" + squad.id() + ":detail",
                     "inspectId", "formation:" + squad.id() + ":inspect", "name", squad.name(),
-                    "profile", profileName(squad), "status", status,
-                    "detail", ready + "/12 ready / " + roster.vacancies(squad) + " vacant / " + equipmentState,
-                    "classes", selected.contains(squad.id()) ? "formation selected" : "formation",
-                    "mark", selected.contains(squad.id()) ? "X" : "+", "disabled", squad.stationed(),
+                    "profile", profileName(squad),
+                    "classes", "formation" + (selected.contains(squad.id()) ? " selected" : "") + (squad.stationed() ? " stationed" : ""),
+                    "mark", selected.contains(squad.id()) ? "X" : "", "disabled", squad.stationed(),
                     "toggle", (Runnable) () -> toggle(squad.id()), "inspect", (Runnable) () -> inspect(squad.id())));
         }
         return rows;
+    }
+    /** Representative current issue, never an invented class or the profile's future equipment. */
+    private MarineArmorCatalogDef representativeArmor(MarineSquad squad) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (String id : roster.manningMemberIds(squad)) {
+            var soldier = roster.soldierById(id);
+            if (soldier != null) counts.merge(soldier.armorId(), 1, Integer::sum);
+        }
+        String common = null;
+        int largest = 0;
+        for (var entry : counts.entrySet()) if (entry.getValue() > largest) {
+            common = entry.getKey(); largest = entry.getValue();
+        }
+        return common == null ? null : MarineArmorCatalogRegistry.require(common);
+    }
+    public SpecSheet squadSheet(String id) {
+        MarineSquad squad = roster.squadById(id);
+        if (squad == null || squad.reserve()) return null;
+        SquadMuster muster = muster(id);
+        MarineArmorCatalogDef armor = representativeArmor(squad);
+        var plan = equipment.preview(Set.of(id));
+        String issue = plan.eligible() == 0 ? plan.entries().get(0).reason()
+                : plan.cost().isZero() ? "Equipment conforms" : "Refit pending: " + plan.cost().display();
+        List<String> notes = new ArrayList<>();
+        SquadProfile profile = roster.armory().squadProfile(squad.squadProfileId());
+        if (profile != null) notes.add("Profile: " + roster.armory().weaponDoctrineById(profile.weaponDoctrineId()).displayName()
+                + " / " + roster.armory().armorDoctrineById(profile.armorDoctrineId()).displayName());
+        notes.add(armor == null ? "No issued armor: all billets vacant." : "Armor image: " + armor.displayName() + ", the most common current issue.");
+        notes.add(issue + ". Assigning a profile never changes issued equipment by itself.");
+        if (muster.woundedCount() > 0) notes.add(String.format(Locale.ROOT,
+                "Wounded personnel keep their billets. Next return in %.1f days.", muster.earliestRecoveryDays()));
+        notes.add(squad.stationed() ? "On station: inspect is available; bulk orders are locked."
+                : "Click the card to select it for bulk orders. Inspect opens quarters and the individual muster.");
+        return new SpecSheet(squad.name(), profileName(squad), armor == null ? "" : armor.iconPath(), "item",
+                List.of(SpecSheet.Stat.of("Ready", muster.readyCount() + " / 12"),
+                        SpecSheet.Stat.of("Wounded", Integer.toString(muster.woundedCount())),
+                        SpecSheet.Stat.of("Vacant", Integer.toString(muster.vacantCount())),
+                        SpecSheet.Stat.of("Home command", captainName(roster.byId(squad.homeCaptainId())))), notes);
     }
     private List<Map<String, Object>> profiles() {
         return roster.armory().squadProfiles().stream().map(profile -> row(

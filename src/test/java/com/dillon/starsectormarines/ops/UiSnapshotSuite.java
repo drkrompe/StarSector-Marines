@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.BarracksFlowCompany;
 import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -104,6 +105,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
+import java.util.function.Consumer;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
@@ -1557,7 +1559,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         squads.get(2).memberIds().get(0), MarineSoldierStatus.KIA), 100f, 2f);
                 roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
             }
-            BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d);
+            BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
+                    snapshotEquipmentResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             if (state.equals("command") || state.equals("profiles")) {
                 viewModel.command().selectCommand(captain.id());
                 viewModel.command().toggle(squads.get(0).id());
@@ -1588,8 +1591,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 document.theme(MarineOpsThemes.standard());
                 if (ship != null) document.canvases().set(instance.requireElement("barracks-canvas"),
                         new BarracksCanvas(ship, viewModel::sceneMarines));
+                SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
+                BarracksCardBindings bindings = new BarracksCardBindings();
+                bindings.update(document, instance, viewModel.command(), hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderRelative(renderer, document, 1920, 1080, 1f)));
+                if (state.equals("large")) {
+                    clickBarracksFlow(document, instance, "barracks-select-all");
+                    clickBarracksFlow(document, instance, "barracks-page-next");
+                    bindings.update(document, instance, viewModel.command(), hints);
+                    if (viewModel.command().selected().size() != 119 || viewModel.command().cards().size() != 12) {
+                        throw new IllegalStateException("Paged card selection lost matching available squads");
+                    }
+                    images.add(new SnapshotArtifact("barracks-large-page-2.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+                }
+                hints.clear();
             }
         }
         images.addAll(renderBarracksFlow(context, renderer));
@@ -1617,29 +1633,39 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
+            BarracksCardBindings cardBindings = new BarracksCardBindings();
+            cardBindings.update(document, instance, model.command(), hints);
+            Consumer<String> click = id -> {
+                clickBarracksFlow(document, instance, id);
+                cardBindings.update(document, instance, model.command(), hints);
+            };
             for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
                 hints.bindLive(instance.requireElement(id), model.command()::recruitSheet);
             }
             renderRelative(renderer, document, 1920, 1080, 1f);
-            clickBarracksFlow(document, instance, "command:" + company.captain.id());
-            for (int i = 0; i < 2; i++) clickBarracksFlow(document, instance, "formation:" + company.squads.get(i).id() + ":mark");
+            click.accept("command:" + company.captain.id());
+            for (int i = 0; i < 2; i++) click.accept("formation:" + company.squads.get(i).id() + ":mark");
             frames.add(new SnapshotArtifact("flow-01-selected.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            openSpecSheet(document, hints, 1920, 1080, instance.requireElement("formation:" + company.squads.get(2).id()));
+            frames.add(new SnapshotArtifact("barracks-card-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            document.deactivateInput();
+            hints.update();
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-recruit-stock"));
             frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
-            clickBarracksFlow(document, instance, "barracks-new-profile");
+            click.accept("barracks-new-profile");
             frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderRelative(renderer, document, 1920, 1080, 1f)));
-            clickBarracksFlow(document, instance, "barracks-save-profile");
+            click.accept("barracks-save-profile");
             var originalCargo = company.available();
-            clickBarracksFlow(document, instance, "barracks-assign-profile");
+            click.accept("barracks-assign-profile");
             String profileId = company.roster.armory().squadProfiles().get(0).id();
             if (company.recruits() != 20 || !company.available().equals(originalCargo)
                     || company.squads.subList(0, 2).stream().anyMatch(s -> !profileId.equals(s.squadProfileId()))) {
                 throw new IllegalStateException("Profile assignment failed or spent recruits");
             }
             frames.add(new SnapshotArtifact("flow-04-profile-assigned.png", renderRelative(renderer, document, 1920, 1080, 1f)));
-            clickBarracksFlow(document, instance, "barracks-reinforce");
+            click.accept("barracks-reinforce");
             if (company.recruits() != 17 || company.roster.readyReserveCount() != 0
                     || company.squads.subList(0, 2).stream().anyMatch(s -> company.roster.readyCount(s) != 12)
                     || company.roster.readyCount(company.squads.get(2)) != 11) {
@@ -1648,16 +1674,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             frames.add(new SnapshotArtifact("flow-05-replenished.png", renderRelative(renderer, document, 1920, 1080, 1f)));
             var equipment = new BarracksEquipmentIssue(company.roster, company);
             var bill = equipment.preview(model.command().selected()).cost();
-            clickBarracksFlow(document, instance, "barracks-issue");
+            click.accept("barracks-issue");
             if (bill.isZero() || !company.available().plus(bill).equals(originalCargo)
                     || !equipment.preview(model.command().selected()).cost().isZero() || company.recruits() != 17) {
                 throw new IllegalStateException("Equipment issue did not pay its separate combined bill");
             }
             frames.add(new SnapshotArtifact("flow-06-equipped.png", renderRelative(renderer, document, 1920, 1080, 1f)));
-            clickBarracksFlow(document, instance, "formation:" + company.squads.get(0).id() + ":inspect");
+            click.accept("formation:" + company.squads.get(0).id() + ":inspect");
             if (!model.command().inspecting()) throw new IllegalStateException("Squad drill-down did not open");
             frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderRelative(renderer, document, 1920, 1080, 1f)));
-            clickBarracksFlow(document, instance, "barracks-back-command");
+            click.accept("barracks-back-command");
             if (model.command().inspecting() || model.command().selected().size() != 2) {
                 throw new IllegalStateException("Return lost the command selection");
             }
@@ -1706,6 +1732,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("barracks-canvas"),
                     new BarracksCanvas(ship, viewModel::sceneMarines));
+            SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
+            new BarracksCardBindings().update(document, instance, viewModel.command(), hints);
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
