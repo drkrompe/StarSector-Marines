@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
+import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -24,6 +26,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -42,7 +45,7 @@ class ReliefCommandEvidenceTest {
             for (int seed : new int[]{8101, 8102, 8103}) {
                 for (int delay : new int[]{0, 30, 600}) fixtures.put(new JSONObject()
                         .put("id", seed + (delay == 0 ? "-relief" : delay == 30 ? "-late" : "-no-player"))
-                        .put("seed", seed).put("playerType", "AEROSHUTTLE")
+                        .put("seed", seed).put("surface", "VERDANT").put("playerType", "AEROSHUTTLE")
                         .put("playerBoatId", "relief-boat").put("playerPlating", BoatFitting.STANDARD_PLATING.id())
                         .put("playerDrive", BoatFitting.STANDARD_DRIVE.id())
                         .put("playerCycles", 1).put("playerSeats", 6).put("playerDelay", delay));
@@ -80,8 +83,10 @@ class ReliefCommandEvidenceTest {
                 fixture.optString("playerBoatId", "relief-boat"));
         var player = new ShuttleAssignment(boat, fixture.getInt("playerCycles"), fixture.getInt("playerSeats"));
         List<ShuttleAssignment> manifest = List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1), player);
+        SurfacePalette surface = SurfacePalette.valueOf(fixture.optString("surface", "ROCK"));
+        TargetProfile profile = new TargetProfile(0, 0, 0, 0, "", Set.of(), surface, SettlementLink.ROAD);
         try (BattleSimulation sim = BattleSetup.createOpeningOperation(seed, manifest, 1,
-                OpeningOperationKind.RELIEF, TargetProfile.NEUTRAL)) {
+                OpeningOperationKind.RELIEF, profile)) {
             for (long air : sim.getAirEntityIds()) {
                 if (sim.world().airFaction(air) == Faction.MARINE) {
                     assertSame(boat, sim.world().airframe(air), "Relief must fly the committed player boat");
@@ -119,17 +124,18 @@ class ReliefCommandEvidenceTest {
                                     battle.world().airFaction(air) == Faction.ALLY ? "EMPLOYER LZ" : "PLAYER LZ",
                                     ReviewStyle.LANDING);
                         }
-                        var command = (OpeningOperationCommand) battle.getCommander(Faction.MARINE);
-                        var picture = command.operationPicture();
-                        if (picture != null) extra.label(picture.placeCellX(), picture.placeCellY(), "WAYLINE COMMS", ReviewStyle.OBJECTIVE);
+                        extra.label(42, 45, "RELAY OFFICE", ReviewStyle.NOTE);
+                        extra.label(67, 24, "INSPECTION", ReviewStyle.NOTE);
+                        extra.label(103, 30, "FREIGHT ROAD", ReviewStyle.NOTE);
+                        extra.label(82, 58, "SERVICE ROAD", ReviewStyle.NOTE);
                         boolean postMarked = false;
                         for (var squad : battle.getSquads()) {
                             if (!postMarked && squad.faction == Faction.ALLY && squad.assignedNode != null) {
                                 postMarked = true;
-                                extra.label(squad.assignedNode.anchorX, squad.assignedNode.anchorY, "MILITIA POST", ReviewStyle.NOTE);
+                                extra.label(squad.assignedNode.anchorX, squad.assignedNode.anchorY, "CHECKPOINT / MILITIA", ReviewStyle.OBJECTIVE);
                             }
                         }
-                        return renderer.render(battle, caption + " / ALLY " + count(battle, Faction.ALLY), extra.build());
+                        return renderer.render(battle, caption + " / LOCAL " + living(battle, originalMilitia) + " / RESERVE " + battle.pendingGroundArrivals(Faction.DEFENDER), extra.build());
                     })) {
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
@@ -145,15 +151,19 @@ class ReliefCommandEvidenceTest {
                     if (tick == 1 || tick % 150 == 0 || sim.isComplete()) {
                         samples.put(new JSONObject().put("tick", tick).put("locals", local)
                                 .put("allies", count(sim, Faction.ALLY)).put("player", count(sim, Faction.MARINE))
-                                .put("raiders", count(sim, Faction.DEFENDER)));
+                                .put("raiders", count(sim, Faction.DEFENDER))
+                                .put("pendingRaiders", sim.pendingGroundArrivals(Faction.DEFENDER)));
                     }
                     visuals.afterAdvance();
                 }
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
 
+            JSONArray arrivals = new JSONArray();
+            for (var arrival : sim.getReliefAssault().arrivals()) arrivals.put(new JSONObject()
+                    .put("road", arrival.road()).put("tick", arrival.tick()).put("members", arrival.members()));
             var picture = ((OpeningOperationCommand) sim.getCommander(Faction.MARINE)).operationPicture();
-            return new Result(new JSONObject().put("seed", seed).put("profile", "NEUTRAL / controlled construction, no campaign loadout")
+            return new Result(new JSONObject().put("seed", seed).put("profile", surface.name() + " / controlled construction, no campaign loadout")
                     .put("playerBoatId", boat.boatId()).put("playerType", boat.pattern().name())
                     .put("playerPlating", boat.plating().id()).put("playerDrive", boat.drive().id())
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
@@ -164,6 +174,7 @@ class ReliefCommandEvidenceTest {
                     .put("firstLocalLossTick", firstLocalLoss).put("originalMilitiaAtPlayerLanding", localAtLanding)
                     .put("originalMilitiaRemaining", living(sim, originalMilitia))
                     .put("placeX", picture == null ? -1 : picture.placeCellX()).put("placeY", picture == null ? -1 : picture.placeCellY())
+                    .put("arrivals", arrivals).put("pendingRaiders", sim.pendingGroundArrivals(Faction.DEFENDER))
                     .put("initialSquads", initialSquads).put("landings", landings).put("samples", samples).toString(2), sim.getCommandTraceJsonLines());
         }
     }

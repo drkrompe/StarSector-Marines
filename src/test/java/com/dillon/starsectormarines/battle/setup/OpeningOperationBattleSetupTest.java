@@ -36,12 +36,13 @@ class OpeningOperationBattleSetupTest {
                 TargetProfile.NEUTRAL);
 
         // The local line is the client's own, so it is on the field as ALLY.
-        // Eight bodies in two fireteams share the actual COMMS post.
+        // Eight bodies in two fireteams share the actual checkpoint gate.
         assertEquals(8, count(sim, Faction.ALLY, UnitType.MILITIA));
         assertEquals(0, count(sim, Faction.MARINE, UnitType.MILITIA),
                 "the player's company does not field the employer's militia");
-        assertEquals(16, count(sim, Faction.DEFENDER, UnitType.MILITIA));
-        assertEquals(16, combatants(sim, Faction.DEFENDER));
+        assertEquals(12, count(sim, Faction.DEFENDER, UnitType.MILITIA));
+        assertEquals(8, sim.pendingGroundArrivals(Faction.DEFENDER));
+        assertEquals(12, combatants(sim, Faction.DEFENDER));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.MARINE_RED));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.HEAVY_MECH));
         assertEquals(0, count(sim, Faction.DEFENDER, UnitType.TURRET));
@@ -68,7 +69,7 @@ class OpeningOperationBattleSetupTest {
             }
         }
         assertEquals(2, localPosts);
-        assertEquals(4, raiderPool);
+        assertEquals(3, raiderPool);
 
         long[] shuttles = sim.getAirEntityIds();
         assertEquals(2, shuttles.length);
@@ -79,7 +80,7 @@ class OpeningOperationBattleSetupTest {
         assertEquals(Faction.ALLY, sim.world().airFaction(shuttles[0]));
         assertEquals(Faction.MARINE, sim.world().airFaction(shuttles[1]));
         // The employer still owns its troops, but they reinforce the same
-        // COMMS post as the starting line instead of guarding their pad.
+        // checkpoint gate as the starting line instead of guarding their pad.
         assertNull(employer.commandClaim);
         assertNotNull(employer.garrisonNode);
         assertEquals(Faction.ALLY, employer.garrisonNode.defaultGuard);

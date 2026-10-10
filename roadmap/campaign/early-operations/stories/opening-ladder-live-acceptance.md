@@ -20,7 +20,7 @@ postings unlock after the arc. Company growth does not remove access to small wo
 `commanderEvidence -Pmission=relief` compares three production-factory maps
 with ordinary, delayed, and absent player arrival. It records original militia
 survival separately from employer reinforcements and supports 1920x1080 review
-frames and exact replay checks. These neutral-profile, factory-loadout cases do
+frames and exact replay checks. These verdant-surface, factory-loadout cases do
 not establish Jangala campaign balance or slow-craft acceptance. Check those in
 live acceptance; the delayed cases are a controlled intervention, not a slow
 transport model.
@@ -31,12 +31,12 @@ transport model.
   Venn's office. Its local line survives long enough for a slow
   player transport to matter, but cannot win unattended.
 - Relief's defensive anchor reads as a communications/logistics place the local
-  militia must preserve, not an arbitrary patch of ground. It supplies mission
-  purpose without adding a static-defense or reinforcement capability.
+  militia must preserve: a checkpoint gate, recessed relay, rear apron and
+  connected access roads. Its finite road arrivals cannot become recurring supply.
 - The first briefing clearly accepts one starting transport and one selected
   fire team; counterattack clearly communicates its larger player-lift demand.
 - Live results justify the local-militia versus bandit ratio and approach
-  pressure without adding regulars, mechs, turrets, fighters, or reinforcements.
+  pressure without adding regulars, mechs, turrets, fighters, or open-ended reinforcements.
 - Defeat leaves the relevant operation retryable. Completing Relief unlocks
   Counterattack even if the company has grown or suffered losses. After
   victory, each story chapter stays closed. Completing the arc opens distinct

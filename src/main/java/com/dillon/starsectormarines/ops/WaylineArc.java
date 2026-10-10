@@ -39,8 +39,8 @@ public final class WaylineArc {
     public static String briefing(OpeningOperationKind kind, String planet) {
         String location = planet != null ? " on " + planet : "";
         return OpeningBroker.NAME + ": " + switch (kind) {
-            case RELIEF -> "The raiders have our depot; now they're hitting the militia post" + location
-                    + ". Land beside our people and break the assault. Wayline provides militia and one shuttle. "
+            case RELIEF -> "The raiders have our depot; now they're hitting our freight checkpoint" + location
+                    + ". Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. "
                     + "Eliminate the bandit force to win. Bring as many people home as you can. "
                     + "Cr. 6,000 on success; then we can deal with the depot.";
             case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"

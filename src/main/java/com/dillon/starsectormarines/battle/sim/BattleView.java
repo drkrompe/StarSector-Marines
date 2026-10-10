@@ -57,6 +57,9 @@ import java.util.Random;
  */
 public interface BattleView {
 
+    /** Committed ground forces whose authored arrival is still pending. */
+    default int pendingGroundArrivals(Faction faction) { return 0; }
+
     NavigationGrid getGrid();
 
     /** Raw grid structural revision; changes with authored or runtime cell/edge mutation. */

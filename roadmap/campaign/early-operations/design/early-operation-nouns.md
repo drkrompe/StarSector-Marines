@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — Relief post, assault approach, and arriving-force duties.
+Updated: 2026-10-10 — Relief checkpoint compound and finite road arrivals.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -108,15 +108,31 @@ their shared campaign tier does not erase their different scenario roles.
 The finite-force command duel uses one public scenario place rather than hidden
 enemy positions. In Relief, the local line keeps authored garrison ownership,
 mobile friendly squads preserve its anchor, and raiders advance on that anchor.
-The local line occupies the finished COMMS post, rather than a separate patch
-of cover selected before that building exists. Employer troops arriving by
-shuttle reinforce that same post under allied garrison authority. They do not
-become player squads or remain stationed at their landing pad.
+Relief's local line holds a freight checkpoint gate, with a relay office set
+back inside its compound. The compound is planned before surrounding buildings:
+its inspection frontage, warehouse, rear unloading apron, gates and connected
+freight/service roads form one authored place. The story keeps that geography
+stable while interior details and the target world's wild surface may vary.
+Employer troops arriving by shuttle reinforce the gate under allied garrison
+authority. They do not become player squads or remain stationed at their pad.
 
-Relief opens with a finite bandit force already on a connected approach to the
-post. Transport approach starts after a short interval for the local engagement
-to develop; touchdown still depends on the craft and landing geometry. The
-militia should have a line left to relieve, while delaying the company risks
+The bandit assault is a finite force committed at setup. Its opening element
+is already on the approach; two later groups enter at road mouths and march
+along their authored approaches. First player disembarkation and arrival at the
+checkpoint may accelerate separate groups inside bounded release windows.
+These are explicit scenario triggers, not hostile intelligence granted to a
+commander. Latest-release times keep an absent or waiting player from cancelling
+the assault. A lull or the death of the opening element never discards reserves.
+Pending ground arrivals count as forces still in play for elimination; victory
+requires the entire committed assault to be defeated.
+
+Road arrivals create ordinary, equipped militia squads. Scripted ownership
+covers their approach only; reaching it or observing direct contact hands them
+to the ordinary assault commander. Squad AI owns contact, cohesion and survival.
+The policy neither earns reinforcement tickets nor replenishes its finite force.
+Transport approach starts after a short interval for the local engagement to
+develop; touchdown still depends on the fitted craft and landing geometry.
+The militia should have a line left to relieve, while delaying the company risks
 losing it. Local cover is a temporary advantage, not enough extra manpower to
 make the player irrelevant. Force and timing changes are checked against both
 ordinary arrival and delayed/absent-player controls. A timeout in those controls
