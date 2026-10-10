@@ -77,7 +77,7 @@ public final class MissionGenerator {
 
         List<Mission> out = new ArrayList<>();
 
-        // Story missions first — eligibility-gated, one-shot. Prepended so they read
+        // Authored chapters and recurring postings — separately eligibility-gated. Prepended so they read
         // as marquee entries on the tactical map.
         MarineRosterScript rosterScript = MarineRosterScript.getInstance();
         MarineRoster roster = rosterScript != null ? rosterScript.roster() : null;

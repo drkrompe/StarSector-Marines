@@ -46,14 +46,14 @@ class OpeningOperationStoryTest {
         assertTrue(mission.enemyFighterSupport.isEmpty());
 
         // The depot job is written as the sequel to a relief job, so it waits
-        // for one — the only ordering left in the pair.
+        // for its victory; company growth never skips or resets that chapter.
         StoryEligibilityContext depotBroker = context(roster, 29L);
         assertFalse(COUNTERATTACK.isEligible(depotBroker));
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         assertTrue(COUNTERATTACK.isEligible(depotBroker));
 
         Mission followup = COUNTERATTACK.build(depotBroker);
-        assertTrue(followup.flavor.contains("You kept Wayline's line intact"));
+        assertTrue(followup.flavor.contains("Recovered traffic logs"));
         assertEquals(3, followup.requiredDrops);
         assertEquals(1, followup.employerShuttles);
     }
@@ -79,14 +79,15 @@ class OpeningOperationStoryTest {
     }
 
     @Test
-    void completingTheWorkDoesNotRetireIt() {
+    void completingTheChapterRetiresIt() {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(10);
         StoryEligibilityContext context = context(roster, 17L);
 
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
 
-        assertTrue(RELIEF.isEligible(context), "militia work recurs");
+        assertFalse(RELIEF.isEligible(context), "completed story chapters stay closed");
+        assertTrue(COUNTERATTACK.isEligible(context));
     }
 
     @Test
@@ -104,8 +105,8 @@ class OpeningOperationStoryTest {
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
         for (long seed : new long[]{0, 1, 2, -19}) {
-            assertTrue(RELIEF.isEligible(context(roster, seed)));
-            assertTrue(COUNTERATTACK.isEligible(context(roster, seed)));
+            assertFalse(RELIEF.isEligible(context(roster, seed)));
+            assertFalse(COUNTERATTACK.isEligible(context(roster, seed)));
         }
     }
 
@@ -137,9 +138,13 @@ class OpeningOperationStoryTest {
         assertFalse(COUNTERATTACK.isEligible(remote));
         assertTrue(COUNTERATTACK.isEligible(context(roster, 17L)));
         roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
-        assertTrue(RELIEF.isEligible(remote));
-        assertTrue(COUNTERATTACK.isEligible(remote));
-        assertFalse(RELIEF.build(remote).flavor.contains("Mara Venn"));
+        assertFalse(RELIEF.isEligible(remote));
+        assertFalse(COUNTERATTACK.isEligible(remote));
+        for (OpeningOperationKind kind : OpeningOperationKind.values()) {
+            RecurringMilitiaWork work = new RecurringMilitiaWork(kind);
+            assertTrue(work.isEligible(remote));
+            assertFalse(work.build(remote).flavor.contains("Mara Venn"));
+        }
     }
 
     @Test

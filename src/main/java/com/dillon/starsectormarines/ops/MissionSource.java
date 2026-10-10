@@ -6,11 +6,10 @@ package com.dillon.starsectormarines.ops;
  *   <li>{@link #GENERATED} — projected from a persisted campaign contract.
  *       The contract row owns availability and settlement; this value names the
  *       ordinary battle-construction path.</li>
- *   <li>{@link #STORY} — hand-authored, eligibility-gated. Completion is
- *       persisted via {@code MarineRosterScript}'s completed-id set, but a def
- *       decides for itself whether completion retires it: one-shot beats
- *       (the veteran's job) and recurring work (militia support) share this
- *       source because both need the authored build path.</li>
+ *   <li>{@link #STORY} — authored chapters whose victories are persisted in the
+ *       roster's completed-id set.</li>
+ *   <li>{@link #RECURRING} — authored repeatable work with separate identities;
+ *       never records a story victory.</li>
  *   <li>{@link #STATIONING} — incident mission fought by a detachment already
  *       committed to a stationing contract.</li>
  *   <li>{@link #CAMPAIGN_EVENT} — non-contract black-swan work carrying its own
@@ -43,7 +42,9 @@ public enum MissionSource {
      * briefing-time selection rather than by a contract row, resolved by its own key,
      * and never inherits contract economics. Append-only: ordinals are persisted.
      */
-    POLITY_DEFENCE;
+    POLITY_DEFENCE,
+    /** Repeatable authored jobs. Append-only: ordinals are persisted. */
+    RECURRING;
 
     public boolean isCivilianRescue() {
         return this == CAMPAIGN_EVENT

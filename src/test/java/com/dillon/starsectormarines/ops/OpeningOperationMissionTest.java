@@ -21,6 +21,16 @@ class OpeningOperationMissionTest {
         assertFalse(MissionLaunch.isOpeningOperationBattle(otherStory));
     }
 
+    @Test
+    void sourceAndIdentityMustAgreeForRecurringAndStoryJobs() {
+        for (OpeningOperationKind kind : OpeningOperationKind.values()) {
+            assertTrue(MissionLaunch.isOpeningOperationBattle(mission(kind.recurringId, MissionSource.RECURRING)));
+            assertFalse(MissionLaunch.isOpeningOperationBattle(mission(kind.recurringId, MissionSource.STORY)));
+            assertFalse(MissionLaunch.isOpeningOperationBattle(mission(kind.missionId, MissionSource.RECURRING)));
+            assertFalse(MissionLaunch.isOpeningOperationBattle(mission(kind.recurringId, MissionSource.GENERATED)));
+        }
+    }
+
     private static Mission mission(String id, MissionSource source) {
         return Mission.builder()
                 .id(id)

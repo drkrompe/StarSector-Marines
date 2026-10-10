@@ -8,16 +8,13 @@ import com.dillon.starsectormarines.ops.Mission;
  * {@link #build} produces the actual {@link Mission} prepended to the planet's
  * generated list.
  *
- * <p>Completion is tracked by {@link #id} on the player's roster — see
- * {@code MarineRoster.completedStoryIds}. A one-shot def checks
- * {@code !ctx.roster.hasCompletedStory(id())} as its first clause; a recurring
- * one deliberately does not, and may still read the set to order itself behind
- * another def. Recurring defs should gate on something other than roster
- * quality, or they become work the player loses by growing.
+ * <p>STORY victories record this definition's id in the roster's completed set.
+ * RECURRING jobs have distinct ids and never write chapter completion. They may
+ * read story victories to unlock; roster growth never removes recurring work.
  */
 public interface StoryMissionDef {
 
-    /** Stable id used as the completion key — keep unique across all defs. */
+    /** Stable offer id (also the completion key for STORY) — keep unique across all defs. */
     String id();
 
     boolean isEligible(StoryEligibilityContext ctx);

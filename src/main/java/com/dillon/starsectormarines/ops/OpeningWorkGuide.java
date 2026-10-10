@@ -21,7 +21,7 @@ record OpeningWorkGuide(boolean visible, OpeningOperationKind kind, String prepa
         boolean hasSquad = roster.squads().stream().anyMatch(squad -> !squad.reserve());
         String preparation = !hasSquad
                 ? "Found and equip your first squad in Armory before deployment."
-                : reliefWon ? "Wayline's line held. Return to Venn for the depot job."
+                : reliefWon ? "The assault is broken. Return to Venn for the depot job."
                 : "Bring ready marines and ship's boats. Venn provides militia support.";
         return new OpeningWorkGuide(true, reliefWon ? OpeningOperationKind.COUNTERATTACK
                 : OpeningOperationKind.RELIEF, preparation, destination, plotCourse);

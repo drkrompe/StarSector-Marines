@@ -1,17 +1,16 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
 import com.dillon.starsectormarines.ops.Mission;
-import com.dillon.starsectormarines.ops.OpeningBroker;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.ops.WaylineArc;
 
 import java.util.Random;
 
-/** Mara Venn's opening sequence, followed by recurring Independent militia work. */
+/** The two finite Wayline chapters. A defeat leaves its chapter available. */
 public final class OpeningOperationStory implements StoryMissionDef {
-
     private final OpeningOperationKind kind;
 
     public OpeningOperationStory(OpeningOperationKind kind) {
@@ -19,79 +18,45 @@ public final class OpeningOperationStory implements StoryMissionDef {
         this.kind = kind;
     }
 
-    @Override
-    public String id() {
-        return kind.missionId;
+    @Override public String id() { return kind.missionId; }
+
+    @Override public boolean isEligible(StoryEligibilityContext ctx) {
+        if (!eligibleBroker(ctx) || !ctx.openingBrokerPresent) return false;
+        return kind == OpeningOperationKind.RELIEF
+                ? WaylineArc.stage(ctx.roster) == WaylineArc.Stage.RELIEF
+                : WaylineArc.stage(ctx.roster) == WaylineArc.Stage.DEPOT;
     }
 
-    @Override
-    public boolean isEligible(StoryEligibilityContext ctx) {
-        if (ctx == null || ctx.roster == null || ctx.client == null) return false;
-        if (!"independent".equals(ctx.client.factionId) || ctx.client.patronHouseId != -1L || ctx.client.locked) return false;
-        if (!ctx.openingBrokerPresent
-                && !ctx.roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId)) return false;
-        if (kind == OpeningOperationKind.COUNTERATTACK
-                && !ctx.roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)) {
-            return false;
-        }
-        return true;
+    static boolean eligibleBroker(StoryEligibilityContext ctx) {
+        return ctx != null && ctx.roster != null && ctx.client != null
+                && "independent".equals(ctx.client.factionId)
+                && ctx.client.patronHouseId == -1L && !ctx.client.locked;
     }
 
-    @Override
-    public Mission build(StoryEligibilityContext ctx) {
-        Random random = new Random(ctx.seed ^ id().hashCode());
-        float x = 0.12f + random.nextFloat() * 0.76f;
-        float y = 0.12f + random.nextFloat() * 0.76f;
-        String planetName = ctx.planet != null ? ctx.planet.getName() : null;
-
-        boolean repeat = ctx.roster != null && ctx.roster.hasCompletedStory(kind.missionId);
-        String relief = ctx.openingBrokerPresent
-                ? OpeningBroker.NAME + ": " + (repeat ? "Wayline needs another relief crew. " : "First, keep our people alive. ")
-                    + "Wayline's militia post on " + planetName + " is under bandit attack. "
-                    + "Land beside the line and break the assault. The cooperative supplies local troops and one shuttle. "
-                    + (repeat ? "Same terms. Keep the line intact and get your people home."
-                        : "Do this, and we'll talk about the depot they took from us.")
-                : "A local militia post is under bandit attack. Land beside the line and break the assault. "
-                    + "The employer supplies local troops and one shuttle.";
-        String counterattack = ctx.openingBrokerPresent
-                ? OpeningBroker.NAME + ": " + (repeat ? "Another depot needs clearing. " : "You kept Wayline's line intact. ")
-                    + "Our militia traced the raiders to the cooperative's occupied freight depot on " + planetName
-                    + ". Go in with the local troops and clear the bandits out. "
-                    + "One employer shuttle is available. "
-                    + (repeat ? "Same terms. Clear the depot and get your people home."
-                        : "Finish this and I'll vouch for you with other Independent brokers.")
-                : "Local militia have located an occupied freight depot. Join their advance and clear the bandits out. "
-                    + "The employer supplies local troops and one shuttle.";
-        return switch (kind) {
-            case RELIEF -> Mission.builder()
-                    .id(id())
-                    .name(kind.displayName)
-                    .type(MissionType.ASSAULT)
-                    .source(MissionSource.STORY)
-                    .payout(kind.payout)
-                    .risk(RiskLevel.LOW)
-                    .requirements("Player lift for 1 sortie")
-                    .flavor(relief)
-                    .mapPosition(x, y)
-                    .requiredDrops(2)
-                    .employerShuttles(1)
-                    .targetPlanetName(planetName)
-                    .build();
-            case COUNTERATTACK -> Mission.builder()
-                    .id(id())
-                    .name(kind.displayName)
-                    .type(MissionType.ASSAULT)
-                    .source(MissionSource.STORY)
-                    .payout(kind.payout)
-                    .risk(RiskLevel.LOW)
-                    .requirements("Player lift for 2 sorties")
-                    .flavor(counterattack)
-                    .mapPosition(x, y)
-                    .requiredDrops(3)
-                    .employerShuttles(1)
-                    .targetPlanetName(planetName)
-                    .build();
-        };
+    @Override public Mission build(StoryEligibilityContext ctx) {
+        return buildOperation(ctx, kind, false);
     }
 
+    /** Shared battle/economy setup; recurring jobs retain their own identity and voice. */
+    static Mission buildOperation(StoryEligibilityContext ctx, OpeningOperationKind kind, boolean recurring) {
+        String id = recurring ? kind.recurringId : kind.missionId;
+        Random random = new Random(ctx.seed ^ id.hashCode());
+        String planet = ctx.planet != null ? ctx.planet.getName() : null;
+        String flavor = recurring ? switch (kind) {
+            case RELIEF -> "A local militia post is under bandit attack. Land beside the line and eliminate "
+                    + "the assault force. The employer provides militia and one shuttle. "
+                    + "The posting covers this relief sortie; other militia crews continue to need help.";
+            case COUNTERATTACK -> "A local freight crew needs an occupied depot cleared. Join the militia "
+                    + "advance and eliminate its bandit force. The employer provides one shuttle. "
+                    + "Independent freight crews pool their security funds for jobs like this.";
+        } : WaylineArc.briefing(kind, planet);
+        int playerSorties = kind == OpeningOperationKind.RELIEF ? 1 : 2;
+        return Mission.builder()
+                .id(id).name(recurring ? kind.recurringName : kind.displayName)
+                .type(MissionType.ASSAULT).source(recurring ? MissionSource.RECURRING : MissionSource.STORY)
+                .payout(kind.payout).risk(RiskLevel.LOW)
+                .requirements("Player lift for " + playerSorties + (playerSorties == 1 ? " sortie" : " sorties"))
+                .flavor(flavor).mapPosition(0.12f + random.nextFloat() * 0.76f, 0.12f + random.nextFloat() * 0.76f)
+                .requiredDrops(playerSorties + 1).employerShuttles(1).targetPlanetName(planet).build();
+    }
 }

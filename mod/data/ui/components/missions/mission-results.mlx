@@ -1,4 +1,4 @@
-<template props="title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -13,6 +13,14 @@
         <div id="mission-results-outcome" class="{outcomeClasses}">{outcomeLabel}</div>
         <div id="mission-results-name" class="label title results-mission-name">{missionName}</div>
         <div id="mission-results-meta" class="label tone-muted results-mission-meta">{missionMeta}</div>
+        <div id="mission-results-story" class="{storyClasses}">
+          <div id="story-dispatch-heading" class="story-dispatch-heading">
+            <img id="story-dispatch-portrait" class="story-portrait" src="{storyPortrait}" />
+            <div id="story-dispatch-sender" class="label heading story-sender">{storySender}</div>
+          </div>
+          <div id="story-dispatch-progress" class="label tone-good story-progress">{storyProgress}</div>
+          <div id="story-dispatch-message" class="label story-message">{storyMessage}</div>
+        </div>
         <div id="mission-results-rows" class="result-rows console-readout">
           <div each="row in resultRows" key="{row.id}" id="{row.id}" class="result-row">
             <div id="{row.labelId}" class="label heading tone-muted">{row.label}</div>
@@ -23,7 +31,7 @@
       <div id="mission-results-personnel" class="console-section results-personnel">
         <div id="mission-results-personnel-heading" class="personnel-heading surface-dark">
           <div id="mission-results-personnel-title" class="label heading tone-edge">{personnelHeader}</div>
-          <div id="mission-results-personnel-subtitle" class="label tone-muted">Frozen launch identities; settled exactly once.</div>
+          <div id="mission-results-personnel-subtitle" class="label tone-muted">Returned / wounded / missing / killed</div>
         </div>
         <div id="mission-results-squads" class="results-squad-grid">
           <div each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="results-squad-card console-readout">
@@ -79,6 +87,12 @@
   .hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
   .flow-header-lock { width: 32px; height: 38px; }
   .mission-flow-actions button { height: 32px; padding: 5px 10px; }
+  .story-dispatch { flex-direction: column; height: 270px; padding: 9px; gap: 8px; border-width: 1px; }
+  .story-dispatch-heading { flex-direction: row; height: 52px; gap: 12px; align-items: center; }
+  .story-portrait { width: 52px; height: 52px; }
+  .story-sender { width: 0px; flex-grow: 1; height: auto; white-space: normal; }
+  .story-progress { height: auto; white-space: normal; }
+  .story-message { height: auto; white-space: normal; }
   .results-summary { width: 470px; padding: 10px; gap: 7px; }
   .results-outcome { height: 62px; padding: 15px 12px; }
   .results-mission-name { height: 30px; }

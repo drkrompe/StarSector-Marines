@@ -18,9 +18,6 @@ public final class OpeningBroker {
     public static final String NAME = "Mara Venn";
     public static final String PORTRAIT = "graphics/portraits/portrait31.png";
     public static final String CREST = "graphics/factions/crest_neutral_traders.png";
-    public static final String INTRODUCTION = "I place ground crews for the Wayline freight cooperative. "
-            + "We pay our own security bills; I don't speak for the planetary government. "
-            + "Keep our militia on its feet, and there will be more work.";
 
     private OpeningBroker() { }
 

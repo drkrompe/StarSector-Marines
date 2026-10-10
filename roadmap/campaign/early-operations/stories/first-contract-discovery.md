@@ -2,7 +2,7 @@
 
 Status: READY FOR LIVE ACCEPTANCE
 Written: 2026-10-10
-Updated: 2026-10-10 — named broker, location policy, linked briefings and headless flow implemented.
+Updated: 2026-10-10 — finite Wayline chapters, closing correspondence and separate recurring offers; live acceptance remains.
 
 ## Scope
 
@@ -35,15 +35,17 @@ From a normal new save, follow HQ's Plot Course to Jangala. Open Marine operatio
 choose Mara Venn, inspect her affiliation and Relief, and confirm normal deployment
 requirements. Save/reload before and after Relief; confirm Counterattack remains
 available and her briefing acknowledges the same militia and cooperative.
-Complete Counterattack and verify the HQ lead retires while Venn retains the jobs
-and other Independent brokers offer recurring local work. Check a preexisting save
+Complete Counterattack and verify the HQ lead retires while Venn preserves the completed chapter record
+and offers distinct Militia Relief / Depot Clearance jobs alongside other brokers.
+Neither old story ID may be offered again; defeat leaves the current chapter retryable. Check a preexisting save
 with opening victories, fallback routing without accessible Jangala, and the
 no-accessible-office state. Verify that Plot Course dismisses the HQ cleanly from
 both campaign-map and planetary hosts without launching combat.
 
-The focused suite passes 24 tests, including the retained course-button interaction.
-Assembly and the shipped-jar boundary pass.
-`createSnapshots -Psnapshot=first-contract` supplies nine controlled headless HQ and
-contract-board frames, including referrals, fallback and unavailable offices. It does not establish live navigation or save/reload
-acceptance. Battle pacing, force ratios and objective readability remain in
-`opening-ladder-live-acceptance.md`.
+Focused eligibility, progression, settlement-source and UI tests plus assembly and
+shipped-jar boundary checks cover the implemented path. The first-contract
+snapshot catalog includes chapter offers, victory/defeat correspondence, the
+completed dossier, repeatable postings, referral, fallback and unavailable office
+states at 1920x1080 and 100%. These controlled headless fixtures do not establish
+live navigation or save/reload acceptance. Battle pacing, force ratios and
+objective readability remain in `opening-ladder-live-acceptance.md`.

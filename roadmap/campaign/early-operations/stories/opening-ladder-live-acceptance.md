@@ -4,22 +4,21 @@ Status: READY
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — Jangala introduction precedes recurring work at other brokers.
+Updated: 2026-10-10 — finite Wayline chapters lead to separate recurring postings; mission gameplay review is next.
 
 Read `early-operation-nouns.md` before accepting this story.
 
 ## Goal
 
-Verify that the recurring Independent operation pair gives a newly formed
+Verify that the finite Wayline story arc gives a newly formed
 company a readable, winnable introduction to First Contract work, using the
-current twelve-marine squad and lift behavior. Treat Relief and Counterattack
-as recurring work after their respective unlocks, not one-shot rungs that
-disappear on victory or company growth.
+current twelve-marine squad and lift behavior. Story chapters retire on victory; separate Militia Relief and Depot Clearance
+postings unlock after the arc. Company growth does not remove access to small work.
 
 ## Acceptance
 
-- Relief's first victory does not retire it; it remains eligible for the
-  offer at Mara Venn's office. Its local line survives long enough for a slow
+- Relief's first victory retires that chapter and opens Counterattack at Mara
+  Venn's office. Its local line survives long enough for a slow
   player transport to matter, but cannot win unattended.
 - Relief's defensive anchor reads as a communications/logistics place the local
   militia must preserve, not an arbitrary patch of ground. It supplies mission
@@ -30,8 +29,8 @@ disappear on victory or company growth.
   pressure without adding regulars, mechs, turrets, fighters, or reinforcements.
 - Defeat leaves the relevant operation retryable. Completing Relief unlocks
   Counterattack even if the company has grown or suffered losses. After
-  unlock, both operations remain eligible at Venn's office. Completing both
-  opens recurring work at other Independent brokers.
+  victory, each story chapter stays closed. Completing the arc opens distinct
+  recurring work at Venn's office and other Independent brokers.
 - Squad assembly at the landing zone reads as deliberate rather than stalled
   before the finite-force commander pressure begins.
 - Counterattack makes the bandit depot visible and names it as the reason for
@@ -47,5 +46,5 @@ disappear on victory or company growth.
 A third pinned-assault or fabrication-cache recovery variant, new campaign
 eligibility brackets, parts/schematic payout, changes to general operation-tier
 policy, and any guarantee that changes how many Independent brokers offer the
-first operation. A new variant remains uncontracted until this live pass
-supplies evidence, as required by `early-operation-nouns.md`.
+first operation. `broken-supply-route.md` plans the follow-on alpha arc; its gameplay implementation
+follows this evidence and requires an explicit small Conquest profile.

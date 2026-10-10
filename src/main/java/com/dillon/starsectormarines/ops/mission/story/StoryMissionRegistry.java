@@ -22,6 +22,8 @@ public final class StoryMissionRegistry {
     private static final List<StoryMissionDef> DEFS = Arrays.<StoryMissionDef>asList(
             new OpeningOperationStory(OpeningOperationKind.RELIEF),
             new OpeningOperationStory(OpeningOperationKind.COUNTERATTACK),
+            new RecurringMilitiaWork(OpeningOperationKind.RELIEF),
+            new RecurringMilitiaWork(OpeningOperationKind.COUNTERATTACK),
             new VeteransJobStory()
     );
 
