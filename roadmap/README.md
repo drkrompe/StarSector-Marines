@@ -52,7 +52,9 @@ deployed unit's visible identity. Persistent multi-lance organization, the
 shared roster cap, and casualty/replacement policy remain open.
 
 Wayline has chapter briefings, outcome correspondence, a completed record, and
-separate recurring jobs. Next, review Relief then Counterattack gameplay. The
+separate recurring jobs. Relief now has an authored freight checkpoint and
+finite road arrivals, with fitted-boat headless arrival evidence. Next, review
+Counterattack gameplay and complete the opening arc's live acceptance. The
 follow-on choice arc is planned in `broken-supply-route.md`; a small Conquest
 profile is a prerequisite. The opening arc still awaits a live play pass. Its
 standing mission model lives in `early-operation-nouns.md`; first-offer

@@ -137,11 +137,13 @@ Do not run builds or leave generated task files there.
   simulation rather than evidence about the battle, so it does not need to ride
   along on every balance run. `simDeterminism` below owns it. `-Prepeat=2`
   restores the double replay here when a particular balance run wants it.
-  Relief's default matrix is three neutral-profile production maps with one
+  Relief's default matrix is three verdant-surface production maps with one
   six-seat player sortie, repeated with +30s player delay and no player arrival
   within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
   with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
-  (additional seconds). Player lift is a fitted boat; optional `playerBoatId`,
+  (additional seconds). Optional `surface` selects the terrain palette (custom
+  fixtures default to `ROCK`). Reports include committed road-arrival times and
+  pending raider counts. Player lift is a fitted boat; optional `playerBoatId`,
   `playerPlating`, and `playerDrive` pin its identity and catalog fitting ids
   (default: `relief-boat` and standard fit). Employer lift remains one six-seat
   Aeroshuttle. Reports

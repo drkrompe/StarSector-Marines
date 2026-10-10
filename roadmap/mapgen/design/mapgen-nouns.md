@@ -321,6 +321,15 @@ The entry must still connect to that destination after furnishing. The mission
 places its local garrison from this final place rather than asking generation
 to preserve an unrelated preselected defensive position.
 
+Relief instead owns a mission-first checkpoint recipe. Its compound, inspection
+frontage, rear landing apron and road approaches are laid out before buildings
+and furnishing. The gate is a defensive destination distinct from the relay's
+interior anchor. Both road mouths and every landing berth must connect to the
+gate on the finished grid. The mission consumes the published approach routes;
+it cannot recover them from unrelated spawn points after generation. A fixed
+story layout may vary interiors and the world's wild surfaces without moving
+its core tactical relationships. Counterattack retains its fitted depot recipe.
+
 City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation

@@ -43,8 +43,8 @@ public final class OpeningOperationStory implements StoryMissionDef {
         Random random = new Random(ctx.seed ^ id.hashCode());
         String planet = ctx.planet != null ? ctx.planet.getName() : null;
         String flavor = recurring ? switch (kind) {
-            case RELIEF -> "A local militia post is under bandit attack. Land beside the line and eliminate "
-                    + "the assault force. The employer provides militia and one shuttle. "
+            case RELIEF -> "A freight checkpoint is under bandit attack. Land on the rear apron, reinforce the gate, and eliminate "
+                    + "the assault force, including groups approaching along both access roads. The employer provides militia and one shuttle. "
                     + "The posting covers this relief sortie; other militia crews continue to need help.";
             case COUNTERATTACK -> "A local freight crew needs an occupied depot cleared. Join the militia "
                     + "advance and eliminate its bandit force. The employer provides one shuttle. "

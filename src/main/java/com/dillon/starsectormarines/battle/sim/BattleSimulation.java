@@ -81,6 +81,7 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.command.CommandStrategy;
 import com.dillon.starsectormarines.battle.command.CommandFrame;
 import com.dillon.starsectormarines.battle.command.CommandFrameDisclosure;
@@ -391,6 +392,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Reinforcement data owner — trigger registry + means provider list + request queue. Mission setup registers triggers/means. Full design: {@code reinforcement-nouns.md}. */
     private final ReinforcementService reinforcement = new ReinforcementService();
+    private ReliefAssault reliefAssault;
+
+    public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
+    public ReliefAssault getReliefAssault() { return reliefAssault; }
+    @Override public int pendingGroundArrivals(Faction faction) {
+        return faction == Faction.DEFENDER && reliefAssault != null ? reliefAssault.pendingMembers() : 0;
+    }
+
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
     private final ReinforcementSystem reinforcementSystem =
             new ReinforcementSystem(reinforcement, battleResources);
@@ -2236,6 +2245,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         civilianEvacuationSystem.tick(this);
         rescuePickupSupport.tick(TICK_DT, this);
         swarmReinforcements.tick(TICK_DT, this);
+        if (reliefAssault != null) reliefAssault.tick(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall

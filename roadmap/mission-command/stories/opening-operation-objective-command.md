@@ -6,7 +6,7 @@ implemented; structural and live acceptance remain.
 Written: 2026-08-25
 
 Updated: 2026-10-02 — added per-call authored-place map generation while
-preserving resolved landing and force staging. Relief now restages its forces from the finished COMMS post; live acceptance remains.
+preserving resolved landing and force staging. Relief now owns a checkpoint compound and finite road arrivals with explicit handoff; live acceptance remains.
 
 Read `mission-command-nouns.md`, `assault-command.md`,
 `early-operation-nouns.md`, and

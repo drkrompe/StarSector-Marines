@@ -65,6 +65,8 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
+import com.dillon.starsectormarines.battle.command.ReliefAssault;
+import com.dillon.starsectormarines.battle.world.gen.ReliefCheckpoint;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -188,13 +190,10 @@ public final class BattleSetup {
     /** BFS radius around a tactical-node anchor for picking garrison spawn cells. Tight — defenders should appear inside or right next to their post. */
     private static final int GARRISON_SPAWN_RADIUS = 5;
 
-    /** Fixed opening-operation forces: two local fireteams and three raider fireteams. */
+    /** Opening forces: two local fireteams and three raider fireteams; Relief also commits two later fireteams. */
     private static final int OPENING_LOCAL_MILITIA = 8;
     private static final int OPENING_RAIDERS = 12;
     private static final int OPENING_FIRETEAM_SIZE = 4;
-    private static final int OPENING_LINE_OFFSET = 9;
-    private static final int RELIEF_RAIDERS = 16;
-    private static final int RELIEF_APPROACH_STEPS = 12;
     /** Give the local line time to make contact before transport descent. */
     private static final float RELIEF_LIFT_DELAY_SEC = 6f;
 
@@ -1129,62 +1128,55 @@ public final class BattleSetup {
         MapScale scale = MapScale.forTier(OperationTier.FIRST_CONTRACT);
         TargetProfile effectiveProfile = profile != null ? profile : TargetProfile.NEUTRAL;
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
-        MapResult stagingMap = MAP_GEN.generate(scale.width, scale.height, seed,
-                null, effectiveProfile);
-        Random stagingRng = new Random(seed);
-        List<Doodad> reservedVehicles = stampVehicles(stagingMap, stagingRng);
-        List<LandingPad> lzCells = LandingPadSelector.select(
-                stagingMap, assignments.size(), LZ_MIN_SEPARATION);
-        List<int[]> raiderCells = pickDefensiveCluster(stagingMap.grid,
-                stagingMap.defenderSpawnX, stagingMap.defenderSpawnY, OPENING_RAIDERS);
-        int[] raiderAnchor = raiderCells.isEmpty()
-                ? new int[]{stagingMap.defenderSpawnX, stagingMap.defenderSpawnY}
-                : raiderCells.get(0).clone();
-        int[] reliefLineAnchor = kind == OpeningOperationKind.RELIEF
-                ? openingDefenseLineAnchor(stagingMap, lzCells.get(0)) : null;
-        List<int[]> localMilitiaCells = kind == OpeningOperationKind.RELIEF
-                ? pickDefensiveCluster(stagingMap.grid, reliefLineAnchor[0],
-                        reliefLineAnchor[1], OPENING_LOCAL_MILITIA)
-                : Collections.emptyList();
-        int[] requestedAnchor = kind == OpeningOperationKind.RELIEF
-                ? (localMilitiaCells.isEmpty() ? reliefLineAnchor
-                        : localMilitiaCells.get(0).clone())
-                : raiderAnchor;
-        PointOfInterest.Kind facilityKind = kind == OpeningOperationKind.RELIEF
-                ? PointOfInterest.Kind.COMMS : PointOfInterest.Kind.DEPOT;
-        OpeningOperationMapPlan openingPlan = openingMapPlan(stagingMap, lzCells,
-                reservedVehicles, localMilitiaCells, raiderCells, facilityKind,
-                requestedAnchor);
-        OpeningOperationMapResult generated = MAP_GEN.generateOpeningOperation(
-                scale.width, scale.height, seed, effectiveProfile, openingPlan);
-        MapResult map = generated.map();
-        PointOfInterest authoredPlace = generated.place();
+        ReliefCheckpoint.Layout checkpoint = null;
+        MapResult map;
+        PointOfInterest authoredPlace;
+        List<LandingPad> lzCells;
+        List<int[]> raiderCells;
+        List<int[]> localMilitiaCells;
+        int[] requestedAnchor;
+        TacticalNode reliefPost = null;
         if (kind == OpeningOperationKind.RELIEF) {
-            // Occupy the actual post, not cover in a neighboring building chosen
-            // before the facility existed. The shared node also brings later
-            // employer troops forward from their landing pad.
-            localMilitiaCells = pickSpawnCluster(map.grid, authoredPlace.interiorAnchorX,
-                    authoredPlace.interiorAnchorY, OPENING_LOCAL_MILITIA);
-            int[] approach = GridPathfinder.findPath(map.grid,
-                    authoredPlace.anchorCellX, authoredPlace.anchorCellY,
-                    raiderAnchor[0], raiderAnchor[1]);
-            if (Paths.isEmpty(approach)) throw new IllegalStateException(
-                    "Relief raiders have no approach to the COMMS post");
-            int step = Math.min(RELIEF_APPROACH_STEPS, Paths.cellCount(approach) - 1);
-            raiderCells = pickSpawnCluster(map.grid, Paths.cellX(approach, step),
-                    Paths.cellY(approach, step), RELIEF_RAIDERS);
+            checkpoint = ReliefCheckpoint.generate(scale.width, scale.height, seed, effectiveProfile);
+            map = checkpoint.map();
+            authoredPlace = checkpoint.relay();
+            lzCells = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
+            requestedAnchor = new int[]{checkpoint.gate().x(), checkpoint.gate().y()};
+            localMilitiaCells = pickSpawnCluster(map.grid, checkpoint.gate().x(), checkpoint.gate().y(), OPENING_LOCAL_MILITIA);
+            raiderCells = pickSpawnCluster(map.grid, checkpoint.openingAttack().x(), checkpoint.openingAttack().y(), OPENING_RAIDERS);
+            reliefPost = openingDefenseNode(checkpoint.gate().x(), checkpoint.gate().y(), Faction.ALLY, map.grid);
+        } else {
+            MapResult stagingMap = MAP_GEN.generate(scale.width, scale.height, seed,
+                    null, effectiveProfile);
+            Random stagingRng = new Random(seed);
+            List<Doodad> reservedVehicles = stampVehicles(stagingMap, stagingRng);
+            lzCells = LandingPadSelector.select(
+                    stagingMap, assignments.size(), LZ_MIN_SEPARATION);
+            raiderCells = pickDefensiveCluster(stagingMap.grid,
+                    stagingMap.defenderSpawnX, stagingMap.defenderSpawnY, OPENING_RAIDERS);
+            int[] raiderAnchor = raiderCells.isEmpty()
+                    ? new int[]{stagingMap.defenderSpawnX, stagingMap.defenderSpawnY}
+                    : raiderCells.get(0).clone();
+            localMilitiaCells = Collections.emptyList();
+            requestedAnchor = raiderAnchor;
+            PointOfInterest.Kind facilityKind = PointOfInterest.Kind.DEPOT;
+            OpeningOperationMapPlan openingPlan = openingMapPlan(stagingMap, lzCells,
+                    reservedVehicles, localMilitiaCells, raiderCells, facilityKind,
+                    requestedAnchor);
+            OpeningOperationMapResult generated = MAP_GEN.generateOpeningOperation(
+                    scale.width, scale.height, seed, effectiveProfile, openingPlan);
+            map = generated.map();
+            authoredPlace = generated.place();
         }
-        TacticalNode reliefPost = kind == OpeningOperationKind.RELIEF
-                ? openingDefenseNode(authoredPlace.interiorAnchorX,
-                        authoredPlace.interiorAnchorY, Faction.ALLY, map.grid) : null;
 
         Random rng = new Random(seed);
         boolean[][] vehicleReservations = openingVehicleReservations(
                 map, authoredPlace, lzCells, localMilitiaCells, raiderCells);
-        List<Doodad> vehiclePlacements = stampVehicles(map, rng, vehicleReservations);
+        List<Doodad> vehiclePlacements = checkpoint == null
+                ? stampVehicles(map, rng, vehicleReservations) : List.of();
         validateOpeningOperationLayout(map, authoredPlace, lzCells,
                 localMilitiaCells, raiderCells, requestedAnchor);
-        List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
+        List<ParkedAircraft> parkedAircraft = checkpoint == null ? stampParkedAircraft(map, lzCells, rng) : List.of();
         BattleSimulation sim = buildMap(map, vehiclePlacements,
                 Collections.emptyList(), parkedAircraft, seed).sim();
 
@@ -1216,7 +1208,7 @@ public final class BattleSetup {
             shuttleMission.totalCycles = assignment.cycles;
             if (localMilitia) {
                 // Allied reinforcements retain their own garrison authority.
-                // Relief sends them to the COMMS post; Counterattack keeps its
+                // Relief sends them to the checkpoint; Counterattack keeps its
                 // existing landing-pad guard while the company attacks.
                 shuttleMission.garrisonNode = reliefPost != null ? reliefPost
                         : openingDefenseNode(lz.centerX, lz.centerY, Faction.ALLY, sim.getGrid());
@@ -1251,14 +1243,19 @@ public final class BattleSetup {
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
 
-        int[] commandPlace = new int[]{authoredPlace.anchorCellX,
+        if (checkpoint != null) {
+            sim.setReliefAssault(new ReliefAssault(checkpoint.gate(),
+                    openingReserve(map, checkpoint.mainApproach().get(0), "freight-reserve", rng), checkpoint.mainApproach(),
+                    openingReserve(map, checkpoint.serviceApproach().get(0), "service-reserve", rng), checkpoint.serviceApproach()));
+        }
+        int[] commandPlace = checkpoint != null ? requestedAnchor : new int[]{authoredPlace.anchorCellX,
                 authoredPlace.anchorCellY};
         OpeningOperationCommandFacts commandFacts =
                 new OpeningOperationCommandFacts(kind,
                         kind == OpeningOperationKind.RELIEF
-                                ? "relief-comms" : "bandit-depot",
+                                ? "relief-checkpoint" : "bandit-depot",
                         kind == OpeningOperationKind.RELIEF
-                                ? "Relief COMMS post" : "Bandit depot",
+                                ? "Wayline checkpoint" : "Bandit depot",
                         commandPlace[0], commandPlace[1]);
         OpeningOperationCommandDisclosure disclosure =
                 new OpeningOperationCommandDisclosure(commandFacts);
@@ -1267,6 +1264,17 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER,
                 new OpeningOperationCommand(Faction.DEFENDER), disclosure);
         return sim;
+    }
+
+    /** Four precommitted militia enter at a road mouth; loadouts are frozen at setup. */
+    private static List<EntitySpec> openingReserve(MapResult map, ReliefCheckpoint.Cell entry,
+                                                  String prefix, Random rng) {
+        List<EntitySpec> force = new ArrayList<>();
+        for (int[] cell : pickSpawnCluster(map.grid, entry.x(), entry.y(), OPENING_FIRETEAM_SIZE)) {
+            force.add(makeOpeningMilitia(prefix + "-" + force.size(), Faction.DEFENDER,
+                    cell[0], cell[1], rng).role(UnitRole.PATROL));
+        }
+        return force;
     }
 
     private static OpeningOperationMapPlan openingMapPlan(
@@ -1396,16 +1404,6 @@ public final class BattleSetup {
             if (existing.x() == x && existing.y() == y) return;
         }
         out.add(new OpeningOperationMapPlan.Cell(x, y));
-    }
-
-    private static int[] openingDefenseLineAnchor(MapResult map, LandingPad firstLz) {
-        int towardEnemyX = Integer.compare(map.defenderSpawnX, firstLz.centerX);
-        int towardEnemyY = Integer.compare(map.defenderSpawnY, firstLz.centerY);
-        int anchorX = clamp(firstLz.centerX + towardEnemyX * OPENING_LINE_OFFSET,
-                0, map.grid.getWidth() - 1);
-        int anchorY = clamp(firstLz.centerY + towardEnemyY * OPENING_LINE_OFFSET,
-                0, map.grid.getHeight() - 1);
-        return new int[]{anchorX, anchorY};
     }
 
     /**
