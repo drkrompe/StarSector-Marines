@@ -1,8 +1,8 @@
 # The Broken Supply Route
 
-Status: PROPOSED — detailed alpha mission design; gameplay and campaign implementation remain open.
+Status: IN PROGRESS — Junction battle prototype implemented; branch missions and campaign integration remain open.
 Written: 2026-10-10
-Updated: 2026-10-10 — persistent civilian outcomes and retries for remaining people accepted; mission implementation and prototype tuning remain open.
+Updated: 2026-10-10 — Junction finite territorial factory and headless acceptance; Last Lift, Relay Nine and campaign progression are next.
 
 ## Scope and dramatic question
 
@@ -26,7 +26,7 @@ ownership, stability or population.
 
 Canonical boundaries: `early-operation-nouns.md`, `contracts-nouns.md`,
 `narrative-nouns.md`, `conquest-nouns.md`, `extraction-command.md`, and
-`battle-radio-nouns.md`. **Everything below is proposed content.** Map dimensions,
+`battle-radio-nouns.md`. **Campaign progression and both branch finales remain proposed content.** Junction has a production-factory prototype, not a campaign offer. Map dimensions,
 force counts and payments are prototype inputs to measure, not shipped balance.
 
 ## The choice at a glance
@@ -87,12 +87,11 @@ Authored geography:
 - **Junction Dispatch** is the final command post, at the split between signed
   roads to Rill and Relay Nine. Those exits are landmarks, not extra objectives.
 
-The first gate falls before the whole junction does. Four starting reserves
-respond through the yard after the first confirmed territorial loss, using
+The first gate falls before the whole junction does. Four starting reserves wait in the maintenance building and
+respond along its screened service road after the first confirmed territorial loss, using
 ordinary defender knowledge for combat. They can retake an unattended station.
 The employer element receives an explicit hold duty after a secured position is
-available, so the company sees why a holding force matters. This handoff is a
-planned mission behavior, not something the current opening commander already does.
+available, so the company sees why a holding force matters. This hold duty is explicit in the Junction prototype and separate from the opening elimination commanders.
 
 Prototype force: four at Weigh Station, four at Freight Yard, eight at Dispatch,
 four in reserve. All are committed at setup. Capture can reverse; victory requires
@@ -295,16 +294,21 @@ invent omniscient cutscenes. A wiped militia unit cannot deliver a later voice l
 The Wayline map and fitted-boat passes now have headless evidence; their linked
 live campaign acceptance remains open. This plan does not mark that gate complete.
 
-1. **Small territorial profile.** Author explicit dimensions, compound count,
-   force and arrival budgets for Junction. Current Conquest still has the large
-   siege floor and structural/airfield assumptions. This needs an intentional
-   mission-scoped exception, not lower risk or a renamed siege. Preserve capture,
-   reversal, resolved rooms and terminal territory law. Disable inherited
+1. **Small territorial profile — implemented as a battle factory.** Explicit dimensions, compound count,
+   force and arrival budgets belong to Junction. Generic Conquest still has the large
+   siege floor and structural/airfield assumptions. The mission-scoped exception preserves capture,
+   reversal, resolved rooms and terminal territory law, and disables inherited
    open-ended production and free auto-garrison cycles for these finite jobs.
    Coordinate with `mission-tier-nouns.md`; do not silently change generic Conquest.
-2. **Junction prototype.** Prove the three capture rooms and one recapture threat
-   with two- and four-squad forces and no named officer. Record capture order,
-   hold abandonment, company/employer losses, actual boat identity and duration.
+2. **Junction prototype — headless evidence; campaign acceptance remains.**
+   The opt-in `commanderEvidence -Pmission=junction` matrix covers three interiors,
+   two/four full factory squads, two understrength squads, one fitted ferry,
+   refitted boats, absent player arrival and an explicit militia-at-landing
+   control. The latter proves a completed enemy recapture and Marine return;
+   ordinary support contests that reserve at the first station. All thirteen
+   cases replay identically twice. This is factory equipment and battle squads,
+   not persistent campaign squad/loadout acceptance. No Junction campaign offer,
+   deployment gate, chapter payment or branch unlock is enabled yet.
 3. **Branch battle prototypes.** For Last Lift, combine cohort escort/boarding
    with conventional interdiction and explicit employer pickup capacity. For
    Relay Nine, prove hold/assault duties and the one finite road reserve. Use

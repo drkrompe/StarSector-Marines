@@ -84,6 +84,7 @@ import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.story.OpeningOperationStoryObserver;
+import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.CommandStrategy;
 import com.dillon.starsectormarines.battle.command.CommandFrame;
@@ -397,10 +398,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ReinforcementService reinforcement = new ReinforcementService();
     private final StoryBeatLog storyBeats = new StoryBeatLog();
     private OpeningOperationStoryObserver openingStory;
+    private JunctionStoryObserver junctionStory;
+
+    public void installJunctionStoryHooks() {
+        if (openingStory != null || junctionStory != null || simTickIndex != 0)
+            throw new IllegalStateException("Install story hooks once at setup");
+        junctionStory = new JunctionStoryObserver(storyBeats);
+    }
 
     /** Setup seam: scenario observation is independent of command and audio. */
     public void installOpeningStoryHooks(OpeningOperationCommandFacts facts) {
-        if (openingStory != null || simTickIndex != 0) throw new IllegalStateException("Install story hooks once at setup");
+        if (openingStory != null || junctionStory != null || simTickIndex != 0) throw new IllegalStateException("Install story hooks once at setup");
         openingStory = new OpeningOperationStoryObserver(this, facts, storyBeats);
     }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
@@ -1187,6 +1195,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public boolean retreat() {
         boolean accepted = completion.retreat();
         if (accepted && openingStory != null) openingStory.retreat(simTickIndex);
+        if (accepted && junctionStory != null) junctionStory.retreat(simTickIndex);
         return accepted;
     }
 
@@ -2285,6 +2294,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             }
         }
         if (openingStory != null) openingStory.observe(this);
+        if (junctionStory != null) junctionStory.observe(this);
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         // Authors every live sheet-drawn unit's SPRITE (facing/pose frame) from
         // this tick's settled state — the tail placement is load-bearing: it

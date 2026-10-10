@@ -28,10 +28,14 @@ public final class BattleResources {
     private static final float REINFORCEMENT_COST = 1.0f;
 
     private final float[][] pools;
+    private boolean compoundProduction = true;
 
     public BattleResources() {
         pools = new float[Faction.values().length][ResourceType.values().length];
     }
+
+    /** Setup policy for finite authored operations; explicit credited pools remain usable. */
+    public void disableCompoundProduction() { compoundProduction = false; }
 
     public float getBalance(Faction faction, ResourceType type) {
         return pools[faction.ordinal()][type.ordinal()];
@@ -54,6 +58,7 @@ public final class BattleResources {
      * slow-tick cadence, after compound capture so the state is fresh.
      */
     public void tick(float dt, CompoundService compounds) {
+        if (!compoundProduction) return;
         for (CompoundService.Record r : compounds.getRecords()) {
             Faction supplier = supplyFaction(r);
             if (supplier == null) continue;

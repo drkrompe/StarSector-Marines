@@ -4,8 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — officer groups coordinate authorized assault work and
-bounded advance while explicit hold obligations remain separate.
+Updated: 2026-10-10 — distinguished finite authored territorial chapters from the generic siege profile.
 
 Earlier 2026-09-02 — the marines descend from orbit onto their berths rather
 than crossing the map edge, so the sortie cadence no longer moves with the
@@ -44,6 +43,14 @@ defender's supply hubs through the city, and finish at the keep. It is not a
 race to erase every defender from the map. Reinforcement makes intact
 territory costly to leave behind; compound control gives the battle a durable
 end condition.
+
+The siege profile below is specific to generic Conquest. Authored early story
+chapters may instead declare a **small territorial profile**: bounded capture
+sites, a canonical command post and finite forces, without airfield requirements,
+siege force floors, production or free garrison cycles. They preserve the
+territorial law and capture-room authority in this document; their scenario
+command and arrival policy belong to `early-operation-nouns.md`. Reusing the
+territorial objective does not silently make a chapter a generic siege.
 
 ## The map a mission requires
 
