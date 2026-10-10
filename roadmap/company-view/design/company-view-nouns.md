@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — Barracks pairs visual formation cards and individual issued-kit
-musters with squad profiles and explicit bulk personnel replacement and equipment issue.
+Updated: 2026-10-10 — HQ adds opening-work directions; Barracks retains visual
+formation and issued-kit muster cards with explicit bulk orders.
 
 ## Purpose
 
@@ -896,6 +896,12 @@ The retained bridge dashboard has four concerns:
   and subject remain ordinary readable content. A known subject's faction crest
   follows persistent affiliation, never a guess from its name. Receiver motion,
   selection and effect timing remain view-local and survive document refresh.
+
+HQ also presents roster-derived directions to the Independent opening work:
+the current mission, payment, preparation advice and the populated-planet client
+route. The notice advances after Relief and disappears after Counterattack;
+it never starts work, invents a received report, or consumes company resources.
+`early-operation-nouns.md` owns availability and progression.
 
 The clock owns obligations; the future contract board owns offers. Ignoring an
 obligation can cause failure or end a retainer, while ignoring an offer merely

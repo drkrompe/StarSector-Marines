@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ops.Client;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
@@ -10,14 +11,8 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import com.fs.starfarer.api.campaign.RepLevel;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
-import com.dillon.starsectormarines.marine.SquadEquipmentResult;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpeningOperationStoryTest {
@@ -35,7 +30,7 @@ class OpeningOperationStoryTest {
     void reliefComesFirstAndTheDepotFollowsIt() {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(10);
-        StoryEligibilityContext context = context(roster, seedOffering(RELIEF));
+        StoryEligibilityContext context = context(roster, 17L);
 
         assertTrue(RELIEF.isEligible(context));
 
@@ -50,7 +45,7 @@ class OpeningOperationStoryTest {
 
         // The depot job is written as the sequel to a relief job, so it waits
         // for one — the only ordering left in the pair.
-        StoryEligibilityContext depotBroker = context(roster, seedOffering(COUNTERATTACK));
+        StoryEligibilityContext depotBroker = context(roster, 29L);
         assertFalse(COUNTERATTACK.isEligible(depotBroker));
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         assertTrue(COUNTERATTACK.isEligible(depotBroker));
@@ -76,7 +71,7 @@ class OpeningOperationStoryTest {
                 SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS,
                 SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR));
 
-        assertTrue(RELIEF.isEligible(context(grown, seedOffering(RELIEF))),
+        assertTrue(RELIEF.isEligible(context(grown, 17L)),
                 "a company well past the old green gate is still shown the job");
     }
 
@@ -84,7 +79,7 @@ class OpeningOperationStoryTest {
     void completingTheWorkDoesNotRetireIt() {
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(10);
-        StoryEligibilityContext context = context(roster, seedOffering(RELIEF));
+        StoryEligibilityContext context = context(roster, 17L);
 
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
 
@@ -92,21 +87,30 @@ class OpeningOperationStoryTest {
     }
 
     @Test
-    void notEveryBrokerCarriesIt() {
-        long offering = seedOffering(RELIEF);
-        long quiet = seedNotOffering(RELIEF);
-        assertNotEquals(offering, quiet);
-
+    void everyBrokerCarriesReliefEvenBeforeTheCompanyHasItsFirstSquad() {
         MarineRoster roster = new MarineRoster();
-        roster.bootstrapInitialComplement(10);
-        assertTrue(RELIEF.isEligible(context(roster, offering)));
-        assertFalse(RELIEF.isEligible(context(roster, quiet)));
+        for (long seed : new long[]{0, 1, 2, 17, 29, -19, Long.MAX_VALUE}) {
+            StoryEligibilityContext context = context(roster, seed);
+            assertTrue(RELIEF.isEligible(context), "seed must not hide introductory work");
+            assertFalse(COUNTERATTACK.isEligible(context));
+            Mission first = RELIEF.build(context);
+            Mission revisit = RELIEF.build(context);
+            assertEquals(first.normalizedX, revisit.normalizedX);
+            assertEquals(first.normalizedY, revisit.normalizedY);
+        }
+        roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
+        roster.markStoryComplete(OpeningOperationKind.COUNTERATTACK.missionId);
+        for (long seed : new long[]{0, 1, 2, -19}) {
+            assertTrue(RELIEF.isEligible(context(roster, seed)));
+            assertTrue(COUNTERATTACK.isEligible(context(roster, seed)));
+        }
+    }
 
-        // Stable per broker, so a board does not reshuffle across revisits.
-        assertTrue(OpeningOperationStory.offeredAt(
-                offering, OpeningOperationKind.RELIEF.missionId));
-        assertTrue(OpeningOperationStory.offeredAt(
-                offering, OpeningOperationKind.RELIEF.missionId));
+    @Test
+    void missingCompanyOrClientDoesNotCreateAnOffer() {
+        assertFalse(RELIEF.isEligible(null));
+        assertFalse(RELIEF.isEligible(context(null, 0)));
+        assertFalse(RELIEF.isEligible(new StoryEligibilityContext(null, null, null, new MarineRoster(), 0)));
     }
 
     @Test
@@ -117,29 +121,7 @@ class OpeningOperationStoryTest {
                 RepLevel.NEUTRAL, false, null);
 
         assertFalse(RELIEF.isEligible(new StoryEligibilityContext(
-                null, factionClient, null, roster, seedOffering(RELIEF))));
-    }
-
-    private static List<String> soldierIds(MarineRoster roster) {
-        List<String> ids = new ArrayList<>();
-        roster.soldiers().forEach(soldier -> ids.add(soldier.id()));
-        return ids;
-    }
-
-    private static long seedOffering(OpeningOperationStory story) {
-        return firstSeedWhere(story, true);
-    }
-
-    private static long seedNotOffering(OpeningOperationStory story) {
-        return firstSeedWhere(story, false);
-    }
-
-    private static long firstSeedWhere(OpeningOperationStory story, boolean offered) {
-        for (long seed = 0; seed < 512; seed++) {
-            if (OpeningOperationStory.offeredAt(seed, story.id()) == offered) return seed;
-        }
-        throw new AssertionError("no seed produced offered=" + offered
-                + " for " + story.id());
+                null, factionClient, null, roster, 17L)));
     }
 
     private static StoryEligibilityContext context(MarineRoster roster, long seed) {

@@ -27,8 +27,9 @@ The cross-feature status for a first public alpha is tracked in `v0.1-alpha.md`.
 Its current direction is toned-down Conquest for early progression, with one
 to twenty Marine squads and two to eight heavy lances of up to four chassis
 each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
-with a smaller combat area. The opening sequence, lance caps across rosters,
-and first-operation discovery remain open; the tracker identifies existing
+with a smaller combat area. The Conquest opening sequence and lance caps across rosters remain open.
+Independent opening work is dependable with HQ guidance; live discovery
+acceptance remains open. The tracker identifies existing
 stories and areas with no covering story yet.
 Confirmed Retreat now uses ordinary defeat settlement; its remaining live
 acceptance is tracked in `retreat-defeat-settlement.md`.
@@ -52,7 +53,7 @@ shared roster cap, and casualty/replacement policy remain open.
 The recurring Independent opening-operation pair is code-complete and awaiting
 a live play pass before another early-operation variant is contracted. Its
 standing mission model lives in `early-operation-nouns.md`; first-offer
-discoverability remains a separate alpha gate.
+discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 
 ### Battle tier
 

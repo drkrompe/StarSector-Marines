@@ -22,22 +22,14 @@ import java.util.Random;
  * stops spending a sortie on it. That judgement is the intended retirement, and
  * it is the player's to make rather than a predicate's.
  *
- * <p>Availability is a deterministic roll rather than a guarantee — roughly one
- * independent broker in {@value #OFFERED_ONE_BROKER_IN} has militia work going.
- * The roll is seeded from the generator's per-(planet, client) hash, so
- * revisiting a planet shows the same board.
+ * <p>Every eligible Independent broker carries this work. Only map placement
+ * uses the per-(planet, client) seed; finding the first job is never a lottery.
  *
  * <p>The relief job comes first: the depot counterattack is written as the
  * follow-up to one, so it stays behind a completed relief. Past that both
  * recur independently and indefinitely.
  */
 public final class OpeningOperationStory implements StoryMissionDef {
-
-    /** Roughly this many independent brokers to one carrying militia work. */
-    static final int OFFERED_ONE_BROKER_IN = 3;
-
-    /** Keeps the availability roll off the stream {@link #build} draws from. */
-    private static final long OFFER_ROLL_SALT = 0x9E3779B97F4A7C15L;
 
     private final OpeningOperationKind kind;
 
@@ -59,7 +51,7 @@ public final class OpeningOperationStory implements StoryMissionDef {
                 && !ctx.roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)) {
             return false;
         }
-        return offeredAt(ctx.seed, id());
+        return true;
     }
 
     @Override
@@ -72,10 +64,10 @@ public final class OpeningOperationStory implements StoryMissionDef {
         return switch (kind) {
             case RELIEF -> Mission.builder()
                     .id(id())
-                    .name("Hold Until Relieved")
+                    .name(kind.displayName)
                     .type(MissionType.ASSAULT)
                     .source(MissionSource.STORY)
-                    .payout(6_000)
+                    .payout(kind.payout)
                     .risk(RiskLevel.LOW)
                     .requirements("Player lift for 1 sortie")
                     .flavor("A local militia post is taking fire from bandits with more nerve than kit. "
@@ -88,10 +80,10 @@ public final class OpeningOperationStory implements StoryMissionDef {
                     .build();
             case COUNTERATTACK -> Mission.builder()
                     .id(id())
-                    .name("Take Back the Depot")
+                    .name(kind.displayName)
                     .type(MissionType.ASSAULT)
                     .source(MissionSource.STORY)
-                    .payout(9_000)
+                    .payout(kind.payout)
                     .risk(RiskLevel.LOW)
                     .requirements("Player lift for 2 sorties")
                     .flavor("The survivors from the relief job found the bandits' supply depot. Local troops "
@@ -105,13 +97,4 @@ public final class OpeningOperationStory implements StoryMissionDef {
         };
     }
 
-    /**
-     * Whether this broker has this job going. Deterministic in the generator's
-     * per-(planet, client) seed, so a board does not reshuffle under a player
-     * who flies away and comes back.
-     */
-    static boolean offeredAt(long seed, String missionId) {
-        return new Random(seed ^ OFFER_ROLL_SALT ^ missionId.hashCode())
-                .nextInt(OFFERED_ONE_BROKER_IN) == 0;
-    }
 }

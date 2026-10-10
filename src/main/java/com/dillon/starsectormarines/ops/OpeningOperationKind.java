@@ -6,13 +6,18 @@ package com.dillon.starsectormarines.ops;
  * story rungs — see {@code OpeningOperationStory}.
  */
 public enum OpeningOperationKind {
-    RELIEF("story_opening_relief"),
-    COUNTERATTACK("story_opening_counterattack");
+    RELIEF("story_opening_relief", "Hold Until Relieved", 6_000),
+    COUNTERATTACK("story_opening_counterattack", "Take Back the Depot", 9_000);
 
     public final String missionId;
 
-    OpeningOperationKind(String missionId) {
+    public final String displayName;
+    public final int payout;
+
+    OpeningOperationKind(String missionId, String displayName, int payout) {
         this.missionId = missionId;
+        this.displayName = displayName;
+        this.payout = payout;
     }
 
     public static OpeningOperationKind fromMission(Mission mission) {
