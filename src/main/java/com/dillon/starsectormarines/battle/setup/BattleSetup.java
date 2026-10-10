@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.world.gen.LastLiftCompound;
+import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
+import com.dillon.starsectormarines.campaign.LastLiftProgress;
+
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
@@ -1307,6 +1311,63 @@ public final class BattleSetup {
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY), ConquestCommandDisclosure.INSTANCE);
         sim.installJunctionStoryHooks();
+        return sim;
+    }
+
+    /** Authored evacuation prototype. The roster comes only from the persisted stranded cohort. */
+    public static BattleSimulation createLastLift(long seed, List<ShuttleAssignment> manifest,
+            TargetProfile profile, LastLiftProgress.Attempt attempt) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4 || attempt == null || attempt.people().isEmpty())
+            throw new IllegalArgumentException("Last Lift requires a remaining cohort and one to four boats");
+        var layout = LastLiftCompound.generate(seed, profile, attempt.people().size());
+        MapResult map = layout.map();
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.getBattleResources().disableCompoundProduction();
+        var payload = CivilianEvacuationPayload.installAuthored(sim, layout.placement(), "RILL-CREW", "Rill work crew", true);
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        stampLzPads(sim, map.landingPads);
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i);
+            var pad = map.landingPads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, LastLiftCompound.WIDTH, LastLiftCompound.HEIGHT, pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE,
+                    x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.commandClaim = SquadCommandClaim.mission("rescue-corridor", "Rill relief and escort");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+        }
+        float px = LastLiftCompound.LIFT_X + .5f, py = LastLiftCompound.LIFT_Y + .5f;
+        float[] entry = shuttleEntryFor(px, py, LastLiftCompound.WIDTH, LastLiftCompound.HEIGHT, LandingPad.Approach.SOUTH);
+        long pickup = sim.spawnShuttle(ShuttleType.VALKYRIE, Faction.CIVILIAN,
+                px, py, entry[0], entry[1], entry[2], entry[3], 35f);
+        var pickupMission = sim.world().mission(pickup);
+        pickupMission.marinesRemaining = 0; pickupMission.awaitingEvacuees = true;
+        pickupMission.evacueeCapacity = LastLiftProgress.COHORT_SIZE;
+        if (!sim.attachCivilianPickupShuttle(pickup)) throw new IllegalStateException("Pickup attachment failed");
+        payload.objective.configureStoryPickup(pickup);
+        var p = layout.placement();
+        var guard = openingDefenseNode(p.shelterApproachX, p.shelterApproachY, Faction.ALLY, map.grid);
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, guard.anchorX, guard.anchorY, 6),
+                Faction.ALLY, "rill-militia", guard, rng, 6);
+        for (Squad squad : sim.getSquads()) if (squad.faction == Faction.ALLY) sim.registerShelterGuardSquad(squad.id);
+        for (int[] site : new int[][]{{54,64},{134,64},{124,90}}) {
+            var post = openingDefenseNode(site[0], site[1], Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, site[0], site[1], 4),
+                    Faction.DEFENDER, "rill-blockers-" + site[0], post, rng);
+        }
+        List<EntitySpec> west = new ArrayList<>(), east = new ArrayList<>();
+        for (int[] cell : pickSpawnCluster(map.grid, 2, 64, 6))
+            west.add(makeOpeningMilitia("rill-west-" + west.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+        for (int[] cell : pickSpawnCluster(map.grid, 189, 64, 6))
+            east.add(makeOpeningMilitia("rill-east-" + east.size(), Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
+        sim.setAutonomousCommander(Faction.DEFENDER, new ExtractionDefenderCommand(Set.of()), ExtractionDefenderCommandDisclosure.INSTANCE);
+        sim.installLastLift(new LastLiftAttempt(attempt, payload), west, east, p);
         return sim;
     }
 

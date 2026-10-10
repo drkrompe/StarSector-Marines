@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — finite Junction territorial profile, separate militia hold duty and capture-based story beats.
+Updated: 2026-10-10 — Last Lift escort, physical boarding and persistent story-person outcomes.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -197,6 +197,47 @@ employer lift is separately identified. Victory requires all four territories
 held together and a company participant in play, including committed inbound
 personnel. Killing every raider alone does not close the mission.
 
+## Authored evacuation chapters
+
+**Last Lift** returns for Rill's twelve workers after the Junction choice. The
+motor pool, loading-street crossing, covered maintenance lane and southern apron
+form one authored corridor. Six employer militia hold the shelter approach;
+twelve raiders occupy blocking posts and two finite six-person reserves enter
+along side roads. Leaving the shelter and crossing the street can accelerate
+those arrivals inside bounded windows. Waiting cannot cancel the reserve.
+Conventional responders receive the public source and an identity-free alarm;
+local beliefs determine interdiction, never the hidden cohort location.
+
+The selected company escort must secure the release point before workers leave.
+Each civilian remains a physical person under a close escort leash. Separated
+workers become regrouping anchors; a surviving screen can take over a lost
+escort's duty. No available escort or no reachable route means holding and a
+published explanation. These rules do not erase player command ownership.
+Other squads maintain corridor screens and employer militia retain their post.
+
+The employer's pickup has twelve dedicated seats, independent of committed
+player insertion boats. Boarding requires a landed craft, available capacity
+and physical arrival, one passenger at a time. Pickup loss fails the attempt;
+people left alive remain stranded. Victory requires at least one boarding and
+resolution of every active person, so it cannot end at the first passenger.
+Neither corpses nor people already aboard appear in the next attempt.
+
+A **story person** has a stable identity across attempts, separate from the
+entity identity of their current battle. The saved cohort distinguishes rescued,
+confirmed dead and still stranded. Terminal abandonment is unsaved, not proof
+of death. The immutable attempt outcome carries only confirmed boarding and
+death identities; everyone else remains recoverable. Ordinary representative
+rescue events keep their existing aggregate population semantics.
+
+Settlement accepts the active attempt identity once, including after reload.
+A retry contains exactly the remaining stranded identities. No remaining people
+closes the chapter with its actual result; previous rescue on a defeated sortie
+does not manufacture a victory. A later qualifying victory may earn the single
+chapter entitlement of 4,000 credits plus 500 per cumulatively rescued worker.
+Defeat, withdrawal, duplicate results and foreign or stale attempts earn none.
+The record does not itself add cargo, credits or personnel: the campaign launch
+and settlement adapters retain those external-write responsibilities.
+
 ## Story beats and presentation hooks
 
 A **story beat** is a confirmed event in one battle attempt, identified by a
@@ -250,7 +291,7 @@ must validate arrival timing, actual lift requirements, force ratios, and
 briefing claims. Both chapters have production-factory headless replay evidence;
 actual campaign loadouts and the linked live sequence remain to be accepted.
 `broken-supply-route.md` plans a follow-on alpha arc with a committed choice;
-its Junction battle has a finite territorial prototype; branch battles and campaign progression remain open.
+Junction and Last Lift have battle prototypes, including a save-owned rescue ledger and frozen outcomes. Relay Nine and campaign launch/choice/settlement integration remain open.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.
 Shipped implementation evidence is in `shipped.md`.

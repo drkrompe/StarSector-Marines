@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -37,6 +38,12 @@ public final class CivilianEvacuationObjective
     private int payloadCellY = -1;
     private int controllingSquadId = -1;
     private boolean escortPresent;
+    private long requiredPickup;
+    /** Authored story law: pickup loss fails the attempt; separated workers become regroup anchors. */
+    public void configureStoryPickup(long id) {
+        if (id == 0 || requiredPickup != 0) throw new IllegalArgumentException("One physical story pickup required");
+        requiredPickup = id;
+    }
 
     public CivilianEvacuationObjective(CivilianEvacuationTracker tracker,
                                        int cellX, int cellY, int radius) {
@@ -85,9 +92,15 @@ public final class CivilianEvacuationObjective
     @Override
     public void tick(BattleView sim) {
         if (complete || failed) return;
+        if (requiredPickup != 0 && tracker.activeCount() > 0
+                && (sim.world().mission(requiredPickup) == null || sim.world().mission(requiredPickup).state == ShuttleState.GONE)) {
+            failed = true;
+            return;
+        }
         int activeX = 0;
         int activeY = 0;
         int active = 0;
+        int rearX = -1, rearY = -1, rearDistance = -1;
         for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
             long id = tracker.entityIdAt(i);
             if (tracker.state(id) != CivilianEvacuationTracker.State.ACTIVE) {
@@ -100,6 +113,10 @@ public final class CivilianEvacuationObjective
             activeX += sim.world().cellX(id);
             activeY += sim.world().cellY(id);
             active++;
+            int distance = Math.abs(sim.world().cellX(id) - cellX) + Math.abs(sim.world().cellY(id) - cellY);
+            if (distance > rearDistance) {
+                rearDistance = distance; rearX = sim.world().cellX(id); rearY = sim.world().cellY(id);
+            }
             // Legacy/objective-only fixtures still treat crossing the zone as
             // success. Production rescue missions attach a physical pickup;
             // their evacuation system owns boarding and waits for LANDED.
@@ -113,6 +130,12 @@ public final class CivilianEvacuationObjective
         }
         payloadCellX = active > 0 ? activeX / active : cellX;
         payloadCellY = active > 0 ? activeY / active : cellY;
+        // An authored escort regroups on a separated rear element instead of
+        // anchoring midway across a gap nobody can cross without that escort.
+        if (requiredPickup != 0 && active > 0
+                && Math.abs(rearX - payloadCellX) + Math.abs(rearY - payloadCellY) > 5) {
+            payloadCellX = rearX; payloadCellY = rearY;
+        }
         if (alarmRaisedTick < 0 && (sim.isCivilianEvacuationTriggered()
                 || tracker.evacuatedCount() > 0)) {
             alarmRaisedTick = sim.getSimTickIndex();

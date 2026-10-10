@@ -108,6 +108,16 @@ public final class CivilianEvacuationPayload {
             return null;
         }
 
+        return installAuthored(sim, placement, payloadId, payloadName, requireAnyEvacuated);
+    }
+
+    /** Installs a complete authored cohort without rerolling its source or pickup. */
+    public static CivilianEvacuationPayload installAuthored(BattleSimulation sim,
+            CivilianEvacuationPlacement placement, String payloadId, String payloadName,
+            boolean requireAnyEvacuated) {
+        int representativeCount = placement.spawnCount();
+        CivilianEvacuationTracker tracker = sim.getCivilianEvacuationTracker();
+        if (!tracker.prepareExpectedCount(representativeCount)) throw new IllegalStateException("Cohort already installed");
         long[] ids = new long[representativeCount];
         for (int i = 0; i < ids.length; i++) {
             ids[i] = sim.spawn(new EntitySpec(

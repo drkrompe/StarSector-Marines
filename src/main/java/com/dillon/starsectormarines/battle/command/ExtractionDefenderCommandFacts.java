@@ -13,11 +13,12 @@ public record ExtractionDefenderCommandFacts(ExtractionObjectiveFacts payload) {
         List<ExtractionObjectiveFacts> packages = ExtractionObjectiveDisclosure
                 .freeze(sim, Faction.DEFENDER).stream()
                 .filter(payload -> payload.kind()
-                        == ExtractionPayloadObjective.Kind.PACKAGE)
+                        == ExtractionPayloadObjective.Kind.PACKAGE
+                        || payload.kind() == ExtractionPayloadObjective.Kind.COHORT)
                 .toList();
         if (packages.size() != 1) {
             throw new IllegalStateException(
-                    "generic Extraction defense requires one package objective");
+                    "Extraction defense requires one payload objective");
         }
         return new ExtractionDefenderCommandFacts(packages.get(0));
     }

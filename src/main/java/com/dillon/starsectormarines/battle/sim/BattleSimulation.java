@@ -144,6 +144,8 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
+import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
+import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.dillon.starsectormarines.battle.profile.TickStallWatchdog;
@@ -399,16 +401,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final StoryBeatLog storyBeats = new StoryBeatLog();
     private OpeningOperationStoryObserver openingStory;
     private JunctionStoryObserver junctionStory;
+    private LastLiftAttempt lastLiftAttempt;
+    private LastLiftSequence lastLiftSequence;
+    public LastLiftAttempt getLastLiftAttempt() { return lastLiftAttempt; }
+    public LastLiftSequence getLastLiftSequence() { return lastLiftSequence; }
+    public CivilianEvacuationSystem.HoldReason getCivilianEscortHold() { return civilianEvacuationSystem.holdReason(); }
+    public void installLastLift(LastLiftAttempt attempt, List<EntitySpec> west, List<EntitySpec> east, CivilianEvacuationPlacement placement) {
+        if (simTickIndex != 0 || lastLiftAttempt != null || openingStory != null || junctionStory != null)
+            throw new IllegalStateException("Install Last Lift once at setup");
+        lastLiftAttempt = attempt; lastLiftSequence = new LastLiftSequence(west, east, placement, storyBeats);
+        civilianEvacuationSystem.requireStoryEscort();
+    }
 
     public void installJunctionStoryHooks() {
-        if (openingStory != null || junctionStory != null || simTickIndex != 0)
+        if (openingStory != null || junctionStory != null || lastLiftAttempt != null || simTickIndex != 0)
             throw new IllegalStateException("Install story hooks once at setup");
         junctionStory = new JunctionStoryObserver(storyBeats);
     }
 
     /** Setup seam: scenario observation is independent of command and audio. */
     public void installOpeningStoryHooks(OpeningOperationCommandFacts facts) {
-        if (openingStory != null || junctionStory != null || simTickIndex != 0) throw new IllegalStateException("Install story hooks once at setup");
+        if (openingStory != null || junctionStory != null || lastLiftAttempt != null || simTickIndex != 0) throw new IllegalStateException("Install story hooks once at setup");
         openingStory = new OpeningOperationStoryObserver(this, facts, storyBeats);
     }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
@@ -421,7 +434,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void setReliefAssault(ReliefAssault assault) { this.reliefAssault = assault; }
     public ReliefAssault getReliefAssault() { return reliefAssault; }
     @Override public int pendingGroundArrivals(Faction faction) {
-        return faction == Faction.DEFENDER && reliefAssault != null ? reliefAssault.pendingMembers() : 0;
+        return faction != Faction.DEFENDER ? 0 : (reliefAssault == null ? 0 : reliefAssault.pendingMembers())
+                + (lastLiftSequence == null ? 0 : lastLiftSequence.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -718,7 +732,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // death mailbox as every other post-death reaction. Non-cohort deaths
         // are harmless tracker no-ops.
         deathDispatcher.subscribe(event ->
-                civilianEvacuation.markLost(event.unitId()));
+                civilianEvacuation.markDead(event.unitId()));
         deathDispatcher.subscribe(this::recordCommandTraceCasualty);
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
         this.systemFxSystem = new SystemFxSystem(rosterService);
@@ -1196,6 +1210,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         boolean accepted = completion.retreat();
         if (accepted && openingStory != null) openingStory.retreat(simTickIndex);
         if (accepted && junctionStory != null) junctionStory.retreat(simTickIndex);
+        if (accepted && lastLiftAttempt != null) {
+            lastLiftAttempt.freeze(this);
+            lastLiftSequence.finish(simTickIndex, "retreat");
+        }
         return accepted;
     }
 
@@ -2273,6 +2291,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rescuePickupSupport.tick(TICK_DT, this);
         swarmReinforcements.tick(TICK_DT, this);
         if (reliefAssault != null) reliefAssault.tick(this);
+        if (lastLiftSequence != null) lastLiftSequence.tick(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall
@@ -2295,6 +2314,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         }
         if (openingStory != null) openingStory.observe(this);
         if (junctionStory != null) junctionStory.observe(this);
+        if (lastLiftSequence != null) {
+            lastLiftSequence.observe(this);
+            lastLiftAttempt.freeze(this);
+        }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         // Authors every live sheet-drawn unit's SPRITE (facing/pose frame) from
         // this tick's settled state — the tail placement is load-bearing: it

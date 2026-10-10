@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
+import com.dillon.starsectormarines.campaign.LastLiftProgress;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +29,8 @@ import java.util.Set;
  */
 public final class MissionOutcome {
 
+    /** Stable story-person outcomes; separate from representative population scaling. */
+    public final LastLiftProgress.Outcome lastLiftOutcome;
     public final boolean        victory;
     public final String         missionId;
     public final String         missionName;
@@ -126,6 +129,7 @@ public final class MissionOutcome {
     }
 
     private MissionOutcome(Builder b) {
+        this.lastLiftOutcome    = b.lastLiftOutcome;
         this.victory            = b.victory;
         this.missionId          = b.missionId;
         this.missionName        = b.missionName;
@@ -192,6 +196,7 @@ public final class MissionOutcome {
      */
     public static final class Builder {
 
+        private LastLiftProgress.Outcome lastLiftOutcome;
         private boolean victory;
         private String missionId;
         private String missionName;
@@ -268,6 +273,11 @@ public final class MissionOutcome {
         public Builder captain(MarineCaptain captain) {
             this.captainId = captain != null ? captain.id() : null;
             this.captainName = captain != null ? captain.name() : null;
+            return this;
+        }
+
+        public Builder lastLiftOutcome(LastLiftProgress.Outcome outcome) {
+            this.lastLiftOutcome = outcome;
             return this;
         }
 

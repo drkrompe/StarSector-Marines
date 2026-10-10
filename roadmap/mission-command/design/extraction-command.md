@@ -153,6 +153,22 @@ pictures and 156 swarm-director revisions, and replays byte-identically. This is
 deterministic correctness evidence, not a pressure or balance target; live
 pressure tuning remains in the campaign Rescue acceptance story.
 
+## Last Lift
+
+The authored Rill evacuation uses the same corridor roles against conventional
+raiders. Its selected escort must secure the shelter before release; living
+workers follow that element and wait outside its leash. A dispersed rear worker
+becomes the regrouping anchor instead of being averaged into the main group.
+If the escort leaves the eligible command pool, an existing screen takes over;
+reassignment does not require a newly arrived, previously unassigned squad.
+
+Fixed raider posts retain garrison ownership. Two precommitted road groups
+arrive once, follow public approaches and hand off to bounded conventional
+interdiction at arrival or direct contact. The defender disclosure retains source
+and alarm while redacting the cohort, count, escort and pickup location.
+The payload owns movement, paced physical boarding and pickup-loss failure;
+`early-operation-nouns.md` owns cross-attempt story-person consequences.
+
 ## Silent Colony
 
 Silent Colony divides the expedition into stable archive and survivor branches.

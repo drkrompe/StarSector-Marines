@@ -1,8 +1,8 @@
 # The Broken Supply Route
 
-Status: IN PROGRESS — Junction battle prototype implemented; branch missions and campaign integration remain open.
+Status: IN PROGRESS — Junction and Last Lift battle prototypes implemented; Relay Nine and campaign integration remain open.
 Written: 2026-10-10
-Updated: 2026-10-10 — Junction finite territorial factory and headless acceptance; Last Lift, Relay Nine and campaign progression are next.
+Updated: 2026-10-10 — Last Lift physical escort/boarding, frozen outcomes and save-owned retry ledger; campaign launch and settlement remain open.
 
 ## Scope and dramatic question
 
@@ -26,7 +26,7 @@ ownership, stability or population.
 
 Canonical boundaries: `early-operation-nouns.md`, `contracts-nouns.md`,
 `narrative-nouns.md`, `conquest-nouns.md`, `extraction-command.md`, and
-`battle-radio-nouns.md`. **Campaign progression and both branch finales remain proposed content.** Junction has a production-factory prototype, not a campaign offer. Map dimensions,
+`battle-radio-nouns.md`. **Campaign progression and both branch finales remain proposed content.** Junction and Last Lift have production-factory prototypes, not campaign offers. Map dimensions,
 force counts and payments are prototype inputs to measure, not shipped balance.
 
 ## The choice at a glance
@@ -309,14 +309,21 @@ live campaign acceptance remains open. This plan does not mark that gate complet
    cases replay identically twice. This is factory equipment and battle squads,
    not persistent campaign squad/loadout acceptance. No Junction campaign offer,
    deployment gate, chapter payment or branch unlock is enabled yet.
-3. **Branch battle prototypes.** For Last Lift, combine cohort escort/boarding
-   with conventional interdiction and explicit employer pickup capacity. For
-   Relay Nine, prove hold/assault duties and the one finite road reserve. Use
-   larger maps only where traversal creates decisions rather than empty walking.
-4. **Campaign record and settlement.** Implement branch/target persistence,
-   the accepted persistent rescue accounting, one-time payments and
+3. **Last Lift prototype — headless evidence; campaign acceptance remains.**
+   `commanderEvidence -Pmission=last-lift` covers three ordinary seeds, four
+   squads, one fitted ferry, delayed pickup, replacement escort, pickup loss,
+   absent player arrival, zero survivors, and partial withdrawal followed by a
+   seven-person retry. Duplicate replays compare full command traces. Frozen
+   outcomes distinguish deaths from abandonment; the save-owned ledger retains
+   rescued/dead identities and guards one cumulative entitlement. Actual
+   campaign squad/loadout launch, Results presentation and cargo-credit writeback
+   are not enabled. The physical battle uses factory player equipment.
+4. **Relay Nine prototype.** Prove hold/assault duties and the finite road reserve.
+   Use larger maps only where traversal creates decisions rather than empty walking.
+5. **Campaign record and settlement.** Integrate branch/target persistence,
+   the implemented persistent rescue accounting, one-time credit writeback and
    separate recurring access. Preserve the existing loss and Retreat boundaries.
-5. **Choice and correspondence.** Integrate broker/HQ choice, completed history
+6. **Choice and correspondence.** Integrate broker/HQ choice, completed history
    and contact offers. Add confirmed hooks; audio assets are later content work.
 
 Acceptance must cover:
@@ -339,5 +346,5 @@ Acceptance must cover:
   campaign/save and live mission acceptance.
 
 Prototype numbers remain adjustable after evidence. Last Lift's persistent
-civilian outcomes and retries for remaining people are accepted design. Implement
-and verify that accounting before enabling campaign progression for the branch.
+civilian outcomes and retries for remaining people are accepted design. The ledger and battle outcome accounting are implemented and tested; connect them to
+the campaign launch, Results and one-time writeback before enabling the branch.

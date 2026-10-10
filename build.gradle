@@ -76,6 +76,7 @@ dependencies {
             new File(starsectorCore, 'starfarer.api.jar'),
             new File(starsectorCore, 'json.jar'),
             new File(starsectorCore, 'log4j-1.2.9.jar'),
+            new File(starsectorCore, 'xstream-1.4.10.jar'),
     )
     // Campaign API interfaces expose LWJGL vector types in method signatures.
     // Keep them available to reflection-based API fakes without bundling them.
@@ -150,7 +151,7 @@ test {
         excludeTags 'battle-profile', 'battle-tail-profile', 'convoy-route-evidence',
                 'squad-firing-evidence',
                 'commander-balance',
-                'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence',
+                'sabotage-command-evidence', 'assault-command-evidence', 'relief-command-evidence', 'counterattack-command-evidence', 'junction-command-evidence', 'last-lift-command-evidence',
                 'raid-command-evidence', 'extraction-command-evidence',
                 'crew-liveliness', 'shader-evidence', 'render-evidence'
     }
@@ -213,6 +214,7 @@ def commanderEvidenceTags = [
         relief: 'relief-command-evidence',
         counterattack: 'counterattack-command-evidence',
         junction: 'junction-command-evidence',
+        'last-lift': 'last-lift-command-evidence',
         raid: 'raid-command-evidence',
         extraction: 'extraction-command-evidence',
 ]
@@ -328,6 +330,7 @@ tasks.register('commanderEvidence', Test) {
                 relief: 'relief.command.evidence',
                 counterattack: 'counterattack.command.evidence',
                 junction: 'junction.command.evidence',
+                'last-lift': 'lastlift.command.evidence',
                 raid: 'raid.command.evidence',
                 extraction: 'extraction.command.evidence',
         ][commanderEvidenceMission]
@@ -376,7 +379,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, relief, counterattack, junction, raid, or extraction')
+                    'commanderEvidence requires -Pmission=conquest, sabotage, assault, relief, counterattack, junction, last-lift, raid, or extraction')
         }
     }
     testLogging {
