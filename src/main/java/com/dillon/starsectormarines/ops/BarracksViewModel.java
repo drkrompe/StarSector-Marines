@@ -1,23 +1,28 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadCareer;
+import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.dillon.starsectormarines.ui.spec.SpecSheet;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 
 /** Commander board and drill-down projection of persistent squads into their quarters. */
 public final class BarracksViewModel {
@@ -125,23 +130,44 @@ public final class BarracksViewModel {
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
             int team = billet / MarineSquad.TEAM_SIZE;
             String id = "barracks-billet:" + billet;
+            String position = teamLabel(team) + " " + (billet % MarineSquad.TEAM_SIZE + 1);
             if (billet >= memberIds.size()) {
+                SpecSheet sheet = new SpecSheet("Open billet", position, null, "item", List.of(),
+                        List.of("No marine holds this place. Replenish the squad from Personnel Command to draw ready reserves, then enlist Marines from fleet cargo."));
                 rows.add(new MusterRow(id, id + ":name", id + ":detail",
-                        "muster-row vacant", teamLabel(team) + " " + (billet % 4 + 1),
-                        "Open billet"));
+                        "muster-row vacant", "Open billet", "Vacant", position,
+                        List.of(new MusterItem(id + ":vacancy", "graphics/ui/formation/marine-cutout-vacant.svg", sheet)), sheet));
                 continue;
             }
             MarineSoldier soldier = roster.soldierById(memberIds.get(billet));
             if (soldier == null) continue;
             boolean wounded = soldier.status() == MarineSoldierStatus.WIA;
-            String detail = wounded
-                    ? "WIA  ·  RTD " + FleetArmoryViewModel.formatRemainingCompact(
-                            soldier.unavailableUntilDay(), currentDay.getAsDouble())
-                    : soldier.primaryDef().displayName + "  ·  "
-                    + soldier.armorDef().displayName();
+            String recovery = wounded ? FleetArmoryViewModel.formatRemainingCompact(
+                    soldier.unavailableUntilDay(), currentDay.getAsDouble()) : "";
+            String detail = wounded ? "+ " + recovery : squad.stationed() ? "Stationed" : "Ready";
+            String name = soldier.enlistedRank().abbreviation() + " " + soldier.name();
+            List<MusterItem> items = new ArrayList<>();
+            items.add(new MusterItem(id + ":armor", soldier.armorDef().iconPath(), SpecSheets.armor(soldier.armorDef())));
+            items.add(new MusterItem(id + ":primary", primaryIcon(soldier), SpecSheets.weapon(soldier.primaryDef(), soldier.primaryGrade())));
+            if (soldier.specialEquipmentDef() != null) {
+                items.add(new MusterItem(id + ":special", soldier.specialEquipmentDef().armoryIconPath(),
+                        SpecSheets.special(soldier.specialEquipmentDef())));
+            }
+            if (soldier.armorDef().hasIntegralSystem()) {
+                items.add(new MusterItem(id + ":system", IntegralSystemCopy.iconPath(soldier.armorDef()),
+                        SpecSheets.integralSystem(soldier.armorDef())));
+            }
+            String availability = wounded ? "Wounded · return to duty in " + recovery
+                    : squad.stationed() ? "On stationing duty" : "Ready for deployment";
+            SpecSheet sheet = new SpecSheet(name, position + " · " + availability,
+                    soldier.armorDef().iconPath(), wounded ? "special" : "armor",
+                    List.of(SpecSheet.Stat.of("Primary", soldier.primaryDef().catalogName(soldier.primaryGrade().tier)),
+                            SpecSheet.Stat.of("Armor", soldier.armorDef().displayName()),
+                            SpecSheet.Stat.of("Specialty", soldier.specialEquipmentDef() == null ? "None issued" : soldier.specialEquipmentDef().displayName())),
+                    List.of(wounded ? "This marine keeps their billet while recovering and cannot be replaced by replenishment."
+                            : "Equipment shown is this marine's current issued kit. Hover a resource image for its specifications."));
             rows.add(new MusterRow(id, id + ":name", id + ":detail",
-                    "muster-row " + (wounded ? "wounded" : "ready"),
-                    soldier.enlistedRank().abbreviation() + " " + soldier.name(), detail));
+                    "muster-row " + (wounded ? "wounded" : "ready"), name, detail, position, List.copyOf(items), sheet));
         }
         return List.copyOf(rows);
     }
@@ -200,13 +226,7 @@ public final class BarracksViewModel {
                 + (systems == 1 ? " integral system" : " integral systems") + " aboard";
     }
 
-    /**
-     * How many of the formation's suits carry a capability of their own
-     * ({@code integral-armor-systems.md}). Reported here at squad level rather
-     * than per marine because the muster row is a fixed 208px name-and-detail
-     * pair that already truncates a long pattern name; the Armory fire-team card
-     * is where an individual suit's system is spelled out.
-     */
+    /** Squad total; individual carried systems also appear in the muster kit. */
     private int integralSystemCount(MarineSquad squad) {
         int carrying = 0;
         for (String id : roster.manningMemberIds(squad)) {
@@ -303,8 +323,32 @@ public final class BarracksViewModel {
         }
     }
 
+    /** Uses the same held-weapon family and grade variants as the ship and battle sprites. */
+    private static String primaryIcon(MarineSoldier soldier) {
+        LayeredWeaponFamily family = LayeredWeaponFamily.fromPrimary(soldier.primaryDef());
+        String resource = switch (family) {
+            case RIFLE -> soldier.primaryGrade() == EquipmentGrade.SURPLUS ? "grades/surplus/rifle" : "rifle";
+            case DMR -> soldier.primaryGrade() == EquipmentGrade.MASTERWORK ? "grades/masterwork/dmr" : "dmr";
+            case LASER_GUN -> "laser-gun";
+            case SMG -> "smg";
+        };
+        return "graphics/battle/marine-modular-topdown/variants/weapons/" + resource + ".png";
+    }
+
+    public record MusterItem(String id, String icon, SpecSheet sheet) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "imageId" -> id + ":image";
+                case "icon" -> icon;
+                default -> throw new IllegalArgumentException("Unknown muster equipment property: " + property);
+            };
+        }
+    }
+
     public record MusterRow(String id, String nameId, String detailId,
-                            String classes, String name, String detail)
+                            String classes, String name, String detail, String position,
+                            List<MusterItem> items, SpecSheet sheet)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -315,6 +359,12 @@ public final class BarracksViewModel {
                 case "classes" -> classes;
                 case "name" -> name;
                 case "detail" -> detail;
+                case "position" -> position;
+                case "positionId" -> id + ":position";
+                case "headerId" -> id + ":header";
+                case "kitId" -> id + ":kit";
+                case "slotsId" -> id + ":slots";
+                case "items" -> items;
                 default -> throw new IllegalArgumentException(
                         "Unknown barracks muster property: " + property);
             };

@@ -161,9 +161,19 @@
         <div id="barracks-muster" class="muster-panel console-well">
           <div id="barracks-muster-heading" class="label heading tone-edge section-heading">SHIPBOARD MUSTER</div>
           <div id="barracks-muster-list" class="muster-list">
-            <div each="marine in musterRows" key="{marine.id}" id="{marine.id}" class="{marine.classes}">
-              <div id="{marine.nameId}" class="label muster-name">{marine.name}</div>
-              <div id="{marine.detailId}" class="label tone-muted muster-detail">{marine.detail}</div>
+            <div each="marine in musterRows" key="{marine.id}" id="{marine.id}" class="{marine.classes}" tabindex="0">
+              <div id="{marine.headerId}" class="muster-header">
+                <div id="{marine.nameId}" class="label muster-name">{marine.name}</div>
+                <div id="{marine.positionId}" class="label tone-muted muster-position">{marine.position}</div>
+              </div>
+              <div id="{marine.kitId}" class="muster-kit">
+                <div id="{marine.slotsId}" class="muster-slots">
+                  <div each="item in marine.items" key="{item.id}" id="{item.id}" class="muster-item" tabindex="0">
+                    <img id="{item.imageId}" class="muster-icon" src="{item.icon}" />
+                  </div>
+                </div>
+                <div id="{marine.detailId}" class="label muster-detail">{marine.detail}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -204,11 +214,20 @@
   .record-value { height: 21px; font-family: heading; }
   .muster-panel { flex-direction: column; height: 184px; padding: 9px; gap: 8px; border-width: 2px; }
   .muster-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
-  .muster-row { flex-direction: column; width: 232px; height: 58px; padding: 7px; gap: 6px; border-width: 1px; border-color: #526065; background-color: #20282d; }
-  .muster-row.ready { border-color: #4f9a68; }
-  .muster-row.wounded { border-color: #ffd464; background-color: #332b1c; }
-  .muster-row.vacant { opacity: 0.55; }
-  .muster-name, .muster-detail { height: auto; white-space: normal; }
+  .muster-row { flex-direction: column; width: 286px; height: 58px; padding: 7px; gap: 4px; border-width: 1px; border-color: #626c5a; background-color: #202722; }
+  .muster-row.wounded { border-color: #bb9955; background-color: #302a20; }
+  .muster-row.vacant { border-color: #525951; background-color: #191e1a; }
+  .muster-row:hover, .muster-row:focus { border-color: #c3b584; }
+  .muster-header { flex-direction: row; height: 18px; gap: 5px; align-items: center; }
+  .muster-name { width: 0px; flex-grow: 1; height: 18px; }
+  .muster-position { width: 62px; height: 18px; text-align: right; }
+  .muster-kit { flex-direction: row; height: 36px; gap: 6px; align-items: center; }
+  .muster-slots { flex-direction: row; width: 170px; height: 36px; gap: 6px; }
+  .muster-item { width: 36px; height: 36px; background-color: #151b17; border-width: 1px; border-color: #424e40; align-items: center; }
+  .muster-item:hover, .muster-item:focus { border-color: #c9b477; background-color: #33382a; }
+  .muster-icon { width: 34px; height: 34px; pointer-events: none; }
+  .muster-detail { width: 0px; flex-grow: 1; height: 18px; text-align: right; color: #adbca2; }
+  .muster-row.wounded .muster-detail { color: #e0be77; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
   .squad-detail, .squad-record { height: auto; white-space: normal; }
   #barracks-selected-summary { height: auto; white-space: normal; }
