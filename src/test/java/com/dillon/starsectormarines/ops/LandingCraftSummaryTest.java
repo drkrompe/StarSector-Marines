@@ -38,7 +38,9 @@ class LandingCraftSummaryTest {
     void missingBoatsDoNotPretendFallbackAssignmentsAreCompanyCraft() {
         assertEquals("Company lift unavailable", summary(MissionSource.GENERATED, 5, 3, 12, 0)
                 .get("landingCraftSchedule"));
-        assertEquals("Employer lift provided", summary(MissionSource.STORY, 5, 3, 12, 0)
+        assertEquals("Company lift unavailable", summary(MissionSource.STORY, 5, 3, 12, 0)
+                .get("landingCraftSchedule"));
+        assertEquals("Employer lift provided", summary(MissionSource.STORY, 5, 5, 0, 0)
                 .get("landingCraftSchedule"));
         assertEquals("Company lift unavailable", summary(MissionSource.DEBUG, 5, 3, 12, 0)
                 .get("landingCraftSchedule"));

@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import com.dillon.starsectormarines.marine.BoatFitting;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -30,15 +33,18 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  */
 class ABoatGoesOutAndComesBackTest {
 
-    @Test
-    void managedShipDepartureCrossesItsOpeningAndReturnsTheSameHull() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void managedShipDepartureCrossesItsOpeningAndReturnsTheSameHull(boolean fitted) {
         BattleSimulation sim = openSim();
         AirfieldService field = sim.getAirfieldService();
         field.setOwner(Faction.MARINE);
         Gantry stand = Gantry.covering(13, 24, 5, 7, Gantry.Facing.EAST, Gantry.Holds.BOAT);
         BayAperture opening = new BayAperture(1, 22f, 19.5f, 0, -1, 8);
         ShipBayRoute route = ShipBayRoute.from(stand, opening, 16f);
-        AirfieldService.Berth berth = field.addBayBerth(stand, ShuttleType.AEROSHUTTLE,
+        Airframe frame = fitted ? new FittedBoat(ShuttleType.AEROSHUTTLE,
+                BoatFitting.REINFORCED_PLATING, BoatFitting.TUNED_DRIVE, "deck-boat") : ShuttleType.AEROSHUTTLE;
+        AirfieldService.Berth berth = field.addBayBerth(stand, frame,
                 new float[]{route.outside().x(), route.outside().y()});
         berth.shipRoute = route;
         berth.hullHp = 37f;
@@ -53,6 +59,7 @@ class ABoatGoesOutAndComesBackTest {
                 if (craft < 0) craft = id;
                 assertEquals(craft, id, "round trip replaced its air entity");
                 assertSame(berth, mission.homeBerth);
+                assertSame(frame, sim.world().airframe(id));
                 assertEquals(37f, sim.world().hp(id), 0.001f);
                 previous = mission;
                 AirBody body = sim.world().kinematics(id);

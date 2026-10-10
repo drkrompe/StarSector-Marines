@@ -293,8 +293,7 @@ final class BriefingViewModel {
         } else if (boats.isEmpty()) {
             title = "No boats aboard";
             capacity = "0 available";
-            boolean employerOnly = !debug && mission.employerShuttles > 0
-                    && !MissionForceEnvelope.allowsUnderstrength(mission);
+            boolean employerOnly = DetachmentResolver.hasRequiredTransport(mission, boats);
             schedule = employerOnly ? "Employer lift provided" : "Company lift unavailable";
             tone = employerOnly ? "tone-muted" : "tone-danger";
             note = employerOnly ? "Employer-provided craft supply this operation's lift."

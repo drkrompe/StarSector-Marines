@@ -103,8 +103,9 @@ public final class BoatSortieSystem {
         float padX = boat.shipRoute == null ? boat.centerX + 0.5f : boat.shipRoute.home().x();
         float padY = boat.shipRoute == null ? boat.centerY + 0.5f : boat.shipRoute.home().y();
         float[] out = boat.offship;
-        long craft = sim.spawnShuttle((ShuttleType) boat.airframe, field.owner(),
-                out[0], out[1], padX, padY, padX, padY, 0f);
+        ShuttleType pattern = ShuttleType.fromAirframe(boat.airframe);
+        long craft = sim.spawnShuttle(pattern, boat.airframe, field.owner(),
+                out[0], out[1], padX, padY, padX, padY, 0f, pattern.capacity);
         ShuttleMission mission = sim.world().mission(craft);
         // The hull that leaves is the hull that was on the stand, and it owes
         // itself back to that stand: AirSystem hands it over on every ending,
@@ -135,7 +136,7 @@ public final class BoatSortieSystem {
     private static AirfieldService.Berth readyBoat(AirfieldService field) {
         for (AirfieldService.Berth berth : field.berths()) {
             if (!berth.airworthy() || !berth.hasOffship()) continue;
-            if (berth.airframe instanceof ShuttleType) return berth;
+            if (ShuttleType.fromAirframe(berth.airframe) != null) return berth;
         }
         return null;
     }

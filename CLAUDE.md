@@ -141,7 +141,10 @@ Do not run builds or leave generated task files there.
   six-seat player sortie, repeated with +30s player delay and no player arrival
   within a 200s observation window. Its `-Pfixture` takes a JSON array of objects
   with `id`, `seed`, `playerType`, `playerCycles`, `playerSeats`, and `playerDelay`
-  (additional seconds). Employer lift remains one six-seat Aeroshuttle. Reports
+  (additional seconds). Player lift is a fitted boat; optional `playerBoatId`,
+  `playerPlating`, and `playerDrive` pin its identity and catalog fitting ids
+  (default: `relief-boat` and standard fit). Employer lift remains one six-seat
+  Aeroshuttle. Reports
   separate original militia from arriving allies; timeout is not defeat. This
   is controlled construction evidence, not a Jangala campaign/loadout capture.
   Replays run **side by side by default**, on half the machine's processors —

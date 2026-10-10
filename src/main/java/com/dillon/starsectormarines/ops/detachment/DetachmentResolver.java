@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.MissionSource;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
@@ -101,6 +102,14 @@ public final class DetachmentResolver {
         return Math.min(m.employerShuttles, EMPLOYER_PHYSICAL_CAP);
     }
 
+    /** Player boats can cycle; employer support must cover every drop if flying alone. */
+    public static boolean hasRequiredTransport(Mission mission, List<FittedBoat> boats) {
+        if (mission.source == MissionSource.STATIONING) return true;
+        if (boats != null && !boats.isEmpty()) return true;
+        if (mission.source.isDebug() || MissionForceEnvelope.allowsUnderstrength(mission)) return false;
+        return mission.employerShuttles > 0 && mission.employerShuttles >= mission.requiredDrops;
+    }
+
     /**
      * Builds the full {@link ShuttleAssignment} list — what ships fly and how many
      * sorties each performs. Employer slots come first as cycling Aeroshuttles;
@@ -115,13 +124,10 @@ public final class DetachmentResolver {
      * picker owns the complete manifest, so the generated employer roll is ignored
      * and the selected type/count covers all required drops.
      *
-     * <p>When the player commits zero transports and the employer doesn't cover
-     * all the drops, the fallback pads with one-cycle Aeroshuttles. The briefing
-     * gate normally blocks before that path is reachable.
-     *
-     * <p>The employer's craft and those padding Aeroshuttles stay plain
-     * patterns. A fitting is work a yard did on a boat the company owns, and
-     * neither of those is one.
+     * <p>Missing player lift leaves an incomplete manifest; briefing and launch
+     * reject it. Only stationed detachments use authored local replacement lift.
+     * Employer and local craft stay plain patterns because the company does not
+     * own or fit them.
      */
     public static List<ShuttleAssignment> buildShuttleManifest(Mission m, List<FittedBoat> playerShuttles) {
         List<ShuttleAssignment> out = new ArrayList<>();
@@ -146,10 +152,10 @@ public final class DetachmentResolver {
         int employerDrops = m.source.isDebug() ? 0 : m.employerShuttles;
         int playerDrops = Math.max(0, m.requiredDrops - employerDrops);
         if (playerDrops == 0) return out;
-        int transportsUsed = Math.min(playerDrops, playerShuttles.size());
+        int transportsUsed = Math.min(playerDrops, playerShuttles == null ? 0 : playerShuttles.size());
         if (transportsUsed == 0) {
-            // Gated normally, but if somehow we get here pad with employer-style
-            // aeroshuttles so the battle still functions.
+            if (m.source != MissionSource.STATIONING) return out;
+            // A stationed detachment uses local lift, not the player's fleet.
             for (int i = 0; i < playerDrops; i++) {
                 ShuttleType type = ShuttleType.AEROSHUTTLE;
                 out.add(new ShuttleAssignment(type, 1,

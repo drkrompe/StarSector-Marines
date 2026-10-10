@@ -4,10 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — at a ramp the squad leader boards last, so a lift that
-cannot take the whole squad leaves the NCO on the field with whoever it could
-not carry. An air loss is a ledger entry that outlives the aircraft it names, so
-a boat shot down reaches the campaign along with whoever was still aboard it.
+Updated: 2026-10-10 — fitted boats retain their transport role and missing company lift blocks launch.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -348,6 +345,21 @@ plating scales the hull, the drive scales forward speed and both accelerations �
 and turn rate, damping, seats, hardpoints, sprite and hull id are the pattern's
 and are delegated untouched. A better boat is faster and tougher, not a
 different aircraft.
+
+**Fitting a transport does not remove its hold.** Unloading, payload reloads,
+and boat-deck dispatch resolve the transport pattern from either a bare pattern
+or a fitted boat. They never replace the flying frame to make it qualify: that
+would discard the campaign identity, plating and drive. The same delivery state
+machine serves both representations, including subsequent sorties and partial
+passenger loads.
+
+**Missing company lift is a launch constraint, not a replacement order.** A
+manifest with no player boat keeps only explicitly supplied employer craft.
+Employer lift can operate alone only when it covers all required drops; ordinary
+operations with selected company personnel still need a company boat. Local
+stationing incidents retain their own local lift. Briefing and launch enforce
+the same rule before map construction; neither fills missing player trips with
+anonymous Aeroshuttles.
 
 **The rotation is unchanged by the fit.** The deboard cadence and the deck
 turnaround are deliberately not on the fitted frame: a turnaround is paid for in

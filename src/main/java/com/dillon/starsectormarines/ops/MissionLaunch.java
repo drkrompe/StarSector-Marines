@@ -139,6 +139,9 @@ public final class MissionLaunch {
                                         Collection<String> selectedPowerIds,
                                         List<FleetMemberAPI> committedPowerSources,
                                         DebugMechRoster debugMechs, long seed) {
+        if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles)) {
+            throw new IllegalStateException("Company boats are required to cover this operation's lift.");
+        }
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
                 : committedPowerSources == null

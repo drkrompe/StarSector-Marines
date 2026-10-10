@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.List;
 import java.util.Set;
@@ -48,6 +50,56 @@ class ShuttleTransportMechanicsTest {
                         sim.squadMemberAt(squad.id, i)));
             }
             assertEquals(Set.of(0, 1, 2), fireTeams);
+        }
+    }
+
+    @ParameterizedTest
+    @EnumSource(ShuttleType.class)
+    void fittedBoatsActuallyDeliverTheirPassengers(ShuttleType pattern) {
+        try (BattleSimulation sim = openSimulation()) {
+            sim.setMissionCompletionEnabled(false);
+            FittedBoat boat = new FittedBoat(pattern,
+                    BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, "company-boat");
+            long shuttle = sim.spawnShuttle(pattern, boat, Faction.MARINE,
+                    10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 2);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.marineLoadout = passengers("soldier-a", "soldier-b");
+            mission.state = ShuttleState.LANDED;
+            sim.world().kinematics(shuttle).teleport(10.5f, 10.5f, 0f);
+
+            for (int i = 0; i < 150 && mission.state == ShuttleState.LANDED; i++) {
+                sim.advance(BattleSimulation.TICK_DT);
+            }
+
+            assertEquals(2, mission.deboardedThisSortie);
+            assertEquals(0, mission.marinesRemaining);
+            assertEquals(2, sim.getSquads().stream()
+                    .filter(squad -> squad.faction == Faction.MARINE)
+                    .mapToInt(squad -> sim.squadMemberCount(squad.id)).sum());
+            assertEquals(ShuttleState.DEPARTING, mission.state);
+            assertSame(boat, sim.world().airframe(shuttle));
+            assertEquals(boat.maxHp(), sim.world().maxHp(shuttle));
+        }
+    }
+
+    @Test
+    void fittedPayloadCarrierReloadsCargoRatherThanPassengerCapacity() {
+        try (BattleSimulation sim = openSimulation()) {
+            FittedBoat boat = FittedBoat.standard(ShuttleType.VALKYRIE);
+            long shuttle = sim.spawnShuttle(boat.pattern(), boat, Faction.MARINE,
+                    10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f, 6);
+            ShuttleMission mission = sim.world().mission(shuttle);
+            mission.payload = ResupplyPayload.INSTANCE;
+            mission.totalCycles = 2;
+            mission.marinesRemaining = 0;
+            mission.state = ShuttleState.DEPARTING;
+            sim.world().kinematics(shuttle).teleport(mission.exitX, mission.exitY, 0f);
+
+            sim.advance(BattleSimulation.TICK_DT);
+
+            assertEquals(ShuttleState.PENDING, mission.state);
+            assertEquals(1, mission.marinesRemaining, "one cache, not six passengers");
+            assertSame(boat, sim.world().airframe(shuttle));
         }
     }
 
