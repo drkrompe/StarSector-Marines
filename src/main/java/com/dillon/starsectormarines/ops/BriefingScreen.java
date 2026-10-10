@@ -445,7 +445,7 @@ public class BriefingScreen implements Screen {
         }
         // Authored jobs belong to their offering client; verify membership before using it.
         Client client = ctx.getSelectedClient();
-        if (mission.source == MissionSource.STORY && client != null
+        if ((mission.source == MissionSource.STORY || mission.source == MissionSource.RECURRING) && client != null
                 && ctx.getMissionsFor(client).contains(mission)) {
             putFactionIdentity(props, "employer", client.factionId);
             return;

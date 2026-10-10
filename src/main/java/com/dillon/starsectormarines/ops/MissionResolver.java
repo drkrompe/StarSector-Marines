@@ -480,11 +480,7 @@ public final class MissionResolver {
             }
         }
 
-        if (outcome.victory && outcome.missionSource == MissionSource.STORY
-                && outcome.missionId != null) {
-            MarineRosterScript script = MarineRosterScript.getInstance();
-            if (script != null) script.roster().markStoryComplete(outcome.missionId);
-        }
+        recordStoryCompletion(roster, outcome);
 
         if (outcome.captainId != null) {
             MarineRosterScript script = MarineRosterScript.getInstance();
@@ -597,6 +593,13 @@ public final class MissionResolver {
         if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster().boatDeck();
+    }
+
+    static void recordStoryCompletion(MarineRoster roster, MissionOutcome outcome) {
+        if (roster != null && outcome != null && outcome.victory
+                && outcome.missionSource == MissionSource.STORY && outcome.missionId != null) {
+            roster.markStoryComplete(outcome.missionId);
+        }
     }
 
     private static MarineRoster applyPersonnelOutcome(MissionOutcome outcome) {

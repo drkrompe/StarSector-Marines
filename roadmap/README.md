@@ -29,7 +29,7 @@ to twenty Marine squads and two to eight heavy lances of up to four chassis
 each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
 with a smaller combat area. The Conquest opening sequence and lance caps across rosters remain open.
 The opening sequence is anchored to Mara Venn on Jangala, with HQ navigation
-and later repeatable Independent work; live discovery
+and a finite Wayline story arc leading to separate repeatable work; live discovery
 acceptance remains open. The tracker identifies existing
 stories and areas with no covering story yet.
 Confirmed Retreat now uses ordinary defeat settlement; its remaining live
@@ -51,8 +51,10 @@ Mech-company work begins with editable campaign callsigns carried into the
 deployed unit's visible identity. Persistent multi-lance organization, the
 shared roster cap, and casualty/replacement policy remain open.
 
-The recurring Independent opening-operation pair is code-complete and awaiting
-a live play pass before another early-operation variant is contracted. Its
+Wayline has chapter briefings, outcome correspondence, a completed record, and
+separate recurring jobs. Next, review Relief then Counterattack gameplay. The
+follow-on choice arc is planned in `broken-supply-route.md`; a small Conquest
+profile is a prerequisite. The opening arc still awaits a live play pass. Its
 standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 /** MLX-authored read-only operation debrief and recovery handoff. */
 public class ResultsScreen extends MissionFlowMlxScreen {
@@ -45,6 +46,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 ? outcome.missionName : "Operation record unavailable");
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
+        putStoryDebrief(props, outcome);
         props.put("personnelHeader", personnelHeader(outcome));
         List<PersonnelRow> personnel = personnelRows(outcome);
         props.put("squadRows", personnel);
@@ -99,7 +101,18 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", Strings.get("resultsHeader"));
+        putStoryDebrief(props, null);
         return props;
+    }
+
+    static void putStoryDebrief(Map<String, Object> props, MissionOutcome outcome) {
+        OpeningOperationKind chapter = WaylineArc.chapter(outcome);
+        props.put("storyClasses", chapter != null ? "story-dispatch console-readout" : "hidden");
+        props.put("storyPortrait", chapter != null ? OpeningBroker.PORTRAIT : null);
+        props.put("storySender", chapter != null ? OpeningBroker.NAME + " / WAYLINE" : "");
+        props.put("storyProgress", chapter == null ? "" : !outcome.victory ? "CONTRACT REMAINS OPEN"
+                : chapter == OpeningOperationKind.RELIEF ? "CHAPTER 1 COMPLETE / DEPOT JOB AVAILABLE" : "AN OPEN ROAD / ARC COMPLETE");
+        props.put("storyMessage", WaylineArc.debrief(outcome));
     }
 
     private static String outcomeMeta(MissionOutcome outcome, LootManifest manifest) {
@@ -111,28 +124,32 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     }
 
     static List<ResultRow> resultRows(MissionOutcome outcome, LootManifest manifest) {
+        return resultRows(outcome, manifest, Strings::get);
+    }
+
+    static List<ResultRow> resultRows(MissionOutcome outcome, LootManifest manifest, UnaryOperator<String> copy) {
         if (outcome == null) return List.of();
         List<ResultRow> rows = new ArrayList<>();
         if (outcome.evacuationRepresentatives > 0) {
-            rows.add(row("result-evacuation", trimLabel(Strings.get("resultsEvacuationLabel")),
+            rows.add(row("result-evacuation", trimLabel(copy.apply("resultsEvacuationLabel")),
                     formatEvacuation(outcome), "tone-edge"));
         }
         if (outcome.colonyArchiveOutcome != AbandonedColonyArchiveOutcome.NONE) {
-            rows.add(row("result-colony", trimLabel(Strings.get("resultsColonyArchiveLabel")),
+            rows.add(row("result-colony", trimLabel(copy.apply("resultsColonyArchiveLabel")),
                     formatColonyArchive(outcome), outcome.colonyArchiveOutcome
                             == AbandonedColonyArchiveOutcome.RECOVERED ? "tone-good" : "tone-danger"));
         }
         String payout = outcome.payoutEarned > 0
-                ? MessageFormat.format(Strings.get("payoutFmt"),
+                ? MessageFormat.format(copy.apply("payoutFmt"),
                 NumberFormat.getIntegerInstance().format(outcome.payoutEarned)) : "—";
-        rows.add(row("result-payout", trimLabel(Strings.get("resultsPayoutLabel")),
+        rows.add(row("result-payout", trimLabel(copy.apply("resultsPayoutLabel")),
                 payout, outcome.payoutEarned > 0 ? "tone-good" : "tone-muted"));
         if (outcome.salvageEntitlement > 0) {
-            rows.add(row("result-salvage", trimLabel(Strings.get("resultsSalvageLabel")),
+            rows.add(row("result-salvage", trimLabel(copy.apply("resultsSalvageLabel")),
                     salvageSummary(outcome, manifest), "tone-accent"));
         }
-        rows.add(row("result-casualties", trimLabel(Strings.get("resultsCasualtiesLabel")),
-                MessageFormat.format(Strings.get("resultsCasualtiesFmt"),
+        rows.add(row("result-casualties", trimLabel(copy.apply("resultsCasualtiesLabel")),
+                MessageFormat.format(copy.apply("resultsCasualtiesFmt"),
                         outcome.marinesLost, outcome.marinesEngaged),
                 outcome.marinesLost > 0 ? "tone-danger" : "tone-good"));
         // Allied losses are reported and never counted as the company's. The
@@ -140,27 +157,27 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         // contract's debrief is unchanged.
         if (outcome.alliesEngaged > 0) {
             rows.add(row("result-allied-losses",
-                    trimLabel(Strings.get("resultsAlliedLossesLabel")),
-                    MessageFormat.format(Strings.get("resultsAlliedLossesFmt"),
+                    trimLabel(copy.apply("resultsAlliedLossesLabel")),
+                    MessageFormat.format(copy.apply("resultsAlliedLossesFmt"),
                             outcome.alliesLost, outcome.alliesEngaged),
                     outcome.alliesLost > 0 ? "tone-edge" : "tone-good"));
         }
         if (!outcome.boatsLost.isEmpty()) {
-            rows.add(row("result-boats-lost", trimLabel(Strings.get("resultsBoatsLostLabel")),
+            rows.add(row("result-boats-lost", trimLabel(copy.apply("resultsBoatsLostLabel")),
                     formatBoatsLost(outcome), "tone-danger"));
         }
         if (outcome.captainId != null) {
-            rows.add(row("result-captain", trimLabel(Strings.get("resultsCaptainLabel")),
+            rows.add(row("result-captain", trimLabel(copy.apply("resultsCaptainLabel")),
                     formatCaptainStatus(outcome), statusTone(outcome.newCaptainStatus)));
         }
         if (outcome.xpGained > 0) {
-            rows.add(row("result-xp", trimLabel(Strings.get("resultsXpLabel")),
-                    MessageFormat.format(Strings.get("resultsXpFmt"), outcome.xpGained), "tone-edge"));
+            rows.add(row("result-xp", trimLabel(copy.apply("resultsXpLabel")),
+                    MessageFormat.format(copy.apply("resultsXpFmt"), outcome.xpGained), "tone-edge"));
         }
         Rank promotedTo = outcome.promotedTo;
         if (promotedTo != null) {
-            rows.add(row("result-promotion", trimLabel(Strings.get("resultsPromotionLabel")),
-                    MessageFormat.format(Strings.get("resultsPromotionFmt"), promotedTo.displayName()),
+            rows.add(row("result-promotion", trimLabel(copy.apply("resultsPromotionLabel")),
+                    MessageFormat.format(copy.apply("resultsPromotionFmt"), promotedTo.displayName()),
                     "tone-accent"));
         }
         return List.copyOf(rows);

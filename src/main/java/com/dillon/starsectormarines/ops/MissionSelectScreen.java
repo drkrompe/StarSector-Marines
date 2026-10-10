@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractType;
@@ -102,8 +103,8 @@ public final class MissionSelectScreen implements Screen {
                 ? "Choose a client to inspect their current work."
                 : missions.isEmpty() && stationing.isEmpty()
                         ? "Nothing pending from this client." : "");
-        putBroker(props, selectedClient);
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        putBroker(props, selectedClient, script == null ? null : script.roster());
         OpeningBroker.Destination office = OpeningBroker.current();
         String referral = OpeningBroker.referral(selectedClient, script == null ? null : script.roster(), office);
         putDetail(props, selectedMission, this::briefSelected, this::collapseSelected);
@@ -215,7 +216,9 @@ public final class MissionSelectScreen implements Screen {
                     "mission-card " + typeClass(mission.type)
                             + (isSelected ? " selected" : ""),
                     Character.toString(mission.type.glyph), mission.name,
-                    mission.tier.displayName + "  ·  " + recommended
+                    (mission.source == MissionSource.RECURRING ? "Repeatable"
+                            : mission.source == MissionSource.STORY ? "Story" : mission.tier.displayName)
+                            + "  ·  " + recommended
                             + (recommended == 1 ? " squad" : " squads") + active,
                     credits.format(payout) + " cr", () -> select.accept(mission)));
         }
@@ -331,12 +334,17 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putBroker(Map<String, Object> props, Client client) {
+        putBroker(props, client, null);
+    }
+
+    static void putBroker(Map<String, Object> props, Client client, MarineRoster roster) {
         boolean contact = OpeningBroker.isContact(client);
         props.put("brokerClasses", contact ? "broker-dossier console-readout" : "broker-hidden");
         props.put("brokerPortrait", contact ? OpeningBroker.PORTRAIT : null);
         props.put("brokerName", contact ? OpeningBroker.NAME : "");
         props.put("brokerRole", contact ? "INDEPENDENT / WAYLINE COOPERATIVE" : "");
-        props.put("brokerIntroduction", contact ? OpeningBroker.INTRODUCTION : "");
+        props.put("brokerIntroduction", contact ? WaylineArc.introduction(roster) : "");
+        props.put("brokerProgress", contact ? WaylineArc.progress(roster) : "");
     }
 
     private String locationLabel() {
@@ -347,9 +355,9 @@ public final class MissionSelectScreen implements Screen {
         return location + "  ·  Current local offers";
     }
 
-    private static String missionSummary(Client client, List<Mission> missions) {
+    static String missionSummary(Client client, List<Mission> missions) {
         if (client == null) return "Choose a client to inspect current work.";
-        if (OpeningBroker.isContact(client)) return "Wayline cooperative / militia support / repeatable work";
+        if (OpeningBroker.isContact(client)) return WaylineArc.TITLE;
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return "Developer catalogue  ·  " + missions.size() + " eligible operation fixtures";
         }
