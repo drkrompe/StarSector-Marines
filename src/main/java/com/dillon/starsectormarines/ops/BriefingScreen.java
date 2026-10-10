@@ -125,6 +125,13 @@ public class BriefingScreen implements Screen {
 
     private void prepareSurvey(Mission mission) {
         if (mission == null) return;
+        if (!isTransportSufficient(mission, lift())) {
+            survey.close();
+            surveyPlan = null;
+            surveyCaptureFailure = null;
+            surveyComplete = true;
+            return;
+        }
         try {
             boolean stationed = mission.source == MissionSource.STATIONING;
             surveyPlan = MissionLaunch.captureScenario(ctx, launchMission(mission),
@@ -384,7 +391,9 @@ public class BriefingScreen implements Screen {
         Throwable surveyFailure = surveyCaptureFailure != null ? surveyCaptureFailure : survey.failure();
         props.put("surveyFailed", surveyFailure != null);
         BriefingViewModel.putSurvey(props, preparedSurvey != null ? preparedSurvey.map() : null,
-                surveyFailure != null ? "Survey unavailable / retry to prepare terrain" : "Compiling terrain and landing intelligence...");
+                !isTransportSufficient(mission, lift()) ? "Company boats required to prepare deployment"
+                        : surveyFailure != null ? "Survey unavailable / retry to prepare terrain"
+                        : "Compiling terrain and landing intelligence...");
         props.put("termActions", retainedTermActions(mission));
         BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST,
                 mission.source == MissionSource.STATIONING);
@@ -912,7 +921,7 @@ public class BriefingScreen implements Screen {
                 && (readiness == null || readiness.needsPersonnel() || !transportOk || !commandOk));
         props.put("deployAction", deployAction);
         props.put("backAction", (Runnable) this::onBack);
-        if (survey.peek() == null) {
+        if (transportOk && survey.peek() == null) {
             boolean failed = surveyCaptureFailure != null || survey.failure() != null;
             props.put("deployDisabled", !failed);
             props.put("deployLabel", failed ? "RETRY SURVEY" : "PREPARING");
@@ -1271,7 +1280,7 @@ public class BriefingScreen implements Screen {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     MissionForceEnvelope.allowsUnderstrength(m)
                             ? "No lift: this ship carries no boats"
-                            : "No lift: no boats aboard and none from the employer",
+                            : "No company boats: employer lift is insufficient",
                     x + 6f, y, BLOCKED_COLOR));
             y -= ROW_GAP;
         }
@@ -2057,18 +2066,9 @@ public class BriefingScreen implements Screen {
         return s.toString();
     }
 
-    /**
-     * Mission has a transport — the floor is "at least one source delivering
-     * marines." Employer contributes drops up to their cover; selected player
-     * transports cycle to fill any remaining gap.
-     */
+    /** Uses the same lift requirement as the launch boundary. */
     private static boolean isTransportSufficient(Mission m, List<FittedBoat> selectedShuttles) {
-        if (MissionForceEnvelope.allowsUnderstrength(m)) {
-            return selectedShuttles != null && !selectedShuttles.isEmpty();
-        }
-        return m.source.isDebug()
-                ? !selectedShuttles.isEmpty()
-                : m.employerShuttles >= 1 || !selectedShuttles.isEmpty();
+        return DetachmentResolver.hasRequiredTransport(m, selectedShuttles);
     }
 
     /**

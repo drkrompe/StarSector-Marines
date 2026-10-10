@@ -4,7 +4,7 @@ Status: ACTIVE — target-profile transport is campaign-free, while ground consu
 
 Written: 2026-08-23
 
-Updated: 2026-10-08 — briefing preparation captures construction inputs before asynchronous generation; acceptance consumes that scenario.
+Updated: 2026-10-10 — lift validation precedes asynchronous scenario construction.
 
 Read `stories.md` for open work.
 
@@ -56,6 +56,11 @@ interpreting campaign API. `BspCityGenerator` publishes it to the generation
 recipe, while stages and zoning policies own their local use of it.
 
 ## Flow and boundaries
+
+Launch also validates the committed lift before capturing construction inputs.
+Missing company boats cannot become anonymous replacement craft. Employer-only
+and local stationing lift follow the explicit transport rules in `air-nouns.md`;
+briefing and launch use the same sufficiency decision.
 
 During briefing preparation, the selected mission identifies a target planet. The resolver finds
 the matching vanilla market and produces one profile, or Neutral when no such

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -24,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /** Opt-in neutral observation of Relief's production factory, never a second scene builder. */
 @Tag("relief-command-evidence")
@@ -40,6 +43,8 @@ class ReliefCommandEvidenceTest {
                 for (int delay : new int[]{0, 30, 600}) fixtures.put(new JSONObject()
                         .put("id", seed + (delay == 0 ? "-relief" : delay == 30 ? "-late" : "-no-player"))
                         .put("seed", seed).put("playerType", "AEROSHUTTLE")
+                        .put("playerBoatId", "relief-boat").put("playerPlating", BoatFitting.STANDARD_PLATING.id())
+                        .put("playerDrive", BoatFitting.STANDARD_DRIVE.id())
                         .put("playerCycles", 1).put("playerSeats", 6).put("playerDelay", delay));
             }
         }
@@ -69,13 +74,17 @@ class ReliefCommandEvidenceTest {
 
     private Result run(JSONObject fixture, int maxTicks, Path output, boolean capture) throws Exception {
         long seed = fixture.getLong("seed");
-        var player = new ShuttleAssignment(ShuttleType.valueOf(fixture.getString("playerType")),
-                fixture.getInt("playerCycles"), fixture.getInt("playerSeats"));
+        FittedBoat boat = new FittedBoat(ShuttleType.valueOf(fixture.getString("playerType")),
+                BoatFitting.requireById(fixture.optString("playerPlating", BoatFitting.STANDARD_PLATING.id())),
+                BoatFitting.requireById(fixture.optString("playerDrive", BoatFitting.STANDARD_DRIVE.id())),
+                fixture.optString("playerBoatId", "relief-boat"));
+        var player = new ShuttleAssignment(boat, fixture.getInt("playerCycles"), fixture.getInt("playerSeats"));
         List<ShuttleAssignment> manifest = List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1), player);
         try (BattleSimulation sim = BattleSetup.createOpeningOperation(seed, manifest, 1,
                 OpeningOperationKind.RELIEF, TargetProfile.NEUTRAL)) {
             for (long air : sim.getAirEntityIds()) {
                 if (sim.world().airFaction(air) == Faction.MARINE) {
+                    assertSame(boat, sim.world().airframe(air), "Relief must fly the committed player boat");
                     sim.world().mission(air).pendingDelay += (float) fixture.optDouble("playerDelay", 0);
                 }
             }
@@ -145,6 +154,8 @@ class ReliefCommandEvidenceTest {
 
             var picture = ((OpeningOperationCommand) sim.getCommander(Faction.MARINE)).operationPicture();
             return new Result(new JSONObject().put("seed", seed).put("profile", "NEUTRAL / controlled construction, no campaign loadout")
+                    .put("playerBoatId", boat.boatId()).put("playerType", boat.pattern().name())
+                    .put("playerPlating", boat.plating().id()).put("playerDrive", boat.drive().id())
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT")
                     .put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstMilitiaOrRaiderShotTick", firstShot)

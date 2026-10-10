@@ -8,11 +8,15 @@ import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DebugTransportManifestTest {
 
@@ -75,6 +79,33 @@ class DebugTransportManifestTest {
         assertEquals(12, secondPlayer.seatsForCycle(0));
         assertEquals(1, secondPlayer.seatsForCycle(1));
         assertEquals(25, CampaignMarineDeployment.requiredSeats(manifest, 3));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = MissionSource.class, names = {"STATIONING"}, mode = EnumSource.Mode.EXCLUDE)
+    void missingPlayerLiftNeverFabricatesReplacementBoats(MissionSource source) {
+        Mission mission = mission(source, 5, 2);
+        assertFalse(DetachmentResolver.hasRequiredTransport(mission, List.of()));
+        assertFalse(DetachmentResolver.hasRequiredTransport(mission, null));
+        List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(mission, List.of());
+        assertEquals(source.isDebug() ? 0 : 2, manifest.size());
+        assertTrue(DetachmentResolver.hasRequiredTransport(mission, boats(ShuttleType.KITE)),
+                "one real boat can cover remaining drops through repeat trips");
+    }
+
+    @Test
+    void completeEmployerLiftAndStationedLocalLiftRemainAvailable() {
+        Mission story = mission(MissionSource.STORY, 5, 5);
+        assertTrue(DetachmentResolver.hasRequiredTransport(story, List.of()));
+        assertEquals(5, DetachmentResolver.buildShuttleManifest(story, List.of()).stream()
+                .mapToInt(assignment -> assignment.cycles).sum());
+        Mission local = mission(MissionSource.STATIONING, 5, 2);
+        assertTrue(DetachmentResolver.hasRequiredTransport(local, List.of()));
+        assertEquals(5, DetachmentResolver.buildShuttleManifest(local, List.of()).stream()
+                .mapToInt(assignment -> assignment.cycles).sum());
+        assertFalse(DetachmentResolver.hasRequiredTransport(mission(MissionSource.DEBUG, 5, 5), List.of()));
+        assertFalse(DetachmentResolver.hasRequiredTransport(mission(MissionSource.GENERATED, 5, 5), List.of()),
+                "ordinary operations still require lift for the selected company force");
     }
 
     /** The company's boats at standard fit; what is under test here is the split. */

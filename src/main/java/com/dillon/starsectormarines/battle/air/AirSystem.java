@@ -801,6 +801,7 @@ public class AirSystem {
             AirBody body = world.kinematics(id);
             Airframe frame = world.airframe(id);
             AirHandling flight = frame.flight();
+            ShuttleType carrier = ShuttleType.fromAirframe(frame);
             switch (mission.state) {
                 case SHIP_DEPARTURE:
                 case SHIP_RETURN:
@@ -1187,12 +1188,10 @@ public class AirSystem {
                 case LANDED:
                     mission.deboardCountdown -= dt;
                     if (mission.marinesRemaining > 0) mission.unloadStalledFor += dt;
-                    // Only a transport has anything to set down, and the
-                    // payload machinery is written against one — so the carrier
-                    // is asked for here rather than carried through the whole
-                    // state machine as if every aircraft had a hold.
+                    // Only transports have a hold. Cargo rules read their
+                    // pattern; the flying frame keeps its identity and fit.
                     if (mission.deboardCountdown <= 0f && mission.marinesRemaining > 0
-                            && frame instanceof ShuttleType carrier) {
+                            && carrier != null) {
                         AirDeliveryPayload payload = mission.payload != null
                                 ? mission.payload : InfantryPayload.INSTANCE;
                         if (payload.tryDeploy(new AirDeliveryContext(mission, carrier, world.airFaction(id),
@@ -1248,7 +1247,7 @@ public class AirSystem {
                                     ? mission.payload : InfantryPayload.INSTANCE;
                             mission.marinesRemaining =
                                     payload != InfantryPayload.INSTANCE
-                                            && frame instanceof ShuttleType carrier
+                                            && carrier != null
                                     ? payload.unitsPerSortie(carrier)
                                     : mission.marineLoadout != null
                                             ? mission.marineLoadout.length

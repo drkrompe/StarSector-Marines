@@ -218,6 +218,17 @@ public enum ShuttleType implements AirHandling, Airframe {
     }
 
     /**
+     * Transport role of a bare pattern or fitted company boat. Dispatch and
+     * cargo rules use the pattern; the original frame owns identity and handling.
+     * Non-transports have no shuttle pattern.
+     */
+    public static ShuttleType fromAirframe(Airframe frame) {
+        if (frame instanceof ShuttleType pattern) return pattern;
+        if (frame instanceof FittedBoat boat) return boat.pattern();
+        return null;
+    }
+
+    /**
      * Expands a {@link TurretRole} into the turret <b>loadout</b> (which
      * structure ids for a hull of {@code hardpoints} mount points.
      * {@code null} role or zero hardpoints returns an empty array — these
