@@ -52,9 +52,10 @@ deployed unit's visible identity. Persistent multi-lance organization, the
 shared roster cap, and casualty/replacement policy remain open.
 
 Wayline has chapter briefings, outcome correspondence, a completed record, and
-separate recurring jobs. Relief now has an authored freight checkpoint and
-finite road arrivals, with fitted-boat headless arrival evidence. Next, review
-Counterattack gameplay and complete the opening arc's live acceptance. The
+separate recurring jobs. Relief has an authored freight checkpoint and finite
+road arrivals; Counterattack has a larger freight depot with a joint gate-to-yard
+advance, rear guards and a contact-driven reserve. Both have fitted-boat headless
+replays. Next, complete the linked opening arc's live campaign acceptance. The
 follow-on choice arc is planned in `broken-supply-route.md`; a small Conquest
 profile is a prerequisite. The opening arc still awaits a live play pass. Its
 standing mission model lives in `early-operation-nouns.md`; first-offer
@@ -239,10 +240,10 @@ ownership, directives, panel/dump/overlay views, and forced-serial trace evidenc
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
 Opening Operations now supplies the small-force command-duel proof: both sides
-plan preserve/assault intent around one disclosed scenario place without exact
-hostile positions, and spawn-time claims keep the finite force pools explicit.
-Its deterministic cells still need authored COMMS/depot place legibility and
-the opening-ladder live pass before that story closes. Raid's first contract is
+plan around disclosed checkpoint/depot places without exact hostile positions,
+and spawn-time claims keep the finite force pools explicit. Both chapters have
+authored circulation and fitted-boat replay evidence. The opening-ladder live
+pass remains before the command story closes. Raid's first contract is
 ready for canonical-duration and live review. Generic Extraction is
 ready for live review, while Civilian Rescue now has deterministic canonical
 evidence for its Marine corridor command and separate swarm-pressure director;

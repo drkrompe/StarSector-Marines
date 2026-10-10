@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.Objects;
 
-/** Trusted projection of one authored opening-operation place into a side frame. */
+/** Trusted projection of authored opening-operation places into a side frame. */
 public final class OpeningOperationCommandDisclosure
         implements CommandFrameDisclosure<OpeningOperationCommandFrame> {
     private final OpeningOperationCommandFacts facts;
@@ -18,9 +18,9 @@ public final class OpeningOperationCommandDisclosure
     public OpeningOperationCommandFrame freeze(
             BattleView sim, Faction perspective, CommandTopology topology,
             CommandAssignmentSnapshot assignments) {
-        if (perspective != Faction.MARINE && perspective != Faction.DEFENDER) {
+        if (perspective != Faction.MARINE && perspective != Faction.DEFENDER && perspective != Faction.ALLY) {
             throw new IllegalArgumentException(
-                    "opening operation requires a battle-side perspective");
+                    "opening operation requires a fighting-faction perspective");
         }
         return OpeningOperationCommandFrame.disclose(sim, perspective,
                 topology, assignments, facts);

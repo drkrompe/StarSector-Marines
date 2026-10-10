@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, and `relief`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, and `counterattack`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -149,6 +149,15 @@ Do not run builds or leave generated task files there.
   Aeroshuttle. Reports
   separate original militia from arriving allies; timeout is not defeat. This
   is controlled construction evidence, not a Jangala campaign/loadout capture.
+  Counterattack's default matrix has three verdant depot interiors, each with
+  ordinary, +30s delayed and absent-player controls (300s observation), plus a
+  paired-boat case. Ordinary lift is two six-seat sorties on one fitted boat;
+  paired lift is one sortie each on two distinct fitted boats. The employer
+  contributes one six-seat boat. Fixture fields match Relief, with optional
+  `playerBoats` (default 1). Reports include gate/yard/warehouse vicinity times,
+  defender orders and casualties; vicinity is not capture. The harness verifies
+  that the production air entities retain each committed player airframe. These
+  are factory-loadout controls, not current campaign roster acceptance.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —

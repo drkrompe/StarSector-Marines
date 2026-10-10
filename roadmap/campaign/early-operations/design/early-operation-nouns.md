@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — Relief checkpoint compound and finite road arrivals.
+Updated: 2026-10-10 — authored checkpoint and depot chapters with fitted-boat replay evidence.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -102,10 +102,10 @@ eventful.
 **Opening operation kind** gives each rung its tactical premise. Relief owns a
 local defensive anchor and asks militia to hold until the player arrives;
 counterattack omits that predeployed line and makes the joint advance the
-problem. Both use small-scale terrain and militia-only non-player forces, but
-their shared campaign tier does not erase their different scenario roles.
+problem. Both use militia-only non-player forces. Their shared small-company tier does
+not erase different scenario roles or require identical map footprints.
 
-The finite-force command duel uses one public scenario place rather than hidden
+The finite-force command duel uses public scenario places rather than hidden
 enemy positions. In Relief, the local line keeps authored garrison ownership,
 mobile friendly squads preserve its anchor, and raiders advance on that anchor.
 Relief's local line holds a freight checkpoint gate, with a relay office set
@@ -138,11 +138,33 @@ make the player irrelevant. Force and timing changes are checked against both
 ordinary arrival and delayed/absent-player controls. A timeout in those controls
 is unresolved observation, not a new defeat rule.
 
-In Counterattack, the joint force advances on the bandit-depot anchor while the
-finite raider force defends it. Each side plans from a frozen own-force frame;
-contact response remains squad doctrine. The anchor/depot intent does not alter
-the current elimination objective or victory authority. This is a reusable
-command-architecture seam, not a rule later Assault missions inherit.
+Counterattack retakes Wayline's freight depot after the checkpoint victory.
+Its larger, mission-first compound provides a sheltered western boat apron,
+an approach between sheds, a freight gate, a loading yard and a dispatch
+warehouse. Freight circulation bends around the weigh office, interrupting the
+sightline from the approach to dispatch. The map publishes three command places:
+gate, yard and the finished warehouse interior. Building detail and surface may
+vary without moving this sequence. A larger footprint buys distinct encounters;
+it does not increase the operation tier or replace the small-company force model.
+
+Employer troops advance under separate allied mission authority alongside the
+company. Each attacking squad progresses through the three places from its own
+reported position, using attack-move duties that retain the destination through
+contact. Player-owned orders remain outside the commander's pool. Neither side
+receives an enemy position or a hidden capture state from the scenario.
+
+The twelve raiders start as four gate guards, four yard guards, two permanent
+warehouse guards and a two-person reserve. Bounded defensive duties prevent a
+warehouse post from chasing the first contact to the landing apron. Forward
+contact or losses commit the reserve to the yard; loss of the gate squad recalls
+it to dispatch. Gate and yard squads fall back one position after losing half
+their starting strength; an engaged yard also falls back if the gate squad is
+gone. Those decisions use frozen own-force reports, while squad doctrine owns
+contact and survival. The permanent rear guard does not join the reserve.
+
+Reaching a stage is travel progress, not capture. The depot intent leaves the
+existing elimination objective and victory authority intact: defeat the finite
+bandit force. These scenario duties are not rules later Assault missions inherit.
 
 ## Boundaries and acceptance
 
@@ -160,7 +182,8 @@ a payout or objective incentive remains a separate gameplay change.
 
 The remaining live play is tracked by `opening-ladder-live-acceptance.md`: it
 must validate arrival timing, actual lift requirements, force ratios, and
-briefing claims. The next gameplay pass starts with Relief, then Counterattack.
+briefing claims. Both chapters have production-factory headless replay evidence;
+actual campaign loadouts and the linked live sequence remain to be accepted.
 `broken-supply-route.md` plans a follow-on alpha arc with a committed choice;
 its implementation depends on that mission pass and a small Conquest envelope.
 Live first-offer discovery and save/reload acceptance remains a separate alpha

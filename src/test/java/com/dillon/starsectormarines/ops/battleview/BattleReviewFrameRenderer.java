@@ -257,6 +257,10 @@ public final class BattleReviewFrameRenderer {
                                   int gridWidth, int gridHeight) {
         float mapHeight = viewportHeight - HEADER_HEIGHT;
         float cellPx = Math.min(viewportWidth / gridWidth, mapHeight / gridHeight);
+        // Offline whole-map framing uses complete pixels per cell. Fractional
+        // Java2D tile edges otherwise leave black sampling seams on large maps.
+        // Keep subpixel fitting available when even one pixel would crop the map.
+        if (cellPx >= 1f) cellPx = (float) Math.floor(cellPx);
         BattleCamera camera = new BattleCamera(gridWidth, gridHeight);
         camera.setViewport(0f, 0f, viewportWidth, mapHeight, cellPx);
         return camera;

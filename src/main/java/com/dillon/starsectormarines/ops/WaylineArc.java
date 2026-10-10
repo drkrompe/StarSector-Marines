@@ -44,7 +44,8 @@ public final class WaylineArc {
                     + "Eliminate the bandit force to win. Bring as many people home as you can. "
                     + "Cr. 6,000 on success; then we can deal with the depot.";
             case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
-                    + location + ". Join our militia's advance and eliminate its bandit force. We provide one shuttle; "
+                    + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
+                    + "Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; "
                     + "you need lift for two player sorties. Cr. 9,000 on success, and I'll vouch for your company "
                     + "with Independent brokers. Let's give our drivers their road back.";
         };

@@ -47,7 +47,8 @@ public final class OpeningOperationStory implements StoryMissionDef {
                     + "the assault force, including groups approaching along both access roads. The employer provides militia and one shuttle. "
                     + "The posting covers this relief sortie; other militia crews continue to need help.";
             case COUNTERATTACK -> "A local freight crew needs an occupied depot cleared. Join the militia "
-                    + "advance and eliminate its bandit force. The employer provides one shuttle. "
+                    + "advance from the western apron through the gate and loading yard into dispatch. "
+                    + "Eliminate the depot guards; expect a reserve inside. The employer provides one shuttle. "
                     + "Independent freight crews pool their security funds for jobs like this.";
         } : WaylineArc.briefing(kind, planet);
         int playerSorties = kind == OpeningOperationKind.RELIEF ? 1 : 2;

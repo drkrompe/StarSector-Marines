@@ -23,12 +23,13 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
     };
 
     private final Faction faction;
+    private CounterattackTactics depotTactics;
     private volatile OpeningOperationCommandPicture operationPicture;
 
     public OpeningOperationCommand(Faction faction) {
-        if (faction != Faction.MARINE && faction != Faction.DEFENDER) {
+        if (faction != Faction.MARINE && faction != Faction.DEFENDER && faction != Faction.ALLY) {
             throw new IllegalArgumentException(
-                    "opening operation requires MARINE or DEFENDER command");
+                    "opening operation requires a fighting faction");
         }
         this.faction = faction;
     }
@@ -54,6 +55,11 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
         List<CommandProposal> proposals = new ArrayList<>();
         List<SquadIntent> intents = new ArrayList<>();
         int commandPoolSize = 0;
+        if (!frame.facts().depotStages().isEmpty()) {
+            if (depotTactics == null) depotTactics = new CounterattackTactics(
+                    frame.facts().depotStages(), faction == Faction.DEFENDER);
+            depotTactics.observe(frame.squads().stream().map(OpeningOperationCommand::report).toList());
+        }
 
         for (CommandSquadState squad : frame.squads()) {
             if (squad.aliveMembers() <= 0) continue;
@@ -77,7 +83,11 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                 continue;
             }
             commandPoolSize++;
-            int[] rally = reachableRally(squad, frame);
+            CounterattackTactics.Intent depotIntent = depotTactics == null ? null : depotTactics.intent(report(squad));
+            Reason squadReason = depotIntent == null ? commandedReason : depotIntent.reason();
+            int targetX = depotIntent == null ? frame.facts().cellX() : depotIntent.place().x();
+            int targetY = depotIntent == null ? frame.facts().cellY() : depotIntent.place().y();
+            int[] rally = reachableRally(squad, frame, targetX, targetY);
             if (rally == null) {
                 proposals.add(CommandProposal.claim(squad.squadId(),
                         CommandAuthority.MISSION_COMMAND,
@@ -88,15 +98,17 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                 continue;
             }
             ObjectiveAssignment assignment = advancing
-                    ? ObjectiveAssignment.sweepSector(squad.squadId(),
-                    rally[0], rally[1])
-                    : ObjectiveAssignment.defendArea(squad.squadId(),
-                    rally[0], rally[1]);
+                    ? (depotIntent != null
+                        ? ObjectiveAssignment.attackMove(squad.squadId(), rally[0], rally[1])
+                        : ObjectiveAssignment.sweepSector(squad.squadId(), rally[0], rally[1]))
+                    : depotIntent != null
+                    ? ObjectiveAssignment.defendArea(squad.squadId(), rally[0], rally[1], 5)
+                    : ObjectiveAssignment.defendArea(squad.squadId(), rally[0], rally[1]);
             proposals.add(CommandProposal.assign(assignment,
-                    CommandAuthority.MISSION_COMMAND, commandedReason.name(),
+                    CommandAuthority.MISSION_COMMAND, squadReason.name(),
                     stabilityBreak(squad, assignment)));
             intents.add(new SquadIntent(squad.squadId(), commandedRole,
-                    commandedReason, assignment.kind(), rally[0], rally[1]));
+                    squadReason, assignment.kind(), rally[0], rally[1]));
         }
 
         OpeningOperationCommandFacts facts = frame.facts();
@@ -133,45 +145,50 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
 
     private Phase phase(OpeningOperationKind kind) {
         if (kind == OpeningOperationKind.RELIEF) {
-            return faction == Faction.MARINE
+            return faction != Faction.DEFENDER
                     ? Phase.PRESERVE_RELIEF_ANCHOR
                     : Phase.ASSAULT_RELIEF_ANCHOR;
         }
-        return faction == Faction.MARINE
+        return faction != Faction.DEFENDER
                 ? Phase.SECURE_BANDIT_DEPOT : Phase.DEFEND_BANDIT_DEPOT;
     }
 
     private Role commandedRole(OpeningOperationKind kind) {
         if (kind == OpeningOperationKind.RELIEF) {
-            return faction == Faction.MARINE
+            return faction != Faction.DEFENDER
                     ? Role.PRESERVE_ELEMENT : Role.ASSAULT_ELEMENT;
         }
-        return faction == Faction.MARINE
+        return faction != Faction.DEFENDER
                 ? Role.SECURE_ELEMENT : Role.DEPOT_GUARD;
     }
 
     private Reason commandedReason(OpeningOperationKind kind) {
         if (kind == OpeningOperationKind.RELIEF) {
-            return faction == Faction.MARINE
+            return faction != Faction.DEFENDER
                     ? Reason.RELIEF_ANCHOR_PRESERVE
                     : Reason.RELIEF_ANCHOR_ASSAULT;
         }
-        return faction == Faction.MARINE
+        return faction != Faction.DEFENDER
                 ? Reason.BANDIT_DEPOT_SECURE : Reason.BANDIT_DEPOT_DEFEND;
     }
 
     private static int[] reachableRally(CommandSquadState squad,
-                                        OpeningOperationCommandFrame frame) {
+                                        OpeningOperationCommandFrame frame, int targetX, int targetY) {
         int start = Math.floorMod(squad.squadId(), RALLY_OFFSETS.length);
         for (int i = 0; i < RALLY_OFFSETS.length; i++) {
             int[] offset = RALLY_OFFSETS[(start + i) % RALLY_OFFSETS.length];
-            int x = frame.facts().cellX() + offset[0];
-            int y = frame.facts().cellY() + offset[1];
+            int x = targetX + offset[0];
+            int y = targetY + offset[1];
             if (frame.topology().isWalkable(x, y)
                     && frame.topology().reachable(squad.anchorCellX(),
                     squad.anchorCellY(), x, y)) return new int[]{x, y};
         }
         return null;
+    }
+
+    private static CounterattackTactics.Report report(CommandSquadState squad) {
+        return new CounterattackTactics.Report(squad.squadId(), squad.aliveMembers(),
+                squad.centroidX(), squad.centroidY(), squad.localContact() || squad.underFireRecently());
     }
 
     private static CommandStabilityBreak stabilityBreak(
