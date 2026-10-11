@@ -1676,6 +1676,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 UiDocument document = new UiDocument(instance.root());
                 for (var style : instance.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());
+                BarracksGuideModal.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
                 if (ship != null) document.canvases().set(instance.requireElement("barracks-canvas"),
                         new BarracksCanvas(ship, viewModel::sceneMarines));
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
@@ -1722,6 +1723,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
+            BarracksGuideModal.bind(document, instance, model.command(), model.command()::showOverview);
             document.canvases().set(instance.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             BarracksCardBindings cardBindings = new BarracksCardBindings();

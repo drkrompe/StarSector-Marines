@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - Barracks provides reviewed personnel transfers and a replayable company-management guide.
+Updated: 2026-10-11 - Tutorial dialogue uses a portrait-led pop-over modal with isolated input.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -284,9 +284,18 @@ catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at
 Company preparation groups personnel actions in Barracks before organization
 administration. A transfer review separates receiving and donor selections and
 keeps projected strength visible before its commit. The company officer's optional
-first-use guide is a bounded, replayable text panel, with current roster context
-beside the authored lesson. It never owns a gameplay transition or requires audio.
+first-use guide is a bounded, replayable pop-over modal above the existing screen,
+with Castle's portrait, speaker name and current roster context beside the lesson.
+A dim backdrop retains the room's context without moving its layout. Pointer and
+keyboard input stay inside the modal; Escape and Close / Try It dismiss it so
+the player can act, and Company Guide reopens it. It never owns a gameplay
+transition or requires audio.
 Mission preparation navigation preserves the existing salvage settlement gate.
+
+Tutorials use this pop-over treatment. Whenever a character is talking, show
+their portrait with their name and readable dialogue to draw attention to the
+speaker; audio alone is not the character presentation. This convention applies
+to future tutorial and conversation surfaces as well as existing story subtitles.
 
 ## Intrinsic text and typography
 

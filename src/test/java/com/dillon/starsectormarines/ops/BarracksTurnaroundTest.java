@@ -50,9 +50,9 @@ class BarracksTurnaroundTest {
         try {
             var roster = new MarineRoster();
             var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
-            assertNotEquals("hidden", value(model, "guideClasses"));
+            assertNotEquals("guide-backdrop-hidden", value(model, "guideClasses"));
             action(model, "guideDismiss");
-            assertEquals("hidden", value(model, "guideClasses"));
+            assertEquals("guide-backdrop-hidden", value(model, "guideClasses"));
             var bytes = new ByteArrayOutputStream();
             try (var output = new ObjectOutputStream(bytes)) { output.writeObject(roster); }
             MarineRoster loaded;
@@ -61,9 +61,9 @@ class BarracksTurnaroundTest {
             }
             assertTrue(loaded.managementGuideDismissed());
             var restored = new BarracksViewModel(new Reactor(), loaded, () -> 0d).command();
-            assertEquals("hidden", value(restored, "guideClasses"));
+            assertEquals("guide-backdrop-hidden", value(restored, "guideClasses"));
             action(restored, "guideHelp");
-            assertNotEquals("hidden", value(restored, "guideClasses"));
+            assertNotEquals("guide-backdrop-hidden", value(restored, "guideClasses"));
             action(restored, "guideNext");
             assertTrue(value(restored, "guideText").toString().contains("wounded"));
             assertEquals(0, loaded.lineReadySoldiers().size());
