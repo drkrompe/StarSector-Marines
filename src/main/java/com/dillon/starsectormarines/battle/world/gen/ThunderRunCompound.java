@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
@@ -124,25 +125,28 @@ public final class ThunderRunCompound {
 
     private static void buildings(GenContext c) {
         // Each destination overlooks its own road beat; none sits in the carriageway.
-        shell(c, 72, 46, 91, 62, Frontage.BOTTOM);
-        shell(c, 176, 87, 194, 105, Frontage.TOP);
+        BuildingStamp.FREIGHT_L.place(c, 72, 46, 2);
+        BuildingStamp.FREIGHT_T.place(c, 176, 87, 0);
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.COMMS,
                 new BlockLeaf(247, 46, 270, 62, false), c, Frontage.BOTTOM, true);
-        shell(c, 51, 23, 68, 43, Frontage.BOTTOM);
-        shell(c, 103, 89, 127, 109, Frontage.TOP);
-        shell(c, 129, 39, 153, 60, Frontage.BOTTOM);
-        shell(c, 199, 32, 225, 55, Frontage.BOTTOM);
-        shell(c, 220, 91, 245, 111, Frontage.TOP);
+        BuildingStamp.OFFSET_DEPOT.place(c, 54, 28, 1);
+        BuildingStamp.FREIGHT_L.place(c, 105, 91, 0);
+        BuildingStamp.FREIGHT_T.place(c, 131, 41, 2);
+        BuildingStamp.FREIGHT_L.place(c, 202, 35, 3);
+        BuildingStamp.T_WORKSHOP.place(c, 226, 96, 0);
         shell(c, 286, 38, 309, 59, Frontage.BOTTOM);
         shell(c, 286, 94, 309, 111, Frontage.TOP);
         // Roadside warehouses form infantry cover; the outer district gives way
         // to hills. Keep the checkpoint's terminal blocks: their narrow service
         // alleys admit infantry but not the freight chassis around the gun line.
         for (int[] lot : new int[][]{{282,0,319,27},{40,46,68,63},
-                {94,36,125,64},{174,32,196,63}})
+                {174,32,196,63}})
             shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.BOTTOM);
+        BuildingStamp.FREIGHT_T.place(c, 100, 41, 1);
+        BuildingStamp.FREIGHT_L.place(c, 75, 91, 1);
+        BuildingStamp.T_WORKSHOP.place(c, 201, 95, 3);
         for (int[] lot : new int[][]{{282,118,319,143},{38,87,68,112},
-                {71,87,100,113},{130,87,156,112},{198,87,217,112}})
+                {130,87,156,112}})
             shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.TOP);
     }
     private static void terrain(GenContext c) {
