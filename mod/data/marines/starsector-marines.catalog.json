@@ -15,7 +15,8 @@
     "data/tilesets/colony-buildings.tileset.json",
     "data/tilesets/colony-walls.tileset.json",
     "data/tilesets/colony-openings.tileset.json",
-    "data/tilesets/colony-rubble.tileset.json"
+    "data/tilesets/colony-rubble.tileset.json",
+    "data/tilesets/colony-ground-damage.tileset.json"
   ],
   "tileMappings": [
     "data/tilesets/urban.mapping.json"
