@@ -39,3 +39,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.GroundDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.ShipBaySnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.AutoShopSnapshotSuite
 com.dillon.starsectormarines.tools.terrainauthoring.ThunderTerrainSnapshotSuite
+com.dillon.starsectormarines.tools.tilesetauthoring.WarehouseRackSnapshotSuite

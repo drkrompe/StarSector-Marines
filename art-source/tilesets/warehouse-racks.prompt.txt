@@ -1,0 +1,14 @@
+Use case: sketch-to-render.
+Image 1 is the authoritative geometry edit target, a layered warehouse shelving sprite kit. Reskin its exact shapes and positions into grounded industrial game art. Keep the 1024x768 composition and the EIGHT separate components, with genuinely transparent background and transparent empty openings. No labels, no logo, no text.
+Camera: directly overhead orthographic, straight down, consistent with a top-down spaceship interior. Restrained bevel shading can suggest substantial tall steel structures, but absolutely no perspective, no isometric camera or upright front-elevation drawing.
+Art direction: bulk warehouse pallet racking like a Costco stock area, adapted for mech spares. Stout blue painted steel uprights, worn muted orange beams, grey metal shelf decks, palletized cartons, reusable bins and heavy mechanical parts. Organized dense storage, not loose toolboxes on the floor. Broad silhouettes that survive 24 pixels per world cell, no fine wire mesh, no excessive rust/noisy distress.
+Layer A at x32 y32 width192 height576 is ONE empty 2x6 rack base with THREE shelf beds along its length. Preserve all deck beds and dark recesses, no stock, no orange beams here. Keep transparent external padding, no concrete floor or ground slab.
+Layer B at x288 y32 width192 height576 is ONLY the upper retaining frame for that SAME rack. Preserve its two long blue side rails, FOUR orange crossbeams, and eight blue corner/junction posts. The THREE large rectangular interior openings MUST be truly transparent, with NO shelf decks, black fill, stock, shadows filling the openings, or floor. This overlay will be composited over layer A and independently placed stock. Preserve exact frame geometry and transparent padding.
+Six separate stock overlays occupy 192x192 cells in two columns x544 and x768, three rows y32, y256, y480. Keep each stock silhouette inside its guide footprint with broad transparent margins. From left to right, top to bottom:
+1. Four strapped cardboard cartons on a single wooden pallet.
+2. Four stout blue stackable open bins containing restrained metallic spare parts.
+3. A heavy engine/gearbox assembly secured in a timber shipping cradle.
+4. A bundled set of parallel metal pipes secured with two dark straps on pallet runners.
+5. A partly emptied picking tray containing two large bearings and one rectangular mechanical component; keep remaining tray visibly empty.
+6. Two olive military-industrial transit cases with simple broad latches.
+Stock gets NO shelf frame, orange rails, floor backing or added neighboring objects. Exact count/order/position/silhouette and empty margins are invariants. These overlays must fit BETWEEN the frame rails when assembled. Change materials and surface texture only, never composition. Match practical red-tool-chest/blue-equipment industrial game art with subtle overhead lighting, no glow.
