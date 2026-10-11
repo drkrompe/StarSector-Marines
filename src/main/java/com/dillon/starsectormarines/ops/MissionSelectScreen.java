@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -109,7 +110,24 @@ public final class MissionSelectScreen implements Screen {
         String referral = OpeningBroker.referral(selectedClient, script == null ? null : script.roster(), office);
         putDetail(props, selectedMission, this::briefSelected, this::collapseSelected);
         if (!referral.isEmpty()) putReferral(props, office, referral);
+        BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
+        if (OpeningBroker.isContact(selectedClient) && script != null && WaylineArc.stage(script.roster()) == WaylineArc.Stage.COMPLETE) {
+            putSupplyRoute(props, route, selectedMission, SupplyRouteCampaign.destination() != null);
+
+        }
         return props;
+    }
+
+    static void putSupplyRoute(Map<String, Object> props, BrokenSupplyRouteProgress route, Mission selectedMission, boolean accessible) {
+        props.put("missionSummary", "BROKEN SUPPLY ROUTE");
+        props.put("brokerIntroduction", route == null ? "Mara Venn: Iona Serr has two outlying crews cut off. Open the Junction dossier to begin." : route.status());
+        props.put("brokerProgress", route == null ? "NEW DISPATCH / IONA SERR" : "Story paid: " + route.storyPayment() + " cr / recurring paid: " + route.recurringPayment() + " cr");
+        if (route != null && !accessible) props.put("brokerIntroduction", "Accepted work remains on " + route.planetName() + ". Access is unavailable; operations paused.");
+        if (SupplyRouteCampaign.choice(selectedMission) == BrokenSupplyRouteProgress.LIFT || route != null && route.branch() == BrokenSupplyRouteProgress.LIFT) {
+            props.put("brokerPortrait", SupplyRouteCampaign.IONA_PORTRAIT);
+            props.put("brokerName", "Iona Serr");
+            props.put("brokerRole", "WAYLINE / DISPATCH COORDINATOR");
+        }
     }
 
     static Map<String, Object> previewProps() {
@@ -220,7 +238,7 @@ public final class MissionSelectScreen implements Screen {
                             : mission.source == MissionSource.STORY ? "Story" : mission.tier.displayName)
                             + "  ·  " + recommended
                             + (recommended == 1 ? " squad" : " squads") + active,
-                    credits.format(payout) + " cr", () -> select.accept(mission)));
+                    SupplyRouteCampaign.recovery(mission) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -275,7 +293,7 @@ public final class MissionSelectScreen implements Screen {
         boolean present = mission != null;
         props.put("detailClasses", "mission-detail panel" + (present ? "" : " empty-detail"));
         props.put("detailKicker", present
-                ? mission.type.name() + "  ·  " + mission.risk.name() + " RISK"
+                ? SupplyRouteCampaign.operationLabel(mission) + "  ·  " + mission.risk.name() + " RISK"
                 : "MISSION DOSSIER");
         props.put("detailTitle", present ? mission.name : "Select a contract");
         props.put("detailMeta", present
@@ -286,6 +304,9 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailFlavor", present ? mission.flavor :
                 "The selected operation's scale, field-presence limit, opposition, lift, and payout will appear here before you enter deployment planning.");
         props.put("detailRows", present ? detailRows(mission) : List.of());
+        int choice = SupplyRouteCampaign.choice(mission);
+        props.put("briefLabel", choice == BrokenSupplyRouteProgress.LIFT ? "COMMIT SUPPORT TO RILL"
+                : choice == BrokenSupplyRouteProgress.RELAY ? "COMMIT SUPPORT TO RELAY NINE" : "BRIEF & DEPLOY");
         props.put("briefDisabled", !present);
         props.put("briefAction", brief);
         props.put("declineDisabled", !present);
@@ -293,6 +314,13 @@ public final class MissionSelectScreen implements Screen {
     }
 
     private static List<DetailRow> detailRows(Mission mission) {
+        if (SupplyRouteCampaign.owns(mission.id)) return List.of(
+                detailRow("force", "Company commitment", "2 squads recommended / at least 4 ready in each of two squads"),
+                detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
+                detailRow("opposition", "Opposition", "Finite local raiders / no fighter or mech support"),
+                detailRow("payout", "Payment on victory", SupplyRouteCampaign.recovery(mission)
+                        ? "4,000 + 500 per recovered person / maximum 10,000 cr"
+                        : NumberFormat.getIntegerInstance().format(mission.payout) + " credits"));
         int multiplier = mission.cashMultiplier & 0xFF;
         if (multiplier <= 0) multiplier = 100;
         long payout = (long) mission.payout * multiplier / 100L;
@@ -317,6 +345,7 @@ public final class MissionSelectScreen implements Screen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         putBroker(props, null);
+        props.put("briefLabel", "BRIEF & DEPLOY");
         props.put("screenTitle", "Marine Operations");
         props.put("clientHeader", "Clients");
         props.put("catalogHeader", "Contracts");
@@ -402,6 +431,7 @@ public final class MissionSelectScreen implements Screen {
 
     private void selectMission(Mission mission) {
         if (context == null) return;
+        if (mission != null && SupplyRouteCampaign.owns(mission.id) && !SupplyRouteCampaign.introduce(context.planet)) return;
         context.setSelectedMission(mission);
         installDocument();
     }
@@ -414,6 +444,15 @@ public final class MissionSelectScreen implements Screen {
 
     private void briefSelected() {
         if (context != null && context.getSelectedMission() != null) {
+            int choice = SupplyRouteCampaign.choice(context.getSelectedMission());
+            if (choice != 0) {
+                BrokenSupplyRouteProgress route = SupplyRouteCampaign.current();
+                if (route != null && SupplyRouteCampaign.atSite(context.planet) && route.commit(choice)) {
+                    context.setSelectedMission(SupplyRouteCampaign.offers(route).get(0));
+                    installDocument();
+                }
+                return;
+            }
             context.goTo(ScreenId.BRIEFING);
         }
     }

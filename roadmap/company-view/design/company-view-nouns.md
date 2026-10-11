@@ -901,10 +901,14 @@ HQ also presents roster-derived directions to Mara Venn's opening work, canonica
 on Jangala: her portrait and Independent crest, current planet/system, mission,
 payment, preparation advice and local client route. Plot Course sets the ordinary
 campaign navigation destination and dismisses HQ. The notice advances after Relief
-and disappears after Counterattack; it never starts work, invents a received report,
+and gives way to Broken Supply Route guidance after Counterattack; it never starts work, invents a received report,
 or consumes company resources. Location availability and fallback are campaign facts,
 not a location invented by the view.
-`early-operation-nouns.md` owns availability and progression.
+`early-operation-nouns.md` owns availability and progression. The follow-on
+notice keeps the accepted planet fixed, distinguishes pending commitment from
+success, and shows the selected recurring arrangement after closure. Full
+historical rescue counts and story/recurring awards remain in the broker dossier;
+HQ uses a compact status and navigation lead, never a second progression record.
 
 The clock owns obligations; the future contract board owns offers. Ignoring an
 obligation can cause failure or end a retainer, while ignoring an offer merely

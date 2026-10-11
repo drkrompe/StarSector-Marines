@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
@@ -209,6 +210,31 @@ public final class CampaignMarineDeployment {
             commitments.add(MarineSeatCommitment.capture(seat));
         }
         return List.copyOf(commitments);
+    }
+
+    /** Authored route factories reserve nonnegative ordinals exclusively for company craft. */
+    public void applyToAuthoredPlayerLift(BattleSimulation sim) {
+        List<ShuttleMission> missions = new ArrayList<>();
+        for (long air : sim.getAirEntityIds()) {
+            if (sim.world().airFaction(air) != Faction.MARINE) continue;
+            ShuttleMission mission = sim.world().mission(air);
+            if (mission != null) missions.add(mission);
+        }
+        applyToAuthoredPlayerLift(missions);
+    }
+
+    void applyToAuthoredPlayerLift(List<ShuttleMission> missions) {
+        missions = new ArrayList<>(missions);
+        missions.sort(Comparator.comparingInt(m -> m.manifestOrdinal));
+        int expected = 0;
+        for (int i = 0; i < missions.size(); i++) {
+            ShuttleMission mission = missions.get(i);
+            if (mission.manifestOrdinal != i || mission.cycleLoadouts == null)
+                throw new IllegalStateException("Invalid company lift identity");
+            for (MarineLoadout[] cycle : mission.cycleLoadouts) if (cycle != null) expected += cycle.length;
+        }
+        if (expected != size() || expected == 0) throw new IllegalStateException("Named force does not match authored lift");
+        applyPairedWaveOrder(missions);
     }
 
     /** Replace generated seat stats with this frozen campaign allocation. */

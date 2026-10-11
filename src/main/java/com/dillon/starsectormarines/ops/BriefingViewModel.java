@@ -201,6 +201,12 @@ final class BriefingViewModel {
         int multiplier = mission.cashMultiplier & 0xff;
         if (multiplier == 0) multiplier = 100;
         long payment = (long) mission.payout * multiplier / 100;
+        if (SupplyRouteCampaign.recovery(mission)) {
+            props.put("rewardHeader", "CREW RECOVERY AUTHORIZATION");
+            props.put("rewardValue", "Up to 10,000 credits");
+            props.put("rewardTerms", "4,000 + 500 per recovered person / once on victory");
+            return;
+        }
         props.put("rewardHeader", mission.source.isDebug() ? "SIMULATION CONTRACT" : "CONTRACT AUTHORIZATION");
         props.put("rewardValue", payment > 0 ? String.format(Locale.ROOT, "%,d credits", payment) : "No credit payment");
         int salvage = mission.contractSalvageNegotiated & 0xff;

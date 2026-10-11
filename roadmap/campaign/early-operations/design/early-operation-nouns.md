@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — Relay Nine finite capture, militia holds and road counterattack.
+Updated: 2026-10-10 — Broken Supply Route campaign commitment, named deployment and settlement.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -82,6 +82,60 @@ remain. The broker is an authored Marine Operations
 client, not an additional vanilla comm-directory person or relationship track.
 Faction-client access and deployment checks still apply; this exception does not
 refill ordinary patron contracts or add invented news events.
+
+## Broken Supply Route campaign
+
+After Wayline, Mara introduces dispatch coordinator **Iona Serr** and guarantees
+**Open the Junction** at the accessible office. Opening its dossier explicitly
+introduces the arc and freezes its planet and local sites. Merely projecting
+an offer or reading HQ does not mutate a save. Later office movement never moves
+accepted work: an inaccessible frozen site pauses deployment, and HQ retains
+its name with an explanation. Older completed Wayline saves start uncommitted.
+
+Junction victory pays 12,000 credits once and opens two inspectable requests.
+Only **Commit support to Rill** or **Commit support to Relay Nine** issues the
+permanent support order. Inspection, Back and terrain preparation do not choose.
+The cooperative funds one recovery mobilization; the other crew receives a
+withdrawal order. Spare company boats, defeat, delay and reload do not reverse
+that commercial decision. There is no menu timer or hidden faction penalty.
+Commitment alone earns neither money nor recurring access.
+
+- **Last Lift** promises 4,000 credits plus 500 per cumulatively rescued person,
+  at most 10,000, once on qualifying victory. Rescued and confirmed dead workers
+  persist across defeated attempts; only stranded people enter another battle.
+  Exhausting the cohort without victory closes the actual result without payment
+  or an unlock. Successful rescue leaves this commercial route suspended and
+  establishes Iona's **Crew Recovery** arrangement. Relay Nine is not undertaken.
+- **Relay Nine** victory pays 16,000 once, records the authored route reopened
+  and establishes Mara's **Route Security** arrangement. Rill's rescue is not
+  undertaken: correspondence invents neither deaths nor a safe evacuation.
+  Iona remains a correspondent. A defeated freight attempt remains retryable.
+
+Recurring offers carry new job and attempt identities. Crew Recovery receives a
+new twelve-person ledger for each job and the same rescue formula; a retry keeps
+that job's stranded identities. Route Security pays 12,000 per successful new
+job. Recurring results retain aggregate rescue/loss and payment records without
+resetting the story crew or replaying a chapter bonus. The completed dossier
+separates historical results from the current posting. Existing Wayline
+repeatables and unrelated contracts remain available.
+
+All three operations recommend twenty-four marines. They accept at least two
+selected squads with four ready marines each, using acting NCOs where necessary.
+One to four owned fitted boats cycle until the selected named force is delivered;
+partial final trips contain only real selected personnel. Issued equipment,
+squad identity and command groups cross the ordinary deployment boundary.
+Employer militia and the twelve-seat civilian pickup remain separate forces.
+These small ground operations supply no fighter cover or mech-support powers.
+
+The arc owns a versioned save record, including its frozen site, commitment,
+current job and attempt, story outcome and awards. Unknown or inconsistent
+records fail closed. Terrain surveys read prospective identities; acceptance
+starts the attempt only after construction and the roster overlay succeed.
+Settlement consumes the frozen mission and rescue identities once before the
+ordinary credits, personnel and lost-boat writeback. Duplicate or foreign results
+cannot repeat any of those writes. Outcome presentation is not reward authority.
+This is local commercial fiction: no vanilla market ownership, population,
+stability, industry or trade simulation is changed.
 
 ## Small-company promise
 
@@ -175,7 +229,7 @@ for that chapter. It has no required airfield, fighter or mech complement,
 resource production, open-ended reinforcement layer or free garrison sorties.
 This is a mission-scoped exception, not a lower risk setting for a large siege.
 
-**Open the Junction** is the common battle planned for Broken Supply Route.
+**Open the Junction** is the common battle in Broken Supply Route.
 Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
 four required territories. Dispatch is the canonical command post. Decorative
 warehouses and the roads toward Rill and Relay Nine add no capture requirements.
@@ -321,10 +375,10 @@ The remaining live play is tracked by `opening-ladder-live-acceptance.md`: it
 must validate arrival timing, actual lift requirements, force ratios, and
 briefing claims. Both chapters have production-factory headless replay evidence;
 actual campaign loadouts and the linked live sequence remain to be accepted.
-`broken-supply-route.md` plans a follow-on alpha arc with a committed choice;
-Junction, Last Lift and Relay Nine have battle prototypes, including a save-owned
-rescue ledger and frozen outcomes. Campaign launch, choice, Results and settlement
-integration remain open.
+`broken-supply-route.md` tracks remaining live campaign acceptance for the
+follow-on arc. Its three factories, campaign choice, named deployment, rescue
+ledger and one-time settlement have headless evidence; that does not establish
+live host behavior, travel access or in-game save/load acceptance.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.
 Shipped implementation evidence is in `shipped.md`.

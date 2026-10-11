@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ChainState;
 import com.dillon.starsectormarines.campaign.ChronicleConfidence;
@@ -136,6 +137,8 @@ final class CompanyHqViewModel {
         MarineRosterScript rosterScript = Global.getSector() == null ? null : MarineRosterScript.getInstance();
         props.put("openingGuide", OpeningWorkGuide.from(rosterScript == null ? null : rosterScript.roster(),
                 OpeningBroker.current(), openingCourse));
+        if (rosterScript != null && WaylineArc.stage(rosterScript.roster()) == WaylineArc.Stage.COMPLETE)
+            props.put("openingGuide", new SupplyRouteWorkGuide(SupplyRouteCampaign.current(), SupplyRouteCampaign.destination(), openingCourse));
         props.put("shipAction", openShipTransfer);
         props.put("shipLabel", shipLabel());
         props.put("shipViewAction", openShipView);
@@ -242,6 +245,12 @@ final class CompanyHqViewModel {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
                 purpose -> MarineOpsPageNav.Aboard.UNKNOWN,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
+        return new CompanyHqViewModel(props);
+    }
+
+    static CompanyHqViewModel supplyRoutePreview(BrokenSupplyRouteProgress progress, OpeningBroker.Destination destination) {
+        Map<String, Object> props = openingPreview(new MarineRoster()).props();
+        props.put("openingGuide", new SupplyRouteWorkGuide(progress, destination, () -> { }));
         return new CompanyHqViewModel(props);
     }
 

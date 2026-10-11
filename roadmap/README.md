@@ -56,13 +56,10 @@ separate recurring jobs. Relief has an authored freight checkpoint and finite
 road arrivals; Counterattack has a larger freight depot with a joint gate-to-yard
 advance, rear guards and a contact-driven reserve. Both have fitted-boat headless
 replays. Next, complete the linked opening arc's live campaign acceptance. The
-follow-on choice arc in `broken-supply-route.md` now specifies escort/boarding
-versus territorial recovery, branch consequences and recurring contact work;
-Junction now has a finite territorial battle prototype and fitted-boat evidence.
-Last Lift now has physical escort/boarding, finite road attackers and a save-owned
-cohort ledger with retries only for stranded people. Relay Nine now has finite
-capture/hold play with separate militia detachments and a road counterattack.
-Next connect the three prototypes to campaign choice, roster launch, Results and settlement. The opening
+follow-on arc now connects Junction to an explicit evacuation/freight choice,
+actual campaign squads and fitted boats, saved rescue outcomes, one-time rewards
+and separate recurring work. `broken-supply-route.md` tracks its live acceptance.
+The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 

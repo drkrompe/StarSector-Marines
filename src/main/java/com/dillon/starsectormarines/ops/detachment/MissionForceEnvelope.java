@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -35,18 +36,19 @@ public final class MissionForceEnvelope {
     public static boolean allowsUnderstrength(Mission mission) {
         return mission != null
                 && (mission.source == MissionSource.GENERATED
-                        || mission.source == MissionSource.POLITY_DEFENCE)
+                        || mission.source == MissionSource.POLITY_DEFENCE
+                        || SupplyRouteCampaign.isBattle(mission))
                 && mission.type != MissionType.CONQUEST;
     }
 
     public static int minimumPersonnel(Mission mission, int authoredSeats) {
+        if (SupplyRouteCampaign.isBattle(mission)) return 8;
         return allowsUnderstrength(mission)
                 ? MINIMUM_READY_PERSONNEL : Math.max(0, authoredSeats);
     }
 
     public static int recommendedPersonnel(Mission mission) {
-        return mission != null
-                ? recommendedPersonnel(mission.type, mission.tier) : 0;
+        return mission != null ? recommendedSquads(mission) * MarineSquad.CAPACITY : 0;
     }
 
     public static int recommendedPersonnel(MissionType type, OperationTier tier) {
@@ -58,6 +60,7 @@ public final class MissionForceEnvelope {
      * jump required by its three simultaneous lanes and sustained ferry battle.
      */
     public static int recommendedSquads(Mission mission) {
+        if (mission != null && SupplyRouteCampaign.owns(mission.id)) return 2;
         return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;
     }
 

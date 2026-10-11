@@ -1,4 +1,4 @@
-<template props="brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -91,7 +91,7 @@
         <div id="mission-detail-actions" class="mission-detail-actions console-command-rail">
           <button id="mission-brief" class="mission-brief good-surface" disabled="{briefDisabled}" onclick="{briefAction}">
             <div id="mission-brief-signal" class="console-command-signal" />
-            <div id="mission-brief-legend" class="console-key-legend">BRIEF &amp; DEPLOY</div>
+            <div id="mission-brief-legend" class="console-key-legend">{briefLabel}</div>
             <img id="mission-brief-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
           </button>
           <button id="mission-collapse" disabled="{declineDisabled}" onclick="{declineAction}">
@@ -172,5 +172,6 @@
   .detail-value { height: 30px; white-space: normal; }
   .mission-detail-actions { flex-direction: row; height: 32px; padding: 3px; gap: 5px; border-width: 2px; }
   .mission-detail-actions button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
+  .mission-detail-actions .mission-brief { flex-grow: 3; }
   .empty-copy { height: auto; padding: 4px; white-space: normal; }
 </style>

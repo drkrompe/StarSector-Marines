@@ -113,6 +113,23 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("storyProgress", chapter == null ? "" : !outcome.victory ? "CONTRACT REMAINS OPEN"
                 : chapter == OpeningOperationKind.RELIEF ? "CHAPTER 1 COMPLETE / DEPOT JOB AVAILABLE" : "AN OPEN ROAD / ARC COMPLETE");
         props.put("storyMessage", WaylineArc.debrief(outcome));
+        if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
+            props.put("storyClasses", "story-dispatch console-readout");
+            props.put("storyPortrait", outcome.lastLiftOutcome != null ? SupplyRouteCampaign.IONA_PORTRAIT : OpeningBroker.PORTRAIT);
+            props.put("storySender", (outcome.lastLiftOutcome != null ? "Iona Serr" : OpeningBroker.NAME) + " / WAYLINE DISPATCH");
+            props.put("storyProgress", outcome.missionSource == MissionSource.RECURRING ? "RECURRING WORK / JOB REPORT" : "BROKEN SUPPLY ROUTE");
+            String report = outcome.victory ? "Objective confirmed. Payment: " + outcome.payoutEarned + " cr." : "Operation withdrawn. No payment; confirmed losses remain on record.";
+            if (outcome.lastLiftOutcome != null) {
+                int stranded = outcome.lastLiftOutcome.attempt().people().size()
+                        - outcome.lastLiftOutcome.rescued().size() - outcome.lastLiftOutcome.dead().size();
+                report += " This sortie: " + outcome.lastLiftOutcome.rescued().size() + " rescued / "
+                        + outcome.lastLiftOutcome.dead().size() + " confirmed dead / " + stranded + " still stranded."
+                        + (stranded > 0 ? " Retry covers those still stranded." : " This crew has no remaining rescue attempts.");
+            }
+            var route = SupplyRouteCampaign.current();
+            if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
+            props.put("storyMessage", report);
+        }
     }
 
     private static String outcomeMeta(MissionOutcome outcome, LootManifest manifest) {

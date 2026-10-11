@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -59,6 +60,7 @@ public final class DetachmentResolver {
                                      FlybyRoster committedWings,
                                      List<FleetMemberAPI> committedPowerSources) {
         List<ShuttleAssignment> manifest = buildShuttleManifest(m, committedShuttles);
+        if (SupplyRouteCampaign.isBattle(m)) return new Detachment(manifest, FlybyRoster.EMPTY, List.of());
         FlybyRoster marineWings = FlybyRoster.combine(m.clientFighterSupport, committedWings);
         List<CommandPower> powers = PowerCatalog.resolve(
                 committedPowerSources, m, campaignMechDeployment());
@@ -185,6 +187,8 @@ public final class DetachmentResolver {
         if (!MissionForceEnvelope.allowsUnderstrength(m)) {
             return buildShuttleManifest(m, playerShuttles);
         }
+        if (SupplyRouteCampaign.isBattle(m) && playerShuttles != null && playerShuttles.size() > 4)
+            playerShuttles = playerShuttles.subList(0, 4);
         List<ShuttleAssignment> authored = buildShuttleManifest(m, playerShuttles);
         int employerPhysical = employerPhysicalShipCount(m);
         List<ShuttleAssignment> out = new ArrayList<>();

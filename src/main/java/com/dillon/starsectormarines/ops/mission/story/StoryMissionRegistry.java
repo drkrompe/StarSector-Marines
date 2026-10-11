@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.mission.story;
 
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +43,7 @@ public final class StoryMissionRegistry {
                         .error("Story def '" + def.id() + "' threw during eligibility/build", e);
             }
         }
+        out.addAll(0, SupplyRouteCampaign.offers(ctx));
         return out;
     }
 }
