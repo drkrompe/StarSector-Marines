@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -41,6 +42,11 @@ import java.util.List;
  * — both sides set independently.
  */
 public class CellTopology {
+    private TerrainSurface terrainSurface;
+    public TerrainSurface terrainSurface() { return terrainSurface; }
+    public void setTerrainSurface(TerrainSurface value) {
+        terrainSurface=value;for(int i=0;i<width*height;i++)markChanged(i);
+    }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {
