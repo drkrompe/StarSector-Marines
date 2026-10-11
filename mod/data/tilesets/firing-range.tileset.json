@@ -1,0 +1,100 @@
+{
+  "blocks": [
+    {
+      "cells": [[
+        7,
+        0
+      ]],
+      "id": "firing-range.deck"
+    },
+    {
+      "cells": [[
+        8,
+        0
+      ]],
+      "id": "firing-range.lane"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "firing-range.backstop",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "firing-range.divider",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "firing-range.prep-bench",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "firing-range.control",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 1 of the pool",
+      "name": "firing-range.deck v1",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 1 of the pool",
+      "name": "firing-range.lane v1",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.3,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "firing-range.backstop",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 1,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "firing-range.divider",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "col": 3,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "firing-range.prep-bench",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 5,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "firing-range.control",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/firing-range.png"
+}
