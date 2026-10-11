@@ -45,3 +45,22 @@ forest scene, individual canopy examples and editor screenshots, and exercises
 paint/erase/undo/redo/save/reload through real controls. Small unit tests verify
 placement, refusal, rotation and that visible exported foliage lies inside the
 blocked footprint.
+
+## Outdoor map adoption
+
+Outdoor city recipes (including precinct maps) and Relief, Counterattack,
+Junction, Last Lift, Relay Nine and Thunder Run now add seeded groves on living
+worlds. Grass and soil can carry trees; grassy hill summits can carry whole
+crowns. Bare cliffs and the other planet surface palettes remain treeless.
+Suitable open countryside also gains small hills unless the mission already
+owns an authored terrain plan.
+
+Placement reserves finished facilities, roads, landing approaches and connecting
+routes, then declines each obstacle that cannot prove a local walkable detour.
+This does not repair pre-existing map connectivity defects. The ordinary forest
+brush remains free to paint barriers; this policy belongs to mission adoption.
+
+Run `createSnapshots -Psnapshot=outdoor-forests` for the paired production-map
+matrix and `-Psnapshot=thunder-terrain` for the freight chassis/flanking proof.
+The diagnostic `-Dbattle.mapgen.outdoorLandscape=false` supplies the same-seed
+control without new procedural hills or forests; authored hills remain.

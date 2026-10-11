@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
@@ -42,7 +43,7 @@ public final class RelayNineCompound {
         new GenRecipe("Relay Nine", List.of(RelayNineCompound::grounds,
                 RelayNineCompound::buildings, RelayNineCompound::perimeter, RelayNineCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                RelayNineCompound::yardSurfaces, RelayNineCompound::terrain, new FinalizeStage())).run(c);
+                RelayNineCompound::yardSurfaces, RelayNineCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 64, 174, 62))).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 64,
                 10, 9, 40, 65, Faction.MARINE, 20, 0));
