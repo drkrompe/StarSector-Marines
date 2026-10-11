@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
+import com.dillon.starsectormarines.battle.world.model.FenceDamage;
 
 /**
  * Coordinates the runtime map-modification cycle — the cross-domain operations
@@ -62,6 +64,9 @@ public final class MapEditor {
     }
 
     private CellCallback roofCollapseSink;
+    private DoodadService doodads;
+
+    public void setDoodads(DoodadService doodads) { this.doodads = doodads; }
 
     public void setRoofCollapseSink(CellCallback sink) { this.roofCollapseSink = sink; }
 
@@ -71,9 +76,24 @@ public final class MapEditor {
      * {@link CellTopology.GroundKind#RUBBLE},
      * cracks the four adjacent roof cells open, and marks the zone graph dirty
      * so the new portal is picked up at tick end. Returns {@code false} (no-op)
-     * when the cell wasn't a breachable wall.
+     * when the cell wasn't breached. Registered fences use the same structural
+     * damage entry point, retaining the ground and replacing their prop with bent
+     * rails or debris; they do not become masonry rubble or roof-collapse sources.
      */
     public boolean damageWall(int x, int y, int amount) {
+        if (doodads != null) {
+            FenceDamage.Result result = doodads.damageFence(x, y, amount);
+            if (result == FenceDamage.Result.DESTROYED) {
+                topology.setFixture(x, y, false);
+                // damageCell's wall-breach portal must not turn an outdoor fence gap into a doorway.
+                grid.setDoorway(x, y, false);
+                grid.setSeeThrough(x, y, false);
+                doodads.refreshBlockingCover(x, y, topology);
+                navigation.markCellOpened(x, y);
+                return true;
+            }
+            if (result != FenceDamage.Result.NOT_FENCE) return false;
+        }
         if (!grid.damageCell(x, y, amount)) return false;
         if (topology.isWall(x, y)) rememberWall(x, y);
         topology.setWall(x, y, false);
