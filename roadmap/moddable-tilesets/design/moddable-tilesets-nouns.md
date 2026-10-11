@@ -179,6 +179,27 @@ and the judged raw sheet, prompt and full-cell cuts remain art-source inputs
 to the ordinary exporter. The silhouette must retain open floor between pieces;
 its appearance does not add collision or change cover.
 
+### Geometry-guided ground damage
+
+A floor material may name a `damageBlock`: a single transparent overlay or a
+coordinate-stable variant pool. The nine colony floors pair with localized
+cracks and shallow gouges. The original floor remains underneath, so its
+pattern and tile seams survive. The ordinary scatter layer resolves the pair
+in both streamed and resident rendering; unpaired surfaces keep their existing
+appearance and impact decals.
+
+Structural area blasts mark solid, non-wall cells within their splash circle
+and line of sight. `GROUND_DAMAGED` is a persistent visual tag, recorded once
+in the cell change log; it changes neither the material id, ground kind,
+walkability nor cover. Water, void and rubble are excluded. Wall-collapse
+rubble retains its own material/footprint history and takes precedence.
+
+`GroundDamageReskinTemplate` defines the local shapes and clear perimeter;
+ImageGen reskins them to each floor material. The retained guide, prompt, raw
+plate and full-cell cuts reproduce the exported atlas. The `ground-damage`
+snapshot suite compares intact and damaged fields through the battle renderer.
+The repeatable production procedure is in `art-source/geometry-first-imagegen.md`.
+
 ### Id-addressed visual catalog
 
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than

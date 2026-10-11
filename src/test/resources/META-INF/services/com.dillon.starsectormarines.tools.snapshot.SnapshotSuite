@@ -35,3 +35,4 @@ com.dillon.starsectormarines.tools.roadauthoring.StoryRoadSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.SandbagSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.RubbleSnapshotSuite
 com.dillon.starsectormarines.tools.terrainauthoring.TerrainSnapshotSuite
+com.dillon.starsectormarines.tools.tilesetauthoring.GroundDamageSnapshotSuite

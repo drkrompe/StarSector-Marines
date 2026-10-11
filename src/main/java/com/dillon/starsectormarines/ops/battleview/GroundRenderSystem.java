@@ -891,6 +891,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     return;
                 }
             }
+            GridBlockDef damage = GroundDamageTiles.skin(tileReg, topology, x, y);
+            SpriteAPI damageSheet = damage == null ? null : sheetFor(damage.sheetPath);
+            if (damageSheet != null) {
+                int[] cell = damage.resolve(false, false, false, false, x, y);
+                emitCellPx(damageSheet, damage.cellPx, cell[0], cell[1], 0, sink);
+                return;
+            }
             int index = topology.getNatureOverlayIndex(x, y);
             if (index < 0) return;
             natureTile(tileReg.byIndex(index), sink);

@@ -1,0 +1,234 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "id": "colony.limestone-damage"
+    },
+    {
+      "cells": [
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "id": "colony.terracotta-damage"
+    },
+    {
+      "cells": [
+        [
+          4,
+          0
+        ],
+        [
+          5,
+          0
+        ]
+      ],
+      "id": "colony.basalt-damage"
+    },
+    {
+      "cells": [
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "colony.sage-damage"
+    },
+    {
+      "cells": [
+        [
+          8,
+          0
+        ],
+        [
+          9,
+          0
+        ]
+      ],
+      "id": "colony.terrazzo-damage"
+    },
+    {
+      "cells": [
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          0
+        ]
+      ],
+      "id": "colony.timber-damage"
+    },
+    {
+      "cells": [
+        [
+          12,
+          0
+        ],
+        [
+          13,
+          0
+        ]
+      ],
+      "id": "colony.concrete-damage"
+    },
+    {
+      "cells": [
+        [
+          14,
+          0
+        ],
+        [
+          15,
+          0
+        ]
+      ],
+      "id": "colony.ochre-damage"
+    },
+    {
+      "cells": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "id": "colony.tread-damage"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "colony.limestone-damage v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "colony.limestone-damage v2",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "variant 1 of the pool",
+      "name": "colony.terracotta-damage v1",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 2 of the pool",
+      "name": "colony.terracotta-damage v2",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "variant 1 of the pool",
+      "name": "colony.basalt-damage v1",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 2 of the pool",
+      "name": "colony.basalt-damage v2",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 1 of the pool",
+      "name": "colony.sage-damage v1",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 2 of the pool",
+      "name": "colony.sage-damage v2",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 1 of the pool",
+      "name": "colony.terrazzo-damage v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "variant 2 of the pool",
+      "name": "colony.terrazzo-damage v2",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "variant 1 of the pool",
+      "name": "colony.timber-damage v1",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "variant 2 of the pool",
+      "name": "colony.timber-damage v2",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "variant 1 of the pool",
+      "name": "colony.concrete-damage v1",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "description": "variant 2 of the pool",
+      "name": "colony.concrete-damage v2",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "description": "variant 1 of the pool",
+      "name": "colony.ochre-damage v1",
+      "row": 0
+    },
+    {
+      "col": 15,
+      "description": "variant 2 of the pool",
+      "name": "colony.ochre-damage v2",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "colony.tread-damage v1",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "variant 2 of the pool",
+      "name": "colony.tread-damage v2",
+      "row": 1
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/colony-ground-damage.png"
+}

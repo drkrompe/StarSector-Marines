@@ -131,7 +131,9 @@ public class CellTopology {
          */
         WINDOW,
         /** Feather authored pavement over adjacent outdoor terrain; visual only. */
-        ROAD_EDGE_BLEND;
+        ROAD_EDGE_BLEND,
+        /** Persistent cosmetic ground damage; does not change navigation or the material identity. */
+        GROUND_DAMAGED;
 
         public long mask() { return 1L << ordinal(); }
 
@@ -156,7 +158,8 @@ public class CellTopology {
          */
         public boolean drawn() {
             return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ
-                    || this == ROOF_DESTROYED || this == WINDOW || this == ROAD_EDGE_BLEND;
+                    || this == ROOF_DESTROYED || this == WINDOW || this == ROAD_EDGE_BLEND
+                    || this == GROUND_DAMAGED;
         }
     }
 
