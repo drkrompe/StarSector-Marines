@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — ship messes use posed dining furniture and organized galleys;
-berthing and workshops use layered fixtures within the dark bulkhead shell.
+Updated: 2026-10-11 � ship sickbays combine layered ward beds with a clinic that
+adapts its staffed bank to hatch approaches; rooms share the muted material family.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -513,6 +513,17 @@ table and galley appliances own the blocking footprints. Diners face their own
 place at table. Whole furniture assemblies turn with the room and yield to
 hatch approaches. Sparse meal settings are visual layers, not food inventory.
 Small secondary messes remain dining rooms without additional cooking postings.
+
+The sickbay keeps its ward around a broad stretcher aisle, with reserved bedside
+access between the beds. Each bay contains a medical bed, separate linen and a
+head monitor; a hatch removes the complete bay. A clinic end holds an examination
+couch, supply trolley and privacy screen opposite a nurse station, secured
+medical cabinets and scrub sink. The staffed bank changes sides when a hatch
+would take its desk, and the examination couch uses the remaining clear position.
+Optional screens and stock yield to access. Treatment, stowage and washing take
+place beside their fixtures, with physical blocking applied only after circulation
+acceptance. The same layout follows every room pose; linens and supplies do not
+assert patient occupancy or campaign inventory.
 
 Crew routes are **derived from fixtures**, never hand-listed per deck. A route
 author reads a compartment's placed fixtures and their affordances and emits the
