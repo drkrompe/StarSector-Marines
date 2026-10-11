@@ -14,6 +14,8 @@ public final class LandingPad {
     public enum Purpose {
         CIVIC_LANDING_ZONE,
         CIVILIAN_SPACEPORT,
+        /** Shuttle stands on a shared freight terminal apron. */
+        FREIGHT_APRON,
         CONQUEST_ARRIVAL,
         /** A hardstand on the defender garrison's own airfield, inside its ward. */
         GARRISON_AIRFIELD,

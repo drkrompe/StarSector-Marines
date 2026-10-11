@@ -43,8 +43,17 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                 if(seed!=8101) continue;
                 try(var scene=new ShipDeckBattleScene(map,0)) {
                     int w=map.grid.getWidth(),h=map.grid.getHeight();
-                    frames.add(new SnapshotArtifact(names[index]+".png",renderer.renderHostPass(
-                            scene.pass(ShipDeckBattleScene.DeckView.fitting(0,0,w,h,1920,1080)),1920,1080)));
+                    var overview=renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.fitting(0,0,w,h,1920,1080)),1920,1080);
+                    // This empty north-west meadow exposed periodic one-pixel black seams
+                    // at the overview's 8.4375 px/cell scale. Keep the production raster honest.
+                    if(names[index].equals("relay-nine"))for(int py=10;py<100;py++)for(int px=100;px<300;px++)
+                        if((overview.getRGB(px,py)&0xffffff)==0)
+                            throw new IllegalStateException("Black preview seam in Relay Nine meadow at "+px+","+py);
+                    frames.add(new SnapshotArtifact(names[index]+".png",overview));
+                    if(names[index].equals("junction") || names[index].equals("relay-nine"))
+                        frames.add(new SnapshotArtifact(names[index]+"-apron.png",renderer.renderHostPass(
+                                scene.pass(ShipDeckBattleScene.DeckView.over(0,0,72,72,15)),1920,1080)));
                     if(names[index].equals("junction")) frames.add(new SnapshotArtifact("junction-east.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.over(135,26,60,68,16)),1920,1080)));
                     if(names[index].equals("relay-nine")) frames.add(new SnapshotArtifact("relay-nine-east.png",renderer.renderHostPass(
@@ -53,6 +62,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                             scene.pass(ShipDeckBattleScene.DeckView.over(close[index][0],close[index][1],60,34,32)),1920,1080)));
                 }
                 if(names[index].equals("relay-nine")) {
+                    map.topology.setRoadSurface(null);
                     for(int y=0;y<map.grid.getHeight();y++) for(int x=0;x<map.grid.getWidth();x++) map.topology.setTag(x,y,Tag.ROAD_EDGE_BLEND,false);
                     try(var scene=new ShipDeckBattleScene(map,0)) {
                         frames.add(new SnapshotArtifact("relay-nine-east-hard.png",renderer.renderHostPass(

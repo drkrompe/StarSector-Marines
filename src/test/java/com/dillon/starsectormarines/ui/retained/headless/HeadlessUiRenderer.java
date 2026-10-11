@@ -371,6 +371,25 @@ public final class HeadlessUiRenderer {
         }
 
         @Override
+        public void spritePatch(String path,float cx,float cy,float width,float height,
+                                Color tint,CanvasSpriteRegion region,float[] vertices) {
+            // Match the adjacent whole tiles' shared destination pixel boundaries.
+            float left=(float)Math.floor(cx-width/2+.5001d),right=(float)Math.floor(cx+width/2+.5001d);
+            float top=(float)Math.floor(cy-height/2+.5001d),bottom=(float)Math.floor(cy+height/2+.5001d);
+            cx=(left+right)/2;cy=(top+bottom)/2;width=right-left;height=bottom-top;
+            var clip=graphics.getClip();
+            var polygon=new Path2D.Float();
+            for(int i=0;i<4;i++) {
+                float x=documentX(cx+(vertices[i*2]-.5f)*width);
+                float y=documentY(cy+(.5f-vertices[i*2+1])*height);
+                if(i==0)polygon.moveTo(x,y);else polygon.lineTo(x,y);
+            }
+            polygon.closePath();graphics.clip(polygon);
+            drawSprite(path,null,cx,cy,width,height,0,tint,region,CanvasBlend.NORMAL);
+            graphics.setClip(clip);
+        }
+
+        @Override
         protected void drawSprite(String sourcePath, SpriteAPI liveSprite,
                                   float centerX, float centerY, float width, float height,
                                   float angleDegrees, Color tint,
@@ -391,7 +410,8 @@ public final class HeadlessUiRenderer {
             graphics.setComposite(blend == CanvasBlend.ADDITIVE
                     ? new AdditiveComposite(opacity)
                     : AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
-            graphics.drawImage(image, -image.getWidth() / 2, -image.getHeight() / 2, null);
+            graphics.translate(-image.getWidth() / 2d, -image.getHeight() / 2d);
+            graphics.drawImage(image, 0, 0, null);
             graphics.setComposite(composite);
             graphics.setTransform(transform);
         }
