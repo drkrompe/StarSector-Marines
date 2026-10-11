@@ -97,7 +97,7 @@ public final class RoadRasterizer {
         for(int r=0;r<surfaces.length;r++) for(int a=0;a<3;a++) surfaces[r][a]=topology.surfaceIndex(plan.routes().get(r).material().block(a));
         for(int y=0;y<plan.height();y++) for(int x=0;x<plan.width();x++) {
             int i=y*plan.width()+x,r=raster.owner()[i];
-            if(r>=0) { topology.setGroundKind(x,y,GroundKind.STREET); topology.setSurface(x,y,surfaces[r][raster.age()[i]]); }
+            if(r>=0) { topology.setGroundKind(x,y,GroundKind.STREET); topology.setSurface(x,y,surfaces[r][raster.age()[i]]); topology.setTag(x,y,CellTopology.Tag.ROAD_EDGE_BLEND,plan.routes().get(r).autoEdge()); }
             else if(raster.shoulder()[i]) { topology.setGroundKind(x,y,GroundKind.STONE); topology.setSurface(x,y,0); }
         }
     }

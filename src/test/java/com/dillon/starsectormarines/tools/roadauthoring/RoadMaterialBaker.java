@@ -32,11 +32,51 @@ public final class RoadMaterialBaker {
             blocks.put(new JSONObject().put("id","pavement."+family.getString("id")+"."+new String[]{"new","worn","cracked"}[age]).put("cells",cells));
         }
         out.dispose();
+        // Six material/age rows, sixteen cardinal masks, eight coordinate variants.
+        // Keeping variant order identical makes the feathered tile match its interior.
+        int columns=variants*4;
+        BufferedImage edges=new BufferedImage(size*columns,size*families.length()*3*4,BufferedImage.TYPE_INT_ARGB);
+        Graphics2D edgeOut=edges.createGraphics(); JSONArray edgeBlocks=new JSONArray();
+        double feather=recipe.getDouble("edgeFeather"),roughness=recipe.getDouble("edgeRoughness");
+        for(int row=0;row<families.length()*3;row++) for(int mask=1;mask<16;mask++) {
+            JSONArray cells=new JSONArray();
+            for(int v=0;v<variants;v++) {
+                int col=(mask%4)*variants+v,ey=row*4+mask/4;
+                BufferedImage source=atlas.getSubimage(v*size,row*size,size,size);
+                edgeOut.drawImage(feather(source,mask,feather,roughness),col*size,ey*size,null);
+                cells.put(new JSONArray().put(col).put(ey));
+            }
+            edgeBlocks.put(new JSONObject().put("id",blocks.getJSONObject(row).getString("id")+".edge-"+mask).put("cells",cells));
+        }
+        edgeOut.dispose();
+        String edgeAsset="graphics/tilesets/pavement-edges.png";
+        ImageIO.write(edges,"png",root.resolve("mod").resolve(edgeAsset).toFile());
+        Files.writeString(root.resolve("mod/data/tilesets/pavement-edges.tileset.json"),new JSONObject().put("sheet",edgeAsset)
+                .put("cellPx",size).put("blocks",edgeBlocks).toString(2)+"\n");
         String asset="graphics/tilesets/pavement.png";
         Files.createDirectories(root.resolve("mod").resolve(asset).getParent());
         ImageIO.write(atlas,"png",root.resolve("mod").resolve(asset).toFile());
         Files.writeString(root.resolve("mod/data/tilesets/pavement.tileset.json"),new JSONObject().put("sheet",asset)
                 .put("cellPx",size).put("blocks",blocks).toString(2)+"\n");
+    }
+    /** Cardinal bits N/S/E/W, with north at the top of a source image. */
+    static BufferedImage feather(BufferedImage source,int mask,double width,double roughness) {
+        int size=source.getWidth(); BufferedImage result=new BufferedImage(size,size,BufferedImage.TYPE_INT_ARGB);
+        for(int y=0;y<size;y++) for(int x=0;x<size;x++) {
+            double dx=1,dy=1;
+            if((mask&1)!=0) dy=Math.min(dy,(y+.5)/size);
+            if((mask&2)!=0) dy=Math.min(dy,(size-y-.5)/size);
+            if((mask&4)!=0) dx=Math.min(dx,(size-x-.5)/size);
+            if((mask&8)!=0) dx=Math.min(dx,(x+.5)/size);
+            double distance=Math.min(dx,dy);
+            // Round exposed two-sided corners; the straight edge stays continuous across variants.
+            if(dx<.85 && dy<.85) distance=Math.min(distance,.85-Math.hypot(.85-dx,.85-dy));
+            double grain=((x*73856093L ^ y*19349663L)&255)/255d;
+            double t=Math.max(0,Math.min(1,(distance-roughness*grain)/width));
+            int alpha=(int)Math.round(255*t*t*(3-2*t));
+            result.setRGB(x,y,(source.getRGB(x,y)&0xffffff)|(alpha<<24));
+        }
+        return result;
     }
     private static BufferedImage tile(int size,long seed,JSONObject family,int age) throws Exception {
         BufferedImage image=new BufferedImage(size,size,BufferedImage.TYPE_INT_ARGB);

@@ -4,175 +4,348 @@
   "height": 128,
   "roads": [
     {
-      "id": "freight-through-road",
+      "id": "western-approach",
       "points": [
         [
           0,
-          63.0
+          61
         ],
         [
-          207,
-          63.0
-        ]
-      ],
-      "width": 7,
-      "shoulder": 0,
-      "wear": 0.45,
-      "seed": 5100,
-      "material": "ASPHALT",
-      "endCap": "BUTT"
-    },
-    {
-      "id": "west-service-spine",
-      "points": [
-        [
-          60.0,
-          20
+          28,
+          61
         ],
         [
-          60.0,
-          105
-        ]
-      ],
-      "width": 7,
-      "shoulder": 0,
-      "wear": 0.6,
-      "seed": 5101,
-      "material": "ASPHALT",
-      "endCap": "BUTT"
-    },
-    {
-      "id": "north-freight-road",
-      "points": [
+          44,
+          63
+        ],
         [
           60,
-          101.0
-        ],
-        [
-          207,
-          101.0
+          65
         ]
       ],
       "width": 7,
       "shoulder": 0,
       "wear": 0.5,
-      "seed": 5102,
+      "seed": 5200,
       "material": "ASPHALT",
-      "endCap": "BUTT"
+      "endCap": "ROUND",
+      "autoEdge": true
     },
     {
-      "id": "south-loading-street",
+      "id": "freight-through-road",
       "points": [
         [
           60,
-          33.0
+          65
+        ],
+        [
+          91,
+          66
+        ],
+        [
+          122,
+          66
+        ],
+        [
+          151,
+          67
+        ],
+        [
+          182,
+          69
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.5,
+      "seed": 5201,
+      "material": "ASPHALT",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "east-outbound",
+      "points": [
+        [
+          182,
+          69
+        ],
+        [
+          196,
+          73
+        ],
+        [
+          207,
+          79
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.5,
+      "seed": 5202,
+      "material": "ASPHALT",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "west-north-curve",
+      "points": [
+        [
+          60,
+          65
+        ],
+        [
+          60,
+          85
+        ],
+        [
+          64,
+          100
+        ],
+        [
+          78,
+          106
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.6,
+      "seed": 5203,
+      "material": "ASPHALT",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "north-freight-road",
+      "points": [
+        [
+          78,
+          106
+        ],
+        [
+          104,
+          108
+        ],
+        [
+          132,
+          107
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.5,
+      "seed": 5204,
+      "material": "ASPHALT",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "north-east-curve",
+      "points": [
+        [
+          132,
+          107
+        ],
+        [
+          165,
+          109
         ],
         [
           185,
-          33.0
-        ]
-      ],
-      "width": 7,
-      "shoulder": 0,
-      "wear": 0.3,
-      "seed": 5103,
-      "material": "CONCRETE",
-      "endCap": "BUTT"
-    },
-    {
-      "id": "relay-service-spine",
-      "points": [
-        [
-          183.0,
-          33
+          104
         ],
         [
-          183.0,
-          101
-        ]
-      ],
-      "width": 7,
-      "shoulder": 0,
-      "wear": 0.3,
-      "seed": 5104,
-      "material": "CONCRETE",
-      "endCap": "BUTT"
-    },
-    {
-      "id": "reserve-approach",
-      "points": [
-        [
-          85.0,
-          0
+          194,
+          91
         ],
         [
-          85.0,
-          23
+          194,
+          81
+        ],
+        [
+          182,
+          69
         ]
       ],
       "width": 7,
       "shoulder": 0,
-      "wear": 0.8,
-      "seed": 5105,
+      "wear": 0.5,
+      "seed": 5205,
       "material": "ASPHALT",
-      "endCap": "BUTT"
+      "endCap": "ROUND",
+      "autoEdge": true
     },
     {
-      "id": "reserve-turnout",
+      "id": "north-outbound",
       "points": [
         [
-          57,
-          23.0
+          132,
+          107
         ],
         [
-          88,
-          23.0
-        ]
-      ],
-      "width": 7,
-      "shoulder": 0,
-      "wear": 0.8,
-      "seed": 5106,
-      "material": "ASPHALT",
-      "endCap": "BUTT"
-    },
-    {
-      "id": "north-reserve-road",
-      "points": [
-        [
-          130.0,
-          101
+          131,
+          117
         ],
         [
-          130.0,
+          130,
           127
         ]
       ],
       "width": 7,
       "shoulder": 0,
       "wear": 0.65,
-      "seed": 5107,
+      "seed": 5206,
       "material": "ASPHALT",
-      "endCap": "BUTT"
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "west-south-curve",
+      "points": [
+        [
+          60,
+          65
+        ],
+        [
+          60,
+          48
+        ],
+        [
+          62,
+          37
+        ],
+        [
+          73,
+          33
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.6,
+      "seed": 5207,
+      "material": "ASPHALT",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "south-loading-street",
+      "points": [
+        [
+          73,
+          33
+        ],
+        [
+          108,
+          34
+        ],
+        [
+          146,
+          34
+        ],
+        [
+          169,
+          36
+        ],
+        [
+          185,
+          43
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.3,
+      "seed": 5208,
+      "material": "CONCRETE",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "relay-service-curve",
+      "points": [
+        [
+          185,
+          43
+        ],
+        [
+          188,
+          53
+        ],
+        [
+          187,
+          62
+        ],
+        [
+          182,
+          69
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.3,
+      "seed": 5209,
+      "material": "CONCRETE",
+      "endCap": "ROUND",
+      "autoEdge": true
+    },
+    {
+      "id": "reserve-approach",
+      "points": [
+        [
+          85,
+          0
+        ],
+        [
+          83,
+          13
+        ],
+        [
+          77,
+          22
+        ],
+        [
+          64,
+          23
+        ],
+        [
+          60,
+          27
+        ],
+        [
+          61,
+          31
+        ],
+        [
+          73,
+          33
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5210,
+      "material": "ASPHALT",
+      "endCap": "ROUND",
+      "autoEdge": true
     },
     {
       "id": "western-boat-apron",
       "points": [
         [
-          22.0,
+          22,
           14
         ],
         [
-          22.0,
+          22,
           113
         ]
       ],
       "width": 25,
       "shoulder": 0,
       "wear": 0.25,
-      "seed": 5108,
+      "seed": 5211,
       "material": "CONCRETE",
-      "endCap": "BUTT"
+      "endCap": "BUTT",
+      "autoEdge": false
     }
   ]
 }
