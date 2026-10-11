@@ -115,6 +115,8 @@ public class MarineOpsContext {
     private LootSettlementPlan lootSettlement;
     private ScreenId currentScreen = ScreenId.MISSION_SELECT;
     /** Screen and ready-seat target associated with the current armory visit. */
+    private String requestedArmorySquadId;
+    private boolean prepareAfterSettlement;
     private ScreenId armoryReturnScreen = ScreenId.MISSION_SELECT;
     /** Back target for the retained company workspace inside an armory visit. */
     private ScreenId fleetArmoryWorkspaceBackScreen = ScreenId.FLEET_ARMORY_OVERVIEW;
@@ -434,6 +436,17 @@ public class MarineOpsContext {
         goTo(ScreenId.FLEET_ARMORY);
     }
 
+    public void openSquadEquipmentFromBarracks(String squadId) {
+        requestedArmorySquadId = squadId;
+        openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS);
+    }
+
+    public String takeRequestedArmorySquadId() {
+        String id = requestedArmorySquadId;
+        requestedArmorySquadId = null;
+        return id;
+    }
+
     public void returnFromFleetArmoryWorkspace() {
         goTo(fleetArmoryWorkspaceBackScreen);
     }
@@ -544,6 +557,7 @@ public class MarineOpsContext {
         this.lootManifest = manifest != null ? manifest : LootManifest.EMPTY;
         this.lootSettlementStarted = false;
         this.lootSettlement = null;
+        prepareAfterSettlement = false;
     }
 
     public boolean isLootSettlementStarted() {
@@ -571,6 +585,17 @@ public class MarineOpsContext {
             lootSettlementStarted = true;
             lootSettlement = new LootSettlementPlan(Collections.emptyList());
         }
+    }
+
+    public void prepareAfterSettlement(boolean value) { prepareAfterSettlement = value; }
+    public boolean preparingAfterSettlement() { return prepareAfterSettlement; }
+
+    /** Called only after the existing salvage authority has settled or explicitly forfeited. */
+    public void finishOperation(boolean prepareCompany) {
+        if (!lootSettlementStarted) return;
+        clearResolvedMission();
+        prepareAfterSettlement = false;
+        goTo(prepareCompany ? (shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ) : ScreenId.MISSION_SELECT);
     }
 
     /** Clears the finished mission while preserving its closed settlement gate. */

@@ -77,6 +77,10 @@ public final class BarracksScreen implements Screen {
         } else {
             viewModel.refresh();
         }
+        viewModel.command().navigation(
+                () -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS),
+                context::openSquadEquipmentFromBarracks,
+                () -> context.goTo(ScreenId.MISSION_SELECT), context.planet != null);
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());

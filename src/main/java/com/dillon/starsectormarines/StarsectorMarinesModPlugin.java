@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 
@@ -88,6 +89,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         RoadCatalog.loadBuiltins();
         TerrainCatalog.loadBuiltins();
         WaylineNarration.loadBuiltins();
+        CompanyManagementGuide.loadBuiltins();
         CompanyOfficer.loadBuiltins();
         OperationRadio.loadBuiltins();
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
