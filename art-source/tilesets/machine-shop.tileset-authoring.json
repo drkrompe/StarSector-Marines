@@ -1,0 +1,125 @@
+{
+  "sheetName": "machine-shop",
+  "sheet": "art-source/tilesets/machine-shop.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "machine-shop",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/machine-shop.png",
+  "note": "Four muted workstations and three padded shelf-load overlays. Reuses main-stores rack bed/frame. Exact retained ImageGen source; measured cuts and square overlay canvases preserve clear frame margins.",
+  "entries": [
+    {
+      "id": "machine-shop.lathe",
+      "rect": [
+        46,
+        219,
+        385,
+        190
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "machine-shop.mill",
+      "rect": [
+        464,
+        194,
+        327,
+        232
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "machine-shop.assembly-bench",
+      "rect": [
+        826,
+        237,
+        380,
+        173
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "machine-shop.inspection-bench",
+      "rect": [
+        56,
+        578,
+        390,
+        200
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "machine-shop.bearings",
+      "rect": [
+        499,
+        543,
+        260,
+        260
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "machine-shop.electrical",
+      "rect": [
+        862,
+        517,
+        320,
+        320
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "machine-shop.bar-stock",
+      "rect": [
+        32,
+        888,
+        224,
+        224
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}

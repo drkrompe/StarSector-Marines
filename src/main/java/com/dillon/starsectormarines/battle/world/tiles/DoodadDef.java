@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
 import java.util.Locale;
+import java.util.List;
+import java.util.Collections;
 
 /**
  * One decorative prop's authoritative definition, loaded from a
@@ -77,6 +79,8 @@ public final class DoodadDef {
      * than this class guessing on the sheet's behalf.
      */
     public final int sourceCellPx;
+    /** Bottom-to-top source-cell mask (# surface, . empty); empty means ground-fog only. */
+    public final List<String> fogSurface;
 
     public DoodadDef(String id, String sheetPath, int col, int row, DoodadCover cover) {
         this(id, sheetPath, col, row, cover,
@@ -108,6 +112,14 @@ public final class DoodadDef {
                      DoodadCover cover, float ballisticHalfHeight,
                      int footprintCellsX, int footprintCellsY,
                      WallSide preferredWallSide, int sourceCellPx) {
+        this(id, sheetPath, col, row, cover, ballisticHalfHeight, footprintCellsX,
+                footprintCellsY, preferredWallSide, sourceCellPx, null);
+    }
+
+    public DoodadDef(String id, String sheetPath, int col, int row,
+                     DoodadCover cover, float ballisticHalfHeight,
+                     int footprintCellsX, int footprintCellsY,
+                     WallSide preferredWallSide, int sourceCellPx, List<String> fogSurface) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
@@ -123,5 +135,18 @@ public final class DoodadDef {
         this.footprintCellsX = footprintCellsX;
         this.footprintCellsY = footprintCellsY;
         this.preferredWallSide = preferredWallSide;
+        // A physical prop defaults to an observable solid surface. The grid
+        // still decides whether that surface actually blocks sight at placement.
+        this.fogSurface = fogSurface == null
+                ? (this.ballisticHalfHeight > 0
+                    ? Collections.nCopies(footprintCellsY, "#".repeat(footprintCellsX)) : List.of())
+                : List.copyOf(fogSurface);
+        if (!this.fogSurface.isEmpty()) {
+            if (this.fogSurface.size() != footprintCellsY)
+                throw new IllegalArgumentException("Doodad fogSurface height differs from footprint: " + id);
+            for (String rowMask : this.fogSurface)
+                if (rowMask.length() != footprintCellsX || !rowMask.matches("[#.]+"))
+                    throw new IllegalArgumentException("Doodad fogSurface requires one #/. per source cell: " + id);
+        }
     }
 }

@@ -108,3 +108,8 @@ failures. Each failing case was reproduced in an unchanged `cef164b21` checkout:
 
 Live casualty settlement, Armory round trip, save/reload and another deployment
 remain unperformed. Keep the story open for that host acceptance and voice work.
+
+After merging the concurrent Castle debrief work, 33 focused tests passed,
+including `HoundSalvageDebriefTest` and `NarrationSequenceTest`; `shadowJar` and
+all 26 Barracks snapshots succeeded. Results retains the voiced recovery
+conversation alongside the new preparation action.

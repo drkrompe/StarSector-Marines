@@ -89,6 +89,10 @@ public final class ProcessAudioTask {
                     + "asoftclip=type=tanh:threshold=0.65:oversample=2,volume=2.5,"
                     + "alimiter=limit=0.89:level=false:latency=true"));
         }
+        if (processing == AudioManifest.Processing.DIALOGUE) {
+            // Match alternating speakers without modifying the retained clean generation takes.
+            options.addAll(List.of("-af", "loudnorm=I=-20:TP=-2:LRA=7"));
+        }
         return List.copyOf(options);
     }
 
