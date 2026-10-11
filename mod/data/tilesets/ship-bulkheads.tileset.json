@@ -1,11 +1,13 @@
 {
   "blocks": [{
+    "doorBlock": "ship.neutral-door",
     "id": "ship.neutral-bulkhead",
     "layout": "wall-faces-4x4",
     "origin": [
       0,
       0
-    ]
+    ],
+    "windowBlock": "ship.neutral-window"
   }],
   "cellPx": 64,
   "cells": [

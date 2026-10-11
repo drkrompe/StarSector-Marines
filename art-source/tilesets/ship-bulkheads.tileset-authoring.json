@@ -7,11 +7,13 @@
   "idPrefix": "ship",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/ship-bulkheads.png",
-  "note": "ShipBulkheadTemplate; full opaque wall caps, row-major exposure N1 E2 S4 W8. ImageGen output1254 square, measured274px tiles at origins20,333,647,960. Neutral structural steel with pale enamel exposed edges. Preview-only adoption.",
+  "note": "ShipBulkheadTemplate; full opaque wall caps, row-major exposure N1 E2 S4 W8. ImageGen output1254 square, measured274px tiles at origins20,333,647,960. Neutral structural steel with pale enamel exposed edges. Ship deck material; matching opening companions in ship-interior-materials.",
   "blocks": [
     {
       "id": "ship.neutral-bulkhead",
-      "layout": "wall-faces-4x4"
+      "layout": "wall-faces-4x4",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
     }
   ],
   "entries": [
