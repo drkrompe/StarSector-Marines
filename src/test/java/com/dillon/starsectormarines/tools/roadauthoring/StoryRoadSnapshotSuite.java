@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,10 +107,17 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                 if(!reached[to]){reached[to]=true;queue.add(to);}
             }
         }
+        boolean[] crowns = new boolean[w*h];
+        for (var doodad : map.doodads) for (var canopy : TreeCanopy.values()) {
+            var def = TileRegistry.installed().doodad(canopy.id);
+            if (!doodad.sheetPath.equals(def.sheetPath) || doodad.tile.col != def.col || doodad.tile.row != def.row) continue;
+            for (int y = 0; y < doodad.footprintCellsY; y++) for (int x = 0; x < doodad.footprintCellsX; x++)
+                if (canopy.blocks(x, y, doodad.quarterTurns)) crowns[(doodad.cellY+y)*w+doodad.cellX+x] = true;
+        }
         int solid=0,openNatural=0;
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             boolean natural=grid.hasTag(x,y,CellTag.NATURAL_SOLID);
-            if(natural!=field.blocked(x,y))throw new IllegalStateException(name+" terrain contour/grid mismatch");
+            if(natural!=(field.blocked(x,y)||crowns[y*w+x]))throw new IllegalStateException(name+" terrain contour/grid mismatch");
             if(natural) {
                 solid++;
                 if(grid.isWalkable(x,y)||grid.isSeeThrough(x,y)||grid.getWallHp(x,y)!=0
@@ -129,6 +138,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         int equipment = 0;
         for(var prop:map.doodads) {
             if(!map.topology.isFixture(prop.cellX,prop.cellY)
+                    || map.grid.hasTag(prop.cellX,prop.cellY,CellTag.NATURAL_SOLID)
                     || map.topology.getBuildingId(prop.cellX,prop.cellY)!=0) continue;
             equipment++;
             for(int y=prop.cellY;y<prop.cellY+prop.footprintCellsY;y++)
