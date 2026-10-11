@@ -819,6 +819,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
+        detonations.observe(det -> warships.onDetonation(det, this));
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
         // is the line it comes into existence on.

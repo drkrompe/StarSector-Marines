@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * The physics-based AoE pipeline: rockets and missiles register a
@@ -60,6 +61,9 @@ public class Detonations {
      */
     private final LongArrayList aoeScratch = new LongArrayList();
 
+    /** Told of every detonation as it lands, for bodies that are not in the roster (a warship's hull). */
+    private Consumer<PendingDetonation> observer;
+
     public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapEditor mapEditor,
                        EffectsService effects, NoiseEventBus noiseEvents,
@@ -72,6 +76,11 @@ public class Detonations {
         this.effects = effects;
         this.noiseEvents = noiseEvents;
         this.directImpactSink = directImpactSink;
+    }
+
+    /** Sets who is told of each detonation as it goes off; the splash itself is unchanged. */
+    public void observe(Consumer<PendingDetonation> landed) {
+        this.observer = landed;
     }
 
     /** Queues a detonation onto the in-flight list. Drained by {@link #tick}. */
@@ -124,6 +133,7 @@ public class Detonations {
      * {@code UnitSpatialIndex} if detonation frequency ever rises.
      */
     private void detonate(PendingDetonation det) {
+        if (observer != null) observer.accept(det);
         noiseEvents.post(det.endpointX, det.endpointY,
                 Math.min(4f, 2f + det.aoeRadius), 0L,
                 det.shooterFaction, NoiseKind.DETONATION);
