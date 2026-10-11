@@ -49,6 +49,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class FiringSystemTest {
 
+    @Test
+    void staleFriendlyIntentCannotStartAShotOrBurst() {
+        for (Faction shooterFaction : new Faction[]{Faction.MARINE, Faction.ALLY}) {
+            for (Faction targetFaction : new Faction[]{Faction.MARINE, Faction.ALLY}) {
+                try (BattleSimulation sim = openArena(16, 12)) {
+                    long shooter = combatant(sim, shooterFaction, 5, 5);
+                    long target = combatant(sim, targetFaction, 7, 5);
+                    readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
+                    systemFor(sim).tick(sim);
+                    assertEquals(FireGate.FRIENDLY_TARGET, sim.combat().lastFireGate(shooter));
+                    assertEquals(0L, sim.combat().fireTargetId(shooter));
+                    assertEquals(0, sim.combat().burstRemaining(shooter));
+                    assertEquals(0f, sim.world().cooldownTimer(shooter));
+                    assertTrue(sim.getActiveShots().isEmpty());
+                }
+            }
+        }
+    }
+
     private static BattleSimulation openArena(int w, int h) {
         NavigationGrid grid = new NavigationGrid(w, h);
         CellTopology topology = new CellTopology(w, h);

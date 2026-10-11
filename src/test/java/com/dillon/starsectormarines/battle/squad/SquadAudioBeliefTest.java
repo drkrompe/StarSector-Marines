@@ -24,6 +24,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SquadAudioBeliefTest {
 
     @Test
+    void alliedGunfireNeverCreatesAnEnemyBeliefOrInvestigationBearing() {
+        for (Faction listener : new Faction[]{Faction.MARINE, Faction.ALLY}) {
+            Faction shooter = listener == Faction.MARINE ? Faction.ALLY : Faction.MARINE;
+            Fixture fixture = fixture(listener, shooter);
+            fixture.sim.setMissionCompletionEnabled(false);
+            fixture.sim.postShot(directShot(fixture.shooter, shooter));
+            fixture.sim.advance(BattleSimulation.TICK_DT);
+            assertTrue(fixture.squad.believedContacts().isEmpty());
+            assertTrue(fixture.squad.audibleBearing() == null);
+            assertEquals(SquadAlertLevel.UNAWARE, fixture.squad.alertLevel);
+            fixture.sim.close();
+        }
+    }
+
+    @Test
     void directFireCreatesImperfectSourceLinkedBeliefForEitherFaction() {
         assertDirectFireBelief(Faction.MARINE, Faction.DEFENDER);
         assertDirectFireBelief(Faction.DEFENDER, Faction.MARINE);

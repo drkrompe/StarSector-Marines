@@ -79,7 +79,7 @@ public class InfantryWeapons {
     /**
      * Per-tick burst-fire pass: every unit with {@code burstRemaining > 0}
      * decrements its {@code burstTimer}; on expiry, fires another shot at the
-     * locked burst target (if still alive) and decrements the count.
+     * locked burst target (if still alive and not friendly) and decrements the count.
      */
     public void tick() {
         // Gather the mid-burst units first (read-only over the dense registry),
@@ -119,7 +119,8 @@ public class InfantryWeapons {
                 if (remaining == 0) roster.combat().setBurstPointAim(id, null);
                 continue;
             }
-            if (!roster.isAliveById(burstTargetId) || weapon == null) {
+            if (!roster.isAliveById(burstTargetId) || weapon == null
+                    || roster.identity().faction(id).friendlyTo(roster.identity().faction(burstTargetId))) {
                 world.setBurstRemaining(id, 0);
                 world.setBurstTargetId(id, 0L);
                 continue;

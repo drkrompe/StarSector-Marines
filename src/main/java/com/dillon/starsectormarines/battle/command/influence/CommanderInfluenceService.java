@@ -338,7 +338,7 @@ public final class CommanderInfluenceService implements AutoCloseable {
             if (squad.faction != faction || squad.aliveMembers <= 0) continue;
             for (BelievedContact belief : squad.believedContacts()) {
                 if (!roster.isLive(belief.unitId())
-                        || identity.faction(belief.unitId()) == faction
+                        || !faction.hostileTo(identity.faction(belief.unitId()))
                         || !identity.type(belief.unitId()).combatant) {
                     continue;
                 }

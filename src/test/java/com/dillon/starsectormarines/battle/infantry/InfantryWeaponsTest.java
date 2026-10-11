@@ -31,6 +31,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InfantryWeaponsTest {
 
+    @Test
+    void staleAlliedBurstIsCancelledBeforeAnotherRoundLeaves() {
+        Fixture f = fixture(ExperienceTier.REGULAR, false);
+        try (BattleSimulation sim = f.sim) {
+            for (Faction faction : new Faction[]{Faction.MARINE, Faction.ALLY}) {
+                long ally = sim.spawn(new EntitySpec("protected", faction, UnitType.MARINE, 8, 8));
+                sim.world().setBurstTargetId(f.shooter, ally);
+                sim.world().setBurstRemaining(f.shooter, 2);
+                sim.world().setBurstTimer(f.shooter, 0f);
+                f.weapons.tick();
+                assertEquals(0, sim.world().burstRemaining(f.shooter));
+                assertEquals(0L, sim.world().burstTargetId(f.shooter));
+                assertTrue(f.shots.getActiveShots().isEmpty());
+                assertEquals(0, sim.telemetry().roundsFired(f.shooter));
+            }
+        }
+    }
+
     private static final int WIDTH = 24;
     private static final int HEIGHT = 12;
     private static final int ROW = 5;

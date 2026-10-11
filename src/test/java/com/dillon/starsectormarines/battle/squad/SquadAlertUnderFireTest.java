@@ -39,6 +39,7 @@ class SquadAlertUnderFireTest {
     void shotIsFilteredAgainstEachCandidateSquadsFaction() {
         BattleSimulation sim = openSim();
         Squad marine = squadAt(sim, Faction.MARINE, 5, 5);
+        Squad ally = squadAt(sim, Faction.ALLY, 5, 6);
         Squad defender = squadAt(sim, Faction.DEFENDER, 6, 5);
 
         sim.postShot(shot(Faction.MARINE, 10.5f, 5.5f, 5.5f, 5.5f));
@@ -46,6 +47,8 @@ class SquadAlertUnderFireTest {
 
         assertFalse(marine._underFireAtLosThisTick,
                 "same-faction incoming fire is ignored");
+        assertFalse(ally._underFireAtLosThisTick,
+                "allied fire is not hostile pressure");
         assertTrue(defender._underFireAtLosThisTick,
                 "the same shot remains hostile to a different nearby squad");
     }

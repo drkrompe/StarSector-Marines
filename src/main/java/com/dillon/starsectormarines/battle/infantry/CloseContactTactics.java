@@ -127,7 +127,7 @@ public final class CloseContactTactics {
         if (target <= 0L || sim.resolveUnit(target) == 0L) return false;
         if (target == unit) return false;
         if (!inContactReach(unit, target, special, sim)) return false;
-        if (sim.identity().faction(target) == sim.identity().faction(unit)) return false;
+        if (!sim.identity().faction(unit).hostileTo(sim.identity().faction(target))) return false;
         return switch (special.aiPolicy()) {
             case CONTACT_BREACH_CHANNEL -> sim.isHardenedTarget(target);
             case CONTACT_REACTION_STRIKE -> isLivingInfantry(target, sim);
