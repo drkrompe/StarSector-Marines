@@ -1420,7 +1420,7 @@ that the ship carries from the muzzle to the ground over the flight time its own
 speed implies, so one clock serves what is drawn crossing the distance and what
 the ground suffers on arrival, and a heavy round lands as the existing heavy
 blast; point-defence-only
-weapons stay silent against ground. A weapon fires at its tightest cone, because
+weapons never fire at ground (see below). A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
 
 **A hull must bring its guns to bear, and a broadside cannot shoot dead ahead.**
@@ -1450,6 +1450,23 @@ Tachyon Lance, lays one committed sweep across the ordered area as that mount
 sees it, walked at the weapon's own traverse rate, kept inside its slot's arc and
 drawn in the weapon's own colours. Weaker beams (the Graviton Beam, the Tactical
 Laser) are anti-ship weapons and stay silent against ground for now.
+
+**A warship's point defence is its own and ignores the order.** The flak,
+vulcans and PD lasers a variant mounts are independent of hold fire and area
+fire. Each mount takes the nearest hostile round in flight inside its reach and
+arc, whichever way the round is headed: the rounds the ground battle already
+tracks that opt in to interception (the same opt-in the carried interceptor pods
+read) and the shells of hostile warships. The umbrella is the mount's reach, so
+a ship covers itself and the ground beneath its guns without being told what to
+protect; it never engages friendly rounds. The barrel swings at the weapon's own
+traverse rate and fires once on its bearing. An engagement is the weapon's burst,
+no faster than about three a second, and the round dies if any shot hits. A shot's
+chance is derived from the weapon, not authored per gun: a beam is hitscan, a
+projectile has a lower base; both fall to half at full reach; a projectile loses
+accuracy against ordnance that crosses fast relative to its own muzzle speed, and
+to its own cone. A miss still spends the engagement, so a heavy salvo saturates
+the mounts and the surplus lands. Interception is not damage: a destroyed round
+never lands. Tracers and kill flashes use the weapon's own colours.
 
 **Ownership is the mission's, not the ship's.** The same entity serves the
 company's own flagship, an allied or neutral hull, and an enemy's. Who may call
