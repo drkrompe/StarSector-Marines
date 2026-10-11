@@ -43,7 +43,7 @@ public final class RelayNineCompound {
         new GenRecipe("Relay Nine", List.of(RelayNineCompound::grounds,
                 RelayNineCompound::buildings, RelayNineCompound::perimeter, RelayNineCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                RelayNineCompound::yardSurfaces, RelayNineCompound::terrain, new FinalizeStage())).run(c);
+                RelayNineCompound::yardSurfaces, RelayNineCompound::serviceYards, RelayNineCompound::terrain, new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 64,
                 10, 9, 40, 65, Faction.MARINE, 20, 0));
@@ -122,6 +122,53 @@ public final class RelayNineCompound {
         shell(c, 96, 47, 117, 57, Frontage.TOP); // Service shop interrupts the direct firing corridor.
         BuildingStamp.T_WORKSHOP.place(c, 148, 82, 2); // Relay maintenance shop, separate from the hall.
         shell(c, 103, 9, 130, 18, Frontage.BOTTOM);
+    }
+    private static void serviceYards(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // North-west freight marshalling has parked haulers, stores and a clear central aisle.
+        yard.gravel(70, 78, 99, 98);
+        yard.fence(70, 78, 99, 98);
+        for (int x : new int[]{73, 82, 91}) {
+            yard.bay(x, 81, x + 5, 88);
+            yard.prop(x + 1, 84, x == 82 ? "parked-flatbed-truck" : "parked-cargo-truck", 1);
+            yard.cargo(x, 93);
+        }
+        // Freight Gate's recessed loading court and its east-side dispatch bays.
+        yard.bay(110, 80, 119, 88);
+        yard.cargo(111, 84);
+        yard.prop(116, 81, "stores-cargo-loader", 0);
+        for (int y : new int[]{82, 93}) {
+            yard.bay(134, y, 142, y + 7);
+            yard.cargo(135, y + 4);
+            yard.prop(140, y + 1, "industrial-cable-reel", 0);
+        }
+        // Maintenance yard beside the T workshop: spare machinery and service vehicles.
+        yard.gravel(165, 80, 183, 99);
+        yard.fence(165, 80, 183, 99);
+        yard.bay(168, 82, 173, 90);
+        yard.prop(169, 86, "parked-utility-truck", 1);
+        yard.bay(176, 82, 181, 90);
+        yard.prop(177, 86, "parked-flatbed-truck", 1);
+        yard.prop(168, 95, "industrial-turbine-set", 0);
+        yard.prop(176, 95, "industrial-machine-tool", 0);
+        yard.prop(179, 95, "industrial-pipe-bundle", 0);
+        // An outdoor power installation explains the switch house and relay demand.
+        // Kept west of Relay Hall, leaving both hall approaches and the south road open.
+        yard.gravel(124, 46, 148, 59);
+        yard.fence(124, 46, 148, 59);
+        for (int x : new int[]{127, 137}) {
+            yard.prop(x, 49, "industrial-turbine-set", 0);
+            yard.prop(x, 55, "industrial-reactor-housing", 0);
+            yard.prop(x + 4, 56, "industrial-switchboard", 0);
+        }
+        yard.prop(145, 49, "industrial-fluid-tank", 0);
+        yard.prop(145, 55, "industrial-pump-set", 1);
+        // Switch-house service recess: small local controls, never across its north entrance.
+        yard.gravel(86, 41, 92, 57);
+        yard.fence(67, 39, 94, 59);
+        yard.prop(87, 53, "industrial-turbine-set", 0);
+        yard.prop(87, 46, "industrial-switchboard", 1);
+        yard.prop(90, 46, "industrial-cable-reel", 0);
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.DEPOT,

@@ -215,6 +215,15 @@ an L-shaped gate depot and smaller maintenance annexes. These substitutions
 keep the original capture-site ordering and retain broad buildings where they
 screen a firing corridor, shelter a reserve or owe dedicated hall entrances.
 Their outdoor cuts remain connected to the surrounding yards and service roads.
+The surrounding ground is part of each facility's program: Junction has vehicle
+inspection, freight staging and warehouse overflow; Relay Nine has a fenced
+switch-house equipment bed, freight marshalling and a maintenance yard. Gravel
+beds, parked haulers, grouped cargo and loading machinery break up the shared
+concrete without filling its circulation space. Yard equipment reserves its
+whole rotated footprint as a visible fixture; floor markings do not obstruct.
+Fence openings preserve cross-yard movement, while thresholds, roads, berths
+and mission destinations remain reachable. A smaller building does not imply
+that its old parcel should become undifferentiated empty pavement.
 
 Building materials are paired wall, floor and accent surfaces, independent of
 the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and
