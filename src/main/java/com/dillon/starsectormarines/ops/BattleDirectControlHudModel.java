@@ -36,7 +36,7 @@ final class BattleDirectControlHudModel {
         this.select = select;
         this.copy = copy;
         for (String key : List.of("healthStyle", "healthClasses", "armorStyle", "weaponsClasses",
-                "allLabel", "allClasses", "exitLabel", "pauseLabel")) {
+                "allLabel", "allClasses", "exitLabel", "pauseLabel", "heatClasses", "heatStyle", "heatLabel", "heatState")) {
             MutableSignal<String> signal = reactor.signal("");
             text.put(key, signal);
             if (key.equals("exitLabel") || key.equals("pauseLabel")) actionsProps.put(key, signal);
@@ -58,6 +58,14 @@ final class BattleDirectControlHudModel {
         boolean mech = snapshot.carrier() == BattleDirectControlStatus.Carrier.MECH;
         var durability = snapshot.durability();
         reactor.untracked(() -> {
+            var heat = snapshot.heat();
+            float heatValue = heat == null ? 0f : heat.value();
+            boolean venting = heat != null && heat.venting();
+            set("heatClasses", mech ? "heat" : "heat heat-hidden");
+            set("heatLabel", "HEAT " + Math.round(heatValue) + "%");
+            set("heatState", venting ? "VENTING" : heatValue >= 75f ? "HOT - EASE FIRE" : "BURST RESERVE");
+            set("heatStyle", width(heatValue / 100f) + " background-color: "
+                    + (venting ? "#ef7962" : heatValue >= 75f ? "#eab152" : "#b6c79b") + ";");
             set("healthStyle", width(durability.hpFraction()));
             set("healthClasses", "health-fill" + (durability.hpFraction() <= .25f ? " capacity-low" : ""));
             set("armorStyle", width(durability.armorFraction()));
@@ -78,9 +86,14 @@ final class BattleDirectControlHudModel {
                     state += " " + weapon.burstRemaining();
                 }
                 if (enabled && weapon.state() == BattleDirectControlStatus.WeaponState.CYCLING) {
-                    state = String.format(Locale.ROOT, "%.1fs", weapon.cooldownSeconds());
+                    state = (mech ? weapon.mechanism() + " " : "")
+                            + String.format(Locale.ROOT, "%.1fs", weapon.cooldownSeconds());
                 }
-                String stateClasses = "weapon-state";
+                boolean thermal = enabled && weapon.thermalBlocked()
+                        && weapon.state() != BattleDirectControlStatus.WeaponState.BURST
+                        && weapon.state() != BattleDirectControlStatus.WeaponState.EMPTY;
+                if (thermal) state = "HEAT";
+                String stateClasses = "weapon-state" + (thermal ? " weapon-empty" : "");
                 if (weapon.state() == BattleDirectControlStatus.WeaponState.EMPTY) stateClasses += " weapon-empty";
                 else if (weapon.state() != BattleDirectControlStatus.WeaponState.LOADED) stateClasses += " weapon-busy";
                 String style = "opacity: " + (enabled ? "1" : "0.6") + ";";

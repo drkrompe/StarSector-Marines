@@ -9,7 +9,8 @@ public final class MechWeaponMount {
     public final MechMountSlot slot;
     public final MechWeaponComponent component;
     public int ammo;
-    public float cooldown;
+    /** Mechanical loader/cycler time remaining; never the chassis heat reservoir. */
+    public float cycleRemaining;
     public int burstRemaining;
     public float burstTimer;
     public long burstTargetId;
@@ -76,7 +77,7 @@ public final class MechWeaponMount {
     /** Commits one emitted trigger; ammunition counts trigger packs, not individual rounds. */
     public void commitTrigger(long target, PointFireAim point) {
         consumeTrigger();
-        cooldown = weaponDef().cooldown;
+        cycleRemaining = component.cycleSeconds();
         burstRemaining = Math.max(0, component.projectilesPerTrigger - 1);
         burstTimer = burstRemaining > 0 ? weaponDef().burstSpacing : 0f;
         burstTargetId = burstRemaining > 0 && point == null ? target : 0L;

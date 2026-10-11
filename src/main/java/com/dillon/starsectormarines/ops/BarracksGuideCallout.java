@@ -4,15 +4,20 @@ import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiSpotlight;
+import com.dillon.starsectormarines.ui.retained.UiSpotlight.Region;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Non-blocking portrait guidance anchored to the next real control. */
+/** Portrait guidance beside live spotlight regions for the next real order. */
 final class BarracksGuideCallout {
     private final UiDocument document;
     private final MarkupInstance markup;
     private final BarracksCommandModel command;
+    private final UiSpotlight spotlight;
     private String previousTarget;
     private Rect previousViewport;
     private String previousPlacement = "";
@@ -22,6 +27,9 @@ final class BarracksGuideCallout {
         this.document = document;
         this.markup = markup;
         this.command = command;
+        spotlight = new UiSpotlight(document, markup.requireElement("guide-spotlight"),
+                markup.requireElement("barracks-guide"), command::guideVisible,
+                this::regions);
     }
 
     static BarracksGuideCallout bind(UiDocument document, MarkupInstance markup, BarracksCommandModel command, Runnable cancel) {
@@ -39,6 +47,7 @@ final class BarracksGuideCallout {
         if (!command.guideVisible()) {
             highlight("width: 0px; height: 0px; border-width: 0px;", highlight);
             previousTarget = null;
+            spotlight.update();
             document.advance(0f);
             return;
         }
@@ -49,14 +58,12 @@ final class BarracksGuideCallout {
             previousTarget = id;
             previousViewport = document.viewport();
         }
-        Rect visible = target.box().borderBox().intersect(document.viewport());
-        for (UiElement parent = target.parent(); parent != null; parent = parent.parent()) {
-            if (parent.overflow() != Overflow.VISIBLE) visible = visible.intersect(parent.box().contentBox());
-        }
+        Rect visible = UiSpotlight.visibleBounds(document, target);
         Rect view = document.viewport();
         float width = Math.min(528, view.width() - 16);
-        float height = Math.min(300, view.height() - 16);
-        Rect position = place(visible, view, width, height);
+        float height = Math.min(260, view.height() - 16);
+        List<Rect> regions = regions().stream().map(region -> UiSpotlight.regionBounds(document, region)).toList();
+        Rect position = place(visible, regions, view, width, height);
         // CSS dimensions describe the content box; placement uses the complete outer box.
         String placement = geometry(position, 28);
         if (!placement.equals(previousPlacement)) {
@@ -66,6 +73,13 @@ final class BarracksGuideCallout {
         highlight(visible.width() <= 0 || visible.height() <= 0 ? "width: 0px; height: 0px; border-width: 0px;"
                 : geometry(visible, 6) + "border-width: 3px; border-color: #ffd979;", highlight);
         document.advance(0f);
+        spotlight.update();
+        document.advance(0f);
+    }
+
+    private List<Region> regions() {
+        return command.guideRegions().stream()
+                .map(ids -> new Region(ids.stream().map(markup::requireElement).toList())).toList();
     }
 
     private void highlight(String style, UiElement highlight) {
@@ -88,20 +102,34 @@ final class BarracksGuideCallout {
         }
     }
 
-    static Rect place(Rect target, Rect view, float width, float height) {
-        List<Rect> candidates = List.of(new Rect(target.right() + 12, target.y(), width, height),
+    static Rect place(Rect target, List<Rect> regions, Rect view, float width, float height) {
+        List<Rect> candidates = new ArrayList<>(List.of(new Rect(target.right() + 12, target.y(), width, height),
                 new Rect(target.x() - width - 12, target.y(), width, height),
                 new Rect(target.x(), target.bottom() + 12, width, height),
-                new Rect(target.x(), target.y() - height - 12, width, height));
+                new Rect(target.x(), target.y() - height - 12, width, height),
+                new Rect(8, 8, width, height), new Rect(view.width() - width - 8, 8, width, height),
+                new Rect(8, view.height() - height - 8, width, height)));
+        for (Rect region : regions) {
+            candidates.add(new Rect(region.x() - width - 12, region.y(), width, height));
+            candidates.add(new Rect(region.right() + 12, region.y(), width, height));
+        }
         Rect best = null;
         float leastOverlap = Float.MAX_VALUE;
+        float leastRegionOverlap = Float.MAX_VALUE;
         for (Rect candidate : candidates) {
             Rect clamped = new Rect(Math.max(8, Math.min(candidate.x(), view.width() - width - 8)),
                     Math.max(8, Math.min(candidate.y(), view.height() - height - 8)), width, height);
             Rect overlap = clamped.intersect(target);
             float area = overlap.width() * overlap.height();
-            if (area < leastOverlap) { best = clamped; leastOverlap = area; }
-            if (area == 0) break;
+            float regionArea = 0;
+            for (Rect region : regions) {
+                Rect covered = clamped.intersect(region);
+                regionArea += covered.width() * covered.height();
+            }
+            if (area < leastOverlap || area == leastOverlap && regionArea < leastRegionOverlap) {
+                best = clamped; leastOverlap = area; leastRegionOverlap = regionArea;
+            }
+            if (area == 0 && regionArea == 0) break;
         }
         return best;
     }

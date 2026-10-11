@@ -302,6 +302,11 @@ public final class MovementService {
      */
     public void moveDirectMech(long id, NavigationGrid grid, float axisX, float axisY,
                                float radius, float dt) {
+        moveDirectMech(id, grid, axisX, axisY, radius, dt, Float.NaN, Float.NaN);
+    }
+
+    public void moveDirectMech(long id, NavigationGrid grid, float axisX, float axisY,
+                               float radius, float dt, float aimX, float aimY) {
         if (!Float.isFinite(axisX) || !Float.isFinite(axisY)
                 || !Float.isFinite(radius) || radius <= 0f
                 || !Float.isFinite(dt) || dt < 0f) {
@@ -311,10 +316,17 @@ public final class MovementService {
         MechLoadoutComponent loadout = (MechLoadoutComponent) entityWorld.getObject(id,
                 components.MECH_LOADOUT, BattleComponents.MECH_LOADOUT_STATE);
         ManualMechDrive drive = loadout.manualDrive;
-        ManualMechDrive.Step step = drive.advance(axisX, axisY, moveSpeed(id),
-                loadout.variant.relativeMass, dt);
         float x = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_X);
         float y = entityWorld.getFloat(id, components.POSITION, BattleComponents.POSITION_Y);
+        boolean aiming = Float.isFinite(aimX) && Float.isFinite(aimY)
+                && Math.hypot(aimX - x, aimY - y) > .1f;
+        if (aiming) MechLocomotion.turnToward(entityWorld, components, id,
+                MechLocomotion.continuousFacing(aimX - x, aimY - y), dt);
+        float facing = entityWorld.getFloat(id, components.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+        ManualMechDrive.Step step = aiming
+                ? drive.advanceFacing(axisX, axisY, moveSpeed(id), loadout.variant.relativeMass, facing, dt)
+                : drive.advance(axisX, axisY, moveSpeed(id), loadout.variant.relativeMass, dt);
         ManualTerrainMotion.Result result = ManualTerrainMotion.move(grid, x, y,
                 step.dx(), step.dy(), radius);
         // The sweep reports position differences: compare against the same float
@@ -327,9 +339,9 @@ public final class MovementService {
             headingX = axisX;
             headingY = axisY;
         }
-        if (headingX == 0f && headingY == 0f) {
+        if (!aiming && headingX == 0f && headingY == 0f) {
             MechLocomotion.stopTurning(entityWorld, components, id, dt);
-        } else {
+        } else if (!aiming) {
             MechLocomotion.turnToward(entityWorld, components, id,
                     MechLocomotion.continuousFacing(headingX, headingY), dt);
         }

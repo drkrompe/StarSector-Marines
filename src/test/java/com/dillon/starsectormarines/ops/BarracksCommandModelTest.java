@@ -85,7 +85,11 @@ class BarracksCommandModelTest {
                 var panel = instance.requireElement("barracks-guide").box().borderBox();
                 assertEquals(0, panel.intersect(target).width() * panel.intersect(target).height());
                 document.requestFocus(instance.requireElement("barracks-select-all"), true);
-                assertEquals("barracks-select-all", document.focusedElement().id(), "Keyboard focus can leave the guide");
+                assertEquals("barracks-select-all", document.focusedElement().id(), "Keyboard focus can reach a highlighted region");
+                assertThrows(IllegalArgumentException.class,
+                        () -> document.requestFocus(instance.requireElement("barracks-organization"), true));
+                click(document, instance, "barracks-organization");
+                assertEquals("barracks-choose-donors", model.guideTargetId(), "Darkened organization controls do not activate");
                 document.keyPressed(UiKey.ESCAPE, Set.of(), false);
                 instance.flush(); document.advance(0f); guide.update();
                 assertFalse(model.guideVisible());

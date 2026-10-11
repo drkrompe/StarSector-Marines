@@ -73,10 +73,13 @@ class WarshipFittingTest {
     void aVariantArmsTheSlotsItNames() throws Exception {
         install();
         Warship ship = Warship.fit("test", "test_Standard", Faction.MARINE, 10f, 10f, 0f);
-        // The flak slot is point defence only, so it stays empty.
-        assertEquals(2, ship.mounts().size(), TABLE_NOTE);
+        // The flak slot is point defence only: mounted, but not an area-fire gun.
+        assertEquals(3, ship.mounts().size(), TABLE_NOTE);
         assertEquals("tpc", ship.mounts().get(0).weapon.id());
         assertEquals("devastator", ship.mounts().get(1).weapon.id());
+        assertEquals("flak", ship.mounts().get(2).weapon.id());
+        assertFalse(ship.mounts().get(1).pointDefence());
+        assertTrue(ship.mounts().get(2).pointDefence());
     }
 
     @Test
