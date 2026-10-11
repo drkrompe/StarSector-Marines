@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
@@ -41,17 +43,22 @@ final class SquadDensityProbe {
                    int densestBlock, String topTargets) { }
 
     private final List<Reading> readings = new ArrayList<>();
+    /** What squads that stood within {@link #LINK_RADIUS} of another were doing, over the run. */
+    private final Map<Faction, Map<String, Integer>> linkedProfile = new HashMap<>();
 
     void sample(BattleSimulation sim) {
         int tick = sim.getSimTickIndex();
         if (tick % SAMPLE_EVERY_TICKS != 0) return;
         for (Faction faction : new Faction[] {Faction.MARINE, Faction.DEFENDER}) {
-            readings.add(read(sim, tick, faction));
+            readings.add(read(sim, tick, faction, linkedProfile
+                    .computeIfAbsent(faction, f -> new HashMap<>())));
         }
     }
 
-    private static Reading read(BattleSimulation sim, int tick, Faction faction) {
+    private static Reading read(BattleSimulation sim, int tick, Faction faction,
+                                Map<String, Integer> profile) {
         List<float[]> centroids = new ArrayList<>();
+        List<String> doing = new ArrayList<>();
         Map<String, Integer> perTarget = new HashMap<>();
         Map<Long, Integer> blocks = new HashMap<>();
         int bodies = 0;
@@ -73,6 +80,7 @@ final class SquadDensityProbe {
             }
             bodies += n;
             centroids.add(new float[] {sx / n, sy / n});
+            doing.add(describe(sim, squad, sx / n, sy / n));
             ObjectiveAssignment task = squad.assignedObjective;
             if (task != null) {
                 assigned++;
@@ -80,6 +88,10 @@ final class SquadDensityProbe {
             }
         }
         int[] cluster = clusters(centroids, LINK_RADIUS);
+        boolean[] linked = linkedFlags(centroids, LINK_RADIUS);
+        for (int i = 0; i < linked.length; i++) {
+            if (linked[i]) profile.merge(doing.get(i), 1, Integer::sum);
+        }
         int maxTarget = 0;
         for (int v : perTarget.values()) maxTarget = Math.max(maxTarget, v);
         int densest = 0;
@@ -97,6 +109,52 @@ final class SquadDensityProbe {
                 .limit(3)
                 .map(e -> e.getKey() + "=" + e.getValue())
                 .collect(Collectors.joining(" "));
+    }
+
+    /**
+     * What a squad is doing, in terms of where a clump forms: its current
+     * action, and whether it stands in, near or far from the zone it was sent
+     * to. A reading only, so the 18-cell "near" is an approximation.
+     */
+    private static String describe(BattleSimulation sim, Squad squad, float cx, float cy) {
+        SquadPlan plan = squad.currentPlan;
+        SquadPlan.Step step = plan != null ? plan.currentStep() : null;
+        String action = step == null ? "no-plan"
+                : step.action.name().replaceAll("\\[.*", "");
+        ObjectiveAssignment task = squad.assignedObjective;
+        String where = "no-zone";
+        if (task != null && task.targetZoneId() >= 0) {
+            if (sim.getZoneGraph().zoneIdAt((int) cx, (int) cy) == task.targetZoneId()) {
+                where = "in-zone";
+            } else {
+                int[] cell = ApertureSpread.roomCell(
+                        sim.getZoneGraph().zoneById(task.targetZoneId()),
+                        sim.getGrid(), 0);
+                if (cell != null) {
+                    float dx = cell[0] + 0.5f - cx;
+                    float dy = cell[1] + 0.5f - cy;
+                    where = dx * dx + dy * dy <= 18 * 18 ? "near<=18" : "far>18";
+                }
+            }
+        }
+        return action + " / " + where;
+    }
+
+    /** For each point, whether another lies within the radius. */
+    static boolean[] linkedFlags(List<float[]> points, float radius) {
+        int n = points.size();
+        boolean[] linked = new boolean[n];
+        float r2 = radius * radius;
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                float dx = points.get(i)[0] - points.get(j)[0];
+                float dy = points.get(i)[1] - points.get(j)[1];
+                if (dx * dx + dy * dy > r2) continue;
+                linked[i] = true;
+                linked[j] = true;
+            }
+        }
+        return linked;
     }
 
     /** What a task points at: the zone, node or cell its kind is scoped to. */
@@ -188,6 +246,12 @@ final class SquadDensityProbe {
                         r.tick, r.squads, r.linkedSquads, r.largestCluster,
                         r.maxSquadsOnOneTarget, r.densestBlock, r.topTargets));
             }
+            out.append("Linked squads were doing (squad-samples):\n\n");
+            linkedProfile.getOrDefault(faction, Map.of()).entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                    .limit(8)
+                    .forEach(e -> out.append("- ").append(e.getKey()).append(": ")
+                            .append(e.getValue()).append('\n'));
             out.append('\n');
         }
         return out.toString();

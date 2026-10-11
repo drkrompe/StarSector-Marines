@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.action;
 
+import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -783,6 +784,12 @@ abstract class AbstractZoneAction implements Action {
         if (cells.length == 0) return null;
         int pick = cells[cells.length / 2];
         return new int[]{ pick % grid.getWidth(), pick / grid.getWidth() };
+    }
+
+    /** {@link #interiorCellOf(int, BattleView)}, aimed at this squad's own cell when spread is on. */
+    protected static int[] interiorCellOf(int zoneId, BattleView sim, Squad squad) {
+        return ApertureSpread.roomCell(sim.getZoneGraph().zoneById(zoneId),
+                sim.getGrid(), ApertureSpread.variant(squad));
     }
 
     /** {@link #interiorCell} resolved from a zone id against the live graph/grid. */

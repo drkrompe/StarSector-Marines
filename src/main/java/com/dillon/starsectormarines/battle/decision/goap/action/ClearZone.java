@@ -57,7 +57,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
 
     @Override
     public Goal squadRouteGoal(Squad squad, BattleView sim) {
-        int[] interior = interiorCellOf(targetZoneId, sim);
+        int[] interior = interiorCellOf(targetZoneId, sim, squad);
         return interior == null ? null : new Goal(interior[0], interior[1]);
     }
 
@@ -93,7 +93,7 @@ public final class ClearZone extends AbstractZoneAction implements SquadRouteGoa
         // zone consolidates in — firing suppressively while it moves — before
         // it engages. Don't clear the room from the doorway.
         if (!memberInZone(member, sim)) {
-            int[] interior = interiorCellOf(targetZoneId, sim);
+            int[] interior = interiorCellOf(targetZoneId, sim, squad);
             if (interior != null) {
                 advanceIntoZone(member, squad, sim, interior[0], interior[1], false);
             }
