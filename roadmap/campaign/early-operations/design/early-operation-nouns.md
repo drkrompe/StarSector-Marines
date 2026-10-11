@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — opening-operation transport berths share one campaign-squad arrival area.
+Updated: 2026-10-11 — Mara's narration covers both story arcs; attempt identities resolve to stable chapters.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -451,15 +451,25 @@ mission identity chooses story-specific content, so a recurring job cannot
 replay Mara's historic chapter dialogue accidentally.
 
 The battle publishes facts without running presentation callbacks or consuming
-randomness. The Wayline chapters map their public keys to Mara Venn's recorded
-dialogue after simulation advance, under the shared radio budget in
-`battle-radio-nouns.md`. Both chapter briefings play on entry with Replay and
-Stop controls; readable briefing text remains available. Battle lines cover
-start, actual landings, place proximity and the original Relief militia's
-losses. Hidden wave and defender-order facts remain silent. Completion cancels
-outstanding tactical instructions; settlement text owns the outcome message.
-Recurring jobs and the later Broken Supply Route campaign do not reuse these
-recordings.
+randomness. Both story arcs map public keys to Mara Venn's recorded dialogue
+after simulation advance, with mission-speech precedence as defined in
+`battle-radio-nouns.md`. All six chapter briefings play on entry with Replay
+and Stop controls; readable briefing text remains available. Mara gives the
+operational radio briefing for Rill in her own voice; Iona remains its written
+correspondent.
+
+Battle lines cover starts, actual landings, place proximity, Relief militia
+losses, territorial gains and reversals, established militia holds, escort
+progress and holds, convoy releases, and individual freight delivery or loss.
+Hidden wave and defender-order facts remain silent. Completion cancels
+outstanding tactical instructions; settlement text owns terminal outcomes and
+the evacuation cohort's resolution, including its last boarding. These facts
+do not promise that every worker survived or every load arrived.
+
+Broken Supply Route's historical job resolves each valid attempt identity to
+one stable chapter recording set. Repeat attempts reuse wording that remains
+true when only stranded workers or unresolved loads return. Branch-choice
+dossiers and recurring jobs cannot replay historical chapter narration.
 
 Mara's cast assignment is Mora - Gritty and Enigmatic, ElevenLabs voice
 `YHcCpa6SBWnKDaCPZJQR`, recorded with `eleven_v4`. The narration catalog retains

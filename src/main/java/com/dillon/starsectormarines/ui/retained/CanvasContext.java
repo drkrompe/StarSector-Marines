@@ -161,6 +161,12 @@ public abstract class CanvasContext {
                 angleDegrees, requireColor(tint), region, blend);
     }
 
+    /** Host adapters may draw a textured subcell quad; vertices are normalized, Y-up. */
+    public void spritePatch(String path,float cx,float cy,float width,float height,
+                            Color tint,CanvasSpriteRegion region,float[] vertices) {
+        throw new UnsupportedOperationException("Textured patches require a supporting host adapter");
+    }
+
     /** Compatibility overload for producers that do not yet retain an asset path. */
     public final void sprite(SpriteAPI liveSprite, float centerX, float centerY,
                              float width, float height, float angleDegrees, Color tint) {

@@ -297,6 +297,7 @@ public final class BattleSetup {
         sim.addNatureOverlayCover(TileRegistry.installed());
         sim.setTacticalMap(map.tacticalMap);
         sim.setBuildings(map.buildings);
+        sim.setMarineLandingPads(map.landingPads);
         sim.setDefensePosts(defensePosts);
         // The map's own statement of where the front is, so the trace can say
         // which band a compound stands in without re-deriving it.
@@ -533,6 +534,7 @@ public final class BattleSetup {
      */
     private static void stampLzPads(BattleSimulation sim, List<LandingPad> lzCells) {
         for (LandingPad lz : lzCells) {
+            if(lz.purpose==LandingPad.Purpose.FREIGHT_APRON)continue;
             sim.addDoodad(new Doodad(lz.centerX, lz.centerY, TileManifest.lzPad(), true, Doodad.COVER_NONE));
         }
         sim.setMarineLandingPads(lzCells);

@@ -43,7 +43,7 @@ public final class JunctionCompound {
                 JunctionCompound::yardSurfaces, new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
-                10, 24, 34, 87, Faction.MARINE, 20, 0));
+                10, 9, 40, 60, Faction.MARINE, 20, 0));
         TacticalNode.Kind[] kinds = {TacticalNode.Kind.BARRACKS, TacticalNode.Kind.ARMORY, TacticalNode.Kind.COMMAND_POST};
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
@@ -81,15 +81,13 @@ public final class JunctionCompound {
         }
         // Swept eastern fork and service access share one authored centerline source.
 
+        yardSurfaces(c);
         var roads = RoadCatalog.plan(RoadCatalog.JUNCTION);
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
-        for (int y : new int[]{31, 43, 55, 67, 79}) {
-            LandingPad pad = new LandingPad(21, y, 3, 3, LandingPad.Approach.WEST);
-            c.landingPads.add(pad);
-            for (int py = pad.bottom(); py <= pad.top(); py++) for (int px = pad.left(); px <= pad.right(); px++)
-                if (px == pad.left() || px == pad.right() || py == pad.bottom() || py == pad.top())
-                    c.topology.setGroundKind(px, py, GroundKind.STRIPED);
-        }
+        // Staggered, elongated stands fit the player boats on one terminal apron.
+        int[][] stands = {{18,50},{32,43},{18,36},{32,29},{18,22},{32,15}};
+        for(int i=0;i<5;i++) c.landingPads.add(new LandingPad(stands[i][0],stands[i][1],
+                8,3,LandingPad.Approach.WEST,LandingPad.Purpose.FREIGHT_APRON));
         for (int x = 96; x < 160; x += 8) pave(c, x, 25, x + 3, 29, GroundKind.STRIPED);
     }
     private static boolean roundedYard(int x, int y, int inset) {

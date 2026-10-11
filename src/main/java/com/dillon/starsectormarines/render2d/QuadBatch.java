@@ -215,6 +215,19 @@ public final class QuadBatch {
         quadCount++;
     }
 
+    /** Clipped tile vertices preserve its original planar texture coordinates. */
+    public void appendPatch(int sx,int sy,int sw,int sh,float cx,float cy,float w,float h,
+                            float r,float g,float b,float a,float[] patch) {
+        ensureCapacity(quadCount+1);int at=quadCount*8;
+        for(int i=0;i<8;i+=2) {
+            float x=patch[i],y=patch[i+1];
+            posData[at+i]=cx+(x-.5f)*w;posData[at+i+1]=cy+(y-.5f)*h;
+            uvData[at+i]=(sx+x*sw)/sheetPxW*sheet.getTextureWidth();
+            uvData[at+i+1]=sheet.getTextureHeight()-(sy+(1-y)*sh)/sheetPxH*sheet.getTextureHeight();
+        }
+        writeQuadColor(r,g,b,a);quadCount++;
+    }
+
     /** Writes the BL/BR/TR/TL corners of an axis-aligned dst rect at {@link #quadCount}. */
     private void writeAxisAlignedQuad(float dstCx, float dstCy, float dstW, float dstH) {
         float halfW = dstW * 0.5f;

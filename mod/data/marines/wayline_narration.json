@@ -182,6 +182,629 @@
         "opening.counterattack.started",
         "opening.counterattack.player_landed"
       ]
+    },
+    {
+      "id": "marines_mara_junction_briefing",
+      "missionId": "story_supply_route_junction",
+      "event": "briefing",
+      "text": "Wayline has its depot back, but both outlying roads are cut. Our dispatch coordinator needs the junction opened. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while your company pushes forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
+      "synthesisText": "Wayline has its depot back, but both outlying roads are cut. Our dispatch coordinator needs the junction opened. Capture Weigh Station, Freight Yard, and Junction Dispatch, and keep the western turnout secure. Six militia will hold your gains while your company pushes forward. Twelve thousand credits on success. Then we decide which stranded crew we can support. Let's get that junction working for us.",
+      "durationSeconds": 25.84,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_started",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.started",
+      "text": "Mara here. Open the junction, Captain. Keep the western turnout secure as you advance.",
+      "synthesisText": "Mara here. Open the junction, Captain. Keep the western turnout secure as you advance.",
+      "durationSeconds": 5.76,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_player_landed",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.player_landed",
+      "text": "Your people are down. Work through the junction and hold what you take.",
+      "synthesisText": "Your people are down. Work through the junction and hold what you take.",
+      "durationSeconds": 4.8,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.junction.started"
+      ]
+    },
+    {
+      "id": "marines_mara_junction_employer_landed",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.employer_landed",
+      "text": "Wayline militia have landed. They'll help hold the ground your company takes.",
+      "synthesisText": "Wayline militia have landed. They'll help hold the ground your company takes.",
+      "durationSeconds": 4.88,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_militia_hold_established",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.militia_hold_established",
+      "text": "Our militia are in position on secured ground. Keep the advance moving.",
+      "synthesisText": "Our militia are in position on secured ground. Keep the advance moving.",
+      "durationSeconds": 4.8,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_weigh_station_secured",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.weigh_station_secured",
+      "text": "Weigh Station is ours. Keep it covered as you move on.",
+      "synthesisText": "Weigh Station is ours. Keep it covered as you move on.",
+      "durationSeconds": 4.0,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_freight_yard_secured",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.freight_yard_secured",
+      "text": "Freight Yard is ours. Keep the approach open.",
+      "synthesisText": "Freight Yard is ours. Keep the approach open.",
+      "durationSeconds": 3.36,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_dispatch_secured",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.dispatch_secured",
+      "text": "Junction Dispatch is ours. Hold it, and make sure the other sites stay ours.",
+      "synthesisText": "Junction Dispatch is ours. Hold it, and make sure the other sites stay ours.",
+      "durationSeconds": 5.84,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_turnout_retaken",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.turnout_retaken",
+      "text": "We've lost the western turnout. Get it back, Captain.",
+      "synthesisText": "We've lost the western turnout. Get it back, Captain.",
+      "durationSeconds": 3.36,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_junction_weigh_station_retaken",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.weigh_station_retaken",
+      "text": "We've lost Weigh Station. Get it back, Captain.",
+      "synthesisText": "We've lost Weigh Station. Get it back, Captain.",
+      "durationSeconds": 3.36,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.junction.weigh_station_secured"
+      ]
+    },
+    {
+      "id": "marines_mara_junction_freight_yard_retaken",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.freight_yard_retaken",
+      "text": "We've lost Freight Yard. Get it back, Captain.",
+      "synthesisText": "We've lost Freight Yard. Get it back, Captain.",
+      "durationSeconds": 3.12,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.junction.freight_yard_secured"
+      ]
+    },
+    {
+      "id": "marines_mara_junction_dispatch_retaken",
+      "missionId": "story_supply_route_junction",
+      "event": "supply_route.junction.dispatch_retaken",
+      "text": "We've lost Junction Dispatch. Get it back, Captain.",
+      "synthesisText": "We've lost Junction Dispatch. Get it back, Captain.",
+      "durationSeconds": 3.6,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.junction.dispatch_secured"
+      ]
+    },
+    {
+      "id": "marines_mara_last_lift_briefing",
+      "missionId": "story_supply_route_last_lift",
+      "event": "briefing",
+      "text": "We're going back for the crew at Rill. Reach the motor pool and escort the stranded workers across the loading street to the southern apron. Six militia cover the shelter approach. The pickup has twelve seats reserved for civilians, separate from your insertion boats. Keep an escort close and protect them while they board. Four thousand credits, plus five hundred for each person recovered across the job, paid when the rescue is complete. Dispatch tracks everyone brought home or confirmed lost. If you have to pull back, we return for those still stranded.",
+      "synthesisText": "We're going back for the crew at Rill. Reach the motor pool and escort the stranded workers across the loading street to the southern apron. Six militia cover the shelter approach. The pickup has twelve seats reserved for civilians, separate from your insertion boats. Keep an escort close and protect them while they board. Four thousand credits, plus five hundred for each person recovered across the job, paid when the rescue is complete. Dispatch tracks everyone brought home or confirmed lost. If you have to pull back, we return for those still stranded.",
+      "durationSeconds": 33.36,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_last_lift_start",
+      "missionId": "story_supply_route_last_lift",
+      "event": "supply_route.last_lift.start",
+      "text": "Mara here. Reach Rill's motor pool and bring the stranded crew to the pickup.",
+      "synthesisText": "Mara here. Reach Rill's motor pool and bring the stranded crew to the pickup.",
+      "durationSeconds": 4.64,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_last_lift_crew_contacted",
+      "missionId": "story_supply_route_last_lift",
+      "event": "supply_route.last_lift.crew_contacted",
+      "text": "You've made contact with the crew. Secure the way out and stay close.",
+      "synthesisText": "You've made contact with the crew. Secure the way out and stay close.",
+      "durationSeconds": 4.56,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.last_lift.start"
+      ]
+    },
+    {
+      "id": "marines_mara_last_lift_crew_released",
+      "missionId": "story_supply_route_last_lift",
+      "event": "supply_route.last_lift.crew_released",
+      "text": "The crew are moving. Keep an escort with them all the way to the pickup.",
+      "synthesisText": "The crew are moving. Keep an escort with them all the way to the pickup.",
+      "durationSeconds": 4.24,
+      "priority": 25,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.last_lift.start",
+        "supply_route.last_lift.crew_contacted"
+      ]
+    },
+    {
+      "id": "marines_mara_last_lift_crossing_cleared",
+      "missionId": "story_supply_route_last_lift",
+      "event": "supply_route.last_lift.crossing_cleared",
+      "text": "The remaining crew are across the loading street. Keep them covered to the apron.",
+      "synthesisText": "The remaining crew are across the loading street. Keep them covered to the apron.",
+      "durationSeconds": 4.72,
+      "priority": 30,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.last_lift.crew_released"
+      ]
+    },
+    {
+      "id": "marines_mara_last_lift_first_boarding",
+      "missionId": "story_supply_route_last_lift",
+      "event": "supply_route.last_lift.first_boarding",
+      "text": "Boarding has started. Protect the pickup and anyone still outside.",
+      "synthesisText": "Boarding has started. Protect the pickup and anyone still outside.",
+      "durationSeconds": 4.48,
+      "priority": 35,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.last_lift.crew_released",
+        "supply_route.last_lift.crossing_cleared"
+      ]
+    },
+    {
+      "id": "marines_mara_last_lift_escort_hold",
+      "missionId": "story_supply_route_last_lift",
+      "event": "supply_route.last_lift.escort_hold",
+      "text": "The crew have stopped. Check their escort and clear the way ahead.",
+      "synthesisText": "The crew have stopped. Check their escort and clear the way ahead.",
+      "durationSeconds": 4.0,
+      "priority": 40,
+      "expiresSeconds": 12,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_briefing",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "briefing",
+      "text": "Relay Nine is our next stop. Capture Power Yard, Freight Gate, and Relay Hall, and keep the landing apron secure. Eight militia will hold secured ground while your company advances. Expect the raiders to try to take it back. Sixteen thousand credits on success. Secure the relay, and we can bring our freight through on Thunder Run. The convoy still has to make it down that road before we can fund regular security work.",
+      "synthesisText": "Relay Nine is our next stop. Capture Power Yard, Freight Gate, and Relay Hall, and keep the landing apron secure. Eight militia will hold secured ground while your company advances. Expect the raiders to try to take it back. Sixteen thousand credits on success. Secure the relay, and we can bring our freight through on Thunder Run. The convoy still has to make it down that road before we can fund regular security work.",
+      "durationSeconds": 25.76,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_started",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.started",
+      "text": "Mara here. Secure Relay Nine, Captain. Keep a way back to the landing apron.",
+      "synthesisText": "Mara here. Secure Relay Nine, Captain. Keep a way back to the landing apron.",
+      "durationSeconds": 5.52,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_player_landed",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.player_landed",
+      "text": "Your people are on the ground. Take the relay sites and keep them ours.",
+      "synthesisText": "Your people are on the ground. Take the relay sites and keep them ours.",
+      "durationSeconds": 4.96,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.started"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_employer_landed",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.employer_landed",
+      "text": "Our militia are down. They'll help hold secured ground behind your advance.",
+      "synthesisText": "Our militia are down. They'll help hold secured ground behind your advance.",
+      "durationSeconds": 5.04,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_power_yard_secured",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.power_yard_secured",
+      "text": "Power Yard is secured. Keep it covered.",
+      "synthesisText": "Power Yard is secured. Keep it covered.",
+      "durationSeconds": 2.88,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_power_yard_militia_holding",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.power_yard_militia_holding",
+      "text": "Our militia are holding Power Yard. Keep them supported.",
+      "synthesisText": "Our militia are holding Power Yard. Keep them supported.",
+      "durationSeconds": 3.84,
+      "priority": 25,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_freight_gate_secured",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.freight_gate_secured",
+      "text": "Freight Gate is secured. Keep it covered.",
+      "synthesisText": "Freight Gate is secured. Keep it covered.",
+      "durationSeconds": 2.8,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_freight_gate_militia_holding",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.freight_gate_militia_holding",
+      "text": "Our militia are holding Freight Gate. Keep them supported.",
+      "synthesisText": "Our militia are holding Freight Gate. Keep them supported.",
+      "durationSeconds": 3.84,
+      "priority": 25,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_relay_hall_secured",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.relay_hall_secured",
+      "text": "Relay Hall is secured. Keep it covered.",
+      "synthesisText": "Relay Hall is secured. Keep it covered.",
+      "durationSeconds": 3.04,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_relay_hall_militia_holding",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.relay_hall_militia_holding",
+      "text": "Our militia are holding Relay Hall. Keep them supported.",
+      "synthesisText": "Our militia are holding Relay Hall. Keep them supported.",
+      "durationSeconds": 4.0,
+      "priority": 25,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_apron_retaken",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.apron_retaken",
+      "text": "The raiders have retaken the landing apron. We need that ground back.",
+      "synthesisText": "The raiders have retaken the landing apron. We need that ground back.",
+      "durationSeconds": 4.72,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relay_nine_apron_restored",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.apron_restored",
+      "text": "We've recovered the landing apron. Hold it this time.",
+      "synthesisText": "We've recovered the landing apron. Hold it this time.",
+      "durationSeconds": 3.52,
+      "priority": 45,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.apron_retaken"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_power_yard_retaken",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.power_yard_retaken",
+      "text": "The raiders have retaken Power Yard. We need that ground back.",
+      "synthesisText": "The raiders have retaken Power Yard. We need that ground back.",
+      "durationSeconds": 4.48,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.power_yard_secured",
+        "supply_route.relay_nine.power_yard_militia_holding"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_power_yard_restored",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.power_yard_restored",
+      "text": "We've recovered Power Yard. Hold it this time.",
+      "synthesisText": "We've recovered Power Yard. Hold it this time.",
+      "durationSeconds": 3.44,
+      "priority": 45,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.power_yard_retaken"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_freight_gate_retaken",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.freight_gate_retaken",
+      "text": "The raiders have retaken Freight Gate. We need that ground back.",
+      "synthesisText": "The raiders have retaken Freight Gate. We need that ground back.",
+      "durationSeconds": 4.48,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.freight_gate_secured",
+        "supply_route.relay_nine.freight_gate_militia_holding"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_freight_gate_restored",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.freight_gate_restored",
+      "text": "We've recovered Freight Gate. Hold it this time.",
+      "synthesisText": "We've recovered Freight Gate. Hold it this time.",
+      "durationSeconds": 3.36,
+      "priority": 45,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.freight_gate_retaken"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_relay_hall_retaken",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.relay_hall_retaken",
+      "text": "The raiders have retaken Relay Hall. We need that ground back.",
+      "synthesisText": "The raiders have retaken Relay Hall. We need that ground back.",
+      "durationSeconds": 4.72,
+      "priority": 40,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.relay_hall_secured",
+        "supply_route.relay_nine.relay_hall_militia_holding"
+      ]
+    },
+    {
+      "id": "marines_mara_relay_nine_relay_hall_restored",
+      "missionId": "story_supply_route_relay_nine",
+      "event": "supply_route.relay_nine.relay_hall_restored",
+      "text": "We've recovered Relay Hall. Hold it this time.",
+      "synthesisText": "We've recovered Relay Hall. Hold it this time.",
+      "durationSeconds": 3.52,
+      "priority": 45,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.relay_nine.relay_hall_retaken"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_briefing",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "briefing",
+      "text": "The relay is ours. Now we put freight through it. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. Eight militia will help cover the ground. A twin-cannon heavy tank leads two armored escorts and the unarmed freight haulers. The tank takes on the exit checkpoint's gun line; the escorts screen the crossing while the freight passes. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "synthesisText": "The relay is ours. Now we put freight through it. Land at the staging apron and clear Dispatch Post, East Crossing, and Outbound Gate. Hold the earlier strongpoints to release each convoy leg. Eight militia will help cover the ground. A twin-cannon heavy tank leads two armored escorts and the unarmed freight haulers. The tank takes on the exit checkpoint's gun line; the escorts screen the crossing while the freight passes. Keep the road open until the loads are through. Six thousand credits, plus four thousand for each carrier delivered across the job, paid when the run is complete. Dispatch tracks the losses and deliveries. We return only for loads still waiting.",
+      "durationSeconds": 41.84,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_started",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.started",
+      "text": "Mara here. Clear Dispatch Post and hold the road for the convoy.",
+      "synthesisText": "Mara here. Clear Dispatch Post and hold the road for the convoy.",
+      "durationSeconds": 4.32,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_player_landed",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.player_landed",
+      "text": "Your people are down. Clear the roadside strongpoints and cover the freight.",
+      "synthesisText": "Your people are down. Clear the roadside strongpoints and cover the freight.",
+      "durationSeconds": 4.8,
+      "priority": 10,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.thunder_run.started"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_column_released",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.column_released",
+      "text": "Dispatch Post is secure. The column is rolling. Cover its first leg.",
+      "synthesisText": "Dispatch Post is secure. The column is rolling. Cover its first leg.",
+      "durationSeconds": 4.96,
+      "priority": 20,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.thunder_run.started",
+        "supply_route.thunder_run.player_landed"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_crossing_secured",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.crossing_secured",
+      "text": "East Crossing is secure. The next convoy leg is cleared.",
+      "synthesisText": "East Crossing is secure. The next convoy leg is cleared.",
+      "durationSeconds": 4.08,
+      "priority": 25,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.thunder_run.column_released"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_final_run",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.final_run",
+      "text": "Outbound Gate is secure. Final run is cleared. Cover the road to the exit.",
+      "synthesisText": "Outbound Gate is secure. Final run is cleared. Cover the road to the exit.",
+      "durationSeconds": 5.2,
+      "priority": 30,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.thunder_run.crossing_secured",
+        "supply_route.thunder_run.column_released"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_freight_committed",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.freight_committed",
+      "text": "The freight is committed. Keep that crossing open until the loads are through.",
+      "synthesisText": "The freight is committed. Keep that crossing open until the loads are through.",
+      "durationSeconds": 4.4,
+      "priority": 35,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.thunder_run.final_run"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_heavy_lead_advancing",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.heavy_lead_advancing",
+      "text": "The lead hauler is approaching the exit. Keep the road ahead clear.",
+      "synthesisText": "The lead hauler is approaching the exit. Keep the road ahead clear.",
+      "durationSeconds": 4.24,
+      "priority": 35,
+      "expiresSeconds": 25,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_rear_clear",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.rear_clear",
+      "text": "The remaining freight is past the crossing. Cover it to the exit.",
+      "synthesisText": "The remaining freight is past the crossing. Cover it to the exit.",
+      "durationSeconds": 4.0,
+      "priority": 35,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "supply_route.thunder_run.freight_committed"
+      ]
+    },
+    {
+      "id": "marines_mara_thunder_run_cargo_0_delivered",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.cargo_0_delivered",
+      "text": "Load One is through. Dispatch has the delivery.",
+      "synthesisText": "Load One is through. Dispatch has the delivery.",
+      "durationSeconds": 3.2,
+      "priority": 50,
+      "expiresSeconds": 45,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_cargo_0_lost",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.cargo_0_lost",
+      "text": "We've lost Load One. Dispatch is marking it down.",
+      "synthesisText": "We've lost Load One. Dispatch is marking it down.",
+      "durationSeconds": 3.68,
+      "priority": 50,
+      "expiresSeconds": 45,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_cargo_1_delivered",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.cargo_1_delivered",
+      "text": "Load Two is through. Dispatch has the delivery.",
+      "synthesisText": "Load Two is through. Dispatch has the delivery.",
+      "durationSeconds": 3.44,
+      "priority": 50,
+      "expiresSeconds": 45,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_cargo_1_lost",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.cargo_1_lost",
+      "text": "We've lost Load Two. Dispatch is marking it down.",
+      "synthesisText": "We've lost Load Two. Dispatch is marking it down.",
+      "durationSeconds": 3.68,
+      "priority": 50,
+      "expiresSeconds": 45,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_cargo_2_delivered",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.cargo_2_delivered",
+      "text": "Load Three is through. Dispatch has the delivery.",
+      "synthesisText": "Load Three is through. Dispatch has the delivery.",
+      "durationSeconds": 3.6,
+      "priority": 50,
+      "expiresSeconds": 45,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_thunder_run_cargo_2_lost",
+      "missionId": "story_supply_route_thunder_run",
+      "event": "supply_route.thunder_run.cargo_2_lost",
+      "text": "We've lost Load Three. Dispatch is marking it down.",
+      "synthesisText": "We've lost Load Three. Dispatch is marking it down.",
+      "durationSeconds": 3.76,
+      "priority": 50,
+      "expiresSeconds": 45,
+      "supersedes": []
     }
   ]
 }

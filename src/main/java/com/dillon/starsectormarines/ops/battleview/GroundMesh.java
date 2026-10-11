@@ -161,6 +161,8 @@ public final class GroundMesh {
         /** This cell draws {@code sheet}'s sub-rectangle over its own square. */
         void quad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH);
 
+        default void patch(SpriteAPI sheet,int sx,int sy,int sw,int sh,float[] vertices) { throw new UnsupportedOperationException("Clipped tile sink required"); }
+
         /** This cell has no tile and paints {@code rgb} instead. */
         void fill(int rgb);
     }
@@ -613,6 +615,13 @@ public final class GroundMesh {
         }
 
         @Override
+        public void patch(SpriteAPI sheet,int sx,int sy,int sw,int sh,float[] vertices) {
+            if(sheet==null || placed)return;
+            quad(sheet,sx,sy,sw,sh);
+            if(bucketOf[cell]>=0) buckets.get(bucketOf[cell]).writePatch(slotOf[cell],gx,gy,sx,sy,sw,sh,vertices);
+        }
+
+        @Override
         public void fill(int rgb) {
             if (placed) return;
             placed = true;
@@ -738,6 +747,16 @@ public final class GroundMesh {
             uv[at + 2] = u1; uv[at + 3] = v1;
             uv[at + 4] = u1; uv[at + 5] = v0;
             uv[at + 6] = u0; uv[at + 7] = v0;
+            markDirty(slot);
+        }
+
+        void writePatch(int slot,int gx,int gy,int sx,int sy,int sw,int sh,float[] vertices) {
+            int at=slot*8;
+            for(int i=0;i<8;i+=2) {
+                float x=vertices[i],y=vertices[i+1];pos[at+i]=gx+x;pos[at+i+1]=gy+y;
+                uv[at+i]=(sx+x*sw)/sheetPxW*sheet.getTextureWidth();
+                uv[at+i+1]=sheet.getTextureHeight()-(sy+(1-y)*sh)/sheetPxH*sheet.getTextureHeight();
+            }
             markDirty(slot);
         }
 

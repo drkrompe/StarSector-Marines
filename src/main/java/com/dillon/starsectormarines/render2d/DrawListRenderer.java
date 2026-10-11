@@ -88,7 +88,9 @@ public final class DrawListRenderer {
                     if (bracket == null) bracket = GlStateBracket.textured2D();
                     else if (spritePolluted) { GlStateBracket.applyTextured2DState(); spritePolluted = false; }
                     if (activeSheet != null) {
-                        if (c.angleDeg != 0f) {
+                        if(c.patch()!=null) {
+                            activeSheet.appendPatch(c.srcX,c.srcY,c.srcW,c.srcH,c.cx,c.cy,c.w,c.h,c.r,c.g,c.b,c.a,c.patch());
+                        } else if (c.angleDeg != 0f) {
                             activeSheet.appendRotated(c.srcX, c.srcY, c.srcW, c.srcH,
                                     c.cx, c.cy, c.w, c.h, c.angleDeg, c.r, c.g, c.b, c.a);
                         } else if (c.flipV) {
