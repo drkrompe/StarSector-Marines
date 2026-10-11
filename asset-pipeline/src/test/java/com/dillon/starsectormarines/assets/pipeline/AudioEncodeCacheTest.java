@@ -79,6 +79,21 @@ class AudioEncodeCacheTest {
     }
 
     @Test
+    void radioTreatmentHasItsOwnCacheEntryAndLeavesCleanAudioReusable() throws Exception {
+        Path source = Files.writeString(directory.resolve("voice.mp3"), "voice");
+        Path clean = directory.resolve("clean.ogg"), radio = directory.resolve("radio.ogg");
+        String original = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI).toString();
+        assertEquals(original, ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, null).toString());
+        String comms = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, AudioManifest.Processing.COMMS).toString();
+        AudioEncodeCache cache = cache();
+        cache.materialize(source, clean, original, this::encode);
+        cache.materialize(source, radio, comms, this::encode);
+        assertEquals(AudioEncodeCache.Result.UP_TO_DATE, cache.materialize(source, clean, original, this::encode));
+        assertEquals(AudioEncodeCache.Result.UP_TO_DATE, cache.materialize(source, radio, comms, this::encode));
+        assertEquals(2, encodes.get());
+    }
+
+    @Test
     void failedAndEmptyEncodesPreservePriorOutputAndAreRetried() throws Exception {
         Path source = Files.writeString(directory.resolve("source.wav"), "audio");
         Path output = Files.writeString(directory.resolve("clip.ogg"), "previous good audio");
