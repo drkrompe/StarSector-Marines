@@ -81,6 +81,8 @@ class ThunderRunEvidenceTest {
                     if (fixture.optBoolean("absent")) lift.pendingDelay += 2000;
                 }
                 assertEquals(24, seats);
+                assertEquals(12, sim.getThunderRun().pendingMembers());
+                assertEquals(22, count(sim, Faction.DEFENDER)); // 14 building guards + 6 checkpoint rifles + 2 guns.
                 var column = sim.getThunderRun();
                 assertEquals(fixture.optBoolean("retry")?1:3,column.cargo().size()); assertEquals(column.cargo().size()+3,sim.getConvoyVehicleIds().length);
                 if (fixture.optBoolean("destroyCargo")) for (long vehicle : column.cargo().values()) sim.convoy().destroy(vehicle);
@@ -104,6 +106,17 @@ class ThunderRunEvidenceTest {
                 assertEquals(3,sites.subList(1,4).stream().map(r -> sim.getCompoundService().captureZoneId(r,sim)).distinct().count());
                 int previousPhase = -1, landedTick = -1, finalTick = -1;
                 JSONArray samples = new JSONArray();
+                if (name.equals("ordinary-9301")) {
+                    var checkpoint = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,270,73,164);
+                    var marks = ReviewAnnotations.builder();
+                    marks.label(256,64,"CLEAR OUTBOUND STRONGPOINT / RELEASE ARMOR",ReviewStyle.OBJECTIVE);
+                    marks.label(296,35,"FENCED INSPECTION YARDS",ReviewStyle.NOTE);
+                    marks.label(304,65,"DUG-IN GUN",ReviewStyle.OBJECTIVE);
+                    marks.label(304,85,"DUG-IN GUN",ReviewStyle.OBJECTIVE);
+                    marks.label(290,91,"RIFLE BAY / THREE RAIDERS",ReviewStyle.OBJECTIVE);
+                    ImageIO.write(checkpoint.render(sim,"THUNDER RUN / PREPARED CHECKPOINT / BEFORE ARRIVAL",marks.build()),
+                            "png",dir.resolve("checkpoint-before.png").toFile());
+                }
                 var close = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,282,75,80);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     if (column.phase() == 3 && finalRounds.isEmpty()) for (long escort : escorts) {

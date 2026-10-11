@@ -38,7 +38,7 @@ public final class ThunderRunSequence {
     public ThunderRunSequence(BattleSimulation sim, FreightRunProgress.Attempt attempt, int previouslyDelivered,
                               List<EntitySpec> reserve, StoryBeatLog log) {
         if (attempt == null || previouslyDelivered < 0 || previouslyDelivered + attempt.cargo().size() > FreightRunProgress.COHORT_SIZE
-                || reserve == null || reserve.size() != 18) throw new IllegalArgumentException("A finite freight attempt and eighteen committed raiders are required");
+                || reserve == null || reserve.size() != 12) throw new IllegalArgumentException("A finite freight attempt and twelve committed road raiders are required");
         this.attempt = attempt; this.previouslyDelivered = previouslyDelivered;
         this.reserve = List.copyOf(reserve); this.log = log;
         escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 70));
@@ -150,10 +150,10 @@ public final class ThunderRunSequence {
     }
     private void releaseAmbush(BattleSimulation sim) {
         ambush = true;
-        for (int side = 0; side < 3; side++) {
+        for (int side = 0; side < 2; side++) {
             int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
-            for (int i = side * (reserve.size() / 3); i < (side + 1) * (reserve.size() / 3); i++) sim.spawn(reserve.get(i).squad(squad));
-            sim.getSquad(squad).originalSize = reserve.size() / 3;
+            for (int i = side * (reserve.size() / 2); i < (side + 1) * (reserve.size() / 2); i++) sim.spawn(reserve.get(i).squad(squad));
+            sim.getSquad(squad).originalSize = reserve.size() / 2;
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, 275, 75),
                     CommandAuthority.SCRIPTED, "thunder-run-ambush", "cut off the freight at the outbound road");
         }
