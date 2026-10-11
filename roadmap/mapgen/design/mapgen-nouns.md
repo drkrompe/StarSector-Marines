@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored roads add automatic edging and shared spline graphs for Junction and Relay Nine.
+Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -397,6 +397,43 @@ chooses which document it consumes and retains its own spatial contract:
 Thunder Run permits pavement and wear changes while keeping its reserved freight
 and ambush corridors. Moving those roads also requires redesigning its facilities,
 vehicle stops and approach routes, rather than changing a spline file alone.
+
+## Authored natural terrain
+
+A **terrain plan** is an ordered collection of area-brush strokes. A stroke raises
+an inaccessible mass or erases part of one; its radius sweeps continuously between
+sampled points, so a fast drag cannot leave disconnected dabs. Later strokes win.
+A retained seed and ruggedness shape the boundary without rerolling the map.
+
+The mass has one tactical identity: non-walkable, opaque natural terrain. It is
+not a building and receives no roof, wall artwork or destructible structure.
+Natural-solid navigation flags survive routing copies and refuse wall damage.
+Ground vehicles and infantry read the ordinary grid; aircraft keep their own
+flight model. This is not a playable elevation system: neither the grass-topped
+summit nor the rock summit is standable, and face depth is a presentational
+width rather than a ballistic height or a high-ground bonus. Ramps and occupied
+hilltops require a separate traversal/elevation contract.
+
+A continuous signed field owns both representations. Its center samples decide
+blocked navigation cells; its clipped contours shape the talus, cliff face and
+summit across cell interiors. Visible edges do not snap to whole tiles. Rock
+and grass-topped finishes change material, never the footprint. The surrounding
+low ground remains the map's own surface.
+
+Terrain placement is generation-time work, not runtime construction. It
+preflights its entire visible footprint before mutation, refusing roads,
+structures, fixtures, engineered floors and host-reserved circulation or
+objective cells. A host still proves that required places and vehicle routes
+remain reachable after terrain is placed; overlap refusal alone cannot prove
+connectivity. Editing rebuilds from clean ground rather than trying to erase
+an already-running simulation. Nearby natural edge cover is added without
+resetting unrelated authored cover.
+
+The Terrain workbench page edits the same plan and previews the production
+stamper and renderer. Stroke undo/redo, a blocked-grid overlay, reusable JSON
+and an optional road-context document expose intent and collision together.
+Road context is editor guidance, not an implicit mission binding. A mission
+explicitly chooses its plan and required access reservations before adopting it.
 
 ## City, station, and ship families
 

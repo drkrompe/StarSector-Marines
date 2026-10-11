@@ -87,7 +87,9 @@ public class NavigationGrid {
          * non-structural fixtures deliberately leave this clear because their
          * wall or authored doodad profile supplies edge cover.
          */
-        NO_EDGE_COVER;
+        NO_EDGE_COVER,
+        /** Permanent natural mass: blocks ground travel and cannot be demolished as a wall. */
+        NATURAL_SOLID;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -979,7 +981,7 @@ public class NavigationGrid {
      * lose cells, so units pick up new routes on their next normal re-path.
      */
     public boolean damageCell(int x, int y, int amount) {
-        if (!inBounds(x, y) || amount <= 0) return false;
+        if (!inBounds(x, y) || amount <= 0 || hasTag(x,y,CellTag.NATURAL_SOLID)) return false;
         int idx = index(x, y);
         if ((cellFlags[idx] & CellTag.WALKABLE.mask()) != 0L) return false;
         int remaining = wallHp[idx] - amount;
