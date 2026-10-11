@@ -215,9 +215,10 @@ public class Detonations {
                     float cdx = (cx + 0.5f) - det.endpointX;
                     float cdy = (cy + 0.5f) - det.endpointY;
                     if (cdx * cdx + cdy * cdy > r2) continue;
+                    if (!grid.hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
+                    if (det.wallDamage > 0) mapEditor.damageGround(cx, cy);
                     if (topology.getBuildingId(cx, cy) == 0) continue;
                     if (topology.isRoofDestroyed(cx, cy)) continue;
-                    if (!grid.hasLineOfSight(targetCx, targetCy, cx, cy)) continue;
                     mapEditor.destroyRoof(cx, cy);
                 }
             }

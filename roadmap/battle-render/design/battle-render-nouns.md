@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — road edges share neighbor-aware underlays and feathered pavement across resident and streamed ground.
+Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
 
 ## Vocabulary
 
@@ -367,6 +367,15 @@ ground take ownership. Hard aprons retain their full-cell ground. Legacy maps
 with edge tags but no spline surface keep their neighbor-aware tile treatment.
 Replacing the retained surface invalidates the ground mesh through topology's
 ordinary change log. Maps without spline geometry keep the original layer count.
+
+Natural escarpments use the same clipped cell-contour geometry as roads, with
+retained layers for talus, shaded rock faces and the summit. These join the
+ordinary resident ground mesh and its streamed fallback before scatter and
+door decals. Fully covered lower bands submit no geometry. Grass summits use
+the map's existing grass art; rock faces resolve named procedural material
+pools. This is a top-down relief treatment, not displaced combat geometry or
+an independently walkable elevated surface. Replacing its retained surface
+invalidates the same topology change log.
 
 Freight-apron berth paint derives from the simulation's actual `LandingPad`
 footprints and purpose. Map-only hosts retain those same pads through

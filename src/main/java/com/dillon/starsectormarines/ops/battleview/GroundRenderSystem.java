@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -326,6 +327,15 @@ public final class GroundRenderSystem implements RenderSystem {
                 ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new Scatter(topology),new DoorDecals(grid,topology)}
                 : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
                         base::resolveConcrete,base::resolveSecondConcrete,new Scatter(topology),new DoorDecals(grid,topology)};
+        if(topology.terrainSurface()!=null) {
+            int existing=sublayers.length-2;
+            GroundMesh.CellResolver[] expanded=new GroundMesh.CellResolver[sublayers.length+TerrainSurface.LAYERS];
+            System.arraycopy(sublayers,0,expanded,0,existing);
+            for(int layer=0;layer<TerrainSurface.LAYERS;layer++) {
+                final int index=layer;expanded[existing+layer]=(x,y,sink)->base.resolveTerrain(x,y,index,sink);
+            }
+            System.arraycopy(sublayers,existing,expanded,existing+TerrainSurface.LAYERS,2);sublayers=expanded;
+        }
         int terrainLayers=sublayers.length-2;
         int resident0 = residentDecoration ? sublayers.length : terrainLayers;
         GroundMesh.CellResolver[] meshLayers = residentDecoration
@@ -433,6 +443,7 @@ public final class GroundRenderSystem implements RenderSystem {
         private final int surfaces;
         private final GridBlockDef[][] edgeBlocks;
 
+        private final ClippedSink terrainClip=new ClippedSink();
         private final Color roadFill;
         private final String streetTileId;
 
@@ -535,6 +546,18 @@ public final class GroundRenderSystem implements RenderSystem {
             int inset=block.cellPx>=TileManifest.TILE_SIZE?GROUND_TILE_EDGE_INSET_PX:GROUND_SMALL_TILE_EDGE_INSET_PX;
             sink.patch(sheet,cell[0]*block.cellPx+inset,cell[1]*block.cellPx+inset,
                     block.cellPx-2*inset,block.cellPx-2*inset,vertices);
+        }
+        private void resolveTerrain(int x,int y,int layer,GroundMesh.CellSink sink) {
+            TerrainSurface.Patch patch=topology.terrainSurface().patch(x,y,layer);if(patch==null)return;
+            if(patch.surface()==0) {
+                terrainClip.target=sink;terrainClip.vertices=patch.vertices();
+                resolveFloor(x,y,CellTopology.GroundKind.GRASS,0,terrainClip);return;
+            }
+            GridBlockDef block=surfaceBlock[patch.surface()];SpriteAPI sheet=sheetFor(block.sheetPath);if(sheet==null)return;
+            int[] cell=block.resolve(false,false,false,false,x,y);if(cell==null)return;
+            int inset=block.cellPx>=TileManifest.TILE_SIZE?GROUND_TILE_EDGE_INSET_PX:GROUND_SMALL_TILE_EDGE_INSET_PX;
+            sink.patch(sheet,cell[0]*block.cellPx+inset,cell[1]*block.cellPx+inset,
+                    block.cellPx-2*inset,block.cellPx-2*inset,patch.vertices());
         }
         private void resolveSecondEdge(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,0,true); }
         private void resolveConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,false); }
@@ -650,6 +673,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     break;
             }
         }
+    }
+
+    private static final class ClippedSink implements GroundMesh.CellSink {
+        GroundMesh.CellSink target;
+        float[] vertices;
+        public void quad(SpriteAPI sheet,int x,int y,int w,int h) {target.patch(sheet,x,y,w,h,vertices);}
+        public void fill(int rgb) { /* The installed terrain catalog supplies textured caps. */ }
     }
 
     /**
@@ -860,6 +890,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     emitCellPx(sheet, skin.cellPx, cell[0], cell[1], 0, sink);
                     return;
                 }
+            }
+            GridBlockDef damage = GroundDamageTiles.skin(tileReg, topology, x, y);
+            SpriteAPI damageSheet = damage == null ? null : sheetFor(damage.sheetPath);
+            if (damageSheet != null) {
+                int[] cell = damage.resolve(false, false, false, false, x, y);
+                emitCellPx(damageSheet, damage.cellPx, cell[0], cell[1], 0, sink);
+                return;
             }
             int index = topology.getNatureOverlayIndex(x, y);
             if (index < 0) return;

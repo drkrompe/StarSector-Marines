@@ -1,0 +1,177 @@
+{
+  "blocks": [{
+    "cells": [[
+      12,
+      0
+    ]],
+    "id": "ship-bay.deck-surface"
+  }],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "Recessed deck covering; zero cover. deck",
+      "name": "ship-bay.deck",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "Recessed deck covering; zero cover. passage",
+      "name": "ship-bay.passage",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "Recessed deck covering; zero cover. hatch",
+      "name": "ship-bay.hatch",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "Recessed deck covering; zero cover. grate-run",
+      "name": "ship-bay.grate-run",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "Recessed deck covering; zero cover. hazard-edge",
+      "name": "ship-bay.hazard-edge",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "Recessed deck covering; zero cover. hazard-corner",
+      "name": "ship-bay.hazard-corner",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "Recessed deck covering; zero cover. pipe-straight",
+      "name": "ship-bay.pipe-straight",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "Recessed deck covering; zero cover. pipe-elbow",
+      "name": "ship-bay.pipe-elbow",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "Recessed deck covering; zero cover. pipe-tee",
+      "name": "ship-bay.pipe-tee",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "Recessed deck covering; zero cover. pipe-terminal",
+      "name": "ship-bay.pipe-terminal",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "Recessed deck covering; zero cover. grate-field",
+      "name": "ship-bay.grate-field",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "Recessed deck covering; zero cover. service-panel",
+      "name": "ship-bay.service-panel",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "variant 1 of the pool",
+      "name": "ship-bay.deck-surface v1",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "ship-bay.deck",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "ship-bay.passage",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "id": "ship-bay.hatch",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "ship-bay.grate-run",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "id": "ship-bay.hazard-edge",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "ship-bay.hazard-corner",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "ship-bay.pipe-straight",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "ship-bay.pipe-elbow",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "ship-bay.pipe-tee",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "ship-bay.pipe-terminal",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "ship-bay.grate-field",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "ship-bay.service-panel",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-bay.png"
+}

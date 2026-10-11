@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
@@ -41,6 +42,11 @@ import java.util.List;
  * — both sides set independently.
  */
 public class CellTopology {
+    private TerrainSurface terrainSurface;
+    public TerrainSurface terrainSurface() { return terrainSurface; }
+    public void setTerrainSurface(TerrainSurface value) {
+        terrainSurface=value;for(int i=0;i<width*height;i++)markChanged(i);
+    }
     private RoadSurface roadSurface;
     public RoadSurface roadSurface() { return roadSurface; }
     public void setRoadSurface(RoadSurface value) {
@@ -125,7 +131,9 @@ public class CellTopology {
          */
         WINDOW,
         /** Feather authored pavement over adjacent outdoor terrain; visual only. */
-        ROAD_EDGE_BLEND;
+        ROAD_EDGE_BLEND,
+        /** Persistent cosmetic ground damage; does not change navigation or the material identity. */
+        GROUND_DAMAGED;
 
         public long mask() { return 1L << ordinal(); }
 
@@ -150,7 +158,8 @@ public class CellTopology {
          */
         public boolean drawn() {
             return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ
-                    || this == ROOF_DESTROYED || this == WINDOW || this == ROAD_EDGE_BLEND;
+                    || this == ROOF_DESTROYED || this == WINDOW || this == ROAD_EDGE_BLEND
+                    || this == GROUND_DAMAGED;
         }
     }
 

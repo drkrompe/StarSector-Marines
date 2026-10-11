@@ -135,6 +135,12 @@ final class HeadlessBattleSprites extends BattleSprites {
                     || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
             if (!extraTerrainSheets.containsKey(path)) extraTerrainSheets.put(path, sprite(path));
         }
+        for (var doodad : TileRegistry.installed().doodads()) {
+            String path = doodad.sheetPath;
+            if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
+                    || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET)) continue;
+            if (!extraTerrainSheets.containsKey(path)) extraTerrainSheets.put(path, sprite(path));
+        }
         urban3Frames = slice(TileManifest.STREET3_SHEET);
         natureFrames = slice(TileManifest.NATURE_SHEET);
         loadInfantry();

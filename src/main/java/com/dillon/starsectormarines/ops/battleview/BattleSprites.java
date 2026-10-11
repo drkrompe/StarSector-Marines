@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
@@ -298,6 +299,12 @@ public class BattleSprites {
             String path = block.sheetPath;
             if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                     || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
+            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
+        }
+        for (DoodadDef doodad : registry.doodads()) {
+            String path = doodad.sheetPath;
+            if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
+                    || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET)) continue;
             extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
         }
     }

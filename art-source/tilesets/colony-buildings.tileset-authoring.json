@@ -166,55 +166,64 @@
       "layout": "single",
       "id": "colony.limestone",
       "windowBlock": "colony.masonry-window",
-      "doorBlock": "colony.masonry-door"
+      "doorBlock": "colony.masonry-door",
+      "damageBlock": "colony.limestone-damage"
     },
     {
       "layout": "single",
       "id": "colony.terracotta",
       "windowBlock": "colony.ceramic-window",
-      "doorBlock": "colony.ceramic-door"
+      "doorBlock": "colony.ceramic-door",
+      "damageBlock": "colony.terracotta-damage"
     },
     {
       "layout": "single",
       "id": "colony.basalt",
       "windowBlock": "colony.ceramic-window",
-      "doorBlock": "colony.ceramic-door"
+      "doorBlock": "colony.ceramic-door",
+      "damageBlock": "colony.basalt-damage"
     },
     {
       "layout": "single",
       "id": "colony.sage",
       "windowBlock": "colony.ceramic-window",
-      "doorBlock": "colony.ceramic-door"
+      "doorBlock": "colony.ceramic-door",
+      "damageBlock": "colony.sage-damage"
     },
     {
       "layout": "single",
       "id": "colony.terrazzo",
       "windowBlock": "colony.ceramic-window",
-      "doorBlock": "colony.ceramic-door"
+      "doorBlock": "colony.ceramic-door",
+      "damageBlock": "colony.terrazzo-damage"
     },
     {
       "layout": "single",
       "id": "colony.timber",
       "windowBlock": "colony.masonry-window",
-      "doorBlock": "colony.masonry-door"
+      "doorBlock": "colony.masonry-door",
+      "damageBlock": "colony.timber-damage"
     },
     {
       "layout": "single",
       "id": "colony.concrete",
       "windowBlock": "colony.olive-window",
-      "doorBlock": "colony.olive-door"
+      "doorBlock": "colony.olive-door",
+      "damageBlock": "colony.concrete-damage"
     },
     {
       "layout": "single",
       "id": "colony.ochre",
       "windowBlock": "colony.olive-window",
-      "doorBlock": "colony.olive-door"
+      "doorBlock": "colony.olive-door",
+      "damageBlock": "colony.ochre-damage"
     },
     {
       "layout": "single",
       "id": "colony.tread",
       "windowBlock": "colony.olive-window",
-      "doorBlock": "colony.olive-door"
+      "doorBlock": "colony.olive-door",
+      "damageBlock": "colony.tread-damage"
     }
   ],
   "sheetName": "colony-buildings"
