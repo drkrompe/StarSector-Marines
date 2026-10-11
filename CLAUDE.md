@@ -188,7 +188,9 @@ Do not run builds or leave generated task files there.
   withdrawal controls report physical exits, losses, phase times, once-only
   settlement and story hooks. Frames are 1920x1080 at 100%; close views change
   camera framing only. Optional fixtures select `id`, `seed`, `absent`,
-  `destroyCargo`, `retry` or `retreat`. Default observation is 18000 ticks.
+  `destroyCargo`, `retry`, `retreat` or `unarmedFinal` (diagnostic empty escort
+  magazines on the final leg). Reports include actual escort shots, damage, kills
+  and remaining durability. Default observation is 18000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —

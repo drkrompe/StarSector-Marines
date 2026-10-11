@@ -84,6 +84,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<Airframe, ShuttleSpriteCache> airframes =
             new LinkedHashMap<>();
     private final EnumMap<VehicleType, UnitSpriteCache> vehicles = new EnumMap<>(VehicleType.class);
+    private final Map<String, ShuttleSpriteCache> projectiles = new LinkedHashMap<>();
     private final UnitLayerLayouts layouts;
 
     private final SpriteAPI tile;
@@ -256,6 +257,17 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public void ensureEngineFxSprites() { }
     @Override public void ensureShadowSprite() { }
     @Override public UnitLayerLayouts unitLayerLayouts() { return layouts; }
+
+    /** Same resource lookup as the live catalog; evidence must not silently omit shells. */
+    @Override public synchronized ShuttleSpriteCache projectileSprite(String path) {
+        if (!projectiles.containsKey(path)) {
+            SpriteAPI token = spriteOrNull(path);
+            Asset asset = token == null ? null : asset(token);
+            projectiles.put(path, asset == null ? null : new ShuttleSpriteCache(token,
+                    asset.width() / (float) asset.height(), asset.width(), asset.height()));
+        }
+        return projectiles.get(path);
+    }
 
     Asset asset(SpriteAPI sprite) {
         Asset asset = assets.get(sprite);

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — employer cargo and armed escorts follow capture-released road legs.
+Updated: 2026-10-10 — distinct industrial freight and reinforced escort roles in story columns.
 
 ## Purpose and boundary
 
@@ -547,7 +547,10 @@ public scenario conditions. It uses ordinary movement legs, footprint checks,
 steering and weapons; it does not obtain player order authority or become a
 second reinforcement provider. Delivery of identified freight is confirmed by
 physical exit, while destruction retains the ordinary wreck and damage rules.
-An unarmed cargo conversion has no passenger or turret payload. Mission-owned
+An industrial freight hauler has no passenger or turret payload; its long chassis
+and slower handling distinguish cargo from the armed escort. Reinforced story
+escorts have their own durability profile rather than changing every ordinary
+reinforcement APC. Their fire uses the shared turret and damage model. Mission-owned
 travel is dormant outside an explicit allied deployed route; player orders and
 ordinary arrive/deboard/depart missions retain their existing lifecycle.
 

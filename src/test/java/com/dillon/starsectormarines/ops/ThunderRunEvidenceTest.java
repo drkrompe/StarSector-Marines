@@ -32,6 +32,9 @@ import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +47,7 @@ class ThunderRunEvidenceTest {
         Files.createDirectories(output);
         int maxTicks = Integer.getInteger("thunderrun.command.evidence.maxTicks", 18000);
         String custom = System.getProperty("thunderrun.command.evidence.fixture.path", "");
-        JSONArray cases = custom.isBlank() ? new JSONArray("[{id:'ordinary-9301',seed:9301},{id:'ordinary-9302',seed:9302},{id:'ordinary-9303',seed:9303},{id:'no-arrival',seed:9301,absent:true},{id:'cargo-loss',seed:9301,destroyCargo:true},{id:'partial-retry',seed:9301,retry:true},{id:'withdraw-after-delivery',seed:9301,retreat:true}]") : new JSONArray(Files.readString(Path.of(custom)));
+        JSONArray cases = custom.isBlank() ? new JSONArray("[{id:'ordinary-9301',seed:9301},{id:'ordinary-9302',seed:9302},{id:'ordinary-9303',seed:9303},{id:'unarmed-final',seed:9301,unarmedFinal:true},{id:'no-arrival',seed:9301,absent:true},{id:'cargo-loss',seed:9301,destroyCargo:true},{id:'partial-retry',seed:9301,retry:true},{id:'withdraw-after-delivery',seed:9301,retreat:true}]") : new JSONArray(Files.readString(Path.of(custom)));
         JSONArray reports = new JSONArray();
         var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080);
         for (int ci = 0; ci < cases.length(); ci++) {
@@ -81,13 +84,30 @@ class ThunderRunEvidenceTest {
                 var column = sim.getThunderRun();
                 assertEquals(fixture.optBoolean("retry")?1:3,column.cargo().size()); assertEquals(column.cargo().size()+2,sim.getConvoyVehicleIds().length);
                 if (fixture.optBoolean("destroyCargo")) for (long vehicle : column.cargo().values()) sim.convoy().destroy(vehicle);
+                List<Long> escorts = new ArrayList<>();
+                for (long vehicle : sim.getConvoyVehicleIds()) if (sim.convoy().vehicleType(vehicle).hasTurretWeapon()) {
+                    escorts.add(vehicle);
+                    // Read-only diagnostic counters: the shared fire/damage seams already write these when present.
+                    sim.getEntityWorld().addComponent(vehicle, sim.getBattleComponents().TELEMETRY);
+                }
+                Map<Long, Float> finalDamage = new LinkedHashMap<>();
+                Map<Long, Integer> finalRounds = new LinkedHashMap<>();
+                int firstFinalShot = -1;
                 var sites = List.copyOf(sim.getCompoundService().getRecords());
                 assertEquals(4,sites.size());
                 assertEquals(3,sites.subList(1,4).stream().map(r -> sim.getCompoundService().captureZoneId(r,sim)).distinct().count());
                 int previousPhase = -1, landedTick = -1, finalTick = -1;
                 JSONArray samples = new JSONArray();
+                var close = new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,273,75,70);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
+                    if (column.phase() == 3 && finalRounds.isEmpty()) for (long escort : escorts) {
+                        finalRounds.put(escort, sim.telemetry().roundsFired(escort));
+                        finalDamage.put(escort, sim.telemetry().damageDealt(escort));
+                        if (fixture.optBoolean("unarmedFinal")) sim.convoy().turret(escort).ammo = 0;
+                    }
                     sim.advance(BattleSimulation.TICK_DT);
+                    if (column.phase() == 3) for (var shot : sim.getShotsThisFrame())
+                        if (escorts.contains(shot.shooterId) && firstFinalShot < 0) firstFinalShot = sim.getSimTickIndex();
                     int tick = sim.getSimTickIndex();
                     if(fixture.optBoolean("retreat") && column.deliveredCount()>0 && !sim.isComplete()) assertTrue(sim.retreat());
                     if (landedTick < 0 && count(sim,Faction.MARINE)>0) landedTick=tick;
@@ -105,8 +125,8 @@ class ThunderRunEvidenceTest {
                     }
                     boolean phaseChanged=column.phase()!=previousPhase;
                     if(column.phase()==3 && finalTick<0) finalTick=tick;
-                    if(name.equals("ordinary-9301") && finalTick>=0 && (tick-finalTick)%60==0) {
-                        var close=new BattleReviewFrameRenderer(Path.of("mod"),1920,1080,267,75,110);
+                    if(name.equals("ordinary-9301") && finalTick>=0 && ((tick-finalTick)%60==0
+                            || (firstFinalShot>=0 && tick-firstFinalShot<450 && (tick-firstFinalShot)%6==0))) {
                         ImageIO.write(withHud(close.render(sim,"THUNDER RUN / "+(tick/30)+"s / "+column.status()),sim),"png",dir.resolve(String.format("convoy-%05d.png",tick)).toFile());
                     }
                     if ((name.equals("ordinary-9301") && (phaseChanged || tick%900==0)) || sim.isComplete()) {
@@ -128,13 +148,28 @@ class ThunderRunEvidenceTest {
                 }
                 if(fixture.optBoolean("absent")) { assertEquals(0,column.phase()); assertEquals(0,column.deliveredCount()); }
                 if(fixture.optBoolean("destroyCargo")) { assertTrue(sim.isComplete()); assertNotEquals(Faction.MARINE,sim.getWinner()); assertEquals(3,column.lostCount()); }
+                if (!fixture.optBoolean("absent") && !fixture.optBoolean("unarmedFinal") && maxTicks >= 18000) {
+                    assertTrue(sim.isComplete(), "A full convoy run must resolve, including its rear carrier");
+                    if (!fixture.optBoolean("destroyCargo") && !fixture.optBoolean("retreat")) {
+                        assertEquals(Faction.MARINE, sim.getWinner());
+                        assertTrue(column.deliveredCount() > 0);
+                    }
+                }
+                JSONArray escortReports = new JSONArray();
+                for (long escort : escorts) escortReports.put(new JSONObject().put("id",escort)
+                        .put("rounds",sim.telemetry().roundsFired(escort)).put("hits",sim.telemetry().roundsHit(escort))
+                        .put("damage",sim.telemetry().damageDealt(escort)).put("kills",sim.telemetry().kills(escort))
+                        .put("finalRounds",sim.telemetry().roundsFired(escort)-finalRounds.getOrDefault(escort,sim.telemetry().roundsFired(escort)))
+                        .put("finalDamage",sim.telemetry().damageDealt(escort)-finalDamage.getOrDefault(escort,sim.telemetry().damageDealt(escort)))
+                        .put("structure",sim.convoy().structure(escort)).put("armor",sim.world().armor(escort))
+                        .put("ammo",sim.convoy().turret(escort).ammo));
                 JSONArray beats=new JSONArray();
                 for(var e:sim.getStoryBeats()) beats.put(new JSONObject().put("tick",e.tick()).put("id",e.id()));
                 var report=new JSONObject().put("fixture",name).put("ticks",sim.getSimTickIndex()).put("landedTick",landedTick)
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("marinesAlive",count(sim,Faction.MARINE)).put("militiaAlive",count(sim,Faction.ALLY)).put("raidersAlive",count(sim,Faction.DEFENDER))
-                        .put("beats",beats);
+                        .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot);
                 if(column.outcome()!=null) {
                     int paid=route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome());
                     assertTrue(paid>=0); assertEquals(-1,route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome()));
