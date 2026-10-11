@@ -571,6 +571,7 @@ public final class TilesetOperations {
             replacement.windowBlockId = previous.windowBlockId;
             replacement.doorBlockId = previous.doorBlockId;
             replacement.rubbleBlockId = previous.rubbleBlockId;
+            replacement.damageBlockId = previous.damageBlockId;
         }
         blocks.removeIf(spec -> spec.id.equals(blockId));
         blocks.add(replacement);

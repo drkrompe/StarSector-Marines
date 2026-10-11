@@ -157,6 +157,7 @@ public final class TilesetDocument {
             if (spec.windowBlockId != null) o.put("windowBlock", spec.windowBlockId);
             if (spec.doorBlockId != null) o.put("doorBlock", spec.doorBlockId);
             if (spec.rubbleBlockId != null) o.put("rubbleBlock", spec.rubbleBlockId);
+            if (spec.damageBlockId != null) o.put("damageBlock", spec.damageBlockId);
             blockArray.put(o);
         }
         JSONObject root = new JSONObject();
@@ -241,6 +242,7 @@ public final class TilesetDocument {
             spec.windowBlockId = o.optString("windowBlock", null);
             spec.doorBlockId = o.optString("doorBlock", null);
             spec.rubbleBlockId = o.optString("rubbleBlock", null);
+            spec.damageBlockId = o.optString("damageBlock", null);
             doc.blocks.add(spec);
         }
         JSONArray array = root.optJSONArray("entries");

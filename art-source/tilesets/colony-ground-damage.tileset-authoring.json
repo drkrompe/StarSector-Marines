@@ -1,0 +1,356 @@
+{
+  "sheetName": "colony-ground-damage",
+  "sheet": "art-source/tilesets/colony-ground-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 6,
+  "gridRows": 3,
+  "idPrefix": "colony",
+  "alphaMin": 40,
+  "note": "Geometry-first transparent floor damage. GroundDamageReskinTemplate defines two localized silhouettes per material (cracks, shallow gouge). Row-major material pairs: limestone/terracotta/basalt; sage/terrazzo/timber; concrete/ochre/tread. The accepted built-in ImageGen reskin scales the 1536x768 guide to 1774x887. Cuts retain each full 224px footprint inside its 256px pitch/16px gutter, scaled to actual pixels. Preserve source alpha, empty floor and cell perimeter; never trim or recenter. Exact prompt: colony-ground-damage.prompt.txt. Damage is an overlay, not a replacement floor.",
+  "blocks": [
+    {
+      "id": "colony.limestone-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.terracotta-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.basalt-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.sage-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.terrazzo-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.timber-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.concrete-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.ochre-damage",
+      "layout": "variants"
+    },
+    {
+      "id": "colony.tread-damage",
+      "layout": "variants"
+    }
+  ],
+  "entries": [
+    {
+      "id": "colony.limestone-damage.0",
+      "block": "colony.limestone-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        18,
+        18,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.limestone-damage.1",
+      "block": "colony.limestone-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        18,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.terracotta-damage.0",
+      "block": "colony.terracotta-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        610,
+        18,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.terracotta-damage.1",
+      "block": "colony.terracotta-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        905,
+        18,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.basalt-damage.0",
+      "block": "colony.basalt-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1201,
+        18,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.basalt-damage.1",
+      "block": "colony.basalt-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1497,
+        18,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.sage-damage.0",
+      "block": "colony.sage-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        18,
+        314,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.sage-damage.1",
+      "block": "colony.sage-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        314,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.terrazzo-damage.0",
+      "block": "colony.terrazzo-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        610,
+        314,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.terrazzo-damage.1",
+      "block": "colony.terrazzo-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        905,
+        314,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.timber-damage.0",
+      "block": "colony.timber-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1201,
+        314,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.timber-damage.1",
+      "block": "colony.timber-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1497,
+        314,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.concrete-damage.0",
+      "block": "colony.concrete-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        18,
+        610,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.concrete-damage.1",
+      "block": "colony.concrete-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        610,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.ochre-damage.0",
+      "block": "colony.ochre-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        610,
+        610,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.ochre-damage.1",
+      "block": "colony.ochre-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        905,
+        610,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.tread-damage.0",
+      "block": "colony.tread-damage",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1201,
+        610,
+        259,
+        259
+      ]
+    },
+    {
+      "id": "colony.tread-damage.1",
+      "block": "colony.tread-damage",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1497,
+        610,
+        259,
+        259
+      ]
+    }
+  ]
+}

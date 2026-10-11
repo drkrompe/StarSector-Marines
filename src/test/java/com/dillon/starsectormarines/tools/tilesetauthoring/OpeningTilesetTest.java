@@ -45,6 +45,20 @@ class OpeningTilesetTest {
     }
 
     @Test
+    void floorDamagePairingSurvivesDocumentEditsAndExport(@TempDir Path dir) throws Exception {
+        TilesetDocument doc = TilesetDocument.read(Path.of("art-source/tilesets/colony-buildings.tileset-authoring.json"));
+        var spec = doc.blocks.get(0);
+        assertEquals("colony.limestone-damage", spec.damageBlockId);
+        TilesetOperations.setBlock(doc.entries, doc.blocks, spec.id, spec.layout, spec.fillRgb, Map.of());
+        Path path = dir.resolve("floor-roundtrip.json");
+        doc.write(path);
+        doc = TilesetDocument.read(path);
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(TilesetExport.tileset("test.png", doc.cellPx, doc.entries, doc.blocks));
+        assertEquals(spec.damageBlockId, registry.block(spec.id).damageBlockId);
+    }
+
+    @Test
     void shippedOpeningVoidsRemainTransparentInEveryFacing() throws Exception {
         TileRegistry registry = TileRegistry.installed();
         var image = ImageIO.read(Path.of("mod/graphics/tilesets/colony-openings.png").toFile());

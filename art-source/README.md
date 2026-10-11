@@ -2,6 +2,9 @@
 
 Pre-pack art inputs and the scripts that turn them into shipped assets.
 
+For modular terrain and cover, follow [Geometry-first ImageGen assets](geometry-first-imagegen.md):
+code defines the silhouette and assembly rules, then ImageGen reskins the guide.
+
 `mod/` is what ships: `deployMod` is a `Sync` of that whole folder into the
 Starsector mods directory, so anything left inside it is copied to every install.
 
