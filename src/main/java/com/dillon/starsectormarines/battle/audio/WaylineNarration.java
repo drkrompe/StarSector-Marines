@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.audio;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.fs.starfarer.api.Global;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,10 +13,19 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Packaged dialogue, independent of its authoring provider and campaign state. */
 public final class WaylineNarration {
     public static final String PATH = "data/marines/wayline_narration.json";
+    private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
+            Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([1-4])_0_[1-9][0-9]*");
+    private static final Map<Integer, String> SUPPLY_CHAPTERS = Map.of(
+            BrokenSupplyRouteProgress.JUNCTION, "story_supply_route_junction",
+            BrokenSupplyRouteProgress.LIFT, "story_supply_route_last_lift",
+            BrokenSupplyRouteProgress.RELAY, "story_supply_route_relay_nine",
+            BrokenSupplyRouteProgress.THUNDER, "story_supply_route_thunder_run");
     private static WaylineNarration builtins = new WaylineNarration(List.of());
     private final Map<String, Line> lines = new LinkedHashMap<>();
 
@@ -70,6 +80,11 @@ public final class WaylineNarration {
         if (mission == null || mission.source != MissionSource.STORY) return null;
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
+        if (mission.id == null) return null;
+        // Retry IDs vary; the historical chapter does not. Job zero excludes recurring work
+        // even if a caller accidentally labels it STORY. Choice dossiers are not battle briefings.
+        Matcher attempt = SUPPLY_STORY_ID.matcher(mission.id);
+        if (attempt.matches()) return SUPPLY_CHAPTERS.get(Integer.parseInt(attempt.group(1)));
         return null;
     }
 

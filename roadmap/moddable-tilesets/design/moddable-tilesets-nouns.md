@@ -615,8 +615,10 @@ re-annotatable, and its annotation cannot be recovered by re-running anything.
 Pavement has its own retained procedural recipe: material colors, source cell
 size, variant count, edge feather/roughness and source seed. One baker produces
 its opaque and transparent edge atlases and the catalogs that address them.
-Cardinal edge masks keep each material's variant ordering and RGB values; alpha
-reveals the neighboring terrain instead of adding a painted dark outline. The recipe and baker are pre-pack art
+Cardinal edge masks retain the legacy cell treatment. Authored spline roads
+instead clip the opaque material pool to retained subcell geometry; source UVs
+are clipped with it. No new raster asset or alpha atlas is required for each
+curve, and the same age/variant pools supply both whole and partial tiles. The recipe and baker are pre-pack art
 inputs; the image and id-addressed pools are the shipped result. Rebuilding does
 not edit another sheet or rely on old packed coordinates. These procedural
 materials are found as catalog surfaces; they are regenerated from their recipe,

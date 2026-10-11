@@ -43,7 +43,7 @@ public final class RelayNineCompound {
                 RelayNineCompound::yardSurfaces, new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 64,
-                10, 14, 34, 113, Faction.MARINE, 20, 0));
+                10, 9, 40, 65, Faction.MARINE, 20, 0));
         TacticalNode.Kind[] kinds = {TacticalNode.Kind.BARRACKS, TacticalNode.Kind.ARMORY, TacticalNode.Kind.COMMAND_POST};
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
@@ -83,15 +83,13 @@ public final class RelayNineCompound {
         // Inbound road branches around the power installation; the loading
         // corridor reaches the hall from its south, away from the direct road.
 
+        yardSurfaces(c);
         var roads = RoadCatalog.plan(RoadCatalog.RELAY_NINE);
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
-        for (int y : new int[]{22, 38, 54, 70, 86, 102}) {
-            LandingPad pad = new LandingPad(21, y, 3, 3, LandingPad.Approach.WEST);
-            c.landingPads.add(pad);
-            for (int py = pad.bottom(); py <= pad.top(); py++) for (int px = pad.left(); px <= pad.right(); px++)
-                if (px == pad.left() || px == pad.right() || py == pad.bottom() || py == pad.top())
-                    c.topology.setGroundKind(px, py, GroundKind.STRIPED);
-        }
+        // Staggered, elongated stands fit the player boats on one terminal apron.
+        int[][] stands = {{18,50},{32,43},{18,36},{32,29},{18,22},{32,15}};
+        for(int i=0;i<6;i++) c.landingPads.add(new LandingPad(stands[i][0],stands[i][1],
+                8,3,LandingPad.Approach.WEST,LandingPad.Purpose.FREIGHT_APRON));
         for (int x = 100; x < 176; x += 9) pave(c, x, 38, x + 3, 42, GroundKind.STRIPED);
     }
     private static void yardSurfaces(GenContext c) {

@@ -352,15 +352,30 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     which this is not: this asks a fixed rectangle about every body, not a body
     about its neighbours.
 
-Authored road edging uses two ground sublayers: the adjacent outdoor surface
-beneath a transparent pavement edge. Both resident and streamed paths use the
-same resolution and paint it before crossing marks, scatter and doors. The
-boundary depends on cardinal neighbors, so topology edits invalidate it through
-the existing neighboring-cell patch region. Interior pavement remains a single
-ordinary tile. At a corner with different neighboring materials, one adjacent
-surface supplies the underlay; edging is a bounded cell treatment, not a
-continuous terrain mesh. Walls, indoor floors, water and landing markings retain
-their own boundaries.
+Authored spline roads retain a `RoadSurface` beside their grid footprint. The
+surface samples signed distances at cell corners and clips each cell's two
+triangles to the carriageway. Asphalt/concrete joins use the same clipping,
+with first-authored-route precedence. UVs follow each retained vertex, so a
+partial tile cuts the existing material instead of stretching it. The navigation
+raster remains the movement authority.
+
+The shared ground resolver paints captured underlying terrain, then two clipped
+sublayers per material, before crossing marks, scatter and doors. Each resident
+sublayer still owns at most one quad per cell. Interior pavement uses a full
+quad; topology changes suppress road geometry where walls, fixtures or changed
+ground take ownership. Hard aprons retain their full-cell ground. Legacy maps
+with edge tags but no spline surface keep their neighbor-aware tile treatment.
+Replacing the retained surface invalidates the ground mesh through topology's
+ordinary change log. Maps without spline geometry keep the original layer count.
+
+Freight-apron berth paint derives from the simulation's actual `LandingPad`
+footprints and purpose. Map-only hosts retain those same pads through
+`BattleSetup.buildMap`; mission setup may subsequently select its active berths.
+
+Headless world-sheet draws quantize shared destination pixel edges at fractional
+camera scales. This prevents image-only black seams between adjacent tiles;
+it does not change live GL geometry or navigation. Odd-sized sprite sources
+also use their exact floating-point center rather than integer half extents.
 
 Convoy presentation follows actual chassis motion. Bounded dust streaks appear
 only behind moving live hulls at readable scale; these are not smoke, concealment

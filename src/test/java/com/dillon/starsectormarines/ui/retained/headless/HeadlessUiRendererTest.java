@@ -26,6 +26,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HeadlessUiRendererTest {
 
+    @Test void oddSizedSpriteRemainsCentered(@TempDir Path root) throws Exception {
+        var asset=root.resolve("tile.png");
+        var tile=new BufferedImage(3,3,BufferedImage.TYPE_INT_ARGB);
+        for(int y=0;y<3;y++)for(int x=0;x<3;x++)tile.setRGB(x,y,Color.WHITE.getRGB());
+        ImageIO.write(tile,"png",asset.toFile());
+        var canvas=new UiElement("canvas").tag(UiTag.CANVAS).canvasSize(12,12);
+        var document=new UiDocument(canvas);
+        document.canvases().set(canvas,c->c.sprite("tile.png",null,6,6,6,6,0,Color.WHITE));
+        var image=new HeadlessUiRenderer(root).render(document,12,12);
+        assertEquals(Color.WHITE.getRGB(),image.getRGB(3,3));
+        assertEquals(Color.WHITE.getRGB(),image.getRGB(8,8));
+    }
+
     @Test
     void rendersExactRetainedBoxesAndBitmapTextWithoutTheEngine() {
         UiElement button = new UiElement("action").tag(UiTag.BUTTON).text("OPEN ARMORY");

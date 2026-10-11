@@ -19,6 +19,7 @@ work that cannot be redone mechanically.
 |-----------|-------|
 | `tilesets/` | Raw tileset sheets, their authoring documents, and the normalization and atlas-packing scripts. |
 | `vehicles/` | Dedicated vehicle masters, built-in imagegen prompts and whole-frame PNG packing script. |
+| `portraits/` | Character portrait masters and built-in imagegen prompts. `pack.ps1` downsamples complete square frames to 256px PNGs for contacts and mission dialogue. |
 | `story-scenes/` | Approved chapter illustration masters and built-in imagegen prompts. `pack.ps1` encodes the complete frames as quality-92 JPEGs for the mission UI without cropping or recoloring. |
 | `armory/` | ImageGen masters for Armory item icons. The shipped icon is the master downscaled to a 512px long edge, which `RawArtStaysOutOfModTest` enforces. |
 | `fx/` | Scripts that derive shipped battle FX textures. `build_smoke_field.py` lifts the shared particle sheet's wreck-plume frames to a cool white so a deployed screen reads as equipment rather than damage; its source is a shipped asset rather than a master here, because matching the plume exactly is the point. |

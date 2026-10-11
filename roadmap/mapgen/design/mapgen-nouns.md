@@ -1023,6 +1023,21 @@ facility's owning battle semantics or bypass connectivity/deployment validation.
 `target-faction-facility-treatment.md` owns the first bounded consumer over the
 hard-installation family.
 
+Authored roads have two derived representations: `RoadRasterizer` supplies the
+center-sampled ground/navigation footprint, while `RoadSurface` supplies
+subcell pavement boundaries to the renderer. Both derive from the same sampled
+centerline, width, caps, material and wear. The latter captures the original
+terrain before stamping; it never introduces standable cells or changes route
+clearance. Authored courtyard materials therefore precede road stamping, with
+post-building cleanup retaining ownership of interior floors and markings.
+
+A freight landing area is a connected terminal apron containing multiple
+`LandingPad` reservations, rather than one disconnected square per boat.
+Junction and Relay Nine group their existing berth capacity in staggered, elongated stands
+beside the western terminal, connected to the inbound road. `FREIGHT_APRON`
+selects restrained guidance paint without replacing their clear footprints or
+aircraft approach authority.
+
 ## Boundaries
 
 Generation authors the initial world. The desktop emplacement editor stages and

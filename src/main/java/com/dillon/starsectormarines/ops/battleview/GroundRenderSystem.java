@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.SurfaceRole;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -18,6 +20,7 @@ import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.Arrays;
 
 /**
  * Emits the {@link RenderLayer#GROUND} layer — the tiled floor/wall terrain pass.
@@ -188,8 +191,33 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         emitTerrain(ctx, grid, topology, view);
+        emitFreightStands(ctx, view);
         emitWindows(topology, view);
         emitEdgeBarriers(grid, topology, view);
+    }
+
+    /** Thin painted guides on shared concrete, rather than seven-cell hazard boxes. */
+    private void emitFreightStands(RenderContext ctx,VisibleCellRect view) {
+        for(LandingPad pad:ctx.sim.getMarineLandingPads()) {
+            if(pad.purpose!=LandingPad.Purpose.FREIGHT_APRON)continue;
+            if(pad.right()<view.minX() || pad.left()>view.maxX() || pad.top()<view.minY() || pad.bottom()>view.maxY())continue;
+            float left=pad.left()+.25f,right=pad.right()+.75f;
+            float bottom=pad.bottom()+.25f,top=pad.top()+.75f;
+            for(int corner=0;corner<4;corner++) {
+                float x=corner<2?left:right,y=corner%2==0?bottom:top;
+                paintLine(x,y,x+(x==left?1.5f:-1.5f),y);
+                paintLine(x,y,x,y+(y==bottom?1.5f:-1.5f));
+            }
+            float x=pad.centerX+.5f,y=pad.centerY+.5f;
+            paintLine(x-1.6f,y,x+1.6f,y);
+            paintLine(x+.8f,y-.7f,x+1.6f,y);paintLine(x+.8f,y+.7f,x+1.6f,y);
+            paintLine(left+.8f,y,left+2f,y);
+        }
+    }
+    private void paintLine(float x0,float y0,float x1,float y1) {
+        out.addLine(RenderLayer.GROUND,cam.cellToScreenX(x0),cam.cellToScreenY(y0),
+                cam.cellToScreenX(x1),cam.cellToScreenY(y1),Math.max(1f,cam.cellPxSize()*.11f),
+                .80f,.73f,.48f,.8f*alpha);
     }
 
     /**
@@ -294,13 +322,14 @@ public final class GroundRenderSystem implements RenderSystem {
         // it is how the control run for this lever silently drew no decoration
         // at all while reporting a perfectly plausible command count.
         BaseTerrain base = new BaseTerrain(grid, topology);
-        GroundMesh.CellResolver[] sublayers = {
-                base, base::resolveEdge,
-                new Scatter(topology),
-                new DoorDecals(grid, topology)};
-        int resident0 = residentDecoration ? sublayers.length : 2;
+        GroundMesh.CellResolver[] sublayers = topology.roadSurface()==null
+                ? new GroundMesh.CellResolver[]{base,base::resolveEdge,new Scatter(topology),new DoorDecals(grid,topology)}
+                : new GroundMesh.CellResolver[]{base,base::resolveEdge,base::resolveSecondEdge,
+                        base::resolveConcrete,base::resolveSecondConcrete,new Scatter(topology),new DoorDecals(grid,topology)};
+        int terrainLayers=sublayers.length-2;
+        int resident0 = residentDecoration ? sublayers.length : terrainLayers;
         GroundMesh.CellResolver[] meshLayers = residentDecoration
-                ? sublayers : new GroundMesh.CellResolver[]{sublayers[0],sublayers[1]};
+                ? sublayers : Arrays.copyOf(sublayers,terrainLayers);
 
         if (resident && mesh.isServing(topology)
                 && mesh.sublayerCount() == resident0) {
@@ -308,10 +337,10 @@ public final class GroundRenderSystem implements RenderSystem {
                 if (mesh.sync(topology, meshLayers)) mesh.draw(cam, alpha, 0, 1);
             });
             emitResidentFills(view);
-            out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 1, 2));
+            out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 1, terrainLayers));
             emitCrosswalks(grid, topology, view);
             if (residentDecoration) {
-                out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 2, resident0));
+                out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, terrainLayers, resident0));
             } else {
                 emitScatterAndDoors(sublayers, view);
             }
@@ -329,9 +358,10 @@ public final class GroundRenderSystem implements RenderSystem {
                 terrain.resolve(x, y, commandSink);
             }
         }
-        for (int y=view.minY();y<=view.maxY();y++) for(int x=view.minX();x<=view.maxX();x++) {
-            commandSink.at(x,y);base.resolveEdge(x,y,commandSink);
-        }
+        for(int layer=1;layer<terrainLayers;layer++)
+            for(int y=view.minY();y<=view.maxY();y++) for(int x=view.minX();x<=view.maxX();x++) {
+                commandSink.at(x,y);sublayers[layer].resolve(x,y,commandSink);
+            }
         emitCrosswalks(grid, topology, view);
         emitScatterAndDoors(sublayers, view);
     }
@@ -469,6 +499,10 @@ public final class GroundRenderSystem implements RenderSystem {
         public void resolve(int x, int y, GroundMesh.CellSink sink) {
             if (topology.isWall(x, y)) resolveWall(x, y, sink);
             else {
+                RoadSurface.Underlay patch=underlay(x,y);
+                if(patch!=null && !patch.hard()) {
+                    resolveFloor(x,y,patch.ground(),patch.surface(),sink);return;
+                }
                 int mask=edgeMask(x,y);
                 if(mask==0) resolveFloor(x,y,sink);
                 else resolveFloor(x+RoadEdgeBlend.dx(mask),y+RoadEdgeBlend.dy(mask),sink);
@@ -476,12 +510,37 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         private int edgeMask(int x,int y) {
+            if(topology.roadSurface()!=null)return 0;
             int surface=topology.getSurface(x,y);
             if(surface<=0 || surface>surfaces) return 0;
             int mask=RoadEdgeBlend.mask(topology,x,y);
             return edgeBlocks[surface][mask]!=null ? mask : 0;
         }
+        private RoadSurface.Underlay underlay(int x,int y) {
+            if(topology.roadSurface()==null || topology.isWall(x,y) || topology.isFixture(x,y))return null;
+            RoadSurface.Underlay p=topology.roadSurface().underlay(x,y);
+            if(p==null)return null;
+            var kind=topology.getGroundKind(x,y);
+            if(kind==CellTopology.GroundKind.STREET)
+                return p.hard() || topology.hasTag(x,y,CellTopology.Tag.ROAD_EDGE_BLEND)?p:null;
+            return kind==p.ground() || (kind==CellTopology.GroundKind.STONE && p.shoulder())?p:null;
+        }
+        private void smoothEdge(int x,int y,GroundMesh.CellSink sink,int material,boolean second) {
+            if(underlay(x,y)==null)return;
+            RoadSurface.Patch p=topology.roadSurface().patch(x,y,material);if(p==null)return;
+            float[] vertices=second?p.second():p.first();if(vertices==null)return;
+            GridBlockDef block=surfaceBlock[p.pavement()];
+            SpriteAPI sheet=sheetFor(block.sheetPath);if(sheet==null)return;
+            int[] cell=block.resolve(false,false,false,false,x,y);if(cell==null)return;
+            int inset=block.cellPx>=TileManifest.TILE_SIZE?GROUND_TILE_EDGE_INSET_PX:GROUND_SMALL_TILE_EDGE_INSET_PX;
+            sink.patch(sheet,cell[0]*block.cellPx+inset,cell[1]*block.cellPx+inset,
+                    block.cellPx-2*inset,block.cellPx-2*inset,vertices);
+        }
+        private void resolveSecondEdge(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,0,true); }
+        private void resolveConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,false); }
+        private void resolveSecondConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,true); }
         private void resolveEdge(int x,int y,GroundMesh.CellSink sink) {
+            if(topology.roadSurface()!=null){smoothEdge(x,y,sink,0,false);return;}
             int mask=edgeMask(x,y);
             if(mask==0) return;
             GridBlockDef block=edgeBlocks[topology.getSurface(x,y)][mask];
@@ -508,6 +567,9 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         private void resolveFloor(int x, int y, GroundMesh.CellSink sink) {
+            resolveFloor(x,y,topology.getGroundKind(x,y),topology.getSurface(x,y),sink);
+        }
+        private void resolveFloor(int x,int y,CellTopology.GroundKind kind,int surface,GroundMesh.CellSink sink) {
             boolean nWall = GroundTileSelector.isInBoundsWall(topology, x, y + 1);
             boolean sWall = GroundTileSelector.isInBoundsWall(topology, x, y - 1);
             boolean eWall = GroundTileSelector.isInBoundsWall(topology, x + 1, y);
@@ -523,7 +585,7 @@ public final class GroundRenderSystem implements RenderSystem {
             if (rubble == null || sheetFor(rubble.sheetPath) == null) remnant = null;
             GridBlockDef floorBlock = remnant != null
                     ? tileReg.block(remnant.groundSurfaceId())
-                    : surfaces == 0 ? null : blockFor(topology, x, y);
+                    : surface<=0 || tileReg==null ? null : tileReg.block(topology.surfaceId(surface));
             if (floorBlock != null) {
                 groundBlock(floorBlock, sheetFor(floorBlock.sheetPath),
                         floorBlock.fillRgb == null ? null : new Color(floorBlock.fillRgb),
@@ -531,7 +593,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 return;
             }
 
-            CellTopology.GroundKind kind = remnant == null ? topology.getGroundKind(x, y) : remnant.groundKind();
+            if (remnant != null) kind = remnant.groundKind();
             // A wall carved into unclassified solid ground still reveals a real floor.
             if (remnant != null && (kind == CellTopology.GroundKind.VOID || kind == CellTopology.GroundKind.RUBBLE))
                 kind = CellTopology.GroundKind.INDOOR;
@@ -714,6 +776,13 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         @Override
+        public void patch(SpriteAPI sheet,int sx,int sy,int sw,int sh,float[] vertices) {
+            out.addSheetPatch(RenderLayer.GROUND,sheet,sx,sy,sw,sh,
+                    cam.cellToScreenX(gridX+.5f),cam.cellToScreenY(gridY+.5f),
+                    cam.cellPxSize(),cam.cellPxSize(),alpha,vertices);
+        }
+
+        @Override
         public void fill(int rgb) {
             fillCellRgb(gridX, gridY, rgb);
         }
@@ -757,7 +826,7 @@ public final class GroundRenderSystem implements RenderSystem {
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 commandSink.at(x, y);
-                for (int layer = 2; layer < sublayers.length; layer++) {
+                for (int layer = sublayers.length-2; layer < sublayers.length; layer++) {
                     sublayers[layer].resolve(x, y, commandSink);
                 }
             }
