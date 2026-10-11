@@ -1,0 +1,6 @@
+{
+  "source": "imagegen-raw/industrial-fence-geometry.raw.png",
+  "sourceSize": [1254, 1254],
+  "corner": [157, 157, 314],
+  "straight": [471, 157, 314]
+}
