@@ -4,13 +4,13 @@ Launch `gradlew.bat layerAuthoring` and select **Roads**.
 
 - Start from the curved junction sample, choose **New** for another map size, or **Open** a road JSON file.
 - Drag gold anchors; double-click to insert one; **Remove anchor** deletes the selected point. **Undo** restores prior edits.
-- Add roads to build junctions. Select a road to change width, gravel shoulder, asphalt/concrete, wear or wear-pattern seed. Choose round ends for free road stubs or flush (`BUTT`) ends for aprons and exact facility thresholds.
+- Add roads to build junctions. Select a road to change width, gravel shoulder, asphalt/concrete, wear or wear-pattern seed. Toggle **Auto edging** to feather pavement into neighboring outdoor terrain; switch it off for a hard apron. Choose round ends for free road stubs or flush (`BUTT`) ends for aprons and exact facility thresholds.
 - **Save / Save as** preserves the versioned JSON document. Loading validates dimensions, anchor bounds, finite settings and road identities.
 - `gradlew.bat createSnapshots -Psnapshot=roads` renders the wear ladder and exercises anchor dragging, the wear slider and save/reopen at 1920×1080.
 
 `pavement.recipe.json` is the art source for the independent pavement sheet.
-`gradlew.bat roadMaterials` deterministically rebuilds its albedo atlas and tile
-catalog. It needs no image service or external download. Keep the recipe and
+`gradlew.bat roadMaterials` deterministically rebuilds its opaque/edge atlases and tile
+catalogs. `edgeFeather` and `edgeRoughness` tune the baked alpha transition. It needs no image service or external download. Keep the recipe and
 producer together; do not paint over the exported atlas. The source contains
 64px cells, eight variants for each of three ages and two materials. Grid source
 pixels are not a requested game zoom or UI scale.
@@ -26,13 +26,16 @@ Run. Public approaches use asphalt; loading/service routes and boat aprons use
 concrete. Each route has a named wear setting. Open its document in **Roads** to
 tune it; custom saved documents do not automatically replace a mission.
 
-The story maps retain their gate widths, berth footprints and script-owned route
-graphs. Changing a spline is not a corresponding change to the vehicle or
-reinforcement route: revalidate the complete mission when editing geometry.
+The story maps retain their gate widths and berth footprints. Junction and
+Relay Nine derive road graph cells from their sampled splines, sharing graph
+nodes where route endpoints meet. Split a route at each graph junction; a
+mid-route crossing is only a visual intersection. Other mission scripts retain
+their own route graphs. Revalidate the complete mission when editing geometry.
 Thunder Run additionally refuses changes outside its fixed freight/ambush mask.
 The five other documents validate their map extent at load/save. Relief's larger
 debug maps extend only its boundary approaches, not the checkpoint itself.
 
+The optional `autoEdge` flag defaults to `true`; it changes rendering only.
 The `endCap` field defaults to `ROUND` for existing version-1 documents; `BUTT`
 ends stop at the first and last anchor. Later room floors, walls and painted
 landing/inspection stripes replace pavement surfaces before finalization.
@@ -45,6 +48,6 @@ existing `commanderEvidence -Pmission=<name>` harness for arrival and battle
 replays; `roads` snapshots still exercise the actual editor interactions.
 
 Current boundaries: the smooth spline is rasterized to square terrain cells;
-there are no subcell mesh edges, automatic junction markings, bridges or elevated
+feathered alpha softens cell edges but there are no continuous mesh edges, automatic junction markings, bridges or elevated
 roads. A curve's appearance is not a vehicle turning-radius guarantee. Validate
 mission layouts using production chassis clearance and convoy replays.
