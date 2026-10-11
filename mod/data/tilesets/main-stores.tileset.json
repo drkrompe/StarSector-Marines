@@ -1,0 +1,136 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "main-stores.rack",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "main-stores.frame",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "main-stores.cartons",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "main-stores.cases",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "main-stores.drums",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "main-stores.pallet",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "main-stores.tally",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "main-stores.packing",
+      "row": 6
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "main-stores.rack",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "main-stores.frame",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.cartons",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.cases",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.drums",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 10,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.pallet",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 12,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "main-stores.tally",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "main-stores.packing",
+      "row": 6
+    }
+  ],
+  "sheet": "graphics/tilesets/main-stores.png"
+}

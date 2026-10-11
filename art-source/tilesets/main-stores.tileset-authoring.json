@@ -1,0 +1,141 @@
+{
+  "sheetName": "main-stores",
+  "sheet": "art-source/tilesets/main-stores.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "main-stores",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/main-stores.png",
+  "note": "Layered main stores. Rack/pallet bases own occupancy. Stock overlays retain padded 2x2 canvases; retaining frame is last, with three alpha openings. Source is unchanged built-in ImageGen output. No keying, repainting or post-export patch.",
+  "entries": [
+    {
+      "id": "main-stores.rack",
+      "rect": [
+        78,
+        52,
+        182,
+        530
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "main-stores.frame",
+      "rect": [
+        333,
+        52,
+        182,
+        530
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "main-stores.cartons",
+      "rect": [
+        601,
+        68,
+        206,
+        206
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "main-stores.cases",
+      "rect": [
+        882,
+        62,
+        220,
+        220
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "main-stores.drums",
+      "rect": [
+        602,
+        405,
+        206,
+        206
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "main-stores.pallet",
+      "rect": [
+        896,
+        397,
+        216,
+        202
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "main-stores.tally",
+      "rect": [
+        77,
+        748,
+        388,
+        140
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "main-stores.packing",
+      "rect": [
+        77,
+        1021,
+        388,
+        140
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    }
+  ]
+}
