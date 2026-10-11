@@ -1,0 +1,13 @@
+Generation mode: built-in imagegen
+Generated: 2026-10-11
+Master: mara-venn.master.png
+Runtime: mod/graphics/portraits/mara-venn.png
+Packing: pack.ps1; complete frame downscaled to 256x256, no cropping or recoloring.
+
+Exact generation prompt:
+Use case: stylized-concept
+Asset type: square character portrait for the Starsector Marines mission-radio dialogue UI, readable at 88x88 pixels.
+Primary request: Create a new portrait of Mara Venn, a younger, scrappy woman whose voice is gritty, lively and capable. She coordinates a civilian freight cooperative under pressure, and should look like someone who has worked loading bays and talked her way through trouble.
+Subject: adult woman in her early thirties, warm medium-brown skin, alert expressive brown eyes, strong brows, a few freckles and a small healed nick at one eyebrow. Dark brown hair pulled into a loose practical short ponytail, unruly strands around the temples. An assured, slightly wry expression, chin level, engaged with the viewer. A worn single-ear radio headset with a small boom microphone; scuffed charcoal work jacket with a muted rust-orange collar over a plain utility shirt. Practical, resourceful, independent, weathered by work but clearly youthful.
+Style: hand-painted retro science-fiction strategy-game portrait. Confident dark contours, chunky readable painterly shapes, restrained detail and strong face silhouette, natural proportions, textured fabric and subtle skin imperfections. Match the visual density of classic Starsector character portraits; illustration, not a photograph or polished 3D render.
+Composition: one character only, close head-and-shoulders bust, near-frontal with a slight three-quarter turn. Face is large and dominant, entire hair/headset comfortably inside the square, shoulders cut by the bottom edge. Light the face warmly against a very dark plain charcoal background. Opaque square image, no border, no caption, no lettering, no logos, no watermark. Keep the face and radio equipment easy to read when reduced to a small dialogue icon.
