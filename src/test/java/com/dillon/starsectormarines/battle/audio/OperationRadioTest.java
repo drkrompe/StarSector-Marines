@@ -90,9 +90,13 @@ class OperationRadioTest {
         for (int i = 0; i < 100; i++) rows.add(order(i, 20));
         radio.observe(rows);
         assertNotNull(radio.beginExchange());
-        // Drop all but the current sentence to make the remaining backlog visible.
-        radio.stop();
-        radio.advance(31, true, false, false);
+        for (int i = 0; i < 3; i++) {
+            finish();
+            assertNotNull(radio.advance(0.36f, true, false, false));
+        }
+        finish();
+        assertFalse(radio.busy());
+        assertNull(radio.advance(31, true, false, false));
         radio.observe(rows);
         assertNull(radio.beginExchange(), "Unselected changes are consumed, not a hundred queued conversations");
         rows.set(77, order(77, 30));
