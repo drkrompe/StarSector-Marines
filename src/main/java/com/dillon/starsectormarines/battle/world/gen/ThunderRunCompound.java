@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -93,20 +94,34 @@ public final class ThunderRunCompound {
         pave(c, 0, 0, WIDTH - 1, HEIGHT - 1, wild);
         // Reserve the fifteen-cell carriageway before buildings or dressing.
         pave(c, 0, 65, WIDTH - 1, 85, GroundKind.SIDEWALK);
-        pave(c, 10, 12, 36, 132, GroundKind.STREET);
+        freightApron(c);
         pave(c, 57, 35, 111, 64, GroundKind.COURTYARD);
         pave(c, 143, 37, 195, 112, GroundKind.COURTYARD);
         pave(c, 235, 30, 316, 115, GroundKind.COURTYARD);
-        for (int y : new int[]{22, 40, 58, 94, 112, 130}) {
-            LandingPad pad = new LandingPad(21, y, 3, 3, LandingPad.Approach.WEST);
-            c.landingPads.add(pad);
-            for (int py = pad.bottom(); py <= pad.top(); py++) for (int px = pad.left(); px <= pad.right(); px++)
-                if (px == pad.left() || px == pad.right() || py == pad.bottom() || py == pad.top())
-                    c.topology.setGroundKind(px, py, GroundKind.STRIPED);
-        }
         var roads = RoadCatalog.thunderRun();
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
     }
+    /** Two working aprons share a service spine beside the through freight road. */
+    private static void freightApron(GenContext c) {
+        int[] concrete = new int[3];
+        for (int age = 0; age < 3; age++)
+            concrete[age] = c.topology.surfaceIndex(Material.CONCRETE.block(age));
+        for (int[] bank : new int[][]{{30,64},{86,120}}) {
+            for (int y = bank[0]; y <= bank[1]; y++) for (int x = 6; x <= 36; x++) {
+                c.topology.setGroundKind(x, y, GroundKind.COURTYARD);
+                c.topology.setSurface(x, y, concrete[RoadRasterizer.age(.3, 9317, x, y)]);
+            }
+        }
+        // Inner service lane meets the artery; aircraft arrive across open ground to the west.
+        pave(c, 32, 30, 36, 120, GroundKind.STREET);
+        int road = c.topology.surfaceIndex(Material.ASPHALT.block(1));
+        for (int y = 30; y <= 120; y++) for (int x = 32; x <= 36; x++)
+            c.topology.setSurface(x, y, road);
+        int[][] stands = {{18,58},{23,47},{18,36},{18,92},{23,103},{18,114}};
+        for (int[] stand : stands) c.landingPads.add(new LandingPad(stand[0], stand[1],
+                8, 3, LandingPad.Approach.WEST, LandingPad.Purpose.FREIGHT_APRON));
+    }
+
     private static void buildings(GenContext c) {
         // Each destination overlooks its own road beat; none sits in the carriageway.
         shell(c, 72, 46, 91, 62, Frontage.BOTTOM);
@@ -235,7 +250,7 @@ public final class ThunderRunCompound {
             GroundKind kind = c.topology.getGroundKind(x, y);
             if (kind == GroundKind.STREET && c.topology.getSurface(x,y) == 0)
                 c.topology.setSurface(x, y, road);
-            else if (kind == GroundKind.COURTYARD)
+            else if (kind == GroundKind.COURTYARD && c.topology.getSurface(x,y) == 0)
                 c.topology.setSurface(x, y, x < 235 ? dirt : gravel);
         }
         // Real paint decals retain lane rhythm without substituting another paving material.
