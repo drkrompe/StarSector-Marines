@@ -40,6 +40,7 @@ public final class WarshipSystem {
     private final List<WarshipShell> shells = new ArrayList<>();
     private final List<WarshipShell> shellsView = Collections.unmodifiableList(shells);
     private final Random random = new Random(20261011L);
+    private final WarshipPointDefence pointDefence = new WarshipPointDefence();
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
@@ -89,6 +90,11 @@ public final class WarshipSystem {
         return shipsView;
     }
 
+    /** The ships' point defence, for presentation and evidence. */
+    public WarshipPointDefence pointDefence() {
+        return pointDefence;
+    }
+
     /** Rounds in flight, for presentation and evidence. */
     public List<WarshipShell> shells() {
         return shellsView;
@@ -115,9 +121,14 @@ public final class WarshipSystem {
             moveHull(dt, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
-                tickMount(dt, sim, ship, mount);
+                if (mount.pointDefence()) {
+                    pointDefence.tickMount(dt, sim, ship, mount, shells);
+                } else {
+                    tickMount(dt, sim, ship, mount);
+                }
             }
         }
+        pointDefence.ageMarks(dt);
     }
 
     /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
@@ -241,6 +252,10 @@ public final class WarshipSystem {
     private void landShells(float dt, BattleSimulation sim) {
         for (int i = shells.size() - 1; i >= 0; i--) {
             WarshipShell shell = shells.get(i);
+            if (shell.intercepted) {
+                shells.remove(i);
+                continue;
+            }
             if (!shell.advance(dt)) continue;
             shells.remove(i);
             sim.detonateNow(shell.landing());
@@ -367,7 +382,7 @@ public final class WarshipSystem {
      * A fixed mount, a hardpoint or a weapon with no traverse, points where the
      * hull points it.
      */
-    private static void traverse(float dt, Warship ship, Warship.Mount m, float bearing) {
+    static void traverse(float dt, Warship ship, Warship.Mount m, float bearing) {
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         float rate = m.weapon.turnRateDegPerSec();
         if (m.slot.hardpoint() || rate <= 0f) {
@@ -441,7 +456,7 @@ public final class WarshipSystem {
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
                 /*authoredAftermath*/ heavy);
-        shells.add(new WarshipShell(w, mx, my, lx, ly, flight, blast, landing));
+        shells.add(new WarshipShell(w, ship.faction, mx, my, lx, ly, flight, blast, landing));
     }
 
     private static float penetration(String damageType) {
