@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.box-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "doodad.crate-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "doodad.industrial-crate-stack-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "doodad.box-dam-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "doodad.box-destroyed",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "doodad.crate-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "doodad.industrial-crate-stack-destroyed",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "doodad.box-dam-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.28,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.box-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 1,
+      "cover": "med",
+      "id": "doodad.crate-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 2,
+      "cover": "heavy",
+      "id": "doodad.industrial-crate-stack-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.22,
+      "col": 3,
+      "cover": "med",
+      "id": "doodad.box-dam-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.box-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.crate-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.industrial-crate-stack-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.box-dam-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/crate-damage.png"
+}
