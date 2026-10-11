@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * One retained element tree with layout and pointer state.
@@ -31,6 +32,7 @@ public final class UiDocument {
     private UiElement focused;
     private UiElement spaceArmed;
     private Runnable onCancel;
+    private Supplier<UiElement> inputScope;
     private float pointerX;
     private float pointerY;
     private boolean pointerKnown;
@@ -40,6 +42,23 @@ public final class UiDocument {
     public UiDocument(UiElement root) {
         if (root == null) throw new IllegalArgumentException("root must not be null");
         this.root = root;
+    }
+
+    /** Restricts pointer and keyboard interaction to an attached subtree, e.g. a modal. */
+    public UiDocument inputScope(Supplier<UiElement> scope) {
+        inputScope = scope;
+        validateInteractionReferences();
+        return this;
+    }
+
+    private UiElement inputRoot() {
+        UiElement scope = inputScope == null ? null : inputScope.get();
+        return scope != null && attached(scope) ? scope : root;
+    }
+
+    private boolean acceptsInput(UiElement element) {
+        UiElement scope = inputRoot();
+        return attached(element) && (element == scope || isAncestor(scope, element));
     }
 
     public UiElement root() {
@@ -226,8 +245,8 @@ public final class UiDocument {
     }
 
     public void requestFocus(UiElement element, boolean focusVisible) {
-        if (element != null && (!attached(element) || !element.focusable())) {
-            throw new IllegalArgumentException("Focus target must be attached and focusable");
+        if (element != null && (!acceptsInput(element) || !element.focusable())) {
+            throw new IllegalArgumentException("Focus target must be focusable and inside the active input scope");
         }
         if (focused == element && (element == null || element.focusVisible() == focusVisible)) return;
         cancelSpaceAction();
@@ -241,8 +260,8 @@ public final class UiDocument {
     }
 
     public void setPointerCapture(UiElement element) {
-        if (element == null || !attached(element)) {
-            throw new IllegalArgumentException("Capture target must be attached");
+        if (element == null || !acceptsInput(element)) {
+            throw new IllegalArgumentException("Capture target must be inside the active input scope");
         }
         pointerCapture = element;
         updateHover(element);
@@ -335,17 +354,19 @@ public final class UiDocument {
         rememberPointer(x, y);
         boolean overScrollSurface = false;
         for (UiElement target = elementAt(x, y); target != null; target = target.parent()) {
-            if (target.overflow() != Overflow.SCROLL) continue;
-            overScrollSurface = true;
-            float range = target.box().maxScrollTop();
-            if (range <= 0f) continue;
-            float from = Math.min(target.scrollTop(), range);
-            float to = Math.max(0f, Math.min(from + deltaY, range));
-            if (to == from) continue;
-            target.scrollTop(to);
-            layout.layout(root, viewport.width(), viewport.height());
-            pointerMoved(x, y);
-            return true;
+            if (target.overflow() == Overflow.SCROLL) {
+                overScrollSurface = true;
+                float range = target.box().maxScrollTop();
+                float from = Math.min(target.scrollTop(), range);
+                float to = Math.max(0f, Math.min(from + deltaY, range));
+                if (to != from) {
+                    target.scrollTop(to);
+                    layout.layout(root, viewport.width(), viewport.height());
+                    pointerMoved(x, y);
+                    return true;
+                }
+            }
+            if (target == inputRoot()) break;
         }
         return overScrollSurface;
     }
@@ -363,7 +384,7 @@ public final class UiDocument {
      * hit order agree (law 6), so children are tested last-first.
      */
     public UiElement elementAt(float x, float y) {
-        return elementAt(root, x, y, viewport);
+        return elementAt(inputRoot(), x, y, viewport);
     }
 
     private static UiElement elementAt(UiElement element, float x, float y,
@@ -383,7 +404,7 @@ public final class UiDocument {
 
     private boolean moveFocus(boolean reverse) {
         List<UiElement> order = new ArrayList<>();
-        collectTabOrder(root, order);
+        collectTabOrder(inputRoot(), order);
         if (order.isEmpty()) {
             requestFocus(null, false);
             return false;
@@ -433,11 +454,12 @@ public final class UiDocument {
         updateHover(pointerCapture != null ? pointerCapture : elementAt(pointerX, pointerY));
     }
 
-    private static List<UiElement> pathToRoot(UiElement target) {
+    private List<UiElement> pathToRoot(UiElement target) {
         if (target == null) return List.of();
         List<UiElement> path = new ArrayList<>();
         for (UiElement element = target; element != null; element = element.parent()) {
             path.add(element);
+            if (element == inputRoot()) break;
         }
         return Collections.unmodifiableList(path);
     }
@@ -453,21 +475,23 @@ public final class UiDocument {
                 case DOWN -> element.pointerDown(event);
                 case UP -> element.pointerUp(event);
             }
-            if (event.propagationStopped()) break;
+            if (event.propagationStopped() || element == inputRoot()) break;
         }
         return event;
     }
 
-    private static UiElement nearestClickable(UiElement target) {
+    private UiElement nearestClickable(UiElement target) {
         for (UiElement element = target; element != null; element = element.parent()) {
             if (element.clickable()) return element;
+            if (element == inputRoot()) break;
         }
         return null;
     }
 
-    private static UiElement nearestFocusable(UiElement target) {
+    private UiElement nearestFocusable(UiElement target) {
         for (UiElement element = target; element != null; element = element.parent()) {
             if (element.focusable()) return element;
+            if (element == inputRoot()) break;
         }
         return null;
     }
@@ -496,23 +520,23 @@ public final class UiDocument {
     }
 
     private void validateInteractionReferences() {
-        if (focused != null && (!attached(focused) || !focused.focusable())) {
+        if (focused != null && (!acceptsInput(focused) || !focused.focusable())) {
             requestFocus(null, false);
         }
-        if (spaceArmed != null && (!attached(spaceArmed) || !spaceArmed.clickable())) {
+        if (spaceArmed != null && (!acceptsInput(spaceArmed) || !spaceArmed.clickable())) {
             cancelSpaceAction();
         }
-        if (pressed != null && (!attached(pressed) || !pressed.clickable())) {
+        if (pressed != null && (!acceptsInput(pressed) || !pressed.clickable())) {
             pressed.armed(false);
             pressed = null;
         }
-        if (pointerCapture != null && !attached(pointerCapture)) {
+        if (pointerCapture != null && !acceptsInput(pointerCapture)) {
             pointerCapture = null;
             updateHover(pointerKnown ? elementAt(pointerX, pointerY) : null);
         }
         boolean staleHover = false;
         for (UiElement element : hovered) {
-            if (!attached(element)) {
+            if (!acceptsInput(element)) {
                 staleHover = true;
                 break;
             }

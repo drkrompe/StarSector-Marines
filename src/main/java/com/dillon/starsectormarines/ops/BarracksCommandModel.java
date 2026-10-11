@@ -121,8 +121,9 @@ public final class BarracksCommandModel {
         props.put("reviewTransfers", (Runnable) this::reviewTransfers);
         props.put("applyTransfers", (Runnable) this::applyTransfers);
         props.put("cancelTransfers", (Runnable) () -> { donors.clear(); choosingDonors = false; reviewedTransfers = null; refresh(); });
-        bind(reactor, "guideClasses", () -> guideOpen && !CompanyManagementGuide.lines().isEmpty() ? "management-guide console-readout" : "hidden");
-        bind(reactor, "guideTitle", () -> "COMPANY OFFICER / " + (guideStep + 1) + " / " + CompanyManagementGuide.lines().size() + " / " + guideLine().title());
+        bind(reactor, "guideClasses", () -> guideVisible() ? "guide-backdrop" : "guide-backdrop-hidden");
+        bind(reactor, "guideTitle", () -> CompanyManagementGuide.speaker().toUpperCase(Locale.ROOT) + " / " + (guideStep + 1) + " / " + CompanyManagementGuide.lines().size() + " / " + guideLine().title());
+        bind(reactor, "guidePortrait", CompanyManagementGuide::portrait);
         bind(reactor, "guideText", () -> guideLine().text());
         bind(reactor, "guideStatus", () -> lineSquads().isEmpty() ? "No line squads yet. Raise Squad opens the existing founding desk."
                 : selected.isEmpty() ? "Your company has " + lineSquads().size() + " squads. Mark receiving squads to begin."
@@ -133,7 +134,7 @@ public final class BarracksCommandModel {
         props.put("guideHelp", (Runnable) () -> { guideOpen = true; guideStep = 0; refresh(); });
         props.put("guidePrevious", (Runnable) () -> { guideStep = Math.max(0, guideStep - 1); refresh(); });
         props.put("guideNext", (Runnable) () -> { guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
-        props.put("guideDismiss", (Runnable) () -> { guideOpen = false; roster.dismissManagementGuide(); refresh(); });
+        props.put("guideDismiss", (Runnable) this::dismissGuide);
         bind(reactor, "editorClasses", () -> editing ? "order-body" : "order-body hidden");
         bind(reactor, "title", this::title);
         bind(reactor, "summary", () -> lineSquads().size() + " squads / " + roster.lineReadySoldiers().size()
@@ -463,6 +464,8 @@ public final class BarracksCommandModel {
                 : "Issue blocked. Check personnel readiness, known equipment and the combined cargo bill.";
         changed.run();
     }
+    public boolean guideVisible() { return guideOpen && !CompanyManagementGuide.lines().isEmpty(); }
+    public void dismissGuide() { guideOpen = false; roster.dismissManagementGuide(); refresh(); }
     private CompanyManagementGuide.Line guideLine() {
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", "Guide unavailable", "") : lines.get(Math.min(guideStep, lines.size() - 1));
