@@ -54,3 +54,4 @@ com.dillon.starsectormarines.ops.battleview.VisibleBlockerSnapshotSuite
 com.dillon.starsectormarines.ops.CastleStorySnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtBarrageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.warship.ParagonSweepSceneSnapshotSuite
+com.dillon.starsectormarines.battle.warship.OnslaughtDirectorSceneSnapshotSuite

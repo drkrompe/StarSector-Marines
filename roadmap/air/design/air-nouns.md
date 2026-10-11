@@ -1446,6 +1446,15 @@ it has come onto its bearing, and a fixed mount points where the hull does. A
 choice is kept until it has been fired on. Eventually these orders belong to
 every such unit, not just to cinematics.
 
+**A warship hovers to a station at its hull's own speed, and a director can choose
+its ground.** The ship translates in any direction regardless of heading,
+accelerating, cruising and braking onto its station at the speed and
+acceleration its table row gives; a ship that has moved far re-chooses the
+heading that brings its guns to bear. A director, given only an area size,
+issues ordinary area orders itself: the densest hostile concentration within
+the ship's longest reach that no friendly ship's area already covers, chosen
+again once that ground holds nobody. Ground beyond every gun is never chosen.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount
