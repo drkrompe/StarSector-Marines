@@ -680,9 +680,6 @@ public final class FleetArmoryViewModel {
             int available = squadFoundingResources.available(line.commodityId());
             String id = "found-squad-cost:" + line.commodityId();
             String commodityName = squadFoundingResources.commodityName(line.commodityId());
-            if (Commodities.HAND_WEAPONS.equals(line.commodityId())) {
-                commodityName = "Armaments";
-            }
             rows.add(new CargoCostRow(
                     id, id + ":icon", id + ":label",
                     available >= line.quantity() ? "cargo-cost" : "cargo-cost short",

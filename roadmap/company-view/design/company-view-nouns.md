@@ -51,8 +51,8 @@ company view composes their stable outputs.
   weapon doctrine and one armor doctrine into the selected squad's exact twelve
   materialized kits.
 - **Squad founding** — one trailing `+` formation card in the Fleet Armory gallery
-  that consumes twelve Marines plus baseline arms, supplies, and provisions before
-  creating a full named line formation. Its live material bill stays inside that
+  that consumes twelve Marines, 36 supplies, and 24 food before creating a full
+  named line formation. Its live material bill stays inside that
   future card slot; a partial bill creates neither personnel nor squad identity.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
