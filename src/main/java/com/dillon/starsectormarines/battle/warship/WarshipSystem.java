@@ -57,6 +57,15 @@ public final class WarshipSystem {
 
     /** A turret fires once its barrel is this close to the bearing of what it has chosen. */
     private static final float ALIGNED_DEGREES = 2f;
+    /** A beam this strong, in damage per second, is a lance that cuts ground; weaker beams are anti-ship and silent here. */
+    private static final float LANCE_MIN_DPS = 500f;
+    private static final float LANCE_TELEGRAPH_SECONDS = 1.5f;
+    private static final float LANCE_PENETRATION = 10f;
+    private static final int LANCE_WALL_DAMAGE = 100;
+    private static final float LANCE_MIN_HALF_WIDTH = 1.2f;
+    private static final float LANCE_MIN_SWEEP_RATE = 8f;
+    private static final float LANCE_MAX_HALF_ANGLE = 1.2f;
+    private static final float LANCE_REST_SECONDS = 2f;
 
     public void tick(float dt, BattleSimulation sim) {
         landShells(dt, sim);
@@ -109,6 +118,10 @@ public final class WarshipSystem {
         m.secondsSinceFired += dt;
         m.cooldown -= dt;
         VanillaWeapon w = m.weapon;
+        if (w.beam()) {
+            tickBeam(dt, sim, ship, m);
+            return;
+        }
         if (m.burstRemaining > 0) {
             traverse(dt, ship, m, AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)));
             m.burstTimer -= dt;
@@ -142,6 +155,66 @@ public final class WarshipSystem {
         if (Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) > ALIGNED_DEGREES) return;
         m.burstRemaining = w.burstSize();
         m.burstTimer = 0f;
+    }
+
+    /**
+     * A beam mount with an area to cut lays one sweep across the area's width as
+     * seen from the mount, walked at the weapon's own traverse rate and kept inside
+     * the slot's arc. Once laid the sweep is committed, like any lance: the
+     * barrel follows it but does not re-aim it.
+     */
+    private void tickBeam(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {
+        VanillaWeapon w = m.weapon;
+        if (m.lance != null) {
+            if (sim.lanceSweeps().active().contains(m.lance)) {
+                m.headingDegrees = (float) Math.toDegrees(m.lance.angle()) - 90f;
+                if (m.lance.isBurning()) m.secondsSinceFired = 0f;
+                return;
+            }
+            m.lance = null;
+        }
+        float rest = ship.facingDegrees + m.slot.angleDegrees();
+        WarshipOrder.FireOnArea area = ship.order() instanceof WarshipOrder.FireOnArea a ? a : null;
+        if (area == null || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
+                || !acquire(sim, ship, m, area)) {
+            traverse(dt, ship, m, rest);
+            return;
+        }
+        float mx = ship.mountX(m);
+        float my = ship.mountY(m);
+        float dx = area.x() - mx;
+        float dy = area.y() - my;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float centre = (float) Math.atan2(dy, dx);
+        float half = dist > area.radius()
+                ? Math.min(LANCE_MAX_HALF_ANGLE, (float) Math.asin(area.radius() / dist)) : LANCE_MAX_HALF_ANGLE;
+        // Kept inside the slot's own arc, measured about the slot's direction.
+        float slotWorld = (float) Math.toRadians(rest + 90f);
+        float halfArc = (float) Math.toRadians(Math.max(m.slot.arcDegrees(), 1f) * 0.5f);
+        float start = Math.max(-halfArc, wrapRadians(centre - half - slotWorld));
+        float end = Math.min(halfArc, wrapRadians(centre + half - slotWorld));
+        if (end - start < 0.05f) {
+            traverse(dt, ship, m, rest);
+            return;
+        }
+        float rate = Math.max(LANCE_MIN_SWEEP_RATE, w.turnRateDegPerSec());
+        float burn = Math.max(1f, (float) Math.toDegrees(end - start) / rate);
+        LanceSweep sweep = new LanceSweep(0L, ship.faction, mx, my,
+                slotWorld + start, slotWorld + end,
+                WarshipScale.cells(w.rangePx()),
+                Math.max(LANCE_MIN_HALF_WIDTH, WarshipScale.cells(w.beamWidthPx())),
+                LANCE_TELEGRAPH_SECONDS, burn, w.damagePerSecond(),
+                LANCE_PENETRATION, LANCE_WALL_DAMAGE, w.id());
+        m.lance = sim.startLanceSweep(sweep);
+        m.shotsFired++;
+        m.cooldown = sweep.totalSeconds() + Math.max(w.cooldownSeconds(), LANCE_REST_SECONDS);
+    }
+
+    private static float wrapRadians(float r) {
+        float d = (float) (r % (2 * Math.PI));
+        if (d > Math.PI) d -= (float) (2 * Math.PI);
+        if (d < -Math.PI) d += (float) (2 * Math.PI);
+        return d;
     }
 
     /**

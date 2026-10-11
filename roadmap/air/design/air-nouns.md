@@ -1444,6 +1444,13 @@ it has come onto its bearing, and a fixed mount points where the hull does. A
 choice is kept until it has been fired on. Eventually these orders belong to
 every such unit, not just to cinematics.
 
+**A lance is a beam weapon strong enough to cut ground, and under an area order
+it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
+Tachyon Lance, lays one committed sweep across the ordered area as that mount
+sees it, walked at the weapon's own traverse rate, kept inside its slot's arc and
+drawn in the weapon's own colours. Weaker beams (the Graviton Beam, the Tactical
+Laser) are anti-ship weapons and stay silent against ground for now.
+
 **Ownership is the mission's, not the ship's.** The same entity serves the
 company's own flagship, an allied or neutral hull, and an enemy's. Who may call
 it, what it is aimed at and why it is present are decided by the mission or the
