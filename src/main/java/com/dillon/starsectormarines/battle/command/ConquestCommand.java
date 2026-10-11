@@ -170,19 +170,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final int ZONE_TARGET_OVERFLOW_SQUADS = 2;
 
     /**
-     * {@code -Dbattle.conquest.zoneTargetCap=true} divides the front push
-     * across a strip's zones instead of ranking every squad onto the nearest
-     * one. <b>Off</b>, and the switch exists because the cap has to be
-     * measurable apart from everything else shipped beside it — a matrix run
-     * that moves two layers at once measures neither.
+     * {@code -Dbattle.conquest.zoneTargetCap=false} restores ranking every
+     * squad onto the nearest zone, which is the control the cap has to be
+     * measured against. <b>On</b> by default: it divides the front push across
+     * a strip's zones. Measured alongside balanced home tracks and transit
+     * spacing, where the three together cut the densest block of marines on
+     * {@code full-strength-west} from 62 bodies to 28.
      */
     public static final String ZONE_TARGET_CAP_PROPERTY =
             "battle.conquest.zoneTargetCap";
 
     /**
-     * {@code -Dbattle.command.conquest.balancedHomeTracks=true} gives each new
-     * squad the least-loaded track as its home, rather than the one it happened
-     * to be standing in when first seen.
+     * {@code -Dbattle.command.conquest.balancedHomeTracks=false} restores the
+     * home track being the one a squad happened to be standing in when first
+     * seen. <b>On</b> by default: each new squad takes the least-loaded track.
      *
      * <p>The home track is sticky and read once, and the whole force lands in
      * one place. Measured on {@code full-strength-west}: thirty squads with the
@@ -191,18 +192,19 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * then moved the entire force as one body to whichever track had a target -
      * 27 of 30 squads on one zone, the other track's twenty-one known contacts
      * answered by a single squad. A squad's natural track wins a tie, so a map
-     * whose landing spreads across the lanes already is unchanged. Off while it
-     * is measured apart from everything else.
+     * whose landing spreads across the lanes already is unchanged. At full
+     * length it cost {@code full-strength-west} twice the marine losses for the
+     * same captures; that was accepted for a battle that reads as three fronts.
      */
     public static final String BALANCED_HOME_TRACKS_PROPERTY =
             "battle.command.conquest.balancedHomeTracks";
 
-    static final boolean BALANCED_HOME_TRACKS_ENABLED = Boolean.parseBoolean(
-            System.getProperty(BALANCED_HOME_TRACKS_PROPERTY, "false"));
+    static boolean BALANCED_HOME_TRACKS_ENABLED = Boolean.parseBoolean(
+            System.getProperty(BALANCED_HOME_TRACKS_PROPERTY, "true"));
 
     /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
     static boolean ZONE_TARGET_CAP_ENABLED = Boolean.parseBoolean(
-            System.getProperty(ZONE_TARGET_CAP_PROPERTY, "false"));
+            System.getProperty(ZONE_TARGET_CAP_PROPERTY, "true"));
 
     /**
      * How far outside a compound's own footprint a squad may stand and still

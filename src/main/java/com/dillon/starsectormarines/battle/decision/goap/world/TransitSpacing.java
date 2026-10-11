@@ -24,8 +24,8 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
  * hold each other. The answer is cached on the squad for
  * {@link #CHECK_EVERY_TICKS}, so the cost is one pass over the squad list per
  * squad per second or so, spread by the squads' own first-check ticks.
- * {@code -Dbattle.squad.transitSpacing=true} turns it on; the other two
- * settings are the gap in cells and the longest wait in ticks.
+ * On by default; {@code -Dbattle.squad.transitSpacing=false} is the control.
+ * The other two settings are the gap in cells and the longest wait in ticks.
  */
 public final class TransitSpacing {
 
@@ -33,7 +33,7 @@ public final class TransitSpacing {
 
     /** Read once, like the other measured levers. */
     static final boolean ENABLED = Boolean.parseBoolean(
-            System.getProperty(PROPERTY, "false"));
+            System.getProperty(PROPERTY, "true"));
 
     /** Closest a squad may follow another on the same approach, in cells. */
     static final float SEPARATION_CELLS = Float.parseFloat(
