@@ -1,6 +1,8 @@
 # Ship interior material family
 
 The accepted neutral bulkhead now supplies the generated ship's default walls.
+Its current value pass uses near-black graphite caps and dark gunmetal faces,
+keeping impassable wall mass distinctly darker than the surrounding decks.
 Passages, armories and technical rooms use muted grey-sage resin; crew quarters,
 barracks, messes and other inhabited rooms use warm grey resin. Working bays,
 stores and engineering keep the accepted sealed concrete. This selection lives
