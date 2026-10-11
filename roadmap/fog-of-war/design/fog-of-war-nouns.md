@@ -4,7 +4,7 @@ Status: ACTIVE — shared observation composes current player visibility across 
 
 Written: 2026-08-23
 
-Updated: 2026-09-02 — the service reports where its reveal moved, so a presentation consumer holding a picture derived from it can redo the part that is stale.
+Updated: 2026-10-11 — structural surfaces are observable at the sight boundary; canopy presentation does not reveal the forest behind them.
 
 Read `stories.md` for open work.
 
@@ -82,6 +82,23 @@ over interiors until their target alpha falls. Radio presentation consumes the
 same visibility state for enemy-spotted callouts. Hosts advance those visual
 fades on real frame time, independently of simulation speed, while the
 simulation continues to own reveal and visibility transitions.
+
+The first opaque structural cell reached by observation is itself visible:
+the obstruction casts its shadow beyond its near surface. This applies to
+walls, rocks and forest edges without making them transparent to tactical
+line-of-sight. Transient smoke still conceals its own cells and occupants.
+
+A solid prop has one visible surface. When observation reaches an opaque cell
+belonging to that surface, its sprite paints above terrain fog. Physical props
+default to their full footprint; authored masks describe irregular shapes or
+override that default. Trees use their canopy geometry for intact and damaged
+states. Only the sprite is lit: its empty pixels, the ground beneath it, other
+props behind it and hostile actors continue to use the ordinary reveal bitmap.
+This never expands observation, opens a roof or passes sight through the
+obstacle. Flat debris and floor decorations retain ordinary ground fog.
+Opening or closing a structural sight blocker invalidates stationary
+observation through the same opacity revision used by smoke, so a felled tree
+or breached wall exposes its new sightline on the next vision update.
 
 ## Standing laws
 

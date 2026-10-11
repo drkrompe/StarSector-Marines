@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
+import com.dillon.starsectormarines.battle.audio.NarrationSequence;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -30,6 +34,35 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/missions/mission-results.mlx");
 
+    private final NarrationSequence salvageNarration = new NarrationSequence();
+    private MissionOutcome presentedOutcome;
+    private MarkupInstance resultMarkup;
+
+    @Override protected void onAttach() {
+        MissionOutcome outcome = context.getLastOutcome();
+        if (outcome != presentedOutcome) {
+            presentedOutcome = outcome;
+            salvageNarration.start(HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins()));
+        }
+    }
+
+    @Override protected void onDocumentBuilt(MarkupInstance instance, UiDocument built) {
+        resultMarkup = instance;
+    }
+
+    @Override protected void onAdvance(float dt) {
+        salvageNarration.advance(dt);
+        if (resultMarkup == null) return;
+        var current = salvageNarration.current();
+        resultMarkup.requireElement("salvage-conversation-status").text(current == null
+                ? "RECOVERY AGREEMENT / TRANSCRIPT" : "TRANSMITTING / " + current.speaker());
+    }
+
+    @Override protected void onDetach() {
+        salvageNarration.stop();
+        resultMarkup = null;
+    }
+
     public ResultsScreen() {
         super(ROOT_COMPONENT, COMPONENT_PATHS);
     }
@@ -47,6 +80,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
         putStoryDebrief(props, outcome);
+        boolean preparation = outcome != null && outcome.missionSource != MissionSource.DEBUG;
+        props.put("preparationClasses", preparation ? "console-action" : "hidden");
+        props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
+        props.put("preparationAction", (Runnable) this::prepareCompany);
+        props.put("salvageReplay", (Runnable) () -> salvageNarration.start(
+                HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins())));
+        props.put("salvageStop", (Runnable) salvageNarration::stop);
         props.put("personnelHeader", personnelHeader(outcome));
         List<PersonnelRow> personnel = personnelRows(outcome);
         props.put("squadRows", personnel);
@@ -56,7 +96,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("secondaryLabel", Strings.get("resultsForfeitSalvage"));
             props.put("secondaryAction", (Runnable) this::returnToMissions);
             props.put("primaryLabel", Strings.get("resultsReviewSalvage"));
-            props.put("primaryAction", (Runnable) () -> context.goTo(ScreenId.LOOT));
+            props.put("primaryAction", (Runnable) () -> { context.prepareAfterSettlement(false); context.goTo(ScreenId.LOOT); });
         } else {
             props.put("secondaryClasses", "hidden");
             props.put("secondaryLabel", "");
@@ -71,6 +111,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         Runnable none = () -> { };
         Map<String, Object> props = baseProps();
         props.put("title", "Debrief");
+        props.put("preparationClasses", "console-action");
+        props.put("preparationLabel", salvage ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
         props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
         props.put("outcomeLabel", victory ? "VICTORY" : "DEFEAT");
         props.put("missionName", "SABOTAGE — First Contract");
@@ -101,6 +143,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", Strings.get("resultsHeader"));
+        props.put("preparationClasses", "hidden");
+        props.put("preparationLabel", "PREPARE COMPANY");
+        props.put("preparationAction", (Runnable) () -> { });
         putStoryDebrief(props, null);
         return props;
     }
@@ -117,6 +162,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("storyProgress", chapter == null ? "" : !outcome.victory ? "CONTRACT REMAINS OPEN"
                 : chapter == OpeningOperationKind.RELIEF ? "CHAPTER 1 COMPLETE / DEPOT JOB AVAILABLE" : "AN OPEN ROAD / ARC COMPLETE");
         props.put("storyMessage", WaylineArc.debrief(outcome));
+        putSalvageConversation(props, HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins()));
         if (outcome != null && SupplyRouteCampaign.owns(outcome.missionId)) {
             props.put("storyClasses", "story-dispatch console-readout");
             props.put("storyPortrait", outcome.lastLiftOutcome != null ? SupplyRouteCampaign.IONA_PORTRAIT : OpeningBroker.PORTRAIT);
@@ -140,6 +186,27 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             var route = SupplyRouteCampaign.current();
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);
+        }
+    }
+
+    static void putSalvageConversation(Map<String, Object> props, List<WaylineNarration.Line> lines) {
+        props.put("salvageClasses", lines.isEmpty() ? "hidden" : "salvage-conversation console-readout");
+        props.put("salvageTurns", lines.stream().map(line -> new DialogueTurn(
+                line.id(), line.speaker(), line.portrait(), line.text())).toList());
+        props.put("salvageReplay", (Runnable) () -> { });
+        props.put("salvageStop", (Runnable) () -> { });
+        if (!lines.isEmpty()) props.put("sceneClasses", "hidden");
+    }
+
+    record DialogueTurn(String id, String speaker, String portrait, String text) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "speaker" -> speaker;
+                case "portraitId" -> id + "-portrait"; case "copyId" -> id + "-copy";
+                case "speakerId" -> id + "-speaker"; case "textId" -> id + "-text";
+                case "portrait" -> portrait; case "text" -> text;
+                default -> null;
+            };
         }
     }
 
@@ -390,10 +457,20 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return new ResultRow(id, label, value, "label result-value " + tone);
     }
 
-    private void returnToMissions() {
+    void prepareCompany() {
+        LootManifest manifest = context.getLootManifest();
+        if (manifest != null && !manifest.isEmpty()) {
+            context.prepareAfterSettlement(true);
+            context.goTo(ScreenId.LOOT);
+        } else {
+            context.forfeitLoot();
+            context.finishOperation(true);
+        }
+    }
+
+    void returnToMissions() {
         context.forfeitLoot();
-        context.clearResolvedMission();
-        context.goTo(ScreenId.MISSION_SELECT);
+        context.finishOperation(false);
     }
 
     @Override protected void onCancel() {

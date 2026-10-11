@@ -114,7 +114,10 @@ public final class Shadowcast {
                 boolean opaque = isOpaque(grid, cx, cy, sx, sy, airR2,
                         ignoreTransientOpacity);
 
-                if (!opaque) {
+                // The first solid surface is visible; only the cells beyond it
+                // are shadowed. Smoke still conceals occupants of its own cell.
+                if (!opaque || (grid.blocksStructuralLineOfSightAt(grid.index(cx, cy))
+                        && (ignoreTransientOpacity || !grid.hasTransientOpacityAt(grid.index(cx, cy))))) {
                     out[outOffset + count++] = grid.index(cx, cy);
                 }
 

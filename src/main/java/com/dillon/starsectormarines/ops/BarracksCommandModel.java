@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadProfile;
+import com.dillon.starsectormarines.marine.SquadConsolidation;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -55,17 +56,29 @@ public final class BarracksCommandModel {
     private boolean attention;
     private boolean detail;
     private boolean editing;
+    private boolean organizing;
+    private boolean choosingDonors;
+    private final Set<String> donors = new LinkedHashSet<>();
+    private SquadConsolidation.Plan reviewedTransfers;
+    private boolean guideOpen;
+    private int guideStep;
+    private String inspectedId;
+    private Runnable raiseSquad = () -> { };
+    private Runnable missions = () -> { };
+    private Consumer<String> editEquipment = id -> { };
+    private boolean localMissions;
     private String search = "";
     private String draftName = "Line infantry";
     private int weaponIndex;
     private int armorIndex;
     private int page;
-    private String feedback = "Select a command, then mark squads for orders. Inspect opens their quarters.";
+    private String feedback = "Select the squads to refill. Choose donors to consolidate survivors, or fill vacancies from reserves and recruits.";
 
     public BarracksCommandModel(Reactor reactor, MarineRoster roster, EquipmentIssueResources resources,
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
                                 Consumer<String> inspect, Runnable changed, DoubleSupplier currentDay) {
         this.roster = roster;
+        guideOpen = !roster.managementGuideDismissed();
         this.resources = resources;
         this.equipment = new BarracksEquipmentIssue(roster, resources);
         this.cargoMarines = cargoMarines;
@@ -74,6 +87,10 @@ public final class BarracksCommandModel {
         this.changed = changed;
         this.currentDay = currentDay;
         revision = reactor.signal(0);
+        props.put("raiseSquad", (Runnable) () -> raiseSquad.run());
+        props.put("missions", (Runnable) () -> missions.run());
+        props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
+        bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
         cards = reactor.computed(() -> { revision.get(); return squads(); });
         props.put("squads", cards);
@@ -86,7 +103,37 @@ public final class BarracksCommandModel {
                 ? "No saved profiles. Choose NEW to pair a loadout and tactic sheet." : "");
         bind(reactor, "overviewClasses", () -> detail ? "command-board hidden" : "command-board");
         bind(reactor, "detailClasses", () -> detail ? "barracks-body" : "barracks-body hidden");
-        bind(reactor, "ordersClasses", () -> editing ? "order-body hidden" : "order-body");
+        bind(reactor, "ordersClasses", () -> editing || !organizing ? "order-body hidden" : "order-body");
+        bind(reactor, "preparationClasses", () -> editing || organizing ? "order-body hidden" : "order-body");
+        bind(reactor, "selectionMode", () -> choosingDonors ? "MARK DONOR SQUADS / receiving squads remain marked" : "MARK RECEIVING SQUADS / squads to refill");
+        bind(reactor, "donorLabel", () -> choosingDonors ? "CHOOSE RECIPIENTS" : "CHOOSE DONORS");
+        bind(reactor, "transferSummary", () -> selected.size() + " receiving / " + donors.size() + " donor squads. Only marked donors may give personnel.");
+        bind(reactor, "transferDisabled", () -> selected.isEmpty() || donors.isEmpty());
+        bind(reactor, "transferRows", this::transferRows);
+        bind(reactor, "transferRowsClasses", () -> reviewedTransfers == null || reviewedTransfers.strengths().isEmpty() ? "hidden" : "transfer-rows");
+        bind(reactor, "transferReason", () -> reviewedTransfers == null ? "Review transfers before applying. Wounded stay in their billets."
+                : reviewedTransfers.canApply() ? reviewedTransfers.moves().size() + " named marines will move with their kit. No cargo spent."
+                : reviewedTransfers.reason());
+        bind(reactor, "applyTransfersDisabled", () -> reviewedTransfers == null || !reviewedTransfers.canApply());
+        props.put("preparation", (Runnable) () -> { organizing = false; editing = false; refresh(); });
+        props.put("organization", (Runnable) () -> { organizing = true; editing = false; refresh(); });
+        props.put("chooseDonors", (Runnable) () -> { choosingDonors = !choosingDonors; reviewedTransfers = null; refresh(); });
+        props.put("reviewTransfers", (Runnable) this::reviewTransfers);
+        props.put("applyTransfers", (Runnable) this::applyTransfers);
+        props.put("cancelTransfers", (Runnable) () -> { donors.clear(); choosingDonors = false; reviewedTransfers = null; refresh(); });
+        bind(reactor, "guideClasses", () -> guideOpen && !CompanyManagementGuide.lines().isEmpty() ? "management-guide console-readout" : "hidden");
+        bind(reactor, "guideTitle", () -> "COMPANY OFFICER / " + (guideStep + 1) + " / " + CompanyManagementGuide.lines().size() + " / " + guideLine().title());
+        bind(reactor, "guideText", () -> guideLine().text());
+        bind(reactor, "guideStatus", () -> lineSquads().isEmpty() ? "No line squads yet. Raise Squad opens the existing founding desk."
+                : selected.isEmpty() ? "Your company has " + lineSquads().size() + " squads. Mark receiving squads to begin."
+                : "Selected recipients: " + recruitment().replace("\n", " / "));
+        bind(reactor, "guideHelpDisabled", () -> CompanyManagementGuide.lines().isEmpty());
+        bind(reactor, "guidePreviousDisabled", () -> guideStep == 0);
+        bind(reactor, "guideNextDisabled", () -> guideStep + 1 >= CompanyManagementGuide.lines().size());
+        props.put("guideHelp", (Runnable) () -> { guideOpen = true; guideStep = 0; refresh(); });
+        props.put("guidePrevious", (Runnable) () -> { guideStep = Math.max(0, guideStep - 1); refresh(); });
+        props.put("guideNext", (Runnable) () -> { guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
+        props.put("guideDismiss", (Runnable) () -> { guideOpen = false; roster.dismissManagementGuide(); refresh(); });
         bind(reactor, "editorClasses", () -> editing ? "order-body" : "order-body hidden");
         bind(reactor, "title", this::title);
         bind(reactor, "summary", () -> lineSquads().size() + " squads / " + roster.lineReadySoldiers().size()
@@ -99,7 +146,7 @@ public final class BarracksCommandModel {
         bind(reactor, "search", () -> search);
         bind(reactor, "attentionLabel", () -> attention ? "ATTENTION ONLY" : "ALL STATES");
         bind(reactor, "filterLabel", () -> profileFilter == null ? "ALL PROFILES" : roster.armory().squadProfile(profileFilter).name());
-        bind(reactor, "selection", () -> selected.size() + " SQUADS SELECTED");
+        bind(reactor, "selection", () -> selected.size() + " RECEIVING / " + donors.size() + " DONORS");
         bind(reactor, "selectionDisabled", selected::isEmpty);
         bind(reactor, "profileDisabled", () -> selected.isEmpty() || profileId == null);
         bind(reactor, "target", () -> !targetChosen ? "Choose receiving command" : targetCaptain == null
@@ -122,7 +169,9 @@ public final class BarracksCommandModel {
         bind(reactor, "issueReason", () -> {
             var plan = equipment.preview(selected);
             if (!selected.isEmpty() && !plan.affordable()) return "Insufficient cargo for the combined bill.";
-            return "Issue skips stationed, incomplete and recovering squads. Fill vacancies first.";
+            return plan.entries().stream().filter(e -> !e.eligible())
+                    .map(e -> roster.squadById(e.squadId()).name() + ": " + e.reason())
+                    .reduce((a, b) -> a + "\n" + b).orElse("Ready squads receive their assigned equipment. Personnel orders never change kit.");
         });
         bind(reactor, "feedback", () -> feedback);
         bind(reactor, "draftName", () -> draftName);
@@ -133,8 +182,14 @@ public final class BarracksCommandModel {
         props.put("editName", (Consumer<String>) value -> { draftName = value; refresh(); });
         props.put("attention", (Runnable) () -> { attention = !attention; resetSelection(); });
         props.put("filter", (Runnable) this::cycleFilter);
-        props.put("selectAll", (Runnable) () -> { filtered().stream().filter(s -> !s.stationed()).forEach(s -> selected.add(s.id())); refresh(); });
-        props.put("clear", (Runnable) () -> { selected.clear(); refresh(); });
+        props.put("selectAll", (Runnable) () -> {
+            filtered().stream().filter(s -> !s.stationed()).forEach(s -> {
+                if (choosingDonors) { if (!selected.contains(s.id())) donors.add(s.id()); }
+                else { if (!donors.contains(s.id())) selected.add(s.id()); }
+            });
+            reviewedTransfers = null; refresh();
+        });
+        props.put("clear", (Runnable) this::resetSelection);
         props.put("previous", (Runnable) () -> { page = Math.max(0, pageNumber() - 1); refresh(); });
         props.put("next", (Runnable) () -> { page = Math.min(pages() - 1, pageNumber() + 1); refresh(); });
         props.put("back", (Runnable) this::showOverview);
@@ -162,18 +217,25 @@ public final class BarracksCommandModel {
     public Set<String> selected() { return Set.copyOf(selected); }
     public boolean inspecting() { revision.get(); return detail; }
     public void refresh() { revision.update(n -> n + 1); }
-    public void leave() { selected.clear(); editing = false; targetChosen = false; refresh(); }
+    public void leave() { reviewedTransfers = null; editing = false; targetChosen = false; refresh(); }
     public void showOverview() { detail = false; refresh(); }
-    public void inspect(String id) { inspect.accept(id); detail = true; refresh(); }
+    public void inspect(String id) { inspectedId = id; inspect.accept(id); detail = true; refresh(); }
     public void selectCommand(String id) { command = id; resetSelection(); }
     public void selectProfile(String id) { profileId = id; refresh(); }
     public void toggle(String id) {
         MarineSquad squad = roster.squadById(id);
         if (squad == null || squad.reserve() || squad.stationed()) return;
-        if (!selected.remove(id)) selected.add(id);
+        if (choosingDonors) {
+            if (selected.contains(id)) return;
+            if (!donors.remove(id)) donors.add(id);
+        } else {
+            if (donors.contains(id)) return;
+            if (!selected.remove(id)) selected.add(id);
+        }
+        reviewedTransfers = null;
         refresh();
     }
-    private void resetSelection() { selected.clear(); page = 0; refresh(); }
+    private void resetSelection() { selected.clear(); donors.clear(); reviewedTransfers = null; choosingDonors = false; page = 0; refresh(); }
     private List<MarineSquad> lineSquads() { return roster.squads().stream().filter(s -> !s.reserve()).toList(); }
     private String captainName(MarineCaptain captain) {
         return captain == null ? "Independent / Acting NCO" : captain.rank().displayName() + " " + captain.name();
@@ -237,8 +299,7 @@ public final class BarracksCommandModel {
             var plan = equipment.preview(Set.of(squad.id()));
             SquadMuster muster = muster(squad.id());
             MarineArmorCatalogDef armor = representativeArmor(squad);
-            String personnel = squad.stationed() ? "ON STATION" : muster.vacantCount() > 0
-                    ? muster.vacantCount() + " VACANT" : muster.woundedCount() > 0 ? muster.woundedCount() + " WIA" : "FULL STRENGTH";
+            String personnel = squad.stationed() ? "ON STATION" : ready + " ready / " + muster.woundedCount() + " WIA / " + muster.vacantCount() + " vacant";
             String kit = squad.squadProfileId() == null && squad.weaponDoctrineId() == null ? "NO PROFILE"
                     : plan.eligible() == 0 ? "ISSUE HELD" : plan.cost().isZero() ? "EQUIPPED" : "REFIT";
             rows.add(row("id", "formation:" + squad.id(), "markId", "formation:" + squad.id() + ":mark",
@@ -247,7 +308,7 @@ public final class BarracksCommandModel {
                     "strengthId", "formation:" + squad.id() + ":strength", "profileRowId", "formation:" + squad.id() + ":profile-row",
                     "armorIconId", "formation:" + squad.id() + ":armor-icon", "footerId", "formation:" + squad.id() + ":footer",
                     "kitId", "formation:" + squad.id() + ":kit", "armorIcon", armor == null ? "" : armor.iconPath(),
-                    "strength", ready + "/12", "personnel", personnel, "kit", kit,
+                    "strength", ready + "/12", "personnel", personnel, "kit", selected.contains(squad.id()) ? "RECEIVING" : donors.contains(squad.id()) ? "DONOR" : kit,
                     "personnelClasses", "label card-personnel " + (squad.stationed() ? "muted" : ready == 12 ? "good" : "warm"),
                     "kitClasses", "label card-kit " + (kit.equals("EQUIPPED") ? "good" : "muted"),
                     "formationidentityId", "formation:" + squad.id() + ":identity",
@@ -256,8 +317,8 @@ public final class BarracksCommandModel {
                     "formationprofileId", "formation:" + squad.id() + ":profile",
                     "inspectId", "formation:" + squad.id() + ":inspect", "name", squad.name(),
                     "profile", profileName(squad),
-                    "classes", "formation" + (selected.contains(squad.id()) ? " selected" : "") + (squad.stationed() ? " stationed" : ""),
-                    "mark", selected.contains(squad.id()) ? "X" : "", "disabled", squad.stationed(),
+                    "classes", "formation" + (selected.contains(squad.id()) ? " selected" : donors.contains(squad.id()) ? " donor" : "") + (squad.stationed() ? " stationed" : ""),
+                    "mark", selected.contains(squad.id()) ? "R" : donors.contains(squad.id()) ? "D" : "", "disabled", squad.stationed(),
                     "toggle", (Runnable) () -> toggle(squad.id()), "inspect", (Runnable) () -> inspect(squad.id())));
         }
         return rows;
@@ -343,8 +404,9 @@ public final class BarracksCommandModel {
     private String recruitment() {
         int vacancies = vacancies();
         int reserves = Math.min(vacancies, roster.readyReserveCount());
+        int wounded = lineSquads().stream().filter(s -> selected.contains(s.id())).mapToInt(s -> muster(s.id()).woundedCount()).sum();
         return vacancies + " vacancies / " + reserves + " from reserves\n"
-                + (vacancies - reserves - recruitsRequired()) + " remain unfilled";
+                + (vacancies - reserves - recruitsRequired()) + " remain unfilled / " + wounded + " wounded keep their billets";
     }
     private int recruitsRequired() {
         return Math.min(Math.max(0, vacancies() - roster.readyReserveCount()), cargoMarines.getAsInt());
@@ -401,6 +463,33 @@ public final class BarracksCommandModel {
                 : "Issue blocked. Check personnel readiness, known equipment and the combined cargo bill.";
         changed.run();
     }
+    private CompanyManagementGuide.Line guideLine() {
+        var lines = CompanyManagementGuide.lines();
+        return lines.isEmpty() ? new CompanyManagementGuide.Line("", "Guide unavailable", "") : lines.get(Math.min(guideStep, lines.size() - 1));
+    }
+    public void navigation(Runnable raiseSquad, Consumer<String> editEquipment, Runnable missions, boolean localMissions) {
+        this.raiseSquad = raiseSquad; this.editEquipment = editEquipment; this.missions = missions;
+        this.localMissions = localMissions; refresh();
+    }
+    public Set<String> donors() { return Set.copyOf(donors); }
+    public void reviewTransfers() {
+        reviewedTransfers = SquadConsolidation.preview(roster, selected, donors);
+        refresh();
+    }
+    public void applyTransfers() {
+        boolean applied = SquadConsolidation.apply(roster, reviewedTransfers);
+        feedback = applied ? "Transferred " + reviewedTransfers.moves().size() + " marines with their equipment. Fill remaining vacancies, then review equipment issue."
+                : "Personnel changed or no transfer is ready. Review transfers again; nothing moved.";
+        reviewedTransfers = null;
+        changed.run();
+    }
+    private List<Map<String, Object>> transferRows() {
+        if (reviewedTransfers == null) return List.of();
+        return reviewedTransfers.strengths().stream().map(s -> row("id", "transfer:" + s.squadId(),
+                "text", roster.squadById(s.squadId()).name() + ": " + s.readyBefore() + " -> " + s.readyAfter()
+                        + " ready / " + s.wounded() + " WIA / " + s.vacantBefore() + " -> " + s.vacantAfter() + " vacant")).toList();
+    }
+
     private List<SquadWeaponDoctrine> weapons() {
         return roster.armory().weaponDoctrines().stream().filter(w -> roster.armory().canAuthorWeaponDoctrine(w.issues())).toList();
     }

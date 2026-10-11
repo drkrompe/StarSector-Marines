@@ -37,6 +37,13 @@
       "ballisticHalfHeight": 0,
       "col": 0,
       "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
       "footprintCells": [
         5,
         5
@@ -48,6 +55,12 @@
       "ballisticHalfHeight": 0,
       "col": 5,
       "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
       "footprintCells": [
         4,
         4
@@ -59,6 +72,12 @@
       "ballisticHalfHeight": 0,
       "col": 9,
       "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
       "footprintCells": [
         5,
         4
@@ -70,6 +89,11 @@
       "ballisticHalfHeight": 0,
       "col": 0,
       "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
       "footprintCells": [
         3,
         3
@@ -81,6 +105,12 @@
       "ballisticHalfHeight": 0,
       "col": 3,
       "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
       "footprintCells": [
         4,
         4
@@ -92,6 +122,14 @@
       "ballisticHalfHeight": 0,
       "col": 7,
       "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
       "footprintCells": [
         4,
         6

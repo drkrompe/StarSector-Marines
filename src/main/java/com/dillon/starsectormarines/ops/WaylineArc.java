@@ -82,9 +82,8 @@ public final class WaylineArc {
             report += " We'll see to the families of the militia we lost.";
         }
         if (outcome.marinesLost > 0) report += " I'm sorry for your company's losses.";
-        if (WaylineHoundAward.eligible(outcome)) report += outcome.waylineHound.disabled()
-                ? " We've recovered Wayward's wreck and repaired the chassis. The Hound is yours: one chaingun, empty missile mounts. You'll find it in the Mech Lab. We'll arrange heavy lift for your active lance on the supply-route jobs."
-                : " Wayward is signed over to your company: one Hound, one chaingun, empty missile mounts. You'll find it in the Mech Lab. We'll arrange heavy lift for your active lance on the supply-route jobs.";
+        if (WaylineHoundAward.eligible(outcome)) report +=
+                " Castle has filed Wayward's transfer: one repaired Hound and its chaingun, with empty missile mounts. The chassis is in your Mech Bay; Wayline supplies heavy lift on the supply-route jobs.";
         return report;
     }
 }

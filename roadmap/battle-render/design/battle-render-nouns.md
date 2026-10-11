@@ -127,6 +127,15 @@ The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHL
 
 Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks. A tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system. Ground and decals may keep separate backing while sharing tile addressing, invalidation, and eviction policy. Evicted ground rebuilds from cells and evicted decals replay retained sources; unavailable tile backing falls back locally to the present cell path without changing paint order.
 
+The fog layer finishes by painting observed solid props through the ordinary
+prop sprite emitter. A revealed opaque cell in the prop's rotated and mirrored
+surface footprint admits the sprite; an empty corner does not. Most physical
+props use their rectangular footprint by default, while irregular canopies
+carry authored masks. Sprite alpha preserves fog in gaps and around the prop,
+and the reveal bitmap remains unchanged. Actors, terrain and further props in
+its shadow remain concealed. This presentation uses actual observation, never
+the smoke-free counterfactual. Flat debris keeps ordinary ground fog.
+
 Shared-edge windows are sparse GROUND features rather than painted properties
 of either adjacent floor cell. The collector reads the live canonical barrier
 list, culls against either neighboring cell, and emits frame and pane geometry

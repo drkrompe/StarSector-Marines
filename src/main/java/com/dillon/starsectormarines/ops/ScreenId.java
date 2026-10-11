@@ -13,7 +13,7 @@ public enum ScreenId {
      * {@code MarineOpsContext.planet} — see {@link MarineOpsPanelPlugin}.
      */
     COMPANY_HQ,
-    /** Read-only shipboard marine-quarters browser; safe without a planet. */
+    /** Shipboard personnel preparation and marine-quarters browser; safe without a planet. */
     BARRACKS(true),
     /** Which ship in the fleet the company lives aboard; safe without a planet. */
     SHIP_TRANSFER,

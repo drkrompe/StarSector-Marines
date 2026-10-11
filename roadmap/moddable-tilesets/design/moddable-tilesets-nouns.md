@@ -219,6 +219,18 @@ full-cell pivot, rotation and mirroring; destroyed art supplies zero cover.
 Walkable crate cover is removable independently of static props and nature,
 while blocking crates use the established cell-breach boundary.
 
+Solid prop visibility is distinct from sight obstruction. A prop whose
+authored ballistic height is positive defaults to one observable surface over
+its full footprint; flat art defaults to ground-fog treatment. The optional
+`fogSurface` mask overrides either default with source-cell rows of `#`
+(surface) and `.` (empty), listed from low to high world Y. An empty array
+opts out. Rotation and mirroring follow the sprite. The ordinary authoring
+document and export retain the mask, and runtime loading checks its dimensions.
+Observation must reach an opaque map cell inside that mask before the whole
+sprite is lit. The mask neither grants observation to other cells nor creates
+collision or line-of-sight obstruction. Intact and damaged tree masks follow
+their canopy geometry; destroyed remnants revert to ground fog.
+
 Industrial drum clusters and shipboard drum stock likewise have matching
 dented and destroyed identities, preserving their one-cell and two-by-two
 footprints. Open curved shells and scattered metal expose the original ground.

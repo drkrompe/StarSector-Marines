@@ -4,13 +4,16 @@ Status: PROPOSED
 
 Written: 2026-08-23
 
+Updated: 2026-10-11 — structural and smoke opacity now invalidate stationary footprints; sight-input changes remain open.
+
 Read `fog-of-war-nouns.md` before implementing this story.
 
 ## Problem
 
 A cohort contributor currently skips shadowcasting whenever its cell has not
-changed. Its cached footprint can therefore outlive changes to sight range,
-air clearance, or relevant map opacity. The planned time-of-day multiplier
+changed and map opacity has not changed. Its cached footprint can therefore outlive changes to sight range
+or air clearance. Structural and smoke changes already invalidate through the
+grid's opacity revision. The planned time-of-day multiplier
 would expose this immediately: stationary units would keep their old daytime
 footprints at night.
 
@@ -34,7 +37,7 @@ footprints at night.
 
 - [ ] Changing a stationary contributor's vision range or air clearance
   updates its footprint by the next eligible vision cadence.
-- [ ] A relevant opacity revision can invalidate affected cached footprints
+- [x] A relevant opacity revision can invalidate affected cached footprints
   through an explicit service seam.
 - [ ] An unchanged stationary contributor still skips redundant shadowcasts.
 - [ ] Shrinking and growing overlapping footprints preserve the reveal union
