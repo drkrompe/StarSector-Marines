@@ -31,13 +31,8 @@ class BattleDirectControlOverlayTest {
                 var button = markup.requireElement("battle-direct-control-toggle");
                 var box = button.box().borderBox();
                 assertEquals(!enabled, button.disabled());
-                assertTrue(box.x() >= 0 && box.right() <= 440f);
+                assertTrue(box.x() >= 0 && box.right() <= BattleDirectControlOverlay.DOCUMENT_WIDTH);
                 assertTrue(box.y() >= 0 && box.bottom() <= BattleDirectControlOverlay.DOCUMENT_HEIGHT);
-                assertTrue(markup.requireElement("battle-direct-control-hint")
-                        .box().borderBox().bottom() <= BattleDirectControlOverlay.DOCUMENT_HEIGHT);
-                assertEquals(0f, markup.requireElement("battle-direct-control-pause").box().borderBox().width(),
-                        "the hidden pause control has no painted or pointer area");
-                assertTrue(markup.requireElement("battle-direct-control-pause").disabled());
                 document.pointerDown(box.x() + 20, box.y() + 12);
                 document.pointerUp(box.x() + 20, box.y() + 12);
                 assertEquals(enabled ? 1 : 0, actions.get());
@@ -75,8 +70,7 @@ class BattleDirectControlOverlayTest {
                     document.pointerDown(plate.documentX(screenX), plate.documentY(screenY));
                     document.pointerUp(plate.documentX(screenX), plate.documentY(screenY));
                     assertEquals(1, actions.get(), context + " control remains clickable");
-                    assertTrue(markup.requireElement("battle-direct-control-hint")
-                            .box().borderBox().bottom() <= plate.documentHeight());
+
                 }
             }
         }
@@ -88,8 +82,12 @@ class BattleDirectControlOverlayTest {
 
     /** Uses the exact production panel bounds, including host offset and user-scale conversion. */
     static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale) {
+        return layout(physicalWidth, physicalHeight, uiScale, true);
+    }
+
+    static OverlayLayout layout(int physicalWidth, int physicalHeight, float uiScale, boolean mech) {
         return withHost(physicalWidth, physicalHeight, uiScale, position -> new OverlayLayout(
-                MarineOpsUiViewport.from(position), BattleDirectControlOverlay.viewport(position),
+                MarineOpsUiViewport.from(position), BattleDirectControlOverlay.entryViewport(position, mech),
                 BattleSquadOverlay.viewport(position), BattleMechOverlay.viewport(position),
                 BattlePowerOverlay.viewport(position, 5, true),
                 BattleRetreatOverlay.viewport(position, BattleRetreatOverlayModel.Presentation.CONFIRM),
@@ -149,17 +147,7 @@ class BattleDirectControlOverlayTest {
                 List.of(BattleDirectControlOverlay.COMPONENT_PATH));
         loader.reload();
         return loader.build(new Reactor(), BattleDirectControlOverlay.COMPONENT, Map.of(
-                "label", active ? "Return to command [Tab / Esc]" : "Control selected unit [Tab]",
-                "hint", active ? vehicle ? "heavy_apc-1  |  W/S drive | A/D steer | Mouse aim | LMB fire"
-                        : mech ? "Bulwark 1  |  WASD pivot/walk | Mouse aim | LMB direct mounts"
-                        : "Rhea Voss  |  WASD move | Mouse aim | Hold LMB fire"
-                        : enabled ? "Direct control uses pause or 1x speed"
-                        : "Select a ready Marine, combat Mech, or deployed APC",
-                "disabled", !enabled, "toggle", action,
-                "pauseLabel", paused ? "1x" : "Pause",
-                "pauseClasses", active ? "direct-pause" : "direct-pause direct-pause-hidden",
-                "pauseDisabled", !active,
-                "togglePause", pauseAction));
+                "label", "Take over [Tab]", "disabled", !enabled, "toggle", action));
     }
 
     @Test

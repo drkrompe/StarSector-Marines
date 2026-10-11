@@ -4,7 +4,7 @@ Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live 
 
 Written: 2026-09-23
 
-Updated: 2026-10-11 — Tab enters and exits direct control before UI focus traversal.
+Updated: 2026-10-11 — the takeover shortcut is a compact contextual action beside eligible selection details.
 
 Direct control lets the player temporarily inhabit one of their ground units in
 the Marine Operations battle. It changes who supplies that body's movement and
@@ -63,7 +63,9 @@ current context without restoring old movement or firing work.
 ## Input and time
 
 Selecting an exact eligible Marine infantry member, Mech, or APC exposes an enter/exit
-control; Tab toggles takeover and Escape releases it. Tab is reserved before
+control: a compact action beside that unit's details. No entry panel or disabled
+selection prompt appears without an eligible unit, and hidden controls retain no
+pointer or keyboard focus. Tab toggles takeover and Escape releases it. Tab is reserved before
 retained UI focus traversal, and holding it never repeatedly switches modes. A bracket identifies the controlled body and a
 crosshair shows its point aim. The battle screen owns the mode indicator and
 routes input before ordinary
