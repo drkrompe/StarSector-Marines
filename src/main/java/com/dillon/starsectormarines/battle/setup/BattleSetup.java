@@ -1204,6 +1204,9 @@ public final class BattleSetup {
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
+            // These pads are berths on one authored apron, not separate squad destinations.
+            // Campaign personnel carried by different boats must assemble into the same squad.
+            shuttleMission.landingAreaId = 0;
             if (localMilitia) {
                 if (reliefPost != null) shuttleMission.garrisonNode = reliefPost;
                 else shuttleMission.commandClaim = SquadCommandClaim.mission(
