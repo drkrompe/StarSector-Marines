@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — the ship machine shop pairs fabrication equipment and
-service benches with layered, organized parts storage and clear work aisles.
+Updated: 2026-10-11 — shuttle bays use distinct landing surfaces, contained
+service equipment and layered ready stores around the existing clear boat routes.
 
 Earlier 2026-10-11 — engineering spaces separate complete piped machinery
 skids, service aisles and control/workshop aprons in the muted ship materials.
@@ -503,6 +503,17 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+Shuttle bays distinguish landing pads from the common taxi deck with quiet
+concrete surfaces and flush tie-down markings. Flight operations, mobile
+servicing carts and layered ready stores occupy the side working bands;
+ground-power and complete fluid-service skids occupy the inboard band. Hoses
+and manifolds stay within their equipment, away from walking and taxi routes.
+Wheel cradles, electrical parts and boxed supplies are separate visual loads
+on a physical shelf bed, retained by one frame. Whole groups yield to hatch
+approaches. Smaller gig bays retain a desk, compact pallet stores and support
+plant. These fittings preserve the shared berth capacity, heading, launch apron
+and SERVICE positions; visual stores do not assert campaign inventory.
 
 The ship machine shop separates cutting and milling from assembly and
 inspection. Its lathe and mill face the working floor across from a repair

@@ -23,6 +23,21 @@
       </div>
     </div>
 
+    <div id="barracks-guide" class="{command.guideClasses}">
+      <div id="guide-heading" class="label heading warm guide-heading">{command.guideTitle}</div>
+      <div id="guide-text" class="label wrap guide-text">{command.guideText}</div>
+      <div id="guide-status" class="label wrap warm guide-text">{command.guideStatus}</div>
+      <div id="guide-controls" class="board-tools">
+        <button id="guide-previous" class="tool-button console-action" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
+        <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">NEXT</button>
+        <button id="guide-dismiss" class="tool-button console-action" onclick="{command.guideDismiss}">DISMISS GUIDE</button>
+      </div>
+    </div>
+    <div id="barracks-flow-actions" class="board-tools">
+      <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD / ARMORY</button>
+      <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">COMPANY GUIDE</button>
+      <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">MISSIONS</button>
+    </div>
     <div id="barracks-command-board" class="{command.overviewClasses}">
       <div id="barracks-command-rail" class="command-rail panel console-section">
         <div id="barracks-section-heading" class="label heading section-heading">OFFICER COMMANDS</div>
@@ -51,7 +66,7 @@
           <button id="barracks-select-all" class="select-all console-action" onclick="{command.selectAll}">SELECT ALL IN VIEW</button>
           <button id="barracks-clear" class="clear-selection console-action" onclick="{command.clear}">CLEAR</button>
         </div>
-        <div id="barracks-column-key" class="label muted column-key">SELECT CARDS FOR BULK ORDERS  //  FILLED: READY   +: WOUNDED   OUTLINE: VACANT</div>
+        <div id="barracks-column-key" class="label muted column-key">{command.selectionMode}</div>
         <div id="barracks-empty" class="label muted wrap empty-message">{command.empty}</div>
         <div id="barracks-formation-list" class="formation-list">
           <div each="squad in command.squads" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
@@ -84,6 +99,37 @@
       </div>
       <div id="barracks-orders" class="orders panel console-section">
         <div id="barracks-order-heading" class="label heading order-heading">{command.selection}</div>
+        <div id="barracks-order-tabs" class="board-tools">
+          <button id="barracks-preparation" class="tab-button console-action" onclick="{command.preparation}">PREPARATION</button>
+          <button id="barracks-organization" class="tab-button console-action" onclick="{command.organization}">ORGANIZATION</button>
+        </div>
+        <div id="barracks-preparation-body" class="{command.preparationClasses}">
+          <div id="transfer-heading" class="label heading warm order-caption">1 / CONSOLIDATE SURVIVORS</div>
+          <div id="transfer-summary" class="label wrap preparation-copy">{command.transferSummary}</div>
+          <button id="barracks-choose-donors" class="order-button console-action" onclick="{command.chooseDonors}">{command.donorLabel}</button>
+          <button id="barracks-review-transfers" class="order-button console-action" disabled="{command.transferDisabled}" onclick="{command.reviewTransfers}">REVIEW TRANSFERS</button>
+          <div id="barracks-transfer-rows" class="{command.transferRowsClasses}">
+            <div each="row in command.transferRows" key="{row.id}" id="{row.id}" class="label wrap transfer-row">{row.text}</div>
+          </div>
+          <div id="barracks-transfer-reason" class="label wrap preparation-copy">{command.transferReason}</div>
+          <div id="barracks-transfer-actions" class="board-tools">
+            <button id="barracks-apply-transfers" class="tab-button console-action" disabled="{command.applyTransfersDisabled}" onclick="{command.applyTransfers}">APPLY TRANSFERS</button>
+            <button id="barracks-cancel-transfers" class="tab-button console-action" onclick="{command.cancelTransfers}">CANCEL TRANSFERS</button>
+          </div>
+          <div id="barracks-order-caption-82" class="label heading warm order-caption">2 / FILL VACANCIES</div>
+          <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
+          <div id="barracks-recruit-draw" class="recruit-draw">
+            <img id="barracks-recruit-draw-icon" class="recruit-icon" src="{command.recruitIcon}" />
+            <div id="barracks-recruit-draw-count" class="label warm recruit-count">{command.recruitDraw}</div>
+            <div id="barracks-recruit-draw-label" class="label muted recruit-label">TO ENLIST</div>
+          </div>
+          <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
+          <div id="barracks-order-caption-85" class="label heading warm order-caption">3 / RESTORE EQUIPMENT</div>
+          <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
+          <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
+          <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
+          <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">ISSUE ASSIGNED EQUIPMENT</button>
+        </div>
         <div id="barracks-orders-body" class="{command.ordersClasses}">
           <div id="barracks-order-caption" class="label heading warm order-caption">HOME COMMAND</div>
           <div id="barracks-selector" class="selector">
@@ -106,19 +152,7 @@
           <div id="barracks-profiles-empty" class="label muted wrap empty-message">{command.profilesEmpty}</div>
           <button id="barracks-assign-profile" class="order-button console-action" disabled="{command.profileDisabled}" onclick="{command.assignProfile}">ASSIGN PROFILE</button>
           <div id="barracks-profile-note" class="label muted wrap profile-note">Profiles name the intended loadout and tactic sheet. Assignment spends no cargo.</div>
-          <div id="barracks-order-caption-82" class="label heading warm order-caption">PERSONNEL REPLACEMENTS</div>
-          <div id="barracks-recruitment" class="label wrap recruitment">{command.recruitment}</div>
-          <div id="barracks-recruit-draw" class="recruit-draw">
-            <img id="barracks-recruit-draw-icon" class="recruit-icon" src="{command.recruitIcon}" />
-            <div id="barracks-recruit-draw-count" class="label warm recruit-count">{command.recruitDraw}</div>
-            <div id="barracks-recruit-draw-label" class="label muted recruit-label">TO ENLIST</div>
-          </div>
-          <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
-          <div id="barracks-order-caption-85" class="label heading warm order-caption">EQUIPMENT ISSUE</div>
-          <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
-          <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
-          <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
-          <button id="barracks-issue" class="order-button console-action" disabled="{command.issueDisabled}" onclick="{command.issue}">ISSUE ASSIGNED EQUIPMENT</button>
+
         </div>
         <div id="barracks-profile-editor" class="{command.editorClasses}">
           <div id="barracks-order-caption-92" class="label heading warm order-caption">SAVE SQUAD PROFILE</div>
@@ -147,6 +181,7 @@
       <div id="barracks-stage" class="panel barracks-stage console-section">
         <div id="barracks-detail-tools" class="detail-tools">
           <button id="barracks-back-command" class="back-command console-action" onclick="{command.back}">BACK TO COMMAND</button>
+          <button id="barracks-edit-equipment" class="back-command console-action" onclick="{command.editEquipment}">EDIT EQUIPMENT / ARMORY</button>
         </div>
         <div id="barracks-selected-heading" class="selected-heading console-header">
           <div id="barracks-selected-copy" class="selected-copy">
@@ -295,6 +330,17 @@
   .empty-message { height: auto; }
   .page-label { width: 0px; flex-grow: 1; text-align: center; }
   .orders { flex-direction: column; width: 356px; padding: 10px; gap: 8px; border-width: 1px; }
+  .management-guide { flex-direction: column; height: 154px; padding: 8px 10px; gap: 5px; border-width: 1px; }
+  .guide-heading { height: 19px; }
+  .guide-text { height: 42px; overflow: scroll; }
+  #guide-status { height: 26px; }
+  .flow-button { width: 220px; height: 28px; font-family: heading; text-align: center; }
+  .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
+  .preparation-copy { height: auto; }
+  .transfer-rows { flex-direction: column; height: 96px; overflow: scroll; gap: 4px; }
+  .transfer-row { height: auto; }
+  .formation.donor { border-color: #9eaecc; }
+  .formation.donor .card-check { background-color: #9eaecc; color: #20261e; }
   .order-heading { height: 26px; }
   .order-body { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
   .order-caption { height: 19px; }
@@ -309,13 +355,13 @@
   .profile-list { flex-direction: column; height: 118px; gap: 4px; overflow: scroll; }
   .profile-card { flex-direction: column; width: 100%; height: 60px; padding: 5px; gap: 4px; text-align: left; border-width: 1px; border-color: #626b5c; background-color: #252d28; }
   .profile-name { height: 18px; } .profile-detail { height: 34px; }
-  .profile-note { height: 42px; } .recruitment { height: 32px; }
+  .profile-note { height: 42px; } .recruitment { height: auto; }
   .recruit-stock { flex-direction: row; align-items: center; width: 290px; height: 36px; gap: 8px; padding: 0px 8px; }
   .recruit-draw { flex-direction: row; align-items: center; height: 30px; gap: 8px; }
   .recruit-icon { width: 32px; height: 28px; pointer-events: none; }
   .recruit-count { width: 54px; height: 20px; pointer-events: none; }
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
-  .issue-summary { height: 20px; } .issue-cost { height: 42px; } .issue-reason { height: 42px; }
+  .issue-summary { height: 20px; } .issue-cost { height: auto; } .issue-reason { height: auto; }
   .editor-copy { height: 65px; }
   .profile-name-input { width: 100%; height: 28px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
   .detail-tools { flex-direction: row; height: 28px; }

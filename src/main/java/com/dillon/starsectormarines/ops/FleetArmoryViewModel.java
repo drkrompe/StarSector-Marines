@@ -1279,7 +1279,7 @@ public final class FleetArmoryViewModel {
         }
     }
 
-    private void selectSquad(String squadId) {
+    public void selectSquad(String squadId) {
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null || squad.reserve()) return;
         selectedSquadId.set(squadId);

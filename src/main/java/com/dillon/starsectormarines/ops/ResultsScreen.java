@@ -80,6 +80,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
         putStoryDebrief(props, outcome);
+        boolean preparation = outcome != null && outcome.missionSource != MissionSource.DEBUG;
+        props.put("preparationClasses", preparation ? "console-action" : "hidden");
+        props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
+        props.put("preparationAction", (Runnable) this::prepareCompany);
         props.put("salvageReplay", (Runnable) () -> salvageNarration.start(
                 HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins())));
         props.put("salvageStop", (Runnable) salvageNarration::stop);
@@ -92,7 +96,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("secondaryLabel", Strings.get("resultsForfeitSalvage"));
             props.put("secondaryAction", (Runnable) this::returnToMissions);
             props.put("primaryLabel", Strings.get("resultsReviewSalvage"));
-            props.put("primaryAction", (Runnable) () -> context.goTo(ScreenId.LOOT));
+            props.put("primaryAction", (Runnable) () -> { context.prepareAfterSettlement(false); context.goTo(ScreenId.LOOT); });
         } else {
             props.put("secondaryClasses", "hidden");
             props.put("secondaryLabel", "");
@@ -107,6 +111,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         Runnable none = () -> { };
         Map<String, Object> props = baseProps();
         props.put("title", "Debrief");
+        props.put("preparationClasses", "console-action");
+        props.put("preparationLabel", salvage ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
         props.put("outcomeClasses", "results-outcome " + (victory ? "victory" : "defeat"));
         props.put("outcomeLabel", victory ? "VICTORY" : "DEFEAT");
         props.put("missionName", "SABOTAGE — First Contract");
@@ -137,6 +143,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", Strings.get("resultsHeader"));
+        props.put("preparationClasses", "hidden");
+        props.put("preparationLabel", "PREPARE COMPANY");
+        props.put("preparationAction", (Runnable) () -> { });
         putStoryDebrief(props, null);
         return props;
     }
@@ -448,10 +457,20 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return new ResultRow(id, label, value, "label result-value " + tone);
     }
 
-    private void returnToMissions() {
+    void prepareCompany() {
+        LootManifest manifest = context.getLootManifest();
+        if (manifest != null && !manifest.isEmpty()) {
+            context.prepareAfterSettlement(true);
+            context.goTo(ScreenId.LOOT);
+        } else {
+            context.forfeitLoot();
+            context.finishOperation(true);
+        }
+    }
+
+    void returnToMissions() {
         context.forfeitLoot();
-        context.clearResolvedMission();
-        context.goTo(ScreenId.MISSION_SELECT);
+        context.finishOperation(false);
     }
 
     @Override protected void onCancel() {
