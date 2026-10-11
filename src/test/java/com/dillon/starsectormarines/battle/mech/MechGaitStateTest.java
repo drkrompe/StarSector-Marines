@@ -67,6 +67,11 @@ class MechGaitStateTest {
                                 variant + " touchdown must leave one pad ahead of the body"
                                         + " and one behind it at heading " + hipFacing);
                         completedStrides++;
+                        assertEquals(completedStrides, gait.lastTouchdown().sequence());
+                        assertEquals(priorSwing == MechGaitState.LEFT_FOOT
+                                ? gait.leftFootX() : gait.rightFootX(), gait.lastTouchdown().x());
+                        assertEquals(priorSwing == MechGaitState.LEFT_FOOT
+                                ? gait.leftFootY() : gait.rightFootY(), gait.lastTouchdown().y());
                     }
                     priorSwing = gait.swingFoot();
                 }
@@ -103,6 +108,7 @@ class MechGaitStateTest {
                 "the support foot retains its planted world yaw");
         assertNotEquals(initialLeftFacing, gait.leftFootFacing(), 0.01f,
                 "the lifted pad adopts the new hip bearing at touchdown");
+        assertEquals(1, gait.lastTouchdown().sequence(), "pivot plants produce footfalls too");
     }
 
     @Test
