@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — mission speech finishes active lines and takes precedence over squad chatter.
+Updated: 2026-10-11 - command-ship officer coordinates deployed units over the radio net.
 
 Read `stories.md` for the open-work board.
 
@@ -25,7 +25,10 @@ gameplay state nor serves as a continuous voice track.
 - A **presentation event** is a fact the completed simulation exposes for the
   current frame. It is evidence for a cue, not a command back into the
   simulation.
-- The **voice budget** is the single global throttle for every cue. It keeps
+- **Company command** is the off-field company officer, distinct from squad
+  speakers and employer mission contacts. In Marine Operations she occasionally
+  answers an admitted tactical squad report over a non-positional comms channel.
+- The **voice budget** is the single global throttle for every squad cue. It keeps
   the radio subordinate to combat sound and music.
 - A **host** is a presentation environment: the standalone battle screen or
   the vanilla-combat bridge. Hosts share cue policy but own conversion from a
@@ -118,3 +121,50 @@ current recording to finish but starts no new line. Completion discards pending
 instructions but lets the active mission sentence finish. Leaving a screen stops its owned audio. Resizing does
 not reset the battle cursor or replay briefings. The hybrid debug host has no
 campaign chapter identity and therefore does not play Mara's story dialogue.
+
+## Company command
+
+The company officer is an original mature British female Voice Design selection,
+retained by stable voice ID with clean source takes and generation provenance.
+She belongs to the company rather than Wayline. Mara remains the employer's
+mission contact. Command replies are available in the Marine Operations battle
+host; the hybrid debug host has no company command identity and retains its
+squad net. Both hosts still use the same squad cue policy.
+
+The player normally oversees deployment from the command ship. Ground radio is
+traffic between deployed units and shipboard command, not commentary addressed
+to the player. The officer coordinates and supports ground teams; individual
+squad voices report their own situation and address other units. Friendly-fire
+warnings concern a confirmed incident among those units, without implying the
+player chose to cause it. Direct control can place the player behind a unit's
+actions, but does not change who a generic net-wide warning addresses.
+
+Write each line with a clear speaker and recipient. Use ground-team or company
+address for shared command recordings; specific callsigns, directions and
+requests for support require facts supplied by their trigger. A recorded order
+is radio presentation, not evidence that an AI action has been issued or obeyed.
+
+Command answers contact, fallback, check-fire, visible-mech and confirmed-kill
+reports admitted by the squad policy. It does not observe hidden simulation
+facts, replace the reporting squad, or answer routine acknowledgement chatter.
+A reply waits for the squad recording to finish and a short quiet interval;
+old reports expire rather than produce a delayed instruction. Responses have
+a longer shared cooldown than squad calls and alternate available takes.
+Command reserves the same speech channel while playing, so squad calls cannot
+overlap it. Pausing admits no new reply, completion discards pending replies,
+and leaving the host stops owned audio. Active replies may finish during pause
+or completion. Mara's scripted mission lines preempt incidental command replies
+and discard their pending response; mission sentences still finish uninterrupted.
+
+Command subtitles identify COMPANY COMMAND and remain visible for the recorded
+lifetime even when audio is muted or unavailable. No portrait is assigned until
+the officer has approved character art. All selection and timing is presentation
+state and leaves simulation randomness untouched.
+
+Clean generated masters remain separate from a shared offline comms profile:
+band limiting, moderate compression, subtle saturation and peak limiting. The
+profile is an optional audio-manifest treatment and participates in the encode
+cache key. Changing it rebuilds treated clips without regenerating speech or
+invalidating unrelated clean audio. Runtime playback needs no provider account,
+API access or DSP dependency. Transmit clicks or interference, if introduced,
+are separate channel effects rather than instructions in synthesis text.

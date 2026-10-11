@@ -566,4 +566,16 @@
 
 #collapseclose
 
+
+	# Company officer / original ElevenLabs Voice Design
+	"marines_officer_contact_01":[{"file":"sounds/battle/company-officer/marines_officer_contact_01.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_contact_02":[{"file":"sounds/battle/company-officer/marines_officer_contact_02.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_fallback_01":[{"file":"sounds/battle/company-officer/marines_officer_fallback_01.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_fallback_02":[{"file":"sounds/battle/company-officer/marines_officer_fallback_02.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_check_fire_01":[{"file":"sounds/battle/company-officer/marines_officer_check_fire_01.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_check_fire_02":[{"file":"sounds/battle/company-officer/marines_officer_check_fire_02.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_mech_spotted_01":[{"file":"sounds/battle/company-officer/marines_officer_mech_spotted_01.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_mech_spotted_02":[{"file":"sounds/battle/company-officer/marines_officer_mech_spotted_02.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_enemy_down_01":[{"file":"sounds/battle/company-officer/marines_officer_enemy_down_01.ogg","pitch":1,"volume":0.8}],
+	"marines_officer_enemy_down_02":[{"file":"sounds/battle/company-officer/marines_officer_enemy_down_02.ogg","pitch":1,"volume":0.8}],
 }

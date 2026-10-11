@@ -38,9 +38,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--replace", action="store_true")
+    parser.add_argument("--cast", choices=["wayline", "company-officer"], default="wayline")
     parser.add_argument("--line", action="append", help="Generate only this sound ID (repeatable)")
     args = parser.parse_args()
-    catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
+    catalog_path = CATALOG if args.cast == "wayline" else ROOT / "mod/data/marines/company_officer_narration.json"
+    sources = SOURCES if args.cast == "wayline" else SOURCES.parent / "company-officer"
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     if args.line and set(args.line) - {line["id"] for line in catalog["lines"]}:
         raise SystemExit("Unknown line ID; no request sent.")
     if args.generate:
@@ -56,10 +59,12 @@ def main():
             payload["voice_settings"] = catalog["voiceSettings"]
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         digest = hashlib.sha256(catalog["voiceId"].encode() + b"\0" + body).hexdigest()
-        audio = SOURCES / (line["id"] + ".mp3")
+        audio = sources / (line["id"] + ".mp3")
         receipt = audio.with_suffix(".json")
+        take = 1
         if audio.exists() and receipt.exists():
             saved = json.loads(receipt.read_text(encoding="utf-8"))
+            take = saved.get("take", 1) + 1
             if saved["inputSha256"] == digest:
                 print("Unchanged:", line["id"], flush=True)
                 continue
@@ -81,7 +86,7 @@ def main():
             raise SystemExit("Generation failed: HTTP " + str(error.code) + "; no retry made.") from None
         except (OSError, urllib.error.URLError):
             raise SystemExit("Generation connection failed; no retry made.") from None
-        SOURCES.mkdir(parents=True, exist_ok=True)
+        sources.mkdir(parents=True, exist_ok=True)
         temporary = audio.with_suffix(".tmp.mp3")
         temporary.write_bytes(data)
         probe = subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
@@ -92,9 +97,9 @@ def main():
         line["durationSeconds"] = duration
         metadata.update(inputSha256=digest, audioSha256=hashlib.sha256(data).hexdigest(),
                         voiceId=catalog["voiceId"], modelId=catalog["modelId"],
-                        durationSeconds=duration, outputFormat="mp3_44100_128", take=1)
+                        durationSeconds=duration, outputFormat="mp3_44100_128", take=take)
         receipt.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
-        CATALOG.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        catalog_path.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print("Saved:", line["id"], str(duration) + "s", flush=True)
 
 

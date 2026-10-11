@@ -1,0 +1,79 @@
+{
+  "speaker": "Company Officer",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "voiceName": "Company Officer B - British Matriarch",
+  "modelId": "eleven_v4",
+  "voiceSettings": {},
+  "lines": [
+    {
+      "id": "marines_officer_contact_01",
+      "cue": "CONTACT",
+      "text": "Ground teams, contact received. Keep your spacing and cover each other.",
+      "synthesisText": "[focused] Ground teams, contact received. Keep your spacing and cover each other.",
+      "durationSeconds": 4.4
+    },
+    {
+      "id": "marines_officer_contact_02",
+      "cue": "CONTACT",
+      "text": "Steady, company. Pick your targets. Make it count.",
+      "synthesisText": "[firm] Steady, company. Pick your targets. Make it count.",
+      "durationSeconds": 3.92
+    },
+    {
+      "id": "marines_officer_fallback_01",
+      "cue": "FALLBACK",
+      "text": "Easy now. Fall back together. No one goes alone.",
+      "synthesisText": "[concerned] Easy now. Fall back together. No one goes alone.",
+      "durationSeconds": 4.0
+    },
+    {
+      "id": "marines_officer_fallback_02",
+      "cue": "FALLBACK",
+      "text": "Command to ground teams. Find cover and regroup. Keep each other alive.",
+      "synthesisText": "[reassuring] Command to ground teams. Find cover and regroup. Keep each other alive.",
+      "durationSeconds": 4.96
+    },
+    {
+      "id": "marines_officer_check_fire_01",
+      "cue": "CHECK_FIRE",
+      "text": "Ground teams, check fire. Friendlies are taking hits.",
+      "synthesisText": "[urgent] Ground teams, check fire. Friendlies are taking hits.",
+      "durationSeconds": 3.36
+    },
+    {
+      "id": "marines_officer_check_fire_02",
+      "cue": "CHECK_FIRE",
+      "text": "All ground teams, watch your lanes. Keep friendlies clear of your fire.",
+      "synthesisText": "[firm] All ground teams, watch your lanes. Keep friendlies clear of your fire.",
+      "durationSeconds": 4.56
+    },
+    {
+      "id": "marines_officer_mech_spotted_01",
+      "cue": "MECH_SPOTTED",
+      "text": "Enemy mech confirmed. Spread out. Keep clear of its guns.",
+      "synthesisText": "[focused] Enemy mech confirmed. Spread out. Keep clear of its guns.",
+      "durationSeconds": 3.84
+    },
+    {
+      "id": "marines_officer_mech_spotted_02",
+      "cue": "MECH_SPOTTED",
+      "text": "Heavy contact received. Use cover. Give it nothing easy.",
+      "synthesisText": "[firm] Heavy contact received. Use cover. Give it nothing easy.",
+      "durationSeconds": 4.16
+    },
+    {
+      "id": "marines_officer_enemy_down_01",
+      "cue": "ENEMY_DOWN",
+      "text": "Good shooting. Stay sharp.",
+      "synthesisText": "[pleased] Good shooting. Stay sharp.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_officer_enemy_down_02",
+      "cue": "ENEMY_DOWN",
+      "text": "One less problem. How considerate of them.",
+      "synthesisText": "[amused] One less problem. How considerate of them.",
+      "durationSeconds": 3.68
+    }
+  ]
+}
