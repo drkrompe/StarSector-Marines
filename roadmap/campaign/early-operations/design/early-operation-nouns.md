@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — reinforced convoy screen, dedicated freight haulers and staged final crossing.
+Updated: 2026-10-11 — twin-cannon heavy lead breaks exit guns while APCs screen freight.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -306,15 +306,20 @@ equipment is part of this objective.
 **Thunder Run** is a 320 by 144 road corridor, separating the western staging
 apron, Dispatch Post, East Crossing and Outbound Gate. The carriageway has a
 fifteen-cell width contract reserved before construction; roadside facilities
-and cargo yards remain outside it. Two reinforced employer APCs escort up to
-three unarmed industrial container haulers. Their distinct silhouettes separate fire support
+and cargo yards remain outside it. One twin-cannon heavy tank leads two
+reinforced employer APCs and up to three unarmed industrial container haulers. Their distinct silhouettes separate fire support
 from the slower, longer freight column. Two boats deliver eight militia;
 the company's named troops arrive in their own fitted boats.
 
 The company clears the three sites in sequence while two stable militia
 sections hold its gains. Recovered earlier gains are required to release the
 next convoy leg; a leg already underway is not canceled by a later recapture.
-The column waits at two road stops. At the final release, the two escorts
+The column waits at two road stops. The tank takes the forward center position,
+using slower paired high-explosive cannon fire against the exit gun line. It
+holds ahead of the crossing until the first surviving hauler approaches, then
+pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
+combat state; losing it does not manufacture a victory or block surviving cargo.
+At the final release, the two APC escorts
 advance along the road flanks and hold the crossing; freight follows after a
 short lead interval. The escorts leave only after the last surviving load passes
 the crossing. Physical chassis steering, terrain, shared damage, turret fire
@@ -323,7 +328,9 @@ count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
 Fourteen low-tech raiders guard the posts. Eighteen more enter from the north,
 south and eastern road mouths when the final run commits; repeated capture
-cannot create another wave.
+cannot create another wave. Two fixed machine-gun pits flank the eastern exit,
+outside the reserved road, giving the heavy lead a distinct target from the
+APCs' infantry screen.
 
 Freight belongs to the employer, not the player's inventory. Losses persist by
 cargo identity; employer escorts are operation support and can be replaced on
@@ -338,7 +345,7 @@ bounded dust treatment; industrial container bodies identify the freight and
 independently aimed roof turrets identify the escorts. Presentation changes no
 collision, visibility or damage.
 Start, actual player landing, each released leg, freight commitment, rear clearance,
-each cargo delivery/loss and terminal results publish once-only story hooks. Hidden ambush deployment remains
+heavy lead advancement, each cargo delivery/loss and terminal results publish once-only story hooks. Hidden ambush deployment remains
 observer-only, ready for a future sighting-aware dialogue adapter.
 
 ## Authored evacuation chapters

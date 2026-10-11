@@ -36,6 +36,11 @@ public final class ThunderRunCompound {
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Thunder Run", List.of(ThunderRunCompound::grounds,
                 ThunderRunCompound::buildings, ThunderRunCompound::perimeter, ThunderRunCompound::cargo, new FinalizeStage())).run(c);
+        // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
+        for (int y : new int[]{65, 85}) {
+            c.topology.setGroundKind(304, y, GroundKind.STRIPED);
+            c.grid.setWalkable(304, y, false);
+        }
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 75,
                 10, 14, 34, 130, Faction.MARINE, 20, 0));

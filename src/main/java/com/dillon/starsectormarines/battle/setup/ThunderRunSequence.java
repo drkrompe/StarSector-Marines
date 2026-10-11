@@ -31,6 +31,8 @@ public final class ThunderRunSequence {
     private int phase;
     private boolean ambush, freightReleased, escortExitOrdered;
     private int finalRunTick;
+    private final long heavyLead;
+    private boolean heavyExitOrdered;
     private FreightRunProgress.Outcome outcome;
 
     public ThunderRunSequence(BattleSimulation sim, FreightRunProgress.Attempt attempt, int previouslyDelivered,
@@ -41,6 +43,7 @@ public final class ThunderRunSequence {
         this.reserve = List.copyOf(reserve); this.log = log;
         escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 70));
         escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 80));
+        heavyLead = spawn(sim, VehicleType.BREAKTHROUGH_TANK, 35, 75);
         for (int i : attempt.cargo()) cargo.put(i, spawn(sim, VehicleType.CARGO_CARRIER, 21 - i * 8, 75));
     }
     private long spawn(BattleSimulation sim, VehicleType type, float x, float y) {
@@ -49,6 +52,7 @@ public final class ThunderRunSequence {
         sim.convoy().body(id).teleport(x, y, -90f);
         return id;
     }
+    public long heavyLead() { return heavyLead; }
     public int phase() { return phase; }
     public Map<Integer, Long> cargo() { return Map.copyOf(cargo); }
     public List<Integer> cargoIdentities() { return attempt.cargo(); }
@@ -96,6 +100,15 @@ public final class ThunderRunSequence {
                 for (long id : cargo.values()) order(sim, id);
                 beat(sim, "freight_committed");
             }
+            if (!heavyExitOrdered && freightReleased) {
+                boolean leadApproaching = cargo.values().stream().anyMatch(id ->
+                        sim.convoy().isTargetable(id) && sim.convoy().body(id).x >= 280);
+                if (leadApproaching) {
+                    heavyExitOrdered = true;
+                    order(sim, heavyLead);
+                    beat(sim, "heavy_lead_advancing");
+                }
+            }
             boolean rearPassed = freightReleased;
             for (long id : cargo.values()) if (sim.convoy().isTargetable(id) && sim.convoy().body(id).x < 282) rearPassed = false;
             if (rearPassed && !escortExitOrdered) {
@@ -112,6 +125,7 @@ public final class ThunderRunSequence {
             phase++;
             beat(sim, phase == 1 ? "column_released" : phase == 2 ? "crossing_secured" : "final_run");
             for (long id : escorts) order(sim, id);
+            order(sim, heavyLead);
             if (phase < 3) for (long id : cargo.values()) order(sim, id);
             if (phase == 3) { finalRunTick = sim.getSimTickIndex(); releaseAmbush(sim); }
         }
@@ -125,12 +139,14 @@ public final class ThunderRunSequence {
         if (!sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED) return;
         var body = sim.convoy().body(id); var mission = sim.convoy().mission(id);
         // Parallel wide road lanes preserve initial spacing, with the armed escorts screening both flanks.
-        float offset = escorts.contains(id) ? 8 : 0 - 8 * new ArrayList<>(cargo.values()).indexOf(id);
+        float offset = id == heavyLead ? 20 : escorts.contains(id) ? 8 : 0 - 8 * new ArrayList<>(cargo.values()).indexOf(id);
         float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 40 + offset;
         if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = 273;
+        if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = 294;
         mission.authoredRouteX = new float[]{body.x, goal};
         mission.authoredRouteY = new float[]{body.y, body.y};
-        mission.authoredLeg = phase == 3 && (!escorts.contains(id) || escortExitOrdered) ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER;
+        boolean departing = id == heavyLead ? heavyExitOrdered : !escorts.contains(id) || escortExitOrdered;
+        mission.authoredLeg = phase == 3 && departing ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER;
     }
     private void releaseAmbush(BattleSimulation sim) {
         ambush = true;

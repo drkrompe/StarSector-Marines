@@ -122,7 +122,7 @@ public final class TurretCatalogPreviewDocument {
         String impact = mount.weapon.indirectFire || mount.weapon.hitSpread > 0f
                 ? "SCATTER IMPACT" : "IMPACT";
         return List.of(
-                new State("REST", Phase.REST),
+                new State(mount.spritePath == null ? "CARRIER ART / FX ONLY" : "REST", Phase.REST),
                 new State(launch, Phase.MUZZLE),
                 new State(flight, Phase.PROJECTILE),
                 new State(impact, Phase.IMPACT),
@@ -171,10 +171,6 @@ public final class TurretCatalogPreviewDocument {
     private static void requirePreviewable(TurretMountDef mount) {
         if (mount == null || mount.weapon == null || mount.weapon.fx == null) {
             throw new IllegalArgumentException("a turret mount with authored weapon FX is required");
-        }
-        if (mount.spritePath == null || mount.visualCells <= 0f) {
-            throw new IllegalArgumentException("turret mount '" + mount.id
-                    + "' has no previewable body appearance");
         }
     }
 
@@ -234,11 +230,11 @@ public final class TurretCatalogPreviewDocument {
             Assets assets) {
 
         private static Scene compose(TurretMountDef mount, Assets assets) {
-            Sprite base = requiredSprite(assets, mount.spritePath);
+            Sprite base = optionalSprite(assets, mount.spritePath);
             Sprite recoil = optionalSprite(assets, mount.recoilSpritePath);
             Sprite projectile = optionalSprite(assets, mount.weapon.projectileSpritePath);
             TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
-                    TURRET_X, TURRET_Y, FACING_DEGREES, mount, 0);
+                    previewTurretX(mount), TURRET_Y, FACING_DEGREES, mount, 0);
             float muzzleX = muzzle.x();
             float muzzleY = muzzle.y();
             float midpointX = (muzzleX + IMPACT_X) * 0.5f;
@@ -246,7 +242,7 @@ public final class TurretCatalogPreviewDocument {
             float seedTime = stableSeedTimeSeconds(mount.id);
             EnumMap<FxSlot, List<FxParticleCommand>> commands =
                     new EnumMap<>(FxSlot.class);
-            composeSlot(commands, mount, FxSlot.LAUNCH, TURRET_X, TURRET_Y, seedTime);
+            composeSlot(commands, mount, FxSlot.LAUNCH, previewTurretX(mount), TURRET_Y, seedTime);
             composeSlot(commands, mount, FxSlot.MUZZLE, muzzleX, muzzleY, seedTime);
             composeSlot(commands, mount, FxSlot.TRACER, midpointX, midpointY, seedTime);
             composeSlot(commands, mount, FxSlot.TRAIL, midpointX, midpointY, seedTime);
@@ -310,9 +306,10 @@ public final class TurretCatalogPreviewDocument {
         }
 
         private void drawTurret(CanvasContext context) {
+            if (scene.base == null) return; // The vehicle owns this mount's sheet-frame art.
             boolean recoiling = phase == Phase.MUZZLE;
             TurretLayerPose pose = TurretLayerPose.resolve(
-                    worldToX(TURRET_X), worldToY(TURRET_Y), FACING_DEGREES,
+                    worldToX(previewTurretX(scene.mount)), worldToY(TURRET_Y), FACING_DEGREES,
                     scene.mount.visualCells, CELL_PX, recoiling ? 0f : RECOIL_DURATION,
                     RECOIL_DURATION, RECOIL_DISTANCE_FRACTION);
             if (scene.recoil != null) {
@@ -524,6 +521,11 @@ public final class TurretCatalogPreviewDocument {
         return sceneCenterY() - worldY * CELL_PX;
     }
 
+    /** Keep a long vehicle barrel's launch behind its impact in the fixed effect storyboard. */
+    private static float previewTurretX(TurretMountDef mount) {
+        return Math.min(TURRET_X, IMPACT_X - mount.muzzleOffsetCells - 2f);
+    }
+
     static float directionX() {
         return -(float) Math.sin(Math.toRadians(FACING_DEGREES));
     }
@@ -538,7 +540,7 @@ public final class TurretCatalogPreviewDocument {
         float progress = mount.weapon.boostRamp
                 ? Projectile.applyBoostCurve(clamped) : clamped;
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
-                TURRET_X, TURRET_Y, FACING_DEGREES, mount, releaseIndex);
+                previewTurretX(mount), TURRET_Y, FACING_DEGREES, mount, releaseIndex);
         float muzzleX = muzzle.x();
         float muzzleY = muzzle.y();
         float x = muzzleX + (IMPACT_X - muzzleX) * progress;

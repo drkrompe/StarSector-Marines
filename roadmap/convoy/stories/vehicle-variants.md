@@ -4,9 +4,10 @@ Status: PLANNED — new payload roles need explicit supply and roster authority.
 
 Written: 2026-05-28
 
-Updated: 2026-08-23 — retained supply/scout roles without assuming they are asset-only variants.
+Updated: 2026-10-11 — story-support tank and freight variants are separate from planned supply/scout roles.
 
-Read `convoy-nouns.md` first. `HEAVY_APC` is the sole operational convoy type.
+Read `convoy-nouns.md` first. `HEAVY_APC` remains the ordinary reinforcement carrier; story columns also
+have dedicated freight, escort and heavy-lead variants.
 New variants reuse the route, motion, and lifecycle contracts, but each still
 needs its own payload behavior and acceptance.
 
@@ -26,6 +27,7 @@ map-boundary extension described by `convoy-nouns.md`.
 
 ## Out of scope here
 
-Tanks with hull-mounted turrets that fire while moving are a separate
-big slice with new combat-side wiring, not a content variant. That boundary is
-recorded in `convoy-nouns.md`.
+The employer heavy-lead tank uses the shared moving-turret combat path and
+conservative rolling turns, as recorded in `convoy-nouns.md`. Player tank
+ownership, neutral track pivot, and supply/scout payload authority are separate
+extensions.

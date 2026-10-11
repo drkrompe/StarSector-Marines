@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — distinct freight art, body-aligned turret mounts and headless projectile sprites.
+Updated: 2026-10-11 — retained tank layers, shot-driven recoil and headless gun-pit art.
 
 ## Vocabulary
 
@@ -356,8 +356,11 @@ Convoy presentation follows actual chassis motion. Bounded dust streaks appear
 only behind moving live hulls at readable scale; these are not smoke, concealment
 or a combat effect. Freight uses its own industrial vehicle art. Turret mounts
 rotate in chassis coordinates independently of the sprite's authored heading.
+A heavy turret may recoil from the age of its actual shots; that visual motion
+never moves the authoritative ballistic hardpoint.
 The headless sprite catalog loads every ground-vehicle variant through the same
-asset paths and slicing as the live host, including projectile resources;
+asset paths and slicing as the live host, including projectile resources and
+static turret base/barrel layers;
 a close review changes camera framing,
 not actor size or scene composition.
 

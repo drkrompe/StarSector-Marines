@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — distinct industrial freight and reinforced escort roles in story columns.
+Updated: 2026-10-11 — employer tank hardware and conservative rolling-turn handling.
 
 ## Purpose and boundary
 
@@ -24,7 +24,7 @@ It is the seam for later vehicle roles: a future vehicle may have a different
 body, payload, or parked behavior without changing the delivery lifecycle or
 treating roads as kinematic rails.
 
-The current operational variant is the `HEAVY_APC`: a defender delivery carries
+The ordinary reinforcement variant is the `HEAVY_APC`: a defender delivery carries
 four faction-rostered infantry passengers and a roof weapon; a deployed Marine
 APC uses the same chassis and may receive orders or direct control. The old `MILITIA_TRUCK`
 is retired. Parked map vehicles are separate static scenery and obstacles, not
@@ -547,6 +547,13 @@ public scenario conditions. It uses ordinary movement legs, footprint checks,
 steering and weapons; it does not obtain player order authority or become a
 second reinforcement provider. Delivery of identified freight is confirmed by
 physical exit, while destruction retains the ordinary wreck and damage rules.
+A **heavy lead** is a story-support tank with finite armor, structure and a
+paired cannon magazine. Its independently traversing turret uses normal
+ballistic contact and blast payloads, so it can breach a gun line while lighter
+escorts screen infantry. It carries no passengers. The tracked silhouette uses
+a conservative rolling-turn envelope shared by route proof and body motion;
+neutral pivot, track slip and player-owned tank logistics are not modeled.
+
 An industrial freight hauler has no passenger or turret payload; its long chassis
 and slower handling distinguish cargo from the armed escort. Reinforced story
 escorts have their own durability profile rather than changing every ordinary
@@ -570,7 +577,7 @@ airborne-specific targeting policy remains Air-owned.
 Future variants belong behind vehicle capabilities rather than another parallel
 convoy model: payload/deboard effect, chassis/body, clearance/handling profile,
 armed or unarmed parked behavior, and authority to affect reinforcement supply.
-Tanks and additional controllable vehicle families need their own hardware and
+Additional controllable vehicle families need their own hardware and
 handling contracts; sharing the APC input session does not supply those contracts. A vehicle-spawned squad normally enters the reinforcement
 assignment flow. Conquest is the explicit exception: its defender policy carries
 `conquest-defender` ownership through the vehicle mission, and the squad is born

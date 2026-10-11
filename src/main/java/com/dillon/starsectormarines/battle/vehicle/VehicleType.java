@@ -51,6 +51,17 @@ public enum VehicleType {
             return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
         }
     },
+    /** Heavy convoy spearhead. Uses conservative rolling turns; neutral track pivot is not modeled. */
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 3, -90f,
+            0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
+            1, 0f, 0f, .99f, -.08f, 4.5f, -90f,
+            TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 1100f, 850f, 36f, 1.4f, 1.1f) {
+        @Override public GroundBody createBody() {
+            // Bounded curvature is deliberately shared with route proof and collision checks.
+            return new BicycleBody(2.6f, 32f, 90f, accel, brakingAccel, maxSpeed);
+        }
+        @Override public float turretRecoilCells() { return .18f; }
+    },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 1, -90f,
             0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
@@ -59,6 +70,9 @@ public enum VehicleType {
             return new BicycleBody(2.8f, 26f, 130f, accel, brakingAccel, maxSpeed);
         }
     };
+
+    /** Visual recoil from actual recent shots; does not change the ballistic hardpoint. */
+    public float turretRecoilCells() { return 0f; }
 
     public final String spritePath;
     /** Which frame in the horizontal sprite-sheet to draw. 0 = leftmost, increments rightward. */

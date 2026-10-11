@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+
 import com.dillon.starsectormarines.battle.command.ThunderRunCommand;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
@@ -1414,6 +1416,8 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
                     Faction.DEFENDER, "thunder-run-guard-" + i, post, rng);
         }
+        for (int y : new int[]{65, 85}) sim.spawn(MapTurret.create("freight-road-gun-" + y,
+                Faction.DEFENDER, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 304, y));
         List<EntitySpec> reserve = new ArrayList<>();
         for (int side = 0; side < 3; side++) for (int[] cell : pickSpawnCluster(map.grid, side == 2 ? 317 : 275, side == 0 ? 2 : side == 1 ? 140 : 75, 6))
             reserve.add(makeOpeningMilitia("freight-ambush-" + reserve.size(), Faction.DEFENDER,
