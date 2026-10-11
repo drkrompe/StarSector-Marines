@@ -65,6 +65,30 @@ class RoadRasterizerTest {
     @Test void documentRoundTripPreservesShapeAndSeed() throws Exception {
         RoadPlan p=plan(.37);assertEquals(p,RoadPlan.read(new JSONObject(p.json().toString())));
     }
+    @Test void edgePreferenceSurvivesEditsAndDoesNotChangeClearance() throws Exception {
+        Route original=straight(.4);
+        Route hard=new Route(original.id(),original.points(),original.width(),original.shoulder(),original.wear(),original.seed(),original.material(),original.endCap(),false);
+        RoadPlan p=new RoadPlan(32,24,List.of(hard));
+        assertFalse(hard.withWear(.9).autoEdge());
+        assertEquals(p,RoadPlan.read(new JSONObject(p.json().toString())));
+        assertArrayEquals(RoadRasterizer.rasterize(plan(.4)).owner(),RoadRasterizer.rasterize(p).owner());
+        var grid=new NavigationGrid(32,24);var topology=new CellTopology(32,24);
+        for(int y=0;y<24;y++)for(int x=0;x<32;x++)grid.setWalkableFloor(x,y);
+        RoadRasterizer.stamp(p,RoadRasterizer.rasterize(p),grid,topology);
+        assertFalse(topology.hasTag(12,10,CellTopology.Tag.ROAD_EDGE_BLEND));
+        RoadRasterizer.stamp(plan(.4),RoadRasterizer.rasterize(plan(.4)),grid,topology);
+        assertTrue(topology.hasTag(12,10,CellTopology.Tag.ROAD_EDGE_BLEND));
+        assertTrue(grid.isWalkable(12,10));
+    }
+    @Test void graphSharesJunctionEndpointsAndFollowsCurvesInsteadOfChords() {
+        Route a=new Route("curve",List.of(new Point(0,4),new Point(8,4),new Point(14,12),new Point(16,20)),5,0,0,1,Material.ASPHALT);
+        Route b=new Route("exit",List.of(new Point(16,20),new Point(31,20)),5,0,0,2,Material.ASPHALT);
+        RoadPlan p=new RoadPlan(32,24,List.of(a,b));var graph=AuthoredRoadGraph.graph(p,"none");
+        assertEquals(3,graph.nodes().size());assertSame(graph.edges().get(0).b,graph.edges().get(1).a);
+        var raster=RoadRasterizer.rasterize(p);
+        for(var edge:graph.edges())for(int i=0;i<edge.cellsX.length;i++)assertTrue(raster.road(edge.cellsX[i],edge.cellsY[i]));
+        assertTrue(graph.edges().get(0).cellsX.length>20);
+    }
     @Test void invalidInputsFailBeforeSampling() {
         assertThrows(IllegalArgumentException.class,()->new Point(Double.NaN,0));
         assertThrows(IllegalArgumentException.class,()->new Route("bad",List.of(new Point(1,1),new Point(1,1)),5,1,0,1,Material.ASPHALT));

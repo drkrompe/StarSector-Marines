@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — retained tank layers, shot-driven recoil and headless gun-pit art.
+Updated: 2026-10-11 — road edges share neighbor-aware underlays and feathered pavement across resident and streamed ground.
 
 ## Vocabulary
 
@@ -351,6 +351,16 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     already pays. It remains the right instrument for a proximity question,
     which this is not: this asks a fixed rectangle about every body, not a body
     about its neighbours.
+
+Authored road edging uses two ground sublayers: the adjacent outdoor surface
+beneath a transparent pavement edge. Both resident and streamed paths use the
+same resolution and paint it before crossing marks, scatter and doors. The
+boundary depends on cardinal neighbors, so topology edits invalidate it through
+the existing neighboring-cell patch region. Interior pavement remains a single
+ordinary tile. At a corner with different neighboring materials, one adjacent
+surface supplies the underlay; edging is a bounded cell treatment, not a
+continuous terrain mesh. Walls, indoor floors, water and landing markings retain
+their own boundaries.
 
 Convoy presentation follows actual chassis motion. Bounded dust streaks appear
 only behind moving live hulls at readable scale; these are not smoke, concealment

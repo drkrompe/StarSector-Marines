@@ -113,7 +113,9 @@ public class CellTopology {
          * non-walkable and destructible, but the nav grid marks them
          * see-through so sight and projectiles can cross the facade.
          */
-        WINDOW;
+        WINDOW,
+        /** Feather authored pavement over adjacent outdoor terrain; visual only. */
+        ROAD_EDGE_BLEND;
 
         public long mask() { return 1L << ordinal(); }
 
@@ -138,7 +140,7 @@ public class CellTopology {
          */
         public boolean drawn() {
             return this == WALL || this == CROSSWALK || this == CROSSWALK_HORIZ
-                    || this == ROOF_DESTROYED || this == WINDOW;
+                    || this == ROOF_DESTROYED || this == WINDOW || this == ROAD_EDGE_BLEND;
         }
     }
 
