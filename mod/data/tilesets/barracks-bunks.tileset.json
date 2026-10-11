@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "barracks-bunks.bed",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "barracks-bunks.bedding-high",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "barracks-bunks.bedding-low",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "barracks-bunks.frame",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "barracks-bunks.locker",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "barracks-bunks.locker-open",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "barracks-bunks.bed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "barracks-bunks.bedding-high",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "barracks-bunks.bedding-low",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "barracks-bunks.frame",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 4,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "barracks-bunks.locker",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 5,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "barracks-bunks.locker-open",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/barracks-bunks.png"
+}
