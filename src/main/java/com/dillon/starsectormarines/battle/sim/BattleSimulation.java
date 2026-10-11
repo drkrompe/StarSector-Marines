@@ -679,6 +679,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.destIndex = navigation.getDestIndex();
         this.effects = new com.dillon.starsectormarines.battle.combat.fx.EffectsService(rng);
         this.doodadService = new DoodadService(grid);
+        this.mapEditor.setDoodads(doodadService);
         // DamageService construction is staged: the resolver needs the roster
         // (squad map + units list) and the equipment-drop service, both of
         // which we build right after. We construct the service second and

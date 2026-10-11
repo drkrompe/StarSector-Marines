@@ -145,3 +145,29 @@ python -m unittest discover -s art-source/doodads -p 'test_*.py'
 The `fences` snapshot suite publishes the guide and production-rendered closed
 enclosures, a two-cell gate gap, and all four rotated elbows at 32px and 48px
 per cell. Pixel tests check both rails at every valid pairing of cell edges.
+
+### Fence damage and debris
+
+`FenceDamageReskinTemplate` retains two rows of full cells: bent straight/elbow,
+then broken straight/elbow. The built-in ImageGen reskin uses the intact frame
+as its material reference. Keep `industrial-fence-damage.prompt.txt`,
+`imagegen-raw/industrial-fence-damage.raw.png`, and the reviewed rectangles in
+`industrial-fence-damage-geometry.json` together. The generated 1254px plate
+shifted the four shapes; these cuts register their rail endpoints, including
+empty space, rather than trimming alpha bounds. They normalize to canonical
+square cells before exact quarter turns. Pixel tests check the shared rail
+positions and the transparent center of each destroyed piece.
+
+```powershell
+python art-source/doodads/derive_fence_damage_frames.py
+python -m unittest discover -s art-source/doodads -p 'test_*.py'
+./gradlew.bat createSnapshots -Psnapshot=fences
+```
+
+The derivation writes `fence-damage-sources/` plus its metadata, then calls the
+ordinary doodad packer to produce `mod/graphics/doodads/fence-damage.png` and
+its tileset. It never repacks the intact atlas. The suite now also shows
+alternating intact/damaged pieces and actual breached cells, preserving the
+ground under the debris. Runtime cell-blocking fences start at 100 structural
+HP unless their cell already has authored HP. Positive wall damage selects
+the bent art; exhausted HP selects zero-cover debris and opens navigation.
