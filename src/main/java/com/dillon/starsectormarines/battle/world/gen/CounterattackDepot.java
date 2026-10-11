@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -35,7 +37,9 @@ public final class CounterattackDepot {
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Wayline freight depot", List.of(CounterattackDepot::grounds,
                 CounterattackDepot::buildings, CounterattackDepot::perimeter,
-                CounterattackDepot::cargo, new FinalizeStage())).run(c);
+                CounterattackDepot::cargo,
+                finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
+                new FinalizeStage())).run(c);
         PointOfInterest depot = c.pois.get(0);
         List<Place> stages = List.of(new Place("Freight gate", 73, 46),
                 new Place("Loading yard", 95, 46),
@@ -74,15 +78,11 @@ public final class CounterattackDepot {
         pave(c, 66, 16, 149, 80, GroundKind.SIDEWALK);
         pave(c, 68, 18, 147, 78, GroundKind.COURTYARD);
         pave(c, 0, 41, 82, 51, GroundKind.SIDEWALK);
-        pave(c, 0, 43, 82, 49, GroundKind.STREET);
-        // Freight circulation doglegs around the weigh office, breaking a
-        // single firing corridor from the approach all the way to dispatch.
-        pave(c, 76, 33, 108, 37, GroundKind.STREET);
-        pave(c, 104, 33, 108, 49, GroundKind.STREET);
-        pave(c, 104, 44, 110, 49, GroundKind.STREET);
+
         pave(c, 74, 0, 82, HEIGHT - 1, GroundKind.SIDEWALK);
-        pave(c, 76, 0, 80, HEIGHT - 1, GroundKind.STREET);
-        pave(c, 10, 22, 32, 59, GroundKind.STREET);
+        // Freight circulation doglegs around the weigh office before dispatch.
+        var roads = RoadCatalog.plan(RoadCatalog.COUNTERATTACK);
+        RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
         for (int y : new int[]{40, 52, 28}) {
             LandingPad pad = new LandingPad(18, y, 3, 3, LandingPad.Approach.WEST);
             c.landingPads.add(pad);

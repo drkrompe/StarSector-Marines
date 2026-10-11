@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -41,7 +43,9 @@ public final class ReliefCheckpoint {
         ctx.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Relief freight checkpoint", List.of(
                 ReliefCheckpoint::grounds, ReliefCheckpoint::buildings,
-                ReliefCheckpoint::defences, ReliefCheckpoint::freight, new FinalizeStage())).run(ctx);
+                ReliefCheckpoint::defences, ReliefCheckpoint::freight,
+                finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
+                new FinalizeStage())).run(ctx);
         PointOfInterest relay = ctx.pois.stream().filter(p -> p.kind == PointOfInterest.Kind.COMMS).findFirst().orElseThrow();
         List<Cell> main = List.of(new Cell(width - 2, 30), new Cell(82, 30), new Cell(59, 30));
         List<Cell> service = List.of(new Cell(82, height - 2), new Cell(82, 30), new Cell(59, 30));
@@ -70,11 +74,12 @@ public final class ReliefCheckpoint {
         pave(c, 12, 16, 56, 52, GroundKind.SIDEWALK);
         pave(c, 14, 18, 54, 50, GroundKind.COURTYARD);
         pave(c, 0, 26, c.width - 1, 34, GroundKind.SIDEWALK);
-        pave(c, 0, 28, c.width - 1, 32, GroundKind.STREET);
+
         pave(c, 78, 33, 86, c.height - 1, GroundKind.SIDEWALK);
-        pave(c, 80, 33, 84, c.height - 1, GroundKind.STREET);
-        // Rear unloading apron, away from the frontage and with its own west approach.
-        pave(c, 16, 36, 34, 47, GroundKind.STREET);
+
+        // Freight approaches and rear boat apron share the authored road document.
+        var roads = RoadCatalog.relief(c.width, c.height);
+        RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
         c.landingPads.add(new LandingPad(21, 42, 3, 3, LandingPad.Approach.WEST));
         c.landingPads.add(new LandingPad(31, 42, 3, 3, LandingPad.Approach.WEST));
         for (LandingPad pad : c.landingPads) {

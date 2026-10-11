@@ -38,20 +38,39 @@ public final class RoadRasterizer {
         Arrays.fill(owner,-1); boolean[] shoulders=new boolean[w*h];
         for(int ri=0;ri<plan.routes().size();ri++) {
             Route r=plan.routes().get(ri); List<Point> path=sample(r); double radius=r.width()/2, outer=radius+r.shoulder();
+            double[] nearest = new double[w*h]; Arrays.fill(nearest, Double.POSITIVE_INFINITY);
+            boolean[] clipped = new boolean[w*h];
             for(int j=1;j<path.size();j++) {
                 Point a=path.get(j-1),b=path.get(j);
                 for(int y=Math.max(0,(int)Math.floor(Math.min(a.y(),b.y())-outer));y<=Math.min(h-1,(int)Math.ceil(Math.max(a.y(),b.y())+outer));y++)
                     for(int x=Math.max(0,(int)Math.floor(Math.min(a.x(),b.x())-outer));x<=Math.min(w-1,(int)Math.ceil(Math.max(a.x(),b.x())+outer));x++) {
                         double dx=b.x()-a.x(),dy=b.y()-a.y(),den=dx*dx+dy*dy;
-                        double t=den==0?0:Math.max(0,Math.min(1,((x-a.x())*dx+(y-a.y())*dy)/den));
+                        double projection=den==0?0:((x-a.x())*dx+(y-a.y())*dy)/den;
+                        double t=Math.max(0,Math.min(1,projection));
                         double dist=Math.hypot(x-a.x()-t*dx,y-a.y()-t*dy); int index=y*w+x;
-                        if(dist<outer) shoulders[index]=true;
-                        // First authored carriageway wins material at a junction; shoulders never overwrite roads.
-                        if(dist<radius && owner[index]<0) { owner[index]=ri; age[index]=age(r.wear(),r.seed(),x,y); }
+                        if(dist<nearest[index]) {
+                            nearest[index]=dist;
+                            clipped[index]=r.endCap()==EndCap.BUTT && ((j==1 && projection<0) || (j==path.size()-1 && projection>1));
+                        }
                     }
+            }
+            for(int y=0;y<h;y++) for(int x=0;x<w;x++) {
+                int i=y*w+x;
+                if(clipped[i]) continue;
+                if(nearest[i]<outer) shoulders[i]=true;
+                // First authored carriageway wins material; shoulders never overwrite roads.
+                if(nearest[i]<radius && owner[i]<0) { owner[i]=ri; age[i]=age(r.wear(),r.seed(),x,y); }
             }
         }
         return new Raster(w,h,owner,shoulders,age);
+    }
+    /** Later authored floors/markings own their surface; never leave pavement inside a room. */
+    public static void clearReplacedSurfaces(CellTopology topology, int width, int height) {
+        for(int y=0;y<height;y++) for(int x=0;x<width;x++) {
+            String id=topology.surfaceId(topology.getSurface(x,y));
+            if(id!=null && id.startsWith("pavement.") && (topology.getGroundKind(x,y)!=GroundKind.STREET || topology.isWall(x,y)))
+                topology.setSurface(x,y,0);
+        }
     }
     public static int age(double wear,long seed,int x,int y) {
         double stage=wear*2; int lower=(int)stage;

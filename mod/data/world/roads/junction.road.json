@@ -1,0 +1,159 @@
+{
+  "version": 1,
+  "width": 192,
+  "height": 112,
+  "roads": [
+    {
+      "id": "freight-through-road",
+      "points": [
+        [
+          0,
+          57.0
+        ],
+        [
+          180,
+          57.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.5,
+      "seed": 5100,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "loading-connector",
+      "points": [
+        [
+          85.0,
+          31
+        ],
+        [
+          85.0,
+          57
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.35,
+      "seed": 5101,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "loading-street",
+      "points": [
+        [
+          57,
+          33.0
+        ],
+        [
+          176,
+          33.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.35,
+      "seed": 5102,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "reserve-service-road",
+      "points": [
+        [
+          57,
+          23.0
+        ],
+        [
+          128,
+          23.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5103,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "reserve-return",
+      "points": [
+        [
+          60.0,
+          23
+        ],
+        [
+          60.0,
+          33
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5104,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "outbound-spine",
+      "points": [
+        [
+          173.0,
+          0
+        ],
+        [
+          173.0,
+          85
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.65,
+      "seed": 5105,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "east-outbound",
+      "points": [
+        [
+          173,
+          82.0
+        ],
+        [
+          191,
+          82.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.65,
+      "seed": 5106,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "western-boat-apron",
+      "points": [
+        [
+          22.0,
+          23
+        ],
+        [
+          22.0,
+          88
+        ]
+      ],
+      "width": 25,
+      "shoulder": 0,
+      "wear": 0.3,
+      "seed": 5107,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    }
+  ]
+}

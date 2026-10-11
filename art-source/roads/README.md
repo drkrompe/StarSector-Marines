@@ -4,7 +4,7 @@ Launch `gradlew.bat layerAuthoring` and select **Roads**.
 
 - Start from the curved junction sample, choose **New** for another map size, or **Open** a road JSON file.
 - Drag gold anchors; double-click to insert one; **Remove anchor** deletes the selected point. **Undo** restores prior edits.
-- Add roads to build junctions. Select a road to change width, gravel shoulder, asphalt/concrete, wear or wear-pattern seed.
+- Add roads to build junctions. Select a road to change width, gravel shoulder, asphalt/concrete, wear or wear-pattern seed. Choose round ends for free road stubs or flush (`BUTT`) ends for aprons and exact facility thresholds.
 - **Save / Save as** preserves the versioned JSON document. Loading validates dimensions, anchor bounds, finite settings and road identities.
 - `gradlew.bat createSnapshots -Psnapshot=roads` renders the wear ladder and exercises anchor dragging, the wear slider and save/reopen at 1920×1080.
 
@@ -20,12 +20,29 @@ returned road/shoulder mask against structures, and stamp it onto bare walkable
 ground before facilities. Wear selects ordinary catalog surface ids and changes
 no navigation facts. The first road wins material at an overlapping junction.
 
-Thunder Run consumes `mod/data/world/roads/thunder-run.road.json` at application
-load. Open that file to tune its pavement. Its freight/ambush corridors are a
-mission contract: saving a geometry change there is refused; redesign its
-buildings, route graph and convoy stops before changing that contract. Other
-saved road plans can have arbitrary spline geometry and do not automatically
-replace mission maps.
+All six story maps consume documents from `mod/data/world/roads/` at application
+load: Relief, Counterattack, Open the Junction, Last Lift, Relay Nine and Thunder
+Run. Public approaches use asphalt; loading/service routes and boat aprons use
+concrete. Each route has a named wear setting. Open its document in **Roads** to
+tune it; custom saved documents do not automatically replace a mission.
+
+The story maps retain their gate widths, berth footprints and script-owned route
+graphs. Changing a spline is not a corresponding change to the vehicle or
+reinforcement route: revalidate the complete mission when editing geometry.
+Thunder Run additionally refuses changes outside its fixed freight/ambush mask.
+The five other documents validate their map extent at load/save. Relief's larger
+debug maps extend only its boundary approaches, not the checkpoint itself.
+
+The `endCap` field defaults to `ROUND` for existing version-1 documents; `BUTT`
+ends stop at the first and last anchor. Later room floors, walls and painted
+landing/inspection stripes replace pavement surfaces before finalization.
+
+`gradlew.bat createSnapshots -Psnapshot=story-roads` renders all five converted
+maps and close-ups at 1920×1080, checks three seeds per map plus expanded Relief,
+and rejects old road tiles, pavement leaking into rooms/markings, or blocked
+berths. Each generator also validates its mission route connectivity. Use the
+existing `commanderEvidence -Pmission=<name>` harness for arrival and battle
+replays; `roads` snapshots still exercise the actual editor interactions.
 
 Current boundaries: the smooth spline is rasterized to square terrain cells;
 there are no subcell mesh edges, automatic junction markings, bridges or elevated

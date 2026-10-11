@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -29,7 +31,9 @@ public final class LastLiftCompound {
                 new CellTopology(WIDTH, HEIGHT), new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Last Lift", List.of(LastLiftCompound::grounds,
-                LastLiftCompound::buildings, LastLiftCompound::freight, new FinalizeStage())).run(c);
+                LastLiftCompound::buildings, LastLiftCompound::freight,
+                finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
+                new FinalizeStage())).run(c);
         MapResult map = new MapResult(c.grid, c.topology, 96, 20, 152, 64,
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS),
                 List.of(), new RoadGraph(List.of(), List.of()), c.landingPads);
@@ -55,11 +59,9 @@ public final class LastLiftCompound {
         pave(c,0,0,191,127,wild);
         pave(c,57,9,135,113,GroundKind.SIDEWALK);
         pave(c,59,11,133,111,GroundKind.COURTYARD);
-        pave(c,0,60,191,68,GroundKind.STREET);
-        pave(c,92,25,100,103,GroundKind.STREET);
-        pave(c,65,31,72,103,GroundKind.STREET);
-        pave(c,68,84,117,90,GroundKind.STREET);
-        pave(c,68,31,123,38,GroundKind.STREET);
+
+        var roads = RoadCatalog.plan(RoadCatalog.LAST_LIFT);
+        RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
         for (int x : new int[]{68,82,110,124}) {
             c.landingPads.add(new LandingPad(x,20,3,3,LandingPad.Approach.SOUTH));
             pave(c,x-3,17,x+3,23,GroundKind.STRIPED);
