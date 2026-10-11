@@ -109,6 +109,21 @@ public final class IndustrialYardFiller implements BlockFiller {
         }
     }
 
+    /** Place equipment without changing its supporting ground; yard paint belongs to the layout. */
+    static Doodad placeProp(GenContext ctx, String id, int x, int y, boolean tactical) {
+        DoodadDef def = TileRegistry.installed().doodad(id);
+        if (def == null) throw new IllegalStateException("Missing industrial doodad " + id);
+        Doodad prop = new Doodad(x, y, def);
+        ctx.doodads.add(prop);
+        if (tactical) {
+            ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setSeeThrough(x, y, !TANK.equals(id));
+            ctx.topology.setWall(x, y, false);
+            ctx.topology.setFixture(x, y, true);
+        }
+        return prop;
+    }
+
     /** Canonical long-axis coordinates make the same grammar fit wide/tall BSP leaves. */
     private static final class YardLayout {
         private final BlockLeaf leaf;
@@ -136,15 +151,7 @@ public final class IndustrialYardFiller implements BlockFiller {
             int v = farSide ? breadth - 1 : 0;
             int[] cell = nearestFree(u, v);
             if (cell == null) return null;
-            DoodadDef def = TileRegistry.installed().doodad(id);
-            if (def == null) throw new IllegalStateException("Missing industrial doodad " + id);
-            ctx.doodads.add(new Doodad(cell[0], cell[1], def));
-            if (tactical) {
-                ctx.grid.setWalkable(cell[0], cell[1], false);
-                ctx.grid.setSeeThrough(cell[0], cell[1], !TANK.equals(id));
-                ctx.topology.setWall(cell[0], cell[1], false);
-                ctx.topology.setFixture(cell[0], cell[1], true);
-            }
+            placeProp(ctx, id, cell[0], cell[1], tactical);
             occupied.add(key(cell[0], cell[1]));
             return cell;
         }
