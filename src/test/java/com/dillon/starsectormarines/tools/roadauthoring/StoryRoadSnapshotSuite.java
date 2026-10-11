@@ -47,7 +47,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             for (int index=0;index<maps.size();index++) {
                 MapResult map=maps.get(index);
                 verify(names[index],map);
-                if(index==2 || index==4) verifyTerrain(names[index],map);
+                if(index!=3) verifyTerrain(names[index],map);
                 if(seed!=8101) continue;
                 try(var scene=new ShipDeckBattleScene(map,0)) {
                     int w=map.grid.getWidth(),h=map.grid.getHeight();
@@ -66,6 +66,12 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                                 scene.pass(ShipDeckBattleScene.DeckView.over(0,0,72,72,15)),1920,1080)));
                     if(index==2 || index==4) frames.add(new SnapshotArtifact(names[index]+"-loading-court.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.fitting(index==2?92:103,index==2?61:76,80,45,1920,1080)),1920,1080)));
+                    if(index<2) {
+                        frames.add(new SnapshotArtifact(names[index]+"-apron.png",renderer.renderHostPass(
+                                scene.pass(ShipDeckBattleScene.DeckView.fitting(0,10,64,36,1920,1080)),1920,1080)));
+                        frames.add(new SnapshotArtifact(names[index]+"-yards.png",renderer.renderHostPass(
+                                scene.pass(ShipDeckBattleScene.DeckView.fitting(index==0?53:80,index==0?34:52,64,36,1920,1080)),1920,1080)));
+                    }
                     if(names[index].equals("junction")) frames.add(new SnapshotArtifact("junction-east.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.over(135,26,60,68,16)),1920,1080)));
                     if(names[index].equals("relay-nine")) frames.add(new SnapshotArtifact("relay-nine-east.png",renderer.renderHostPass(
@@ -85,18 +91,28 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         }
         for (SurfacePalette surface : SurfacePalette.values()) if(surface!=SurfacePalette.VERDANT) {
             TargetProfile world = new TargetProfile(0,0,0,0,"",Set.of(),surface,SettlementLink.ROAD);
+            verifyTerrain("relief",ReliefCheckpoint.generate(112,64,8101,world).map());
+            verifyTerrain("counterattack",CounterattackDepot.generate(8101,world).map());
             verifyTerrain("junction",JunctionCompound.generate(8101,world).map());
             verifyTerrain("relay-nine",RelayNineCompound.generate(8101,world).map());
         }
-        verify("relief-expanded",ReliefCheckpoint.generate(144,80,8101,profile).map());
+        MapResult expanded = ReliefCheckpoint.generate(144,80,8101,profile).map();
+        verify("relief-expanded",expanded);
+        verifyTerrain("relief-expanded",expanded);
         System.out.println("[story-roads] 15 production maps and expanded Relief: paved streets, clean markings/floors, clear berths and connected mission routes.");
         return frames;
     }
     /** Full-world connectivity and finalized terrain identity belong in opt-in evidence. */
     private static void verifyTerrain(String name, MapResult map) {
         var grid=map.grid; int w=grid.getWidth(),h=grid.getHeight();
-        String path=name.equals("junction") ? TerrainCatalog.JUNCTION : TerrainCatalog.RELAY_NINE;
-        TerrainField field=TerrainField.build(TerrainCatalog.plan(path,SurfacePalette.VERDANT));
+        String path=switch(name) {
+            case "relief", "relief-expanded" -> TerrainCatalog.RELIEF;
+            case "counterattack" -> TerrainCatalog.COUNTERATTACK;
+            case "junction" -> TerrainCatalog.JUNCTION;
+            default -> TerrainCatalog.RELAY_NINE;
+        };
+        TerrainField field=TerrainField.build(path.equals(TerrainCatalog.RELIEF)
+                ? TerrainCatalog.relief(w,h,SurfacePalette.VERDANT) : TerrainCatalog.plan(path,SurfacePalette.VERDANT));
         if(map.topology.terrainSurface()==null)throw new IllegalStateException(name+" has no terrain surface");
         boolean[] reached=new boolean[w*h];ArrayDeque<Integer> queue=new ArrayDeque<>();
         int start=grid.index(map.marineSpawnX,map.marineSpawnY);reached[start]=true;queue.add(start);
@@ -161,7 +177,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             if(!map.grid.isWalkable(x,y) || (kind!=GroundKind.STREET && kind!=GroundKind.STRIPED))
                 throw new IllegalStateException(name+" graph leaves the road at "+x+","+y);
         }
-        if(name.equals("junction") || name.equals("relay-nine")) verifyServiceYards(name,map);
+        if(!name.equals("last-lift")) verifyServiceYards(name,map);
         int streets=0,stripes=0;
         for(int y=0;y<map.grid.getHeight();y++) for(int x=0;x<map.grid.getWidth();x++) {
             var kind=map.topology.getGroundKind(x,y);
@@ -170,9 +186,9 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             if(kind==GroundKind.STREET && !map.topology.isWall(x,y)) {
                 streets++;
                 if(!paved) throw new IllegalStateException(name+" has an old road tile at "+x+","+y);
-            } else if((name.equals("junction") || name.equals("relay-nine")) && kind==GroundKind.COURTYARD && !map.topology.isWall(x,y)) {
+            } else if(!name.equals("last-lift") && kind==GroundKind.COURTYARD && !map.topology.isWall(x,y)) {
                 if(surface==null || !surface.startsWith("pavement.concrete."))
-                    throw new IllegalStateException("Junction yard lost its concrete surface");
+                    throw new IllegalStateException(name+" yard lost its concrete surface");
             } else if(paved) throw new IllegalStateException(name+" pavement covers a room/marking at "+x+","+y);
             if(kind==GroundKind.STRIPED) stripes++;
         }

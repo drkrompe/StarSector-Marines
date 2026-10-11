@@ -9,6 +9,10 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
@@ -17,10 +21,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
-import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
-import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
-import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -38,8 +39,8 @@ public final class CounterattackDepot {
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Wayline freight depot", List.of(CounterattackDepot::grounds,
                 CounterattackDepot::buildings, CounterattackDepot::perimeter,
-                CounterattackDepot::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
+                CounterattackDepot::yardSurfaces, CounterattackDepot::cargo, CounterattackDepot::terrain,
                 new FinalizeStage(), new OutdoorLandscapeStage(18, 46, 73, 46))).run(c);
         PointOfInterest depot = c.pois.get(0);
         List<Place> stages = List.of(new Place("Freight gate", 73, 46),
@@ -84,27 +85,36 @@ public final class CounterattackDepot {
         // Freight circulation doglegs around the weigh office before dispatch.
         var roads = RoadCatalog.plan(RoadCatalog.COUNTERATTACK);
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
-        for (int y : new int[]{40, 52, 28}) {
-            LandingPad pad = new LandingPad(18, y, 3, 3, LandingPad.Approach.WEST);
-            c.landingPads.add(pad);
-            for (int py = pad.bottom(); py <= pad.top(); py++) for (int px = pad.left(); px <= pad.right(); px++)
-                if (px == pad.left() || px == pad.right() || py == pad.bottom() || py == pad.top())
-                    c.topology.setGroundKind(px, py, GroundKind.STRIPED);
-        }
-        // Truck bays beside the loading route, never over the route itself.
-        for (int x : new int[]{88, 96, 104, 112, 120, 128, 136})
-            pave(c, x, 29, x + 3, 32, GroundKind.STRIPED);
+        for (int[] stand : new int[][]{{20,40},{22,52},{21,28}})
+            c.landingPads.add(new LandingPad(stand[0], stand[1], 8, 3,
+                    LandingPad.Approach.WEST, LandingPad.Purpose.FREIGHT_APRON));
+    }
+
+    private static void yardSurfaces(GenContext c) {
+        int[] concrete = new int[3];
+        for (int age = 0; age < 3; age++) concrete[age] = c.topology.surfaceIndex(Material.CONCRETE.block(age));
+        for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++)
+            if (c.topology.getGroundKind(x, y) == GroundKind.COURTYARD && !c.topology.isWall(x, y))
+                c.topology.setSurface(x, y, concrete[RoadRasterizer.age(.45, 8107, x, y)]);
+    }
+
+    private static void terrain(GenContext c) {
+        boolean[] reserved = new boolean[c.width * c.height];
+        for (LandingPad pad : c.landingPads)
+            for (int y = Math.max(0, pad.bottom() - 2); y <= Math.min(c.height - 1, pad.top() + 2); y++)
+                for (int x = 0; x <= pad.right() + 2; x++) reserved[y * c.width + x] = true;
+        TerrainBrush.stamp(TerrainCatalog.plan(TerrainCatalog.COUNTERATTACK, c.get(BspKeys.MARKET_PROFILE).surface()), c.grid, c.topology, reserved);
     }
 
     private static void buildings(GenContext c) {
         shell(c, 111, 37, 138, 58, Frontage.LEFT); // Dispatch and bonded freight: final destination.
-        shell(c, 83, 20, 104, 27, Frontage.BOTTOM);
+        BuildingStamp.OFFSET_DEPOT.place(c, 88, 20, 0);
         shell(c, 84, 41, 91, 52, Frontage.RIGHT); // Weigh office and covered freight check.
-        shell(c, 84, 57, 102, 74, Frontage.TOP);
+        BuildingStamp.FREIGHT_L.place(c, 84, 59, 0);
         shell(c, 70, 30, 76, 39, Frontage.BOTTOM); // Gate office, behind the perimeter.
-        shell(c, 40, 23, 55, 39, Frontage.BOTTOM); // Approach sheds screen the boat apron.
-        shell(c, 42, 54, 57, 69, Frontage.TOP);
-        shell(c, 113, 65, 138, 74, Frontage.TOP);
+        BuildingStamp.FREIGHT_T.place(c, 39, 21, 0); // Approach sheds screen the boat apron.
+        BuildingStamp.T_WORKSHOP.place(c, 42, 56, 2);
+        BuildingStamp.OFFSET_DEPOT.place(c, 117, 66, 1);
     }
 
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
@@ -132,13 +142,32 @@ public final class CounterattackDepot {
         }
     }
     private static void cargo(GenContext c) {
-        TileRegistry tiles = TileRegistry.installed();
-        if (tiles == null) return;
-        for (int x : new int[]{87, 91, 99, 103, 116, 120, 128, 132}) for (int y : new int[]{29, 30}) {
-            DoodadDef prop = tiles.doodad(y == 29 ? "doodad.industrial-crate-stack" : "doodad.industrial-pallet-stack");
-            if (prop != null) c.doodads.add(new Doodad(x, y, prop));
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // Inbound trailer court, outside the gate's line of advance.
+        yard.gravel(39, 8, 59, 17);
+        yard.fence(39, 8, 59, 17);
+        yard.bay(42, 10, 47, 15);
+        yard.prop(43, 12, "parked-cargo-truck", 1);
+        yard.cargo(51, 11);
+        // Upper approach workshop service apron.
+        yard.gravel(41, 72, 60, 78);
+        yard.prop(44, 74, "industrial-turbine-set", 0);
+        yard.prop(51, 74, "industrial-cable-reel", 0);
+        yard.cargo(54, 74);
+        // Separate loading courts flank dispatch, away from the live stage positions.
+        yard.bay(94, 68, 101, 74);
+        yard.cargo(95, 70);
+        yard.bay(130, 65, 142, 74);
+        yard.prop(132, 68, "parked-flatbed-truck", 1);
+        yard.cargo(137, 70);
+        yard.prop(131, 73, "stores-cargo-loader", 0);
+        yard.gravel(112, 20, 140, 28);
+        for (int x : new int[]{115, 124, 133}) {
+            yard.bay(x, 21, x + 5, 27);
+            yard.prop(x + 1, 24, "parked-cargo-truck", 1);
         }
     }
+
     private static RoadGraph roads() {
         int[][] points = {{0,46},{78,46},{78,35},{106,35},{106,46},{110,46}};
         List<RoadGraph.Node> nodes = new ArrayList<>();

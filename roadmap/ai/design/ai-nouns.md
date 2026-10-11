@@ -1204,6 +1204,14 @@ preserve that short cover move but continue to suppress the objective route.
 This lets a receiving line improve accidental contact positions between bursts
 without turning RECEIVE into a pursuit or moving the whole squad in lockstep.
 
+An **engagement-discipline hold** refuses pursuit into a remembered hostile
+cluster. It may settle into nearby lateral or rearward cover, but a failed
+cover search leaves the member on its current ground. It must never reuse the
+away-biased retreat picker: repeating that fallback from each new position
+turns a composed defensive line into a continuous withdrawal. Opportunity
+fire remains available as attackers close; morale break and explicit fallback
+retain their separate authority to surrender ground.
+
 **An emplacement is never a shot of opportunity.** A move-only coordinated
 role — the moving half of a bound, a squad crossing to its assigned room —
 withholds ordinary opportunity fire, because a passing shot must not divert an

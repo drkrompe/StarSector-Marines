@@ -242,6 +242,32 @@ class EngagementDisciplineTest {
     }
 
     @Test
+    void exposedHoldWithoutCoverDoesNotRetreatAndFiresWhenAttackersClose() {
+        for (Faction faction : List.of(Faction.MARINE, Faction.DEFENDER)) {
+            Fixture f = clusteredRunner(faction, false);
+            EngagementDiscipline.targetForPursuit(f.member, f.squad, f.sim);
+            assertTrue(f.squad.engagementDisciplineHold);
+            float x = f.sim.world().x(f.member), y = f.sim.world().y(f.member);
+            for (int tick = 0; tick < 120; tick++) {
+                assertEquals(ActionStatus.RUNNING,
+                        OverwatchPosture.INSTANCE.execute(f.member, f.squad, f.sim));
+                assertTrue(Paths.isEmpty(f.sim.world().path(f.member)),
+                        "a hold without cover must not repeatedly author away-biased fallback paths");
+                assertEquals(x, f.sim.world().x(f.member));
+                assertEquals(y, f.sim.world().y(f.member));
+            }
+            f.sim.world().setCellPos(f.rejected, 9, 5);
+            f.sim.world().setCellPos(f.buddyA, 9, 6);
+            f.sim.world().setCellPos(f.buddyB, 10, 5);
+            f.sim.getUnitIndex().rebuild(f.sim.getRoster());
+            OverwatchPosture.INSTANCE.execute(f.member, f.squad, f.sim);
+            assertTrue(Paths.isEmpty(f.sim.world().path(f.member)));
+            assertTrue(InfantryUnitPrep.tryOpportunityPrimary(f.member, f.sim),
+                    "holding the line must still permit fire at the approaching formation");
+        }
+    }
+
+    @Test
     void rememberedClusterDecaysAndRejectedTargetDeathReleasesHold() {
         Fixture dispersed = clusteredRunner(Faction.MARINE, true);
         EngagementDiscipline.targetForPursuit(

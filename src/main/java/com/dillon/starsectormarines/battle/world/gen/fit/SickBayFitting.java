@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+
+import java.util.List;
 
 /**
  * A sick bay as a ward flanked by the things that make it clinical, either side
@@ -43,6 +46,13 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
  */
 public final class SickBayFitting implements RoomFitting {
 
+    private final boolean shipboard;
+    private static final String SHIP_KIT = "sickbay-clinic.";
+
+    public SickBayFitting() { this(false); }
+    private SickBayFitting(boolean shipboard) { this.shipboard = shipboard; }
+    public static SickBayFitting shipboard() { return new SickBayFitting(true); }
+
     /** Columns at the near end given over to the clinic rather than the ward. */
     private static final int CLINICAL_DEPTH = 4;
     /** Rows either bulkhead band is deep. Bed plus its monitor, or the clinic's working row. */
@@ -61,7 +71,7 @@ public final class SickBayFitting implements RoomFitting {
         int across = floor.canonicalHeight();
         if (along < CLINICAL_DEPTH + 2 || across < 2 * BAND + AISLE_WIDTH) return;
 
-        Art art = Art.resolve();
+        Art art = shipboard ? null : Art.resolve();
         int aisleFrom = BAND;
 
         // Circulation before anything else stands on it: the spine the whole
@@ -96,6 +106,30 @@ public final class SickBayFitting implements RoomFitting {
         // as bare deck.
         reserve(floor, 0, northApproach, CLINICAL_DEPTH, 1);
         reserve(floor, 0, southApproach, CLINICAL_DEPTH, 1);
+
+        if (shipboard) {
+            // Put the staffed bank on the flank whose desk footprint survives the hatches.
+            int[] desk = floor.toLocalRect(1, southFar, 2, 1);
+            boolean dispensaryLow = !floor.isFree(desk[0], desk[1], desk[2], desk[3]);
+            int storeRow = dispensaryLow ? 0 : across - 1;
+            int workRow = dispensaryLow ? 1 : southFar;
+            int approach = dispensaryLow ? northApproach : southApproach;
+            clinicPiece(floor, "cabinet", 0, storeRow, null, 0, 0);
+            clinicPiece(floor, "cabinet", 2, storeRow, null, 0, 0);
+            clinicPiece(floor, "trolley", 0, workRow, Affordance.STOW, 0, approach);
+            clinicPiece(floor, "station", 1, workRow, Affordance.TREAT, 1, approach);
+            clinicPiece(floor, "sink", 3, workRow, Affordance.WASH, 3, approach);
+
+            int examRow = dispensaryLow ? across - 1 : 0;
+            int examApproach = dispensaryLow ? across - 2 : 1;
+            boolean examAtStart = clinicPiece(floor, "exam", 0, examRow,
+                    Affordance.TREAT, 1, examApproach);
+            if (!examAtStart) clinicPiece(floor, "exam", 2, examRow,
+                    Affordance.TREAT, 2, examApproach);
+            clinicPiece(floor, "trolley", examAtStart ? 2 : 0, examRow, null, 0, 0);
+            clinicPiece(floor, "screen", 3, dispensaryLow ? across - 2 : 0, null, 0, 0);
+            return;
+        }
 
         // Treatment: the table against the bulkhead, its trolley beside it, and
         // the screen that keeps a patient on it out of the ward's sightline.
@@ -143,6 +177,14 @@ public final class SickBayFitting implements RoomFitting {
             }
         }
 
+        if (shipboard) {
+            for (int column = CLINICAL_DEPTH; column < along; column += pitch) {
+                bedBay(floor, column, 0, along, across, true);
+                bedBay(floor, column, southBedRow, along, across, false);
+            }
+            return;
+        }
+
         int[] headNorth = floor.pose().mapDirection(0, -1);
         int[] headSouth = floor.pose().mapDirection(0, 1);
         String bedNorth = bedFacing(headNorth, art);
@@ -154,6 +196,33 @@ public final class SickBayFitting implements RoomFitting {
             place(floor, art.monitor(), column, across - 1, 1, 1, null);
             place(floor, bedSouth, column, southBedRow, 1, 2, Affordance.TREAT);
         }
+    }
+
+    /** Check the entire bay first, so a hatch cannot leave a monitor without its bed. */
+    private void bedBay(RoomFloor floor, int column, int band, int along, int across, boolean low) {
+        int[] bay = floor.toLocalRect(column, band, 1, BAND);
+        if (!floor.isFree(bay[0], bay[1], bay[2], bay[3])) return;
+        int bedRow = low ? 1 : band;
+        if (!floor.placeAssembly(column, bedRow, SHIP_KIT + "bed", List.of(
+                new LayoutOp.Layer(0, 0, SHIP_KIT + (low ? "linen-low" : "linen-high"))))) return;
+        floor.placeAssembly(column, low ? 0 : across - 1, SHIP_KIT + "monitor", List.of());
+        int standX = column + 1 < along ? column + 1 : column;
+        int standY = column + 1 < along ? bedRow : low ? BAND : band - 1;
+        int targetRow = standX != column ? bedRow : low ? bedRow + 1 : bedRow;
+        task(floor, standX, standY, Affordance.TREAT, column, targetRow);
+    }
+
+    private boolean clinicPiece(RoomFloor floor, String piece, int x, int y,
+                             Affordance work, int standX, int standY) {
+        if (!floor.placeAssembly(x, y, SHIP_KIT + piece, List.of())) return false;
+        if (work != null) task(floor, standX, standY, work, x, y);
+        return true;
+    }
+
+    private void task(RoomFloor floor, int x, int y, Affordance work, int fixtureX, int fixtureY) {
+        int[] stand = floor.toLocal(x, y);
+        int[] fixture = floor.toLocal(fixtureX, fixtureY);
+        floor.fixtureTask(stand[0], stand[1], work, fixture[0], fixture[1]);
     }
 
     /** The compass-facing bed variant whose head points the way the world says this bulkhead does. */

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -18,6 +20,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpeningOperationCommandTest {
 
@@ -49,6 +52,10 @@ class OpeningOperationCommandTest {
 
         assertEquals(AssignmentKind.HOLD_NODE, local.assignedObjective.kind());
         assertEquals(AssignmentKind.DEFEND_AREA, relief.assignedObjective.kind());
+        assertEquals(5, relief.assignedObjective.targetRadiusCells());
+        assertTrue(DefendAssignedAreaGoal.INSTANCE.relevance(
+                WorldState.EMPTY.with(Predicate.HAS_TARGET, true), relief, sim) > 0,
+                "a distant contact must not discard the checkpoint reinforcement area");
         assertEquals(AssignmentKind.SWEEP_SECTOR, raider.assignedObjective.kind());
         assertEquals(payloadOrder, payload.assignedObjective);
         assertNear(facts, relief.assignedObjective);

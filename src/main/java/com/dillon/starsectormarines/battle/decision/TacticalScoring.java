@@ -3092,8 +3092,8 @@ public final class TacticalScoring {
      * Finds real wall/doodad cover for an exposed engagement-discipline hold
      * without stepping closer to the rejected cluster. Returns the current
      * cell when it is already covered, a reachable lateral/backward cover
-     * cell within {@link #ENGAGEMENT_HOLD_COVER_RADIUS}, or the ordinary
-     * away-biased fallback position when no local cover exists.
+     * cell within {@link #ENGAGEMENT_HOLD_COVER_RADIUS}, or the current cell
+     * when no local cover exists. A refused pursuit is not a retreat order.
      */
     public int[] findEngagementHoldPosition(long self, long threat) {
         if (!roster.isAliveById(self) || !roster.isAliveById(threat)) return null;
@@ -3139,7 +3139,7 @@ public final class TacticalScoring {
                 }
             }
         }
-        return best != null ? best : findFallbackPosition(self);
+        return best != null ? best : new int[]{sx, sy};
     }
 
     private static boolean pathAdvancesToward(int[] path, int startX, int startY,

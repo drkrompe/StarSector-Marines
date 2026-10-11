@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "width": 112,
+  "height": 64,
+  "finish": "GRASS_TOP",
+  "faceDepth": 3.2,
+  "ruggedness": 0.6,
+  "seed": 8117,
+  "strokes": [
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          0,
+          63
+        ],
+        [
+          6,
+          63
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          61,
+          63
+        ],
+        [
+          70,
+          63
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 6,
+      "points": [
+        [
+          111,
+          63
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 7,
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          24,
+          0
+        ],
+        [
+          37,
+          0
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 4,
+      "points": [
+        [
+          58,
+          0
+        ],
+        [
+          72,
+          0
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 5,
+      "points": [
+        [
+          94,
+          0
+        ],
+        [
+          111,
+          0
+        ]
+      ]
+    }
+  ],
+  "previewRoad": "mod/data/world/roads/relief.road.json"
+}

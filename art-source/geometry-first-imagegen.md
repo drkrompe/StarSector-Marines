@@ -57,6 +57,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
 | Ship armory | `ArmoryWorkshopTemplate`; issue counter, layered weapons racks and repair bench, separate cabinets | `templates/armory-workshop.png`, `tilesets/armory-workshop.*` | `ship-materials` |
+| Ship sickbay | `SickbayClinicTemplate`; layered medical beds, head monitors and an adaptable clinic bank | `templates/sickbay-clinic.png`, `tilesets/sickbay-clinic.*` | `ship-materials` |
 | Ship mess | `MessGalleyTemplate`; long tables, separate meals and stools, coordinated galley appliances | `templates/mess-galley.png`, `tilesets/mess-galley.*` | `ship-materials` |
 | Ship berthing | `BarracksBunkTemplate`; full bunk bases, separate bedding and rails, personal locker banks | `templates/barracks-bunks.png`, `tilesets/barracks-bunks.*` | `ship-materials` |
 | Neutral ship bulkheads | `ShipBulkheadTemplate`; sixteen exposed-face masks, quiet charcoal/enamel materials | `templates/ship-bulkheads.png`, `tilesets/ship-bulkheads.*`, `tilesets/ship-neutral.README.md` | `ship-neutral` |

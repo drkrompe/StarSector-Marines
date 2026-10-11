@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import javax.imageio.ImageIO;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -60,6 +61,7 @@ class CounterattackCommandEvidenceTest {
             try (BattleSimulation sim = BattleSetup.createOpeningOperation(8101, manifest, 1,
                     kind, TargetProfile.NEUTRAL)) {
                 deployment.applyTo(sim, 1);
+                sim.setCommandTraceEnabled(true, kind.name());
                 float forwardPadX = 0;
                 Set<String> playerPads = new HashSet<>();
                 for (long air : sim.getAirEntityIds()) {
@@ -95,7 +97,12 @@ class CounterattackCommandEvidenceTest {
                     }
                 }
                 assertTrue(assembledTick >= 0, kind + ": the committed squad never assembled");
-                assertTrue(advancedTick >= 0, kind + ": the assembled squad never left the landing apron");
+                Files.writeString(output.resolve(kind.name()+"-paired-trace.jsonl"), sim.getCommandTraceJsonLines());
+                var frame = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080).render(sim,
+                        kind + " / paired campaign arrival", ReviewAnnotations.builder().build());
+                ImageIO.write(frame, "png", output.resolve(kind.name()+"-paired-arrival.png").toFile());
+                assertTrue(advancedTick >= 0, kind + ": the assembled squad never left the landing apron at "
+                        + company.centroidX + "," + company.centroidY + " / " + company.assignmentForExecution());
                 results.put(new JSONObject().put("mission", kind.name())
                         .put("companySquads", 1).put("delivered", company.originalSize)
                         .put("expected", company.expectedSize).put("assembledTick", assembledTick)

@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "width": 160,
+  "height": 96,
+  "finish": "GRASS_TOP",
+  "faceDepth": 3.2,
+  "ruggedness": 0.6,
+  "seed": 8117,
+  "strokes": [
+    {
+      "mode": "RAISE",
+      "radius": 10,
+      "points": [
+        [
+          0,
+          86
+        ],
+        [
+          24,
+          90
+        ],
+        [
+          46,
+          93
+        ],
+        [
+          60,
+          95
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 7,
+      "points": [
+        [
+          0,
+          7
+        ],
+        [
+          12,
+          9
+        ],
+        [
+          27,
+          8
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 6,
+      "points": [
+        [
+          90,
+          0
+        ],
+        [
+          115,
+          0
+        ],
+        [
+          136,
+          0
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 7,
+      "points": [
+        [
+          94,
+          95
+        ],
+        [
+          119,
+          95
+        ],
+        [
+          147,
+          95
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 3,
+      "points": [
+        [
+          159,
+          53
+        ],
+        [
+          159,
+          70
+        ]
+      ]
+    }
+  ],
+  "previewRoad": "mod/data/world/roads/counterattack.road.json"
+}
