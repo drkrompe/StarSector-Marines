@@ -10,6 +10,8 @@ com.dillon.starsectormarines.battle.control.ControlledVehicleScene
 com.dillon.starsectormarines.battle.squad.SquadTrafficScene
 com.dillon.starsectormarines.battle.warship.WarshipLanceScene
 com.dillon.starsectormarines.battle.warship.OnslaughtBarrageScene
+
+com.dillon.starsectormarines.battle.control.HoundHeatScene
 com.dillon.starsectormarines.battle.warship.ParagonSweepScene
 com.dillon.starsectormarines.battle.warship.WarshipPointDefenceScene
 com.dillon.starsectormarines.battle.warship.OnslaughtDirectorScene
