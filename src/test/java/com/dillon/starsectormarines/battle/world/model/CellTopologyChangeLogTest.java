@@ -43,7 +43,9 @@ class CellTopologyChangeLogTest {
         topology.setNatureOverlayIndex(5, 5, 3);
         assertEquals(topology.index(5, 5), topology.changedCellAt(3));
 
-        assertEquals(4L, topology.changeCount());
+        topology.setBuildingKindHint(2, 2, BuildingKind.RESIDENTIAL);
+        assertEquals(topology.index(2, 2), topology.changedCellAt(4));
+        assertEquals(5L, topology.changeCount(), "the footprint determines apron tiles");
     }
 
     /**

@@ -187,6 +187,7 @@ final class GroundMicroHeightSampler {
                     int cell = topology.inBounds(sx, sy)
                             ? topology.getGroundKind(sx, sy).ordinal() + 1 : 0;
                     cell = 31 * cell + (topology.isWall(sx, sy) ? 1 : 0);
+                    cell = 31 * cell + (topology.hasBuildingKindHint(sx, sy) ? 1 : 0);
                     cell = 31 * cell + (grid.inBounds(sx, sy) && grid.isWalkable(sx, sy) ? 1 : 0);
                     state = 31 * state + cell;
                 }

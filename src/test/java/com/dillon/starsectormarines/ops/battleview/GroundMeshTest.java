@@ -137,22 +137,23 @@ class GroundMeshTest {
 
     /**
      * The patch's whole claim. One cell changed re-resolves that cell and the
-     * four it touches — the neighbours because an autotile frame is chosen from
-     * what is beside it — and nothing else in the map is looked at again.
+     * two-cell neighbourhood — the apron and its edge-selection neighbours —
+     * and nothing else in the map is looked at again.
      */
     @Test
     void oneChangedCellRedrawsItselfAndItsNeighbours() {
-        CellTopology topology = grid();
-        Terrain terrain = new Terrain(topology);
+        CellTopology topology = new CellTopology(9, 9);
+        List<Integer> resolved = new ArrayList<>();
+        GroundMesh.CellResolver resolver = (x, y, sink) -> { resolved.add(y * 9 + x); sink.fill(0); };
         GroundMesh mesh = new GroundMesh();
-        mesh.catchUp(topology, terrain);
-
-        terrain.resolved.clear();
-        topology.setGroundKind(2, 2, CellTopology.GroundKind.RUBBLE);
-        assertTrue(mesh.catchUp(topology, terrain));
-
-        assertEquals(List.of(cell(2, 2), cell(1, 2), cell(3, 2), cell(2, 1), cell(2, 3)),
-                terrain.resolved);
+        mesh.catchUp(topology, resolver);
+        resolved.clear();
+        topology.setGroundKind(4, 4, CellTopology.GroundKind.RUBBLE);
+        assertTrue(mesh.catchUp(topology, resolver));
+        assertEquals(25, resolved.size());
+        assertTrue(resolved.contains(2 * 9 + 2), "diagonal apron edge gets refreshed");
+        assertTrue(resolved.contains(6 * 9 + 6));
+        assertTrue(!resolved.contains(1 * 9 + 4), "distant cells remain resident");
     }
 
     /** A cell that keeps its sheet keeps its slot; a patch writes over it in place. */

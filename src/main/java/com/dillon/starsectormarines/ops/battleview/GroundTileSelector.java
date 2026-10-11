@@ -38,10 +38,15 @@ final class GroundTileSelector {
 
     static boolean isSidewalkCell(NavigationGrid grid, CellTopology topology, int x, int y) {
         if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !topology.isStreet(x, y)) return false;
-        return isInBoundsWall(topology, x + 1, y)
-                || isInBoundsWall(topology, x - 1, y)
-                || isInBoundsWall(topology, x, y + 1)
-                || isInBoundsWall(topology, x, y - 1);
+        // The building footprint includes walkable window recesses and doors.
+        // Its one-cell apron wraps convex corners as well as straight walls.
+        for (int dy = -1; dy <= 1; dy++) for (int dx = -1; dx <= 1; dx++) {
+            if (dx == 0 && dy == 0) continue;
+            int nx = x + dx, ny = y + dy;
+            if (isInBoundsWall(topology, nx, ny)
+                    || topology.hasBuildingKindHint(nx, ny)) return true;
+        }
+        return false;
     }
 
     static boolean isSidewalkLikeCell(NavigationGrid grid, CellTopology topology, int x, int y) {

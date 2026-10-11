@@ -28,6 +28,8 @@ public final class BuildingStampSnapshotSuite implements SnapshotSuite {
         DiskRegistries.installMapGeneration(context.projectRoot());
         HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
+        artifacts.add(new SnapshotArtifact("wall-reskin-template.png",
+                com.dillon.starsectormarines.tools.tilesetauthoring.WallReskinTemplate.render()));
         int panel = 17 * 32, header = 38;
         BufferedImage overview = new BufferedImage(panel * 2, (panel + header) * 3,
                 BufferedImage.TYPE_INT_RGB);

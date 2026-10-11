@@ -1,19 +1,10 @@
 {
   "blocks": [
     {
-      "fillRgb": "0x4C3829",
-      "id": "colony.masonry-wall",
-      "layout": "wall-3x3",
-      "origin": [
-        0,
-        0
-      ]
-    },
-    {
       "id": "colony.limestone",
       "layout": "single",
       "origin": [
-        3,
+        0,
         0
       ]
     },
@@ -21,7 +12,7 @@
       "id": "colony.terracotta",
       "layout": "single",
       "origin": [
-        4,
+        1,
         0
       ]
     },
@@ -29,16 +20,7 @@
       "id": "colony.basalt",
       "layout": "single",
       "origin": [
-        5,
-        0
-      ]
-    },
-    {
-      "fillRgb": "0x665C4C",
-      "id": "colony.ceramic-wall",
-      "layout": "wall-3x3",
-      "origin": [
-        6,
+        2,
         0
       ]
     },
@@ -46,7 +28,7 @@
       "id": "colony.sage",
       "layout": "single",
       "origin": [
-        9,
+        3,
         0
       ]
     },
@@ -54,7 +36,7 @@
       "id": "colony.terrazzo",
       "layout": "single",
       "origin": [
-        10,
+        4,
         0
       ]
     },
@@ -62,16 +44,7 @@
       "id": "colony.timber",
       "layout": "single",
       "origin": [
-        11,
-        0
-      ]
-    },
-    {
-      "fillRgb": "0x343629",
-      "id": "colony.olive-wall",
-      "layout": "wall-3x3",
-      "origin": [
-        12,
+        5,
         0
       ]
     },
@@ -79,7 +52,7 @@
       "id": "colony.concrete",
       "layout": "single",
       "origin": [
-        15,
+        6,
         0
       ]
     },
@@ -87,16 +60,16 @@
       "id": "colony.ochre",
       "layout": "single",
       "origin": [
-        0,
-        3
+        7,
+        0
       ]
     },
     {
       "id": "colony.tread",
       "layout": "single",
       "origin": [
-        1,
-        3
+        8,
+        0
       ]
     }
   ],
@@ -104,201 +77,57 @@
   "cells": [
     {
       "col": 0,
-      "description": "exterior on the north and west",
-      "name": "colony.masonry-wall nw",
-      "row": 0
-    },
-    {
-      "col": 1,
-      "description": "exterior on the north",
-      "name": "colony.masonry-wall n",
-      "row": 0
-    },
-    {
-      "col": 2,
-      "description": "exterior on the north and east",
-      "name": "colony.masonry-wall ne",
-      "row": 0
-    },
-    {
-      "col": 0,
-      "description": "exterior on the west",
-      "name": "colony.masonry-wall w",
-      "row": 1
-    },
-    {
-      "col": 2,
-      "description": "exterior on the east",
-      "name": "colony.masonry-wall e",
-      "row": 1
-    },
-    {
-      "col": 0,
-      "description": "exterior on the south and west",
-      "name": "colony.masonry-wall sw",
-      "row": 2
-    },
-    {
-      "col": 1,
-      "description": "exterior on the south",
-      "name": "colony.masonry-wall s",
-      "row": 2
-    },
-    {
-      "col": 2,
-      "description": "exterior on the south and east",
-      "name": "colony.masonry-wall se",
-      "row": 2
-    },
-    {
-      "col": 3,
       "description": "the block's only cell",
       "name": "colony.limestone only",
       "row": 0
     },
     {
-      "col": 4,
+      "col": 1,
       "description": "the block's only cell",
       "name": "colony.terracotta only",
       "row": 0
     },
     {
-      "col": 5,
+      "col": 2,
       "description": "the block's only cell",
       "name": "colony.basalt only",
       "row": 0
     },
     {
-      "col": 6,
-      "description": "exterior on the north and west",
-      "name": "colony.ceramic-wall nw",
-      "row": 0
-    },
-    {
-      "col": 7,
-      "description": "exterior on the north",
-      "name": "colony.ceramic-wall n",
-      "row": 0
-    },
-    {
-      "col": 8,
-      "description": "exterior on the north and east",
-      "name": "colony.ceramic-wall ne",
-      "row": 0
-    },
-    {
-      "col": 6,
-      "description": "exterior on the west",
-      "name": "colony.ceramic-wall w",
-      "row": 1
-    },
-    {
-      "col": 8,
-      "description": "exterior on the east",
-      "name": "colony.ceramic-wall e",
-      "row": 1
-    },
-    {
-      "col": 6,
-      "description": "exterior on the south and west",
-      "name": "colony.ceramic-wall sw",
-      "row": 2
-    },
-    {
-      "col": 7,
-      "description": "exterior on the south",
-      "name": "colony.ceramic-wall s",
-      "row": 2
-    },
-    {
-      "col": 8,
-      "description": "exterior on the south and east",
-      "name": "colony.ceramic-wall se",
-      "row": 2
-    },
-    {
-      "col": 9,
+      "col": 3,
       "description": "the block's only cell",
       "name": "colony.sage only",
       "row": 0
     },
     {
-      "col": 10,
+      "col": 4,
       "description": "the block's only cell",
       "name": "colony.terrazzo only",
       "row": 0
     },
     {
-      "col": 11,
+      "col": 5,
       "description": "the block's only cell",
       "name": "colony.timber only",
       "row": 0
     },
     {
-      "col": 12,
-      "description": "exterior on the north and west",
-      "name": "colony.olive-wall nw",
-      "row": 0
-    },
-    {
-      "col": 13,
-      "description": "exterior on the north",
-      "name": "colony.olive-wall n",
-      "row": 0
-    },
-    {
-      "col": 14,
-      "description": "exterior on the north and east",
-      "name": "colony.olive-wall ne",
-      "row": 0
-    },
-    {
-      "col": 12,
-      "description": "exterior on the west",
-      "name": "colony.olive-wall w",
-      "row": 1
-    },
-    {
-      "col": 14,
-      "description": "exterior on the east",
-      "name": "colony.olive-wall e",
-      "row": 1
-    },
-    {
-      "col": 12,
-      "description": "exterior on the south and west",
-      "name": "colony.olive-wall sw",
-      "row": 2
-    },
-    {
-      "col": 13,
-      "description": "exterior on the south",
-      "name": "colony.olive-wall s",
-      "row": 2
-    },
-    {
-      "col": 14,
-      "description": "exterior on the south and east",
-      "name": "colony.olive-wall se",
-      "row": 2
-    },
-    {
-      "col": 15,
+      "col": 6,
       "description": "the block's only cell",
       "name": "colony.concrete only",
       "row": 0
     },
     {
-      "col": 0,
+      "col": 7,
       "description": "the block's only cell",
       "name": "colony.ochre only",
-      "row": 3
+      "row": 0
     },
     {
-      "col": 1,
+      "col": 8,
       "description": "the block's only cell",
       "name": "colony.tread only",
-      "row": 3
+      "row": 0
     }
   ],
   "doodads": [],

@@ -50,6 +50,19 @@ public enum GridLayout {
     },
 
     /**
+     * Sixteen full-cell wall caps, one for every exposed-face combination.
+     * Bits are N=1, E=2, S=4, W=8; row-major mask order in a 4x4 patch.
+     * Both sides of a thin partition may be exposed. No interior/exterior bias,
+     * no floor or apron inside the wall tile, and no priority that drops a face.
+     */
+    WALL_FACES_4X4 {
+        @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
+            int mask = (n ? 1 : 0) | (e ? 2 : 0) | (s ? 4 : 0) | (w ? 8 : 0);
+            return new int[]{oc + mask % 4, or + mask / 4};
+        }
+    },
+
+    /**
      * Hollow-perimeter 3×3 whose <em>open</em> case is null (used by
      * {@code road.road} / {@code road.courtyard}) — same edge offsets as
      * {@link #FLOOR_3X3}, but a cell with no wall neighbor returns {@code null}
@@ -96,7 +109,8 @@ public enum GridLayout {
 
     /**
      * Width and height, in cells, of the patch this layout addresses from its
-     * origin — 1 for {@link #SINGLE}, 3 for every 3x3 layout.
+     * origin — 1 for {@link #SINGLE}, 4 for the complete wall-face set,
+     * and 3 for the legacy perimeter layouts.
      *
      * <p>Authoring tools need the extent to reserve a contiguous patch in a
      * packed atlas and to know which slots a layout has. That extent is part of
@@ -104,8 +118,11 @@ public enum GridLayout {
      * the layout's name somewhere else.
      */
     public int span() {
+        if (this == WALL_FACES_4X4) return 4;
         return this == SINGLE ? 1 : 3;
     }
+
+    public boolean isWall() { return this == WALL_3X3 || this == WALL_FACES_4X4; }
 
     /** Parse from the tileset JSON {@code layout} field. */
     public static GridLayout fromJson(String s) {
@@ -113,6 +130,7 @@ public enum GridLayout {
             case "single":        return SINGLE;
             case "floor-3x3":     return FLOOR_3X3;
             case "wall-3x3":      return WALL_3X3;
+            case "wall-faces-4x4": return WALL_FACES_4X4;
             case "perimeter-3x3": return PERIMETER_3X3;
             case "striped-3x3":   return STRIPED_3X3;
             default: throw new IllegalArgumentException("unknown grid layout '" + s + "'");

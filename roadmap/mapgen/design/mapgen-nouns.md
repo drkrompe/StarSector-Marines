@@ -215,6 +215,14 @@ destruction clears them so rubble cannot continue drawing an intact wall.
 The `building-stamps` snapshot suite shows the same plans through the battle
 renderer at each cardinal placement.
 
+A building's street apron follows its footprint, including walkable window
+recesses and thresholds, and wraps its convex corners. Glazing and the sidewalk
+are separate facts: breaking a window does not remove its paving. Wall art owns
+only the occupied structural cell, never a painted fragment of that apron or
+of the adjacent room. Geometry-guided wall caps expose every open face, so both
+sides of an interior partition and concave joins remain coherent without an
+art-defined inside/outside direction.
+
 Ordinary hollow building shells place shared-edge windows on facade runs
 belonging to tactically usable rooms. The former facade wall cell becomes a
 walkable, building-hinted firing recess; only its outside transition is closed,

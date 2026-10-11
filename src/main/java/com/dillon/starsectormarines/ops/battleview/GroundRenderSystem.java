@@ -471,7 +471,7 @@ public final class GroundRenderSystem implements RenderSystem {
                 }
             }
             TileManifest.TileFrame tile =
-                    WallMasks.pickTileFromMask(topology.getWallDirMask(x, y), block);
+                    WallMasks.pickTile(topology, x, y, block);
             if (tile == null) {
                 sink.fill(fill.getRGB());
                 return;
@@ -559,10 +559,8 @@ public final class GroundRenderSystem implements RenderSystem {
      * the two blocks happen to share an origin, exactly the same picture and no
      * way to tell anything went wrong.
      *
-     * <p>The frame still comes from the cell's own {@code wallDirMask} rather
-     * than from what its neighbours are made of: the mask says which sides face
-     * exterior, and deriving that from neighbour type is a different and wrong
-     * question.
+     * <p>Legacy perimeter blocks use the authored exterior mask. Full-cell
+     * wall caps use every exposed face, including the room side of a partition.
      */
     private void wallTile(GridBlockDef block, TileManifest.TileFrame f, GroundMesh.CellSink sink) {
         if (f == null) return;

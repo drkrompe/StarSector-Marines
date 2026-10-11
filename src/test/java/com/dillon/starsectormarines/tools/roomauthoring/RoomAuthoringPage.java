@@ -196,7 +196,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private static List<String> wallBlockIds() {
         List<String> ids = new ArrayList<>();
         for (GridBlockDef block : TileRegistry.installed().blocks()) {
-            if (block.layout == GridLayout.WALL_3X3) ids.add(block.id);
+            if (block.layout != null && block.layout.isWall()) ids.add(block.id);
         }
         ids.sort(String::compareTo);
         return ids;
@@ -213,7 +213,7 @@ public final class RoomAuthoringPage implements AuthoringPage {
     private static List<String> floorBlockIds() {
         List<String> ids = new ArrayList<>();
         for (GridBlockDef block : TileRegistry.installed().blocks()) {
-            if (block.layout != GridLayout.WALL_3X3) ids.add(block.id);
+            if (block.layout == null || !block.layout.isWall()) ids.add(block.id);
         }
         ids.sort(String::compareTo);
         return ids;
