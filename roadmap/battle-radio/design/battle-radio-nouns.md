@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced the open-story count with direction-oriented status.
+Updated: 2026-10-11 — clarified shared per-clip audio build caching.
 
 Read `stories.md` for the open-work board.
 
@@ -78,6 +78,14 @@ Each cue maps to a positional sound pool produced by the audio pipeline and
 registered for the mod runtime. The current standard-pilot library is
 proprietary placeholder content and must not be treated as cleared release
 audio.
+
+Audio builds cache each encode by source bytes, effective encoding settings,
+and ffmpeg version/build. Adding or editing a manifest entry only encodes new
+content or changed settings; timestamps, clip names, and output paths do not
+invalidate other clips. Gradle shares this cache across session worktrees at
+`GRADLE_USER_HOME/caches/starsector-marines/audio-v1` (normally under `.gradle`
+in the user home). A cold or cleared cache needs one full encode. Only the
+resulting Ogg files go into `mod/sounds`; cache files never ship with the mod.
 
 New radio vocabulary needs a stable, confirmed simulation fact and a clear
 eligible speaker. It must enter the shared policy rather than become a
