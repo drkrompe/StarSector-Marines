@@ -13,10 +13,10 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
  * footprint; the drain batches them per sheet. Off-camera footprints are skipped
  * against {@link VisibleCellRect}.
  *
- * <p>Emitted in two passes — road-sheet doodads first, then urban — so each sheet
- * forms one contiguous run for the strict-painter drain (one batch flush per
- * sheet). Road-under-urban matches the original {@code renderDoodads} flush order;
- * doodads do not overlap across sheets, so the order is not load-bearing.
+ * <p>Legacy-only maps retain their established sheet grouping. Maps using added
+ * catalog sheets preserve placement order: a room lays its deck covering before
+ * its fixtures, and grouping an unknown sheet last could hide that machinery.
+ * The drain batches adjacent runs on that path.
  */
 public final class DoodadRenderSystem implements RenderSystem {
 
@@ -33,34 +33,52 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     @Override
     public void collect(RenderContext ctx, DrawList out) {
-        SpriteAPI urban = sprites.tileSheet();
-        if (urban == null) return;
-        SpriteAPI road = sprites.roadSheet();
-        SpriteAPI generated = sprites.doodadSheet();
-        SpriteAPI parkedVehicles = sprites.parkedVehicleSheet();
-
         BattleCamera cam = ctx.camera;
-        float cellPx = cam.cellPxSize();
-        float alphaMult = ctx.alphaMult;
         VisibleCellRect view = cam.visibleCells(
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS,
                 ctx.sim.getGrid().getWidth(), ctx.sim.getGrid().getHeight());
-
-        emitSheet(ctx, out, cam, view, road, TileManifest.ROAD_SHEET, cellPx, alphaMult);
-        emitSheet(ctx, out, cam, view, generated, TileManifest.DOODAD_SHEET, cellPx, alphaMult);
-        emitSheet(ctx, out, cam, view, parkedVehicles, TileManifest.PARKED_VEHICLE_SHEET,
-                cellPx, alphaMult);
-        emitSheet(ctx, out, cam, view, urban, TileManifest.SHEET, cellPx, alphaMult);
+        collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult);
     }
 
-    private static void emitSheet(RenderContext ctx, DrawList out, BattleCamera cam,
-                                  VisibleCellRect view, SpriteAPI sheet, String sheetPath,
-                                  float cellPx, float alphaMult) {
-        if (sheet == null) return;
-        for (Doodad d : ctx.sim.getDoodads()) {
-            if (!sheetPath.equals(d.sheetPath)) continue;
+    void collectPlacements(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
+                           VisibleCellRect view, float alphaMult) {
+        boolean additionalSheet = false;
+        for (Doodad d : placements) {
+            if (!isLegacySheet(d.sheetPath)) { additionalSheet = true; break; }
+        }
+        if (!additionalSheet) {
+            // Preserve the existing draw order and texture-bind count for shipped maps.
+            emitLegacySheet(placements, out, cam, view, sprites.roadSheet(), TileManifest.ROAD_SHEET, alphaMult);
+            emitLegacySheet(placements, out, cam, view, sprites.doodadSheet(), TileManifest.DOODAD_SHEET, alphaMult);
+            emitLegacySheet(placements, out, cam, view, sprites.parkedVehicleSheet(), TileManifest.PARKED_VEHICLE_SHEET, alphaMult);
+            emitLegacySheet(placements, out, cam, view, sprites.tileSheet(), TileManifest.SHEET, alphaMult);
+            return;
+        }
+        for (Doodad d : placements) {
             if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
-            emit(out, cam, sheet, d, cellPx, alphaMult);
+            SpriteAPI sheet = switch (d.sheetPath) {
+                case TileManifest.SHEET -> sprites.tileSheet();
+                case TileManifest.ROAD_SHEET -> sprites.roadSheet();
+                case TileManifest.DOODAD_SHEET -> sprites.doodadSheet();
+                case TileManifest.PARKED_VEHICLE_SHEET -> sprites.parkedVehicleSheet();
+                default -> sprites.extraTerrainSheet(d.sheetPath);
+            };
+            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alphaMult);
+        }
+    }
+
+    private static boolean isLegacySheet(String path) {
+        return path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
+                || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET);
+    }
+
+    private static void emitLegacySheet(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
+                                        VisibleCellRect view, SpriteAPI sheet, String path, float alpha) {
+        if (sheet == null) return;
+        for (Doodad d : placements) {
+            if (path.equals(d.sheetPath)
+                    && view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY))
+                emit(out, cam, sheet, d, cam.cellPxSize(), alpha);
         }
     }
 

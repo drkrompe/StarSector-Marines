@@ -49,12 +49,14 @@ public final class TileRegistry {
             "data/tilesets/doodads.tileset.json",
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/pavement.tileset.json",
+            "data/tilesets/natural-terrain.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
             "data/tilesets/colony-walls.tileset.json",
             "data/tilesets/colony-openings.tileset.json",
             "data/tilesets/colony-rubble.tileset.json",
-            "data/tilesets/colony-ground-damage.tileset.json");
+            "data/tilesets/colony-ground-damage.tileset.json",
+            "data/tilesets/ship-bay.tileset.json");
 
     private static volatile TileRegistry installed;
 
