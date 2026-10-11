@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored building stamps add concave plans and distinct materials; spline roads share topology and rendering with the workbench, with visual pavement wear.
+Updated: 2026-10-11 — authored building stamps add concave plans and distinct materials; both story arcs now consume road plans, including flush facility ends and pavement ownership after later stamps.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -355,7 +355,8 @@ on one of them and a single-axis check would have hidden it.
 
 A **road plan** owns a map extent and an ordered collection of spline centerlines.
 Each road declares anchors, carriageway width, shoulder width, pavement material,
-wear and a wear-pattern seed. The shared rasterizer sweeps the spline onto the
+wear, a wear-pattern seed, and round or flush ends. Flush ends meet a facility
+threshold or rectangular apron without a rounded overrun. The shared rasterizer sweeps the spline onto the
 navigation cell lattice; authoring and generation consume that same result.
 The spline is spatial intent, not a vehicle steering path. Its raster footprint
 can be reserved before structure placement; stamping refuses occupied ground
@@ -372,7 +373,15 @@ fresh, worn and cracked material pools in stable patches. Increasing wear only
 ages a patch; it neither rerolls the district nor changes road width, shoulder,
 walkability or movement cost. Cracks do not manufacture cover or impassable holes.
 
+Later buildings and landing/inspection markings replace the ground under them;
+any surviving pavement override there must also be released. A road may not
+visually pave a room simply because the room changed ground kind later.
+
 Road documents are versioned and round-trip through the Roads authoring page.
+Relief, Counterattack, Open the Junction, Last Lift and Relay Nine each consume
+an authored road plan, as does Thunder Run. Public freight routes, service
+lanes and boat aprons may carry distinct materials and wear while their mission
+route graphs, objectives and landing requirements retain their own authority.
 The preview uses production topology, tile selection and rendering. A mission
 chooses which document it consumes and retains its own spatial contract:
 Thunder Run permits pavement and wear changes while keeping its reserved freight

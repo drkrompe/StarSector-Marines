@@ -13,6 +13,8 @@ import java.awt.Container;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import javax.swing.JSlider;
+import javax.swing.JComboBox;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.EndCap;
 import java.nio.file.Path;
 import javax.swing.SwingUtilities;
 import java.util.ArrayList;
@@ -38,6 +40,7 @@ public final class RoadSnapshotSuite implements SnapshotSuite {
         Path saved=folder.resolve("edited-road.road.json");
         SwingUtilities.invokeAndWait(()->{try{
             JSlider dial=(JSlider)find(page[0].component(),"road-wear");dial.setValue(75);
+            ((JComboBox<?>)find(page[0].component(),"road-end-cap")).setSelectedItem(EndCap.BUTT);
             Component canvas=find(page[0].component(),"road-canvas");
             double scale=Math.min(canvas.getWidth()/96d,canvas.getHeight()/54d),ox=(canvas.getWidth()-96*scale)/2,oy=(canvas.getHeight()-54*scale)/2;
             int x=(int)Math.round(ox+24.5*scale),y=(int)Math.round(canvas.getHeight()-oy-16.5*scale);
@@ -45,7 +48,7 @@ public final class RoadSnapshotSuite implements SnapshotSuite {
             canvas.dispatchEvent(new MouseEvent(canvas,MouseEvent.MOUSE_DRAGGED,2,0,x+40,y-35,1,false));
             canvas.dispatchEvent(new MouseEvent(canvas,MouseEvent.MOUSE_RELEASED,3,0,x+40,y-35,1,false));
             RoadPlan edited=page[0].document();
-            if(edited.routes().get(0).wear()!=.75 || edited.routes().get(0).points().get(1).equals(input.routes().get(0).points().get(1)))
+            if(edited.routes().get(0).endCap()!=EndCap.BUTT || edited.routes().get(0).wear()!=.75 || edited.routes().get(0).points().get(1).equals(input.routes().get(0).points().get(1)))
                 throw new IllegalStateException("Road interaction did not change the document");
             if(!page[0].hasUnsavedChanges())throw new IllegalStateException("Road edits not tracked");
             page[0].saveDocument(saved);page[0].openDocument(saved);
