@@ -39,7 +39,8 @@ public final class ThunderRunCompound {
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Thunder Run", List.of(ThunderRunCompound::grounds,
                 ThunderRunCompound::buildings, ThunderRunCompound::perimeter,
-                ThunderRunCompound::fortifications, ThunderRunCompound::cargo, new FinalizeStage())).run(c);
+                ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
+                ThunderRunCompound::surfaces, new FinalizeStage())).run(c);
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
             c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
@@ -119,6 +120,18 @@ public final class ThunderRunCompound {
         shell(c, 220, 91, 245, 111, Frontage.TOP);
         shell(c, 286, 38, 309, 59, Frontage.BOTTOM);
         shell(c, 286, 94, 309, 111, Frontage.TOP);
+        // Continuous district edges, not isolated sheds in a driveable field. Two-cell
+        // service alleys admit infantry; the cargo chassis needs three-cell clearance.
+        // Append after the objective shells so their interior rolls remain stable.
+        for (int[] lot : new int[][]{{40,0,68,20},{71,0,99,30},{102,0,126,29},
+                {129,0,156,29},{174,0,196,29},{199,0,231,25},{234,0,266,27},{282,0,319,27},
+                {40,46,68,63},{94,36,125,64},{174,32,196,63}})
+            shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.BOTTOM);
+        for (int[] lot : new int[][]{{40,115,68,143},{71,116,99,143},{102,112,128,143},
+                {131,115,156,143},{174,116,201,143},{204,115,231,143},{234,120,266,143},
+                {282,118,319,143},{38,87,68,112},{71,87,100,113},{130,87,156,112},
+                {198,87,217,112}})
+            shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.TOP);
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.DEPOT,
@@ -130,8 +143,8 @@ public final class ThunderRunCompound {
         }
     }
     private static void perimeter(GenContext c) {
-        // Raised freight-yard boundaries frame the road while leaving broad flanks.
-        for (int[] run : new int[][]{{72,112,33},{125,151,32},{199,231,28},{236,263,117},{284,312,116}})
+        // Freight-yard boundaries preserve the pedestrian service alleys.
+        for (int[] run : new int[][]{{72,112,33},{125,151,32},{199,231,28},{236,263,117}})
             for (int x = run[0]; x <= run[1]; x++) {
                 c.grid.setWalkable(x, run[2], false); c.topology.setWall(x, run[2], true);
             }
@@ -178,7 +191,7 @@ public final class ThunderRunCompound {
     private static void fencedYard(GenContext c, int l, int t, int r, int b, int sideGate, int roadEdge) {
         for (int y = t; y <= b; y++) for (int x = l; x <= r; x++) {
             if (x != l && x != r && y != t && y != b) continue;
-            if ((x == l || x == r) && Math.abs(y - sideGate) <= 2) continue;
+            if ((x == l || x == r) && (y == sideGate || y == sideGate + 1)) continue;
             if (y == roadEdge && x >= 298 && x <= 309) continue;
             if (y != roadEdge && x >= 297 && x <= 300) continue;
             String suffix = x == l && y == t ? "corner-nw" : x == r && y == t ? "corner-ne"
@@ -203,8 +216,25 @@ public final class ThunderRunCompound {
         TileRegistry tiles = TileRegistry.installed();
         if (tiles == null) return;
         var prop = tiles.doodad("doodad.industrial-crate-stack");
-        if (prop != null) for (int[] lot : new int[][]{{75,37},{88,37},{102,37},{203,62},{218,62},{249,110},{260,110},{312,60},{312,62},{312,89},{312,91}})
+        if (prop != null) for (int[] lot : new int[][]{{75,37},{88,37},{203,62},{218,62},{249,110},{260,110},{312,60},{312,62},{312,89},{312,91}})
             c.doodads.add(new Doodad(lot[0], lot[1], prop));
+    }
+    /** District-specific materials use the existing atlas without changing other missions. */
+    private static void surfaces(GenContext c) {
+        int road = c.topology.surfaceIndex("road.road");
+        int gravel = c.topology.surfaceIndex("floors.stone");
+        int dirt = c.topology.surfaceIndex("floors.dirt");
+        for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {
+            GroundKind kind = c.topology.getGroundKind(x, y);
+            if (kind == GroundKind.STREET || (kind == GroundKind.STRIPED && y == 75))
+                c.topology.setSurface(x, y, road);
+            else if (kind == GroundKind.COURTYARD)
+                c.topology.setSurface(x, y, x < 235 ? dirt : gravel);
+        }
+        // Real paint decals retain lane rhythm without substituting another paving material.
+        var paint = TileRegistry.installed().doodad("doodad.fl-striped-yellow");
+        for (int x = 4; x < WIDTH; x += 10)
+            c.doodads.add(new Doodad(x, 75, paint));
     }
     private static RoadGraph roads() {
         int[][] points = {{0,75},{165,75},{275,75},{319,75},{165,0},{165,143},{275,0},{275,143}};

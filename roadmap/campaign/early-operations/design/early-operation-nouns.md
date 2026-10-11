@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — prepared exit checkpoint and roadside strongpoints divide infantry and armor duties.
+Updated: 2026-10-11 — industrial flank blocks and pedestrian alleys make the freight road necessary.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -313,7 +313,14 @@ equipment is part of this objective.
 **Thunder Run** is a 320 by 144 road corridor, separating the western staging
 apron, Dispatch Post, East Crossing and Outbound Gate. The carriageway has a
 fifteen-cell width contract reserved before construction; roadside facilities
-and cargo yards remain outside it. One twin-cannon heavy tank leads two
+and cargo yards remain outside it. Dense industrial blocks extend to the district
+edges; service alleys and inspection-yard gates admit infantry but do not offer
+an intact hauler-width bypass around the checkpoint. This restriction comes
+from visible structures and chassis clearance, not an invisible movement ban.
+Cross streets still admit the raider reserve. Quiet dark carriageways, dirt
+loading lots and gravel inspection yards distinguish exterior surfaces from the
+repeated industrial building interiors using the existing terrain palette.
+One twin-cannon heavy tank leads two
 reinforced employer APCs and up to three unarmed industrial container haulers. Their distinct silhouettes separate fire support
 from the slower, longer freight column. Two boats deliver eight militia;
 the company's named troops arrive in their own fitted boats.
