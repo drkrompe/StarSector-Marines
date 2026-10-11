@@ -110,11 +110,13 @@ class GreedyNavigationMeshTest {
         grid.setWallHp(1, 0, 5);
         CellTopology topology = new CellTopology(3, 1);
         topology.setWall(1, 0, true);
+        topology.setSurface(1, 0, topology.surfaceIndex("colony.masonry-wall"));
         NavigationService navigation = new NavigationService(grid, topology);
         MapEditor editor = new MapEditor(navigation);
         long beforeRevision = navigation.getNavigationMesh().snapshot().revision();
 
         assertTrue(editor.damageWall(1, 0, 5));
+        assertEquals(null, topology.getSurfaceId(1, 0), "rubble must lose its intact wall material");
         assertTrue(navigation.isNavigationTopologyDirty());
         assertEquals(-1, navigation.getNavigationMesh().regionIdAt(1, 0));
 

@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -88,6 +90,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final Map<String, ShuttleSpriteCache> projectiles = new LinkedHashMap<>();
     private final Map<String, ShuttleSpriteCache> turretBases = new LinkedHashMap<>();
     private final Map<String, ShuttleSpriteCache> turretBarrels = new LinkedHashMap<>();
+    private final Map<String, SpriteAPI> extraTerrainSheets = new LinkedHashMap<>();
     private final UnitLayerLayouts layouts;
 
     private final SpriteAPI tile;
@@ -126,6 +129,12 @@ final class HeadlessBattleSprites extends BattleSprites {
         nature = sprite(TileManifest.NATURE_SHEET);
         doodads = sprite(TileManifest.DOODAD_SHEET);
         parkedVehicles = sprite(TileManifest.PARKED_VEHICLE_SHEET);
+        for (GridBlockDef block : TileRegistry.installed().blocks()) {
+            String path = block.sheetPath;
+            if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
+                    || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
+            if (!extraTerrainSheets.containsKey(path)) extraTerrainSheets.put(path, sprite(path));
+        }
         urban3Frames = slice(TileManifest.STREET3_SHEET);
         natureFrames = slice(TileManifest.NATURE_SHEET);
         loadInfantry();
@@ -398,6 +407,15 @@ final class HeadlessBattleSprites extends BattleSprites {
     private SpriteSheetFrames slice(String path) throws IOException {
         BufferedImage image = read(path);
         return SpriteSheetSlicer.slice(image);
+    }
+
+    @Override
+    public SpriteAPI extraTerrainSheet(String path) {
+        return extraTerrainSheets.get(path);
+    }
+
+    @Override public java.util.Collection<SpriteAPI> extraTerrainSheets() {
+        return extraTerrainSheets.values();
     }
 
     private SpriteAPI sprite(String path) throws IOException {

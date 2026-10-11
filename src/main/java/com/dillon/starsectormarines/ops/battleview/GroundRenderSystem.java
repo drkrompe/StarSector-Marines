@@ -937,7 +937,7 @@ public final class GroundRenderSystem implements RenderSystem {
             case TileManifest.ROAD_SHEET:   return road;
             case TileManifest.FLOORS_SHEET: return floors;
             case TileManifest.WATER_SHEET:  return water;
-            default:                        return null;
+            default:                        return sprites.extraTerrainSheet(sheetPath);
         }
     }
 

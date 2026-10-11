@@ -244,6 +244,9 @@ final class BuildingShellCore {
         BuildingLayouts.applyLayout(grid, topology, layout, bl, bt, br, bb,
                 config.doodadPoolId, config.layoutRecipe, doodads, rng);
 
+        BuildingStyle style = BuildingStyle.pick(config.buildingKind, rng);
+        if (style != null) style.paintShell(grid, topology, bl, bt, br, bb);
+
         return new PointOfInterest(config.poiKind, bl, bt, br, bb,
                 anchor[0], anchor[1], interior[0], interior[1]);
     }
