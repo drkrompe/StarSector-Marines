@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — aligned missile rack footprints and compact material-cost presentation.
+Updated: 2026-10-11 — footfall sound follows planted-foot gait and presentation visibility.
 
 ## Purpose
 
@@ -270,6 +270,15 @@ Composition preserves the physical depth stack: feet first, thigh linkages over
 the feet, then the ordinary upper assembly and its equipment layers.
 This gait is fixed-tick presentation state only: it does not move collision,
 pathing, aim, or targeting authority.
+
+A completed foot plant also owns the walking sound. Short ground contact and
+quiet linkage layers form one positional footfall, varied independently of the
+battle's random source; heavier chassis lower its pitch and raise its weight.
+Spawn, teleport, and a stationary planted stance are silent. Audio consumes
+contacts even when hidden or distant, so revealing a unit or returning the
+camera cannot replay old steps. Only nearby, visible contacts reach the mix,
+with the closest contacts taking a bounded share of each presentation frame.
+Both battlefield hosts consume the same gait; neither invents a walking timer.
 
 ## Ground clearance and arrival
 

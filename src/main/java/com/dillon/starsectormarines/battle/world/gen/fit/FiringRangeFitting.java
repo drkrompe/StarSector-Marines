@@ -230,8 +230,8 @@ public final class FiringRangeFitting implements RoomFitting {
     private static String barrierFacing(int[] downrange) {
         if (downrange[0] < 0) return BARRIER_WEST;
         if (downrange[0] > 0) return BARRIER_EAST;
-        if (downrange[1] < 0) return BARRIER_NORTH;
-        return BARRIER_SOUTH;
+        if (downrange[1] < 0) return BARRIER_SOUTH;
+        return BARRIER_NORTH;
     }
 
     /**

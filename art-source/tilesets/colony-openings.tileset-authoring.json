@@ -1,0 +1,446 @@
+{
+  "sheetName": "colony-openings",
+  "sheet": "art-source/tilesets/colony-openings.raw.png",
+  "cellPx": 64,
+  "gridCols": 6,
+  "gridRows": 4,
+  "idPrefix": "colony",
+  "alphaMin": 40,
+  "note": "Geometry-first opening overlays. Judged 216px cuts begin at (20,20) on a 256px pitch. True source alpha preserves floors and paving. Cardinal slots are N,E,S,W, in row-major 2x2 order. Top pair of rows are windows; lower pair are open-door jambs and low thresholds.",
+  "blocks": [
+    {
+      "id": "colony.masonry-window",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "colony.masonry-door",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "colony.ceramic-window",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "colony.ceramic-door",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "colony.olive-window",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "colony.olive-door",
+      "layout": "cardinal-2x2"
+    }
+  ],
+  "entries": [
+    {
+      "id": "colony.masonry-window.n",
+      "block": "colony.masonry-window",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        20,
+        20,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-window.e",
+      "block": "colony.masonry-window",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        276,
+        20,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-window.s",
+      "block": "colony.masonry-window",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        20,
+        276,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-window.w",
+      "block": "colony.masonry-window",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        276,
+        276,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-door.n",
+      "block": "colony.masonry-door",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        20,
+        532,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-door.e",
+      "block": "colony.masonry-door",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        276,
+        532,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-door.s",
+      "block": "colony.masonry-door",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        20,
+        788,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.masonry-door.w",
+      "block": "colony.masonry-door",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        276,
+        788,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-window.n",
+      "block": "colony.ceramic-window",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        532,
+        20,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-window.e",
+      "block": "colony.ceramic-window",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        788,
+        20,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-window.s",
+      "block": "colony.ceramic-window",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        532,
+        276,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-window.w",
+      "block": "colony.ceramic-window",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        788,
+        276,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-door.n",
+      "block": "colony.ceramic-door",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        532,
+        532,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-door.e",
+      "block": "colony.ceramic-door",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        788,
+        532,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-door.s",
+      "block": "colony.ceramic-door",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        532,
+        788,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.ceramic-door.w",
+      "block": "colony.ceramic-door",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        788,
+        788,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-window.n",
+      "block": "colony.olive-window",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1044,
+        20,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-window.e",
+      "block": "colony.olive-window",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1300,
+        20,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-window.s",
+      "block": "colony.olive-window",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1044,
+        276,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-window.w",
+      "block": "colony.olive-window",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1300,
+        276,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-door.n",
+      "block": "colony.olive-door",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1044,
+        532,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-door.e",
+      "block": "colony.olive-door",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1300,
+        532,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-door.s",
+      "block": "colony.olive-door",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1044,
+        788,
+        216,
+        216
+      ]
+    },
+    {
+      "id": "colony.olive-door.w",
+      "block": "colony.olive-door",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1300,
+        788,
+        216,
+        216
+      ]
+    }
+  ]
+}

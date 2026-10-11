@@ -1,0 +1,201 @@
+{
+  "blocks": [
+    {
+      "id": "colony.masonry-window",
+      "layout": "cardinal-2x2",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "colony.masonry-door",
+      "layout": "cardinal-2x2",
+      "origin": [
+        2,
+        0
+      ]
+    },
+    {
+      "id": "colony.ceramic-window",
+      "layout": "cardinal-2x2",
+      "origin": [
+        4,
+        0
+      ]
+    },
+    {
+      "id": "colony.ceramic-door",
+      "layout": "cardinal-2x2",
+      "origin": [
+        6,
+        0
+      ]
+    },
+    {
+      "id": "colony.olive-window",
+      "layout": "cardinal-2x2",
+      "origin": [
+        8,
+        0
+      ]
+    },
+    {
+      "id": "colony.olive-door",
+      "layout": "cardinal-2x2",
+      "origin": [
+        10,
+        0
+      ]
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "opening facing n",
+      "name": "colony.masonry-window facing-n",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "opening facing e",
+      "name": "colony.masonry-window facing-e",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "opening facing s",
+      "name": "colony.masonry-window facing-s",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "opening facing w",
+      "name": "colony.masonry-window facing-w",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "opening facing n",
+      "name": "colony.masonry-door facing-n",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "opening facing e",
+      "name": "colony.masonry-door facing-e",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "opening facing s",
+      "name": "colony.masonry-door facing-s",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "opening facing w",
+      "name": "colony.masonry-door facing-w",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "opening facing n",
+      "name": "colony.ceramic-window facing-n",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "opening facing e",
+      "name": "colony.ceramic-window facing-e",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "opening facing s",
+      "name": "colony.ceramic-window facing-s",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "opening facing w",
+      "name": "colony.ceramic-window facing-w",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "opening facing n",
+      "name": "colony.ceramic-door facing-n",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "opening facing e",
+      "name": "colony.ceramic-door facing-e",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "opening facing s",
+      "name": "colony.ceramic-door facing-s",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "opening facing w",
+      "name": "colony.ceramic-door facing-w",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "opening facing n",
+      "name": "colony.olive-window facing-n",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "opening facing e",
+      "name": "colony.olive-window facing-e",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "opening facing s",
+      "name": "colony.olive-window facing-s",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "opening facing w",
+      "name": "colony.olive-window facing-w",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "opening facing n",
+      "name": "colony.olive-door facing-n",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "opening facing e",
+      "name": "colony.olive-door facing-e",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "opening facing s",
+      "name": "colony.olive-door facing-s",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "opening facing w",
+      "name": "colony.olive-door facing-w",
+      "row": 1
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/colony-openings.png"
+}

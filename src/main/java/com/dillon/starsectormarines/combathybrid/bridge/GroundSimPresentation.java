@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.combathybrid.bridge;
 
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
+import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
@@ -65,6 +66,7 @@ public final class GroundSimPresentation {
 
     private final GroundBattleConfig cfg;
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
+    private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
     private final Vector2f scratch = new Vector2f();
     private final Vector2f zeroVel = new Vector2f(0f, 0f);
     /** Weapon and impact cues for rounds delivered onto the ground. Host parity with BattleScreen. */
@@ -101,6 +103,11 @@ public final class GroundSimPresentation {
         spawnFireFx(fx, sim, grid, rng);
         spawnImpactFxAndSounds(fx, sim, grid, rng);
         playFireSounds(sim, rng);
+        for (MechFootstepAudio.Cue cue : mechFootsteps.advance(sim,
+                scratch.x / cfg.worldUnitsPerCell() + cfg.gridW() * 0.5f,
+                scratch.y / cfg.worldUnitsPerCell() + cfg.gridH() * 0.5f)) {
+            playAtCell(cue.soundId(), cue.pitch(), cue.volume(), cue.cellX(), cue.cellY());
+        }
         playDeathVoice(sim);
         playRadioChatter(sim, dt);
         spawnAmbientFx(fx, sim);

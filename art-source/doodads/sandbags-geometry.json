@@ -1,0 +1,17 @@
+{
+  "source": "imagegen-raw/sandbags-geometry.raw.png",
+  "sourceSize": [
+    1774,
+    887
+  ],
+  "straight": [
+    74,
+    78,
+    740
+  ],
+  "corner": [
+    964,
+    78,
+    740
+  ]
+}

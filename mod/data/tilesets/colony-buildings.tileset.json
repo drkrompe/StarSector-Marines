@@ -1,76 +1,94 @@
 {
   "blocks": [
     {
+      "doorBlock": "colony.masonry-door",
       "id": "colony.limestone",
       "layout": "single",
       "origin": [
         0,
         0
-      ]
+      ],
+      "windowBlock": "colony.masonry-window"
     },
     {
+      "doorBlock": "colony.ceramic-door",
       "id": "colony.terracotta",
       "layout": "single",
       "origin": [
         1,
         0
-      ]
+      ],
+      "windowBlock": "colony.ceramic-window"
     },
     {
+      "doorBlock": "colony.ceramic-door",
       "id": "colony.basalt",
       "layout": "single",
       "origin": [
         2,
         0
-      ]
+      ],
+      "windowBlock": "colony.ceramic-window"
     },
     {
+      "doorBlock": "colony.ceramic-door",
       "id": "colony.sage",
       "layout": "single",
       "origin": [
         3,
         0
-      ]
+      ],
+      "windowBlock": "colony.ceramic-window"
     },
     {
+      "doorBlock": "colony.ceramic-door",
       "id": "colony.terrazzo",
       "layout": "single",
       "origin": [
         4,
         0
-      ]
+      ],
+      "windowBlock": "colony.ceramic-window"
     },
     {
+      "doorBlock": "colony.masonry-door",
       "id": "colony.timber",
       "layout": "single",
       "origin": [
         5,
         0
-      ]
+      ],
+      "windowBlock": "colony.masonry-window"
     },
     {
+      "doorBlock": "colony.olive-door",
       "id": "colony.concrete",
       "layout": "single",
       "origin": [
         6,
         0
-      ]
+      ],
+      "windowBlock": "colony.olive-window"
     },
     {
+      "doorBlock": "colony.olive-door",
       "id": "colony.ochre",
       "layout": "single",
       "origin": [
         7,
         0
-      ]
+      ],
+      "windowBlock": "colony.olive-window"
     },
     {
+      "doorBlock": "colony.olive-door",
       "id": "colony.tread",
       "layout": "single",
       "origin": [
         8,
         0
-      ]
+      ],
+      "windowBlock": "colony.olive-window"
     }
   ],
   "cellPx": 32,

@@ -48,6 +48,13 @@ public final class MechGaitState {
     private float waistVelocityY;
     private float lastBodyX;
     private float lastBodyY;
+    private long touchdownCount;
+    private Touchdown lastTouchdown;
+
+    /** Latest real swing completion; spawn and teleport replants are silent. */
+    public record Touchdown(long sequence, float x, float y) {}
+
+    public Touchdown lastTouchdown() { return lastTouchdown; }
 
     private MechGaitState(float bodyX, float bodyY, float hipFacing,
                           int chassis, float renderScale) {
@@ -65,6 +72,7 @@ public final class MechGaitState {
 
     /** Replants both feet in the chassis's neutral stance after spawn or teleport. */
     public void reset(float bodyX, float bodyY, float hipFacing) {
+        lastTouchdown = null;
         Point left = nominalFoot(bodyX, bodyY, hipFacing, LEFT_FOOT);
         Point right = nominalFoot(bodyX, bodyY, hipFacing, RIGHT_FOOT);
         leftFootX = left.x;
@@ -200,6 +208,7 @@ public final class MechGaitState {
             rightFootFacing = facing;
         }
         if (swingProgress >= 1f) {
+            lastTouchdown = new Touchdown(++touchdownCount, x, y);
             nextSwingFoot = swingFoot == LEFT_FOOT ? RIGHT_FOOT : LEFT_FOOT;
             swingFoot = NO_SWING_FOOT;
             swingProgress = 0f;
