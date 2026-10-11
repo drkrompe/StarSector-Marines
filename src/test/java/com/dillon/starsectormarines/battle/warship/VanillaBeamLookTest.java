@@ -54,11 +54,21 @@ class VanillaBeamLookTest {
 
     @Test
     void anUnresolvableWeaponIsAbsentNotAnError() {
-        VanillaWeaponLooks.useSource(id -> { throw new java.io.FileNotFoundException(id); });
+        VanillaData.useSource(new VanillaData.Source() {
+            @Override public JSONObject json(String path) throws Exception {
+                throw new java.io.FileNotFoundException(path);
+            }
+
+            @Override public java.util.List<java.util.Map<String, String>> csv(String path) {
+                return java.util.List.of();
+            }
+        });
+        VanillaWeaponLooks.clearCache();
         try {
             assertNull(VanillaWeaponLooks.beam("nonesuch"));
         } finally {
-            VanillaWeaponLooks.useSource(null);
+            VanillaData.useSource(null);
+            VanillaWeaponLooks.clearCache();
         }
     }
 }

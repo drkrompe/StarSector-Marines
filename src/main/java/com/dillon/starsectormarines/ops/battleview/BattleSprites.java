@@ -435,6 +435,33 @@ public class BattleSprites {
         for (FighterProfile fighter : FighterProfile.values()) loadAirframe(fighter);
     }
 
+    private final java.util.Map<String, ShuttleSpriteCache> pathSprites = new java.util.HashMap<>();
+
+    /**
+     * A sprite loaded by its path, for art that belongs to no enum — a capital
+     * ship hull or one of its turrets, named by the data that fits it. Loaded on
+     * first ask; a path that will not read is remembered as absent so it is not
+     * retried every frame.
+     */
+    public ShuttleSpriteCache spriteByPath(String path) {
+        if (path == null || path.isEmpty()) return null;
+        if (pathSprites.containsKey(path)) return pathSprites.get(path);
+        ShuttleSpriteCache cache = null;
+        try {
+            Global.getSettings().loadTexture(path);
+            SpriteAPI sprite = Global.getSettings().getSprite(path);
+            if (sprite != null) {
+                float w = sprite.getWidth();
+                float h = sprite.getHeight();
+                cache = new ShuttleSpriteCache(sprite, h > 0f ? w / h : 1f, (int) w, (int) h);
+            }
+        } catch (Exception e) {
+            LOG.warn("BattleSprites: could not load " + path + " — " + e.getMessage());
+        }
+        pathSprites.put(path, cache);
+        return cache;
+    }
+
     /** Best effort for one airframe: a hull whose sprite will not read is left out. */
     private void loadAirframe(Airframe airframe) {
         String path = airframe.spritePath();
