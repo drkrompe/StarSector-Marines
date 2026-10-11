@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — cardinal wall/opening art and procedural pavement with reproducible transparent edge masks share the catalog and both render backends.
+Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
 
 Read `stories.md` for open work.
 
@@ -632,6 +632,16 @@ Additional fixed-grid block sheets load through the catalog in both the game
 and headless renderer. They retain registered per-sheet batches alongside the existing ground atlas;
 content on a new sheet must not
 silently render as an empty cell.
+
+## Procedural natural surfaces
+
+Natural terrain has a retained material recipe and a single procedural atlas
+producer. Talus, rock summits and directional face tones are named variant
+pools; contour geometry and orientation select them without owning packed
+coordinates. Grass-topped masses reuse the ordinary grass appearance. The
+recipe and producer remain pre-pack inputs outside the shipped mod, while
+catalogs and the generated atlas load through the existing terrain-sheet path
+in both live and headless rendering.
 
 ## Validation and fallback laws
 

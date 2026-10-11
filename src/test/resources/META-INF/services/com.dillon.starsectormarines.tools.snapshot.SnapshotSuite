@@ -34,3 +34,4 @@ com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStampSnapshotSuit
 com.dillon.starsectormarines.tools.roadauthoring.StoryRoadSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.SandbagSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.RubbleSnapshotSuite
+com.dillon.starsectormarines.tools.terrainauthoring.TerrainSnapshotSuite
