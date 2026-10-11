@@ -107,6 +107,28 @@ class SatchelChargeTest {
     }
 
     @Test
+    void alliedAndNeutralArmorCannotBeSelectedOrReceiveAPendingPlant() {
+        for (Faction faction : new Faction[]{Faction.ALLY, Faction.CIVILIAN}) {
+            try (BattleSimulation sim = openArena(12, 12)) {
+                long marine = carrier(sim, 4, 5);
+                long target = sim.spawn(MapTurret.create("protected", faction,
+                        TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 5, 5));
+                assertFalse(InfantryUnitPrep.tryOpportunitySpecial(marine, sim));
+                assertEquals(0L, sim.world().secondaryAimTargetId(marine));
+
+                assertTrue(sim.satchelCharges().tryReserve(marine, target));
+                sim.world().setSecondaryAimTargetId(marine, target);
+                sim.world().setSecondaryActionTimer(marine, BattleSimulation.TICK_DT);
+                assertTrue(InfantryUnitPrep.tickAimAndShortCircuit(marine, sim));
+                assertTrue(sim.satchelCharges().activeCharges().isEmpty());
+                assertEquals(0f, sim.world().secondaryCooldownTimer(marine));
+                assertTrue(sim.satchelCharges().tryReserve(marine, target),
+                        "cancelling an invalid plant must release its reservation");
+            }
+        }
+    }
+
+    @Test
     void oneTargetAcceptsOnlyOnePlanterReservation() {
         BattleSimulation sim = openArena(12, 12);
         long first = carrier(sim, 4, 5);

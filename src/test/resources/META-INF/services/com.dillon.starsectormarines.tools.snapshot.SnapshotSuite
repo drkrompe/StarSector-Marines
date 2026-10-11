@@ -47,3 +47,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.ShipMaterialsSnapshotSuite
 com.dillon.starsectormarines.tools.forestauthoring.OutdoorForestSnapshotSuite
 com.dillon.starsectormarines.tools.forestauthoring.TreeDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.RockDamageSnapshotSuite
+com.dillon.starsectormarines.battle.warship.WarshipLanceSceneSnapshotSuite

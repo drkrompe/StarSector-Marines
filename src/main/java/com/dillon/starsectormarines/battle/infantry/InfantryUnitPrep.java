@@ -257,7 +257,7 @@ public final class InfantryUnitPrep {
             long other = scratch.ids[i];
             if (!TacticalScoring.isHardened(sim.identity().type(other))) continue;
             if (!sim.world().isAlive(other)) continue;
-            if (sim.identity().faction(other) == sim.identity().faction(unit)) continue;
+            if (!sim.identity().faction(unit).hostileTo(sim.identity().faction(other))) continue;
             float dx = sim.world().x(other) - sim.world().x(unit);
             float dy = sim.world().y(other) - sim.world().y(unit);
             float d2 = dx * dx + dy * dy;
@@ -288,7 +288,7 @@ public final class InfantryUnitPrep {
             return false;
         }
         if (!sim.world().isAlive(target)
-                || sim.identity().faction(target) == sim.identity().faction(unit)) {
+                || !sim.identity().faction(unit).hostileTo(sim.identity().faction(target))) {
             return false;
         }
         float dx = sim.world().x(target) - sim.world().x(unit);
@@ -389,7 +389,7 @@ public final class InfantryUnitPrep {
             return false;
         }
         if (!sim.world().isAlive(target)
-                || sim.identity().faction(target) == sim.identity().faction(unit)) return false;
+                || !sim.identity().faction(unit).hostileTo(sim.identity().faction(target))) return false;
         float dx = sim.world().x(target) - sim.world().x(unit);
         float dy = sim.world().y(target) - sim.world().y(unit);
         float range = special.satchelChargeSpec().contactRange();
