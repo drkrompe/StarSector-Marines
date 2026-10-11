@@ -1,0 +1,65 @@
+{
+  "blocks": [{
+    "cells": [[
+      3,
+      0
+    ]],
+    "id": "ship-washrooms.deck"
+  }],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-washrooms.sink",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "ship-washrooms.toilet",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "ship-washrooms.shower",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 1 of the pool",
+      "name": "ship-washrooms.deck v1",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "id": "ship-washrooms.sink",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 1,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "ship-washrooms.toilet",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 2,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "ship-washrooms.shower",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-washrooms.png"
+}
