@@ -1455,6 +1455,11 @@ issues ordinary area orders itself: the densest hostile concentration within
 the ship's longest reach that no friendly ship's area already covers, chosen
 again once that ground holds nobody. Ground beyond every gun is never chosen.
 
+**A shell's blast wears the weapon's own colour and its own size.** A heavy
+landing carries the round's explosion colour to the presentation, which tints the
+fire, the flash and the ground light with it and sizes the burst to the blast's
+radius, so a capital's heavier shell reads larger than a cannon's.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount
