@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "status": "authoring audition; no runtime registration",
+  "modelId": "eleven_v4",
+  "voiceSettings": {},
+  "cast": {
+    "command": {
+      "name": "Company Officer",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "providerName": "Company Officer B - British Matriarch",
+      "status": "approved",
+      "role": "Shipboard company command",
+      "direction": "Mature British woman; brisk, attentive, measured authority. Emotion without a slow drawl.",
+      "provenance": "Original Voice Design; see ../company-officer/voice.json."
+    },
+    "kestrel": {
+      "name": "Kestrel Two",
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "providerName": "Liam - Energetic, Social Media Creator",
+      "status": "approved combat audition",
+      "role": "Infantry squad leader",
+      "direction": "Young American man. Projects over combat, clipped and breathless under pressure; physical effort persists when relieved.",
+      "provenance": "ElevenLabs premade. Under-fire exchange accepted by user; the calm initial take was rejected."
+    },
+    "viper": {
+      "name": "Viper One",
+      "voiceId": "EXAVITQu4vr4xnSDxMaL",
+      "providerName": "Sarah - Mature, Reassuring, Confident",
+      "status": "audition",
+      "role": "Supporting infantry squad leader",
+      "direction": "American woman, practical and forceful, projecting over firing with controlled strain. Two-line casting sample only.",
+      "provenance": "ElevenLabs premade; account availability verified 2026-10-11."
+    },
+    "rook": {
+      "name": "Rook One",
+      "voiceId": "IKne3meq5aSn9XLyUdCD",
+      "providerName": "Charlie - Deep, Confident, Energetic",
+      "status": "audition",
+      "role": "Transport pilot",
+      "direction": "Australian man, compact cockpit delivery, alert and conversational; a little levity once the passengers are safely down. Two-line casting sample only.",
+      "provenance": "ElevenLabs premade; account availability verified 2026-10-11."
+    }
+  },
+  "lines": [
+    {
+      "id": "command_kestrel_call",
+      "speaker": "command",
+      "recipient": "kestrel",
+      "text": "Kestrel Two. This is Command.",
+      "synthesisText": null,
+      "retainedSource": "retained/01-callout-clean.wav",
+      "take": 1
+    },
+    {
+      "id": "kestrel_ack_under_fire",
+      "speaker": "kestrel",
+      "recipient": "command",
+      "text": "Command! Kestrel Two, go ahead!",
+      "synthesisText": "[shouting] [strained, breathless voice] Command! Kestrel Two, go ahead!",
+      "retainedSource": "retained/02-acknowledgement-clean.wav",
+      "take": 1
+    },
+    {
+      "id": "command_assign_yard",
+      "speaker": "command",
+      "recipient": "kestrel",
+      "text": "Take the freight yard. Hold it for the convoy.",
+      "synthesisText": "[firm, brisk voice] Take the freight yard. Hold it for the convoy.",
+      "take": 1
+    },
+    {
+      "id": "kestrel_accept_yard",
+      "speaker": "kestrel",
+      "recipient": "command",
+      "text": "Freight yard! We'll hold it!",
+      "synthesisText": "[shouting] [strained, breathless voice] Freight yard! We'll hold it!",
+      "take": 1
+    },
+    {
+      "id": "kestrel_yard_contested",
+      "speaker": "kestrel",
+      "recipient": "command",
+      "text": "Command, Kestrel Two! We're at the yard. Still taking fire!",
+      "synthesisText": "[shouting] [strained, breathless voice] Command, Kestrel Two! We're at the yard. Still taking fire!",
+      "take": 1
+    },
+    {
+      "id": "command_contested_reply",
+      "speaker": "command",
+      "recipient": "kestrel",
+      "text": "Received, Kestrel. Hold your assignment. Report when it's secure.",
+      "synthesisText": "[firm, brisk voice] Received, Kestrel. Hold your assignment. Report when it's secure.",
+      "take": 1
+    },
+    {
+      "id": "viper_cover_crossing",
+      "speaker": "viper",
+      "recipient": "kestrel",
+      "text": "Kestrel Two, Viper One! We're set. Bring your people across!",
+      "synthesisText": "[shouting] [strained voice] Kestrel Two, Viper One! We're set. Bring your people across!",
+      "take": 1
+    },
+    {
+      "id": "kestrel_crossing",
+      "speaker": "kestrel",
+      "recipient": "viper",
+      "text": "Viper One! Moving now!",
+      "synthesisText": "[shouting] [strained, breathless voice] Viper One! Moving now!",
+      "take": 1
+    },
+    {
+      "id": "viper_cover_continue",
+      "speaker": "viper",
+      "recipient": "kestrel",
+      "text": "Got you, Kestrel! Keep coming!",
+      "synthesisText": "[shouting] [urgent, strained voice] Got you, Kestrel! Keep coming!",
+      "take": 1
+    },
+    {
+      "id": "kestrel_crossing_done",
+      "speaker": "kestrel",
+      "recipient": "viper",
+      "text": "We're through! Much appreciated!",
+      "synthesisText": "[breathless, relieved voice] We're through! Much appreciated!",
+      "take": 1
+    },
+    {
+      "id": "rook_drop_complete",
+      "speaker": "rook",
+      "recipient": "command",
+      "text": "Command, Rook One. Reinforcements are down. Lifting clear.",
+      "synthesisText": "[focused, brisk voice] Command, Rook One. Reinforcements are down. Lifting clear.",
+      "take": 1
+    },
+    {
+      "id": "command_rook_return",
+      "speaker": "command",
+      "recipient": "rook",
+      "text": "Received, Rook. Return to the ship.",
+      "synthesisText": "[matter-of-fact, brisk voice] Received, Rook. Return to the ship.",
+      "take": 1
+    },
+    {
+      "id": "rook_returning",
+      "speaker": "rook",
+      "recipient": "command",
+      "text": "On my way. Try to leave me a parking space.",
+      "synthesisText": "[wry, conversational voice] On my way. Try to leave me a parking space.",
+      "take": 1
+    },
+    {
+      "id": "command_rook_banter",
+      "speaker": "command",
+      "recipient": "rook",
+      "text": "No promises, Rook.",
+      "synthesisText": "[warm, brisk voice] No promises, Rook.",
+      "take": 1
+    },
+    {
+      "id": "kestrel_yard_secure",
+      "speaker": "kestrel",
+      "recipient": "command",
+      "text": "Command, Kestrel Two. Freight yard secure. We're holding.",
+      "synthesisText": "[breathless, relieved voice] Command, Kestrel Two. Freight yard secure. We're holding.",
+      "take": 1
+    },
+    {
+      "id": "command_hold_yard",
+      "speaker": "command",
+      "recipient": "kestrel",
+      "text": "Good work, Kestrel. Hold there.",
+      "synthesisText": "[warm, firm voice] Good work, Kestrel. Hold there.",
+      "take": 1
+    }
+  ],
+  "exchanges": [
+    {
+      "id": "01-objective-assignment",
+      "title": "Assignment under fire",
+      "trigger": "A new, accepted own-squad SECURE_COMPOUND directive for a known freight yard; convoy support is actually part of the mission.",
+      "cancel": "Squad lost, assignment replaced/released, or named destination no longer matches.",
+      "turns": [
+        "command_kestrel_call",
+        "kestrel_ack_under_fire",
+        "command_assign_yard",
+        "kestrel_accept_yard"
+      ]
+    },
+    {
+      "id": "02-contested-status",
+      "title": "At the yard, still fighting",
+      "trigger": "Assigned squad observed inside the named objective and currently engaged; arrival is not capture.",
+      "cancel": "Assignment changed, squad lost, or the yard is secured before this starts.",
+      "turns": [
+        "kestrel_yard_contested",
+        "command_contested_reply"
+      ]
+    },
+    {
+      "id": "03-covered-crossing",
+      "title": "One squad covers another",
+      "trigger": "A real support relationship, ready covering squad and actual crossing by the named supported squad; current radio policy does not publish this evidence.",
+      "cancel": "Cover or crossing canceled, either squad lost, or named roles changed. Final report requires an observed completed crossing.",
+      "turns": [
+        "viper_cover_crossing",
+        "kestrel_crossing",
+        "viper_cover_continue",
+        "kestrel_crossing_done"
+      ]
+    },
+    {
+      "id": "04-reinforcement-drop",
+      "title": "Transport checks in",
+      "trigger": "Committed own transport has physically unloaded its assigned passengers and is departing; completion of a request alone is insufficient.",
+      "cancel": "Aircraft lost, delivery aborted/partial, or no valid return route. Banter is optional and suppressed under pressure.",
+      "turns": [
+        "rook_drop_complete",
+        "command_rook_return",
+        "rook_returning",
+        "command_rook_banter"
+      ]
+    },
+    {
+      "id": "05-objective-secured",
+      "title": "Capture and hold",
+      "trigger": "A confirmed own-force capture of the named yard with this living squad still assigned to hold it.",
+      "cancel": "Yard lost, assignment changed, or squad lost.",
+      "turns": [
+        "kestrel_yard_secure",
+        "command_hold_yard"
+      ]
+    }
+  ],
+  "mix": {
+    "gapSeconds": 0.32,
+    "exchangeGapSeconds": 1.7,
+    "backgroundGainDb": -13,
+    "backgroundPan": 0.55,
+    "note": "Compressed audition reel; pilot's initial report overlaps the contested squad update on a separate monitored net. Routine in-game traffic should be much sparser."
+  },
+  "retainedHashes": {
+    "retained/01-callout-clean.wav": "cbf6b3e612782041a19a19f49a2c91f41ac11a1bf28980f1bfa073c09d071c1b",
+    "retained/02-acknowledgement-clean.wav": "85537d98891b929c0299d2c8b2e4127a95e572738c84163c3479288c454d4ee3",
+    "retained/03-instruction-clean.wav": "d85d457ae3138c355798a9554feab41ff76e3fc11e30a8e06d9ffae1e836b360",
+    "retained/04-reply-clean.wav": "64105d752f185937e84f6432313d3bdd2b483722be8140d3aa16653093098cc4"
+  }
+}
