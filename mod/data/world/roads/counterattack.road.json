@@ -39,7 +39,8 @@
       "wear": 0.35,
       "seed": 5101,
       "material": "CONCRETE",
-      "endCap": "BUTT"
+      "endCap": "BUTT",
+      "autoEdge": false
     },
     {
       "id": "warehouse-access",
@@ -58,7 +59,8 @@
       "wear": 0.35,
       "seed": 5102,
       "material": "CONCRETE",
-      "endCap": "BUTT"
+      "endCap": "BUTT",
+      "autoEdge": false
     },
     {
       "id": "dispatch-threshold",
@@ -77,7 +79,8 @@
       "wear": 0.35,
       "seed": 5103,
       "material": "CONCRETE",
-      "endCap": "BUTT"
+      "endCap": "BUTT",
+      "autoEdge": false
     },
     {
       "id": "boundary-service-road",
@@ -115,7 +118,8 @@
       "wear": 0.25,
       "seed": 5105,
       "material": "CONCRETE",
-      "endCap": "BUTT"
+      "endCap": "BUTT",
+      "autoEdge": false
     }
   ]
 }

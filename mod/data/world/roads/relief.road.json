@@ -45,20 +45,41 @@
       "id": "rear-boat-apron",
       "points": [
         [
-          16,
-          41.5
+          25,
+          34
         ],
         [
-          34,
-          41.5
+          25,
+          53
         ]
       ],
-      "width": 12,
+      "width": 19,
       "shoulder": 0,
       "wear": 0.3,
       "seed": 5102,
       "material": "CONCRETE",
-      "endCap": "BUTT"
+      "endCap": "BUTT",
+      "autoEdge": false
+    },
+    {
+      "id": "southern-boat-stand",
+      "points": [
+        [
+          25,
+          14
+        ],
+        [
+          25,
+          26
+        ]
+      ],
+      "width": 19,
+      "shoulder": 0,
+      "wear": 0.4,
+      "seed": 5103,
+      "material": "CONCRETE",
+      "endCap": "BUTT",
+      "autoEdge": false
     }
   ]
 }

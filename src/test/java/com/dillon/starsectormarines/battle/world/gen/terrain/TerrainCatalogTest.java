@@ -25,6 +25,12 @@ class TerrainCatalogTest {
         assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate(TerrainCatalog.THUNDER_RUN,plan));
         var freight=new TerrainPlan(320,144,TerrainPlan.Finish.ROCK,3,.5,1,List.of());
         assertDoesNotThrow(()->TerrainCatalog.validate(TerrainCatalog.THUNDER_RUN,freight));
+        assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate(TerrainCatalog.RELIEF,plan));
+        assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate(TerrainCatalog.COUNTERATTACK,plan));
+        assertDoesNotThrow(()->TerrainCatalog.validate(TerrainCatalog.RELIEF,
+                new TerrainPlan(112,64,TerrainPlan.Finish.ROCK,3,.5,1,List.of())));
+        assertDoesNotThrow(()->TerrainCatalog.validate(TerrainCatalog.COUNTERATTACK,
+                new TerrainPlan(160,96,TerrainPlan.Finish.ROCK,3,.5,1,List.of())));
         assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate("unknown",plan));
     }
 }
