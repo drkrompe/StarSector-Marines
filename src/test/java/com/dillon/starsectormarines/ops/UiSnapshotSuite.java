@@ -1615,7 +1615,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         images.add(new SnapshotArtifact("results-prepare-company.png",
                 renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
                         ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
-        for (String state : List.of("command", "profiles", "quarters", "empty", "large", "transfers", "guide")) {
+        for (String state : List.of("command", "profiles", "quarters", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
             int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
@@ -1646,12 +1646,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.command().toggle(squads.get(2).id());
                 viewModel.command().selectProfile(profile.id());
             }
-            if (!state.equals("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
+            if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
             if (state.equals("transfers")) {
                 viewModel.command().toggle(squads.get(2).id());
                 ((Runnable) viewModel.command().props().get("chooseDonors")).run();
                 viewModel.command().toggle(squads.get(1).id());
                 viewModel.command().reviewTransfers();
+            }
+            if (state.startsWith("guide-")) {
+                viewModel.command().toggle(squads.get(2).id());
+                if (state.equals("guide-transfer")) {
+                    ((Runnable) viewModel.command().props().get("chooseDonors")).run();
+                    viewModel.command().toggle(squads.get(1).id());
+                    viewModel.command().reviewTransfers();
+                } else {
+                    ((Runnable) viewModel.command().props().get("guideNext")).run();
+                    if (state.equals("guide-equipment")) ((Runnable) viewModel.command().props().get("guideNext")).run();
+                }
             }
             if (state.equals("profiles")) ((Runnable) viewModel.command().props().get("newProfile")).run();
             if (state.equals("quarters")) viewModel.command().inspect(squads.get(0).id());
@@ -1674,17 +1685,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 UiDocument document = new UiDocument(instance.root());
                 for (var style : instance.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());
-                BarracksGuideModal.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
+                var guide = BarracksGuideCallout.bind(document, instance, viewModel.command(), viewModel.command()::showOverview);
                 if (ship != null) document.canvases().set(instance.requireElement("barracks-canvas"),
                         new BarracksCanvas(ship, viewModel::sceneMarines));
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 BarracksCardBindings bindings = new BarracksCardBindings();
                 bindings.update(document, instance, viewModel, hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
-                        renderRelative(renderer, document, 1920, 1080, 1f)));
-                if (state.equals("guide") || state.equals("transfers")) {
+                        renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+                if (state.startsWith("guide") || state.equals("transfers")) {
                     images.add(new SnapshotArtifact("barracks-" + state + "-150pct.png",
-                            renderRelative(renderer, document, 1920, 1080, 1.5f)));
+                            renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
                 }
                 if (state.equals("large")) {
                     clickBarracksFlow(document, instance, "barracks-select-all");
@@ -1693,7 +1704,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     if (viewModel.command().selected().size() != 119 || viewModel.command().cards().size() != 12) {
                         throw new IllegalStateException("Paged card selection lost matching available squads");
                     }
-                    images.add(new SnapshotArtifact("barracks-large-page-2.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+                    images.add(new SnapshotArtifact("barracks-large-page-2.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
                 }
                 hints.clear();
             }
@@ -1721,7 +1732,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             instance.styles().forEach(document::addStyleSheet);
             document.theme(MarineOpsThemes.standard());
-            BarracksGuideModal.bind(document, instance, model.command(), model.command()::showOverview);
+            var guide = BarracksGuideCallout.bind(document, instance, model.command(), model.command()::showOverview);
             document.canvases().set(instance.requireElement("barracks-canvas"), new BarracksCanvas(ship, model::sceneMarines));
             SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
             BarracksCardBindings cardBindings = new BarracksCardBindings();
@@ -1733,29 +1744,29 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (String id : List.of("barracks-recruit-stock", "barracks-recruit-draw", "barracks-reinforce")) {
                 hints.bindLive(instance.requireElement(id), model.command()::recruitSheet);
             }
-            renderRelative(renderer, document, 1920, 1080, 1f);
+            renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f);
             click.accept("guide-dismiss");
             click.accept("command:" + company.captain.id());
             for (int i = 0; i < 2; i++) click.accept("formation:" + company.squads.get(i).id() + ":mark");
-            frames.add(new SnapshotArtifact("flow-01-selected.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-01-selected.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("formation:" + company.squads.get(2).id()));
-            frames.add(new SnapshotArtifact("barracks-card-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("barracks-card-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-recruit-stock"));
-            frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-02-recruit-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
             click.accept("formation:" + company.squads.get(0).id() + ":inspect");
-            frames.add(new SnapshotArtifact("muster-vacancies.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("muster-vacancies.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:11:vacancy"));
-            frames.add(new SnapshotArtifact("muster-vacancy-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("muster-vacancy-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             document.deactivateInput();
             hints.update();
             click.accept("barracks-back-command");
             click.accept("barracks-organization");
             click.accept("barracks-new-profile");
-            frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-03-profile-draft.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             click.accept("barracks-save-profile");
             var originalCargo = company.available();
             click.accept("barracks-assign-profile");
@@ -1764,7 +1775,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     || company.squads.subList(0, 2).stream().anyMatch(s -> !profileId.equals(s.squadProfileId()))) {
                 throw new IllegalStateException("Profile assignment failed or spent recruits");
             }
-            frames.add(new SnapshotArtifact("flow-04-profile-assigned.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-04-profile-assigned.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             click.accept("barracks-preparation");
             click.accept("barracks-reinforce");
             if (company.recruits() != 17 || company.roster.readyReserveCount() != 0
@@ -1772,7 +1783,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     || company.roster.readyCount(company.squads.get(2)) != 11) {
                 throw new IllegalStateException("Replenishment did not transfer one reserve then enlist three recruits");
             }
-            frames.add(new SnapshotArtifact("flow-05-replenished.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-05-replenished.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             var equipment = new BarracksEquipmentIssue(company.roster, company);
             var bill = equipment.preview(model.command().selected()).cost();
             click.accept("barracks-issue");
@@ -1780,10 +1791,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     || !equipment.preview(model.command().selected()).cost().isZero() || company.recruits() != 17) {
                 throw new IllegalStateException("Equipment issue did not pay its separate combined bill");
             }
-            frames.add(new SnapshotArtifact("flow-06-equipped.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-06-equipped.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             click.accept("formation:" + company.squads.get(0).id() + ":inspect");
             if (!model.command().inspecting()) throw new IllegalStateException("Squad drill-down did not open");
-            frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("flow-07-squad-quarters.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             for (var marine : model.musterRows().get()) {
                 Rect card = instance.requireElement(marine.id()).box().borderBox();
                 Rect tray = instance.requireElement("barracks-muster-list").box().contentBox();
@@ -1806,7 +1817,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             hints.update();
             for (String slot : List.of("armor", "primary", "system")) {
                 openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0:" + slot));
-                frames.add(new SnapshotArtifact("muster-" + slot + "-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+                frames.add(new SnapshotArtifact("muster-" + slot + "-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
                 document.deactivateInput();
                 hints.update();
             }
@@ -1815,12 +1826,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Return lost the command selection");
             }
             click.accept("formation:" + company.squads.get(2).id() + ":inspect");
-            frames.add(new SnapshotArtifact("muster-recovery.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("muster-recovery.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("barracks-billet:0"));
-            frames.add(new SnapshotArtifact("muster-recovery-hint.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            frames.add(new SnapshotArtifact("muster-recovery-hint.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             hints.clear();
         }
         return frames;
+    }
+
+    private static BufferedImage renderGuidedBarracks(HeadlessUiRenderer renderer, UiDocument document,
+                                                        BarracksGuideCallout guide, int width, int height, float scale) {
+        renderRelative(renderer, document, width, height, scale);
+        guide.update();
+        return renderRelative(renderer, document, width, height, scale);
     }
 
     private static void clickBarracksFlow(UiDocument document, MarkupInstance instance, String id) {
