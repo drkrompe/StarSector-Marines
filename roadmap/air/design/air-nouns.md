@@ -1408,6 +1408,25 @@ Friendly fire is unconditional, as it is for every detonation: a ship's weapons
 do not check colours. The cost of calling one in over your own marines is the
 point.
 
+**Its guns are the game's, placed by the hull's own data.** A warship is fitted
+from a vanilla variant: the hull spec says where each slot is, which way it
+faces and how far it traverses; the variant says what sits in it; the weapon,
+projectile and weapon-table data say what a round does, how far and fast it
+goes and what it looks like. The mod authors none of those numbers or sprites.
+One conversion (`WarshipScale`, the density that sizes every hull) turns the
+game's units into cells, so a gun's reach and a shell's blast keep the
+proportion the player knows from the ship. A round is an ordinary detonation
+that lands after the flight time its own speed implies; point-defence-only
+weapons stay silent against ground. A weapon fires at its tightest cone, because
+the wider figure is only what sustained fire builds up.
+
+**A hull must bring its guns to bear, and a broadside cannot shoot dead ahead.**
+A turret traverses within its slot's arc and a hardpoint fires where the nose
+points, so which guns reach a target is a fact about the ship's heading. The
+Onslaught's heavy turrets are port and starboard; ahead of it only its
+hardpoints and bow guns answer. Choosing a heading that brings the battery to
+bear is the director's job and part of what makes a capital worth positioning.
+
 **Ownership is the mission's, not the ship's.** The same entity serves the
 company's own flagship, an allied or neutral hull, and an enemy's. Who may call
 it, what it is aimed at and why it is present are decided by the mission or the
