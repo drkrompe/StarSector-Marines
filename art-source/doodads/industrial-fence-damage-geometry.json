@@ -1,0 +1,8 @@
+{
+  "source": "imagegen-raw/industrial-fence-damage.raw.png",
+  "sourceSize": [1254, 1254],
+  "damaged-straight": [73, 23, 487, 487],
+  "damaged-corner": [696, 9, 487, 514],
+  "destroyed-straight": [73, 666, 487, 487],
+  "destroyed-corner": [745, 651, 438, 510]
+}

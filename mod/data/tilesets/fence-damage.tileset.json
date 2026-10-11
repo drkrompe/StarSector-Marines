@@ -1,0 +1,152 @@
+{
+  "sheet": "graphics/doodads/fence-damage.png",
+  "cellPx": 32,
+  "doodads": [
+    {
+      "id": "doodad.industrial-fence-damaged-straight-h",
+      "col": 0,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-damaged-straight-v",
+      "col": 1,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-damaged-corner-nw",
+      "col": 2,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-damaged-corner-ne",
+      "col": 3,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-damaged-corner-se",
+      "col": 4,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-damaged-corner-sw",
+      "col": 5,
+      "row": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72
+    },
+    {
+      "id": "doodad.industrial-fence-destroyed-straight-h",
+      "col": 0,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.industrial-fence-destroyed-straight-v",
+      "col": 1,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.industrial-fence-destroyed-corner-nw",
+      "col": 2,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.industrial-fence-destroyed-corner-ne",
+      "col": 3,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.industrial-fence-destroyed-corner-se",
+      "col": 4,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.industrial-fence-destroyed-corner-sw",
+      "col": 5,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "industrial-fence-damaged-straight-h"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "industrial-fence-damaged-straight-v"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "industrial-fence-damaged-corner-nw"
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "industrial-fence-damaged-corner-ne"
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "industrial-fence-damaged-corner-se"
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "industrial-fence-damaged-corner-sw"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "industrial-fence-destroyed-straight-h"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "industrial-fence-destroyed-straight-v"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "industrial-fence-destroyed-corner-nw"
+    },
+    {
+      "col": 3,
+      "row": 1,
+      "name": "industrial-fence-destroyed-corner-ne"
+    },
+    {
+      "col": 4,
+      "row": 1,
+      "name": "industrial-fence-destroyed-corner-se"
+    },
+    {
+      "col": 5,
+      "row": 1,
+      "name": "industrial-fence-destroyed-corner-sw"
+    }
+  ]
+}
