@@ -1,6 +1,8 @@
 {
   "cellPx": 64,
   "variants": 8,
+  "edgeFeather": 0.42,
+  "edgeRoughness": 0.08,
   "seed": 513109,
   "materials": [
     {

@@ -1,7 +1,9 @@
 {
-  "marines_mech_step_01": [{"file": "sounds/battle/mech-footsteps/marines_mech_step_01.ogg", "pitch": 1.0, "volume": 1.0}],
-  "marines_mech_step_02": [{"file": "sounds/battle/mech-footsteps/marines_mech_step_02.ogg", "pitch": 1.0, "volume": 1.0}],
-  "marines_mech_step_03": [{"file": "sounds/battle/mech-footsteps/marines_mech_step_03.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mech_land_01": [{"file": "sounds/battle/mech-footsteps/marines_mech_land_01.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mech_land_02": [{"file": "sounds/battle/mech-footsteps/marines_mech_land_02.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mech_land_03": [{"file": "sounds/battle/mech-footsteps/marines_mech_land_03.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mech_lift_01": [{"file": "sounds/battle/mech-footsteps/marines_mech_lift_01.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mech_lift_02": [{"file": "sounds/battle/mech-footsteps/marines_mech_lift_02.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_relief_briefing": [{"file": "sounds/story/wayline/marines_mara_relief_briefing.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_relief_started": [{"file": "sounds/story/wayline/marines_mara_relief_started.ogg", "pitch": 1.0, "volume": 1.0}],
   "marines_mara_relief_player_landed": [{"file": "sounds/story/wayline/marines_mara_relief_player_landed.ogg", "pitch": 1.0, "volume": 1.0}],

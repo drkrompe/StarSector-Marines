@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — geometry-guided wall caps retain all sixteen exposed-face combinations and paired windows/doorways retain cardinal facings; procedural pavement has a retained recipe and independent catalog sheet; additional ground sheets share both render backends.
+Updated: 2026-10-11 — cardinal wall/opening art and procedural pavement with reproducible transparent edge masks share the catalog and both render backends.
 
 Read `stories.md` for open work.
 
@@ -592,8 +592,10 @@ re-annotatable, and its annotation cannot be recovered by re-running anything.
 ## Procedural pavement
 
 Pavement has its own retained procedural recipe: material colors, source cell
-size, variant count and source seed. One baker produces both its independent
-atlas and the catalog that addresses it. The recipe and baker are pre-pack art
+size, variant count, edge feather/roughness and source seed. One baker produces
+its opaque and transparent edge atlases and the catalogs that address them.
+Cardinal edge masks keep each material's variant ordering and RGB values; alpha
+reveals the neighboring terrain instead of adding a painted dark outline. The recipe and baker are pre-pack art
 inputs; the image and id-addressed pools are the shipped result. Rebuilding does
 not edit another sheet or rely on old packed coordinates. These procedural
 materials are found as catalog surfaces; they are regenerated from their recipe,

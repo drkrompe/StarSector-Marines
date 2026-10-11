@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.Tag;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
@@ -44,8 +45,19 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                     int w=map.grid.getWidth(),h=map.grid.getHeight();
                     frames.add(new SnapshotArtifact(names[index]+".png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.fitting(0,0,w,h,1920,1080)),1920,1080)));
+                    if(names[index].equals("junction")) frames.add(new SnapshotArtifact("junction-east.png",renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.over(135,26,60,68,16)),1920,1080)));
+                    if(names[index].equals("relay-nine")) frames.add(new SnapshotArtifact("relay-nine-east.png",renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.over(155,52,60,68,16)),1920,1080)));
                     frames.add(new SnapshotArtifact(names[index]+"-detail.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.over(close[index][0],close[index][1],60,34,32)),1920,1080)));
+                }
+                if(names[index].equals("relay-nine")) {
+                    for(int y=0;y<map.grid.getHeight();y++) for(int x=0;x<map.grid.getWidth();x++) map.topology.setTag(x,y,Tag.ROAD_EDGE_BLEND,false);
+                    try(var scene=new ShipDeckBattleScene(map,0)) {
+                        frames.add(new SnapshotArtifact("relay-nine-east-hard.png",renderer.renderHostPass(
+                                scene.pass(ShipDeckBattleScene.DeckView.over(155,52,60,68,16)),1920,1080)));
+                    }
                 }
             }
         }
@@ -54,6 +66,12 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         return frames;
     }
     private static void verify(String name,MapResult map) {
+        if(name.equals("junction") || name.equals("relay-nine")) for(var edge:map.roadGraph.edges()) for(int i=0;i<edge.cellsX.length;i++) {
+            int x=edge.cellsX[i],y=edge.cellsY[i];
+            var kind=map.topology.getGroundKind(x,y);
+            if(!map.grid.isWalkable(x,y) || (kind!=GroundKind.STREET && kind!=GroundKind.STRIPED))
+                throw new IllegalStateException(name+" graph leaves the road at "+x+","+y);
+        }
         int streets=0,stripes=0;
         for(int y=0;y<map.grid.getHeight();y++) for(int x=0;x<map.grid.getWidth();x++) {
             var kind=map.topology.getGroundKind(x,y);
@@ -62,6 +80,9 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             if(kind==GroundKind.STREET && !map.topology.isWall(x,y)) {
                 streets++;
                 if(!paved) throw new IllegalStateException(name+" has an old road tile at "+x+","+y);
+            } else if((name.equals("junction") || name.equals("relay-nine")) && kind==GroundKind.COURTYARD && !map.topology.isWall(x,y)) {
+                if(surface==null || !surface.startsWith("pavement.concrete."))
+                    throw new IllegalStateException("Junction yard lost its concrete surface");
             } else if(paved) throw new IllegalStateException(name+" pavement covers a room/marking at "+x+","+y);
             if(kind==GroundKind.STRIPED) stripes++;
         }

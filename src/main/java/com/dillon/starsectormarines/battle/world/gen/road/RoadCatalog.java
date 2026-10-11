@@ -35,7 +35,7 @@ public final class RoadCatalog {
         return new RoadPlan(width, height, source.routes().stream().map(r -> new Route(r.id(),
                 r.points().stream().map(p -> new Point(p.x() == source.width()-1 ? width-1 : p.x(),
                         p.y() == source.height()-1 ? height-1 : p.y())).toList(),
-                r.width(), r.shoulder(), r.wear(), r.seed(), r.material(), r.endCap())).toList());
+                r.width(), r.shoulder(), r.wear(), r.seed(), r.material(), r.endCap(), r.autoEdge())).toList());
     }
     public static void validate(String path, RoadPlan plan) {
         int[] size = switch (path) {
