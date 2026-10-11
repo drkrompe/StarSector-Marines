@@ -1,0 +1,141 @@
+{
+  "sheetName": "briefing-room",
+  "sheet": "art-source/tilesets/briefing-room.raw.png",
+  "cellPx": 64,
+  "gridCols": 2,
+  "gridRows": 4,
+  "idPrefix": "briefing-room",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/briefing-room.png",
+  "note": "Measured geometry-first briefing components. Padded physical fixtures and full 6x2 transparent map canvas inset over table.",
+  "entries": [
+    {
+      "id": "briefing-room.table",
+      "rect": [
+        64,
+        75,
+        519,
+        171
+      ],
+      "footprintCells": [
+        6,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "included": true
+    },
+    {
+      "id": "briefing-room.tactical-map",
+      "rect": [
+        661,
+        80,
+        516,
+        172
+      ],
+      "footprintCells": [
+        6,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "briefing-room.display",
+      "rect": [
+        109,
+        402,
+        411,
+        111
+      ],
+      "footprintCells": [
+        4,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.7,
+      "included": true
+    },
+    {
+      "id": "briefing-room.lectern",
+      "rect": [
+        801,
+        407,
+        201,
+        104
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "briefing-room.chair-back-top",
+      "rect": [
+        219,
+        667,
+        192,
+        192
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "included": true
+    },
+    {
+      "id": "briefing-room.chair-back-bottom",
+      "rect": [
+        811,
+        683,
+        192,
+        192
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "included": true
+    },
+    {
+      "id": "briefing-room.chair-back-left",
+      "rect": [
+        215,
+        982,
+        192,
+        192
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "included": true
+    },
+    {
+      "id": "briefing-room.chair-back-right",
+      "rect": [
+        837,
+        982,
+        192,
+        192
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.35,
+      "included": true
+    }
+  ]
+}
