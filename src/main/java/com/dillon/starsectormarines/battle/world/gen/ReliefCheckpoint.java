@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
@@ -45,7 +46,7 @@ public final class ReliefCheckpoint {
                 ReliefCheckpoint::grounds, ReliefCheckpoint::buildings,
                 ReliefCheckpoint::defences, ReliefCheckpoint::freight,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                new FinalizeStage())).run(ctx);
+                new FinalizeStage(), new OutdoorLandscapeStage(21, 42, 67, 30))).run(ctx);
         PointOfInterest relay = ctx.pois.stream().filter(p -> p.kind == PointOfInterest.Kind.COMMS).findFirst().orElseThrow();
         List<Cell> main = List.of(new Cell(width - 2, 30), new Cell(82, 30), new Cell(59, 30));
         List<Cell> service = List.of(new Cell(82, height - 2), new Cell(82, 30), new Cell(59, 30));

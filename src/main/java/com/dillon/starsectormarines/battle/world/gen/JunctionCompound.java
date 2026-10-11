@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
@@ -43,7 +44,8 @@ public final class JunctionCompound {
         new GenRecipe("Open the Junction", List.of(JunctionCompound::grounds,
                 JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                JunctionCompound::yardSurfaces, JunctionCompound::terrain, new FinalizeStage())).run(c);
+                JunctionCompound::yardSurfaces, JunctionCompound::serviceYards, JunctionCompound::terrain,
+                new FinalizeStage(), new OutdoorLandscapeStage(21, 56, 148, 55))).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
                 10, 9, 40, 60, Faction.MARINE, 20, 0));
@@ -128,6 +130,36 @@ public final class JunctionCompound {
         shell(c, 94, 66, 119, 85, Frontage.TOP); // Warehouse blocks a map-wide firing corridor.
         BuildingStamp.FREIGHT_L.place(c, 139, 68, 0); // Depot wing encloses an outdoor loading court.
         shell(c, 92, 8, 115, 17, Frontage.BOTTOM); // Maintenance staging beside the reserve road.
+    }
+    private static void serviceYards(GenContext c) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        // Warehouse overflow: three dispatch bays and a separate pallet-storage court.
+        yard.gravel(62, 69, 88, 87);
+        yard.fence(62, 69, 88, 87);
+        for (int x : new int[]{65, 73, 81}) {
+            yard.bay(x, 72, x + 5, 78);
+            yard.prop(x + 1, 75, x == 73 ? "parked-flatbed-truck" : "parked-cargo-truck", 1);
+            yard.cargo(x, 82);
+        }
+        // The weigh-house's inspection lay-by faces the loading street, not the main road.
+        yard.bay(77, 39, 81, 50);
+        yard.prop(78, 45, "parked-utility-truck", 1);
+        // Freight office staging lanes leave a continuous cross-yard aisle to Dispatch.
+        for (int x : new int[]{117, 125}) {
+            yard.bay(x, 39, x + 5, 51);
+            yard.cargo(x + 1, 47);
+            yard.prop(x + 1, 41, "stores-cargo-loader", 1);
+        }
+        // The L depot's outdoor recess is a loading court, with the facade route kept clear.
+        yard.bay(148, 78, 158, 86);
+        yard.cargo(150, 82);
+        yard.prop(150, 79, "stores-roller-conveyor", 0);
+        yard.prop(156, 80, "stores-cargo-loader", 1);
+        // Apron service annex: generator and spares stand on their own made ground.
+        yard.gravel(44, 84, 54, 91);
+        yard.prop(46, 87, "industrial-turbine-set", 0);
+        yard.prop(52, 87, "industrial-cable-reel", 0);
+        yard.prop(46, 85, "industrial-drum-cluster", 0);
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.DEPOT,

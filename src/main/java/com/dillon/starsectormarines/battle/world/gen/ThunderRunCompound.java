@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
@@ -46,7 +47,7 @@ public final class ThunderRunCompound {
         new GenRecipe("Thunder Run", List.of(ThunderRunCompound::grounds,
                 ThunderRunCompound::buildings, ThunderRunCompound::perimeter,
                 ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
-                ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage())).run(c);
+                ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 75, 270, 64))).run(c);
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
             c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
@@ -157,6 +158,20 @@ public final class ThunderRunCompound {
             reserved[y * c.width + x] = true;
         TerrainBrush.stamp(TerrainCatalog.plan(TerrainCatalog.THUNDER_RUN,
                 c.get(BspKeys.MARKET_PROFILE).surface()), c.grid, c.topology, reserved);
+        // These are separate tactical approaches, not merely two points reachable
+        // by falling back to the freight road. Optional woods must keep both.
+        boolean[][] circulation = new boolean[c.width][c.height];
+        for (int y = 10; y <= 135; y++) for (int x = 0; x <= 38; x++) circulation[x][y] = true;
+        for (int[] flank : new int[][]{{39,18,263,28},{39,116,263,116}}) {
+            boolean[] side = new boolean[c.width * c.height];
+            for (int y = 0; y < c.height; y++) for (int x = 0; x < c.width; x++)
+                side[y * c.width + x] = flank[1] < 75 ? y < 65 : y > 85;
+            int[] path = GridPathfinder.findPath(c.grid, flank[0], flank[1], flank[2], flank[3], null, side);
+            if (Paths.isEmpty(path)) throw new IllegalStateException("Thunder Run has no infantry flank at " + flank[1]);
+            circulation[flank[0]][flank[1]] = true;
+            for (int i = 0; i < Paths.cellCount(path); i++) circulation[Paths.cellX(path, i)][Paths.cellY(path, i)] = true;
+        }
+        c.put(BspKeys.ROAD_RESERVATION, circulation);
     }
 
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {

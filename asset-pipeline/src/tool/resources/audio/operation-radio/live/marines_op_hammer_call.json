@@ -1,0 +1,7 @@
+{
+  "audioSha256": "87334789bf255ada620aa5004b9fffb57273fa10bdc7cd96d64072abc3478601",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "retainedFrom": "ensemble/09-command-hammer.mp3",
+  "durationSeconds": 2.0
+}

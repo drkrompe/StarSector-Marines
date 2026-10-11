@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
@@ -39,7 +40,7 @@ public final class CounterattackDepot {
                 CounterattackDepot::buildings, CounterattackDepot::perimeter,
                 CounterattackDepot::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                new FinalizeStage())).run(c);
+                new FinalizeStage(), new OutdoorLandscapeStage(18, 46, 73, 46))).run(c);
         PointOfInterest depot = c.pois.get(0);
         List<Place> stages = List.of(new Place("Freight gate", 73, 46),
                 new Place("Loading yard", 95, 46),
