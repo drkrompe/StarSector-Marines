@@ -1,0 +1,136 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "warehouse-racks-muted.base",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "warehouse-racks-muted.frame",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "warehouse-racks-muted.cartons",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "warehouse-racks-muted.bins",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "warehouse-racks-muted.engine",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "warehouse-racks-muted.pipes",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "warehouse-racks-muted.picked-tray",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "warehouse-racks-muted.cases",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "heavy",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "warehouse-racks-muted.base",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "warehouse-racks-muted.frame",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "warehouse-racks-muted.cartons",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "warehouse-racks-muted.bins",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "warehouse-racks-muted.engine",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "warehouse-racks-muted.pipes",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "warehouse-racks-muted.picked-tray",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "warehouse-racks-muted.cases",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/warehouse-racks-muted.png"
+}

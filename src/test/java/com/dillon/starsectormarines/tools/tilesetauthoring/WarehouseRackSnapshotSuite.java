@@ -46,7 +46,7 @@ public final class WarehouseRackSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("warehouse-racks-layers.png", renderer.render(layers(), 42, 48)));
     }
 
-    private static MapResult room() {
+    static MapResult room() {
         MapResult base = AutoShopSnapshotSuite.room();
         List<Doodad> objects = new ArrayList<>();
         for (Doodad d : base.doodads) {

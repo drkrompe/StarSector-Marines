@@ -1,0 +1,141 @@
+{
+  "sheetName": "warehouse-racks-muted",
+  "sheet": "art-source/tilesets/warehouse-racks-muted.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "warehouse-racks-muted",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/warehouse-racks-muted.png",
+  "note": "Palette-only ImageGen edit of warehouse-racks.raw.png. Geometry and full-frame cuts retained; graphite steel and muted neutral beams. See ship-neutral.README.md.",
+  "entries": [
+    {
+      "id": "warehouse-racks-muted.base",
+      "rect": [
+        44,
+        56,
+        298,
+        940
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.frame",
+      "rect": [
+        406,
+        56,
+        324,
+        940
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.cartons",
+      "rect": [
+        751,
+        54,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.bins",
+      "rect": [
+        1076,
+        54,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.engine",
+      "rect": [
+        751,
+        364,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.pipes",
+      "rect": [
+        1076,
+        364,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.picked-tray",
+      "rect": [
+        751,
+        674,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks-muted.cases",
+      "rect": [
+        1076,
+        674,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}

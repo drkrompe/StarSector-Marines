@@ -1,0 +1,291 @@
+{
+  "sheetName": "ship-bulkheads",
+  "sheet": "art-source/tilesets/ship-bulkheads.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 4,
+  "idPrefix": "ship",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-bulkheads.png",
+  "note": "ShipBulkheadTemplate; full opaque wall caps, row-major exposure N1 E2 S4 W8. ImageGen output1254 square, measured274px tiles at origins20,333,647,960. Neutral structural steel with pale enamel exposed edges. Preview-only adoption.",
+  "blocks": [
+    {
+      "id": "ship.neutral-bulkhead",
+      "layout": "wall-faces-4x4"
+    }
+  ],
+  "entries": [
+    {
+      "id": "ship.neutral-bulkhead.faces-0",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-0",
+      "rect": [
+        20,
+        20,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-1",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-1",
+      "rect": [
+        333,
+        20,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-2",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-2",
+      "rect": [
+        647,
+        20,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-3",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-3",
+      "rect": [
+        960,
+        20,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-4",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-4",
+      "rect": [
+        20,
+        333,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-5",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-5",
+      "rect": [
+        333,
+        333,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-6",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-6",
+      "rect": [
+        647,
+        333,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-7",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-7",
+      "rect": [
+        960,
+        333,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-8",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-8",
+      "rect": [
+        20,
+        647,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-9",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-9",
+      "rect": [
+        333,
+        647,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-10",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-10",
+      "rect": [
+        647,
+        647,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-11",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-11",
+      "rect": [
+        960,
+        647,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-12",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-12",
+      "rect": [
+        20,
+        960,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-13",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-13",
+      "rect": [
+        333,
+        960,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-14",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-14",
+      "rect": [
+        647,
+        960,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "ship.neutral-bulkhead.faces-15",
+      "block": "ship.neutral-bulkhead",
+      "slot": "faces-15",
+      "rect": [
+        960,
+        960,
+        274,
+        274
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    }
+  ]
+}
