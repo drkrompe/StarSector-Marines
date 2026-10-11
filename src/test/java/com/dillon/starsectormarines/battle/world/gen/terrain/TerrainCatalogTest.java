@@ -22,6 +22,9 @@ class TerrainCatalogTest {
         var plan=new TerrainPlan(192,112,TerrainPlan.Finish.ROCK,3,.5,1,List.of());
         assertDoesNotThrow(()->TerrainCatalog.validate(TerrainCatalog.JUNCTION,plan));
         assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate(TerrainCatalog.RELAY_NINE,plan));
+        assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate(TerrainCatalog.THUNDER_RUN,plan));
+        var freight=new TerrainPlan(320,144,TerrainPlan.Finish.ROCK,3,.5,1,List.of());
+        assertDoesNotThrow(()->TerrainCatalog.validate(TerrainCatalog.THUNDER_RUN,freight));
         assertThrows(IllegalArgumentException.class,()->TerrainCatalog.validate("unknown",plan));
     }
 }

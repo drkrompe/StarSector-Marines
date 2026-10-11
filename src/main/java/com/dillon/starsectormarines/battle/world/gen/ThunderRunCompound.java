@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -42,7 +44,7 @@ public final class ThunderRunCompound {
         new GenRecipe("Thunder Run", List.of(ThunderRunCompound::grounds,
                 ThunderRunCompound::buildings, ThunderRunCompound::perimeter,
                 ThunderRunCompound::fortifications, ThunderRunCompound::cargo,
-                ThunderRunCompound::surfaces, new FinalizeStage())).run(c);
+                ThunderRunCompound::surfaces, ThunderRunCompound::terrain, new FinalizeStage())).run(c);
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
         for (Cell gun : EXIT_GUNS) {
             c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
@@ -118,19 +120,26 @@ public final class ThunderRunCompound {
         shell(c, 220, 91, 245, 111, Frontage.TOP);
         shell(c, 286, 38, 309, 59, Frontage.BOTTOM);
         shell(c, 286, 94, 309, 111, Frontage.TOP);
-        // Continuous district edges, not isolated sheds in a driveable field. Two-cell
-        // service alleys admit infantry; the cargo chassis needs three-cell clearance.
-        // Append after the objective shells so their interior rolls remain stable.
-        for (int[] lot : new int[][]{{40,0,68,20},{71,0,99,30},{102,0,126,29},
-                {129,0,156,29},{174,0,196,29},{199,0,231,25},{234,0,266,27},{282,0,319,27},
-                {40,46,68,63},{94,36,125,64},{174,32,196,63}})
+        // Roadside warehouses form infantry cover; the outer district gives way
+        // to hills. Keep the checkpoint's terminal blocks: their narrow service
+        // alleys admit infantry but not the freight chassis around the gun line.
+        for (int[] lot : new int[][]{{282,0,319,27},{40,46,68,63},
+                {94,36,125,64},{174,32,196,63}})
             shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.BOTTOM);
-        for (int[] lot : new int[][]{{40,115,68,143},{71,116,99,143},{102,112,128,143},
-                {131,115,156,143},{174,116,201,143},{204,115,231,143},{234,120,266,143},
-                {282,118,319,143},{38,87,68,112},{71,87,100,113},{130,87,156,112},
-                {198,87,217,112}})
+        for (int[] lot : new int[][]{{282,118,319,143},{38,87,68,112},
+                {71,87,100,113},{130,87,156,112},{198,87,217,112}})
             shell(c, lot[0], lot[1], lot[2], lot[3], Frontage.TOP);
     }
+    private static void terrain(GenContext c) {
+        boolean[] reserved = new boolean[c.width * c.height];
+        // Keep the whole staging apron and its westward aircraft approach open.
+        // The road stamper owns the full freight and raider-entry road widths.
+        for (int y = 10; y <= 135; y++) for (int x = 0; x <= 38; x++)
+            reserved[y * c.width + x] = true;
+        TerrainBrush.stamp(TerrainCatalog.plan(TerrainCatalog.THUNDER_RUN,
+                c.get(BspKeys.MARKET_PROFILE).surface()), c.grid, c.topology, reserved);
+    }
+
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.DEPOT,
                 new BlockLeaf(l, t, r, b, false), c, facing);
