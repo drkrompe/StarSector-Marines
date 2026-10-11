@@ -1,10 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.forest;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import java.util.ArrayList;
 import java.util.List;
 
 /** The authoring silhouette and its conservative whole-cell obstruction share these lobes. */
-public enum TreeCanopy {
+public enum TreeCanopy implements NaturalPropShape {
     OAK("oak", 5, 5, 8, 0x526B39),
     OAK_SMALL("oak-small", 4, 4, 7, 0x64783D),
     BIRCH("birch", 5, 4, 9, 0x7A8748),
@@ -38,6 +39,10 @@ public enum TreeCanopy {
     }
 
     public List<Lobe> lobes() { return lobes; }
+    public String id() { return id; }
+    public int width() { return width; }
+    public int height() { return height; }
+    public int hitPoints() { return 200; }
     public int width(int turns) { return (turns & 1) == 0 ? width : height; }
     public int height(int turns) { return (turns & 1) == 0 ? height : width; }
 

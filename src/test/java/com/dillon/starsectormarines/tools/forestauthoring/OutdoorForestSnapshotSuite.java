@@ -117,7 +117,7 @@ public final class OutdoorForestSnapshotSuite implements SnapshotSuite {
         return frames;
     }
 
-    private static MapResult generate(String family, long seed, TargetProfile profile) {
+    static MapResult generate(String family, long seed, TargetProfile profile) {
         return switch (family) {
             case "relief" -> ReliefCheckpoint.generate(112, 64, seed, profile).map();
             case "counterattack" -> CounterattackDepot.generate(seed, profile).map();
@@ -136,7 +136,7 @@ public final class OutdoorForestSnapshotSuite implements SnapshotSuite {
 
     private static boolean tree(Doodad d) { return d.sheetPath.endsWith("forest-canopies.png"); }
 
-    private static void verify(MapResult before, MapResult after, SurfacePalette surface) {
+    static void verify(MapResult before, MapResult after, SurfacePalette surface) {
         int w = before.grid.getWidth(), h = before.grid.getHeight();
         int[] oldLabels = components(before.grid), newLabels = components(after.grid);
         int[] mapped = new int[w * h]; Arrays.fill(mapped, -1);

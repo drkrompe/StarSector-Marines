@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
-import com.dillon.starsectormarines.battle.world.model.TreeDamage;
+import com.dillon.starsectormarines.battle.world.model.NaturalPropDamage;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.world.model.BarrelDamage;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
@@ -70,7 +70,7 @@ public final class MapEditor {
     private CellCallback roofCollapseSink;
     private DoodadService doodads;
     private long structuralAttack;
-    private final TreeDamage.ClearedCell treeCellCleared = this::clearTreeCell;
+    private final NaturalPropDamage.ClearedCell naturalCellCleared = this::clearNaturalPropCell;
     private final BarrelDamage.ClearedCell barrelCellCleared = this::clearBarrelCell;
 
     public void setDoodads(DoodadService doodads) { this.doodads = doodads; }
@@ -129,8 +129,8 @@ public final class MapEditor {
                 return true;
             }
             if (rock != RockDamage.Result.NOT_ROCK) return false;
-            TreeDamage.Result tree = doodads.damageTree(x, y, amount, attack, treeCellCleared);
-            if (tree != TreeDamage.Result.NOT_TREE) return tree == TreeDamage.Result.DESTROYED;
+            NaturalPropDamage.Result natural = doodads.damageNaturalProp(x, y, amount, attack, naturalCellCleared);
+            if (natural != NaturalPropDamage.Result.NOT_NATURAL_PROP) return natural == NaturalPropDamage.Result.DESTROYED;
             CoverPropDamage.Result barrel = doodads.damageBarrel(x, y, amount, attack, barrelCellCleared);
             if (barrel != CoverPropDamage.Result.NOT_COVER_PROP) return barrel == CoverPropDamage.Result.DESTROYED;
             boolean alreadyWalkable = grid.inBounds(x, y) && grid.isWalkable(x, y);
@@ -165,7 +165,7 @@ public final class MapEditor {
         openFixtureCell(x, y);
     }
 
-    private void clearTreeCell(int x, int y) {
+    private void clearNaturalPropCell(int x, int y) {
         // Summit trees share their cells with permanent terrain; felling the crown cannot excavate the hill.
         if (ForestBrush.isGrassySummit(grid, topology, x, y)) return;
         grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, false);

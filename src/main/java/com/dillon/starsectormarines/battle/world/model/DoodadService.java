@@ -31,7 +31,7 @@ public final class DoodadService {
     private final NavigationGrid grid;
     private final List<Doodad> doodads = new ArrayList<>();
     private final CoverPropDamage destructibleCover;
-    private final TreeDamage trees;
+    private final NaturalPropDamage naturalProps;
     private final RockDamage rocks;
     private final BarrelDamage barrels;
     /** Mutable overlay cover stays separate from append-only props so shattered rocks can release it. */
@@ -84,7 +84,7 @@ public final class DoodadService {
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
         this.destructibleCover = new CoverPropDamage(grid, doodads);
-        this.trees = new TreeDamage(grid, doodads);
+        this.naturalProps = new NaturalPropDamage(grid, doodads);
         this.rocks = new RockDamage(grid, doodads);
         this.barrels = new BarrelDamage(grid, doodads);
     }
@@ -100,7 +100,7 @@ public final class DoodadService {
     public void addDoodad(Doodad d) {
         boolean removablePhysicalCover = destructibleCover.register(doodads.size(), d, TileRegistry.installed());
         boolean barrel = barrels.register(doodads.size(), d, TileRegistry.installed());
-        trees.register(doodads.size(), d, TileRegistry.installed());
+        naturalProps.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
         if (d.cover <= 0 || removablePhysicalCover) return;
         ensureCoverStorage();
@@ -126,8 +126,8 @@ public final class DoodadService {
         return barrels.damage(x, y, amount, attack, cleared);
     }
 
-    public TreeDamage.Result damageTree(int x, int y, int amount, long attack, TreeDamage.ClearedCell cleared) {
-        return trees.damage(x, y, amount, attack, cleared);
+    public NaturalPropDamage.Result damageNaturalProp(int x, int y, int amount, long attack, NaturalPropDamage.ClearedCell cleared) {
+        return naturalProps.damage(x, y, amount, attack, cleared);
     }
 
     public RockDamage.Result damageRock(int x, int y, int amount, CellTopology topology) {

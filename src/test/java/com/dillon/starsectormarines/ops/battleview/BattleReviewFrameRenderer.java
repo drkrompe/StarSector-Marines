@@ -59,6 +59,7 @@ public final class BattleReviewFrameRenderer {
     private final int width;
     private final int height;
     private float focusX = Float.NaN, focusY, focusWidth;
+    private boolean impactEffects;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         Path root = modRoot.toAbsolutePath().normalize();
@@ -76,6 +77,17 @@ public final class BattleReviewFrameRenderer {
     public BattleReviewFrameRenderer(Path modRoot, int width, int height, float focusX, float focusY, float cellsAcross) {
         this(modRoot, width, height);
         this.focusX = focusX; this.focusY = focusY; this.focusWidth = cellsAcross;
+    }
+
+    /**
+     * Opts this renderer into the shot and impact-effect layers on a whole-map
+     * framing. They are off by default because most reviews are about where
+     * bodies are, and a blast drawn over the bodies would hide the evidence;
+     * a scene whose subject is the landing itself asks for them.
+     */
+    public BattleReviewFrameRenderer withImpactEffects() {
+        this.impactEffects = true;
+        return this;
     }
 
     public int width() { return width; }
@@ -97,7 +109,21 @@ public final class BattleReviewFrameRenderer {
      */
     public BufferedImage render(BattleSimulation simulation, String caption,
                                 ReviewAnnotations annotations) throws IOException {
+        return render(simulation, caption, annotations, null);
+    }
+
+    /**
+     * The same frame with the game's impact particles painted over the world,
+     * under the unit markers and annotations. {@code impacts} is the recorder
+     * the caller has been feeding every tick; null draws none.
+     */
+    public BufferedImage render(BattleSimulation simulation, String caption,
+                                ReviewAnnotations annotations,
+                                ReviewImpactFx impacts) throws IOException {
         BufferedImage image = renderer.renderHostPass(pass(simulation), width, height);
+        if (impacts != null) {
+            impacts.paint(image, cameraFor(image.getWidth(), image.getHeight(), simulation));
+        }
         annotate(image, simulation, caption, annotations);
         return image;
     }
@@ -239,7 +265,7 @@ public final class BattleReviewFrameRenderer {
                         new HighlightOverlay(), new Selection(),
                         BattleRenderHostProfile.EMBEDDED_SCENE);
                 EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
-                if (Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
+                if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
                 return new BattleSceneFrame(context, layers);
             }
 

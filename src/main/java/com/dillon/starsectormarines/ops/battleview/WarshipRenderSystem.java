@@ -36,6 +36,8 @@ public final class WarshipRenderSystem implements RenderSystem {
     /** Presentation scale on a vanilla round's size: at ground scale the game's own proportions read as boulders. */
     private static final float ROUND_VISUAL_SCALE = 0.6f;
     private static final float MUZZLE_FLASH_SECONDS = 0.15f;
+    /** Diameter of the glow under a slug's sprite, in cells. */
+    private static final float BOLT_GLOW_CELLS = 1.4f;
     private static final int TAIL_PUFFS = 8;
     private static final float TAIL_SPACING_CELLS = 0.6f;
     private static final String GLOW = "graphics/fx/particlealpha64linear.png";
@@ -170,6 +172,7 @@ public final class WarshipRenderSystem implements RenderSystem {
             float wPx = WarshipScale.cells(art.pxW) * cellPx * ROUND_VISUAL_SCALE;
             float hPx = WarshipScale.cells(art.pxH) * cellPx * ROUND_VISUAL_SCALE;
             if (w.missile()) drawMissileTail(out, cam, cellPx, alpha, shell, x, y);
+            else drawBoltGlow(out, cam, cellPx, alpha, w, x, y);
             out.addSprite(RenderLayer.SHUTTLES, art.sprite,
                     cam.cellToScreenX(x), cam.cellToScreenY(y), wPx, hPx, heading,
                     1f, 1f, 1f, alpha);
@@ -189,6 +192,24 @@ public final class WarshipRenderSystem implements RenderSystem {
         out.addLine(RenderLayer.SHUTTLES, cam.cellToScreenX(x), cam.cellToScreenY(y),
                 cam.cellToScreenX(tx), cam.cellToScreenY(ty), widthPx * 0.4f,
                 core.getRed() / 255f, core.getGreen() / 255f, core.getBlue() / 255f, alpha);
+    }
+
+    /**
+     * A soft glow in the round's own fringe colour under a slug's sprite. At
+     * ground scale a gun's shell sprite is a few pixels across — a Devastator
+     * round is 5 by 8 pixels close in and nothing at whole-map scale — so the
+     * glow is what keeps a heavy gun's fall of shot visible between the muzzle
+     * and the landing.
+     */
+    private void drawBoltGlow(DrawList out, BattleCamera cam, float cellPx, float alpha,
+                              VanillaWeapon w, float x, float y) {
+        ShuttleSpriteCache glow = sprites.spriteByPath(GLOW);
+        if (glow == null) return;
+        Color c = w.fringe() != null ? w.fringe() : DEFAULT_FLASH;
+        float size = BOLT_GLOW_CELLS * cellPx;
+        out.addAdditiveSprite(RenderLayer.SHUTTLES, glow.sprite,
+                cam.cellToScreenX(x), cam.cellToScreenY(y), size, size, 0f,
+                c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.7f * alpha);
     }
 
     /** A missile's burning tail and the smoke it leaves, fading back along the line it has flown. */
