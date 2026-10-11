@@ -149,7 +149,7 @@ class BattleDirectControlOverlayTest {
                 List.of(BattleDirectControlOverlay.COMPONENT_PATH));
         loader.reload();
         return loader.build(new Reactor(), BattleDirectControlOverlay.COMPONENT, Map.of(
-                "label", active ? "Return to command [C / Esc]" : "Control selected unit [C]",
+                "label", active ? "Return to command [Tab / Esc]" : "Control selected unit [Tab]",
                 "hint", active ? vehicle ? "heavy_apc-1  |  W/S drive | A/D steer | Mouse aim | LMB fire"
                         : mech ? "Bulwark 1  |  WASD pivot/walk | Mouse aim | LMB direct mounts"
                         : "Rhea Voss  |  WASD move | Mouse aim | Hold LMB fire"

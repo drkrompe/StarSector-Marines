@@ -112,17 +112,42 @@ class BattleDirectControlInputTest {
     }
 
     @Test
+    void tabIsReservedBeforeFocusTraversalAndTogglesBothWays() {
+        BattleDirectControlInput input = new BattleDirectControlInput();
+        Runnable toggle = () -> { if (input.active()) input.exit(1f); else input.enter(1f); };
+        var press = event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB);
+        var samples = BattleDirectControlInput.capture(List.of(press));
+        assertTrue(press.isConsumed(), "retained UI must not turn Tab into focus traversal");
+        input.process(samples, toggle, () -> {}, NO_CHROME);
+        assertTrue(input.active());
+        input.speedChanged(0f);
+        input.reconcileToggleKeyRelease(true);
+        input.process(BattleDirectControlInput.capture(List.of(event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB))),
+                toggle, () -> {}, NO_CHROME);
+        assertTrue(input.active(), "pause cannot turn a held Tab repeat into a new toggle");
+        input.process(BattleDirectControlInput.capture(List.of(
+                event(Kind.UP, 0, 0, Keyboard.KEY_TAB),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB))), toggle, () -> {}, NO_CHROME);
+        assertFalse(input.active(), "one fresh press exits; OS repeat cannot re-enter");
+        var oldShortcut = event(Kind.DOWN, 0, 0, Keyboard.KEY_C);
+        input.process(BattleDirectControlInput.capture(List.of(oldShortcut)), toggle, () -> {}, NO_CHROME);
+        assertFalse(input.active());
+        assertFalse(oldShortcut.isConsumed());
+    }
+
+    @Test
     void toggleKeyRepeatCannotOscillateControlMode() {
         BattleDirectControlInput input = new BattleDirectControlInput();
         int[] toggles = {0};
         Runnable toggle = () -> { toggles[0]++; input.enter(1f); };
         input.process(BattleDirectControlInput.capture(List.of(
-                event(Kind.DOWN, 0, 0, Keyboard.KEY_C),
-                event(Kind.DOWN, 0, 0, Keyboard.KEY_C))), toggle, () -> {}, NO_CHROME);
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB))), toggle, () -> {}, NO_CHROME);
         assertEquals(1, toggles[0]);
         input.process(BattleDirectControlInput.capture(List.of(
-                event(Kind.UP, 0, 0, Keyboard.KEY_C),
-                event(Kind.DOWN, 0, 0, Keyboard.KEY_C))), toggle, () -> {}, NO_CHROME);
+                event(Kind.UP, 0, 0, Keyboard.KEY_TAB),
+                event(Kind.DOWN, 0, 0, Keyboard.KEY_TAB))), toggle, () -> {}, NO_CHROME);
         assertEquals(2, toggles[0]);
     }
 

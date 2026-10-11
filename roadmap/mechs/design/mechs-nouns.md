@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — independent pneumatic lift and heavy ground-impact sounds follow each foot's gait transitions.
+Updated: 2026-10-11 — the Wayline depot awards a repaired light walker once and supplies its later mission lift.
 
 ## Purpose
 
@@ -438,6 +438,16 @@ stock until the player fabricates or recovers them; legacy saves retain the
 starter Bulwark they already owned. Fleet or employer sourcing
 still determines whether Mech Support is available in an operation; ownership
 determines the payload, not the entitlement to call it.
+The Wayline depot chapter introduces a recovered Hound named Wayward, fitted
+with a nose chaingun and empty missile mounts. It is a normal owned chassis
+after victory, including when Wayline must recover and repair its wreck.
+The transfer is once-only and adds its installed parts to owned inventory.
+A full lance receives it in a recovery group; neither existing mechs nor the
+active-lance selection is overwritten. Later Broken Supply Route contracts
+provide employer heavy lift for the active owned lance. Physical arrival claims
+the chapter's mission authority so its AI can continue after direct-control
+handback. Story recovery does not create a general repair or casualty economy.
+
 The debug roster count has no scenario-authored maximum; every requested chassis
 becomes part of the deterministic roster and therefore another four-chassis-or-less
 support sortie, subject only to practical runtime resources.

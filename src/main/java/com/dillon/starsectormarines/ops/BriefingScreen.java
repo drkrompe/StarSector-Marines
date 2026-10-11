@@ -878,6 +878,8 @@ public class BriefingScreen implements Screen {
             int kind = route != null ? route.operation() : 0;
             rows.add(BriefingViewModel.info("employer-militia", "Militia", (kind == 3 || kind == 4) ? "8 / two holding detachments" : "6 / local support", ""));
             rows.add(BriefingViewModel.info("employer-transport", "Employer craft", kind == 2 ? "12-seat civilian pickup / separate from insertion" : (kind == 3 || kind == 4) ? "2 Aeroshuttles / militia only" : "1 Aeroshuttle / militia only", ""));
+            rows.add(BriefingViewModel.info("employer-heavy-lift", "Heavy lift",
+                    "Wayline transport / your active mech lance", ""));
             if (kind == 4) rows.add(BriefingViewModel.info("employer-convoy", "Freight column",
                     "Heavy tank / 2 APCs / 3 haulers; remaining loads only", ""));
             return List.copyOf(rows);

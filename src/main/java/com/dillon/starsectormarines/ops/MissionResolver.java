@@ -374,6 +374,7 @@ public final class MissionResolver {
 
         return MissionOutcome.builder()
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
+                .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)
                 .victory(victory)
@@ -608,6 +609,7 @@ public final class MissionResolver {
     static void recordStoryCompletion(MarineRoster roster, MissionOutcome outcome) {
         if (roster != null && outcome != null && outcome.victory
                 && outcome.missionSource == MissionSource.STORY && outcome.missionId != null) {
+            WaylineHoundAward.settle(roster, outcome);
             roster.markStoryComplete(outcome.missionId);
         }
     }

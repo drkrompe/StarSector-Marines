@@ -43,6 +43,16 @@ public final class CampaignMech implements Serializable {
     }
 
     public String id() { return id; }
+
+    /** Acquisition preserves the recovered fit, including deliberately empty mounts. */
+    public static CampaignMech fromDeployment(String id, MechDeploymentSpec fit) {
+        CampaignMech mech = new CampaignMech(id, fit.displayName(), fit.variant(),
+                fit.role(), fit.missileReplenisher().id());
+        mech.installWeapon(MechMountSlot.ARMS, fit.arms());
+        mech.installWeapon(MechMountSlot.LEFT_SHOULDER, fit.leftShoulder());
+        mech.installWeapon(MechMountSlot.RIGHT_SHOULDER, fit.rightShoulder());
+        return mech;
+    }
     public String displayName() { return displayName; }
     /** Changes only this mech's player-facing name; its identity and fit stay intact. */
     public boolean rename(String value) {

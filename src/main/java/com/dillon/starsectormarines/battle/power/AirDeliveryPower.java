@@ -63,6 +63,7 @@ abstract class AirDeliveryPower extends CommandPower {
         mission.payload = payload;
         mission.marinesRemaining = payload.unitsPerSortie(carrier);
         mission.totalCycles = 1;
+        mission.commandClaim = battle.playerSupportCommandClaim();
         configureMission(mission, carrier, service);
     }
 

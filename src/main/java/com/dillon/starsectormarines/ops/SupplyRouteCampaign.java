@@ -114,7 +114,7 @@ public final class SupplyRouteCampaign {
                 .source(repeat ? MissionSource.RECURRING : MissionSource.STORY).type(kind == BrokenSupplyRouteProgress.LIFT ? MissionType.EXTRACTION : MissionType.ASSAULT)
                 .tier(OperationTier.FIRST_CONTRACT).risk(RiskLevel.LOW)
                 .payout(kind == BrokenSupplyRouteProgress.THUNDER ? 18000 : kind == BrokenSupplyRouteProgress.JUNCTION ? 12000 : kind == BrokenSupplyRouteProgress.LIFT ? 10000 : repeat ? 12000 : 16000)
-                .flavor(terms).requirements("2 squads recommended; at least 2 squads with 4 ready marines each. Up to 4 fitted company boats; ground operation without fighter or mech support.")
+                .flavor(terms).requirements("2 squads recommended; at least 2 squads with 4 ready marines each. Up to 4 fitted company boats. Wayline provides heavy lift for your active mech lance; select Mech Support and call it onto clear ground. No fighter cover.")
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).targetPlanetName(p.planetName())
                 .mapPosition(0.5f, 0.5f).battleSeed((long) p.planetId().hashCode() * 31 + kind * 1000L + p.job()).build();
