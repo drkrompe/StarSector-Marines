@@ -420,7 +420,7 @@ public final class FacingSystem {
 
     private static boolean trackFlash(MechWeaponMount mount) {
         return mount != null && LayeredMechAppearance.trackFlash(
-                mount.cooldown, mount.weaponDef().cooldown, mount.burstRemaining,
+                mount.cycleRemaining, mount.component.cycleSeconds(), mount.burstRemaining,
                 mount.burstTimer, mount.weaponDef().burstSpacing);
     }
 

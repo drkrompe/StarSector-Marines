@@ -52,7 +52,7 @@ class MechTurretSystemTest {
         assertFalse(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        assertEquals(0f, arms.cooldown, 0.001f,
+        assertEquals(0f, arms.cycleRemaining, 0.001f,
                 "a weapon must wait for the torso to traverse onto its target");
 
         for (int i = 0; i < 60 && !loadout.isAimedAt(target); i++) {
@@ -61,7 +61,7 @@ class MechTurretSystemTest {
 
         assertTrue(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
-        assertEquals(arms.weaponDef().cooldown, arms.cooldown, 0.001f);
+        assertEquals(arms.component.cycleSeconds(), arms.cycleRemaining, 0.001f);
     }
 
     @Test
