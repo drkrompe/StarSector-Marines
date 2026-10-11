@@ -430,8 +430,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> narratedBriefing = BriefingViewModel.campaignPreviewProps(false);
         narratedBriefing.put("narrationAvailable", true);
         narratedBriefing.put("missionTitle", "Hold Until Relieved");
-        narratedBriefing.put("missionKicker", "ASSAULT  ·  LOW RISK  ·  First Contract");
-        narratedBriefing.put("operationRisk", "LOW RISK");
+        narratedBriefing.put("missionKicker", "ASSAULT  Â·  LOW RISK  Â·  First Contract");
+        BriefingViewModel.putForceComparison(narratedBriefing, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 12, 12);
         BriefingViewModel.putReward(narratedBriefing, Mission.builder().payout(6000).build());
         BriefingViewModel.putFactionIdentity(narratedBriefing, "employer", "Independent", OpeningBroker.CREST);
 
