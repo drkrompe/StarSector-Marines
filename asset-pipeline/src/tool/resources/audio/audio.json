@@ -17,7 +17,6 @@
     // Independent gait events: pneumatic lift and heavy ground impact.
     {"id": "marines_mech_land_01", "source": "mech-footsteps/marines_mech_land_01.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     {"id": "marines_mech_land_02", "source": "mech-footsteps/marines_mech_land_02.wav", "kind": "positional", "out": "battle/mech-footsteps"},
-    {"id": "marines_mech_land_03", "source": "mech-footsteps/marines_mech_land_03.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     {"id": "marines_mech_lift_01", "source": "mech-footsteps/marines_mech_lift_01.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     {"id": "marines_mech_lift_02", "source": "mech-footsteps/marines_mech_lift_02.wav", "kind": "positional", "out": "battle/mech-footsteps"},
     // Mara Venn / Wayline story narration

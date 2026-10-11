@@ -36,7 +36,8 @@ class MechFootstepAudioTest {
             assertEquals(lift.foot(), impact.foot(), "impact belongs to the same lifted foot");
             assertEquals(land.x(), impact.cellX());
             assertEquals(land.y(), impact.cellY());
-            assertTrue(impact.soundId().startsWith("marines_mech_land_"));
+            assertTrue(impact.soundId().equals("marines_mech_land_01")
+                    || impact.soundId().equals("marines_mech_land_02"));
             assertNotEquals(previousImpact, impact.soundId());
             assertTrue(impact.volume() > pneumatic.volume());
             assertTrue(impact.pitch() < pneumatic.pitch());

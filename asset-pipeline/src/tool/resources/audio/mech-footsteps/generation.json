@@ -18,11 +18,6 @@
       "prompt": "One isolated multi-ton steel press foot landing heavily on compacted ground. Deep dull bassy WHUMP, thick low-mid body, muffled earth compression with a short weighty rumbling decay. The sense of an enormous mass abruptly settling. Immediate single impact, close dry recording. No metallic clack, no bright ring, no repeated impacts, no pneumatic sound, no explosion, no music or ambience."
     },
     {
-      "id": "marines_mech_land_03",
-      "kind": "impact",
-      "prompt": "Single heavy earth-damped industrial impact. A huge steel block weighing several tons drops a short distance onto hard soil: a dark rounded low thoom, powerful muffled bass and thick body, brief dirt crunch underneath, short deep decay. Exactly one contact at the start. Dry isolated foley. No ticking or ringing metal, no motor or air hiss, no explosion, no walking rhythm, no speech or music."
-    },
-    {
       "id": "marines_mech_lift_01",
       "kind": "pneumatic",
       "prompt": "One short pneumatic actuator stroke lifting a heavy mechanical leg: compressed air releases in a low breathy pshht with a subdued hydraulic cylinder sliding under load. Soft valve opening, short pressure exhale tapering to silence. Dry isolated industrial foley, a single quick operation about a quarter second. No foot impact, no thud, no clang, no repeated rhythm, no ambience, no voice or music."
