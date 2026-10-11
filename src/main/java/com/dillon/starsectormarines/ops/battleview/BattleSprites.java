@@ -16,6 +16,8 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
@@ -132,6 +134,7 @@ public class BattleSprites {
     private final SheetTexture natureTex     = SheetTexture.sliced(TileManifest.NATURE_SHEET);
     private final SheetTexture doodadTex     = SheetTexture.grid(TileManifest.DOODAD_SHEET);
     private final SheetTexture parkedVehicleTex = SheetTexture.grid(TileManifest.PARKED_VEHICLE_SHEET);
+    private final Map<String, SheetTexture> extraTerrainSheets = new LinkedHashMap<>();
 
     // ---- airframe sprites ---------------------------------------------------
 
@@ -287,7 +290,32 @@ public class BattleSprites {
      * calls; see {@link SheetTexture} for the load/fallback contract shared by
      * all six tile sheets.
      */
-    public void ensureTileSheet()       { tileTex.ensureLoaded(); }
+    public void ensureTileSheet() {
+        tileTex.ensureLoaded();
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return;
+        for (GridBlockDef block : registry.blocks()) {
+            String path = block.sheetPath;
+            if (path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
+                    || path.equals(TileManifest.FLOORS_SHEET) || path.equals(TileManifest.WATER_SHEET)) continue;
+            extraTerrainSheets.computeIfAbsent(path, SheetTexture::grid).ensureLoaded();
+        }
+    }
+
+    /** Catalog-declared grid sheets loaded with terrain assets, before collection. */
+    public SpriteAPI extraTerrainSheet(String path) {
+        SheetTexture texture = extraTerrainSheets.get(path);
+        return texture == null ? null : texture.sprite();
+    }
+
+    /** Loaded catalog sheets for batch registration at attach time. */
+    public java.util.Collection<SpriteAPI> extraTerrainSheets() {
+        java.util.List<SpriteAPI> loaded = new java.util.ArrayList<>();
+        for (SheetTexture texture : extraTerrainSheets.values()) {
+            if (texture.sprite() != null) loaded.add(texture.sprite());
+        }
+        return loaded;
+    }
 
     /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
     public void ensureRoadSheet()       { roadTex.ensureLoaded(); }

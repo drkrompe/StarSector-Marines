@@ -693,6 +693,7 @@ public final class FortressWallStamper implements GenStage {
         grid.setWalkable(x, y, false);
         grid.setWallHp(x, y, WALL_HP_FORTIFIED);
         topology.setGroundKind(x, y, WALL_GROUND);
+        topology.setSurface(x, y, 0);
         wallMask[x][y] = true;
     }
 
@@ -714,6 +715,7 @@ public final class FortressWallStamper implements GenStage {
                     grid.setWalkable(x, y, false);
                     grid.setWallHp(x, y, WALL_HP_FORTIFIED);
                     topology.setGroundKind(x, y, TURRET_PAD);
+                    topology.setSurface(x, y, 0);
                     topology.setVehicle(x, y, true);
                     wallMask[x][y] = true;
                 } else {
@@ -801,6 +803,7 @@ public final class FortressWallStamper implements GenStage {
         grid.setSeeThrough(x, y, false);
         grid.setWallHp(x, y, WALL_HP_FORTIFIED);
         topology.setGroundKind(x, y, TURRET_PAD);
+        topology.setSurface(x, y, 0);
         topology.setFixture(x, y, false);
         topology.setWindow(x, y, false);
         topology.setVehicle(x, y, true);
@@ -815,6 +818,7 @@ public final class FortressWallStamper implements GenStage {
         grid.setWallHp(x, y, 0);
         grid.setDoorway(x, y, false);
         topology.setGroundKind(x, y, WALL_GROUND);
+        topology.setSurface(x, y, 0);
         topology.setWall(x, y, false);
         topology.setFixture(x, y, false);
         topology.setWindow(x, y, false);
@@ -956,6 +960,7 @@ public final class FortressWallStamper implements GenStage {
         grid.setWalkable(x, y, false);
         grid.setWallHp(x, y, WALL_HP_FORTIFIED);
         topology.setGroundKind(x, y, TURRET_PAD);
+        topology.setSurface(x, y, 0);
         topology.setVehicle(x, y, true);
         wallMask[x][y] = true;
     }
@@ -975,6 +980,7 @@ public final class FortressWallStamper implements GenStage {
             grid.openAllEdges(x, wallY);
             topology.setVehicle(x, wallY, false);
             topology.setGroundKind(x, wallY, GroundKind.STRIPED);
+            topology.setSurface(x, wallY, 0);
         }
         // No need to walk the mgX list — we already cleared the VEHICLE flag
         // on every cell we painted. Listing it for future use (e.g., gate
@@ -991,6 +997,7 @@ public final class FortressWallStamper implements GenStage {
             grid.openAllEdges(wallX, y);
             topology.setVehicle(wallX, y, false);
             topology.setGroundKind(wallX, y, GroundKind.STRIPED);
+            topology.setSurface(wallX, y, 0);
         }
     }
 
@@ -1061,6 +1068,7 @@ public final class FortressWallStamper implements GenStage {
                 if (!toClear[x][y]) continue;
                 grid.setWalkableFloor(x, y);
                 topology.setGroundKind(x, y, DEMOLISHED_GROUND);
+                topology.setSurface(x, y, 0);
             }
         }
 
@@ -1076,6 +1084,7 @@ public final class FortressWallStamper implements GenStage {
                 if (!hasClearedNeighbor(toClear, x, y, w, h)) continue;
                 grid.setWalkableFloor(x, y);
                 topology.setGroundKind(x, y, DEMOLISHED_GROUND);
+                topology.setSurface(x, y, 0);
                 wallsCleared[x][y] = true;
             }
         }
@@ -1327,6 +1336,7 @@ public final class FortressWallStamper implements GenStage {
                 grid.setWalkableFloor(x, y);
                 topology.setWall(x, y, false);
                 topology.setGroundKind(x, y, WALL_GROUND);
+                topology.setSurface(x, y, 0);
             }
             index = previous;
         }

@@ -534,6 +534,7 @@ public final class AirbaseLot {
                 ctx.topology.setWindow(x, y, false);
                 ctx.topology.setBuildingKindHint(x, y, null);
                 ctx.topology.setBuildingId(x, y, 0);
+                ctx.topology.setSurface(x, y, 0);
                 ctx.topology.setTag(x, y, Tag.WALL, false);
             }
         }
