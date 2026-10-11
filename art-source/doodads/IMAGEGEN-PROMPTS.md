@@ -1,3 +1,8 @@
+> Current sandbags use the geometry-first guide and reskin documented in
+> [README.md](README.md#geometry-authored-sandbags), with the exact prompt in
+> [sandbags.prompt.txt](sandbags.prompt.txt). The original sandbag recipe below
+> is retained as provenance for the superseded masters.
+
 # ImageGen prompt recipe
 
 The initial doodad atlas used the built-in ImageGen workflow. Every generated

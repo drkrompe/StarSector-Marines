@@ -51,7 +51,8 @@ public final class TileRegistry {
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
-            "data/tilesets/colony-walls.tileset.json");
+            "data/tilesets/colony-walls.tileset.json",
+            "data/tilesets/colony-openings.tileset.json");
 
     private static volatile TileRegistry installed;
 
@@ -299,7 +300,8 @@ public final class TileRegistry {
                     JSONArray cell = cellsArr.getJSONArray(k);
                     cells[k] = new int[]{cell.getInt(0), cell.getInt(1)};
                 }
-                blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells));
+                blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells,
+                        o.optString("windowBlock", null), o.optString("doorBlock", null)));
                 sourceById.put(id, source);
                 continue;
             }
@@ -308,8 +310,18 @@ public final class TileRegistry {
             int or = origin.getInt(1);
             GridLayout layout = GridLayout.fromJson(o.getString("layout"));
             Integer fillRgb = o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null;
-            blocksById.put(id, new GridBlockDef(id, sheet, cellPx, oc, or, layout, fillRgb));
+            blocksById.put(id, new GridBlockDef(id, sheet, cellPx, oc, or, layout, fillRgb,
+                    o.optString("windowBlock", null), o.optString("doorBlock", null)));
             sourceById.put(id, source);
+        }
+    }
+
+    private void validateOpening(String owner, String id) {
+        if (id == null) return;
+        GridBlockDef opening = block(id);
+        if (opening == null || opening.layout != GridLayout.CARDINAL_2X2) {
+            throw new IllegalStateException("Opening '" + id + "' on '" + owner
+                    + "' must reference a cardinal-2x2 block");
         }
     }
 
@@ -329,6 +341,10 @@ public final class TileRegistry {
      * all {@link #ingestSheet} calls, since references may point across sheets.
      */
     public void validateReferences() {
+        for (GridBlockDef block : blocksById.values()) {
+            validateOpening(block.id, block.windowBlockId);
+            validateOpening(block.id, block.doorBlockId);
+        }
         for (TileDef def : byId.values()) {
             for (String sel : def.validOn) {
                 String ref = sel.startsWith("!") ? sel.substring(1) : sel;

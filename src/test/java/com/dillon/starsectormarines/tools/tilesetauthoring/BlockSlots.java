@@ -39,6 +39,8 @@ public final class BlockSlots {
     public static final String VARIANT_PREFIX = "v";
 
     /** Row-major, which is both reading order and the order a split plate arrives in. */
+    private static final List<String> CARDINAL = List.of("facing-n", "facing-e", "facing-s", "facing-w");
+
     private static final List<String> NINE = List.of(
             "nw", "n", "ne",
             "w", "center", "e",
@@ -49,6 +51,7 @@ public final class BlockSlots {
 
     /** Every slot of a layout, in the order a split plate's pieces arrive. */
     public static List<String> of(GridLayout layout) {
+        if (layout == GridLayout.CARDINAL_2X2) return CARDINAL;
         if (layout == GridLayout.WALL_FACES_4X4) return FACES;
         return layout.span() == 1 ? List.of(ONLY) : NINE;
     }
@@ -94,6 +97,8 @@ public final class BlockSlots {
         int variant = variantIndex(name);
         if (variant >= 0) return new int[]{variant, 0};
         if (name.equals(ONLY) || name.isEmpty()) return new int[]{0, 0};
+        int cardinal = CARDINAL.indexOf(name);
+        if (cardinal >= 0) return new int[]{cardinal % 2, cardinal / 2};
         int face = FACES.indexOf(name);
         if (face >= 0) return new int[]{face % 4, face / 4};
         int index = NINE.indexOf(name);
@@ -111,6 +116,8 @@ public final class BlockSlots {
 
     /** Whether a slot exists in a layout — a 1x1 block has no {@code ne}. */
     public static boolean fits(GridLayout layout, String slot) {
+        if (layout == GridLayout.CARDINAL_2X2) return CARDINAL.contains(slot);
+        if (CARDINAL.contains(slot)) return false;
         if (layout == GridLayout.WALL_FACES_4X4) return FACES.contains(slot);
         if (FACES.contains(slot)) return false;
         if (isVariant(slot)) return false;   // a pool has no layout to fit
@@ -124,6 +131,7 @@ public final class BlockSlots {
 
     /** What the mask flag behind a slot means, for a label the operator can check against the art. */
     public static String describe(String slot) {
+        if (CARDINAL.contains(slot)) return "opening facing " + slot.substring(7);
         int face = FACES.indexOf(slot);
         if (face >= 0) {
             List<String> sides = new ArrayList<>();

@@ -167,8 +167,8 @@ public class CellTopology {
     private final long[] flags;
     /**
      * Per-cell wall-direction mask. Bits are {@link #WALL_DIR_N} ... W.
-     * Default 0 — meaningful only for cells tagged {@link Tag#WALL}; on
-     * non-wall cells the render path never reads it. Set at gen time by
+     * Default 0. Walls carry exposed faces; authored doorway cells retain
+     * their opening facing so a neighbouring breach cannot rotate the frame. Set at gen time by
      * whatever code stamps walls (see {@link
      * com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingShellCore}).
      */

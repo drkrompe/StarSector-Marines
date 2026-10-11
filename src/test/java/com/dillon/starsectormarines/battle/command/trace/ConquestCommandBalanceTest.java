@@ -105,6 +105,8 @@ class ConquestCommandBalanceTest {
                 assertTrue(first.trace.contains("\"perspective\":\"DEFENDER\""));
                 Files.writeString(traces.resolve(runId + ".jsonl"), first.trace,
                         StandardCharsets.UTF_8);
+                Files.writeString(staging.resolve("density-" + runId + ".md"),
+                        first.density, StandardCharsets.UTF_8);
                 rows.add(new ReportRow(runId, loaded.sha256,
                         loaded.construction, loaded.launchSeats,
                         loaded.launchSquads, first.analysis));
@@ -136,17 +138,20 @@ class ConquestCommandBalanceTest {
         try (BattleSimulation sim = fixture.build();
              CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
                      visualRoot, runId, sim)) {
+            SquadDensityProbe density = new SquadDensityProbe();
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
                 sim.advance(BattleSimulation.TICK_DT);
                 capture.afterAdvance();
+                density.sample(sim);
                 assertEquals(before + 1, sim.getSimTickIndex(),
                         "headless runner must advance exactly one fixed tick");
             }
             if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
             String trace = sim.getCommandTraceJsonLines();
-            return new RunResult(trace, CommandTraceAnalyzer.analyze(trace));
+            return new RunResult(trace, CommandTraceAnalyzer.analyze(trace),
+                    density.markdown(runId));
         }
     }
 
@@ -731,7 +736,7 @@ class ConquestCommandBalanceTest {
             BattleFixture fixture, ConquestBattleFixture construction,
             int launchSeats, int launchSquads, String sha256) { }
 
-    private record RunResult(String trace, Analysis analysis) { }
+    private record RunResult(String trace, Analysis analysis, String density) { }
 
     record ReportRow(
             String id, String sha256, ConquestBattleFixture fixture,

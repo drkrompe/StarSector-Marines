@@ -193,7 +193,19 @@ enum BuildingStamp {
                     }
                     ctx.topology.setWallDirMask(wx, wy, mask);
                 } else {
-                    ctx.topology.setWallDirMask(wx, wy, 0);
+                    int mask = 0;
+                    if (cell == '+') {
+                        int across = (cell(x - 1, y) == '#' ? 1 : 0) + (cell(x + 1, y) == '#' ? 1 : 0);
+                        int upright = (cell(x, y - 1) == '#' ? 1 : 0) + (cell(x, y + 1) == '#' ? 1 : 0);
+                        mask = wallBit(posed(upright > across ? Direction.E : Direction.N, turns));
+                        for (Direction side : Direction.CARDINALS) {
+                            if (cell(x + side.dx, y + side.dy) == ' ') {
+                                mask = wallBit(posed(side, turns));
+                                break;
+                            }
+                        }
+                    }
+                    ctx.topology.setWallDirMask(wx, wy, mask);
                 }
                 if (cell == '.' && interior == null) interior = new int[]{wx, wy};
                 if (cell == '+' && entrance == null) {

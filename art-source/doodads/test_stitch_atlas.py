@@ -1,3 +1,4 @@
+from dataclasses import replace
 import json
 import tempfile
 import unittest
@@ -141,6 +142,53 @@ class StitchAtlasTest(unittest.TestCase):
                         metadata_path=source / "_atlas.json",
                     )
                 )
+
+    def test_preserves_directional_canvas_without_recentering(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "sources"
+            source.mkdir()
+            image = Image.new("RGBA", (64, 64))
+            ImageDraw.Draw(image).rectangle((0, 2, 63, 15), fill=(160, 145, 100, 255))
+            image.save(source / "north.png")
+            (source / "_atlas.json").write_text(json.dumps({"assets": {
+                "north.png": {"preserveCanvas": True, "padding": 0}
+            }}))
+            options = BuildOptions(source, root / "atlas.png", root / "atlas.json",
+                                   "graphics/test/atlas.png", source / "_atlas.json",
+                                   columns=1, resample="nearest")
+            build_atlas(options)
+            with Image.open(options.output_image) as atlas:
+                self.assertEqual((0, 1, 32, 8), atlas.getchannel("A").getbbox())
+                self.assertEqual(255, atlas.getpixel((0, 4))[3])
+                self.assertEqual(255, atlas.getpixel((31, 4))[3])
+                self.assertEqual(0, atlas.getpixel((16, 16))[3])
+
+    def test_partial_rebuild_clears_old_pixels_and_preserves_unrelated_tiles(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "sources"
+            source.mkdir()
+            self._cutout(source / "bag.png", (20, 20), (255, 0, 0, 255))
+            self._cutout(source / "other.png", (20, 20), (0, 255, 0, 255))
+            options = BuildOptions(source, root / "atlas.png", root / "atlas.json",
+                                   "graphics/test/atlas.png", source / "_atlas.json", columns=2)
+            build_atlas(options)
+            with Image.open(options.output_image) as old:
+                unrelated = old.crop((32, 0, 64, 32)).tobytes()
+            self._cutout(source / "bag.png", (20, 4), (0, 0, 255, 255))
+            self._cutout(source / "other.png", (4, 20), (255, 255, 0, 255))
+            partial = replace(options, only_prefix="doodad.bag")
+            build_atlas(partial)
+            with Image.open(options.output_image) as atlas:
+                self.assertEqual(unrelated, atlas.crop((32, 0, 64, 32)).tobytes())
+                self.assertEqual(0, atlas.getpixel((16, 4))[3])
+                self.assertEqual((0, 0, 255, 255), atlas.getpixel((16, 16)))
+            self._cutout(source / "added.png", (20, 20), (255, 0, 0, 255))
+            before = options.output_image.read_bytes()
+            with self.assertRaisesRegex(ValueError, "unchanged"):
+                build_atlas(partial)
+            self.assertEqual(before, options.output_image.read_bytes())
 
     @staticmethod
     def _cutout(path: Path, size: tuple[int, int], color: tuple[int, int, int, int]):

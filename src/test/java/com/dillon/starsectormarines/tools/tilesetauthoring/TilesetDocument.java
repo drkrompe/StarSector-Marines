@@ -154,6 +154,8 @@ public final class TilesetDocument {
             o.put("id", spec.id);
             o.put("layout", TilesetExport.jsonLayout(spec.layout));
             if (spec.fillRgb != null) o.put("fillRgb", String.format("0x%06X", spec.fillRgb));
+            if (spec.windowBlockId != null) o.put("windowBlock", spec.windowBlockId);
+            if (spec.doorBlockId != null) o.put("doorBlock", spec.doorBlockId);
             blockArray.put(o);
         }
         JSONObject root = new JSONObject();
@@ -231,10 +233,13 @@ public final class TilesetDocument {
         JSONArray blockArray = root.optJSONArray("blocks");
         for (int i = 0; blockArray != null && i < blockArray.length(); i++) {
             JSONObject o = blockArray.getJSONObject(i);
-            doc.blocks.add(new TilesetExport.BlockSpec(
+            TilesetExport.BlockSpec spec = new TilesetExport.BlockSpec(
                     o.getString("id"),
                     TilesetExport.layoutFromJson(o.getString("layout")),
-                    o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null));
+                    o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null);
+            spec.windowBlockId = o.optString("windowBlock", null);
+            spec.doorBlockId = o.optString("doorBlock", null);
+            doc.blocks.add(spec);
         }
         JSONArray array = root.optJSONArray("entries");
         for (int i = 0; array != null && i < array.length(); i++) {
