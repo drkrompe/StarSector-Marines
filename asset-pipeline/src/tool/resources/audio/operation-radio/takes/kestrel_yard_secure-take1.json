@@ -1,0 +1,15 @@
+{
+  "requestId": "bN7JCvfIaaLR8iVfWFFq",
+  "characterCost": "9",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "644a9a84687f17adbf3409d6625a24139d3cd727a0db187c470e77bc74616ca8",
+  "audioSha256": "c2f131452043493c1c75c0dd8810bc674f56dafedbdc110ab265b097da960897",
+  "durationSeconds": 4.08,
+  "payload": {
+    "text": "[breathless, relieved voice] Command, Kestrel Two. Freight yard secure. We're holding.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}
