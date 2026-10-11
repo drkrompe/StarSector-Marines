@@ -44,10 +44,12 @@ loop in short, replayable steps: establish a formation; read the muster; choose
 recipients and donors; review consolidation; fill vacancies; issue kit; return to
 work. Advice names real controls and current blockers. It never advances gameplay,
 spends resources, invents a casualty, or requires wasteful orders to progress.
-Present each lesson as a pop-over modal above the Barracks, with Castle's
-portrait and speaker name beside her words. Dim the background and confine
-keyboard/pointer input to the tutorial. Escape and Close / Try It return control
-to the room; Company Guide reopens the lesson sequence. All future speaking
+Present each lesson as an anchored callout beside the real Barracks controls,
+with Castle's portrait and speaker name beside her words. Highlight the next
+control and move the callout clear of it. Keep the room interactive while she
+speaks, including keyboard focus and scrolling. Successful orders advance the
+guide; Next skips any unnecessary action without spending cargo. Escape and
+Dismiss close it; Company Guide resumes the lesson sequence. All future speaking
 characters require their portrait alongside dialogue.
 Her delivery is warm, observant and firm as the situation needs; dry humor is
 occasional, never her default personality. Dismissal persists with the company; Help can reopen it. Existing saves receive
@@ -100,7 +102,8 @@ Focused verification: `:test` with `*SquadConsolidationTest`, `*Barracks*Test`,
 `*LootSettlementServiceTest`. Production `createSnapshots -Psnapshot=barracks-command`
 includes transfer reviews, the guide, empty/large companies, a pointer-driven
 refill/issue flow and Results preparation; guide and transfers also cover 150%.
-The guide is dismissible to restore the formation workspace at enlarged scale.
+The guide remains interactive at enlarged scale and reveals the highlighted order
+within its scrolling pane when the target or viewport changes.
 
 The complete `build` compiled and packaged the mod but its 6,941-test run had 13
 failures. Each failing case was reproduced in an unchanged `cef164b21` checkout:
@@ -114,15 +117,13 @@ failures. Each failing case was reproduced in an unchanged `cef164b21` checkout:
 Live casualty settlement, Armory round trip, save/reload and another deployment
 remain unperformed. Keep the story open for that host acceptance and voice work.
 
-After merging the concurrent Castle debrief work, 33 focused tests passed,
-including `HoundSalvageDebriefTest` and `NarrationSequenceTest`; `shadowJar` and
-all 26 Barracks snapshots succeeded. Results retains the voiced recovery
-conversation alongside the new preparation action.
+The interactive callout is covered by production MLX pointer/keyboard tests:
+select a squad while Castle speaks, move focus outside the guide, dismiss/resume,
+and keep the equipment control revealed and unobstructed after resizing. Guide
+progress follows successful orders and blocked orders stay on the current lesson.
+Production snapshots cover selection, transfers, replenishment and equipment at
+100% and 150% scale. Results retains the recovery conversation alongside the new
+preparation action.
 
-The tutorial now uses Castle's existing portrait in a centered pop-over above a
-dimmed, unchanged Barracks layout. The shared document input scope prevents
-background clicks, focus, captured drags and scroll while open; Escape dismisses,
-and Company Guide reopens it. The 145 retained-UI and Barracks tests pass,
-including the production MLX pointer/keyboard flow and input-scope regression
-cases. The mod packages successfully. All 26 Barracks snapshots render; the
-portrait modal was visually checked at 100% and 150% scale.
+Interactive-guide verification: 149 focused retained-UI, Barracks and consolidation
+tests passed; shadowJar packaged successfully and all 32 Barracks snapshots rendered.
