@@ -26,6 +26,7 @@
 
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD / ARMORY</button>
+      <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">OFFICER DOSSIER</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">COMPANY GUIDE</button>
       <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">MISSIONS</button>
     </div>
@@ -44,7 +45,37 @@
           </button>
         </div>
       </div>
-      <div id="barracks-formation-board" class="formation-board panel console-section">
+      <div id="officer-dossier" class="{command.dossierClasses}">
+        <div id="officer-header" class="officer-header">
+          <img id="officer-portrait" class="officer-portrait" src="{command.officerPortrait}" />
+          <div id="officer-identity" class="officer-identity">
+            <div id="officer-name" class="label heading warm wrap officer-line">{command.officerName}</div>
+            <div id="officer-status" class="label muted wrap officer-line">{command.officerStatus}</div>
+            <div id="officer-progress" class="label heading warm officer-line">{command.officerProgress}</div>
+            <div id="officer-service" class="label officer-line">{command.officerService}</div>
+          </div>
+          <button id="officer-formations" class="flow-button console-action" onclick="{command.closeDossier}">VIEW FORMATIONS</button>
+        </div>
+        <div id="officer-dossier-scroll" class="officer-scroll">
+          <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
+          <div id="officer-scope" class="label muted wrap officer-copy">Specialties follow the squads this officer leads into the operation, including borrowed squads. Independent NCO squads receive no officer specialty. Unavailable officers grant no new field effects.</div>
+          <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
+          <div id="officer-specialty-list" class="officer-list">
+          <div each="specialty in command.officerSpecialties" key="{specialty.id}" id="{specialty.id}" class="officer-specialty console-readout">
+            <div id="{specialty.titleId}" class="label heading warm officer-line">{specialty.title}</div>
+            <div id="{specialty.effectId}" class="label wrap officer-copy">{specialty.effect}</div>
+            <div id="{specialty.nextId}" class="label muted wrap officer-copy">{specialty.next}</div>
+            <button id="{specialty.trainId}" class="officer-train console-action" disabled="{specialty.disabled}" onclick="{specialty.train}">{specialty.button}</button>
+          </div>
+          </div>
+          <div id="officer-traits" class="label muted wrap officer-copy">{command.officerTraits}</div>
+          <div id="officer-history-heading" class="label heading warm officer-line">SERVICE RECORD / LATEST 20 ENTRIES</div>
+          <div id="officer-history-list" class="officer-list" style="{command.officerHistoryStyle}">
+            <div each="note in command.officerHistory" key="{note.id}" id="{note.id}" class="label wrap officer-history-note">{note.text}</div>
+          </div>
+        </div>
+      </div>
+      <div id="barracks-formation-board" class="{command.formationClasses}">
         <div id="barracks-board-title" class="label heading board-title">{command.title}</div>
         <div id="barracks-board-tools" class="board-tools">
           <div id="barracks-search-label" class="label search-label">SEARCH</div>
@@ -88,7 +119,7 @@
           <button id="barracks-page-next" class="tool-button console-action" disabled="{command.nextDisabled}" onclick="{command.next}">NEXT</button>
         </div>
       </div>
-      <div id="barracks-orders" class="orders panel console-section">
+      <div id="barracks-orders" class="{command.ordersPanelClasses}">
         <div id="barracks-order-heading" class="label heading order-heading">{command.selection}</div>
         <div id="barracks-order-tabs" class="board-tools">
           <button id="barracks-preparation" class="tab-button console-action" onclick="{command.preparation}">PREPARATION</button>
@@ -386,5 +417,17 @@
   .detail-tools { flex-direction: row; height: 28px; }
   .back-command { width: 210px; height: 28px; padding: 0px 4px; font-family: heading; text-align: center; }
   .command-feedback { height: 30px; padding: 6px 9px; color: #c3cbbf; background-color: #111914; }
+  .officer-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 14px; gap: 12px; border-width: 1px; overflow: hidden; }
+  .officer-header { flex-direction: row; height: 112px; gap: 16px; }
+  .officer-portrait { width: 100px; height: 100px; }
+  .officer-identity { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
+  .officer-line { height: 23px; }
+  .officer-scroll { flex-direction: column; height: 0px; flex-grow: 1; gap: 12px; overflow: scroll; }
+  .officer-list { flex-direction: column; height: auto; gap: 12px; }
+  #officer-specialty-list { height: 474px; }
+  .officer-history-note { height: 40px; }
+  .officer-copy { height: auto; }
+  .officer-specialty { flex-direction: column; height: 128px; padding: 10px; gap: 6px; border-width: 1px; }
+  .officer-train { width: 220px; height: 28px; text-align: center; font-family: heading; }
   .hidden { width: 0px; height: 0px; padding: 0px; gap: 0px; border-width: 0px; overflow: hidden; opacity: 0; flex-grow: 0; }
 </style>

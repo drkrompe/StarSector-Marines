@@ -1,7 +1,7 @@
 # S10 — Trait mechanics
 
-> Six of eleven traits are enums that do nothing. The Javadoc promises
-> level-up trait rewards that no code path grants.
+> Six legacy recruitment traits still have no functional effect. The Alpha
+> officer career slice supplies a separate promotion-driven specialty path.
 
 Status: PLANNED — follows `s8-roster-legibility.md` so traits are readable first.
 Written: 2026-08-22
@@ -21,12 +21,12 @@ Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
 Inert: `SIEGE_SPECIALIST`, `SAPPER`, `SCOUT`, `COMBAT_ENGINEER`, `VETERAN`,
 `LOGISTICS_CHIEF`.
 
-Separately, `Trait`'s own Javadoc says traits are "granted on recruitment
-**or as a level-up reward**". The only grant site is `CaptainCandidate:60`
-at creation. Promotion awards a rank and a commendation string. **Captains
-are static after hire**, apart from the one-shot moral outlook — which
-means the entire captain XP ladder delivers exactly one kind of reward
-(command breadth) and nothing else.
+The Alpha `officer-careers.md` slice now supplies dossiers, participation XP,
+and three separate two-rank specialties chosen on appointment and promotion.
+The old enum Javadoc already describes recruitment/narrative grants honestly.
+This story still owns giving the remaining legacy traits observable effects
+and any career-shaped offers beyond the initial specialty set. Moral outlook
+remains separate and never grants combat bonuses.
 
 ## Goal
 
@@ -54,7 +54,7 @@ the same on a spreadsheet.
 
 ## Slice 2 — Trait acquisition
 
-Deliver on the promise the enum already makes.
+Extend the initial officer specialty path where career evidence warrants it.
 
 - **Promotion grants a trait choice.** A captain reaching a new `Rank`
   picks from a small offered set. This gives the captain XP ladder a second

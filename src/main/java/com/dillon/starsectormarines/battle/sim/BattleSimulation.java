@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+import java.util.UUID;
+
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
@@ -218,6 +222,15 @@ import java.util.Random;
  * budget. Spatial indexing for target search can come later if we scale up.
  */
 public class BattleSimulation implements BattleControl, AutoCloseable {
+    private final String officerAttemptId = UUID.randomUUID().toString();
+    private List<MarineSeatCommitment> committedMarines = List.of();
+    private OfficerCommandProfile operationOfficer;
+    public String officerAttemptId() { return officerAttemptId; }
+    public List<MarineSeatCommitment> committedMarines() { return committedMarines; }
+    public void setCommittedMarines(List<MarineSeatCommitment> seats) { committedMarines = List.copyOf(seats); }
+    public OfficerCommandProfile operationOfficer() { return operationOfficer; }
+    public void setOperationOfficer(OfficerCommandProfile officer) { operationOfficer = officer; }
+
 
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;

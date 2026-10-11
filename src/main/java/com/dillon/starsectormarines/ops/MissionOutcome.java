@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Frozen snapshot of a completed mission's results — everything the RESULTS
@@ -35,6 +36,8 @@ public final class MissionOutcome {
     public final LastLiftProgress.Outcome lastLiftOutcome;
     public final FreightRunProgress.Outcome freightOutcome;
     public final WaylineHoundRecovery.Report waylineHound;
+    public final String officerAttemptId;
+    public final List<OfficerMissionResult> officers;
     public final boolean        victory;
     public final String         missionId;
     public final String         missionName;
@@ -137,6 +140,8 @@ public final class MissionOutcome {
         this.freightOutcome = b.freightOutcome;
         this.waylineHound = b.waylineHound;
         this.victory            = b.victory;
+        this.officerAttemptId = b.officerAttemptId;
+        this.officers = List.copyOf(b.officers);
         this.missionId          = b.missionId;
         this.missionName        = b.missionName;
         this.missionType        = b.missionType;
@@ -201,6 +206,12 @@ public final class MissionOutcome {
      * {@link #build()}, drop it.
      */
     public static final class Builder {
+        private String officerAttemptId = UUID.randomUUID().toString();
+        private List<OfficerMissionResult> officers = List.of();
+        public Builder officers(String attemptId, List<OfficerMissionResult> values) {
+            officerAttemptId = attemptId; officers = List.copyOf(values); return this;
+        }
+
 
         private LastLiftProgress.Outcome lastLiftOutcome;
         private FreightRunProgress.Outcome freightOutcome;

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
+
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 
 import com.dillon.starsectormarines.marine.BarracksFlowCompany;
@@ -1617,7 +1619,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         images.add(new SnapshotArtifact("results-prepare-company.png",
                 renderMissionFlow(context, renderer, MISSION_RESULTS_COMPONENTS,
                         ResultsScreen.ROOT_COMPONENT, ResultsScreen.previewProps(true, true))));
-        for (String state : List.of("command", "profiles", "quarters", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
+        for (String state : List.of("dossier", "dossier-trained", "command", "profiles", "quarters", "empty", "large", "transfers", "guide", "guide-transfer", "guide-replenish", "guide-equipment")) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
             int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
@@ -1643,10 +1645,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     snapshotEquipmentResources(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             if (state.equals("command") || state.equals("profiles")) {
                 viewModel.command().selectCommand(captain.id());
+                ((Runnable) viewModel.command().props().get("closeDossier")).run();
                 viewModel.command().toggle(squads.get(0).id());
                 viewModel.command().toggle(squads.get(1).id());
                 viewModel.command().toggle(squads.get(2).id());
                 viewModel.command().selectProfile(profile.id());
+            }
+            if (state.startsWith("dossier")) {
+                if (state.equals("dossier-trained")) {
+                    captain.train(OfficerSpecialty.TACTICAL_COVER);
+                    captain.train(OfficerSpecialty.RECOVERY_PLANNING);
+                    captain.commendations().add("Day 98: Wayline / victory / +700 XP / ACTIVE.");
+                    captain.career().record("snapshot-attempt", true, 700);
+                    captain.addXp(700);
+                }
+                viewModel.command().selectCommand(captain.id());
             }
             if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
             if (state.equals("transfers")) {
@@ -1695,8 +1708,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 bindings.update(document, instance, viewModel, hints);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
-                if (state.startsWith("guide") || state.equals("transfers")) {
+                if (state.startsWith("dossier") || state.startsWith("guide") || state.equals("transfers")) {
                     images.add(new SnapshotArtifact("barracks-" + state + "-150pct.png",
+                            renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
+                }
+                if (state.equals("dossier-trained")) {
+                    var pane = instance.requireElement("officer-dossier-scroll");
+                    pane.scrollTop(pane.box().maxScrollTop());
+                    document.advance(0f);
+                    images.add(new SnapshotArtifact("barracks-dossier-record-150pct.png",
                             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1.5f)));
                 }
                 if (state.equals("large")) {
@@ -1749,6 +1769,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f);
             click.accept("guide-dismiss");
             click.accept("command:" + company.captain.id());
+            frames.add(new SnapshotArtifact("flow-officer-dossier.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+            click.accept("officer-specialty-TACTICAL_COVER-train");
+            if (company.captain.career().level(OfficerSpecialty.TACTICAL_COVER) != 1)
+                throw new IllegalStateException("Officer training did not commit through the dossier");
+            frames.add(new SnapshotArtifact("flow-officer-trained.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
+            click.accept("officer-formations");
             for (int i = 0; i < 2; i++) click.accept("formation:" + company.squads.get(i).id() + ":mark");
             frames.add(new SnapshotArtifact("flow-01-selected.png", renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
             openSpecSheet(document, hints, 1920, 1080, instance.requireElement("formation:" + company.squads.get(2).id()));

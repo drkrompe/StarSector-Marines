@@ -261,6 +261,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             rows.add(row("result-boats-lost", trimLabel(copy.apply("resultsBoatsLostLabel")),
                     formatBoatsLost(outcome), "tone-danger"));
         }
+        if (!outcome.officers.isEmpty()) {
+            for (OfficerMissionResult officer : outcome.officers) {
+                rows.add(row("result-officer-" + officer.officer().id(), "Officer",
+                        officer.summary(), statusTone(officer.status())));
+            }
+            return List.copyOf(rows);
+        }
         if (outcome.captainId != null) {
             rows.add(row("result-captain", trimLabel(copy.apply("resultsCaptainLabel")),
                     formatCaptainStatus(outcome), statusTone(outcome.newCaptainStatus)));

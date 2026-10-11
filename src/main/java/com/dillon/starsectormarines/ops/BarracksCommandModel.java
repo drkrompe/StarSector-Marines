@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
+import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
@@ -55,6 +57,7 @@ public final class BarracksCommandModel {
     private boolean targetChosen;
     private boolean attention;
     private boolean detail;
+    private boolean dossier;
     private boolean editing;
     private boolean organizing;
     private boolean choosingDonors;
@@ -92,6 +95,29 @@ public final class BarracksCommandModel {
         props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
         bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
+        bind(reactor, "formationClasses", () -> dossier ? "hidden" : "formation-board panel console-section");
+        bind(reactor, "ordersPanelClasses", () -> dossier ? "hidden" : "orders panel console-section");
+        bind(reactor, "dossierClasses", () -> dossier ? "officer-dossier panel console-section" : "hidden");
+        bind(reactor, "dossierButtonClasses", () -> selectedOfficer() == null ? "hidden" : "flow-button console-action");
+        props.put("openDossier", (Runnable) () -> { dossier = selectedOfficer() != null; refresh(); });
+        props.put("closeDossier", (Runnable) () -> { dossier = false; refresh(); });
+        bind(reactor, "officerName", () -> selectedOfficer() == null ? "" : captainName(selectedOfficer()));
+        bind(reactor, "officerPortrait", () -> selectedOfficer() == null || selectedOfficer().portraitSprite() == null
+                ? "graphics/ui/console/service-plate.svg" : selectedOfficer().portraitSprite());
+        bind(reactor, "officerStatus", this::officerStatus);
+        bind(reactor, "officerProgress", this::officerProgress);
+        bind(reactor, "officerService", () -> selectedOfficer() == null ? "" : selectedOfficer().career().deployments()
+                + " operations / " + selectedOfficer().career().victories() + " victories / "
+                + selectedOfficer().career().earnedXp() + " mission XP recorded");
+        bind(reactor, "officerSquads", () -> selectedOfficer() == null ? "" : "Home command: " + lineSquads().stream()
+                .filter(squad -> command.equals(squad.homeCaptainId())).map(MarineSquad::name)
+                .reduce((a, c) -> a + ", " + c).orElse("No squads assigned"));
+        bind(reactor, "officerTraining", () -> selectedOfficer() == null ? "" : selectedOfficer().career().availablePoints(selectedOfficer().rank())
+                + " TRAINING POINTS / one on appointment, one per promotion / choices are permanent");
+        bind(reactor, "officerSpecialties", this::officerSpecialties);
+        bind(reactor, "officerTraits", this::officerTraits);
+        bind(reactor, "officerHistory", this::officerHistory);
+        bind(reactor, "officerHistoryStyle", () -> "height: " + (officerHistory().size() * 52) + "px;");
         cards = reactor.computed(() -> { revision.get(); return squads(); });
         props.put("squads", cards);
         bind(reactor, "profiles", this::profiles);
@@ -130,7 +156,7 @@ public final class BarracksCommandModel {
         bind(reactor, "guideHelpDisabled", () -> CompanyManagementGuide.lines().isEmpty());
         bind(reactor, "guidePreviousDisabled", () -> !guideVisible() || guideStep == 0);
         bind(reactor, "guideNextDisabled", () -> !guideVisible() || guideStep + 1 >= CompanyManagementGuide.lines().size());
-        props.put("guideHelp", (Runnable) () -> { guideOpen = true; refresh(); });
+        props.put("guideHelp", (Runnable) () -> { dossier = false; guideOpen = true; refresh(); });
         props.put("guidePrevious", (Runnable) () -> { guideStep = Math.max(0, guideStep - 1); refresh(); });
         props.put("guideNext", (Runnable) () -> { guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
         props.put("guideDismiss", (Runnable) this::dismissGuide);
@@ -219,9 +245,9 @@ public final class BarracksCommandModel {
     public boolean inspecting() { revision.get(); return detail; }
     public void refresh() { revision.update(n -> n + 1); }
     public void leave() { reviewedTransfers = null; editing = false; targetChosen = false; refresh(); }
-    public void showOverview() { detail = false; refresh(); }
+    public void showOverview() { detail = false; dossier = false; refresh(); }
     public void inspect(String id) { inspectedId = id; inspect.accept(id); detail = true; refresh(); }
-    public void selectCommand(String id) { command = id; resetSelection(); }
+    public void selectCommand(String id) { command = id; dossier = selectedOfficer() != null; resetSelection(); }
     public void selectProfile(String id) { profileId = id; refresh(); }
     public void toggle(String id) {
         MarineSquad squad = roster.squadById(id);
@@ -268,6 +294,67 @@ public final class BarracksCommandModel {
     }
     private int pages() { return Math.max(1, (filtered().size() + PAGE_SIZE - 1) / PAGE_SIZE); }
     private int pageNumber() { return Math.min(page, pages() - 1); }
+    private MarineCaptain selectedOfficer() { return roster.byId(command); }
+    private String officerStatus() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return "";
+        return officer.status() + " / " + officer.rank().squadCommandCap() + " coordinated squads"
+                + (officer.status() == Status.INJURED ? " / returns day " + (int) Math.ceil(officer.injuredUntilDay()) : "")
+                + (officer.status() != Status.ACTIVE ? " / unavailable for new field command" : "");
+    }
+    private String officerProgress() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return "";
+        return officer.rank().isTerminal() ? "Colonel / highest command rank"
+                : officer.xp() + " / " + officer.rank().xpToNext() + " XP to " + officer.rank().promote().displayName();
+    }
+    private List<Map<String, Object>> officerSpecialties() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return List.of();
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (OfficerSpecialty specialty : OfficerSpecialty.values()) {
+            int level = officer.career().level(specialty);
+            String id = "officer-specialty-" + specialty.name();
+            rows.add(row("id", id, "titleId", id + "-title", "effectId", id + "-effect",
+                    "nextId", id + "-next", "trainId", id + "-train",
+                    "title", specialty.label() + " / " + level + " of 2",
+                    "effect", level == 0 ? "Not trained" : specialty.effect(level),
+                    "next", level == 2 ? "Mastered" : "Next: " + specialty.effect(level + 1),
+                    "button", level == 2 ? "MASTERED" : "TRAIN " + (level + 1) + " / 1 POINT",
+                    "disabled", officer.status() == Status.KIA || level == 2 || officer.career().availablePoints(officer.rank()) == 0,
+                    "train", (Runnable) () -> {
+                        if (officer.train(specialty)) {
+                            officer.commendations().add("Day " + (int) currentDay.getAsDouble() + ": Trained "
+                                    + specialty.label() + " " + officer.career().level(specialty) + ".");
+                            changed.run(); refresh();
+                        }
+                    }));
+        }
+        return rows;
+    }
+    private String officerTraits() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null || officer.traits().isEmpty()) return "Background: no recorded traits.";
+        return "Background: " + officer.traits().stream().map(trait -> switch (trait) {
+            case NATURAL_LEADER -> "Natural Leader (+50% officer mission XP)";
+            case SALVAGE_EXPERT -> "Salvage Expert (operation commander: +25 salvage recovery points, 10% high-value chance)";
+            case FIELD_MEDIC -> "Field Medic (named-personnel effect pending)";
+            case IDEALIST -> "Idealist (outlook)";
+            case CYNICAL -> "Cynical (outlook)";
+            default -> trait.name().replace('_', ' ') + " (background; no passive effect yet)";
+        }).reduce((a, c) -> a + "; " + c).orElse("");
+    }
+    private List<Map<String, Object>> officerHistory() {
+        MarineCaptain officer = selectedOfficer();
+        if (officer == null) return List.of();
+        List<Map<String, Object>> rows = new ArrayList<>();
+        List<String> notes = officer.commendations();
+        for (int i = notes.size() - 1; i >= Math.max(0, notes.size() - 20); i--)
+            rows.add(row("id", "officer-history-" + i, "text", notes.get(i)));
+        if (rows.isEmpty()) rows.add(row("id", "officer-history-empty", "text", "Service record begins with the next operation. Existing commendations are retained."));
+        return rows;
+    }
+
     private List<Map<String, Object>> commands() {
         List<Map<String, Object>> rows = new ArrayList<>();
         rows.add(commandRow("all", null, lineSquads()));
@@ -467,7 +554,7 @@ public final class BarracksCommandModel {
                 : "Issue blocked. Check personnel readiness, known equipment and the combined cargo bill.";
         changed.run();
     }
-    public boolean guideVisible() { return guideOpen && !CompanyManagementGuide.lines().isEmpty(); }
+    public boolean guideVisible() { return guideOpen && !dossier && !CompanyManagementGuide.lines().isEmpty(); }
     public void dismissGuide() { guideOpen = false; roster.dismissManagementGuide(); refresh(); }
     public String guideTargetId() {
         if (detail) return "barracks-back-command";

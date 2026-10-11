@@ -175,8 +175,10 @@ Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 10,
 limits bound named-officer coordination, not whether the force may deploy.
 A squad outside available officer capacity acts independently under its own
 NCO and retains ordinary mission execution. Named officers coordinate their
-stable group's tasks and advance in Conquest; they grant no passive troop-stat
-bonus. Other mission adapters retain their existing command allocation.
+stable group's tasks and advance in Conquest. Player-chosen officer specialties
+also provide explicit, launch-frozen passive effects; the Barracks dossier
+shows their numbers and scope. Other mission adapters retain their existing
+command allocation.
 Enlisted rank follows squad and team billets rather than accumulating as an independent
 promotion track.
 
@@ -879,10 +881,39 @@ command model's perspective; personnel selection owns whether deploying nobody
 is allowed. Stationing remains a single-officer posting and does not use the
 task-force model.
 
-Officer consequences have not yet caught up with officer deployment:
-`MissionOutcome` still resolves only the operation commander. Per-officer
-outcomes remain in `c13-the-task-force.md`; bulk home-command organization
-is staged in the Fleet Armory company gallery.
+Each committed marine carries a value-only officer profile. Mission outcomes
+credit officers whose marines actually reached the field or were lost aboard
+company lift, plus operation command. Held-back home officers receive no credit.
+Their rank, XP and specialties come from launch, never from later assignments.
+Each result carries a unique attempt receipt so reopening a result cannot repeat
+an officer's XP, promotion, fate or commendation. Repeatable jobs may share a
+mission id; their attempts do not share receipts. Defeat awards 50 officer XP
+when troops engaged; victory retains payout/100, or payout/150 with more than
+two casualties in that officer's element. Natural Leader multiplies that
+individual officer's award by 1.5. Defeat fate uses each officer's own engaged
+strength and losses; operation command without an element uses the whole force.
+
+The Barracks portraits open officer dossiers: assigned squads, status, command
+capacity, rank progress, recorded operations, existing traits, specialty choices
+and the latest twenty commendations. VIEW FORMATIONS returns to that command's
+filtered squad list. One permanent training choice is available on appointment
+and one per promotion, including cadre-earned promotions. Existing officers
+receive their current rank's equivalent budget without invented service history.
+Each of three specialties has two ranks:
+
+- Tactical Cover: incoming accuracy multiplied by 0.95/0.90 for marines in this
+  officer's actual deployed command. This composes with issued armor; it does
+  not change equipment ownership or the displayed equipment definition.
+- Recovery Planning: WIA duration multiplied by 0.85/0.70 for those same named
+  marines. Wounded remain wounded and retain their billets until recovery.
+- Salvage Stewardship: +10/+20 recovery percentage points on victory. Salvage
+  is one company pool, so only the strongest participating specialist applies;
+  it adds to existing salvage-expert/fleet-hardware modifiers.
+
+Unavailable officers and independent NCO groups provide no new field specialty
+effects. Moral outlook and recruitment traits remain separate. The dossier
+explicitly identifies inert legacy traits rather than promising effects.
+`officer-careers.md` and `c13-the-task-force.md` retain live acceptance work.
 
 ## Campaign-map home
 
@@ -1041,7 +1072,7 @@ production vehicle deployment seam exists.
 ## Extension boundaries
 
 Future extensions may add a shared formation read model, safe late-arrival
-rejoin, participating-officer outcomes, broader formation grouping,
+rejoin, live acceptance of participating-officer outcomes, broader formation grouping,
 and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.

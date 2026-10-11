@@ -25,6 +25,7 @@ public class MarineCaptain implements Serializable {
     private String portraitSprite;
     private Rank rank;
     private int xp;
+    private OfficerCareer career;
     private Status status;
     /** When status == INJURED, the in-game day (Sector clock) the captain returns to ACTIVE. */
     private float injuredUntilDay;
@@ -61,6 +62,13 @@ public class MarineCaptain implements Serializable {
     public Rank rank() { return rank; }
     public void setRank(Rank rank) { this.rank = rank; }
     public int xp() { return xp; }
+    public OfficerCareer career() {
+        if (career == null) career = new OfficerCareer();
+        return career;
+    }
+    public boolean train(OfficerSpecialty specialty) {
+        return status != Status.KIA && career().train(specialty, rank);
+    }
     public void addXp(int amount) { this.xp += amount; }
 
     public Status status() { return status; }

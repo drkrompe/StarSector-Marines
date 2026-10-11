@@ -1,5 +1,12 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
+import java.util.stream.Collectors;
+
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -53,6 +60,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleFixtureJsonTest {
+    @Test void launchRoundTripPreservesOfficerSpecialtiesAndAlreadyModifiedArmor() throws Exception {
+        var roster = new MarineRoster(); roster.bootstrapInitialComplement(12);
+        var officer = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f); roster.add(officer);
+        officer.train(OfficerSpecialty.TACTICAL_COVER); officer.train(OfficerSpecialty.RECOVERY_PLANNING);
+        var ids = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
+        var deployment = CampaignMarineDeployment.freezeSelection(roster, ids, 12, officer);
+        var fixture = new BattleLaunchFixture(canonicalFixture(), new BattleLaunchOverlay(0,
+                deployment.commitments(), List.of(), List.of(), List.of(), 0));
+        assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
+        assertEquals(deployment.seat(0).armorIncomingAccuracyMult,
+                CampaignMarineDeployment.fromCommitments(deployment.commitments()).seat(0).armorIncomingAccuracyMult);
+    }
+
 
     @Test
     void readsLegacyV2LaunchWithFullCapacityIndependentConstruction() throws Exception {

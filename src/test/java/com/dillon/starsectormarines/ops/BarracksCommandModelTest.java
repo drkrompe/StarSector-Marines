@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiKey;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -136,6 +137,25 @@ class BarracksCommandModelTest {
                 click(document, instance, "barracks-back-command");
                 assertFalse(model.inspecting());
                 assertEquals(1, model.selected().size());
+                var officer = new MarineCaptain("Vale", null, Rank.LIEUTENANT, 0f);
+                roster.add(officer); model.refresh(); instance.flush(); document.advance(0f);
+                click(document, instance, "command:" + officer.id());
+                assertEquals("officer-dossier panel console-section", value(model, "dossierClasses"));
+                assertTrue(instance.requireElement("officer-traits").box().borderBox().y()
+                        >= instance.requireElement("officer-specialty-SALVAGE_STEWARDSHIP").box().borderBox().bottom(),
+                        "Service record must follow all specialty cards without overlapping");
+                var trainingBox = instance.requireElement("officer-specialty-TACTICAL_COVER-train").box().borderBox();
+                assertEquals("officer-specialty-TACTICAL_COVER-train", document.elementAt(trainingBox.x() + trainingBox.width() / 2f,
+                        trainingBox.y() + trainingBox.height() / 2f).id());
+                click(document, instance, "officer-specialty-TACTICAL_COVER-train");
+                assertEquals(1, officer.career().level(OfficerSpecialty.TACTICAL_COVER));
+                assertEquals(0, officer.career().availablePoints(officer.rank()));
+                click(document, instance, "officer-specialty-TACTICAL_COVER-train");
+                assertEquals(1, officer.career().level(OfficerSpecialty.TACTICAL_COVER), "Disabled training cannot spend twice");
+                click(document, instance, "officer-formations");
+                assertEquals("hidden", value(model, "dossierClasses"));
+                click(document, instance, "barracks-officer-dossier");
+                assertEquals("officer-dossier panel console-section", value(model, "dossierClasses"));
             }
         } finally { SvgAsset.setSource(previous); CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }
