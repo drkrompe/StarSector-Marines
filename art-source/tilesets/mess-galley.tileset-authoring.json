@@ -1,0 +1,141 @@
+{
+  "sheetName": "mess-galley",
+  "sheet": "art-source/tilesets/mess-galley.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "mess-galley",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/mess-galley.png",
+  "note": "Geometry-first built-in ImageGen reskin. Measured full canvases on unchanged 1254px RGBA raw; separate meals fit within the tabletop. See mess-galley.README.md.",
+  "entries": [
+    {
+      "id": "mess-galley.table",
+      "rect": [
+        86,
+        44,
+        420,
+        144
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "included": true
+    },
+    {
+      "id": "mess-galley.meals",
+      "rect": [
+        672,
+        28,
+        510,
+        170
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "mess-galley.stool",
+      "rect": [
+        123,
+        339,
+        160,
+        160
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "mess-galley.range",
+      "rect": [
+        696,
+        300,
+        152,
+        280
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "mess-galley.prep",
+      "rect": [
+        86,
+        608,
+        152,
+        284
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "mess-galley.sink",
+      "rect": [
+        696,
+        608,
+        152,
+        284
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "mess-galley.cold-store",
+      "rect": [
+        86,
+        924,
+        152,
+        280
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "mess-galley.servery",
+      "rect": [
+        696,
+        924,
+        170,
+        280
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    }
+  ]
+}

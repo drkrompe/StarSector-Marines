@@ -203,11 +203,13 @@ public final class RoomFittings {
     /** Ship material fixtures, while preserving authored layouts as the first choice. */
     public static RoomFitting forShipRoom(RoomPurpose purpose, RoomShape shape, RoomFit fit) {
         boolean berthing = purpose == RoomPurpose.BARRACKS || purpose == RoomPurpose.CREW_QUARTERS;
-        if (purpose != RoomPurpose.VEHICLE_BAY && purpose != RoomPurpose.ARMORY && !berthing)
+        if (purpose != RoomPurpose.VEHICLE_BAY && purpose != RoomPurpose.ARMORY && !berthing
+                && purpose != RoomPurpose.MESS_HALL)
             return forRoom(purpose, shape, fit);
         RoomLayout layout = RoomLayouts.installed().find(purpose, shape, fit);
         if (layout != null) return new AuthoredFitting(layout);
         if (berthing) return BerthingFitting.shipboard(purpose);
+        if (purpose == RoomPurpose.MESS_HALL) return MessHallFitting.shipboard();
         return purpose == RoomPurpose.ARMORY ? ArmoryFitting.shipboard() : VehicleBayFitting.shipboard();
     }
 
