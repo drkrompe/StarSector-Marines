@@ -2,26 +2,35 @@
   "documentation": "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
   "settings": {
     "model_id": "eleven_text_to_sound_v2",
-    "duration_seconds": 0.5,
+    "duration_seconds": 0.8,
     "prompt_influence": 0.65,
     "loop": false
   },
   "clips": [
     {
-      "id": "marines_mech_step_01",
-      "prompt": "One single restrained footfall of a small industrial walking mech on firm earth. Immediate compact low thud with a muted metal pad clack, weighty but light and understated. Dry close-miked game foley one-shot, short clean decay into silence. Exactly one impact, no repeating steps, no ambience, no voice, no music, no explosion, no cinematic boom."
+      "id": "marines_mech_land_01",
+      "kind": "impact",
+      "prompt": "A single massive muffled ground impact: many tons of solid steel weight driving into dense packed earth. Deep broad low-frequency THUD, compressed soil and very short heavy subterranean rumble. Dense physical mass, soft dark attack, no bright click or metal ringing. One isolated impact immediately followed by natural low decay to silence. Dry game foley. No footsteps sequence, no machinery, no hiss, no explosion, no voice, no music."
     },
     {
-      "id": "marines_mech_step_02",
-      "prompt": "One isolated light mechanical foot stomp on hard dusty ground. A tight rounded low knock under a small dull steel sole tap, slightly gritty contact texture. Subtle compact robot footfall for a strategy game. Attack immediately, decay quickly into silence. Dry mono foley, no room echo, no repeated footsteps, no speech, no music, no explosion."
+      "id": "marines_mech_land_02",
+      "kind": "impact",
+      "prompt": "One isolated multi-ton steel press foot landing heavily on compacted ground. Deep dull bassy WHUMP, thick low-mid body, muffled earth compression with a short weighty rumbling decay. The sense of an enormous mass abruptly settling. Immediate single impact, close dry recording. No metallic clack, no bright ring, no repeated impacts, no pneumatic sound, no explosion, no music or ambience."
     },
     {
-      "id": "marines_mech_step_03",
-      "prompt": "Single soft weighty landing of an armored robotic foot on packed ground. Short cushioned bass thump and a tiny metallic heel click, restrained industrial foley. Immediate attack, very short tail, close and dry. One isolated contact only. No walking sequence, no ambience, no voice, no music, no huge boom or ringing metal."
+      "id": "marines_mech_land_03",
+      "kind": "impact",
+      "prompt": "Single heavy earth-damped industrial impact. A huge steel block weighing several tons drops a short distance onto hard soil: a dark rounded low thoom, powerful muffled bass and thick body, brief dirt crunch underneath, short deep decay. Exactly one contact at the start. Dry isolated foley. No ticking or ringing metal, no motor or air hiss, no explosion, no walking rhythm, no speech or music."
     },
     {
-      "id": "marines_mech_step_mechanism",
-      "prompt": "One very short quiet mechanical joint settling under load: a compact hydraulic piston tick and damped metal linkage clack. Dry close-miked robot foley layer, delicate and restrained, immediate attack and short decay to silence. No foot impact or bass thump, no continuous motor, no tonal whine, no repeated actions, no ambience, no speech, no music."
+      "id": "marines_mech_lift_01",
+      "kind": "pneumatic",
+      "prompt": "One short pneumatic actuator stroke lifting a heavy mechanical leg: compressed air releases in a low breathy pshht with a subdued hydraulic cylinder sliding under load. Soft valve opening, short pressure exhale tapering to silence. Dry isolated industrial foley, a single quick operation about a quarter second. No foot impact, no thud, no clang, no repeated rhythm, no ambience, no voice or music."
+    },
+    {
+      "id": "marines_mech_lift_02",
+      "kind": "pneumatic",
+      "prompt": "One brief heavy robot leg hydraulic lift. A compact low-pitched pneumatic shuff and muted piston friction as a loaded ram retracts, then pressure fades cleanly. A single short dry actuator movement, subtle mechanical air texture. No landing impact, no bass boom, no metallic strike, no repeating machinery or footstep sequence, no ambience, no music, no voice."
     }
   ]
 }

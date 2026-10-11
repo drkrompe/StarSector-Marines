@@ -1,14 +1,17 @@
 {
-  "recipe": "prepare_mech_footsteps.py: mono 44.1kHz, 50Hz high-pass, 7kHz low-pass; onset trim; peak-normalized layers; mechanism at 22% +25ms; mix peak -6dBFS; 1ms/50ms fades",
+  "recipe": "prepare_mech_footsteps.py: separate mono 44.1kHz masters; onset trim; impact 28-1100Hz, up to 700ms, peak -4.5dBFS; pneumatic 140-3200Hz, up to 300ms, peak -8dBFS; 2ms/60ms fades; NO layer mixing",
   "sourceSha256": {
-    "marines_mech_step_01.mp3": "dffadd7871e0cad558c2ed227fe904783be830632e613e198eccf2a0af7764a2",
-    "marines_mech_step_02.mp3": "5bbb8cc413e5bacc9f1e3c0d73795932e1db81e458806c7b3be3757a9e992f4c",
-    "marines_mech_step_03.mp3": "46d3e02a55a90857302b00f4d51fd8278fdc00cf85028325e2b97cd53da0d86e",
-    "marines_mech_step_mechanism.mp3": "49ee4aa03871ff1865918f2bda774b5b0bfacf57c466dee495421d7acbf929a3"
+    "marines_mech_land_01.mp3": "a1d8981f6e797acd9c93dd67b25406c10cd6956a6430f650493629fb0c1a9ac6",
+    "marines_mech_land_02.mp3": "9595b6470471ee192feae4d0f0ecb074e0b8cec689f0f5be7d2fd7ac61ec8d21",
+    "marines_mech_land_03.mp3": "88850d87ad8fb81c51b13ab3d5f88e3a1476b0102f51265a7c5541a584703db8",
+    "marines_mech_lift_01.mp3": "9cfe94179a3d095f8a69cf84c17268f07fdcd23e381b216ee981654aef5d48e4",
+    "marines_mech_lift_02.mp3": "ce0313541f3e7de6e56b6b81412b6f20b41e2f59d70fd26c1adc9ca739dfe12a"
   },
   "masterSha256": {
-    "marines_mech_step_01": "48262e7e01a6ae99f78a10ef05d0e9d7b5858babf1107ebce1dd065c118a26ae",
-    "marines_mech_step_02": "5068c546515505b628e4e180586be86848d6a3b62c8181c9b6051d3e084eb6ce",
-    "marines_mech_step_03": "18d9791fcec9e382b99c2c5b071b1e5ba463e0b40b8c9b3c071d3e4c54646a27"
+    "marines_mech_land_01": "d071cc19dc3ce1731d049499a83e8a43ebaea617fb8f4e1afdd371b41ce7e03f",
+    "marines_mech_land_02": "7ac9f63741c0f562f13c58d89edc01dbfb114a39aeace13323e937ac4f465089",
+    "marines_mech_land_03": "63b009533c52fa51b19d903be74d5aa1d5d015b21095073ee73f44c1601efd4f",
+    "marines_mech_lift_01": "3f4b34f7d0359d4a7e8ff89a47d72dcb664cb473fec7caf7c99304a49d96902d",
+    "marines_mech_lift_02": "e0f8da93f234c9f65af6513db63c35d6121af38d5114fed46401e2e2e71e53de"
   }
 }

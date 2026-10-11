@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — footfall sound follows planted-foot gait and presentation visibility.
+Updated: 2026-10-11 — independent pneumatic lift and heavy ground-impact sounds follow each foot's gait transitions.
 
 ## Purpose
 
@@ -271,14 +271,19 @@ the feet, then the ordinary upper assembly and its equipment layers.
 This gait is fixed-tick presentation state only: it does not move collision,
 pathing, aim, or targeting authority.
 
-A completed foot plant also owns the walking sound. Short ground contact and
-quiet linkage layers form one positional footfall, varied independently of the
-battle's random source; heavier chassis lower its pitch and raise its weight.
-Spawn, teleport, and a stationary planted stance are silent. Audio consumes
-contacts even when hidden or distant, so revealing a unit or returning the
-camera cannot replay old steps. Only nearby, visible contacts reach the mix,
-with the closest contacts taking a bounded share of each presentation frame.
-Both battlefield hosts consume the same gait; neither invents a walking timer.
+Each foot's lift and landing own separate positional sounds. Lift starts a short
+pneumatic stroke; touchdown starts a heavy muffled ground impact. These remain
+independent one-shots with separate gain, pitch, variation, and admission budgets,
+so machinery never spends the impact budget. Their overlap comes from actual
+gait transitions, never a baked walking recording or a second walking timer.
+Heavier chassis lower impact pitch and raise its weight; variation is independent
+of the battle's random source. Spawn, teleport, and a stationary planted stance
+are silent. Audio consumes transitions even when hidden or distant, so revealing
+a unit or returning the camera cannot replay old steps. A frame spanning several
+ticks retains the newest landing and any lift still in progress, discarding
+finished pneumatic strokes. Only nearby, visible events reach the mix, with the
+closest events taking a bounded share of each phase's presentation budget.
+Both battlefield hosts consume the same per-foot gait.
 
 ## Ground clearance and arrival
 
