@@ -247,6 +247,8 @@ public final class VehicleTransportService {
     /** Whether a click at ({@code cellX}, {@code cellY}) lands on this vehicle's hull. */
     public boolean pointsAt(long vehicleId, int cellX, int cellY) {
         GroundBody body = convoy.body(vehicleId);
+        // A selection can outlive its vehicle (despawned, or not yet registered).
+        if (body == null) return false;
         return Math.abs(body.x - (cellX + 0.5f)) <= HULL_CLICK_TOLERANCE_CELLS
                 && Math.abs(body.y - (cellY + 0.5f)) <= HULL_CLICK_TOLERANCE_CELLS;
     }
