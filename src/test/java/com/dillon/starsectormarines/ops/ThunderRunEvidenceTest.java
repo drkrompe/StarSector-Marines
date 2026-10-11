@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -71,6 +75,23 @@ class ThunderRunEvidenceTest {
             var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, 24);
             var profile = new TargetProfile(0,0,0,0,"",Set.of(),SurfacePalette.VERDANT,SettlementLink.ROAD);
             try (var sim = MissionLaunch.supplyRouteBuilder(route,fixture.getLong("seed"),manifest,profile).get()) {
+                // Measure the intact map, before any destruction changes its routes.
+                var grid = sim.getGrid();
+                var clearance = VehicleClearance.erode(grid,
+                        VehicleClearance.radiusForWidth(VehicleType.CARGO_CARRIER.visualWidthCells));
+                boolean[] vehicleRoute = new boolean[grid.getWidth() * grid.getHeight()];
+                for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++)
+                    vehicleRoute[grid.index(x,y)] = clearance.isPassable(x,y);
+                assertFalse(Paths.isEmpty(GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute)),
+                        "Freight chassis must fit the intended road");
+                // Exclude only the checkpoint's road band from this diagnostic search.
+                // A path would expose a real driveable bypass, not an AI route preference.
+                for (int y = 68; y <= 82; y++) for (int x = 294; x <= 311; x++)
+                    vehicleRoute[grid.index(x,y)] = false;
+                boolean bypass = !Paths.isEmpty(GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute));
+                if (bypass) Files.writeString(dir.resolve("bypass.json"),new JSONArray(
+                        GridPathfinder.findPath(grid,21,75,318,75,null,vehicleRoute)).toString());
+                assertFalse(bypass, "Freight must not fit around the intact checkpoint");
                 deployment.applyToAuthoredPlayerLift(sim);
                 assertTrue(route.begin(mission.id));
                 int seats = 0;
@@ -193,6 +214,7 @@ class ThunderRunEvidenceTest {
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("marinesAlive",count(sim,Faction.MARINE)).put("militiaAlive",count(sim,Faction.ALLY)).put("raidersAlive",count(sim,Faction.DEFENDER))
                         .put("roadGunsDestroyedAt", new JSONObject(gunDown.entrySet().stream().collect(Collectors.toMap(e -> String.valueOf(e.getKey()), Map.Entry::getValue))))
+                        .put("intactFreightBypass",bypass).put("freightRoadClear",true)
                         .put("beats",beats).put("escorts",escortReports).put("firstFinalShot",firstFinalShot);
                 if(column.outcome()!=null) {
                     int paid=route.settle(mission.id,sim.getWinner()==Faction.MARINE,null,column.outcome());
