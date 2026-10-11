@@ -81,6 +81,17 @@ public final class RoomLayoutJson {
                         enumValue(GroundKind.class, op.optString("kind", null), "ground kind"));
             case "pave":
                 return new LayoutOp.Paving(x, y, requireId(op, index));
+            case "partition":
+                return new LayoutOp.Partition(x, y, span(op, "spanX"), span(op, "spanY"), requireId(op, index));
+            case "assembly":
+                List<LayoutOp.Layer> layers = new ArrayList<>();
+                JSONArray entries = op.optJSONArray("layers");
+                if (entries != null) for (int i = 0; i < entries.length(); i++) {
+                    JSONObject layer = entries.optJSONObject(i);
+                    if (layer == null) throw new IllegalArgumentException("room layout: invalid assembly layer");
+                    layers.add(new LayoutOp.Layer(layer.optInt("x"), layer.optInt("y"), requireId(layer, index)));
+                }
+                return new LayoutOp.Assembly(x, y, requireId(op, index), layers);
             case "fixture":
                 return new LayoutOp.Fixture(x, y, requireId(op, index),
                         op.has("affordance")
@@ -231,6 +242,15 @@ public final class RoomLayoutJson {
         } else if (op instanceof LayoutOp.Paving paving) {
             json.put("op", "pave").put("x", paving.x()).put("y", paving.y())
                     .put("id", paving.doodadId());
+        } else if (op instanceof LayoutOp.Partition wall) {
+            json.put("op", "partition").put("x", wall.x()).put("y", wall.y())
+                    .put("spanX", wall.spanX()).put("spanY", wall.spanY()).put("id", wall.blockId());
+        } else if (op instanceof LayoutOp.Assembly assembly) {
+            json.put("op", "assembly").put("x", assembly.x()).put("y", assembly.y()).put("id", assembly.baseId());
+            JSONArray layers = new JSONArray();
+            for (LayoutOp.Layer layer : assembly.layers())
+                layers.put(new JSONObject().put("x", layer.x()).put("y", layer.y()).put("id", layer.doodadId()));
+            json.put("layers", layers);
         } else if (op instanceof LayoutOp.Fixture fixture) {
             json.put("op", "fixture").put("x", fixture.x()).put("y", fixture.y())
                     .put("id", fixture.doodadId());
