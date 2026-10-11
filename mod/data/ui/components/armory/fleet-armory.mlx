@@ -1,4 +1,4 @@
-<template props="companySummary,squadGalleryCards,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="companySummary,squadGalleryCards,cargoStockRows,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / FLEET MARINE COMPANY" />
 
@@ -14,6 +14,14 @@
       <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
       <div id="squad-overview-copy" class="label tone-muted">{organization.galleryCopy}</div>
+    </div>
+
+    <div id="armory-cargo-stock" class="cargo-stock-strip panel">
+      <div id="armory-cargo-stock-title" class="label heading tone-muted">FLEET CARGO</div>
+      <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
+        <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />
+        <div id="{stock.labelId}" class="label cargo-stock-label">{stock.label}</div>
+      </div>
     </div>
 
     <div id="organization-toolbar" class="organization-toolbar panel">
@@ -84,6 +92,12 @@
   #squad-overview-heading { height: 14px; }
   #squad-overview-summary { height: 15px; padding: 1px 6px; }
   #squad-overview-copy { height: 17px; }
+
+  .cargo-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
+  #armory-cargo-stock-title { width: 92px; height: 18px; }
+  .cargo-stock-row { flex-direction: row; align-items: center; width: 0px; height: 22px; flex-grow: 1; gap: 5px; padding: 2px 4px; background-color: #121719; border-width: 1px; border-color: #39423a; }
+  .cargo-stock-icon { width: 16px; height: 16px; }
+  .cargo-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
 
   .organization-toolbar { flex-direction: row; height: 28px; padding: 4px; gap: 8px; border-width: 1px; overflow: hidden; }
   .organization-start, .organization-cancel { width: 168px; height: 18px; padding: 3px 7px; border-width: 1px; font-family: body; text-align: center; }

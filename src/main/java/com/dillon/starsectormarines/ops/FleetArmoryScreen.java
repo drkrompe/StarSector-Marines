@@ -248,6 +248,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("squadCards", viewModel.squadCards());
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
+        props.put("cargoStockRows", viewModel.cargoStockRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
         props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());

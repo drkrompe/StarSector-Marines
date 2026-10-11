@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — HQ adds opening-work directions; Barracks retains visual
-formation and issued-kit muster cards with explicit bulk orders.
+Updated: 2026-10-11 — cargo-consuming company surfaces keep relevant fleet stock
+visible beside their per-action cost previews.
 
 ## Purpose
 
@@ -311,7 +311,10 @@ Later inventory changes do not silently optimize or reshuffle that result.
 The issue surface renders each nonzero line as a live-spec commodity icon with
 available / required quantities and marks shortages in place. Names, paths, and
 inventory quantities remain projections of the commodity registry and cargo
-authority, not a Fleet Armory-owned material catalog.
+authority, not a Fleet Armory-owned material catalog. The squad gallery and issue
+workspace also keep a compact stock strip visible outside those per-action bills;
+the strip summarizes the commodities those operations can spend without changing
+the atomic issue preview.
 
 Built-in weapon definitions are authored deterministic distributions rather than
 live best-fit allocators. This makes faction-flavored profiles such as **Luddic
@@ -519,8 +522,10 @@ returns to stores, and the outgoing fitting is scrapped. That is the one
 deliberate departure from the mech component model and it is a fact about what a
 fitting is rather than a shortcut past inventory: the catalog rows carry a
 material bill and an affordability reason, and no owned-versus-free count,
-because there is nothing to count. Material badges resolve through the same
-shared commodity presentation the Fleet Armory and the Mech Lab use.
+because there is nothing to count. The room header keeps a compact live stock
+strip for the shared fabrication materials, separate from the selected fitting's
+or boat's cost rows. Material badges resolve through the same shared commodity
+presentation the Fleet Armory and the Mech Lab use.
 
 A failed fit changes nothing but the room's feedback line — neither the boat nor
 the hold — because the workshop rechecks affordability at the commit and spends
@@ -579,7 +584,9 @@ Equipment issue previews the combined existing refit bill for eligible selected
 squads. Incomplete, recovering and stationed formations are explicitly skipped.
 The whole eligible bill must be affordable and paid before any of those squads
 change kit; there is no partial issue caused by cargo shortage. Current template
-ownership and exact issued equipment remain authoritative. This introduces no
+ownership and exact issued equipment remain authoritative. A compact stock strip
+shows the fleet's current supplies, armaments, machinery, and food separately from
+the combined bill. This introduces no
 finite rifle or suit stock, automatic purchasing, or new inventory economy.
 
 The individual drill-down retains the physical quarters, twelve-billet muster,

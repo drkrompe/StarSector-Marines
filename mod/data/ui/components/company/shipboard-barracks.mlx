@@ -105,6 +105,12 @@
           </div>
           <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
           <div id="barracks-order-caption-85" class="label heading warm order-caption">EQUIPMENT ISSUE</div>
+          <div id="barracks-issue-stock" class="issue-stock-strip">
+            <div each="stock in command.issueCargoStock" key="{stock.id}" id="{stock.id}" class="issue-stock-row">
+              <img id="{stock.iconId}" class="issue-stock-icon" src="{stock.icon}" />
+              <div id="{stock.labelId}" class="label issue-stock-label">{stock.label}</div>
+            </div>
+          </div>
           <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
           <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
           <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
@@ -300,6 +306,10 @@
   .recruit-count { width: 54px; height: 20px; pointer-events: none; }
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
   .issue-summary { height: 20px; } .issue-cost { height: 42px; } .issue-reason { height: 42px; }
+  .issue-stock-strip { flex-direction: row; height: 24px; gap: 3px; overflow: hidden; }
+  .issue-stock-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 1px 2px; gap: 3px; background-color: #121719; border-width: 1px; border-color: #39423a; }
+  .issue-stock-icon { width: 15px; height: 15px; }
+  .issue-stock-label { width: 0px; flex-grow: 1; height: 14px; font-family: heading; }
   .editor-copy { height: 65px; }
   .profile-name-input { width: 100%; height: 28px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
   .detail-tools { flex-direction: row; height: 28px; }
