@@ -1,4 +1,4 @@
-<template props="salvageClasses,salvageTurns,salvageReplay,salvageStop,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="salvageClasses,salvageTurns,salvageReplay,salvageStop,preparationClasses,preparationLabel,preparationAction,sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -67,6 +67,7 @@
     </div>
     <div id="mission-results-actions" class="mission-flow-actions console-section">
       <div id="mission-results-action-spacer" class="action-spacer"></div>
+      <button id="mission-results-prepare" class="{preparationClasses}" onclick="{preparationAction}">{preparationLabel}</button>
       <button id="mission-results-secondary" class="{secondaryClasses}" onclick="{secondaryAction}">{secondaryLabel}</button>
       <button id="mission-results-primary" class="good-surface console-action" onclick="{primaryAction}">{primaryLabel}</button>
     </div>

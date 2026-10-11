@@ -78,6 +78,7 @@ class TilesetDocumentTest {
     void theCombatSilhouetteSurvivesTheRoundTrip(@TempDir Path dir) throws Exception {
         TilesetDocument doc = document();
         doc.entries.get(0).ballisticHalfHeight = 0.42;
+        doc.entries.get(0).fogSurface = List.of("#.");
         doc.entries.get(0).preferredWallSide = "N";
 
         Path path = dir.resolve("ship.tileset-authoring.json");
@@ -85,6 +86,7 @@ class TilesetDocumentTest {
         TilesetExport.Entry console = TilesetDocument.read(path).entries.get(0);
 
         assertEquals(0.42, console.ballisticHalfHeight, 1e-9);
+        assertEquals(List.of("#."), console.fogSurface);
         assertEquals("N", console.preferredWallSide);
         assertNull(TilesetDocument.read(path).entries.get(1).ballisticHalfHeight,
                 "a piece nobody judged stays unjudged rather than acquiring a default");

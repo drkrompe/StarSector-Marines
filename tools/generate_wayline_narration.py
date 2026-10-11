@@ -38,7 +38,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--replace", action="store_true")
-    parser.add_argument("--cast", choices=["wayline", "company-officer", "operation-radio"], default="wayline")
+    parser.add_argument("--cast", choices=["wayline", "company-officer", "operation-radio", "company-management"], default="wayline")
     parser.add_argument("--line", action="append", help="Generate only this sound ID (repeatable)")
     args = parser.parse_args()
     catalog_path = CATALOG if args.cast == "wayline" else ROOT / "mod/data/marines/company_officer_narration.json"
@@ -46,6 +46,9 @@ def main():
     if args.cast == "operation-radio":
         catalog_path = ROOT / "mod/data/marines/operation_radio.json"
         sources = SOURCES.parent / "operation-radio/live"
+    if args.cast == "company-management":
+        catalog_path = ROOT / "mod/data/marines/company_management_guide.json"
+        sources = SOURCES.parent / "company-management"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     if args.line and set(args.line) - {line["id"] for line in catalog["lines"]}:
         raise SystemExit("Unknown line ID; no request sent.")

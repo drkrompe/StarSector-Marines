@@ -1,4 +1,4 @@
-<template props="title,missionName,budgetLabel,budgetTone,poolLabel,instructions,lootRows,carryLabel,fenceLabel,noticeClasses,notice,backAction,confirmDisabled,confirmAction">
+<template props="confirmLabel,title,missionName,budgetLabel,budgetTone,poolLabel,instructions,lootRows,carryLabel,fenceLabel,noticeClasses,notice,backAction,confirmDisabled,confirmAction">
   <div id="mission-loot-root" class="mission-loot-root">
     <div id="mission-loot-header" class="mission-flow-header console-header">
       <img id="mission-loot-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -40,7 +40,7 @@
     <div id="mission-loot-actions" class="mission-flow-actions console-section">
       <button id="mission-loot-back" onclick="{backAction}" class="console-action">BACK TO DEBRIEF</button>
       <div id="mission-loot-action-spacer" class="action-spacer"></div>
-      <button id="mission-loot-confirm" class="good-surface console-action" disabled="{confirmDisabled}" onclick="{confirmAction}">CONFIRM SALVAGE</button>
+      <button id="mission-loot-confirm" class="good-surface console-action" disabled="{confirmDisabled}" onclick="{confirmAction}">{confirmLabel}</button>
     </div>
   </div>
 </template>
