@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, and `junction`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, and `relay-nine`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -168,6 +168,14 @@ Do not run builds or leave generated task files there.
   employer force at the apron. Reports include territory reversals, actual boat
   identities, casualties, accepted story beats and reserve positions. Source
   frames use 1920x1080. Timeout remains unresolved, not a win or a defeat.
+  Relay Nine uses `-Pmission=relay-nine` for its finite capture/hold factory.
+  Its eleven cases cover three interiors at two/four squads, a first-Gate
+  approach, militia held at landing, one fitted ferry, refitted boats and absent
+  player arrival. Fixture fields match Junction, with `gateFirst` selecting an
+  explicit diagnostic player-order approach. Reports include captures, enemy
+  recaptures, restoration, actual militia hold beats and the one eight-person
+  road reserve. Source frames remain 1920x1080. These are factory-loadout
+  battle controls; campaign offers, roster launch and settlement are separate.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —

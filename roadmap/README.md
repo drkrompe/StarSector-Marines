@@ -60,8 +60,9 @@ follow-on choice arc in `broken-supply-route.md` now specifies escort/boarding
 versus territorial recovery, branch consequences and recurring contact work;
 Junction now has a finite territorial battle prototype and fitted-boat evidence.
 Last Lift now has physical escort/boarding, finite road attackers and a save-owned
-cohort ledger with retries only for stranded people. Next implement Relay Nine,
-then connect both prototypes to campaign choice, launch and settlement. The opening
+cohort ledger with retries only for stranded people. Relay Nine now has finite
+capture/hold play with separate militia detachments and a road counterattack.
+Next connect the three prototypes to campaign choice, roster launch, Results and settlement. The opening
 arc still awaits a live play pass. Its standing mission model lives in `early-operation-nouns.md`; first-offer
 discovery and save/reload acceptance remain in `first-contract-discovery.md`.
 

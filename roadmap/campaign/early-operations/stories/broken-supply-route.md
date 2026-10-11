@@ -1,8 +1,8 @@
 # The Broken Supply Route
 
-Status: IN PROGRESS — Junction and Last Lift battle prototypes implemented; Relay Nine and campaign integration remain open.
+Status: IN PROGRESS — all three battle prototypes implemented; campaign choice, launch and settlement remain open.
 Written: 2026-10-10
-Updated: 2026-10-10 — Last Lift physical escort/boarding, frozen outcomes and save-owned retry ledger; campaign launch and settlement remain open.
+Updated: 2026-10-10 — Relay Nine capture/hold prototype, two militia detachments and a finite road counterattack.
 
 ## Scope and dramatic question
 
@@ -26,7 +26,7 @@ ownership, stability or population.
 
 Canonical boundaries: `early-operation-nouns.md`, `contracts-nouns.md`,
 `narrative-nouns.md`, `conquest-nouns.md`, `extraction-command.md`, and
-`battle-radio-nouns.md`. **Campaign progression and both branch finales remain proposed content.** Junction and Last Lift have production-factory prototypes, not campaign offers. Map dimensions,
+`battle-radio-nouns.md`. **Campaign progression remains proposed content.** Junction, Last Lift and Relay Nine have production-factory prototypes, not campaign offers. Map dimensions,
 force counts and payments are prototype inputs to measure, not shipped balance.
 
 ## The choice at a glance
@@ -183,9 +183,11 @@ one eight-person road reserve. All forces and arrivals are finite.
 The company can approach Power Yard or Freight Gate first. Capturing either
 releases the precommitted road reserve once; repeated recaptures never manufacture
 another wave. Defender guards remain at useful posts while the reserve follows
-own-force reports and local contact. The Marine command picture distinguishes
-**hold Power Yard**, **assault Relay Hall**, and **support Freight Gate** using
-authored places. Employer holders are separately owned, finite and replaceable
+own-force reports and local contact. Separate faction pictures name the company assault target and the two stable
+allied hold duties at authored sites. Both militia detachments initially cover
+the apron, then support the first gain together and divide across the first two
+secured positions. A confirmed enemy recapture recalls the company before its
+next fresh assault; contest alone can remain the holders' fight. Employer holders are separately owned, finite and replaceable
 only from the support already committed to this mission.
 
 Victory follows Conquest's territorial law: all required compounds, including
@@ -318,8 +320,14 @@ live campaign acceptance remains open. This plan does not mark that gate complet
    rescued/dead identities and guards one cumulative entitlement. Actual
    campaign squad/loadout launch, Results presentation and cargo-credit writeback
    are not enabled. The physical battle uses factory player equipment.
-4. **Relay Nine prototype.** Prove hold/assault duties and the finite road reserve.
-   Use larger maps only where traversal creates decisions rather than empty walking.
+4. **Relay Nine prototype — headless evidence; campaign acceptance remains.**
+   `commanderEvidence -Pmission=relay-nine` covers three interiors with two/four
+   factory squads, first-Gate approach, militia-at-landing, single-ferry,
+   refitted-boat and absent-player controls. Actual captures, separate militia
+   hold arrivals, enemy recapture and restoration use the territorial authority;
+   the road reserve remains eight people across reversals. The evidence compares
+   full command traces and measurements on duplicate replay. Company infantry
+   equipment is factory-authored; persistent roster launch remains open.
 5. **Campaign record and settlement.** Integrate branch/target persistence,
    the implemented persistent rescue accounting, one-time credit writeback and
    separate recurring access. Preserve the existing loss and Retreat boundaries.

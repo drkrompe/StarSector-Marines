@@ -29,6 +29,15 @@
  * The hold beat requires a live ally under the accepted hold directive inside
  * the secured capture room. These hooks never settle the campaign chapter.
  *
+ * <p>Relay Nine uses {@code supply_route.relay_nine.}, common arrival and
+ * terminal keys, and the observer-only {@code road_reserve_arrived}. Sites
+ * {@code apron}, {@code power_yard}, {@code freight_gate}, {@code relay_hall}
+ * report their first {@code _retaken} and subsequent {@code _restored}.
+ * The three initially hostile sites additionally report {@code _secured}
+ * and {@code _militia_holding}, the latter requiring an accepted live hold
+ * and a living ally in the secured capture room. No key repairs equipment,
+ * releases a wave, or settles a campaign chapter.
+ *
  * <p>Last Lift uses {@code supply_route.last_lift.}: {@code start},
  * {@code crew_contacted}, {@code crew_released}, {@code crossing_cleared},
  * {@code first_boarding}, {@code last_boarding}, {@code cohort_resolved},
