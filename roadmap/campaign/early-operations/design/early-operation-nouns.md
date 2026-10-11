@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — industrial flank blocks and pedestrian alleys make the freight road necessary.
+Updated: 2026-10-11 — opening-operation transport berths share one campaign-squad arrival area.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -237,6 +237,13 @@ company. Each attacking squad progresses through the three places from its own
 reported position, using attack-move duties that retain the destination through
 contact. Player-owned orders remain outside the commander's pool. Neither side
 receives an enemy position or a hidden capture state from the scenario.
+
+Both opening operations have one logical company landing area, even when boats
+use different physical pads on the apron. Personnel from one campaign squad
+assemble into one battle squad across those boats and sorties. Its arrival
+requirement counts the whole committed squad once, so two six-person loads
+complete one twelve-person squad and release its advance immediately. Other
+campaign squads and employer militia keep their own identities.
 
 The twelve raiders start as four gate guards, four yard guards, two permanent
 warehouse guards and a two-person reserve. Bounded defensive duties prevent a
