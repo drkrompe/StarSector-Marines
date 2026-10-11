@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
@@ -33,7 +34,7 @@ public final class LastLiftCompound {
         new GenRecipe("Last Lift", List.of(LastLiftCompound::grounds,
                 LastLiftCompound::buildings, LastLiftCompound::freight,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                new FinalizeStage())).run(c);
+                new FinalizeStage(), new OutdoorLandscapeStage(96, 20, 152, 64))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, 96, 20, 152, 64,
                 c.pois, c.doodads, new TacticalMap(List.of()), c.get(BspKeys.BUILDINGS),
                 List.of(), new RoadGraph(List.of(), List.of()), c.landingPads);

@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — ships share neutral bulkhead and deck defaults; authored
-room materials remain authoritative. The six-berth hangar opens to space on its central aisle;
+Updated: 2026-10-11 — generated Mech Labs use layered shelf storage and short
+bay partitions; authored room materials remain authoritative. The six-berth hangar opens to space on its central aisle;
 ship boats follow that aisle and aperture on departure and return; machine servicing
 resolves close standing positions against the parked body.
 
@@ -481,6 +481,16 @@ The briefing room is the deliberate exception — a briefing is an event rather
 than a watch, and giving its chairs a job would station officers in them
 permanently, which is the make-every-prop-a-work-point mistake arrived at from
 the other end.
+
+The Mech Lab keeps parts in parallel shelf runs at its storage end. A shelf is
+one physical fixture with separately drawn contents and frame; empty slots are
+still part of the shelf, not walkable holes. Handling aisles and cross-aisles
+connect those runs to the bay's main service lane, with stowage work on the
+accessible shelf edges. Short bulkhead partitions separate the bays without
+closing the side access to a machine. Stores do not spill into those gaps.
+The assembly turns with the room, and an obstructed footprint omits the whole
+shelf rather than leaving disconnected layers. Blocking shelf footprints and
+partitions become physical only when the room passes its circulation check.
 
 Crew routes are **derived from fixtures**, never hand-listed per deck. A route
 author reads a compartment's placed fixtures and their affordances and emits the
