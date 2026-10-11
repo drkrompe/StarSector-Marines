@@ -1,0 +1,141 @@
+{
+  "sheetName": "armory-workshop",
+  "sheet": "art-source/tilesets/armory-workshop.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "armory-workshop",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/armory-workshop.png",
+  "note": "Geometry-first built-in ImageGen reskin. Measured full component canvases from 1254px RGBA raw; rifles and bench tools retain transparent placement canvases. See armory-workshop.README.md.",
+  "entries": [
+    {
+      "id": "armory-workshop.counter",
+      "rect": [
+        80,
+        48,
+        320,
+        152
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.rack",
+      "rect": [
+        704,
+        48,
+        472,
+        152
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.rifles",
+      "rect": [
+        88,
+        320,
+        360,
+        256
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.rack-frame",
+      "rect": [
+        704,
+        376,
+        472,
+        152
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.bench",
+      "rect": [
+        80,
+        644,
+        464,
+        256
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.bench-tools",
+      "rect": [
+        696,
+        640,
+        480,
+        264
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.ready-locker",
+      "rect": [
+        80,
+        960,
+        464,
+        272
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "armory-workshop.ammo",
+      "rect": [
+        712,
+        960,
+        312,
+        272
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    }
+  ]
+}
