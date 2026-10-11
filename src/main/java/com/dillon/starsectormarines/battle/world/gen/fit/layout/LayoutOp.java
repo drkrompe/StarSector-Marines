@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import java.util.List;
 
 /**
  * One authored step in furnishing a room, in the room's canonical frame.
@@ -20,6 +21,24 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * paving laid after a fixture is paving laid over it. Nothing re-sorts them.
  */
 public sealed interface LayoutOp {
+
+    /** A visual layer within a fixture, in the fixture's canonical frame. */
+    record Layer(int x, int y, String doodadId) {}
+
+    /** One blocking base with decorative contents and frame; the entire assembly follows the room pose. */
+    record Assembly(int x, int y, String baseId, List<Layer> layers) implements LayoutOp {
+        public Assembly { layers = List.copyOf(layers); }
+        @Override public void apply(RoomFloor floor, Replay replay) {
+            floor.placeAssembly(x, y, baseId, layers);
+        }
+    }
+
+    /** A short structural wall inside the room, committed only after circulation is accepted. */
+    record Partition(int x, int y, int spanX, int spanY, String blockId) implements LayoutOp {
+        @Override public void apply(RoomFloor floor, Replay replay) {
+            floor.partition(x, y, spanX, spanY, blockId);
+        }
+    }
 
     /** Apply this step to a room that has been laid down at some pose. */
     void apply(RoomFloor floor, Replay replay);

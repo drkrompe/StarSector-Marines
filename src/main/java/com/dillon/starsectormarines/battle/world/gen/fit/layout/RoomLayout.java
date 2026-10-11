@@ -70,7 +70,7 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
     public int provides() {
         int count = 0;
         for (LayoutOp op : ops) {
-            if (op instanceof LayoutOp.Fixture) count++;
+            if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly) count++;
         }
         return count;
     }
@@ -107,12 +107,33 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
         int posedHeight = pose.posedHeight(canonicalWidth, canonicalHeight);
         boolean[][] taken = new boolean[posedWidth][posedHeight];
         for (LayoutOp op : ops) {
-            if (!(op instanceof LayoutOp.Fixture fixture)) continue;
-            DoodadDef def = TileRegistry.installed().doodad(fixture.doodadId());
-            if (def == null) return false;
-            int[] cell = pose.map(fixture.x(), fixture.y(), canonicalWidth, canonicalHeight);
-            for (int dx = 0; dx < def.footprintCellsX; dx++) {
-                for (int dy = 0; dy < def.footprintCellsY; dy++) {
+            int[] cell;
+            int spanX, spanY;
+            if (op instanceof LayoutOp.Fixture fixture) {
+                DoodadDef def = TileRegistry.installed().doodad(fixture.doodadId());
+                if (def == null) return false;
+                cell = pose.map(fixture.x(), fixture.y(), canonicalWidth, canonicalHeight);
+                spanX = def.footprintCellsX;
+                spanY = def.footprintCellsY;
+            } else {
+                int x, y, width, height;
+                if (op instanceof LayoutOp.Assembly assembly) {
+                    DoodadDef def = TileRegistry.installed().doodad(assembly.baseId());
+                    if (def == null) return false;
+                    x = assembly.x(); y = assembly.y();
+                    width = def.footprintCellsX; height = def.footprintCellsY;
+                } else if (op instanceof LayoutOp.Partition partition) {
+                    x = partition.x(); y = partition.y();
+                    width = partition.spanX(); height = partition.spanY();
+                } else continue;
+                int[] near = pose.map(x, y, canonicalWidth, canonicalHeight);
+                int[] far = pose.map(x + width - 1, y + height - 1, canonicalWidth, canonicalHeight);
+                cell = new int[]{Math.min(near[0], far[0]), Math.min(near[1], far[1])};
+                spanX = Math.abs(near[0] - far[0]) + 1;
+                spanY = Math.abs(near[1] - far[1]) + 1;
+            }
+            for (int dx = 0; dx < spanX; dx++) {
+                for (int dy = 0; dy < spanY; dy++) {
                     int x = cell[0] + dx;
                     int y = cell[1] + dy;
                     if (x < 0 || y < 0 || x >= posedWidth || y >= posedHeight) return false;
@@ -145,6 +166,7 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
         List<String> ids = new ArrayList<>();
         for (LayoutOp op : ops) {
             if (op instanceof LayoutOp.Bulkhead bulkhead) ids.add(bulkhead.blockId());
+            if (op instanceof LayoutOp.Partition partition) ids.add(partition.blockId());
             if (op instanceof LayoutOp.Flooring flooring) ids.add(flooring.blockId());
         }
         return ids;
@@ -168,6 +190,10 @@ public record RoomLayout(RoomPurpose purpose, RoomFit fit, RoomShape shape,
         List<String> ids = new ArrayList<>();
         for (LayoutOp op : ops) {
             if (op instanceof LayoutOp.Fixture fixture) ids.add(fixture.doodadId());
+            if (op instanceof LayoutOp.Assembly assembly) {
+                ids.add(assembly.baseId());
+                for (LayoutOp.Layer layer : assembly.layers()) ids.add(layer.doodadId());
+            }
             if (op instanceof LayoutOp.Paving paving) ids.add(paving.doodadId());
         }
         return ids;
