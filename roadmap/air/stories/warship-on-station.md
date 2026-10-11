@@ -57,7 +57,10 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
 6. **Orders.** Hold fire and area fire (with optional bring-guns-to-bear heading) are shipped; a director that picks the area by density, as the airfield strike does, is open.
 7. **Faction, not allegiance.** The entity is owned by a faction supplied by its
    committer; the first acceptance uses the company's own ship and an enemy one.
-8. **Answerability.** A bounded station time and a hull pool that only heavy
+8. **Point defence (shipped).** Flak, vulcan and PD-laser mounts shoot down
+   hostile in-flight ordnance in reach, independent of orders; acceptance is the
+   `warship-point-defence` scene. Standing rule lives in `air-nouns.md`.
+9. **Answerability.** A bounded station time and a hull pool that only heavy
    anti-air, mechs or batteries reach.
 
 ## Acceptance
@@ -71,6 +74,6 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
 
 ## Out of scope
 
-Point defence, modules (the Onslaught's armour modules included),
+Modules (the Onslaught's armour modules included),
 ship-to-ship combat, campaign commitment through a command power, and every
 hull other than the Onslaught and, afterwards, the Paragon.
