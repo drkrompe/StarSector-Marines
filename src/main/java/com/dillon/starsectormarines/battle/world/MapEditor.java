@@ -75,6 +75,7 @@ public final class MapEditor {
      */
     public boolean damageWall(int x, int y, int amount) {
         if (!grid.damageCell(x, y, amount)) return false;
+        if (topology.isWall(x, y)) rememberWall(x, y);
         topology.setWall(x, y, false);
         topology.setWindow(x, y, false);
         grid.setSeeThrough(x, y, false);
@@ -83,6 +84,37 @@ public final class MapEditor {
         peelRoofAround(x, y);
         navigation.markCellOpened(x, y);
         return true;
+    }
+
+    private void rememberWall(int x, int y) {
+        int faces = 0;
+        if (wasExposed(x, y + 1)) faces |= CellTopology.WALL_DIR_N;
+        if (wasExposed(x + 1, y)) faces |= CellTopology.WALL_DIR_E;
+        if (wasExposed(x, y - 1)) faces |= CellTopology.WALL_DIR_S;
+        if (wasExposed(x - 1, y)) faces |= CellTopology.WALL_DIR_W;
+        topology.setWallRemnant(x, y, new CellTopology.WallRemnant(
+                topology.getSurfaceId(x, y), topology.getGroundKind(x, y), groundSurfaceAt(x, y), faces));
+    }
+
+    private String groundSurfaceAt(int x, int y) {
+        String result = null;
+        for (Direction side : Direction.CARDINALS) {
+            int nx = x + side.dx, ny = y + side.dy;
+            if (!topology.inBounds(nx, ny) || topology.isWall(nx, ny)) continue;
+            CellTopology.WallRemnant previous = topology.getWallRemnant(nx, ny);
+            CellTopology.GroundKind kind = previous == null ? topology.getGroundKind(nx, ny) : previous.groundKind();
+            if (kind != topology.getGroundKind(x, y)) continue;
+            String id = previous == null ? topology.getSurfaceId(nx, ny) : previous.groundSurfaceId();
+            if (id != null && (result == null || id.compareTo(result) < 0)) result = id;
+        }
+        return result;
+    }
+
+    // Previously collapsed neighbours still belong to the original footprint. This
+    // makes one explosion's debris independent of the order its wall cells fall.
+    private boolean wasExposed(int x, int y) {
+        return topology.inBounds(x, y) && !topology.isWall(x, y)
+                && topology.getWallRemnant(x, y) == null;
     }
 
     /**

@@ -51,7 +51,8 @@ public final class TileRegistry {
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
             "data/tilesets/colony-walls.tileset.json",
-            "data/tilesets/colony-openings.tileset.json");
+            "data/tilesets/colony-openings.tileset.json",
+            "data/tilesets/colony-rubble.tileset.json");
 
     private static volatile TileRegistry installed;
 
@@ -300,7 +301,8 @@ public final class TileRegistry {
                     cells[k] = new int[]{cell.getInt(0), cell.getInt(1)};
                 }
                 blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells,
-                        o.optString("windowBlock", null), o.optString("doorBlock", null)));
+                        o.optString("windowBlock", null), o.optString("doorBlock", null),
+                        o.optString("rubbleBlock", null)));
                 sourceById.put(id, source);
                 continue;
             }
@@ -310,7 +312,8 @@ public final class TileRegistry {
             GridLayout layout = GridLayout.fromJson(o.getString("layout"));
             Integer fillRgb = o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null;
             blocksById.put(id, new GridBlockDef(id, sheet, cellPx, oc, or, layout, fillRgb,
-                    o.optString("windowBlock", null), o.optString("doorBlock", null)));
+                    o.optString("windowBlock", null), o.optString("doorBlock", null),
+                    o.optString("rubbleBlock", null)));
             sourceById.put(id, source);
         }
     }
@@ -343,6 +346,13 @@ public final class TileRegistry {
         for (GridBlockDef block : blocksById.values()) {
             validateOpening(block.id, block.windowBlockId);
             validateOpening(block.id, block.doorBlockId);
+            if (block.rubbleBlockId != null) {
+                GridBlockDef rubble = block(block.rubbleBlockId);
+                if (rubble == null || rubble.layout != GridLayout.WALL_FACES_4X4) {
+                    throw new IllegalStateException("Rubble '" + block.rubbleBlockId + "' on '" + block.id
+                            + "' must reference a wall-faces-4x4 block");
+                }
+            }
         }
         for (TileDef def : byId.values()) {
             for (String sel : def.validOn) {
