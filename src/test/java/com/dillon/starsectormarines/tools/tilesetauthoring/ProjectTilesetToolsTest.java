@@ -256,7 +256,7 @@ class ProjectTilesetToolsTest {
     @Test
     void previewingACandidateOverAShippedIdRepaintsTheMapItWouldReplaceItOn(@TempDir Path root)
             throws Exception {
-        String shippedId = "urban.wall";
+        String shippedId = "colony.masonry-wall";
         assertNotNull(TileRegistry.installed().block(shippedId),
                 shippedId + " is the shipped block this preview stands in for");
 

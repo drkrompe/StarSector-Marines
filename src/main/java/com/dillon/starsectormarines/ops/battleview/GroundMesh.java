@@ -70,8 +70,8 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
  *
  * <p><b>A change is a patch, not a rebuild.</b> A breach, rubble or a new
  * bulkhead moves a handful of cells; {@link CellTopology#changeCount} says which,
- * and each is re-resolved with its four neighbours (an autotile frame is a
- * function of what is beside it) and written back with {@code glBufferSubData}
+ * and each is re-resolved with its two-cell neighbourhood (including the apron
+ * and its edge-selection neighbours) and written back with {@code glBufferSubData}
  * over its own slot. Only a reader that has fallen further behind than the
  * topology's log remembers rebuilds from scratch.
  *
@@ -481,7 +481,7 @@ public final class GroundMesh {
 
     /**
      * Re-resolves the cells the topology has recorded as changed, plus their
-     * four neighbours.
+     * two-cell neighbourhood (the apron and its own edge-selection neighbours).
      *
      * <p>The neighbours are not superstition: an autotile frame is chosen from
      * the wall-mask of the cells around it, so knocking a hole in a wall changes
@@ -495,11 +495,9 @@ public final class GroundMesh {
             if (cell < 0 || cell >= fillArgb.length) continue;
             int x = cell % gridW;
             int y = cell / gridW;
-            touch(x, y);
-            touch(x - 1, y);
-            touch(x + 1, y);
-            touch(x, y - 1);
-            touch(x, y + 1);
+            for (int dy = -2; dy <= 2; dy++) {
+                for (int dx = -2; dx <= 2; dx++) touch(x + dx, y + dy);
+            }
         }
         caughtUpTo = now;
 

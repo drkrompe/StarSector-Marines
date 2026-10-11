@@ -971,7 +971,7 @@ public final class TilesetExport {
      */
     public static String jsonLayout(GridLayout layout) {
         if (layout == null) return VARIANT_POOL;
-        return layout.name().toLowerCase(Locale.ROOT).replace("_3x3", "-3x3");
+        return layout.name().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
     /**

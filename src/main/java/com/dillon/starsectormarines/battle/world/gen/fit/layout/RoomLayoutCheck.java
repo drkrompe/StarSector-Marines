@@ -142,7 +142,7 @@ public final class RoomLayoutCheck {
             return "The catalog has no block '" + id + "', so this room would draw the "
                     + "deck's own bulkhead instead.";
         }
-        if (block.layout != GridLayout.WALL_3X3) {
+        if (block.layout == null || !block.layout.isWall()) {
             return "'" + id + "' is not a wall — it cannot resolve a corner, so this room "
                     + "would draw the deck's own bulkhead instead.";
         }

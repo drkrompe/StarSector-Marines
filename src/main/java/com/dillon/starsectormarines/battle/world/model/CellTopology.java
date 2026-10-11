@@ -451,6 +451,11 @@ public class CellTopology {
         return (idx >= 0 && idx < vals.length) ? vals[idx] : null;
     }
 
+    /** Allocation-free footprint predicate for the ground apron resolver. */
+    public boolean hasBuildingKindHint(int x, int y) {
+        return inBounds(x, y) && buildingKindHint[index(x, y)] != 0;
+    }
+
     /**
      * Stamps a building-kind hint across this cell. Idempotent — overwrites
      * any previous hint, so the most recent stamper wins (e.g. an industrial
@@ -460,7 +465,11 @@ public class CellTopology {
      */
     public void setBuildingKindHint(int x, int y, BuildingKind kind) {
         if (!inBounds(x, y)) return;
-        buildingKindHint[index(x, y)] = (byte) (kind == null ? 0 : (kind.ordinal() + 1));
+        int idx = index(x, y);
+        byte value = (byte) (kind == null ? 0 : (kind.ordinal() + 1));
+        if (buildingKindHint[idx] == value) return;
+        buildingKindHint[idx] = value;
+        markChanged(idx); // The exterior apron is a retained picture of this footprint.
     }
 
     // ----- Nature overlay -----

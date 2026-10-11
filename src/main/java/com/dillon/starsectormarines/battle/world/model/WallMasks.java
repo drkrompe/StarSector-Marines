@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+import com.dillon.starsectormarines.battle.nav.Direction;
 
 /**
  * Shared utilities for the per-cell wall-direction mask carried by
@@ -19,6 +21,26 @@ import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 public final class WallMasks {
 
     private WallMasks() {}
+
+    /** Full-cell caps expose BOTH sides of partitions and every side of a pier. */
+    public static TileManifest.TileFrame pickTile(CellTopology topology,
+                                                  int x, int y, GridBlockDef wall) {
+        if (wall == null || wall.layout != GridLayout.WALL_FACES_4X4) {
+            return pickTileFromMask(topology.getWallDirMask(x, y), wall);
+        }
+        int[] cell = wall.resolve(exposed(topology, x, y, Direction.N),
+                exposed(topology, x, y, Direction.S),
+                exposed(topology, x, y, Direction.E),
+                exposed(topology, x, y, Direction.W));
+        return new TileManifest.TileFrame(cell[0], cell[1]);
+    }
+
+    private static boolean exposed(CellTopology topology,
+                                   int x, int y, Direction side) {
+        int nx = x + side.dx, ny = y + side.dy;
+        if (!topology.inBounds(nx, ny)) return false;
+        return !topology.isWall(nx, ny);
+    }
 
     /**
      * Stamps the perimeter wall-direction mask on every cell of the

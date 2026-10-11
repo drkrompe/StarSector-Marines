@@ -188,7 +188,9 @@ public final class SurfaceCatalog {
         List<Candidate> candidates = new ArrayList<>();
         if (shape != null) {
             for (GridBlockDef block : tiles.blocks()) {
-                if (!shape.equals(shapeOf(block))) continue;
+                boolean compatibleWall = mapped.layout != null && mapped.layout.isWall()
+                        && block.layout != null && block.layout.isWall();
+                if (!compatibleWall && !shape.equals(shapeOf(block))) continue;
                 candidates.add(candidate(block, documents, block.id.equals(mappedId)));
             }
             // Alphabetical rather than in-use first: this is a list somebody

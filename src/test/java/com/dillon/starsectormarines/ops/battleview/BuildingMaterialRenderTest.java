@@ -24,14 +24,16 @@ class BuildingMaterialRenderTest {
         String path = TileRegistry.installed().block("colony.masonry-wall").sheetPath;
         SpriteAPI urban = sprite();
         SpriteAPI colony = sprite();
+        SpriteAPI floors = sprite();
+        String floorPath = TileRegistry.installed().block("colony.terracotta").sheetPath;
         BattleSprites sprites = new BattleSprites() {
             @Override public SpriteAPI tileSheet() { return urban; }
             @Override public int tileSheetPxW() { return 512; }
             @Override public int tileSheetPxH() { return 512; }
             @Override public SpriteAPI extraTerrainSheet(String requested) {
-                return path.equals(requested) ? colony : null;
+                return path.equals(requested) ? colony : floorPath.equals(requested) ? floors : null;
             }
-            @Override public Collection<SpriteAPI> extraTerrainSheets() { return List.of(colony); }
+            @Override public Collection<SpriteAPI> extraTerrainSheets() { return List.of(colony, floors); }
         };
         NavigationGrid grid = new NavigationGrid(2, 1);
         grid.setWalkableFloor(1, 0);
@@ -51,7 +53,8 @@ class BuildingMaterialRenderTest {
         for (int i = 0; i < out.count(RenderLayer.GROUND); i++) {
             DrawCommand command = out.buffer(RenderLayer.GROUND)[i];
             if (command.kind() != DrawCommand.Kind.SHEET_QUAD) continue;
-            assertSame(colony, command.sprite(), "new block coordinates must address the new sheet");
+            assertSame(tiles == 0 ? colony : floors, command.sprite(),
+                    "each block's coordinates must address its own sheet");
             tiles++;
         }
         assertEquals(2, tiles, "both the wall and floor need a textured draw");
@@ -62,6 +65,7 @@ class BuildingMaterialRenderTest {
         field.setAccessible(true);
         assertNotNull(((Map<?, ?>) field.get(renderer)).get(colony),
                 "the live drain silently drops sheets without a registered batch");
+        assertNotNull(((Map<?, ?>) field.get(renderer)).get(floors));
     }
 
     private static SpriteAPI sprite() {

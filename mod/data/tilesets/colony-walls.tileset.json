@@ -1,0 +1,321 @@
+{
+  "blocks": [
+    {
+      "id": "colony.masonry-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        4,
+        0
+      ]
+    },
+    {
+      "id": "colony.olive-wall",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        8,
+        0
+      ]
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "colony.masonry-wall faces-0",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north",
+      "name": "colony.masonry-wall faces-1",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east",
+      "name": "colony.masonry-wall faces-2",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east",
+      "name": "colony.masonry-wall faces-3",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south",
+      "name": "colony.masonry-wall faces-4",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south",
+      "name": "colony.masonry-wall faces-5",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south",
+      "name": "colony.masonry-wall faces-6",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south",
+      "name": "colony.masonry-wall faces-7",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on west",
+      "name": "colony.masonry-wall faces-8",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and west",
+      "name": "colony.masonry-wall faces-9",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and west",
+      "name": "colony.masonry-wall faces-10",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and west",
+      "name": "colony.masonry-wall faces-11",
+      "row": 2
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south and west",
+      "name": "colony.masonry-wall faces-12",
+      "row": 3
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south and west",
+      "name": "colony.masonry-wall faces-13",
+      "row": 3
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south and west",
+      "name": "colony.masonry-wall faces-14",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "colony.masonry-wall faces-15",
+      "row": 3
+    },
+    {
+      "col": 4,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "colony.ceramic-wall faces-0",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north",
+      "name": "colony.ceramic-wall faces-1",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east",
+      "name": "colony.ceramic-wall faces-2",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east",
+      "name": "colony.ceramic-wall faces-3",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on south",
+      "name": "colony.ceramic-wall faces-4",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and south",
+      "name": "colony.ceramic-wall faces-5",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and south",
+      "name": "colony.ceramic-wall faces-6",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and south",
+      "name": "colony.ceramic-wall faces-7",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on west",
+      "name": "colony.ceramic-wall faces-8",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and west",
+      "name": "colony.ceramic-wall faces-9",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and west",
+      "name": "colony.ceramic-wall faces-10",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and west",
+      "name": "colony.ceramic-wall faces-11",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on south and west",
+      "name": "colony.ceramic-wall faces-12",
+      "row": 3
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and south and west",
+      "name": "colony.ceramic-wall faces-13",
+      "row": 3
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and south and west",
+      "name": "colony.ceramic-wall faces-14",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "colony.ceramic-wall faces-15",
+      "row": 3
+    },
+    {
+      "col": 8,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "colony.olive-wall faces-0",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north",
+      "name": "colony.olive-wall faces-1",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east",
+      "name": "colony.olive-wall faces-2",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east",
+      "name": "colony.olive-wall faces-3",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south",
+      "name": "colony.olive-wall faces-4",
+      "row": 1
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south",
+      "name": "colony.olive-wall faces-5",
+      "row": 1
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south",
+      "name": "colony.olive-wall faces-6",
+      "row": 1
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south",
+      "name": "colony.olive-wall faces-7",
+      "row": 1
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on west",
+      "name": "colony.olive-wall faces-8",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and west",
+      "name": "colony.olive-wall faces-9",
+      "row": 2
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and west",
+      "name": "colony.olive-wall faces-10",
+      "row": 2
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and west",
+      "name": "colony.olive-wall faces-11",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "description": "wall cap exposed on south and west",
+      "name": "colony.olive-wall faces-12",
+      "row": 3
+    },
+    {
+      "col": 9,
+      "description": "wall cap exposed on north and south and west",
+      "name": "colony.olive-wall faces-13",
+      "row": 3
+    },
+    {
+      "col": 10,
+      "description": "wall cap exposed on east and south and west",
+      "name": "colony.olive-wall faces-14",
+      "row": 3
+    },
+    {
+      "col": 11,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "colony.olive-wall faces-15",
+      "row": 3
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/colony-walls.png"
+}

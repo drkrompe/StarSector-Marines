@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-29 — walls, doorways and roofs dispatch through the mapping's `surfaceRender` section; content is found by purpose as well as by sheet; a block may be a variant pool as well as an autotile; every sheet is exported from its authoring document; and authoring is reached as a walkthrough.
+Updated: 2026-10-11 — geometry-guided wall caps retain all sixteen exposed-face combinations and share the existing authoring/export path.
 
 Read `stories.md` for open work.
 
@@ -115,6 +115,26 @@ claiming that data can replace geometry, connectivity recovery, placement, or
 other procedural decisions.
 
 ## Catalog and mapping behavior
+
+### Geometry-guided wall art
+
+`wall-faces-4x4` addresses all sixteen combinations of exposed structural
+faces: N=1, E=2, S=4, W=8, in row-major mask order. Its authoring slots are
+`faces-0` through `faces-15`. Unlike the legacy perimeter `wall-3x3`, it reads
+actual adjacent wall occupancy and retains opposite faces, end caps, tees and
+isolated piers. Both layouts remain wall candidates in the surface and room
+authoring tools. A breach changes the neighbouring cap; resident ground refreshes
+the two-cell neighbourhood needed by the apron and its edge selection.
+
+Geometry precedes material. `WallReskinTemplate` draws full-cell cap rectangles
+and narrow exposed-edge bands from that same layout, published by the
+`building-stamps` snapshot suite. The retained template lives under
+`art-source/templates/`; ImageGen reskins it without inventing ground, aprons,
+or a privileged indoor face. The judged raw cuts and prompt stay beside the
+wall authoring document, and the ordinary exporter is still the only producer
+of shipped atlases. The colony floor plate and wall plate are separate; stable
+surface ids survive their repacking. The template sets geometry, while the
+rendered buildings remain the visual acceptance for the reskin.
 
 ### Id-addressed visual catalog
 

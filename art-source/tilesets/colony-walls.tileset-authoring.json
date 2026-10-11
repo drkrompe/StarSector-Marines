@@ -1,0 +1,842 @@
+{
+  "sheetName": "colony-walls",
+  "sheet": "art-source/tilesets/colony-walls.raw.png",
+  "cellPx": 64,
+  "alphaMin": 40,
+  "idPrefix": "colony",
+  "entries": [
+    {
+      "id": "colony.masonry-wall.faces-0",
+      "block": "colony.masonry-wall",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-1",
+      "block": "colony.masonry-wall",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-2",
+      "block": "colony.masonry-wall",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-3",
+      "block": "colony.masonry-wall",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-4",
+      "block": "colony.masonry-wall",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-5",
+      "block": "colony.masonry-wall",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-6",
+      "block": "colony.masonry-wall",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-7",
+      "block": "colony.masonry-wall",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-8",
+      "block": "colony.masonry-wall",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-9",
+      "block": "colony.masonry-wall",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-10",
+      "block": "colony.masonry-wall",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-11",
+      "block": "colony.masonry-wall",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-12",
+      "block": "colony.masonry-wall",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-13",
+      "block": "colony.masonry-wall",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-14",
+      "block": "colony.masonry-wall",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.masonry-wall.faces-15",
+      "block": "colony.masonry-wall",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-0",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-1",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-2",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-3",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-4",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-5",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-6",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-7",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-8",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-9",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-10",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-11",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-12",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-13",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-14",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.ceramic-wall.faces-15",
+      "block": "colony.ceramic-wall",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-0",
+      "block": "colony.olive-wall",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-1",
+      "block": "colony.olive-wall",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-2",
+      "block": "colony.olive-wall",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-3",
+      "block": "colony.olive-wall",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        11,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-4",
+      "block": "colony.olive-wall",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-5",
+      "block": "colony.olive-wall",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-6",
+      "block": "colony.olive-wall",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-7",
+      "block": "colony.olive-wall",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        192,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-8",
+      "block": "colony.olive-wall",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-9",
+      "block": "colony.olive-wall",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-10",
+      "block": "colony.olive-wall",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-11",
+      "block": "colony.olive-wall",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        373,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-12",
+      "block": "colony.olive-wall",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-13",
+      "block": "colony.olive-wall",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-14",
+      "block": "colony.olive-wall",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        554,
+        159,
+        159
+      ]
+    },
+    {
+      "id": "colony.olive-wall.faces-15",
+      "block": "colony.olive-wall",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        554,
+        159,
+        159
+      ]
+    }
+  ],
+  "blocks": [
+    {
+      "id": "colony.masonry-wall",
+      "layout": "wall-faces-4x4"
+    },
+    {
+      "id": "colony.ceramic-wall",
+      "layout": "wall-faces-4x4"
+    },
+    {
+      "id": "colony.olive-wall",
+      "layout": "wall-faces-4x4"
+    }
+  ],
+  "note": "Geometry-guided ImageGen reskin of art-source/templates/colony-walls.png. Three 4x4 panels, row-major N=1 E=2 S=4 W=8 exposed-face masks. Full-cell wall caps, no floor/apron pixels. Template: 3072x1024, pitch256, inset16, tile224. Raw:2172x724; judged cuts scale template coordinates uniformly. Source/prompt and generator are retained.",
+  "gridCols": 12,
+  "gridRows": 4
+}

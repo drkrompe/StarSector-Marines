@@ -63,12 +63,12 @@ class TilesetMapPreviewTest {
     }
 
     @Test
-    void substitutingAShippedDoodadRepaintsTheMapWithoutRegeneratingIt() throws Exception {
-        // urban.wall is placed all over a generated city, so its art is visible
-        // in any seed; substituting it must change paint and nothing else.
+    void substitutingAShippedWallRepaintsTheMapWithoutRegeneratingIt() throws Exception {
+        // This fixture now uses the colony material families; the legacy wall
+        // is no longer guaranteed to occur. Substitute its actual masonry.
         TilesetMapPreview.Result result = TilesetMapPreview.render(
                 PROJECT, candidateAtlas(32), 32,
-                List.of(new TilesetMapPreview.Substitution("urban.wall", 0, 0, 3, 3)),
+                List.of(new TilesetMapPreview.Substitution("colony.masonry-wall", 0, 0, 3, 3)),
                 SEED, GRID, CELL_PX);
 
         long differing = differingPixels(result.baseline(), result.substituted());
