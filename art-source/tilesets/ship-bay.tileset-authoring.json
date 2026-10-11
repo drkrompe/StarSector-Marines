@@ -1,0 +1,240 @@
+{
+  "sheetName": "ship-bay",
+  "sheet": "art-source/tilesets/ship-bay.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 3,
+  "idPrefix": "ship-bay",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-bay.png",
+  "note": "Geometry-first Mech Lab study. Source: ShipBayReskinTemplate. Exact prompt: ship-bay.prompt.txt. ImageGen returned 1448x1086. Measured opaque tile cores retain every connection; cuts exclude ragged outer sprite rims. Image coordinates: north up. Canonical pipe ports: straight W/E; elbow W/S; tee W/E/S; terminal W. Exact quarter-turns belong to placed doodads. No production room adoption; ship-bay snapshot suite previews the kit.",
+  "blocks": [
+    {
+      "id": "ship-bay.deck-surface",
+      "layout": "variants"
+    }
+  ],
+  "entries": [
+    {
+      "id": "ship-bay.deck",
+      "rect": [
+        27,
+        27,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. deck"
+    },
+    {
+      "id": "ship-bay.passage",
+      "rect": [
+        389,
+        27,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. passage"
+    },
+    {
+      "id": "ship-bay.hatch",
+      "rect": [
+        751,
+        27,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. hatch"
+    },
+    {
+      "id": "ship-bay.grate-run",
+      "rect": [
+        1113,
+        27,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. grate-run"
+    },
+    {
+      "id": "ship-bay.hazard-edge",
+      "rect": [
+        27,
+        389,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. hazard-edge"
+    },
+    {
+      "id": "ship-bay.hazard-corner",
+      "rect": [
+        389,
+        389,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. hazard-corner"
+    },
+    {
+      "id": "ship-bay.pipe-straight",
+      "rect": [
+        751,
+        389,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. pipe-straight"
+    },
+    {
+      "id": "ship-bay.pipe-elbow",
+      "rect": [
+        1113,
+        389,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. pipe-elbow"
+    },
+    {
+      "id": "ship-bay.pipe-tee",
+      "rect": [
+        27,
+        749,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. pipe-tee"
+    },
+    {
+      "id": "ship-bay.pipe-terminal",
+      "rect": [
+        389,
+        749,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. pipe-terminal"
+    },
+    {
+      "id": "ship-bay.grate-field",
+      "rect": [
+        751,
+        749,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. grate-field"
+    },
+    {
+      "id": "ship-bay.service-panel",
+      "rect": [
+        1113,
+        749,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "note": "Recessed deck covering; zero cover. service-panel"
+    },
+    {
+      "id": "ship-bay.deck-surface.cell",
+      "block": "ship-bay.deck-surface",
+      "slot": "v1",
+      "rect": [
+        27,
+        27,
+        308,
+        308
+      ],
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ]
+    }
+  ]
+}
