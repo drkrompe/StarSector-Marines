@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — forest destruction preserves overlapping trees, underlying hills and access; prop placement preserves supporting ground.
+Updated: 2026-10-11 — planet landscapes select rock or ice masses and destructible mineral fields while preserving access and supporting ground.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -443,14 +443,14 @@ not a building and receives no roof, wall artwork or destructible structure.
 Natural-solid navigation flags survive routing copies and refuse wall damage.
 Ground vehicles and infantry read the ordinary grid; aircraft keep their own
 flight model. This is not a playable elevation system: neither the grass-topped
-summit nor the rock summit is standable, and face depth is a presentational
+summit nor the rock or ice summit is standable, and face depth is a presentational
 width rather than a ballistic height or a high-ground bonus. Ramps and occupied
 hilltops require a separate traversal/elevation contract.
 
 A continuous signed field owns both representations. Its center samples decide
 blocked navigation cells; its clipped contours shape the talus, cliff face and
 summit across cell interiors. Visible edges do not snap to whole tiles. Rock
-and grass-topped finishes change material, never the footprint. The surrounding
+and grass-topped or glacial finishes change material, never the footprint. The surrounding
 low ground remains the map's own surface.
 
 Terrain placement is generation-time work, not runtime construction. It
@@ -476,7 +476,7 @@ masses and facilities for maneuvering and later nature dressing. The entire
 western berth approach stays clear, as do the paved footprints, finished
 objective interiors and reserve-road mouths. Finished outdoor ground must
 remain connected, including small pockets beside map boundaries. Verdant
-worlds retain grass-topped masses; other palettes use bare rock without changing
+worlds retain grass-topped masses; frozen worlds use ice, and other palettes use bare rock without changing
 the authored obstruction or repainting the surrounding ground.
 
 
@@ -532,7 +532,8 @@ map is generated. Existing disconnected ground is not repaired by this pass.
 Open countryside can gain small cliff-backed hills where their entire visible
 footprint fits, using the same terrain brush as authored hills. A map with an
 existing authored terrain plan retains that plan. Living worlds use grassy
-summits, while other palettes keep bare rock. Forest crowns may sit entirely
+summits, frozen worlds use narrow glacial pressure ridges, and barren worlds
+use open crescent crater rims. Other palettes keep bare rock. Forest crowns may sit entirely
 on full grassy summit cells; they do not straddle cliff faces or talus. Summit
 trees add appearance to already inaccessible ground, never a playable upper
 level. Exposed cliff rims and low-ground routes remain legible around the woods.
@@ -542,6 +543,33 @@ undo/redo, a blocked-cell overlay and versioned JSON persistence. Optional road
 context protects authored pavement during editing; it does not bind a forest
 plan to a mission implicitly. The editor and map generation share the same
 placement and collision rules, and the preview uses the battle renderer.
+
+## Planet mineral fields
+
+A **mineral formation** is a multi-cell solid obstacle with a code-owned overhead
+silhouette. Barren worlds use clustered boulders and rock spires; frozen worlds
+use ice blocks and pinnacles. Fields of these formations provide forest-like
+movement and sight barriers where trees would not belong. Placement supports
+four quarter-turn orientations, preserves the supporting ground, and occupies
+only cells touched by the silhouette. Exposed surfaces receive fog visibility
+at the obstruction; sight and direct fire stop beyond it.
+
+Procedural fields belong on eligible wild low ground and obey the same finished
+place reservations and local detour proof as forests. They do not occupy cliff
+faces or summits. A crowded facility may leave no room for an optional field;
+required access takes precedence over landscape density. Arid and living
+palettes do not receive ice or barren mineral fields.
+
+Each formation shares one structural damage pool across its footprint, as a
+tree does across its crown. Cracked survivors remain solid. Destruction leaves
+low fragments, opens movement and sight only where no surviving formation
+remains, and preserves the original ground. A blast spends damage once per
+formation. Large continuous ridges remain permanent terrain masses; their
+material resemblance to destructible formations does not grant them durability.
+
+Canyons and crevasses require a separate movement/visibility contract: a void
+can prevent crossing while leaving sight across it open. They must not be
+represented by an opaque raised mass merely to obtain impassability.
 
 ## City, station, and ship families
 

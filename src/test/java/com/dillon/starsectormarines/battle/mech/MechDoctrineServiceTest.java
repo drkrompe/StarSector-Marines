@@ -92,7 +92,7 @@ class MechDoctrineServiceTest {
         sim.world().setTargetId(sibling, enemy);
         MechWeaponMount selectedSrm = selectedLoadout.mount(MechMountSlot.LEFT_SHOULDER);
         selectedSrm.ammo = 2;
-        selectedSrm.cooldown = 1.25f;
+        selectedSrm.cycleRemaining = 1.25f;
 
         sim.getMechDoctrineService().requestOverride(selected, MechRole.BALANCED);
         new MechDoctrineSystem(sim.getMechDoctrineService()).tick(sim);
@@ -115,7 +115,7 @@ class MechDoctrineServiceTest {
         assertSame(assignment, squad.assignedObjective);
         assertEquals(0.73f, squad.morale);
         assertEquals(2, selectedSrm.ammo);
-        assertEquals(1.25f, selectedSrm.cooldown);
+        assertEquals(1.25f, selectedSrm.cycleRemaining);
 
         assertEquals(MechRole.ARMORED_SUPPORT, siblingLoadout.effectiveRole());
         assertEquals(9, siblingLoadout.overwatchCellX);
@@ -186,7 +186,7 @@ class MechDoctrineServiceTest {
         MechWeaponMount selectedSrm = sim.world().mechLoadout(selected)
                 .mount(MechMountSlot.LEFT_SHOULDER);
         selectedSrm.ammo = 3;
-        selectedSrm.cooldown = 0.75f;
+        selectedSrm.cycleRemaining = 0.75f;
         sim.setPath(selected, new int[]{3, 4, 12, 4});
         sim.setPath(sibling, new int[]{4, 4, 12, 4});
         sim.setPath(infantry, new int[]{5, 4, 12, 4});
@@ -207,7 +207,7 @@ class MechDoctrineServiceTest {
         assertEquals(enemy, sim.world().targetId(selected));
         assertEquals(enemy, sim.world().targetId(sibling));
         assertEquals(3, selectedSrm.ammo);
-        assertEquals(0.75f, selectedSrm.cooldown);
+        assertEquals(0.75f, selectedSrm.cycleRemaining);
         assertEquals(MechRole.ASSAULT,
                 sim.world().mechLoadout(selected).effectiveRole());
         assertEquals(MechRole.ARMORED_SUPPORT,

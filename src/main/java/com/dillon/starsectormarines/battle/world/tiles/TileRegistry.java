@@ -52,6 +52,8 @@ public final class TileRegistry {
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
+            "data/tilesets/ice-terrain.tileset.json",
+            "data/tilesets/planet-formations.tileset.json",
             "data/tilesets/forest-canopies.tileset.json",
             "data/tilesets/forest-damaged.tileset.json",
             "data/tilesets/rock-damage.tileset.json",
@@ -80,6 +82,8 @@ public final class TileRegistry {
             "data/tilesets/shuttle-bay.tileset.json",
             "data/tilesets/loading-bay.tileset.json",
             "data/tilesets/briefing-room.tileset.json",
+            "data/tilesets/ship-gym.tileset.json",
+            "data/tilesets/ship-washrooms.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 

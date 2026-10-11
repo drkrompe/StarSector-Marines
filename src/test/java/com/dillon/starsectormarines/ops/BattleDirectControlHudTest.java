@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
+import com.dillon.starsectormarines.battle.mech.MechHeat;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -25,6 +27,30 @@ import static com.dillon.starsectormarines.ops.BattleDirectControlStatus.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BattleDirectControlHudTest {
+    @Test
+    void liveHoundThermalHoldAndLoaderRemainSeparateAndFitTheActionStrip() throws Exception {
+        var loadout = MechVariant.HOUND.createLoadout(null);
+        MechHeat heat = loadout.heat;
+        heat.commit(98f);
+        var base = preview(Carrier.MECH, false);
+        var snapshot = new Snapshot(base.entityId(), "Wayward", Carrier.MECH, base.durability(),
+                mechWeapons(loadout.mounts(), heat), List.of(), MarineSprint.EMPTY,
+                new HeatStatus(heat.value(), heat.venting()));
+        try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
+            assertEquals("VENTING", fixture.markup.requireElement("direct-hud-heat-state").text());
+            assertEquals("HEAT", fixture.markup.requireElement("direct-hud-weapon-ARMS-state").text());
+            var fill = fixture.markup.requireElement("direct-hud-heat-fill").box().borderBox();
+            var meter = fixture.markup.requireElement("direct-hud-heat-meter").box().contentBox();
+            assertEquals(meter.width() * .98f, fill.width(), .01f);
+            assertTrue(fixture.markup.requireElement("direct-hud-weapons").box().borderBox().bottom()
+                    <= BattleDirectControlOverlay.ACTION_HEIGHT);
+        }
+        heat.advance(20f);
+        loadout.mounts()[0].cycleRemaining = .5f;
+        assertFalse(mechWeapons(loadout.mounts(), heat).get(0).thermalBlocked());
+        assertEquals("Cycler", mechWeapons(loadout.mounts(), heat).get(0).mechanism());
+    }
+
     @Test
     void equippedAbilitiesFitExistingStripAndShowActualActiveEmptyAndBrokenState() throws Exception {
         for (int state = 0; state < 4; state++) {

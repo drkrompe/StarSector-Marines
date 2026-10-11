@@ -25,14 +25,20 @@ class TerrainBrushTest {
     }
     @Test void jsonPreservesStrokeOrderAndBrushSettings() throws Exception {
         TerrainPlan p=plan(List.of(stroke(Mode.RAISE,3.5,new Point(5.2,6.1)),stroke(Mode.ERASE,1,new Point(7,6))));
-        assertEquals(p,TerrainPlan.read(p.json()));
+        for (Finish finish : Finish.values()) {
+            var variant = new TerrainPlan(p.width(), p.height(), finish, p.faceDepth(), p.ruggedness(), p.seed(), p.strokes());
+            assertEquals(variant, TerrainPlan.read(variant.json()));
+        }
         assertThrows(IllegalArgumentException.class,()->TerrainPlan.read(p.json().put("version",42)));
         assertThrows(IllegalArgumentException.class,()->stroke(Mode.RAISE,Double.NaN,new Point(1,1)));
     }
     @Test void changingFinishAndFaceDepthDoesNotChangeTheBlockedFootprint() {
         TerrainPlan p=plan(List.of(stroke(Mode.RAISE,6,new Point(8,9),new Point(17,15))));
-        TerrainField a=TerrainField.build(p),b=TerrainField.build(new TerrainPlan(24,24,Finish.GRASS_TOP,6,0,91,p.strokes()));
-        for(int y=0;y<24;y++)for(int x=0;x<24;x++)assertEquals(a.blocked(x,y),b.blocked(x,y));
+        TerrainField a=TerrainField.build(p);
+        for (Finish finish : Finish.values()) {
+            TerrainField b=TerrainField.build(new TerrainPlan(24,24,finish,6,0,91,p.strokes()));
+            for(int y=0;y<24;y++)for(int x=0;x<24;x++)assertEquals(a.blocked(x,y),b.blocked(x,y));
+        }
     }
     @Test void smoothSurfaceHasFractionalEdgesAndNoVerticesOutsideTheirCell() {
         TerrainPlan p=plan(List.of(stroke(Mode.RAISE,5.3,new Point(12,12))));

@@ -11,4 +11,7 @@ public final class ParagonSweepSceneSnapshotSuite extends BehaviorSceneSnapshotS
     public ParagonSweepSceneSnapshotSuite() {
         super(new ParagonSweepScene(), WIDTH, HEIGHT);
     }
+
+    /** Wall dust and the fires a sweep leaves are part of what it does. */
+    @Override protected boolean showImpactEffects() { return true; }
 }

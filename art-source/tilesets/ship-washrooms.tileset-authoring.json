@@ -1,0 +1,85 @@
+{
+  "sheetName": "ship-washrooms",
+  "sheet": "art-source/tilesets/ship-washrooms.raw.png",
+  "cellPx": 64,
+  "gridCols": 2,
+  "gridRows": 2,
+  "idPrefix": "ship-washrooms",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-washrooms.png",
+  "note": "Geometry-first compact washroom: sink faces image-top (controls on image-bottom), toilet and shower entrances face image-bottom. Full cubicle footprints are physical fixtures; wash positions are on the shared aisle.",
+  "entries": [
+    {
+      "id": "ship-washrooms.sink",
+      "rect": [
+        172,
+        176,
+        257,
+        246
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "ship-washrooms.toilet",
+      "rect": [
+        801,
+        57,
+        252,
+        486
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "ship-washrooms.shower",
+      "rect": [
+        171,
+        635,
+        260,
+        512
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "ship-washrooms.deck",
+      "rect": [
+        750,
+        737,
+        340,
+        340
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "ship-washrooms.deck",
+      "slot": "v1"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "ship-washrooms.deck",
+      "layout": "variants"
+    }
+  ]
+}

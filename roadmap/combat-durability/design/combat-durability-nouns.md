@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — fences, sandbags and whole tree crowns spend map structure and retain matching damage remnants.
+Updated: 2026-10-11 — trees and multi-cell mineral formations share whole-object structural damage with matching remnants.
 
 ## Purpose
 
@@ -125,6 +125,14 @@ retains the full obstruction. Felling leaves low broken trunks and branches;
 only cells free of surviving crowns and underlying hills reopen. Original
 ground and permanent terrain remain, and neither actor durability nor
 building collapse owns these changes.
+
+Multi-cell rock and ice formations use the same whole-object law. Cracked
+stone or ice retains the original silhouette's obstruction; low fragments open
+the former footprint and reveal the ground beneath it. Rock and ice may have
+different structure capacities, but neither has actor armor or building-collapse
+semantics. One blast spends once per formation, regardless of how many cells
+it reaches. Continuous terrain ridges remain permanent and cannot be breached
+through this prop damage channel.
 
 The seven built-in nature rock groups also spend weapon-authored structure:
 50 for small stones, 100 for medium cover rocks, and 200 for blocking boulders.

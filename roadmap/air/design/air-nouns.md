@@ -1420,8 +1420,10 @@ that the ship carries from the muzzle to the ground over the flight time its own
 speed implies, so one clock serves what is drawn crossing the distance and what
 the ground suffers on arrival, and a heavy round lands as the existing heavy
 blast; point-defence-only
-weapons stay silent against ground. A weapon fires at its tightest cone, because
+weapons never fire at ground (see below). A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
+
+A ship is heard in the game's own sounds, never a mod clip: the weapon's fire sound and its blast's sound come from the same specs, the simulation only records the requests, and the presentation plays them positionally. A burst is thinned to a report every fraction of a second rather than a cue per round, and a lance sounds once when it lights, not while it telegraphs.
 
 **A hull must bring its guns to bear, and a broadside cannot shoot dead ahead.**
 A turret traverses within its slot's arc and a hardpoint fires where the nose
@@ -1460,6 +1462,23 @@ sees it, walked at the weapon's own traverse rate, kept inside its slot's arc an
 drawn in the weapon's own colours. Weaker beams (the Graviton Beam, the Tactical
 Laser) are anti-ship weapons and stay silent against ground for now.
 
+**A warship's point defence is its own and ignores the order.** The flak,
+vulcans and PD lasers a variant mounts are independent of hold fire and area
+fire. Each mount takes the nearest hostile round in flight inside its reach and
+arc, whichever way the round is headed: the rounds the ground battle already
+tracks that opt in to interception (the same opt-in the carried interceptor pods
+read) and the shells of hostile warships. The umbrella is the mount's reach, so
+a ship covers itself and the ground beneath its guns without being told what to
+protect; it never engages friendly rounds. The barrel swings at the weapon's own
+traverse rate and fires once on its bearing. An engagement is the weapon's burst,
+no faster than about three a second, and the round dies if any shot hits. A shot's
+chance is derived from the weapon, not authored per gun: a beam is hitscan, a
+projectile has a lower base; both fall to half at full reach; a projectile loses
+accuracy against ordnance that crosses fast relative to its own muzzle speed, and
+to its own cone. A miss still spends the engagement, so a heavy salvo saturates
+the mounts and the surplus lands. Interception is not damage: a destroyed round
+never lands. Tracers and kill flashes use the weapon's own colours.
+
 **Ownership is the mission's, not the ship's.** The same entity serves the
 company's own flagship, an allied or neutral hull, and an enemy's. Who may call
 it, what it is aimed at and why it is present are decided by the mission or the
@@ -1468,11 +1487,23 @@ a faction and no allegiance logic of its own. What it fires at is chosen by a
 director from the densest concentration of opposing force not already being
 worked, the same rule a fighter strike uses.
 
-It must be answerable. A hull and armour pool that only heavy anti-air, mechs or
-batteries can reach, a bounded time on station or ordnance budget, and
-telegraphed sweeps and falls are the counterplay; none of them is optional.
-Modules, cumulative ship damage and ground-weapon ceiling rules remain future
-decisions. Altitude is ultimately a shared camera-space axis, never a fake
+**A warship is hittable, but only by ordnance.** It carries its hull table's own
+hit points and armour (the Onslaught's 20000 and 1750). Any hostile detonation
+whose blast reaches the hull's footprint is a hit, through one armour rule: a
+hit's strength is its damage times its penetration, the share that gets through
+is strength over armour plus strength, and a hit weaker than a tenth of the armour
+glances off and does nothing. A rifle round is nothing to it however many fire; a
+mortar or orbital strike chips it; only anti-ship-grade ordnance in numbers brings
+it down. Its own side never hurts it. A hull taken to nothing goes up in a heavy
+blast and leaves the battle at once, and every gun with it; a battered hull is
+drawn darker. The hit comes from the detonation pipeline itself, so any source
+that already lands a detonation is a counter without a ship-specific shortcut.
+
+It must be answerable. The hull and armour pool above, a bounded time on station
+or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
+them is optional. The station time and ordnance budget are still to build.
+Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
+rules remain future decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
 
 ## Standing laws

@@ -3,10 +3,12 @@ package com.dillon.starsectormarines.battle.scene;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -52,18 +54,77 @@ public abstract class BehaviorSceneSnapshotSuite implements SnapshotSuite {
         return ReviewAnnotations.NONE;
     }
 
+    /**
+     * Opt-in: draw the game's impact particles (landing blasts, wall dust,
+     * smoke) and the shot layer into the frames. Off by default because most
+     * reviews are about where bodies stand and a blast would hide them.
+     */
+    protected boolean showImpactEffects() {
+        return false;
+    }
+
+    /**
+     * Optional second, closer recording of a loop as {@code <loop>-close} at two thirds of the frame size (the suite holds every frame in memory until the runner writes them), as
+     * {@code {centreX, centreY, cellsAcross}}; null records only the whole map.
+     * Asked per loop so a control that shows nothing new is not stored twice.
+     */
+    protected float[] closeView(String loopId) {
+        return null;
+    }
+
+    /**
+     * The frame without its alpha channel. A suite holds every frame of every
+     * loop until the runner encodes them, and a scene of a few hundred frames at
+     * this size is gigabytes; the review frame is opaque, so a quarter of that is
+     * free.
+     */
+    private static BufferedImage compact(BufferedImage frame) {
+        BufferedImage opaque = new BufferedImage(frame.getWidth(), frame.getHeight(),
+                BufferedImage.TYPE_3BYTE_BGR);
+        Graphics2D graphics = opaque.createGraphics();
+        graphics.drawImage(frame, 0, 0, null);
+        graphics.dispose();
+        return opaque;
+    }
+
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
+        boolean impacts = showImpactEffects();
         BattleReviewFrameRenderer renderer =
                 new BattleReviewFrameRenderer(context.modRoot(), width, height);
+        Map<String, BattleReviewFrameRenderer> closeRenderers = new LinkedHashMap<>();
+        if (impacts) renderer.withImpactEffects();
+        Map<String, ReviewImpactFx> fxByLoop = new LinkedHashMap<>();
         Map<String, List<BufferedImage>> byLoop = new LinkedHashMap<>();
-        List<SceneReport> reports = scene.play((loopId, sim, tick, caption) -> {
-            try {
-                byLoop.computeIfAbsent(loopId, id -> new ArrayList<>())
-                        .add(renderer.render(sim, caption, annotations(sim)));
-            } catch (IOException failure) {
-                throw new UncheckedIOException(failure);
+        List<SceneReport> reports = scene.play(new FrameSink() {
+            @Override
+            public void frame(String loopId, BattleSimulation sim, int tick, String caption) {
+                try {
+                    ReviewImpactFx fx = impacts ? fxFor(loopId) : null;
+                    byLoop.computeIfAbsent(loopId, id -> new ArrayList<>())
+                            .add(compact(renderer.render(sim, caption, annotations(sim), fx)));
+                    BattleReviewFrameRenderer closeRenderer = closeRenderers.computeIfAbsent(loopId, id -> {
+                        float[] close = closeView(id);
+                        return close == null ? null : new BattleReviewFrameRenderer(context.modRoot(),
+                                width * 2 / 3, height * 2 / 3, close[0], close[1], close[2]);
+                    });
+                    if (closeRenderer != null) {
+                        byLoop.computeIfAbsent(loopId + "-close", id -> new ArrayList<>())
+                                .add(compact(closeRenderer.render(sim, caption, annotations(sim), fx)));
+                    }
+                } catch (IOException failure) {
+                    throw new UncheckedIOException(failure);
+                }
+            }
+
+            @Override
+            public void advanced(String loopId, BattleSimulation sim, int tick) {
+                if (impacts) fxFor(loopId).feed(sim);
+            }
+
+            private ReviewImpactFx fxFor(String loopId) {
+                return fxByLoop.computeIfAbsent(loopId, id -> new ReviewImpactFx(context.modRoot()));
             }
         });
 

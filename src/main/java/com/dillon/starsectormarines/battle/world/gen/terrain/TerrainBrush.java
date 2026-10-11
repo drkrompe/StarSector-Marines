@@ -29,9 +29,10 @@ public final class TerrainBrush {
                 throw new IllegalArgumentException("Terrain overlaps protected ground at "+x+","+y+"; erase or move this stroke");
         }
         TileRegistry tiles=TileRegistry.installed();
-        if(tiles==null || tiles.block("terrain.talus")==null || tiles.block("terrain.rock")==null)throw new IllegalStateException("Terrain materials are not installed");
+        String material=plan.finish().materialPrefix();
+        if(tiles==null || tiles.block(material+"talus")==null || tiles.block(material+"rock")==null)throw new IllegalStateException("Terrain materials are not installed: "+material);
         for(int i=0;i<7;i++)
-            if(tiles.block("terrain.face."+i)==null)throw new IllegalStateException("Missing terrain face material "+i);
+            if(tiles.block(material+"face."+i)==null)throw new IllegalStateException("Missing terrain face material "+material+i);
         TerrainSurface surface=TerrainSurface.build(plan,field,topology);
         for(int y=0;y<plan.height();y++)for(int x=0;x<plan.width();x++) {
             if(field.maximum(x,y)>=-.65)topology.setNatureOverlayIndex(x,y,-1);
