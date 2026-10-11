@@ -13,6 +13,16 @@
       </div>
     </div>
 
+    <div id="barracks-issue-stock" class="issue-stock-strip panel">
+      <div id="barracks-issue-stock-title" class="label heading tone-muted">FLEET CARGO</div>
+      <div id="barracks-issue-stock-rows" class="issue-stock-rows">
+        <div each="stock in command.issueCargoStock" key="{stock.id}" id="{stock.id}" class="issue-stock-row">
+          <img id="{stock.iconId}" class="issue-stock-icon" src="{stock.icon}" />
+          <div id="{stock.labelId}" class="label issue-stock-label">{stock.label}</div>
+        </div>
+      </div>
+    </div>
+
     <div id="barracks-command-board" class="{command.overviewClasses}">
       <div id="barracks-command-rail" class="command-rail panel console-section">
         <div id="barracks-section-heading" class="label heading section-heading">OFFICER COMMANDS</div>
@@ -105,12 +115,6 @@
           </div>
           <button id="barracks-reinforce" class="order-button console-action" disabled="{command.reinforceDisabled}" onclick="{command.reinforce}">FILL VACANCIES</button>
           <div id="barracks-order-caption-85" class="label heading warm order-caption">EQUIPMENT ISSUE</div>
-          <div id="barracks-issue-stock" class="issue-stock-strip">
-            <div each="stock in command.issueCargoStock" key="{stock.id}" id="{stock.id}" class="issue-stock-row">
-              <img id="{stock.iconId}" class="issue-stock-icon" src="{stock.icon}" />
-              <div id="{stock.labelId}" class="label issue-stock-label">{stock.label}</div>
-            </div>
-          </div>
           <div id="barracks-issue-summary" class="label issue-summary">{command.issueSummary}</div>
           <div id="barracks-issue-cost" class="label warm wrap issue-cost">{command.issueCost}</div>
           <div id="barracks-issue-reason" class="label muted wrap issue-reason">{command.issueReason}</div>
@@ -195,6 +199,12 @@
   .heading { font-family: heading; }
   .section-heading { height: 19px; }
   .barracks-room-bar { flex-direction: row; height: 54px; padding: 8px 10px; gap: 12px; align-items: center; border-width: 2px; }
+  .issue-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
+  #barracks-issue-stock-title { width: 92px; height: 18px; }
+  .issue-stock-rows { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 8px; }
+  .issue-stock-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 2px 4px; gap: 5px; background-color: #121719; border-width: 1px; border-color: #39423a; }
+  .issue-stock-icon { width: 16px; height: 16px; }
+  .issue-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
   #barracks-room-title { width: 326px; height: auto; white-space: normal; }
   #barracks-room-copy { width: 480px; flex-grow: 0; text-align: left; height: auto; white-space: normal; }
   .barracks-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
@@ -306,10 +316,6 @@
   .recruit-count { width: 54px; height: 20px; pointer-events: none; }
   .recruit-label { width: 172px; height: 20px; pointer-events: none; }
   .issue-summary { height: 20px; } .issue-cost { height: 42px; } .issue-reason { height: 42px; }
-  .issue-stock-strip { flex-direction: row; height: 24px; gap: 3px; overflow: hidden; }
-  .issue-stock-row { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; padding: 1px 2px; gap: 3px; background-color: #121719; border-width: 1px; border-color: #39423a; }
-  .issue-stock-icon { width: 15px; height: 15px; }
-  .issue-stock-label { width: 0px; flex-grow: 1; height: 14px; font-family: heading; }
   .editor-copy { height: 65px; }
   .profile-name-input { width: 100%; height: 28px; padding: 3px 6px; border-width: 1px; background-color: #111814; }
   .detail-tools { flex-direction: row; height: 28px; }
