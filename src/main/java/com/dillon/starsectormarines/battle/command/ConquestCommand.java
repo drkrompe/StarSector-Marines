@@ -179,6 +179,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
     public static final String ZONE_TARGET_CAP_PROPERTY =
             "battle.conquest.zoneTargetCap";
 
+    /**
+     * {@code -Dbattle.command.conquest.balancedHomeTracks=true} gives each new
+     * squad the least-loaded track as its home, rather than the one it happened
+     * to be standing in when first seen.
+     *
+     * <p>The home track is sticky and read once, and the whole force lands in
+     * one place. Measured on {@code full-strength-west}: thirty squads with the
+     * middle track as home and none with either of the others, so two thirds of
+     * the front had nobody whose business it was, and the neighbour-support rule
+     * then moved the entire force as one body to whichever track had a target -
+     * 27 of 30 squads on one zone, the other track's twenty-one known contacts
+     * answered by a single squad. A squad's natural track wins a tie, so a map
+     * whose landing spreads across the lanes already is unchanged. Off while it
+     * is measured apart from everything else.
+     */
+    public static final String BALANCED_HOME_TRACKS_PROPERTY =
+            "battle.command.conquest.balancedHomeTracks";
+
+    static final boolean BALANCED_HOME_TRACKS_ENABLED = Boolean.parseBoolean(
+            System.getProperty(BALANCED_HOME_TRACKS_PROPERTY, "false"));
+
     /** Read once from the property above; see {@link #HOME_TRACK_CAPTURES_ENABLED}. */
     static boolean ZONE_TARGET_CAP_ENABLED = Boolean.parseBoolean(
             System.getProperty(ZONE_TARGET_CAP_PROPERTY, "false"));
@@ -458,6 +479,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
      */
     private final IntOpenHashSet frontReachedCaptureZones = new IntOpenHashSet();
     private final Int2IntOpenHashMap squadStripIdx = new Int2IntOpenHashMap();
+    /** Live squads per home track, rebuilt each pulse; see {@link #BALANCED_HOME_TRACKS_PROPERTY}. */
+    private final int[] stripLoad = new int[STRIP_COUNT];
     {
         squadStripIdx.defaultReturnValue(-1);
     }
@@ -641,6 +664,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         // commander pinning whichever assault squad happened to be standing in the
         // compound at capture. Skipping HOLD_NODE here leaves the garrison on
         // station and lets the capturing assault squad keep advancing.
+        if (BALANCED_HOME_TRACKS_ENABLED) rebuildStripLoad(frame);
         List<PlanningSquad> squads = new ArrayList<>();
         Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
@@ -1746,9 +1770,39 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (idx >= STRIP_COUNT) idx = STRIP_COUNT - 1;
         if (squad.commandGroup != null && squad.commandGroup.namedOfficer()) {
             idx = groupTracks.computeIfAbsent(squad.commandGroup.groupId(), key -> idxForGroup(squad));
+        } else if (BALANCED_HOME_TRACKS_ENABLED) {
+            idx = leastLoadedTrack(stripLoad, idx);
+            stripLoad[idx]++;
         }
         squadStripIdx.put(squad.id, idx);
         return idx;
+    }
+
+    /** Counts the live squads already homed on each track. */
+    private void rebuildStripLoad(ConquestCommandFrame frame) {
+        Arrays.fill(stripLoad, 0);
+        for (CommandSquadState state : frame.squads()) {
+            if (state.aliveMembers() <= 0) continue;
+            int track = squadStripIdx.get(state.squadId());
+            if (track >= 0 && track < STRIP_COUNT) stripLoad[track]++;
+        }
+    }
+
+    /**
+     * The track with the fewest squads homed on it; the squad's natural track
+     * wins a tie, then the nearest to it, so a landing that is already spread
+     * keeps its lanes.
+     */
+    static int leastLoadedTrack(int[] load, int natural) {
+        int best = natural;
+        for (int track = 0; track < load.length; track++) {
+            if (load[track] < load[best]
+                    || load[track] == load[best]
+                    && Math.abs(track - natural) < Math.abs(best - natural)) {
+                best = track;
+            }
+        }
+        return best;
     }
 
     private int idxForGroup(PlanningSquad squad) {
