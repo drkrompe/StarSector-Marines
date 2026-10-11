@@ -5,7 +5,7 @@ freight-pass example, using the production battle renderer.
 
 - Drag to raise a continuous terrain mass; right-drag (or select Erase) to cut a pass.
 - The wheel changes radius. Each drag is one undo/redo operation.
-- Rock / grass-topped finish and face depth affect appearance. Ruggedness and seed reshape the edge.
+- Rock / grass-topped / glacial ice finish and face depth affect appearance. Ruggedness and seed reshape the edge.
 - Show blocked cells to compare the smooth surface with the actual navigation grid.
 - Road context loads a `.road.json` of the same dimensions. New creates the desired extent.
 - Save / Open round-trip a `.terrain.json`; `previewRoad` is optional editor context, relative to the project root.
@@ -50,5 +50,13 @@ fitted player boats, mechanized breakthrough and freight settlement.
 
 `python art-source/terrain/bake_materials.py` reproduces the shipped material atlas
 and catalog from `materials.recipe.json`, using only Python's standard library.
-The script is their only producer. Ground UV clipping, not new artwork, creates
-individual cliff shapes.
+The script is the rock material producer. Glacial materials use the retained
+ImageGen sheet and ordinary tileset exporter documented in
+`art-source/tilesets/planet-formations.README.md`. Ground UV clipping creates
+individual cliff shapes for every finish.
+
+`gradlew.bat createSnapshots '-Psnapshot=planet-landscapes'` renders barren and
+frozen countryside, compares ten production mission layouts per palette with
+the landscape pass enabled/disabled, and exercises mineral destruction through
+the live combat map editor and player fog renderer. Authored missions retain
+their exact terrain geometry when the target world selects a rock or ice finish.

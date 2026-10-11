@@ -1,0 +1,252 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "formation.boulders",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "formation.boulders-damaged",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "formation.boulders-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "formation.spires",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "formation.spires-damaged",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "name": "formation.spires-destroyed",
+      "row": 5
+    },
+    {
+      "col": 6,
+      "name": "formation.ice-blocks",
+      "row": 5
+    },
+    {
+      "col": 10,
+      "name": "formation.ice-blocks-damaged",
+      "row": 5
+    },
+    {
+      "col": 0,
+      "name": "formation.ice-blocks-destroyed",
+      "row": 10
+    },
+    {
+      "col": 4,
+      "name": "formation.ice-pinnacles",
+      "row": 10
+    },
+    {
+      "col": 7,
+      "name": "formation.ice-pinnacles-damaged",
+      "row": 10
+    },
+    {
+      "col": 10,
+      "name": "formation.ice-pinnacles-destroyed",
+      "row": 10
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.boulders",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.boulders-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.boulders-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.spires",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.spires-damaged",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.spires-destroyed",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.ice-blocks",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.ice-blocks-damaged",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.ice-blocks-destroyed",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.ice-pinnacles",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.ice-pinnacles-damaged",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.ice-pinnacles-destroyed",
+      "row": 10
+    }
+  ],
+  "sheet": "graphics/doodads/planet-formations.png"
+}
