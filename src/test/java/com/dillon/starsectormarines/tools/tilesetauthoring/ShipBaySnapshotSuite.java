@@ -52,7 +52,7 @@ public final class ShipBaySnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("ship-bay-connections.png", renderer.render(connections(), 42, 64)));
     }
 
-    private static MapResult room(boolean candidate) {
+    static MapResult room(boolean candidate) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         int deck = candidate ? topology.surfaceIndex("ship-bay.deck-surface") : 0;

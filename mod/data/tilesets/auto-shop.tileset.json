@@ -1,0 +1,138 @@
+{
+  "blocks": [
+    {
+      "cells": [
+        [
+          5,
+          0
+        ],
+        [
+          6,
+          0
+        ],
+        [
+          7,
+          0
+        ]
+      ],
+      "id": "auto-shop.concrete"
+    },
+    {
+      "cells": [[
+        8,
+        0
+      ]],
+      "id": "auto-shop.passage"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "auto-shop.bay",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 1 of the pool",
+      "name": "auto-shop.concrete v1",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 2 of the pool",
+      "name": "auto-shop.concrete v2",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 3 of the pool",
+      "name": "auto-shop.concrete v3",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 1 of the pool",
+      "name": "auto-shop.passage v1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "auto-shop.tool-chest",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "auto-shop.diagnostic",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "auto-shop.service-run",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "auto-shop.lift-column",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "auto-shop.drain",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        7
+      ],
+      "id": "auto-shop.bay",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "auto-shop.tool-chest",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "auto-shop.diagnostic",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        6
+      ],
+      "id": "auto-shop.service-run",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "auto-shop.lift-column",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "id": "auto-shop.drain",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/auto-shop.png"
+}
