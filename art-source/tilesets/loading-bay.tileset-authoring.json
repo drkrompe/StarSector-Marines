@@ -1,0 +1,117 @@
+{
+  "sheetName": "loading-bay",
+  "sheet": "art-source/tilesets/loading-bay.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "loading-bay",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/loading-bay.png",
+  "note": "Geometry-first provisions handling kit. Measured RGBA cuts, padded equipment, full square overlay canvases and opaque floor interior.",
+  "entries": [
+    {
+      "id": "loading-bay.manifest-desk",
+      "rect": [
+        40,
+        175,
+        370,
+        188
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "loading-bay.pallet-tug",
+      "rect": [
+        529,
+        154,
+        154,
+        255
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "loading-bay.conveyor",
+      "rect": [
+        853,
+        166,
+        557,
+        197
+      ],
+      "footprintCells": [
+        6,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "loading-bay.insulated-tote",
+      "rect": [
+        76,
+        646,
+        224,
+        224
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "loading-bay.provision-cartons",
+      "rect": [
+        502,
+        654,
+        224,
+        224
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "loading-bay.staging-deck",
+      "rect": [
+        1000,
+        630,
+        288,
+        288
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "loading-bay.staging-deck",
+      "slot": "v1"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "loading-bay.staging-deck",
+      "layout": "variants"
+    }
+  ]
+}
