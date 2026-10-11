@@ -35,7 +35,8 @@ class WaylineNarrationTest {
             assertEquals("sounds/story/wayline/" + line.id() + ".ogg",
                     sounds.getJSONArray(line.id()).getJSONObject(0).getString("file"));
             JSONObject receipt = new JSONObject(Files.readString(sources.resolve("wayline/" + line.id() + ".json")));
-            assertEquals(root.getString("voiceId"), receipt.getString("voiceId"));
+            JSONObject authored = root.getJSONArray("lines").getJSONObject(catalog.lines().indexOf(line));
+            assertEquals(authored.optString("voiceId", root.getString("voiceId")), receipt.getString("voiceId"));
             assertEquals(root.getString("modelId"), receipt.getString("modelId"));
             assertEquals(receipt.getDouble("durationSeconds"), line.durationSeconds(), 0.001);
             assertTrue(Files.size(sources.resolve("wayline/" + line.id() + ".mp3")) > 1000);
@@ -54,7 +55,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(66, ids.size());
+        assertEquals(76, ids.size());
     }
 
     @Test

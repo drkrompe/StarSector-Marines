@@ -14,6 +14,16 @@
 // Comments and trailing commas are tolerated. ffmpeg must be on PATH (or $FFMPEG set).
 {
   "clips": [
+    {"id": "marines_mara_hound_found", "source": "wayline/marines_mara_hound_found.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_hound_ready", "source": "wayline/marines_castle_hound_ready.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_hound_control", "source": "wayline/marines_castle_hound_control.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_hound_return", "source": "wayline/marines_castle_hound_return.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_hound_disabled", "source": "wayline/marines_castle_hound_disabled.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_salvage_request", "source": "wayline/marines_castle_salvage_request.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_salvage_terms", "source": "wayline/marines_mara_salvage_terms.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_castle_salvage_accept", "source": "wayline/marines_castle_salvage_accept.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_salvage_transfer", "source": "wayline/marines_mara_salvage_transfer.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
+    {"id": "marines_mara_salvage_repaired", "source": "wayline/marines_mara_salvage_repaired.mp3", "kind": "ui", "out": "story/wayline", "processing": "dialogue"},
     // Operation net: exchange-local cast, shared offline comms treatment.
     {"id": "marines_op_kestrel_call", "source": "operation-radio/live/marines_op_kestrel_call.mp3", "kind": "ui", "out": "battle/operation-radio", "processing": "comms"},
     {"id": "marines_op_kestrel_ack", "source": "operation-radio/live/marines_op_kestrel_ack.mp3", "kind": "ui", "out": "battle/operation-radio", "processing": "comms"},
