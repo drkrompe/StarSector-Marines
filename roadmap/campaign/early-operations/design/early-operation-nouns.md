@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — twin-cannon heavy lead breaks exit guns while APCs screen freight.
+Updated: 2026-10-11 — prepared exit checkpoint and roadside strongpoints divide infantry and armor duties.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -169,9 +169,11 @@ makes the battle larger but never replaces the player contribution: local
 troops take their authored seats and campaign personnel retains ownership of
 player seats.
 
-The enemy is a finite ragtag force. An early operation deliberately excludes
+The enemy is a finite ragtag force. Relief and Counterattack deliberately exclude
 regular infantry, mechs, static defense posts, fighter cover, and open-ended
-reinforcements. Tuning must first change local force ratios, approach timing,
+reinforcements. The later Thunder Run finale explicitly adds a small prepared
+machine-gun checkpoint opposed by employer armor; this does not raise the
+opening chapters to that equipment tier. Tuning must first change local force ratios, approach timing,
 or battlefield pressure—not add late-game support merely to make a battle more
 eventful.
 
@@ -311,8 +313,12 @@ reinforced employer APCs and up to three unarmed industrial container haulers. T
 from the slower, longer freight column. Two boats deliver eight militia;
 the company's named troops arrive in their own fitted boats.
 
-The company clears the three sites in sequence while two stable militia
-sections hold its gains. Recovered earlier gains are required to release the
+The company clears three occupied roadside buildings in sequence while two
+stable militia sections hold its gains. Each building overlooks the road and
+has a sandbag firing apron with an entrance aligned to its doorway. Clearing
+these strongpoints removes sheltered small-arms positions before the next
+convoy leg; it does not disable an abstract damage aura or invent anti-tank
+weapons for their militia garrisons. Recovered earlier gains are required to release the
 next convoy leg; a leg already underway is not canceled by a later recapture.
 The column waits at two road stops. The tank takes the forward center position,
 using slower paired high-explosive cannon fire against the exit gun line. It
@@ -326,11 +332,15 @@ the crossing. Physical chassis steering, terrain, shared damage, turret fire
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
-Fourteen low-tech raiders guard the posts. Eighteen more enter from the north,
-south and eastern road mouths when the final run commits; repeated capture
-cannot create another wave. Two fixed machine-gun pits flank the eastern exit,
-outside the reserved road, giving the heavy lead a distinct target from the
-APCs' infantry screen.
+Fourteen low-tech raiders guard the roadside buildings. Six more already man
+two rifle bays at the exit checkpoint; twelve enter from the north and south
+road mouths when the final run commits. Repeated capture cannot create another
+wave. Two fixed machine-gun pits flank the eastern exit, surrounded by
+open-backed sandbags, fenced inspection yards, support buildings and concrete
+gate abutments. Gates connect the yards to the flanks and gun positions; none
+narrows the reserved road. This prepared line gives the heavy lead a distinct
+target from the APCs' infantry screen. It is a fire block, not a solid barrier
+that vehicles must physically demolish to proceed.
 
 Freight belongs to the employer, not the player's inventory. Losses persist by
 cargo identity; employer escorts are operation support and can be replaced on

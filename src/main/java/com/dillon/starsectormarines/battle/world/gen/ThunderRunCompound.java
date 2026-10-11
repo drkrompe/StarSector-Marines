@@ -24,6 +24,9 @@ import java.util.Random;
 /** Authored small territorial profile. Decoration never adds capture requirements. */
 public final class ThunderRunCompound {
     public static final int WIDTH = 320, HEIGHT = 144;
+    public record Cell(int x, int y) {}
+    public static final List<Cell> EXIT_RIFLE_POSTS = List.of(new Cell(290, 60), new Cell(290, 90));
+    public static final List<Cell> EXIT_GUNS = List.of(new Cell(304, 65), new Cell(304, 85));
     public static final List<String> SITE_NAMES = List.of("Convoy staging", "Dispatch Post", "East Crossing", "Outbound Gate");
     public record Layout(MapResult map, List<TacticalNode> sites) {
         public Layout { sites = List.copyOf(sites); }
@@ -35,11 +38,12 @@ public final class ThunderRunCompound {
                 new CellTopology(WIDTH, HEIGHT), new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Thunder Run", List.of(ThunderRunCompound::grounds,
-                ThunderRunCompound::buildings, ThunderRunCompound::perimeter, ThunderRunCompound::cargo, new FinalizeStage())).run(c);
+                ThunderRunCompound::buildings, ThunderRunCompound::perimeter,
+                ThunderRunCompound::fortifications, ThunderRunCompound::cargo, new FinalizeStage())).run(c);
         // Gun pits flank the exit; neither narrows the reserved fifteen-cell road.
-        for (int y : new int[]{65, 85}) {
-            c.topology.setGroundKind(304, y, GroundKind.STRIPED);
-            c.grid.setWalkable(304, y, false);
+        for (Cell gun : EXIT_GUNS) {
+            c.topology.setGroundKind(gun.x, gun.y, GroundKind.STRIPED);
+            c.grid.setWalkable(gun.x, gun.y, false);
         }
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 75,
@@ -61,6 +65,10 @@ public final class ThunderRunCompound {
         for (PointOfInterest p : c.pois) requireRoute(map, p.interiorAnchorX, p.interiorAnchorY);
         requireRoute(map, 275, 2);
         requireRoute(map, 275, 141);
+        for (Cell gun : EXIT_GUNS) requireRoute(map, gun.x + 2, gun.y);
+        for (Cell post : EXIT_RIFLE_POSTS) requireRoute(map, post.x, post.y);
+        for (int[] gate : new int[][]{{284,51},{316,51},{300,64},{284,98},{316,98},{300,86}})
+            requireRoute(map, gate[0], gate[1]);
         for (int x = 0; x < WIDTH; x++) for (int y = 68; y <= 82; y++)
             if (!map.grid.isWalkable(x, y)) throw new IllegalStateException("Freight corridor obstructed");
         return new Layout(map, sites);
@@ -84,7 +92,7 @@ public final class ThunderRunCompound {
         pave(c, 10, 12, 36, 132, GroundKind.STREET);
         pave(c, 57, 35, 111, 64, GroundKind.COURTYARD);
         pave(c, 143, 37, 195, 112, GroundKind.COURTYARD);
-        pave(c, 235, 30, 294, 115, GroundKind.COURTYARD);
+        pave(c, 235, 30, 316, 115, GroundKind.COURTYARD);
         // Crossing and road ambush approaches remain vehicle-wide.
         pave(c, 159, 0, 171, 143, GroundKind.STREET);
         pave(c, 269, 0, 281, 143, GroundKind.STREET);
@@ -110,6 +118,7 @@ public final class ThunderRunCompound {
         shell(c, 199, 32, 225, 55, Frontage.BOTTOM);
         shell(c, 220, 91, 245, 111, Frontage.TOP);
         shell(c, 286, 38, 309, 59, Frontage.BOTTOM);
+        shell(c, 286, 94, 309, 111, Frontage.TOP);
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.DEPOT,
@@ -127,11 +136,74 @@ public final class ThunderRunCompound {
                 c.grid.setWalkable(x, run[2], false); c.topology.setWall(x, run[2], true);
             }
     }
+    /** Prepared positions use the same real cover and transparent fixtures as ordinary defense posts. */
+    private static void fortifications(GenContext c) {
+        // Firing aprons face the road, with a wide opening aligned to each actual doorway.
+        for (int i = 0; i < 3; i++) {
+            PointOfInterest p = c.pois.get(i);
+            int y = i == 1 ? p.top - 2 : p.bottom + 2;
+            String face = i == 1 ? "n" : "s";
+            for (int x = p.left; x <= p.right; x++) {
+                if (Math.abs(x - p.anchorCellX) <= 2) continue;
+                fixture(c, x, y, "doodad.sandbag-straight-" + face);
+            }
+        }
+        // Two inspection yards frame the open freight lane. Side gates keep every yard crossable.
+        fencedYard(c, 284, 30, 316, 64, 51, 64);
+        fencedYard(c, 284, 86, 316, 115, 98, 86);
+        for (Cell gun : EXIT_GUNS) {
+            // West-facing horseshoe, open to its service yard on the east.
+            for (int y = gun.y - 2; y <= gun.y + 2; y++)
+                fixture(c, gun.x - 2, y, "doodad.sandbag-" + (y == gun.y - 2 ? "corner-nw"
+                        : y == gun.y + 2 ? "corner-sw" : "straight-w"));
+            for (int x = gun.x - 1; x <= gun.x + 2; x++) {
+                fixture(c, x, gun.y - 2, "doodad.sandbag-straight-n");
+                fixture(c, x, gun.y + 2, "doodad.sandbag-straight-s");
+            }
+        }
+        // Dispersed rifle bays overlook the approach without putting obstacles in the carriageway.
+        for (int y : new int[]{61, 89}) for (int x = 287; x <= 293; x++)
+            fixture(c, x, y, "doodad.sandbag-straight-" + (y < 75 ? "s" : "n"));
+        // Concrete gate abutments sit beyond the road shoulders; the full convoy band stays open.
+        for (int x = 310; x <= 311; x++) for (int y : new int[]{66, 67, 83, 84}) {
+            c.grid.setWalkable(x, y, false);
+            c.topology.setWall(x, y, true);
+        }
+        // Paint uses a floor decal; changing ground kind alone can disappear into a road palette.
+        var stripe = TileRegistry.installed().doodad("doodad.fl-striped-yellow");
+        if (stripe == null) throw new IllegalStateException("Missing checkpoint road paint");
+        for (int y = 68; y <= 82; y++) for (int x : new int[]{297, 310})
+            c.doodads.add(new Doodad(x, y, stripe, 1));
+    }
+    private static void fencedYard(GenContext c, int l, int t, int r, int b, int sideGate, int roadEdge) {
+        for (int y = t; y <= b; y++) for (int x = l; x <= r; x++) {
+            if (x != l && x != r && y != t && y != b) continue;
+            if ((x == l || x == r) && Math.abs(y - sideGate) <= 2) continue;
+            if (y == roadEdge && x >= 298 && x <= 309) continue;
+            if (y != roadEdge && x >= 297 && x <= 300) continue;
+            String suffix = x == l && y == t ? "corner-nw" : x == r && y == t ? "corner-ne"
+                    : x == l && y == b ? "corner-sw" : x == r && y == b ? "corner-se"
+                    : y == t || y == b ? "straight-h" : "straight-v";
+            fixture(c, x, y, "doodad.industrial-fence-" + suffix);
+        }
+    }
+    private static void fixture(GenContext c, int x, int y, String id) {
+        TileRegistry tiles = TileRegistry.installed();
+        if (tiles == null || tiles.doodad(id) == null)
+            throw new IllegalStateException("Missing Thunder Run fortification: " + id);
+        if (!c.grid.isWalkable(x, y))
+            throw new IllegalStateException("Thunder Run fortification overlaps structure at " + x + "," + y);
+        c.grid.setWalkable(x, y, false);
+        c.grid.setSeeThrough(x, y, true);
+        c.topology.setWall(x, y, false);
+        c.topology.setFixture(x, y, true);
+        c.doodads.add(new Doodad(x, y, tiles.doodad(id)));
+    }
     private static void cargo(GenContext c) {
         TileRegistry tiles = TileRegistry.installed();
         if (tiles == null) return;
         var prop = tiles.doodad("doodad.industrial-crate-stack");
-        if (prop != null) for (int[] lot : new int[][]{{75,37},{88,37},{102,37},{203,62},{218,62},{249,110},{260,110},{291,91},{301,91}})
+        if (prop != null) for (int[] lot : new int[][]{{75,37},{88,37},{102,37},{203,62},{218,62},{249,110},{260,110},{312,60},{312,62},{312,89},{312,91}})
             c.doodads.add(new Doodad(lot[0], lot[1], prop));
     }
     private static RoadGraph roads() {
