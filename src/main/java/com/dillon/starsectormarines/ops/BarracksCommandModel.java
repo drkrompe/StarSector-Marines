@@ -483,6 +483,30 @@ public final class BarracksCommandModel {
         return guideStep == 3 ? "barracks-reinforce" : "barracks-issue";
     }
 
+    /** Each group becomes one opening; its actual controls are the only input targets. */
+    public List<List<String>> guideRegions() {
+        if (detail || lineSquads().isEmpty() || guideStep == 5 || organizing || editing)
+            return List.of(List.of(guideTargetId()));
+        var regions = new ArrayList<List<String>>();
+        if (guideStep <= 2 || selected.isEmpty()) {
+            regions.add(List.of("barracks-board-tools", "barracks-selection-tools",
+                    "barracks-formation-list", "barracks-page-tools"));
+        }
+        if (guideStep == 2 && !selected.isEmpty()) regions.add(List.of("transfer-heading", "transfer-summary",
+                "barracks-choose-donors", "barracks-review-transfers", "barracks-transfer-rows",
+                "barracks-transfer-reason", "barracks-transfer-actions"));
+        if (guideStep == 3 && !selected.isEmpty()) {
+            regions.add(List.of("barracks-order-caption-82", "barracks-recruitment", "barracks-recruit-draw", "barracks-reinforce"));
+            regions.add(List.of("barracks-recruit-stock"));
+        }
+        if (guideStep == 4 && !selected.isEmpty()) {
+            regions.add(List.of("barracks-order-caption-85", "barracks-issue-summary", "barracks-issue-cost",
+                    "barracks-issue-reason", "barracks-issue"));
+            regions.add(List.of("barracks-issue-stock"));
+        }
+        return List.copyOf(regions);
+    }
+
     private String guideSquadTarget(boolean donor) {
         var candidates = filtered().stream().skip((long) pageNumber() * PAGE_SIZE).limit(PAGE_SIZE)
                 .filter(s -> !s.stationed() && (donor ? !selected.contains(s.id()) && roster.readyCount(s) > 0

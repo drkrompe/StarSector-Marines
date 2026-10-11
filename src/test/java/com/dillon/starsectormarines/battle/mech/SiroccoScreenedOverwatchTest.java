@@ -433,11 +433,11 @@ class SiroccoScreenedOverwatchTest {
 
         OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
 
-        assertTrue(f.loadout.mount(MechMountSlot.ARMS).cooldown > 0f,
+        assertTrue(f.loadout.mount(MechMountSlot.ARMS).cycleRemaining > 0f,
                 "the 25-cell contact should receive the installed heavy-cannon shot");
-        assertEquals(0f, f.loadout.mount(MechMountSlot.LEFT_SHOULDER).cooldown,
+        assertEquals(0f, f.loadout.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining,
                 "LRMs remain withheld inside the heavy-cannon band");
-        assertEquals(0f, f.loadout.mount(MechMountSlot.RIGHT_SHOULDER).cooldown);
+        assertEquals(0f, f.loadout.mount(MechMountSlot.RIGHT_SHOULDER).cycleRemaining);
     }
 
     @Test

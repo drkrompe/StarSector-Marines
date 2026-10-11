@@ -89,9 +89,12 @@ public class HeavyWeapons {
                 && roster.world().hasMechLoadout(controlledId)) {
             MechLoadoutComponent loadout = roster.world().mechLoadout(controlledId);
             for (MechWeaponMount mount : loadout.mounts()) {
-                if (mount == null || mount.cooldown > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
-                if (!selected(mount, selectedWeapon)) continue;
-                if (firePointRound(controlledId, mount, aim)) mount.commitTrigger(0L, aim);
+                if (mount == null || mount.cycleRemaining > 0f || mount.burstRemaining > 0 || !mount.hasAmmo()) continue;
+                if (!selected(mount, selectedWeapon) || !loadout.heat.permits(mount.component.heatPerTrigger(), false)) continue;
+                if (firePointRound(controlledId, mount, aim)) {
+                    loadout.heat.commit(mount.component.heatPerTrigger());
+                    mount.commitTrigger(0L, aim);
+                }
             }
         }
         advanceMechWeapons(controlledId, aim, selectedWeapon);
@@ -312,7 +315,7 @@ public class HeavyWeapons {
      * <p>The trigger decisions (start a burst / launch a salvo / lob an LRM)
      * happen inside {@code MechCombatantBehavior.tryFireMechWeapons}. This pass
      * handles continuation — emitting queued rounds at their proper spacing —
-     * ticks down per-weapon cooldowns, and advances each finite missile rack's
+     * ticks down mechanical loader/cycler clocks, and advances each finite missile rack's
      * installed replenisher cadence.
      */
     private void advanceMechWeapons(long controlledId, PointFireAim aim, int selectedWeapon) {
@@ -337,12 +340,13 @@ public class HeavyWeapons {
             long u = mechScratch.getLong(i);
             if (!roster.isAliveById(u)) continue; // killed earlier in this same pass
             MechLoadoutComponent m = world.mechLoadout(u);
+            m.heat.advance(BattleSimulation.TICK_DT);
 
             for (MechWeaponMount mount : m.mounts()) {
                 if (mount == null) continue;
                 mount.advanceReplenishment(BattleSimulation.TICK_DT,
                         m.missileReplenisher());
-                if (mount.cooldown > 0f) mount.cooldown -= BattleSimulation.TICK_DT;
+                mount.cycleRemaining = Math.max(0f, mount.cycleRemaining - BattleSimulation.TICK_DT);
                 if (mount.burstRemaining <= 0) continue;
                 mount.burstTimer -= BattleSimulation.TICK_DT;
                 if (mount.burstTimer > 0f) continue;

@@ -19,9 +19,10 @@ import java.util.Map;
  * {@link WarshipScale}. It turns at the hull's own turn rate and acceleration, so
  * a battleship swings slowly.
  *
- * <p>The ship is a plain object ticked by {@link WarshipSystem}, not yet a body
- * in the entity world: nothing on the ground can shoot it. That is the
- * answerability work, deferred until a mission wants a counter.
+ * <p>The ship is a plain object ticked by {@link WarshipSystem}, not a body in
+ * the entity world. It is answerable only through {@link #takeDamage}: it has the
+ * hull table's own hit points and armour, and {@link #effectiveDamage} says how
+ * little a small round does against that armour and how much ordnance does.
  */
 public final class Warship {
 
@@ -36,8 +37,12 @@ public final class Warship {
         float aimY;
         /** Whether {@code aimX/aimY} is a live choice the barrel is swinging to. */
         boolean aimed;
+        /** The sweep this beam mount has committed, while it lasts. */
+        LanceSweepSystem.Active lance;
         /** Rounds this mount has fired, for evidence. */
         public int shotsFired;
+        /** Hostile ordnance a point-defence mount has shot down, for evidence. */
+        public int intercepts;
         /** Where the barrel points now, in the hull-facing convention; rests along the slot until it has a target. */
         public float headingDegrees;
         /** Seconds since this mount last fired; large until it first does. */
@@ -47,11 +52,23 @@ public final class Warship {
             this.slot = slot;
             this.weapon = weapon;
         }
+
+        /** Whether this mount only shoots down ordnance; it is {@link WarshipPointDefence}'s, not an area-fire gun. */
+        public boolean pointDefence() {
+            return weapon.pointDefenceOnly();
+        }
     }
 
-    /** Fallback handling for a hull the table does not list, in degrees per second and per second squared. */
-    private static final float DEFAULT_TURN_RATE = 4f;
-    private static final float DEFAULT_TURN_ACCEL = 4f;
+    /** A hit whose strength is under this share of the armour glances off and does nothing. */
+    static final float GLANCE_SHARE = 0.1f;
+    private static final float DEFAULT_HIT_POINTS = 10000f;
+    private static final float DEFAULT_ARMOUR = 1000f;
+
+    /** The hull's handling from its table row, in cells for travel and degrees for turning. */
+    private record Handling(float maxSpeed, float accel, float decel, float turnRate, float turnAccel) {}
+
+    /** A battleship's handling, used for a hull the table does not list. */
+    private static final Handling DEFAULT_HANDLING = new Handling(1.1f, 0.4f, 0.4f, 4f, 4f);
 
     public final String hullId;
     public final String spritePath;
@@ -61,9 +78,29 @@ public final class Warship {
     public final float pivotX;
     public final float pivotY;
     public final Faction faction;
+    /** Hull width across the beam, in cells. */
+    public final float widthCells;
+    /** The hull table's hit points and armour rating. */
+    public final float maxHitPoints;
+    public final float armour;
     /** The hull's own maximum turn rate and turn acceleration. */
     public final float maxTurnDegPerSec;
     public final float turnAccelDegPerSec2;
+    /** Hover translation limits, in cells per second and per second squared. */
+    public final float maxSpeed;
+    public final float acceleration;
+    public final float deceleration;
+    float velocityX;
+    float velocityY;
+    private float stationX;
+    private float stationY;
+    private boolean hasStation;
+    private float directorRadius;
+    private boolean directorBringsGunsToBear;
+    private boolean directing;
+    float areaEmptySeconds;
+    float headingChosenAtX;
+    float headingChosenAtY;
     public float x;
     public float y;
     public float facingDegrees;
@@ -72,20 +109,28 @@ public final class Warship {
     float turnVelocity;
     private WarshipOrder order = WarshipOrder.HoldFire.INSTANCE;
     private boolean headingChosen;
+    private float hitPoints;
     private final List<Mount> mounts;
     private final List<Mount> mountsView;
 
     private Warship(String hullId, String spritePath, float lengthCells, float pivotX, float pivotY,
-                    float maxTurn, float turnAccel,
+                    Handling handling, float widthCells, float hitPoints, float armour,
                     Faction faction, float x, float y, float facingDegrees, List<Mount> mounts) {
         this.hullId = hullId;
         this.spritePath = spritePath;
         this.lengthCells = lengthCells;
         this.pivotX = pivotX;
         this.pivotY = pivotY;
-        this.maxTurnDegPerSec = maxTurn;
-        this.turnAccelDegPerSec2 = turnAccel;
+        this.maxTurnDegPerSec = handling.turnRate();
+        this.turnAccelDegPerSec2 = handling.turnAccel();
+        this.maxSpeed = handling.maxSpeed();
+        this.acceleration = handling.accel();
+        this.deceleration = handling.decel();
         this.faction = faction;
+        this.widthCells = widthCells;
+        this.maxHitPoints = hitPoints;
+        this.hitPoints = hitPoints;
+        this.armour = armour;
         this.x = x;
         this.y = y;
         this.facingDegrees = facingDegrees;
@@ -108,18 +153,133 @@ public final class Warship {
         this.headingChosen = false;
     }
 
+    public float hitPoints() {
+        return hitPoints;
+    }
+
+    /** Remaining hull as a share of the whole: 1 when untouched, 0 when destroyed. */
+    public float hullFraction() {
+        return hitPoints / maxHitPoints;
+    }
+
+    public boolean destroyed() {
+        return hitPoints <= 0f;
+    }
+
+    /**
+     * The armour rule. A hit's strength is its damage times its penetration, so a
+     * round has to be both heavy and able to bite. The share of its damage that
+     * gets through the plate is {@code strength / (armour + strength)}: the game's
+     * own armour curve, with penetration standing in for the damage type's
+     * multiplier. A hit weaker than a tenth of the armour glances off and does
+     * nothing, so small arms cannot whittle a hull however many fire: an
+     * 18-damage, 5-penetration rifle round is 90 against the Onslaught's 1750. A
+     * 600-damage, 60-penetration anti-ship round is 36000 and takes 95%.
+     */
+    public static float effectiveDamage(float damage, float penetration, float armour) {
+        if (damage <= 0f || penetration <= 0f) return 0f;
+        float strength = damage * penetration;
+        if (strength < armour * GLANCE_SHARE) return 0f;
+        return damage * strength / (armour + strength);
+    }
+
+    /** Applies one hit through the armour rule and returns the hull points it took. A destroyed hull takes nothing more. */
+    public float takeDamage(float damage, float penetration) {
+        if (destroyed()) return 0f;
+        float taken = Math.min(hitPoints, effectiveDamage(damage, penetration, armour));
+        hitPoints -= taken;
+        return taken;
+    }
+
+    /**
+     * The gap, in cells, between {@code (px, py)} and the hull's footprint (its
+     * sprite rectangle about the sprite's centre); zero inside it.
+     */
+    public float distanceTo(float px, float py) {
+        double r = Math.toRadians(facingDegrees);
+        float c = (float) Math.cos(r);
+        float s = (float) Math.sin(r);
+        float cx = x + pivotX * c - pivotY * s;
+        float cy = y + pivotX * s + pivotY * c;
+        float dx = px - cx;
+        float dy = py - cy;
+        float lx = dx * c + dy * s;
+        float ly = -dx * s + dy * c;
+        float ox = Math.max(0f, Math.abs(lx) - widthCells * 0.5f);
+        float oy = Math.max(0f, Math.abs(ly) - lengthCells * 0.5f);
+        return (float) Math.sqrt(ox * ox + oy * oy);
+    }
+
     boolean headingChosen() {
         return headingChosen;
     }
 
     void markHeadingChosen() {
         headingChosen = true;
+        headingChosenAtX = x;
+        headingChosenAtY = y;
+    }
+
+    /** Orders the ship to hover over {@code (stationX, stationY)}, arriving at its own speed and braking onto it. */
+    public void stationTo(float targetX, float targetY) {
+        this.stationX = targetX;
+        this.stationY = targetY;
+        this.hasStation = true;
+    }
+
+    boolean hasStation() {
+        return hasStation;
+    }
+
+    float stationX() {
+        return stationX;
+    }
+
+    float stationY() {
+        return stationY;
+    }
+
+    /** Whether the ship is still travelling to its station. */
+    public boolean isMoving() {
+        return velocityX != 0f || velocityY != 0f
+                || (hasStation && (x != stationX || y != stationY));
+    }
+
+    /**
+     * Puts the ship's targeting in the hands of a director: it picks the densest
+     * hostile concentration within {@code radius} that is not already being worked,
+     * and picks again when that ground is empty. The order it issues is an
+     * ordinary {@link WarshipOrder.FireOnArea}.
+     */
+    public void direct(float radius, boolean bringGunsToBear) {
+        if (!(radius > 0f)) throw new IllegalArgumentException("a director needs an area radius");
+        this.directorRadius = radius;
+        this.directorBringsGunsToBear = bringGunsToBear;
+        this.directing = true;
+        this.areaEmptySeconds = Float.MAX_VALUE;
+    }
+
+    /** Takes targeting back from the director; the standing order stays until replaced. */
+    public void stopDirecting() {
+        this.directing = false;
+    }
+
+    boolean isDirected() {
+        return directing;
+    }
+
+    float directorRadius() {
+        return directorRadius;
+    }
+
+    boolean directorBringsGunsToBear() {
+        return directorBringsGunsToBear;
     }
 
     /**
      * Fits {@code hullId} as {@code variantId} names, over {@code (x, y)}. A slot
-     * whose weapon is unknown, or is point defence that only shoots down
-     * ordnance, is left empty.
+     * whose weapon is unknown is left empty. Point defence is mounted like any
+     * gun and told apart by {@link Mount#pointDefence()}.
      */
     public static Warship fit(String hullId, String variantId, Faction faction,
                               float x, float y, float facingDegrees) throws Exception {
@@ -128,7 +288,7 @@ public final class Warship {
         List<Mount> mounts = new ArrayList<>();
         for (WarshipSlot slot : WarshipSlot.parse(hull)) {
             VanillaWeapon weapon = VanillaWeapons.get(loadout.get(slot.id()));
-            if (weapon == null || weapon.pointDefenceOnly()) continue;
+            if (weapon == null) continue;
             Mount mount = new Mount(slot, weapon);
             mount.headingDegrees = facingDegrees + slot.angleDegrees();
             mounts.add(mount);
@@ -141,24 +301,43 @@ public final class Warship {
         // authored centre of gravity, so the CoG stays fixed at the body.
         float pivotX = c == null ? 0f : (w / 2f - (float) c.optDouble(0)) * k;
         float pivotY = c == null ? 0f : (h / 2f - (float) c.optDouble(1)) * k;
-        float[] turn = handling(hullId);
+        Handling handling = handling(hullId);
+        float[] toughness = toughness(hullId);
         return new Warship(hullId, hull.optString("spriteName"), h * k, pivotX, pivotY,
-                turn[0], turn[1], faction, x, y, facingDegrees, mounts);
+                handling, w * k, toughness[0], toughness[1], faction, x, y, facingDegrees, mounts);
     }
 
-    /** {@code [max turn rate, turn acceleration]} from the hull table, or the battleship default. */
-    private static float[] handling(String hullId) {
+    /** The hull's handling from the table, or a battleship's. */
+    private static Handling handling(String hullId) {
+        try {
+            for (Map<String, String> row : VanillaData.csv("data/hulls/ship_data.csv")) {
+                if (!hullId.equals(row.get("id"))) continue;
+                return new Handling(
+                        WarshipScale.cells(positive(row.get("max speed"), DEFAULT_HANDLING.maxSpeed() / WarshipScale.cells(1f))),
+                        WarshipScale.cells(positive(row.get("acceleration"), DEFAULT_HANDLING.accel() / WarshipScale.cells(1f))),
+                        WarshipScale.cells(positive(row.get("deceleration"), DEFAULT_HANDLING.decel() / WarshipScale.cells(1f))),
+                        positive(row.get("max turn rate"), DEFAULT_HANDLING.turnRate()),
+                        positive(row.get("turn acceleration"), DEFAULT_HANDLING.turnAccel()));
+            }
+        } catch (Exception e) {
+            // A hull whose handling cannot be read handles like a battleship.
+        }
+        return DEFAULT_HANDLING;
+    }
+
+    /** {@code [hit points, armour]} from the hull table, or a middling capital's. */
+    private static float[] toughness(String hullId) {
         try {
             for (Map<String, String> row : VanillaData.csv("data/hulls/ship_data.csv")) {
                 if (!hullId.equals(row.get("id"))) continue;
                 return new float[]{
-                        positive(row.get("max turn rate"), DEFAULT_TURN_RATE),
-                        positive(row.get("turn acceleration"), DEFAULT_TURN_ACCEL)};
+                        positive(row.get("hitpoints"), DEFAULT_HIT_POINTS),
+                        positive(row.get("armor rating"), DEFAULT_ARMOUR)};
             }
         } catch (Exception e) {
-            // A hull whose handling cannot be read turns like a battleship.
+            // A hull whose toughness cannot be read is a middling capital.
         }
-        return new float[]{DEFAULT_TURN_RATE, DEFAULT_TURN_ACCEL};
+        return new float[]{DEFAULT_HIT_POINTS, DEFAULT_ARMOUR};
     }
 
     private static float positive(String value, float fallback) {
