@@ -41,7 +41,7 @@ public final class CompartmentFillStage implements GenStage {
             throw new IllegalStateException("CompartmentFillStage requires a published deck graph");
         }
         for (DeckGraph.Compartment compartment : graph.compartments()) {
-            RoomFitting fitting = RoomFittings.forRoom(
+            RoomFitting fitting = RoomFittings.forShipRoom(
                     compartment.purpose(), compartment.shape(), fit);
             int doodads = ctx.doodads.size();
             int berths = ctx.gantries.size();

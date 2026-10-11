@@ -262,7 +262,7 @@ public final class RoomGridView extends JComponent {
                     }
                 }
                 for (LayoutOp op : here) {
-                    if (op instanceof LayoutOp.Fixture fixture) {
+                    if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly || op instanceof LayoutOp.Partition) {
                         // Outlined rather than filled: the fixture's own art is
                         // already under this, and covering it would hide the
                         // thing the author is placing.
@@ -270,7 +270,7 @@ public final class RoomGridView extends JComponent {
                         g.setStroke(new BasicStroke(2f));
                         g.drawRect(px + inset, py + inset,
                                 cellPx - inset * 2, cellPx - inset * 2);
-                        if (fixture.affordance() != null && cellPx >= 16) {
+                        if (op instanceof LayoutOp.Fixture fixture && fixture.affordance() != null && cellPx >= 16) {
                             g.setColor(WORK);
                             g.fillOval(px + cellPx - inset - 4, py + inset, 4, 4);
                         }
