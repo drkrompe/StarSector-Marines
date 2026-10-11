@@ -1,55 +1,32 @@
-"""Derive six industrial fence frames from two transparent ImageGen masters."""
+"""Cut full fence cells from the connected ImageGen frame; never trim or recenter."""
 
+import json
 from pathlib import Path
 
 from PIL import Image
 
 
 HERE = Path(__file__).resolve().parent
-# Masters, derived sources and the atlas step are all art source, so this
-# whole chain stays inside art-source/. Only stitch_atlas.py crosses into
-# mod/, and it addresses the repository root to do it.
-MASTERS = HERE / "imagegen-masters"
 SOURCES = HERE / "sources"
 
 
-def content(image: Image.Image) -> Image.Image:
-    bounds = image.getchannel("A").getbbox()
-    if bounds is None:
-        raise ValueError("Expected non-empty alpha content")
-    return image.crop(bounds)
-
-
-def save(image: Image.Image, name: str) -> None:
-    destination = SOURCES / name
-    content(image).save(destination, optimize=True)
-    print(destination)
-
-
 def main() -> None:
+    layout = json.loads((HERE / "industrial-fence-geometry.json").read_text(encoding="utf-8"))
+    raw = Image.open(HERE / layout["source"]).convert("RGBA")
+    if list(raw.size) != layout["sourceSize"]:
+        raise ValueError("Fence source dimensions differ from the reviewed cut layout")
     SOURCES.mkdir(parents=True, exist_ok=True)
-    corner = content(
-        Image.open(MASTERS / "industrial-fence-corner-nw.png").convert("RGBA")
-    )
-    save(corner, "industrial-fence-corner-nw.png")
-    save(corner.transpose(Image.Transpose.FLIP_LEFT_RIGHT),
-         "industrial-fence-corner-ne.png")
-    save(corner.transpose(Image.Transpose.FLIP_TOP_BOTTOM),
-         "industrial-fence-corner-sw.png")
-    save(corner.transpose(Image.Transpose.ROTATE_180),
-         "industrial-fence-corner-se.png")
-
-    straight = content(
-        Image.open(MASTERS / "industrial-fence-straight.png").convert("RGBA")
-    )
-    # The master is a long multi-bay run. Retain its centered quarter as a
-    # repeatable one-cell segment; the atlas normalizer handles the final fit.
-    target_width = round(straight.width * 0.25)
-    x0 = (straight.width - target_width) // 2
-    horizontal = content(straight.crop((x0, 0, x0 + target_width, straight.height)))
-    vertical = horizontal.transpose(Image.Transpose.ROTATE_90)
-    save(horizontal, "industrial-fence-straight-h.png")
-    save(vertical, "industrial-fence-straight-v.png")
+    for family, directions in (("corner", ("nw", "ne", "se", "sw")),
+                               ("straight", ("h", "v"))):
+        x, y, size = layout[family]
+        if size <= 0 or x < 0 or y < 0 or x + size > raw.width or y + size > raw.height:
+            raise ValueError(f"Invalid full-cell cut for {family}")
+        cell = raw.crop((x, y, x + size, y + size))
+        for direction in directions:
+            destination = SOURCES / f"industrial-fence-{family}-{direction}.png"
+            cell.save(destination, optimize=True)
+            print(destination)
+            cell = cell.transpose(Image.Transpose.ROTATE_270)
 
 
 if __name__ == "__main__":
