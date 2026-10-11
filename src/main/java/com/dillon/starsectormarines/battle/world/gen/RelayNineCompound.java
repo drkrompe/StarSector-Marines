@@ -10,9 +10,10 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
-import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -39,7 +40,7 @@ public final class RelayNineCompound {
         new GenRecipe("Relay Nine", List.of(RelayNineCompound::grounds,
                 RelayNineCompound::buildings, RelayNineCompound::perimeter, RelayNineCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                new FinalizeStage())).run(c);
+                RelayNineCompound::yardSurfaces, new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 64,
                 10, 14, 34, 113, Faction.MARINE, 20, 0));
@@ -51,7 +52,7 @@ public final class RelayNineCompound {
         }
         MapResult map = new MapResult(c.grid, c.topology, 21, 64, 174, 62,
                 c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
-                List.of(), roads(), c.landingPads);
+                List.of(), AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.RELAY_NINE), "western-boat-apron"), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Relay Nine berth obstructed");
             requireRoute(map, pad.centerX, pad.centerY);
@@ -75,8 +76,10 @@ public final class RelayNineCompound {
             default -> GroundKind.STONE;
         };
         pave(c, 0, 0, WIDTH - 1, HEIGHT - 1, wild);
-        pave(c, 58, 30, 191, 111, GroundKind.SIDEWALK);
-        pave(c, 60, 32, 189, 109, GroundKind.COURTYARD);
+        for(int y=30;y<=114;y++) for(int x=58;x<=193;x++) {
+            int cx=Math.max(72,Math.min(179,x)),cy=Math.max(44,Math.min(100,y));
+            if((x-cx)*(x-cx)+(y-cy)*(y-cy)<=196) c.topology.setGroundKind(x,y,GroundKind.COURTYARD);
+        }
         // Inbound road branches around the power installation; the loading
         // corridor reaches the hall from its south, away from the direct road.
 
@@ -90,6 +93,13 @@ public final class RelayNineCompound {
                     c.topology.setGroundKind(px, py, GroundKind.STRIPED);
         }
         for (int x = 100; x < 176; x += 9) pave(c, x, 38, x + 3, 42, GroundKind.STRIPED);
+    }
+    private static void yardSurfaces(GenContext c) {
+        int[] concrete=new int[3];
+        for(int age=0;age<3;age++) concrete[age]=c.topology.surfaceIndex(Material.CONCRETE.block(age));
+        for(int y=0;y<c.height;y++) for(int x=0;x<c.width;x++)
+            if(c.topology.getGroundKind(x,y)==GroundKind.COURTYARD && !c.topology.isWall(x,y))
+                c.topology.setSurface(x,y,concrete[RoadRasterizer.age(.55,5219,x,y)]);
     }
     private static void buildings(GenContext c) {
         shell(c, 68, 40, 86, 55, Frontage.BOTTOM); // Power switch house, beside its service road.
@@ -126,23 +136,5 @@ public final class RelayNineCompound {
             var prop = tiles.doodad("doodad.industrial-crate-stack");
             if (prop != null) c.doodads.add(new Doodad(x, 40, prop));
         }
-    }
-    private static RoadGraph roads() {
-        int[][] points = {{0,63},{60,63},{183,63},{207,63},{60,33},{183,33},{60,101},{130,101},{207,101},{130,127},{60,23},{85,23},{85,0}};
-        int[][] joins = {{0,1},{1,2},{2,3},{1,4},{4,5},{5,2},{1,6},{6,7},{7,8},{7,9},{4,10},{10,11},{11,12}};
-        List<RoadGraph.Node> nodes = new ArrayList<>();
-        List<RoadGraph.Edge> edges = new ArrayList<>();
-        for (int i = 0; i < points.length; i++) nodes.add(new RoadGraph.Node(i, points[i][0], points[i][1], i == 0 || i == 3 || i == 8 || i == 9 || i == 12));
-        for (int[] join : joins) {
-            var a = nodes.get(join[0]); var b = nodes.get(join[1]);
-            int length = Math.abs(b.cellX - a.cellX) + Math.abs(b.cellY - a.cellY) + 1;
-            int[] xs = new int[length], ys = new int[length];
-            for (int j = 0; j < length; j++) {
-                xs[j] = a.cellX + j * Integer.signum(b.cellX - a.cellX);
-                ys[j] = a.cellY + j * Integer.signum(b.cellY - a.cellY);
-            }
-            edges.add(new RoadGraph.Edge(edges.size(), a, b, xs, ys));
-        }
-        return new RoadGraph(nodes, edges);
     }
 }

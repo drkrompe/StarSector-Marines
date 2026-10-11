@@ -116,7 +116,8 @@ are retained in asset-pipeline/src/tool/resources/audio/wayline/.
 
 Mech footfalls
 --------------
-Original impacts and linkage foley generated with ElevenLabs Sound Effects v2
-(eleven_text_to_sound_v2), October 2026. Edited and layered for Starsector Marines.
+Heavy ground impacts and separate pneumatic strokes generated with ElevenLabs
+Sound Effects v2 (eleven_text_to_sound_v2), October 2026. Edited as individual
+one-shots for Starsector Marines; layered at runtime by per-foot gait events.
 Prompts, original takes, generation receipts and offline mix recipe are retained
 in asset-pipeline/src/tool/resources/audio/mech-footsteps/ and tools/.

@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored building stamps add concave plans and distinct materials; both story arcs now consume road plans, including flush facility ends and pavement ownership after later stamps.
+Updated: 2026-10-11 — authored roads add automatic edging and shared spline graphs for Junction and Relay Nine.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -355,7 +355,7 @@ on one of them and a single-axis check would have hidden it.
 
 A **road plan** owns a map extent and an ordered collection of spline centerlines.
 Each road declares anchors, carriageway width, shoulder width, pavement material,
-wear, a wear-pattern seed, and round or flush ends. Flush ends meet a facility
+wear, a wear-pattern seed, automatic edging, and round or flush ends. Flush ends meet a facility
 threshold or rectangular apron without a rounded overrun. The shared rasterizer sweeps the spline onto the
 navigation cell lattice; authoring and generation consume that same result.
 The spline is spatial intent, not a vehicle steering path. Its raster footprint
@@ -367,6 +367,12 @@ owns material where carriageways overlap, and a shoulder never erases a road.
 Widths and map edges still obey grid quantization. A smooth centerline does not
 claim a smooth mesh edge or prove a chassis can negotiate a tight turn; mission
 acceptance continues to use the actual vehicle clearance and motion systems.
+
+**Automatic edging is presentation, not clearance.** Enabled roads feather their
+exposed pavement over the actual adjacent outdoor surface, rounding exposed
+corners. Hard aprons may opt out. The road footprint remains on the navigation
+lattice; blending never creates a passable gap, erases a wall, or paints across
+landing markings. Missing edge art retains the ordinary opaque pavement.
 
 **Wear is appearance, not terrain damage.** A fixed coordinate/seed field blends
 fresh, worn and cracked material pools in stable patches. Increasing wear only
@@ -382,6 +388,10 @@ Relief, Counterattack, Open the Junction, Last Lift and Relay Nine each consume
 an authored road plan, as does Thunder Run. Public freight routes, service
 lanes and boat aprons may carry distinct materials and wear while their mission
 route graphs, objectives and landing requirements retain their own authority.
+Open the Junction and Relay Nine derive their road graphs from the same sampled
+curves as their pavement. Authored routes meet at shared endpoints to publish
+junctions; a visual mid-route crossing is not an implicit graph connection.
+Their freight yards use concrete independently of road navigation.
 The preview uses production topology, tile selection and rendering. A mission
 chooses which document it consumes and retains its own spatial contract:
 Thunder Run permits pavement and wear changes while keeping its reserved freight

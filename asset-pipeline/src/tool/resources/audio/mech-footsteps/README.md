@@ -1,7 +1,7 @@
 # Mech footfalls
 
-Four ElevenLabs Sound Effects v2 source takes: three short ground contacts and
-one quiet linkage layer. `generation.json` retains the prompts and settings;
+Five ElevenLabs Sound Effects v2 source takes: three heavy muffled ground impacts
+and two separate pneumatic strokes. `generation.json` retains prompts and settings;
 the adjacent receipts retain input/audio hashes and billing metadata, never credentials.
 
 From the repository root:
@@ -9,7 +9,7 @@ From the repository root:
 ```powershell
 python tools/generate_mech_footsteps.py              # dry run
 python tools/generate_mech_footsteps.py --generate   # paid requests for missing takes only
-python tools/prepare_mech_footsteps.py               # offline mix; no API calls
+python tools/prepare_mech_footsteps.py               # prepare separate layers; no API calls
 .\gradlew.bat :asset-pipeline:processAudio           # cached mono Ogg encoding
 ```
 
@@ -19,15 +19,23 @@ Unchanged takes are skipped after verifying both input and audio hashes.
 `--clip ID` limits generation; replacing a changed take requires `--replace`.
 Network failures are not retried automatically because the request may be billed.
 
-The mixer preserves MP3 originals, balances layers, combines the linkage at 22%
-with a 25ms delay, and writes three 0.5s mono WAV masters at -6dBFS peak. It also
-creates `build/audio-preview/mech-walk.wav`, a sequence at preview level (in-game
-gain and distance attenuation are quieter). `preparation.json` records the source
-and resulting master hashes. Change the offline recipe to tune layers without
-spending credits; rerun the mixer and audio pipeline afterward.
+Preparation preserves MP3 originals and writes five independent mono WAV masters.
+Impacts retain low body through a 28Hz high-pass and 1100Hz low-pass, with up to
+700ms decay and -4.5dBFS peak. Pneumatics use 140–3200Hz, up to 300ms, and -8dBFS
+peak. Both trim leading silence and fade the edges. No machinery is mixed into an
+impact. `preparation.json` records source and master hashes. Tuning these offline
+filters needs no credits; rerun preparation and the audio pipeline afterward.
 
-Only the three encoded mixes ship. Each actual foot plant plays one nearby
-positional sound with non-repeating variants and slight pitch variation. Source
+`build/audio-preview/impacts.wav` and `pneumatics.wav` audition the isolated layers.
+`foot-events.wav` demonstrates overlap at illustrative timing and runtime gains;
+it is only an audition artifact, never a shipped walking recording. Runtime pitch,
+distance, and actual gait vary in game.
+
+Only the five encoded one-shots ship. Each actual foot lift plays a pneumatic
+stroke; that foot's touchdown plays a separate impact at its planted position.
+The two pools have independent variation and volume in `MechFootstepAudio`.
+Nearby events play with small pitch variations, and impacts have their own
+admission budget so machinery cannot crowd them out. Source
 generation is an explicit authoring action; builds and gameplay never call the API.
 
 [ElevenLabs sound-effects API](https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert)
