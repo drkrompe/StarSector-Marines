@@ -33,8 +33,8 @@ public enum InfantryPayload implements AirDeliveryPayload {
         if (loadout != null) loadout.seedInto(marine);
         CampaignSquadTag tag = loadout != null ? loadout.campaignSquad : null;
         if (tag != null) {
-            // Campaign personnel group by (campaign squad, LZ), not by sortie, so a
-            // squad that needs three lifts lands as one unit. AirSystem's
+            // Campaign personnel group by (campaign squad, tactical area), so
+            // different berths and repeated sorties join one unit. AirSystem's
             // per-cycle reset is harmless because the next deboard resolves the
             // same squad out of the index again.
             boolean firstDeboardForSortie = mission.squadId == Squad.NO_SQUAD;

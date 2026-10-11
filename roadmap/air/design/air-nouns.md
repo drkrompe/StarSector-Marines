@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — fitted boats retain their transport role and missing company lift blocks launch.
+Updated: 2026-10-11 — campaign squads share a tactical arrival area by default; physical berths never split identity.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -1282,6 +1282,15 @@ Conquest already delivered this way; every other mission now does too.
 is the actual manifest and is restored on every cycle. Arrangement, shared
 arrival area, squad grouping, and departure behavior belong to the mission's
 arrival policy rather than to the hull type.
+
+A **landing berth** is a physical touchdown point; a **landing area** is an
+explicit tactical destination. All transports share one logical area by default.
+Tagged campaign personnel therefore reunite by squad identity across boats,
+berths and later trips without mission-specific setup. Separate squad fragments
+require explicitly different landing areas, as on Conquest's independent fronts.
+An omitted area must never become a berth-coordinate grouping rule. Generated
+militia retain their separate sortie or authored arrival-group identities.
+
 
 The Aeroshuttle is a purpose-built six-seat half-squad craft. Conquest keeps
 the committed campaign hull as its lift source but resolves the visible final

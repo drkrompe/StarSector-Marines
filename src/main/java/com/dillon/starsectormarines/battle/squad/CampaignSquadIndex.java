@@ -6,14 +6,16 @@ import java.util.function.IntFunction;
 
 /**
  * Groups deploying campaign personnel into battle squads by
- * <em>(campaign squad, landing zone)</em> rather than by shuttle sortie.
+ * <em>(campaign squad, tactical landing area)</em> rather than by shuttle sortie.
  *
  * <p>A twelve-marine squad rarely fits one lift, so without this a squad that
  * needs three passes lands as three unrelated battle squads, each with its own
  * morale baseline, alert state and plan. Keying on the campaign squad instead
  * means later lifts <em>join</em> the unit that is already on the ground.
  *
- * <p>The landing zone is part of the key on purpose. One battle squad spanning
+ * <p>Berth coordinates never define this key. Transports share one area by
+ * default; a mission must explicitly assign separate areas to split a squad.
+ * The tactical landing area is part of the key on purpose. One battle squad spanning
  * two zones would have leader-pull cohesion dragging members across the map
  * between landings, so a squad that lands in two places becomes two squads and
  * both are suffixed — {@code (A)} and {@code (B)} — so the player can see the
@@ -27,8 +29,8 @@ public final class CampaignSquadIndex {
 
     private final IntFunction<Squad> squadLookup;
 
-    /** {@code (campaign squad, LZ)} → the battle squad already on the ground there. */
-    private final Map<String, Integer> byLanding = new HashMap<>();
+    /** {@code (campaign squad, tactical area)} → the battle squad already on the ground there. */
+    private final Map<LandingKey, Integer> byLanding = new HashMap<>();
 
     /** Campaign squad → its first battle squad, kept only to retro-suffix it on a split. */
     private final Map<String, Integer> firstLanding = new HashMap<>();
@@ -40,25 +42,15 @@ public final class CampaignSquadIndex {
         this.squadLookup = squadLookup;
     }
 
-    /** The battle squad this campaign squad already has here, or {@link Squad#NO_SQUAD}. */
-    public int landed(String campaignSquadId, int lzX, int lzY) {
-        return landed(campaignSquadId, coordinateKey(lzX, lzY));
-    }
-
-    /** Area-keyed sibling used when multiple berths belong to one logical arrival. */
-    public int landed(String campaignSquadId, String landingKey) {
-        Integer existing = byLanding.get(key(campaignSquadId, landingKey));
+    /** The squad already at this tactical area, or {@link Squad#NO_SQUAD}. */
+    public int landed(String campaignSquadId, int landingAreaId) {
+        Integer existing = byLanding.get(new LandingKey(campaignSquadId, landingAreaId));
         return existing != null ? existing : Squad.NO_SQUAD;
     }
 
-    /** Records a new landing and stamps campaign identity and label onto the battle squad. */
-    public void register(CampaignSquadTag tag, int lzX, int lzY, int battleSquadId) {
-        register(tag, coordinateKey(lzX, lzY), battleSquadId);
-    }
-
-    /** Records a landing against a stable logical area rather than one berth cell. */
-    public void register(CampaignSquadTag tag, String landingKey, int battleSquadId) {
-        byLanding.put(key(tag.squadId, landingKey), battleSquadId);
+    /** Records an explicitly named area and freezes the campaign identity. */
+    public void register(CampaignSquadTag tag, int landingAreaId, int battleSquadId) {
+        byLanding.put(new LandingKey(tag.squadId, landingAreaId), battleSquadId);
         int landing = landingCount.merge(tag.squadId, 1, Integer::sum);
         if (landing == 1) {
             firstLanding.put(tag.squadId, battleSquadId);
@@ -82,11 +74,12 @@ public final class CampaignSquadIndex {
         if (squad != null) squad.campaignLabel = label;
     }
 
-    private static String coordinateKey(int lzX, int lzY) {
-        return lzX + "," + lzY;
-    }
-
-    private static String key(String campaignSquadId, String landingKey) {
-        return campaignSquadId + '@' + landingKey;
+    private record LandingKey(String campaignSquadId, int landingAreaId) {
+        private LandingKey {
+            if (landingAreaId < 0) {
+                throw new IllegalArgumentException(
+                        "Campaign landing area must be nonnegative; berth coordinates are not squad destinations");
+            }
+        }
     }
 }
