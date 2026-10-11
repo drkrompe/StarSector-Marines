@@ -15,9 +15,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
  * circulation instead reuse the apartment plan: street-facing lobby, clear
  * two-cell hall, four private rooms, opposed rear exit, and firing windows.
  *
- * <p>All the actual carving lives in {@link BuildingShellCore} — this class
- * only wires the per-kind configuration (interior ground, doodad pool, POI
- * kind) and returns the carved POI if any.
+ * <p>Fitting lots also draw from {@link BuildingStamp}'s rotated authored plans.
+ * The procedural alternatives are carved by {@link BuildingShellCore}.
  */
 public final class BuildingResidentialFiller implements BlockFiller {
 
@@ -43,6 +42,7 @@ public final class BuildingResidentialFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.RESIDENTIAL)) return;
         boolean apartment = qualifiesForApartment(leaf);
         BuildingShellCore.BuildingConfig config = apartment ? APARTMENT_CONFIG : HOME_CONFIG;
         BuildingPlacement placement = apartment
