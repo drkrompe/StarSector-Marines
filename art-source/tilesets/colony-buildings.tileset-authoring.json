@@ -164,39 +164,57 @@
   "blocks": [
     {
       "layout": "single",
-      "id": "colony.limestone"
+      "id": "colony.limestone",
+      "windowBlock": "colony.masonry-window",
+      "doorBlock": "colony.masonry-door"
     },
     {
       "layout": "single",
-      "id": "colony.terracotta"
+      "id": "colony.terracotta",
+      "windowBlock": "colony.ceramic-window",
+      "doorBlock": "colony.ceramic-door"
     },
     {
       "layout": "single",
-      "id": "colony.basalt"
+      "id": "colony.basalt",
+      "windowBlock": "colony.ceramic-window",
+      "doorBlock": "colony.ceramic-door"
     },
     {
       "layout": "single",
-      "id": "colony.sage"
+      "id": "colony.sage",
+      "windowBlock": "colony.ceramic-window",
+      "doorBlock": "colony.ceramic-door"
     },
     {
       "layout": "single",
-      "id": "colony.terrazzo"
+      "id": "colony.terrazzo",
+      "windowBlock": "colony.ceramic-window",
+      "doorBlock": "colony.ceramic-door"
     },
     {
       "layout": "single",
-      "id": "colony.timber"
+      "id": "colony.timber",
+      "windowBlock": "colony.masonry-window",
+      "doorBlock": "colony.masonry-door"
     },
     {
       "layout": "single",
-      "id": "colony.concrete"
+      "id": "colony.concrete",
+      "windowBlock": "colony.olive-window",
+      "doorBlock": "colony.olive-door"
     },
     {
       "layout": "single",
-      "id": "colony.ochre"
+      "id": "colony.ochre",
+      "windowBlock": "colony.olive-window",
+      "doorBlock": "colony.olive-door"
     },
     {
       "layout": "single",
-      "id": "colony.tread"
+      "id": "colony.tread",
+      "windowBlock": "colony.olive-window",
+      "doorBlock": "colony.olive-door"
     }
   ],
   "sheetName": "colony-buildings"

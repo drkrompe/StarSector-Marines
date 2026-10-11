@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — geometry-guided wall caps retain all sixteen exposed-face combinations; procedural pavement has a retained recipe and independent catalog sheet; additional ground sheets share both render backends.
+Updated: 2026-10-11 — geometry-guided wall caps retain all sixteen exposed-face combinations and paired windows/doorways retain cardinal facings; procedural pavement has a retained recipe and independent catalog sheet; additional ground sheets share both render backends.
 
 Read `stories.md` for open work.
 
@@ -135,6 +135,28 @@ wall authoring document, and the ordinary exporter is still the only producer
 of shipped atlases. The colony floor plate and wall plate are separate; stable
 surface ids survive their repacking. The template sets geometry, while the
 rendered buildings remain the visual acceptance for the reskin.
+
+### Geometry-guided openings
+
+Window frames and open doorways follow the same geometry-first contract as
+walls. A cardinal block holds N, E, S and W facings in a 2x2 patch. Window art
+stays inside the owning cell along its shared boundary; doorway art consists
+of paired jambs and a low threshold, with transparent floor around the passage.
+The actual shared-edge barrier and doorway remain the tactical authority.
+Art supplies neither a sidewalk nor an implicit closed door.
+
+Wall and floor materials may name paired window and doorway blocks. The jamb
+walls select the trim when available, with the owning floor as a fallback;
+rotating a building rotates its opening geometry and preserves the material
+association. An authored doorway facing survives a breach of its jamb walls.
+The registry validates these references after all sheets have loaded, and the
+authoring document preserves them through edits and exports. Older materials
+without opening pairs retain their existing presentation.
+
+The opening template, transparent ImageGen raw sheet, prompt and judged cuts
+are retained alongside the wall workflow. All facings are exported through the
+ordinary tileset pipeline; floor voids are checked spatially, and rendered
+building rotations are the visual acceptance.
 
 ### Id-addressed visual catalog
 

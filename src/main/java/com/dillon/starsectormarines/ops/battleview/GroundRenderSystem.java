@@ -183,13 +183,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     if (topology.isWindow(x, y)) windowPane(topology, x, y);
                 }
             }
-            emitEdgeBarriers(grid, view);
+            emitEdgeBarriers(grid, topology, view);
             return;
         }
 
         emitTerrain(ctx, grid, topology, view);
         emitWindows(topology, view);
-        emitEdgeBarriers(grid, view);
+        emitEdgeBarriers(grid, topology, view);
     }
 
     /**
@@ -775,9 +775,16 @@ public final class GroundRenderSystem implements RenderSystem {
 
         @Override
         public void resolve(int x, int y, GroundMesh.CellSink sink) {
-            if (frame == null || urban == null || topology.isWall(x, y)) return;
-            if (!grid.isDoorway(x, y) || topology.isRubble(x, y)) return;
-            emitCellPx(urban, TileManifest.TILE_SIZE, frame.col, frame.row, 0, sink);
+            if (topology.isWall(x, y) || !grid.isDoorway(x, y) || topology.isRubble(x, y)) return;
+            Direction facing = OpeningTiles.doorFacing(topology, x, y);
+            GridBlockDef skin = OpeningTiles.skin(tileReg, topology, x, y, facing, false);
+            SpriteAPI sheet = skin == null ? null : sheetFor(skin.sheetPath);
+            if (sheet != null) {
+                int[] cell = OpeningTiles.cell(skin, facing);
+                emitCellPx(sheet, skin.cellPx, cell[0], cell[1], 0, sink);
+            } else if (frame != null && urban != null) {
+                emitCellPx(urban, TileManifest.TILE_SIZE, frame.col, frame.row, 0, sink);
+            }
         }
     }
 
@@ -825,7 +832,7 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     /** Sparse shared-edge features paint over both adjacent floor cells. */
-    private void emitEdgeBarriers(NavigationGrid grid, VisibleCellRect view) {
+    private void emitEdgeBarriers(NavigationGrid grid, CellTopology topology, VisibleCellRect view) {
         float cell = cam.cellPxSize();
         float frameThickness = cell * EDGE_WINDOW_FRAME_THICKNESS_FRAC;
         float glassThickness = cell * EDGE_WINDOW_GLASS_THICKNESS_FRAC;
@@ -841,6 +848,18 @@ public final class GroundRenderSystem implements RenderSystem {
                 continue;
             }
             if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+            Direction facing = OpeningTiles.facing(barrier);
+            int ownerX = barrier.structureCellX(), ownerY = barrier.structureCellY();
+            GridBlockDef skin = OpeningTiles.skin(tileReg, topology, ownerX, ownerY, facing, true);
+            SpriteAPI sheet = skin == null ? null : sheetFor(skin.sheetPath);
+            if (sheet != null) {
+                int[] source = OpeningTiles.cell(skin, facing);
+                out.addSheetQuad(RenderLayer.GROUND, sheet,
+                        source[0] * skin.cellPx, source[1] * skin.cellPx, skin.cellPx, skin.cellPx,
+                        cam.cellToScreenX(ownerX + 0.5f), cam.cellToScreenY(ownerY + 0.5f),
+                        cell, cell, 1, 1, 1, alpha);
+                continue;
+            }
 
             if (barrier.direction() == Direction.E) {
                 float edgeX = cam.cellToScreenX(x + 1f);

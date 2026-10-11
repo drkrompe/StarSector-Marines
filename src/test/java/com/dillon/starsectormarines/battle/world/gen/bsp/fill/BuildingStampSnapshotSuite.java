@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import com.dillon.starsectormarines.tools.tilesetauthoring.OpeningReskinTemplate;
+import com.dillon.starsectormarines.tools.tilesetauthoring.WallReskinTemplate;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -29,7 +31,8 @@ public final class BuildingStampSnapshotSuite implements SnapshotSuite {
         HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         artifacts.add(new SnapshotArtifact("wall-reskin-template.png",
-                com.dillon.starsectormarines.tools.tilesetauthoring.WallReskinTemplate.render()));
+                WallReskinTemplate.render()));
+        artifacts.add(new SnapshotArtifact("opening-reskin-template.png", OpeningReskinTemplate.render()));
         int panel = 17 * 32, header = 38;
         BufferedImage overview = new BufferedImage(panel * 2, (panel + header) * 3,
                 BufferedImage.TYPE_INT_RGB);

@@ -15,7 +15,7 @@ package com.dillon.starsectormarines.battle.world.tiles;
  */
 public enum GridLayout {
 
-    /** Single fixed cell, neighbor-independent — always the block origin. */
+    /** Single fixed cell, neighbor-independent: always the block origin. */
     SINGLE {
         @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
             return new int[]{oc, or};
@@ -98,6 +98,14 @@ public enum GridLayout {
             else /* e */             { col = 2; row = 1; }
             return new int[]{oc + col, or + row};
         }
+    },
+
+    /** N, E, S, W in row-major order; the opening supplies exactly one facing flag. */
+    CARDINAL_2X2 {
+        @Override public int[] resolve(int oc, int or, boolean n, boolean s, boolean e, boolean w) {
+            int facing = n ? 0 : e ? 1 : s ? 2 : w ? 3 : 0;
+            return new int[]{oc + facing % 2, or + facing / 2};
+        }
     };
 
     /**
@@ -109,7 +117,7 @@ public enum GridLayout {
 
     /**
      * Width and height, in cells, of the patch this layout addresses from its
-     * origin — 1 for {@link #SINGLE}, 4 for the complete wall-face set,
+     * origin — 1 for {@link #SINGLE}, 2 for cardinal openings, 4 for the complete wall-face set,
      * and 3 for the legacy perimeter layouts.
      *
      * <p>Authoring tools need the extent to reserve a contiguous patch in a
@@ -118,6 +126,7 @@ public enum GridLayout {
      * the layout's name somewhere else.
      */
     public int span() {
+        if (this == CARDINAL_2X2) return 2;
         if (this == WALL_FACES_4X4) return 4;
         return this == SINGLE ? 1 : 3;
     }
@@ -127,6 +136,7 @@ public enum GridLayout {
     /** Parse from the tileset JSON {@code layout} field. */
     public static GridLayout fromJson(String s) {
         switch (s.trim().toLowerCase()) {
+            case "cardinal-2x2": return CARDINAL_2X2;
             case "single":        return SINGLE;
             case "floor-3x3":     return FLOOR_3X3;
             case "wall-3x3":      return WALL_3X3;

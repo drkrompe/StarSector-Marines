@@ -250,6 +250,7 @@ public final class TilesetExport {
         public GridLayout layout;
         /** {@code 0xRRGGBB} painted for the layout's null case, or null when it has none. */
         public Integer fillRgb;
+        public String windowBlockId, doorBlockId;
 
         public BlockSpec(String id, GridLayout layout, Integer fillRgb) {
             this.id = id;
@@ -914,6 +915,8 @@ public final class TilesetExport {
                 o.put("layout", jsonLayout(spec.layout));
                 if (spec.fillRgb != null) o.put("fillRgb", String.format("0x%06X", spec.fillRgb));
             }
+            if (spec.windowBlockId != null) o.put("windowBlock", spec.windowBlockId);
+            if (spec.doorBlockId != null) o.put("doorBlock", spec.doorBlockId);
             blockArray.put(o);
         }
 
