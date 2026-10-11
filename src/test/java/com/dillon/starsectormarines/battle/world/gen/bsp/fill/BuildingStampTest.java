@@ -79,6 +79,15 @@ class BuildingStampTest {
                     int px = p[0] + 2, py = p[1] + 2;
                     assertEquals(original.grid.isWalkable(x + 2, y + 2), rotated.grid.isWalkable(px, py));
                     assertEquals(original.grid.isDoorway(x + 2, y + 2), rotated.grid.isDoorway(px, py));
+                    if (original.grid.isDoorway(x + 2, y + 2)) {
+                        int[] bits = {CellTopology.WALL_DIR_N, CellTopology.WALL_DIR_E,
+                                CellTopology.WALL_DIR_S, CellTopology.WALL_DIR_W};
+                        int facing = original.topology.getWallDirMask(x + 2, y + 2);
+                        assertEquals(1, Integer.bitCount(facing), "each door needs one retained facing");
+                        for (int d = 0; d < 4; d++) if (facing == bits[d]) {
+                            assertEquals(bits[Math.floorMod(d - turn, 4)], rotated.topology.getWallDirMask(px, py));
+                        }
+                    }
                     assertEquals(original.topology.getSurfaceId(x + 2, y + 2), rotated.topology.getSurfaceId(px, py));
                     assertEquals(original.topology.getBuildingKindHint(x + 2, y + 2), rotated.topology.getBuildingKindHint(px, py));
                     if (stamp.cell(x, y) == ' ') {

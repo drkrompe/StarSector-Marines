@@ -566,8 +566,13 @@ public final class TilesetOperations {
             entry.slot = assignment.getKey();
             entry.included = true;
         }
+        TilesetExport.BlockSpec replacement = new TilesetExport.BlockSpec(blockId, layout, fillRgb);
+        for (TilesetExport.BlockSpec previous : blocks) if (previous.id.equals(blockId)) {
+            replacement.windowBlockId = previous.windowBlockId;
+            replacement.doorBlockId = previous.doorBlockId;
+        }
         blocks.removeIf(spec -> spec.id.equals(blockId));
-        blocks.add(new TilesetExport.BlockSpec(blockId, layout, fillRgb));
+        blocks.add(replacement);
         return displaced;
     }
 

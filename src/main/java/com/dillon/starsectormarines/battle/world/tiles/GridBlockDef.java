@@ -39,15 +39,23 @@ public final class GridBlockDef {
     public final Integer fillRgb;
     /** {@code {col,row}} variant cells for a variant pool; {@code null} for an autotile. */
     public final int[][] cells;
+    /** Optional cardinal opening blocks paired with this wall or floor material. */
+    public final String windowBlockId, doorBlockId;
 
     /** Autotile block (origin + named {@link GridLayout}). */
     public GridBlockDef(String id, String sheetPath, int cellPx,
                         int originCol, int originRow, GridLayout layout, Integer fillRgb) {
-        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null);
+        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null, null, null);
+    }
+
+    public GridBlockDef(String id, String sheetPath, int cellPx, int originCol, int originRow,
+                        GridLayout layout, Integer fillRgb, String windowBlockId, String doorBlockId) {
+        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null, windowBlockId, doorBlockId);
     }
 
     private GridBlockDef(String id, String sheetPath, int cellPx, int originCol, int originRow,
-                         GridLayout layout, Integer fillRgb, int[][] cells) {
+                         GridLayout layout, Integer fillRgb, int[][] cells,
+                         String windowBlockId, String doorBlockId) {
         this.id = id;
         this.sheetPath = sheetPath;
         this.cellPx = cellPx;
@@ -56,11 +64,18 @@ public final class GridBlockDef {
         this.layout = layout;
         this.fillRgb = fillRgb;
         this.cells = cells;
+        this.windowBlockId = windowBlockId;
+        this.doorBlockId = doorBlockId;
     }
 
     /** Variant pool — hash-picked from an explicit list of {@code {col,row}} cells. */
     public static GridBlockDef variantPool(String id, String sheetPath, int cellPx, int[][] cells) {
-        return new GridBlockDef(id, sheetPath, cellPx, 0, 0, null, null, cells);
+        return variantPool(id, sheetPath, cellPx, cells, null, null);
+    }
+
+    public static GridBlockDef variantPool(String id, String sheetPath, int cellPx, int[][] cells,
+                                          String windowBlockId, String doorBlockId) {
+        return new GridBlockDef(id, sheetPath, cellPx, 0, 0, null, null, cells, windowBlockId, doorBlockId);
     }
 
     public boolean isVariantPool() { return cells != null; }
