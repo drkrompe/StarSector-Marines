@@ -3,14 +3,12 @@
   "sourceSha256": {
     "marines_mech_land_01.mp3": "a1d8981f6e797acd9c93dd67b25406c10cd6956a6430f650493629fb0c1a9ac6",
     "marines_mech_land_02.mp3": "9595b6470471ee192feae4d0f0ecb074e0b8cec689f0f5be7d2fd7ac61ec8d21",
-    "marines_mech_land_03.mp3": "88850d87ad8fb81c51b13ab3d5f88e3a1476b0102f51265a7c5541a584703db8",
     "marines_mech_lift_01.mp3": "9cfe94179a3d095f8a69cf84c17268f07fdcd23e381b216ee981654aef5d48e4",
     "marines_mech_lift_02.mp3": "ce0313541f3e7de6e56b6b81412b6f20b41e2f59d70fd26c1adc9ca739dfe12a"
   },
   "masterSha256": {
     "marines_mech_land_01": "d071cc19dc3ce1731d049499a83e8a43ebaea617fb8f4e1afdd371b41ce7e03f",
     "marines_mech_land_02": "7ac9f63741c0f562f13c58d89edc01dbfb114a39aeace13323e937ac4f465089",
-    "marines_mech_land_03": "63b009533c52fa51b19d903be74d5aa1d5d015b21095073ee73f44c1601efd4f",
     "marines_mech_lift_01": "3f4b34f7d0359d4a7e8ff89a47d72dcb664cb473fec7caf7c99304a49d96902d",
     "marines_mech_lift_02": "e0f8da93f234c9f65af6513db63c35d6121af38d5114fed46401e2e2e71e53de"
   }
