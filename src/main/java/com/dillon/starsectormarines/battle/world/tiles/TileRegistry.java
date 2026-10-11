@@ -55,6 +55,8 @@ public final class TileRegistry {
             "data/tilesets/forest-canopies.tileset.json",
             "data/tilesets/forest-damaged.tileset.json",
             "data/tilesets/rock-damage.tileset.json",
+            "data/tilesets/crate-damage.tileset.json",
+            "data/tilesets/barrel-damage.tileset.json",
             "data/tilesets/forest-destroyed.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
@@ -73,6 +75,7 @@ public final class TileRegistry {
             "data/tilesets/main-stores.tileset.json",
             "data/tilesets/crew-lounge.tileset.json",
             "data/tilesets/ship-bridge.tileset.json",
+            "data/tilesets/ship-engineering.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 

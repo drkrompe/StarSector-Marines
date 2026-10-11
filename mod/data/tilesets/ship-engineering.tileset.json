@@ -1,0 +1,136 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-engineering.drive-train",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "ship-engineering.cooling",
+      "row": 6
+    },
+    {
+      "col": 6,
+      "name": "ship-engineering.life-support",
+      "row": 6
+    },
+    {
+      "col": 0,
+      "name": "ship-engineering.generator",
+      "row": 10
+    },
+    {
+      "col": 6,
+      "name": "ship-engineering.control",
+      "row": 10
+    },
+    {
+      "col": 9,
+      "name": "ship-engineering.bench",
+      "row": 10
+    },
+    {
+      "col": 13,
+      "name": "ship-engineering.switchgear",
+      "row": 10
+    },
+    {
+      "col": 0,
+      "name": "ship-engineering.spares",
+      "row": 14
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 1.1,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        18,
+        6
+      ],
+      "id": "ship-engineering.drive-train",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "ship-engineering.cooling",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "ship-engineering.life-support",
+      "row": 6
+    },
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "ship-engineering.generator",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "ship-engineering.control",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 9,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "ship-engineering.bench",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0.9,
+      "col": 13,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "ship-engineering.switchgear",
+      "row": 10
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "ship-engineering.spares",
+      "row": 14
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-engineering.png"
+}

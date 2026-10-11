@@ -212,6 +212,20 @@ The retained sources and cuts reproduce separate damage atlases through the
 ordinary doodad packer. The `fences` and `sandbags` visual suites exercise the same damage
 entry point used by structural attacks.
 
+Storage boxes, wooden crates and industrial crate stacks likewise pair with
+damaged panels and low scattered remnants. The pre-damaged storage box retains
+its shorter silhouette and starts with less structure. Every state keeps its
+full-cell pivot, rotation and mirroring; destroyed art supplies zero cover.
+Walkable crate cover is removable independently of static props and nature,
+while blocking crates use the established cell-breach boundary.
+
+Industrial drum clusters and shipboard drum stock likewise have matching
+dented and destroyed identities, preserving their one-cell and two-by-two
+footprints. Open curved shells and scattered metal expose the original ground.
+Full-frame cuts preserve pivots and orientation; the group owns one structure
+pool across its footprint. Stock overlays retain zero cover in every state,
+and their destruction leaves underlying rack and pallet bases intact.
+
 Tree crowns likewise retain intact, damaged and destroyed identities for each
 species, with identical multi-cell dimensions and placement pivots. Broken
 foliage remains inside the original canopy envelope; low stumps and fallen

@@ -1,0 +1,140 @@
+{
+  "sheetName": "crate-damage",
+  "sheet": "art-source/tilesets/crate-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Geometry-first built-in ImageGen reskin. Returned 1536x1024 grid matches retained guide at 512px pitch. Three columns: storage box, wooden crate, industrial crate stack. Damaged upper row, destroyed lower row. Full frames retain margins and alpha; box-dam aliases the storage-box art with its original shorter ballistic silhouette. See crate-damage.prompt.txt.",
+  "entries": [
+    {
+      "id": "doodad.box-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.28,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.crate-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        512,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.industrial-crate-stack-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.box-dam-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.22,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.box-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.crate-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        512,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.industrial-crate-stack-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1024,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "doodad.box-dam-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    }
+  ]
+}

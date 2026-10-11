@@ -1,0 +1,11 @@
+{
+  "sheetName": "crate-damage.reference",
+  "sheet": "art-source/tilesets/crate-damage.reference.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "crate-damage.reference",
+  "alphaMin": 40,
+  "note": "Retained initial ImageGen reskin used as the edit target for the final crate-damage revision, not an export source. It records the earlier three-column, two-row arrangement before the destroyed panels were scattered. Runtime damaged and destroyed pieces are authored in crate-damage.tileset-authoring.json from crate-damage.raw.png; this reference deliberately exports no entries.",
+  "entries": []
+}

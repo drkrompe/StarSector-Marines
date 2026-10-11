@@ -313,6 +313,7 @@ public class BattleRenderer {
                             renderSelectedVehicleDebug(convoy, ctx.alphaMult);
                         })),
                 new ShuttleRenderSystem(sprites),
+                new LanceSweepRenderSystem(),
                 // SHOTS: contrails first (the ContrailFxService emits RIBBON commands; its
                 // trail lifecycle is ticked from BattleScreen.advance), then delivered
                 // ordnance, lingering beams, and ShotRenderService body sweeps
