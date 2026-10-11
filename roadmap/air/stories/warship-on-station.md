@@ -4,6 +4,8 @@ Status: PLANNED
 
 Written: 2026-10-11
 
+Updated: 2026-10-11 — the beam and its telegraph render; weapons come from hull slots.
+
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
 `combat-durability-nouns.md`, `command-powers-nouns.md` and
 `vanilla-combat-bridge-nouns.md` before accepting this story.
@@ -33,11 +35,16 @@ slow, enormous, and not survivable by standing still. Friendly fire is on.
    and persistent scorch in the manner of the fence-breach debris.
 3. **Director.** Picks sweep arcs over the densest opposing concentration not
    already being worked; telegraphs the arc before the beam lights.
-4. **Faction, not allegiance.** The entity is owned by a faction supplied by its
+4. **Weapons sit in the hull's own slots.** `TurretSlotResolver` already reads a hull's
+   `weaponSlots`. The Paragon's two large hardpoints (the lance) are the origins
+   of its sweeps, one beam each; its turret slots are fitted as `AirTurrets` and
+   fire on their own at ground targets, so the hull is never only one weapon.
+   A sweep's origin is therefore a mount's world position, not the hull centre.
+5. **Faction, not allegiance.** The entity is owned by a faction supplied by its
    committer; the first acceptance uses the company's own ship and an enemy one.
-5. **Answerability.** A bounded station time and a hull pool that only heavy
+6. **Answerability.** A bounded station time and a hull pool that only heavy
    anti-air, mechs or batteries reach.
-6. **Presentation.** Large shadow on the ground, beam, burn, dust and debris.
+7. **Presentation.** Large shadow on the ground, beam, burn, dust and debris.
    Rendering stays downstream of the simulation.
 
 ## Acceptance
