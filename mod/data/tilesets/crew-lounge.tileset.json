@@ -1,0 +1,192 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "crew-lounge.sofa-low",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "crew-lounge.sofa-high",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "crew-lounge.coffee",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "crew-lounge.magazines",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "crew-lounge.card-table",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "crew-lounge.game",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "crew-lounge.pool",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "name": "crew-lounge.stool",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "name": "crew-lounge.media",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "name": "crew-lounge.refreshments",
+      "row": 2
+    },
+    {
+      "col": 8,
+      "name": "crew-lounge.books",
+      "row": 2
+    },
+    {
+      "col": 9,
+      "name": "crew-lounge.planter",
+      "row": 2
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "crew-lounge.sofa-low",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 3,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "crew-lounge.sofa-high",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.3,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "crew-lounge.coffee",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "crew-lounge.magazines",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 10,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "crew-lounge.card-table",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "crew-lounge.game",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "crew-lounge.pool",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "crew-lounge.stool",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 4,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "crew-lounge.media",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 7,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "id": "crew-lounge.refreshments",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 1,
+      "col": 8,
+      "cover": "heavy",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "id": "crew-lounge.books",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 9,
+      "cover": "light",
+      "id": "crew-lounge.planter",
+      "row": 2
+    }
+  ],
+  "sheet": "graphics/tilesets/crew-lounge.png"
+}

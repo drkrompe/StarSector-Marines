@@ -56,6 +56,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Tree damage | `TreeDamageReskinTemplate`; broken crowns, low stumps and separated fallen limbs inside original footprints | `templates/tree-*.png`, `tilesets/forest-damaged.*`, `tilesets/forest-destroyed.*` | `tree-damage` |
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
+| Ship crew lounge | `CrewLoungeTemplate`; opposing sofas, layered tables and distinct recreation groups | `templates/crew-lounge.png`, `tilesets/crew-lounge.*` | `ship-materials` |
 | Ship main stores | `MainStoresTemplate`; shelf beds, independent cargo, transparent retaining frames and pallet staging | `templates/main-stores.png`, `tilesets/main-stores.*` | `ship-materials` |
 | Ship armory | `ArmoryWorkshopTemplate`; issue counter, layered weapons racks and repair bench, separate cabinets | `templates/armory-workshop.png`, `tilesets/armory-workshop.*` | `ship-materials` |
 | Ship sickbay | `SickbayClinicTemplate`; layered medical beds, head monitors and an adaptable clinic bank | `templates/sickbay-clinic.png`, `tilesets/sickbay-clinic.*` | `ship-materials` |
