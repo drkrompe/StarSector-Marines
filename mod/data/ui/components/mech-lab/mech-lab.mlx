@@ -16,19 +16,10 @@
           <div id="{material.labelId}" class="label heading material-label">{material.label}</div>
         </div>
       </div>
+      <button id="castle-lesson-resume" class="{lessonResumeClasses}" onclick="{lessonResume}">CASTLE'S GUIDE</button>
       <div id="mech-lab-summary" class="label tone-muted room-summary">{labSummary}</div>
     </div>
 
-    <div id="castle-lab-lesson" class="{lessonClasses}">
-      <img id="castle-lab-portrait" class="castle-portrait" src="graphics/portraits/castle.png" />
-      <div id="castle-lesson-copy" class="castle-lesson-copy">
-        <div id="castle-lesson-title" class="label heading tone-edge castle-lesson-title">{lessonTitle}</div>
-        <div id="castle-lesson-text" class="label castle-lesson-text">{lessonCopy}</div>
-      </div>
-      <button id="castle-lesson-action" class="compact-action console-action" onclick="{lessonAction}">{lessonActionLabel}</button>
-      <button id="castle-lesson-pause" class="compact-action console-action" onclick="{lessonPause}">LATER</button>
-    </div>
-    <button id="castle-lesson-resume" class="{lessonResumeClasses}" onclick="{lessonResume}">CASTLE'S GUIDE</button>
     <div id="mech-lab-body" class="lab-body">
       <div id="mech-asset-picker" class="{pickerClasses}">
         <div id="mech-picker-heading" class="picker-heading edge-surface">
@@ -187,6 +178,22 @@
 
       <div id="mech-lab-feedback" class="{feedbackClasses}">{feedbackText}</div>
       <canvas id="mech-drag-ghost" class="mech-drag-ghost" width="1920" height="1080" />
+      <div id="castle-lab-lesson" class="{lessonClasses}">
+        <div id="castle-space-above" class="lesson-space" />
+        <div id="castle-lesson-dialog" class="castle-dialog console-readout">
+          <div id="castle-lesson-title" class="label heading tone-edge castle-lesson-title">{lessonTitle}</div>
+          <div id="castle-lesson-dialogue" class="castle-dialogue">
+            <img id="castle-lab-portrait" class="castle-portrait" src="graphics/portraits/castle.png" />
+            <div id="castle-lesson-text" class="label castle-lesson-text">{lessonCopy}</div>
+          </div>
+          <div id="castle-lesson-controls" class="castle-controls">
+            <button id="castle-lesson-action" class="lesson-action console-action" onclick="{lessonAction}">{lessonActionLabel}</button>
+            <button id="castle-lesson-pause" class="lesson-action console-action" onclick="{lessonPause}">LATER</button>
+            <div id="castle-lesson-key-hint" class="label tone-muted lesson-key-hint">ESC TO CLOSE / CASTLE'S GUIDE TO REOPEN</div>
+          </div>
+        </div>
+        <div id="castle-space-below" class="lesson-space" />
+      </div>
     </div>
 </template>
 
@@ -197,11 +204,17 @@
   .section-title { height: 16px; padding: 2px 0px; }
   .compact-action { width: 132px; height: 28px; padding: 0px 5px; font-family: heading; text-align: center; }
 
-  .castle-lesson { flex-direction: row; align-items: center; height: 80px; padding: 6px 10px; gap: 12px; border-width: 1px; border-color: #8d8268; }
-  .castle-portrait { width: 64px; height: 64px; }
-  .castle-lesson-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
-  .castle-lesson-title { height: 18px; }
-  .castle-lesson-text { height: 40px; white-space: normal; }
+  .lesson-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12c9; overflow: scroll; }
+  .lesson-backdrop-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .lesson-space { height: 0px; flex-grow: 1; }
+  .castle-dialog { flex-direction: column; width: 820px; height: 290px; padding: 18px; gap: 10px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .castle-lesson-title { height: 24px; }
+  .castle-dialogue { flex-direction: row; height: 176px; gap: 18px; }
+  .castle-portrait { width: 176px; height: 176px; border-width: 2px; border-color: #8a967f; pointer-events: none; }
+  .castle-lesson-text { width: 0px; flex-grow: 1; height: 176px; white-space: normal; overflow: scroll; }
+  .castle-controls { flex-direction: row; align-items: center; height: 30px; gap: 10px; }
+  .lesson-action { width: 148px; height: 28px; font-family: heading; text-align: center; }
+  .lesson-key-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; }
   .room-bar { flex-direction: row; align-items: center; height: 30px; padding: 6px 8px; gap: 10px; }
   #mech-lab-room-name { width: 300px; height: 16px; }
   .bay-navigator { flex-direction: row; align-items: center; width: 205px; height: 24px; gap: 3px; }
@@ -337,11 +350,6 @@
   #mech-lab-root #marine-ops-page-routes { height: 34px; }
   #mech-lab-root #marine-ops-page-context { height: 16px; padding: 5px 7px; }
   .workshop-service-plate { width: 42px; height: 22px; pointer-events: none; }
-  .castle-lesson { flex-direction: row; align-items: center; height: 80px; padding: 6px 10px; gap: 12px; border-width: 1px; border-color: #8d8268; }
-  .castle-portrait { width: 64px; height: 64px; }
-  .castle-lesson-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 5px; }
-  .castle-lesson-title { height: 18px; }
-  .castle-lesson-text { height: 40px; white-space: normal; }
   .room-bar { border-width: 1px; background-color: #252b2c; border-color: #596362; }
   .garage-heading, .stage-heading { border-width: 0px; border-color: #596362; }
 </style>

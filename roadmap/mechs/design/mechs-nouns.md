@@ -444,7 +444,11 @@ after victory, including when Wayline must recover and repair its wreck.
 The transfer is once-only and adds its installed parts to owned inventory.
 The award also supplies one loose SRM-5 and Castle's optional, text-only gantry
 induction. Return from debrief (including salvage settlement) leads to the lab.
-The lesson selects Wayward's owning lance, explains four gantries and active-lance
+Castle uses the shared portrait modal and isolated input scope above an unchanged
+lab layout. Escape dismisses the current prompt; Close / Try It reveals the
+controls, and a completed fitting action opens the next prompt. Later pauses the
+guide until reopened from the room bar. The lesson selects Wayward's owning lance,
+explains four gantries and active-lance
 support, waits for a real SRM installation, then observes that rack returned to
 stores and refitted into the Hound's single authored shoulder mount. Progress
 and dismissal survive saves; presentation cannot grant another rack. An older

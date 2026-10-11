@@ -40,6 +40,7 @@ public final class MechLabViewModel {
     private final MechWorkshop workshop;
     private final Runnable bayChanged;
     private final MutableSignal<Integer> revision;
+    private final MutableSignal<Integer> dismissedLesson;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
     private final MutableSignal<Integer> selectedGantry;
@@ -105,6 +106,7 @@ public final class MechLabViewModel {
         this.bayChanged = bayChanged;
         CampaignMechSquad initialSquad = bay.activeSquad();
         revision = reactor.signal(0);
+        dismissedLesson = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(null);
         selectedGantry = reactor.signal(0);
@@ -207,8 +209,7 @@ public final class MechLabViewModel {
     public void putTutorialProps(Map<String, Object> props) {
         props.put("lessonClasses", reactor.computed(() -> {
             revision.get();
-            return bay.labLesson() > 0 && bay.labLesson() < 5 && !bay.labLessonPaused()
-                    ? "castle-lesson surface-dark" : "castle-lesson hidden";
+            return labGuideVisible() ? "lesson-backdrop" : "lesson-backdrop-hidden";
         }));
         props.put("lessonTitle", reactor.computed(() -> {
             revision.get();
@@ -226,17 +227,25 @@ public final class MechLabViewModel {
         }));
         props.put("lessonActionLabel", reactor.computed(() -> {
             revision.get();
-            return bay.labLesson() == 1 ? "OPEN WAYWARD" : bay.labLesson() == 4 ? "READY" : "SHOW MOUNT";
+            return bay.labLesson() == 1 ? "OPEN WAYWARD" : bay.labLesson() == 4 ? "READY" : "CLOSE / TRY IT";
         }));
         props.put("lessonAction", (Runnable) this::guideLabLesson);
         props.put("lessonPause", (Runnable) () -> { bay.pauseLabLesson(true); revision.update(value -> value + 1); });
         props.put("lessonResumeClasses", reactor.computed(() -> {
             revision.get();
-            return bay.labLesson() > 0 && bay.labLesson() < 5 && bay.labLessonPaused()
+            return bay.labLesson() > 0 && bay.labLesson() < 5 && !labGuideVisible()
                     ? "compact-action console-action" : "hidden";
         }));
-        props.put("lessonResume", (Runnable) () -> { bay.pauseLabLesson(false); revision.update(value -> value + 1); });
+        props.put("lessonResume", (Runnable) () -> { bay.pauseLabLesson(false); dismissedLesson.set(0); revision.update(value -> value + 1); });
     }
+
+    public boolean labGuideVisible() {
+        revision.get();
+        return bay.labLesson() > 0 && bay.labLesson() < 5 && !bay.labLessonPaused()
+                && dismissedLesson.get() != bay.labLesson();
+    }
+
+    public void dismissLabPrompt() { dismissedLesson.set(bay.labLesson()); }
 
     public void guideLabLesson() {
         if (bay.labLesson() == 4) { bay.advanceLabLesson(); revision.update(value -> value + 1); return; }
@@ -244,7 +253,8 @@ public final class MechLabViewModel {
             if (squad.mechById(WaylineHound.ID) == null) continue;
             selectSquad(squad.id());
             selectMech(WaylineHound.ID);
-            bay.advanceLabLesson();
+            if (bay.labLesson() == 1) bay.advanceLabLesson();
+            else dismissLabPrompt();
             selectSlot(SocketId.LEFT_SHOULDER);
             revision.update(value -> value + 1);
             return;
