@@ -52,7 +52,21 @@ public record VanillaWeapon(
         String turretSprite,
         String turretGunSprite,
         String hardpointSprite,
-        String hardpointGunSprite) {
+        String hardpointGunSprite,
+        String fireSoundOne,
+        String fireSoundTwo,
+        String impactSoundId) {
+
+    /**
+     * The sound this weapon is heard by: its {@code fireSoundOne}, else its
+     * {@code fireSoundTwo} (many vanilla guns, and the lances, name only the
+     * second), else {@code null}.
+     */
+    public String fireSoundId() {
+        if (fireSoundOne != null && !fireSoundOne.isBlank()) return fireSoundOne;
+        if (fireSoundTwo != null && !fireSoundTwo.isBlank()) return fireSoundTwo;
+        return null;
+    }
 
     /**
      * Builds a weapon from its table row, its {@code .wpn} spec and its projectile
@@ -91,7 +105,22 @@ public record VanillaWeapon(
                 wpn == null ? null : wpn.optString("turretSprite", null),
                 wpn == null ? null : wpn.optString("turretGunSprite", null),
                 wpn == null ? null : wpn.optString("hardpointSprite", null),
-                wpn == null ? null : wpn.optString("hardpointGunSprite", null));
+                wpn == null ? null : wpn.optString("hardpointGunSprite", null),
+                wpn == null ? null : wpn.optString("fireSoundOne", null),
+                wpn == null ? null : wpn.optString("fireSoundTwo", null),
+                impactSound(proj));
+    }
+
+    /** The sound the round's blast names, on the projectile or inside its proximity-fuse explosion; else null. */
+    private static String impactSound(JSONObject proj) {
+        if (proj == null) return null;
+        JSONObject blast = proj.optJSONObject("explosionSpec");
+        if (blast == null) {
+            JSONObject behaviour = proj.optJSONObject("behaviorSpec");
+            blast = behaviour == null ? null : behaviour.optJSONObject("explosionSpec");
+        }
+        String sound = blast == null ? null : blast.optString("sound", null);
+        return sound == null || sound.isBlank() ? null : sound;
     }
 
     /** A missile's explosion radius, or a projectile's proximity-fuse blast; zero for a plain slug. */

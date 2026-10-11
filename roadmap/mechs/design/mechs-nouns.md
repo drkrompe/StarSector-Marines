@@ -34,8 +34,8 @@ increasing an encounter's total armored threat.
   deployed role. Clearing the override returns to the deployed role, not the
   variant's recommendation. The override ends with the battle.
 - A **loadout** is the live mount configuration. It owns installed hardpoint
-  components and their independent ammunition, cooldown, salvo, lock, and
-  resupply state.
+  components and their independent ammunition, mechanical cycle, salvo, lock,
+  and resupply state, plus one shared chassis heat reservoir.
 - **Relative handling mass** is the chassis's authored inertia for manual
   acceleration and braking. It is a dimensionless response parameter, not a
   tonnage estimate or remaining durability. The Bulwark has the heaviest
@@ -44,7 +44,7 @@ increasing an encounter's total armored threat.
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
 - A **missile replenisher** is an installed onboard subsystem. It owns how
   quickly finite SRM and LRM mounts regain trigger packs, independently of
-  their weapon cooldown and ready-ammunition capacity. Replenishment repeats
+  their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
   for the life of the mech; the installed component is the future item-upgrade
   seam for changing that cadence.
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
@@ -341,9 +341,11 @@ feed the shared survival rule without a separate manual-only threshold.
 
 WASD supplies a speed-bounded desired velocity. Manual drive eases acceleration,
 direction changes, and key-release braking according to relative handling mass.
-The damped hips follow travel without a hard translation alignment gate;
-autonomous path following retains its eight-degree gate. The mouse turns the
-upper chassis independently within 145 degrees of either side of the hips.
+The damped hips follow cursor aim without a hard translation alignment gate;
+autonomous path following retains its eight-degree gate. WASD remains world-relative:
+full forward speed, 72% lateral and 50% reverse, interpolated by actual hip bearing.
+Reverse and side steps respond more heavily. The upper chassis tracks the cursor
+independently within 145 degrees of either side of the hips.
 Fire requires four-degree alignment and the installed mount's own legal arc.
 Terrain sweep, speed, separation, and gait remain the shared chassis rules.
 Only swept, achieved movement may survive as manual momentum after obstacle
@@ -352,14 +354,14 @@ remains the authority for gait and moving-fire effects. Entry, handback, pause,
 and input suspension clear retained manual drive; natural key release brakes it.
 
 The primary trigger requests all installed ground-direct mounts, each spending
-its own ready ammunition and observing its cooldown and burst state. Indirect
+its own ready ammunition and observing its mechanical cycle, heat admission, and burst state. Indirect
 mounts are withheld. The live cursor owns torso aim and every scheduled
 manual burst round. A refused release consumes its scheduled slot without
 emitting a shot or refunding the trigger pack, so blocked or unaimed mounts
 cannot hold a firing backlog or override current aim. Torso traversal between
 rear limits stays inside the forward arc rather than crossing the blind wedge.
 Entry, exit, and input suspension cancel queued rounds and aim without resetting mount clocks,
-ammunition, or replenishment progress. Mech accuracy uses its shared weapon
+ammunition, heat, or replenishment progress. Mech accuracy uses its shared weapon
 calculation without infantry training multipliers.
 
 The actual posed barrel is the source for both autonomous and manual direct
@@ -707,3 +709,39 @@ mechs owns the mechanical and tactical meaning of a chassis and hardpoint.
 armor profile receives damage and exposes an armor-break transition.
 Rendering consumes the variant and installed mounts to show the same body that
 simulation uses; it does not choose stats or doctrine.
+
+
+## Thermal reservoir and weapon mechanisms
+
+The battle loadout owns a 100-unit heat reservoir cooling at 8 units/second.
+These are sealed baseline internals for all chassis in this first playable slice;
+engine, armor-package, and alternate cooler/loader fittings remain future work.
+Heat is battle state, not a campaign repair cost, and requires no save migration.
+
+A weapon component owns its mechanical trigger-to-trigger period and its heat
+reservation. The Hound nose chaingun cycles every 0.65 seconds for a six-round
+burst costing 18 heat. SRM-5 loads every 1.8 seconds for a two-rocket packet
+costing 28 heat. Burst continuation must also finish before another trigger.
+Projectile damage and spacing are unchanged. Larger and specialist components
+have explicit profiles; ordinary infantry/vehicle weapon cadence is unchanged.
+
+AI and manual triggers share the 100-unit admission ceiling. The first emitted
+round commits the whole packet's heat and ammunition, allowing scheduled rounds
+to complete even if the chassis becomes hot. Blocked/unaimed first rounds spend
+nothing; cancelled packets retain spent heat and ammo. Cooling runs once in the
+serial heavy-weapon pass, including on unselected mounts and autonomous chassis.
+Direct-control entry, exit, pause and input suspension never reset these resources.
+
+AI refuses a trigger that would exceed 90 heat. At 75 it holds further triggers
+until 40, continuing its standing movement
+and assignment. Manual fire may spend the extra headroom; at 95 it vents until
+55, with no damage or movement shutdown. A trigger that would exceed capacity
+waits for enough headroom even below that interlock. The HUD shows shared heat
+and per-mount thermal holds separately from cycler/loader progress and pack
+supply. Mech Lab hover sheets expose both costs and cooling time per burst.
+
+Evidence: `hound-heat` compares held fire, paced bursts, autonomous cooling and
+reverse/strafe motion; its snapshot suite overlays the live production HUD on
+1920x1080 battle frames at 100% scale. Focused tests cover admission, single-charge
+salvos, independent mechanical clocks, resource-preserving handback and terrain-safe
+manual movement.

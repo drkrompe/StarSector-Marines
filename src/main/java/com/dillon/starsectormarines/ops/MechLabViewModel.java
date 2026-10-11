@@ -221,7 +221,7 @@ public final class MechLabViewModel {
                 case 1 -> "Wayward is ours. A lance holds up to four walkers. BROWSE LANCES selects which lance answers Mech Support; the others stay aboard. Let's open Wayward's gantry.";
                 case 2 -> "One basic SRM-5 is waiting in stores. Select an empty shoulder, then INSTALL SPARE or drag the rack onto it. Its 2 x 2 footprint fits the shoulder mount. The nose chaingun stays fitted.";
                 case 3 -> "Now practice a refit: drag the fitted SRM back to stores, or use its remove control. Then select the shoulder and INSTALL SPARE again. We reuse the same rack; removing equipment does not destroy it.";
-                case 4 -> "Fit checked. Your active lance travels on Mech Support when a mission provides heavy lift. SRMs fire short bursts; the standard replenisher restores spent packs. Keep infantry ahead to spot threats. Leave the sealed internals to our technicians.";
+                case 4 -> "Fit checked. Your active lance travels on Mech Support when a mission provides heavy lift. Chaingun and SRM bursts share heat. Ease off when the heat bar turns amber; loaders cycle separately and the replenisher restores spent packs. In override, aim with the mouse and use WASD to strafe or reverse more slowly. Keep infantry ahead to spot threats.";
                 default -> "";
             };
         }));
