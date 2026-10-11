@@ -6,7 +6,9 @@ keeping impassable wall mass distinctly darker than the surrounding decks.
 Passages, armories and technical rooms use muted grey-sage resin; crew quarters,
 barracks, messes and other inhabited rooms use warm grey resin. Working bays,
 stores and engineering keep the accepted sealed concrete. This selection lives
-only in the ship recipe and preserves explicitly authored surfaces and vacuum.
+only in the ship recipe and preserves explicitly authored surfaces and open vacuum.
+Structural walls on the hull boundary also receive bulkhead material when their
+underlying ground remains VOID; their existing topology and hit points remain intact.
 It changes no navigation, fixtures, cover, task points or capacity.
 
 Complete legacy 5x7 machine-bay paving is replaced by `auto-shop.bay`, positioned

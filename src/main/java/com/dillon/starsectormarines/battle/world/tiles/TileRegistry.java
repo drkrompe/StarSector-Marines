@@ -62,6 +62,7 @@ public final class TileRegistry {
             "data/tilesets/warehouse-racks.tileset.json",
             "data/tilesets/warehouse-racks-muted.tileset.json",
             "data/tilesets/armory-workshop.tileset.json",
+            "data/tilesets/barracks-bunks.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 

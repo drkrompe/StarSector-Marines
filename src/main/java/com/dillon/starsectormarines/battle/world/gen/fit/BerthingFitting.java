@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
-import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
@@ -26,8 +26,8 @@ import java.util.List;
  *
  * <p>What breaks the two runs up is structure rather than spacing. The near rank
  * is interrupted by its own hatches and stows kit at the ends where somebody
- * coming off watch would drop it; the far rank is unbroken, so a stanchion pair
- * stands amidships and divides it. A rack run subdivided by a frame reads as a
+ * coming off watch would drop it; the far rank is unbroken, so a locker bank
+ * (or the generic fitting's stanchion pair) stands amidships and divides it. A rack run subdivided by a frame reads as a
  * compartment; the same run at even spacing reads as a diagram.
  */
 public final class BerthingFitting implements RoomFitting {
@@ -56,15 +56,26 @@ public final class BerthingFitting implements RoomFitting {
 
     private final RoomPurpose purpose;
     private final String locker;
+    private final boolean shipboard;
+    private static final String SHIP_KIT = "barracks-bunks.";
 
     /**
-     * @param locker the stowage this compartment's occupants keep their kit in,
-     *     which is the one thing that differs between the ship's berthing and
-     *     the company's
+     * @param locker the generic fitting's stowage sprite; shipboard fittings use
+     *     the coordinated bunk and locker kit instead
      */
     public BerthingFitting(RoomPurpose purpose, String locker) {
+        this(purpose, locker, false);
+    }
+
+    private BerthingFitting(RoomPurpose purpose, String locker, boolean shipboard) {
         this.purpose = purpose;
         this.locker = locker;
+        this.shipboard = shipboard;
+    }
+
+    /** Same berth geometry, with complete bunks and personal locker banks for shipboard use. */
+    public static BerthingFitting shipboard(RoomPurpose purpose) {
+        return new BerthingFitting(purpose, "barracks-bunks.locker", true);
     }
 
     @Override
@@ -191,6 +202,21 @@ public final class BerthingFitting implements RoomFitting {
         int divider = along / 2;
         for (int slot = 0; slot < along; slot++) {
             if (taken[slot]) continue;
+            if (shipboard) {
+                boolean storage = doorSide ? slot == 0 || slot == along - 1 : slot == divider;
+                int standingRow = headOutboard ? band + RACK_DEPTH : band - 1;
+                String id = storage ? (doorSide ? "locker" : "locker-open") : "bed";
+                List<LayoutOp.Layer> layers = storage ? List.of() : List.of(
+                        new LayoutOp.Layer(0, 0, SHIP_KIT + (headOutboard ? "bedding-low" : "bedding-high")),
+                        new LayoutOp.Layer(0, 0, SHIP_KIT + "frame"));
+                if (floor.placeAssembly(slot, band, SHIP_KIT + id, layers)) {
+                    int[] stand = floor.toLocal(slot, standingRow);
+                    int[] fixture = floor.toLocal(slot, inboard);
+                    floor.fixtureTask(stand[0], stand[1], storage ? Affordance.STOW : Affordance.REST,
+                            fixture[0], fixture[1]);
+                }
+                continue;
+            }
             if (doorSide && (slot == 0 || slot == along - 1)) {
                 // Stowage at the ends of the rank the hatches are in, which is
                 // where somebody coming off watch actually drops their kit. The
