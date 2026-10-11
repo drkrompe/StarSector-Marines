@@ -399,6 +399,12 @@ public class BattleRenderer {
         registerBatch(sprites.natureSheet(), natureBatch);
         registerBatch(sprites.doodadSheet(), doodadBatch);
         registerBatch(sprites.parkedVehicleSheet(), parkedVehicleBatch);
+        for (SpriteAPI sheet : sprites.extraTerrainSheets()) {
+            if (batchBySheet.containsKey(sheet)) continue;
+            registerBatch(sheet, new QuadBatch(sheet,
+                    Math.max(1, Math.round(sheet.getWidth())),
+                    Math.max(1, Math.round(sheet.getHeight())), 4096));
+        }
 
         // Sprite-sheet batches for the CONVOY layer (ConvoyRenderSystem). Its
         // sheets are loaded by ensureConvoySprites() before this runs

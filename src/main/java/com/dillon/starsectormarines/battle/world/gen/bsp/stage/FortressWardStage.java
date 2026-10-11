@@ -525,6 +525,7 @@ public final class FortressWardStage implements GenStage {
                 ctx.topology.setWallDirMask(x, y, 0);
                 ctx.topology.setBuildingKindHint(x, y, null);
                 ctx.topology.setBuildingId(x, y, 0);
+                ctx.topology.setSurface(x, y, 0);
                 ctx.topology.setRoomPurpose(x, y, RoomPurpose.GENERIC);
                 ctx.topology.setGroundKind(x, y, GroundKind.DIRT);
                 ctx.topology.setTag(x, y, Tag.WALL, false);

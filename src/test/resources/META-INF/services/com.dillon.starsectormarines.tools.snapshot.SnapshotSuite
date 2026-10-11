@@ -29,3 +29,4 @@ com.dillon.starsectormarines.ops.MechConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksCommandSnapshotSuite
 com.dillon.starsectormarines.ops.FirstContractSnapshotSuite
 com.dillon.starsectormarines.ops.SupplyRouteSnapshotSuite
+com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStampSnapshotSuite
