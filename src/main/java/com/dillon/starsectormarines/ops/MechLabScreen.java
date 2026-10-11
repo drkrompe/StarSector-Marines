@@ -185,6 +185,7 @@ public final class MechLabScreen implements Screen {
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
+        viewModel.putTutorialProps(props);
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

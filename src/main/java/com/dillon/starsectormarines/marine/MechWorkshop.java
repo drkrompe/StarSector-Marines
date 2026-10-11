@@ -30,6 +30,7 @@ public final class MechWorkshop {
             return bay.installWeapon(mechId, slot, component.id)
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
+        if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
         if (recipe == null || !resources.spend(recipe.cost())) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -63,6 +64,7 @@ public final class MechWorkshop {
 
     public Result fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || bay.squadById(squadId) == null) return Result.of(Status.INVALID);
+        if (!bay.canFabricate(variant)) return Result.of(Status.PATTERN_LOCKED);
         if (!bay.canAddMech(squadId)) return Result.of(Status.LANCE_FULL);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.chassis(variant);
         if (recipe == null || !resources.spend(recipe.cost())) {
@@ -87,6 +89,7 @@ public final class MechWorkshop {
         INCOMPATIBLE,
         INSUFFICIENT_MATERIALS,
         LANCE_FULL,
+        PATTERN_LOCKED,
         INVALID
     }
 
