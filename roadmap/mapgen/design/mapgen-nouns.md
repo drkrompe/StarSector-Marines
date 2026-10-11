@@ -435,6 +435,18 @@ and an optional road-context document expose intent and collision together.
 Road context is editor guidance, not an implicit mission binding. A mission
 explicitly chooses its plan and required access reservations before adopting it.
 
+Open the Junction and Relay Nine bind separate terrain plans to their authored
+road layouts. Western ridges shelter the approach to each landing apron;
+broken southern hills frame service access, and outer escarpments give the
+freight road bends a landscape to follow. Open low ground remains between
+masses and facilities for maneuvering and later nature dressing. The entire
+western berth approach stays clear, as do the paved footprints, finished
+objective interiors and reserve-road mouths. Finished outdoor ground must
+remain connected, including small pockets beside map boundaries. Verdant
+worlds retain grass-topped masses; other palettes use bare rock without changing
+the authored obstruction or repainting the surrounding ground.
+
+
 ## City, station, and ship families
 
 An opening-operation facility publishes an interior destination from its

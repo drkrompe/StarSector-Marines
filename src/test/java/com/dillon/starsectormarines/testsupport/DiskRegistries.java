@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONObject;
 
@@ -43,6 +44,7 @@ public final class DiskRegistries {
     public static void install(Path projectRoot) throws Exception {
         Path mod = projectRoot.resolve("mod");
         if (!RoadCatalog.installed()) RoadCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
+        if (!TerrainCatalog.installed()) TerrainCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {

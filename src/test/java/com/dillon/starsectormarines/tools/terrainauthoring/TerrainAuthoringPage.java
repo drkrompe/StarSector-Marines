@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.terrainauthoring;
 
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan.Stroke;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan.Mode;
@@ -113,6 +114,9 @@ public final class TerrainAuthoringPage implements AuthoringPage {
     }
     void saveDocument(Path target) throws Exception {
         TerrainPreview.prepare(plan,roads);
+        for (String builtin : TerrainCatalog.BUILTINS)
+            if (target.toAbsolutePath().normalize().equals(context.projectRoot().resolve("mod").resolve(builtin).toAbsolutePath().normalize()))
+                TerrainCatalog.validate(builtin, plan);
         JSONObject json=plan.json();if(roadFile!=null)json.put("previewRoad",context.projectRoot().toAbsolutePath().normalize().relativize(roadFile.toAbsolutePath().normalize()).toString().replace('\\','/'));
         Path absolute=target.toAbsolutePath().normalize();Path temp=Files.createTempFile(absolute.getParent(),"terrain-",".tmp");
         try {Files.writeString(temp,json.toString(2)+"\n");
