@@ -208,11 +208,12 @@ public final class RoomFittings {
                 && purpose != RoomPurpose.STOCKROOM && purpose != RoomPurpose.CREW_LOUNGE
                 && purpose != RoomPurpose.BRIDGE && purpose != RoomPurpose.ENGINE_ROOM
                 && purpose != RoomPurpose.PRODUCTION_FLOOR && purpose != RoomPurpose.PARTS_CAGE
-                && purpose != RoomPurpose.HANGAR && purpose != RoomPurpose.LOADING_BAY && purpose != RoomPurpose.CONFERENCE_ROOM)
+                && purpose != RoomPurpose.HANGAR && purpose != RoomPurpose.LOADING_BAY && purpose != RoomPurpose.CONFERENCE_ROOM && purpose != RoomPurpose.GYMNASIUM)
             return forRoom(purpose, shape, fit);
         RoomLayout layout = RoomLayouts.installed().find(purpose, shape, fit);
         if (layout != null) return new AuthoredFitting(layout);
         if (berthing) return BerthingFitting.shipboard(purpose);
+        if (purpose == RoomPurpose.GYMNASIUM) return new ShipGymFitting();
         if (purpose == RoomPurpose.CONFERENCE_ROOM) return new ShipBriefingRoomFitting();
         if (purpose == RoomPurpose.HANGAR) return BoatBayFitting.shipboard();
         if (purpose == RoomPurpose.LOADING_BAY) return new ShipLoadingBayFitting();

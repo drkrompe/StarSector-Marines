@@ -1110,7 +1110,7 @@ public class BattleRenderer {
     public void renderWorld(RenderContext rc, EnumSet<RenderLayer> layers,
                             FrameCensus census) {
         collectWorld(rc, layers, census);
-        boolean parallax = rc.hostProfile.surfaceReliefEnabled()
+        boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);
         for (RenderLayer layer : RenderLayer.values()) {
