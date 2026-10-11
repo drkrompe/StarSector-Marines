@@ -3,7 +3,9 @@
 The `ship-neutral` review scene keeps the concrete bays and layered warehouse
 layout, with two material changes: graphite/galvanized shelving and a new
 neutral ship bulkhead. Red service equipment and yellow bay markings remain
-the principal accents. This is a visual study, not a campaign fitting change.
+the principal accents. The neutral bulkhead is accepted and now supplies the
+ship generator's default shell. The layered rack arrangement remains a review
+fixture; see `ship-interior-materials.README.md` for the adopted material scope.
 
 ## Layered shelving
 
@@ -35,9 +37,9 @@ without adding color accents. Source crops are recorded in
 
 `ship.neutral-bulkhead` uses `wall-faces-4x4`; the ordinary wall resolver selects
 faces from adjacent wall cells, including both sides of a partition. No renderer
-change is needed. This study has no dedicated door/window/rubble companions or
-height/normal maps. Doorways remain the existing open thresholds; production
-adoption must address the complete wall family separately.
+change is needed. Matching door/window companions now live in
+`ship-interior-materials`. There are no dedicated rubble or height/normal maps;
+destruction retains the existing generic rubble fallback.
 
 ## Reproduce and inspect
 

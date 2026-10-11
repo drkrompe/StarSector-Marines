@@ -1,0 +1,15 @@
+{
+  "requestId": "2Yj7If67Yz0qoYz0W5tb",
+  "characterCost": "7",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "3357b1838f7aa60be5360cd6c50227663cfeb12d43ea51f4454cb595a4663d48",
+  "audioSha256": "5807b6dba7203aca40db7369c5b61ae1ee8e7a2f2a95738513299a2b343d7c4b",
+  "durationSeconds": 2.32,
+  "payload": {
+    "text": "[shouting] [strained, breathless voice] Freight yard! We'll hold it!",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

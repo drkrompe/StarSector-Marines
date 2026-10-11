@@ -1,0 +1,15 @@
+{
+  "requestId": "ZsO2t1aRJcuGy6ErpQAh",
+  "characterCost": "9",
+  "voiceId": "IKne3meq5aSn9XLyUdCD",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "87cff84111f610d074627eb50f60a15d82ffb2104baaaf483e70a7f8f86c3202",
+  "audioSha256": "e4f4b34c6a0353e4ddb9729029f96c737008ec824a781c463c581d8054b2ad7c",
+  "durationSeconds": 3.92,
+  "payload": {
+    "text": "[focused, brisk voice] Command, Rook One. Reinforcements are down. Lifting clear.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

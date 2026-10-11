@@ -41,3 +41,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.AutoShopSnapshotSuite
 com.dillon.starsectormarines.tools.terrainauthoring.ThunderTerrainSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.WarehouseRackSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.ShipNeutralSnapshotSuite
+com.dillon.starsectormarines.tools.tilesetauthoring.ShipMaterialsSnapshotSuite

@@ -21,7 +21,7 @@ import java.util.List;
  * recess with its outside edge closed. Furniture letters name one-cell fixtures.
  * One local pose transforms every cell, aperture and prop, including concave cuts.
  */
-enum BuildingStamp {
+public enum BuildingStamp {
     CORNER_HOME("Corner home", BuildingKind.RESIDENTIAL, BuildingStyle.SANDSTONE,
             "###n###    ",
             "#h....#    ",
@@ -87,16 +87,61 @@ enum BuildingStamp {
             "+..,,,,#   ",
             "+..,,,,e   ",
             "#d.,,cc#   ",
-            "###s####   ");
+            "###s####   "),
+    /** Larger story facilities use explicit placement, not random city selection. */
+    FREIGHT_L("Freight depot with office wing", BuildingKind.INDUSTRIAL, BuildingStyle.DEPOT, false,
+            "###n####            ",
+            "#......#            ",
+            "#cc..cc#            ",
+            "#......#            ",
+            "#......#            ",
+            "+......#            ",
+            "#......#            ",
+            "#......#            ",
+            "#......#            ",
+            "#......#            ",
+            "#.......############",
+            "#......#.,,,,,,,,cc#",
+            "w......#.,,,,,,,,,.#",
+            "#......+.,,,,,,,,,.e",
+            "#......#.,,,,,,,,,.#",
+            "#d.....#.,,,,,,,,,c#",
+            "############++######"),
+    FREIGHT_T("Freight transfer workshop", BuildingKind.INDUSTRIAL, BuildingStyle.WORKSHOP, false,
+            "      ###n###      ",
+            "      #,,,,,#      ",
+            "      #d,,,c#      ",
+            "      #,,,,,#      ",
+            "      #,,,,,e      ",
+            "      #,,,,,#      ",
+            "      w,,,,,#      ",
+            "      #,,,,,#      ",
+            "      #,,,,,#      ",
+            "      #,,,,,#      ",
+            "      #,,,,,#      ",
+            "###n##.#++##.##n###",
+            "#.................#",
+            "#.c.............c.#",
+            "+.................+",
+            "#.................#",
+            "#.c.c.........c.c.#",
+            "#.................#",
+            "#########++########");
 
     final String label;
     final BuildingKind kind;
     final BuildingStyle style;
     private final List<String> rows;
+    private final boolean procedural;
     final int width;
     final int height;
 
     BuildingStamp(String label, BuildingKind kind, BuildingStyle style, String... rows) {
+        this(label, kind, style, true, rows);
+    }
+
+    BuildingStamp(String label, BuildingKind kind, BuildingStyle style, boolean procedural, String... rows) {
+        this.procedural = procedural;
         this.label = label;
         this.kind = kind;
         this.style = style;
@@ -139,7 +184,7 @@ enum BuildingStamp {
                 || leaf.bottom >= ctx.height - 1) return false;
         List<Choice> choices = new ArrayList<>();
         for (BuildingStamp stamp : values()) {
-            if (stamp.kind != kind) continue;
+            if (!stamp.procedural || stamp.kind != kind) continue;
             for (int turn = 0; turn < 4; turn++) {
                 if (stamp.width(turn) <= leaf.width() && stamp.height(turn) <= leaf.height()
                         && stamp.width(turn) * stamp.height(turn) * 2 >= leaf.area()) {
@@ -157,7 +202,8 @@ enum BuildingStamp {
 
     private record Choice(BuildingStamp stamp, int turns) {}
 
-    void place(GenContext ctx, int left, int bottom, int turns) {
+    /** Place an authored plan without stretching; caller owns the surrounding lot and approaches. */
+    public void place(GenContext ctx, int left, int bottom, int turns) {
         if (left < 1 || bottom < 1 || left + width(turns) >= ctx.width
                 || bottom + height(turns) >= ctx.height) {
             throw new IllegalArgumentException("building stamp needs an exterior approach");
