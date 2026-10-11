@@ -104,6 +104,20 @@ editor boundary. These breaches are neither doorways nor masonry collapses;
 they do not peel adjacent roofs. Decorative walkable placements do not
 acquire this obstruction contract.
 
+Storage boxes, wooden crates and industrial crate stacks spend that same
+structural damage in both walkable and blocking placements. Broken panels and
+scattered supplies retain the original material and placement. Surviving damage
+keeps protection; destruction removes only the crate contribution and opens a
+blocking placement. Walkable crates carry independent removable physical cover,
+so their destruction preserves other props and nature on the same cell.
+
+Barrel groups also spend weapon-authored structure, with one pool across each
+group's footprint and one damage spend per blast. Dented drums retain their
+protection; destroyed groups leave low torn metal and scattered lids. Only
+obstruction and cover owned by the barrels are removed: shipboard drum stock
+does not own its underlying rack or pallet, so breaking the stock preserves
+that fixture. Original ground and permanent terrain remain.
+
 Trees use the same weapon-authored structural damage channel, with one pool
 per tree across all its canopy cells. A blast spends damage once per tree,
 including where crowns overlap. Surviving damage exposes broken limbs but

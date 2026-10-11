@@ -53,6 +53,8 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Wall rubble | `RubbleReskinTemplate`; broken roots retain former connectivity and leave ground exposed | `templates/colony-rubble.png`, `tilesets/colony-rubble.*` | `wall-rubble` |
 | Ground damage | `GroundDamageReskinTemplate`; local cracks/gouges over the original material, clear perimeter | `templates/colony-ground-damage.png`, `tilesets/colony-ground-damage.*` | `ground-damage` |
 | Forest canopies | `TreeCanopy` and `TreeReskinTemplate`; overhead rounded crowns, full foliage obstruction across 3-6 cells | `templates/forest-canopies.png`, `tilesets/forest-canopies.*`, `forests/` | `forest-brush` |
+| Crate damage | `CrateDamageReskinTemplate`; matching box/wood/metal silhouettes, broken panels and separated contents | `templates/crate-*.png`, `tilesets/crate-damage.*` | `crate-damage` |
+| Barrel damage | `BarrelDamageReskinTemplate`; matching drum groups, dented lids, open curved metal shells and separate scraps | `templates/barrel-*.png`, `tilesets/barrel-damage.*` | `barrel-damage` |
 | Rock damage | `RockDamageReskinTemplate`; intact silhouettes with crack guides and separated low fragments | `templates/rock-*.png`, `tilesets/rock-damage.*` | `rock-damage` |
 | Tree damage | `TreeDamageReskinTemplate`; broken crowns, low stumps and separated fallen limbs inside original footprints | `templates/tree-*.png`, `tilesets/forest-damaged.*`, `tilesets/forest-destroyed.*` | `tree-damage` |
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |

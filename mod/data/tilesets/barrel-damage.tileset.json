@@ -1,0 +1,64 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.industrial-drum-cluster-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "main-stores.drums-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "doodad.industrial-drum-cluster-destroyed",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "main-stores.drums-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.industrial-drum-cluster-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.drums-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "id": "doodad.industrial-drum-cluster-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "main-stores.drums-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/barrel-damage.png"
+}

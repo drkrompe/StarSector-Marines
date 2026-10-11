@@ -5,7 +5,10 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — ship bridges use a central tactical plot and four
+Updated: 2026-10-11 — engineering spaces separate complete piped machinery
+skids, service aisles and control/workshop aprons in the muted ship materials.
+
+Earlier 2026-10-11 — ship bridges use a central tactical plot and four
 inward-facing command banks in the muted ship material family.
 
 Earlier 2026-10-11 — crew lounges group seating, screen-watching and table
@@ -497,6 +500,20 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+Ship engineering distinguishes the main drive from auxiliary plant. The drive
+room carries one connected reactor/turbine/heat-exchanger assembly, separate
+cooling, life-support and standby-power skids, and a control/workshop apron.
+Auxiliary spaces group cooling and life support opposite their controls,
+fabrication bench and switchgear. Pipes form complete circuits within their
+machinery skids; no pipe crosses a service aisle or depends on a neighboring
+sprite to complete its connection. The entire plinth is physical equipment,
+including the gaps between its housings. Service alleys and perimeter routes
+connect every hatch to exclusive work positions. The control board affords
+watchkeeping and readings; machinery affords tending or repair, enclosed spares
+stowage, and only the auxiliary bench fabrication. The posed assemblies replace
+the old scattered packing, loose gear and alternating grating in these rooms.
+The displayed circuits do not assert a new power or coolant simulation.
 
 The ship bridge groups navigation, systems and paired side watch stations
 around one central tactical plot. Operators stand outboard of their consoles
