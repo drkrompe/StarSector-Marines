@@ -112,6 +112,14 @@ only cells free of surviving crowns and underlying hills reopen. Original
 ground and permanent terrain remain, and neither actor durability nor
 building collapse owns these changes.
 
+The seven built-in nature rock groups also spend weapon-authored structure:
+50 for small stones, 100 for medium cover rocks, and 200 for blocking boulders.
+A surviving hit exposes cracks while retaining cover. Destruction leaves
+separated low rubble, removes physical or directional cover, and opens a
+boulder cell through the navigation boundary. Nearby props retain protection;
+original ground and permanent cliffs remain. This uses `RockDamage` alongside
+the tree and cover-prop state, not actor durability or masonry collapse.
+
 Mitigation resolves **after cover and before armor**. Cover is a property of the
 world the shot crossed; mitigation is a property of the target at that instant;
 armor is what the target is made of. A mitigated hit still spends what remains

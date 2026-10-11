@@ -1,0 +1,176 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "nature.rock-small-1-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "nature.rock-small-2-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "nature.rock-medium-1-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "nature.rock-medium-2-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "nature.rock-large-1-damaged",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "nature.rock-large-2-damaged",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "nature.rock-large-3-damaged",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "nature.rock-small-1-destroyed",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "nature.rock-small-2-destroyed",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "nature.rock-medium-1-destroyed",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "nature.rock-medium-2-destroyed",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "nature.rock-large-1-destroyed",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "nature.rock-large-2-destroyed",
+      "row": 0
+    },
+    {
+      "col": 13,
+      "name": "nature.rock-large-3-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "id": "nature.rock-small-1-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 1,
+      "cover": "none",
+      "id": "nature.rock-small-2-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 2,
+      "cover": "light",
+      "id": "nature.rock-medium-1-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.18,
+      "col": 3,
+      "cover": "light",
+      "id": "nature.rock-medium-2-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 4,
+      "cover": "heavy",
+      "id": "nature.rock-large-1-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 5,
+      "cover": "heavy",
+      "id": "nature.rock-large-2-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.6,
+      "col": 6,
+      "cover": "heavy",
+      "id": "nature.rock-large-3-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "nature.rock-small-1-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 8,
+      "cover": "none",
+      "id": "nature.rock-small-2-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "id": "nature.rock-medium-1-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 10,
+      "cover": "none",
+      "id": "nature.rock-medium-2-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 11,
+      "cover": "none",
+      "id": "nature.rock-large-1-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 12,
+      "cover": "none",
+      "id": "nature.rock-large-2-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 13,
+      "cover": "none",
+      "id": "nature.rock-large-3-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/rock-damage.png"
+}

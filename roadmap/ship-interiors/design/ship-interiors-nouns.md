@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — main stores uses layered shelving, grouped cargo and
-separate picking and pallet-handling aisles within the muted ship material family.
+Updated: 2026-10-11 — crew lounges group seating, screen-watching and table
+recreation around clear circulation within the muted ship material family.
 
 Earlier 2026-09-01 â€” same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -494,6 +494,15 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+The crew lounge gathers off-watch activity into distinct groups: screen-facing
+seating, conversation sofas, seated table games and a pool area, with books and
+refreshments alongside. A central cross-passage and perimeter route join them
+without cutting through their furniture. Sofas face into their group; tables
+may carry separate decorative settings. The complete arrangement follows the
+room pose, and each recreation place publishes an exclusive reachable UNWIND
+point. Game stools remain traversable for their occupants, while substantial
+furniture owns blocking. These groups add neither staffed work nor game rules.
 
 Main stores separates parallel picking racks from a pallet handling lane.
 Cross-aisles join the ends of the shelf banks, while a tally desk and a

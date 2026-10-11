@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.BerthingFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.MessHallFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.SickBayFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.MainStoresFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.CrewLoungeFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.FurnishableRoom;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -58,12 +59,12 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
                         42, hull.silhouette());
         images.add(new SnapshotArtifact("ship-materials-generated-deck.png", renderer.render(deck, 42, 8)));
         for (RoomPurpose purpose : List.of(RoomPurpose.BARRACKS, RoomPurpose.VEHICLE_BAY,
-                RoomPurpose.MESS_HALL, RoomPurpose.ARMORY, RoomPurpose.PATIENT_WARD, RoomPurpose.STOCKROOM)) {
+                RoomPurpose.MESS_HALL, RoomPurpose.ARMORY, RoomPurpose.PATIENT_WARD, RoomPurpose.STOCKROOM, RoomPurpose.CREW_LOUNGE)) {
             DeckGraph.Compartment room = generator.getLastDeckGraph().compartments().stream()
                     .filter(c -> c.purpose() == purpose).findFirst().orElse(null);
             if (room == null) continue;
             if (purpose == RoomPurpose.ARMORY || purpose == RoomPurpose.BARRACKS || purpose == RoomPurpose.MESS_HALL
-                    || purpose == RoomPurpose.PATIENT_WARD || purpose == RoomPurpose.STOCKROOM) {
+                    || purpose == RoomPurpose.PATIENT_WARD || purpose == RoomPurpose.STOCKROOM || purpose == RoomPurpose.CREW_LOUNGE) {
                 for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
                         "ship-materials-" + purpose.name().toLowerCase() + "-" + scale + "px.png",
                         renderer.renderView(deck, 42, room.originX() + room.width() / 2f,
@@ -96,6 +97,8 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
                 "ship-materials-sickbay-pose-" + turn + ".png", renderer.render(roomPose(turn, RoomPurpose.PATIENT_WARD), 42, 40)));
         for (int turn = 0; turn < 4; turn++) images.add(new SnapshotArtifact(
                 "ship-materials-stores-pose-" + turn + ".png", renderer.render(roomPose(turn, RoomPurpose.STOCKROOM), 42, 40)));
+        for (int turn = 0; turn < 4; turn++) images.add(new SnapshotArtifact(
+                "ship-materials-lounge-pose-" + turn + ".png", renderer.render(roomPose(turn, RoomPurpose.CREW_LOUNGE), 42, 40)));
         return images;
     }
 
@@ -109,8 +112,9 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         boolean mess = purpose == RoomPurpose.MESS_HALL;
         boolean sickbay = purpose == RoomPurpose.PATIENT_WARD;
         boolean stores = purpose == RoomPurpose.STOCKROOM;
-        int along = stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
-        int across = stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
+        boolean lounge = purpose == RoomPurpose.CREW_LOUNGE;
+        int along = lounge ? 16 : stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
+        int across = lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
         RoomShape shape = RoomShape.rectangle(along, across).posed(pose);
         int width = shape.width() + 4, height = shape.height() + 4;
         NavigationGrid grid = new NavigationGrid(width, height);
@@ -118,14 +122,14 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
             grid.setWalkableFloor(x, y);
             topology.setGroundKind(x, y, GroundKind.INDOOR);
-            topology.setSurface(x, y, topology.surfaceIndex(stores ? "auto-shop.concrete" : (berthing || mess || sickbay) ? "ship.crew-deck" : "ship.passage-deck"));
+            topology.setSurface(x, y, topology.surfaceIndex(stores ? "auto-shop.concrete" : (berthing || mess || sickbay || lounge) ? "ship.crew-deck" : "ship.passage-deck"));
         }
         for (int[] cell : shape.wall()) {
             int x = cell[0] + 2, y = cell[1] + 2;
             grid.setWalkable(x, y, false); topology.setWall(x, y, true);
             topology.setSurface(x, y, topology.surfaceIndex("ship.neutral-bulkhead"));
         }
-        int[] door = stores ? pose.map(14, -1, along, across) : sickbay ? pose.map(-1, 4, along, across)
+        int[] door = lounge ? pose.map(7, -1, along, across) : stores ? pose.map(14, -1, along, across) : sickbay ? pose.map(-1, 4, along, across)
                 : pose.map(mess ? along - 2 : 3, -1, along, across);
         int dx = door[0] + 2, dy = door[1] + 2;
         grid.setWalkableFloor(dx, dy); grid.setDoorway(dx, dy, true); topology.setWall(dx, dy, false);
@@ -137,6 +141,7 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         else if (mess) MessHallFitting.shipboard().fit(floor);
         else if (sickbay) SickBayFitting.shipboard().fit(floor);
         else if (stores) new MainStoresFitting().fit(floor);
+        else if (lounge) new CrewLoungeFitting().fit(floor);
         else ArmoryFitting.shipboard().fit(floor);
         if (!floor.circulationSurvives() || floor.dropUnreachableWork() != 0)
             throw new IllegalStateException(purpose + " pose loses circulation or work: " + turn);

@@ -293,7 +293,7 @@
     },
     {
       "cover": "heavy",
-      "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
+      "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
       "frame": 29,
       "id": "nature.rock-large-1",
       "layer": "rock",

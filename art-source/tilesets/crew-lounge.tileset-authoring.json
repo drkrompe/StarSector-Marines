@@ -1,0 +1,205 @@
+{
+  "sheetName": "crew-lounge",
+  "sheet": "art-source/tilesets/crew-lounge.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "crew-lounge",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/crew-lounge.png",
+  "note": "Muted crew recreation kit. Opposing sofas have backrests at image bottom/top. Magazines and game are padded decorative table overlays. Round stool stays walkable at its exclusive UNWIND point. Unchanged ImageGen source; no keying or post-export patch.",
+  "entries": [
+    {
+      "id": "crew-lounge.sofa-low",
+      "rect": [
+        53,
+        73,
+        318,
+        124
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.sofa-high",
+      "rect": [
+        443,
+        65,
+        368,
+        128
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.coffee",
+      "rect": [
+        950,
+        88,
+        232,
+        108
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.3,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.magazines",
+      "rect": [
+        97,
+        338,
+        214,
+        108
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.card-table",
+      "rect": [
+        521,
+        296,
+        212,
+        213
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.4,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.game",
+      "rect": [
+        944,
+        318,
+        192,
+        192
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.pool",
+      "rect": [
+        50,
+        577,
+        332,
+        210
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.stool",
+      "rect": [
+        578,
+        630,
+        100,
+        100
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.media",
+      "rect": [
+        864,
+        648,
+        342,
+        110
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.refreshments",
+      "rect": [
+        166,
+        871,
+        96,
+        300
+      ],
+      "footprintCells": [
+        1,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.books",
+      "rect": [
+        579,
+        870,
+        96,
+        302
+      ],
+      "footprintCells": [
+        1,
+        3
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1,
+      "included": true
+    },
+    {
+      "id": "crew-lounge.planter",
+      "rect": [
+        987,
+        922,
+        108,
+        109
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.4,
+      "included": true
+    }
+  ]
+}

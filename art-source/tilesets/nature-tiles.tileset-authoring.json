@@ -640,7 +640,7 @@
       "included": true,
       "layer": "rock",
       "name": "rock-large",
-      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art; rock structure leaves matching rubble on destruction",
       "passable": false,
       "rect": [
         1835,

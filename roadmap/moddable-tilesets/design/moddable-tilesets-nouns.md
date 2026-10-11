@@ -246,12 +246,17 @@ a property of the data definition, while directional markers and embankment
 resolvers remain code-owned geometry.
 
 Nature overlays now exercise that authority boundary end to end. Small rocks
-are visual only; medium rocks publish light cover while remaining walkable;
+provide no cover; medium rocks publish light cover while remaining walkable;
 large rocks publish heavy cover and block navigation while remaining
 see-through. The filler applies passability, visibility, and connectivity law;
 the battle setup publishes authored cover quality into tactical scoring and
-ballistic interception. Large rocks are non-structural fixtures rather than
-walls: they receive neither wall art nor destructible wall HP.
+ballistic interception. Large rocks are fixtures rather than walls and receive no wall art. The seven
+built-in rock groups have per-cell structure and matching cracked/rubble doodads
+in `rock-damage.tileset.json`. First damage replaces the nature overlay with
+its prop state; original ground remains. Walkable nature cover has a separate
+removable channel, so destruction cannot erase overlapping static prop cover.
+Large-rock breaches rebake grid facings and restore surviving neighbors.
+The `rock-damage` snapshot suite exercises all seven through the combat seam.
 
 Passability also selects the cover shape for doodads. A walkable doodad is a
 physical feature that may intercept a ray crossing its occupied cell. A

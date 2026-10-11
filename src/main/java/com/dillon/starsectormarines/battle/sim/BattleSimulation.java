@@ -21,6 +21,8 @@ import com.dillon.starsectormarines.battle.appearance.SystemFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
+import com.dillon.starsectormarines.battle.warship.LanceSweep;
+import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
@@ -481,6 +483,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final AirfieldSystem airfieldSystem = new AirfieldSystem();
     /** Decides when the field puts an armed aircraft over the battle. Self-gating: a field with no strip or no sheds flies nothing. */
     private final BoatSortieSystem boatSorties = new BoatSortieSystem();
+    /** A warship's lance sweeps in progress; each lit one lays ordinary detonations along its beam. */
+    private final LanceSweepSystem lanceSweeps = new LanceSweepSystem();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
@@ -1528,6 +1532,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * contact with its target's AoE radius). Same damage / wall / roof / dust
      * pipeline as a queued detonation — just without the timer delay.
      */
+    /** Commits a warship's lance sweep; its arc is fixed from here. */
+    public void startLanceSweep(LanceSweep sweep) {
+        lanceSweeps.start(sweep);
+    }
+
+    /** Lance sweeps in progress, for presentation and evidence. */
+    public LanceSweepSystem lanceSweeps() {
+        return lanceSweeps;
+    }
+
     public void detonateNow(PendingDetonation det) {
         detonations.detonateNow(det);
     }
@@ -2177,6 +2191,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // down its arrival timer and applies splash + wall damage when it
         // expires. Pairs with the visual ShotEvent flight; the visual and the
         // damage are queued together and arrive together.
+        lanceSweeps.tick(TICK_DT, detonations::detonateNow);
         detonations.tick();
         tickProfile.lap(TickProfile.Phase.DETONATIONS);
         // Drain all damage queued this tick — from UPDATE_UNITS direct fire,
