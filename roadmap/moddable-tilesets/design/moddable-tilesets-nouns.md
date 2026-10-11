@@ -654,6 +654,11 @@ and headless renderer. They retain registered per-sheet batches alongside the ex
 content on a new sheet must not
 silently render as an empty cell.
 
+Catalog-declared prop sheets are loaded and batched by both render backends as
+well. A map using additional prop sheets retains placement order across sheets,
+so deck covering laid first remains beneath the fixtures placed afterwards.
+Legacy-only maps retain their established sheet grouping and draw order.
+
 ## Validation and fallback laws
 
 1. A built-in id collision, a missing sliced frame, or an unresolved tile
