@@ -101,7 +101,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             props.put("secondaryClasses", "hidden");
             props.put("secondaryLabel", "");
             props.put("secondaryAction", (Runnable) () -> { });
-            props.put("primaryLabel", Strings.get("resultsReturn"));
+            props.put("primaryLabel", WaylineHoundAward.eligible(outcome) ? "VISIT MECH LAB" : Strings.get("resultsReturn"));
             props.put("primaryAction", (Runnable) this::returnToMissions);
         }
         return props;
@@ -457,6 +457,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return new ResultRow(id, label, value, "label result-value " + tone);
     }
 
+    static ScreenId returnDestination(MissionOutcome outcome) {
+        return WaylineHoundAward.eligible(outcome) ? ScreenId.MECH_LAB : ScreenId.MISSION_SELECT;
+    }
+
     void prepareCompany() {
         LootManifest manifest = context.getLootManifest();
         if (manifest != null && !manifest.isEmpty()) {
@@ -471,6 +475,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     void returnToMissions() {
         context.forfeitLoot();
         context.finishOperation(false);
+
     }
 
     @Override protected void onCancel() {

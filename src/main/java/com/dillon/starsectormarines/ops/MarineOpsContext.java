@@ -593,9 +593,10 @@ public class MarineOpsContext {
     /** Called only after the existing salvage authority has settled or explicitly forfeited. */
     public void finishOperation(boolean prepareCompany) {
         if (!lootSettlementStarted) return;
+        ScreenId returnScreen = shipReady() ? ResultsScreen.returnDestination(lastOutcome) : ScreenId.MISSION_SELECT;
         clearResolvedMission();
         prepareAfterSettlement = false;
-        goTo(prepareCompany ? (shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ) : ScreenId.MISSION_SELECT);
+        goTo(prepareCompany ? (shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ) : returnScreen);
     }
 
     /** Clears the finished mission while preserving its closed settlement gate. */

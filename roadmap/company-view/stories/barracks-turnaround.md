@@ -44,6 +44,11 @@ loop in short, replayable steps: establish a formation; read the muster; choose
 recipients and donors; review consolidation; fill vacancies; issue kit; return to
 work. Advice names real controls and current blockers. It never advances gameplay,
 spends resources, invents a casualty, or requires wasteful orders to progress.
+Present each lesson as a pop-over modal above the Barracks, with Castle's
+portrait and speaker name beside her words. Dim the background and confine
+keyboard/pointer input to the tutorial. Escape and Close / Try It return control
+to the room; Company Guide reopens the lesson sequence. All future speaking
+characters require their portrait alongside dialogue.
 Her delivery is warm, observant and firm as the situation needs; dry humor is
 occasional, never her default personality. Dismissal persists with the company; Help can reopen it. Existing saves receive
 the same dismissible introduction. Text is complete without audio.
@@ -113,3 +118,11 @@ After merging the concurrent Castle debrief work, 33 focused tests passed,
 including `HoundSalvageDebriefTest` and `NarrationSequenceTest`; `shadowJar` and
 all 26 Barracks snapshots succeeded. Results retains the voiced recovery
 conversation alongside the new preparation action.
+
+The tutorial now uses Castle's existing portrait in a centered pop-over above a
+dimmed, unchanged Barracks layout. The shared document input scope prevents
+background clicks, focus, captured drags and scroll while open; Escape dismisses,
+and Company Guide reopens it. The 145 retained-UI and Barracks tests pass,
+including the production MLX pointer/keyboard flow and input-scope regression
+cases. The mod packages successfully. All 26 Barracks snapshots render; the
+portrait modal was visually checked at 100% and 150% scale.

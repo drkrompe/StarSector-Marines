@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
@@ -39,6 +40,47 @@ public final class MechBay implements Serializable {
      * Bulwark. New campaigns begin with only the empty support-lance gantries.
      */
     private boolean foundingModelInitialized = true;
+    // Absent in older saves: preserve their unrestricted workshop.
+    private boolean starterPatternsOnly = true;
+    private int labLesson;
+    private boolean labLessonPaused;
+    private boolean lessonRackRemoved;
+
+    public boolean canFabricate(MechWeaponComponent component) {
+        return component != null && (!starterPatternsOnly
+                || component == MechWeaponComponent.NOSE_CHAINGUN
+                || component == MechWeaponComponent.SRM_5);
+    }
+
+    public boolean canFabricate(MechVariant variant) {
+        return variant != null && (!starterPatternsOnly || variant == MechVariant.HOUND);
+    }
+
+    public int labLesson() { return labLesson; }
+    public boolean labLessonPaused() { return labLessonPaused; }
+    public void pauseLabLesson(boolean paused) { labLessonPaused = paused; }
+
+    /** Once-only recovery package; also migrates an already-owned story Hound. */
+    public void beginLabLesson() {
+        if (labLesson != 0) return;
+        addWeapon(MechWeaponComponent.SRM_5.id, 1);
+        labLesson = 1;
+    }
+
+    public void advanceLabLesson() {
+        if (labLesson == 1) { labLesson = 2; observeLabFit(); }
+        else if (labLesson == 4) labLesson = 5;
+    }
+
+    private void observeLabFit() {
+        CampaignMech mech = mechById(WaylineHound.ID);
+        if (mech == null) return;
+        for (MechMountSlot mount : List.of(MechMountSlot.LEFT_SHOULDER, MechMountSlot.RIGHT_SHOULDER)) {
+            if (mech.weaponAt(mount) != MechWeaponComponent.SRM_5) continue;
+            if (labLesson == 2) { labLesson = 3; return; }
+            if (labLesson == 3 && lessonRackRemoved) labLesson = 4;
+        }
+    }
 
     public MechBay() {
         ensureSupportSquad();
@@ -51,6 +93,7 @@ public final class MechBay implements Serializable {
 
     static MechBay legacyStarterBay() {
         MechBay bay = new MechBay();
+        bay.starterPatternsOnly = false;
         bay.seedLegacyStarterAssets();
         return bay;
     }
@@ -243,6 +286,7 @@ public final class MechBay implements Serializable {
         if (component == mech.weaponAt(slot)) return true;
         if (availableWeapon(componentId) <= 0) return false;
         mech.installWeapon(slot, component);
+        observeLabFit();
         return true;
     }
 
@@ -258,6 +302,8 @@ public final class MechBay implements Serializable {
                 mech.variant()).socket(socketId);
         if (socket == null || socket.factoryLocked()) return false;
         if (mech.weaponAt(slot) == null) return false;
+        if (labLesson == 3 && WaylineHound.ID.equals(mechId)
+                && mech.weaponAt(slot) == MechWeaponComponent.SRM_5) lessonRackRemoved = true;
         mech.installWeapon(slot, null);
         return true;
     }
@@ -339,6 +385,7 @@ public final class MechBay implements Serializable {
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
             ownedWeapons.merge(component.id, installedWeapon(component.id), Math::max);
         }
+        if (labLesson == 0 && mechById(WaylineHound.ID) != null) beginLabLesson();
         nextFabricatedSerial = Math.max(1, nextFabricatedSerial);
         return this;
     }
@@ -351,6 +398,7 @@ public final class MechBay implements Serializable {
                 || !canInstallWeapon(mechId, target, component.id)) return false;
         mech.installWeapon(target, component);
         mech.installWeapon(source, null);
+        observeLabFit();
         return true;
     }
 

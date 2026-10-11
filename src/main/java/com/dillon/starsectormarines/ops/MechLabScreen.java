@@ -130,7 +130,9 @@ public final class MechLabScreen implements Screen {
             requireWiredElements(candidate);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            built.theme(MarineOpsThemes.standard());
+            TutorialModal.bind(built, candidate, viewModel::labGuideVisible,
+                    "castle-lab-lesson", "mech-lab-root", viewModel::dismissLabPrompt, this::close);
             // The doll is not the deck scene: it composes a machine at rest
             // against its own backdrop, so it loads what it draws. Everything
             // the deck itself paints is the deck's own business.
@@ -185,6 +187,7 @@ public final class MechLabScreen implements Screen {
         props.put("bayNavigatorClasses", bayNavigatorClasses);
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
+        viewModel.putTutorialProps(props);
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
