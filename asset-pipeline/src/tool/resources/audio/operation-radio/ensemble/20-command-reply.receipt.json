@@ -1,0 +1,11 @@
+{
+  "requestId": "rCUlhVq9MuHsaKYEhNer",
+  "characterCost": "6",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "inputSha256": "dd6b0647791e9a5a005e24f7e92c0f734f66d283deb8da90d58e66e20d265deb",
+  "audioSha256": "3beed3e5c5f7632d00e282ee6fbad5487f19735c2746de2610728588233b0e81",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[lightly amused, brisk voice] I'll see what I can arrange."
+  }
+}

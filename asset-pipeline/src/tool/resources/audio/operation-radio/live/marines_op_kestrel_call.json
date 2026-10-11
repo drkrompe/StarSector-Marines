@@ -1,0 +1,7 @@
+{
+  "audioSha256": "2d7ac4b5fb45ea4cff31b11baf28ee08d545f1b9ffe1ab5740b66b25ee8d392e",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "retainedFrom": "retained/01-callout-clean.wav",
+  "durationSeconds": 1.875
+}

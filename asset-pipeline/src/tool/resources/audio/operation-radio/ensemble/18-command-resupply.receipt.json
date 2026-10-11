@@ -1,0 +1,11 @@
+{
+  "requestId": "lTuCoT2ZXwXCiCRXJeOC",
+  "characterCost": "7",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "inputSha256": "45ef1b5cf6b5b642a580b8ff76c6c635f14dae2743a4a6d3d360593d8cb9f8d3",
+  "audioSha256": "aa3ec446b55e9a73627a7a738d9416bb79558b58e1abd546ddea6f74a30eaa46",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[firm, brisk voice] Hold there, Hammer. Rook, bring them ammunition."
+  }
+}

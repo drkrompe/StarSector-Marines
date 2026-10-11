@@ -38,11 +38,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--generate", action="store_true")
     parser.add_argument("--replace", action="store_true")
-    parser.add_argument("--cast", choices=["wayline", "company-officer"], default="wayline")
+    parser.add_argument("--cast", choices=["wayline", "company-officer", "operation-radio"], default="wayline")
     parser.add_argument("--line", action="append", help="Generate only this sound ID (repeatable)")
     args = parser.parse_args()
     catalog_path = CATALOG if args.cast == "wayline" else ROOT / "mod/data/marines/company_officer_narration.json"
     sources = SOURCES if args.cast == "wayline" else SOURCES.parent / "company-officer"
+    if args.cast == "operation-radio":
+        catalog_path = ROOT / "mod/data/marines/operation_radio.json"
+        sources = SOURCES.parent / "operation-radio/live"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     if args.line and set(args.line) - {line["id"] for line in catalog["lines"]}:
         raise SystemExit("Unknown line ID; no request sent.")
@@ -54,11 +57,23 @@ def main():
             continue
         if not re.fullmatch(r"[a-z0-9_]+", line["id"]):
             raise SystemExit("Invalid sound ID")
+        voice_id = (catalog["voices"][line["speaker"]]["voiceId"]
+                    if args.cast == "operation-radio" else catalog["voiceId"])
+        if line.get("retained"):
+            audio = sources / (line["id"] + ".mp3")
+            receipt = audio.with_suffix(".json")
+            if not audio.exists() or not receipt.exists():
+                raise SystemExit("Missing retained source: " + line["id"])
+            saved = json.loads(receipt.read_text(encoding="utf-8"))
+            if saved["audioSha256"] != hashlib.sha256(audio.read_bytes()).hexdigest():
+                raise SystemExit("Changed retained source: " + line["id"])
+            print("Retained:", line["id"], flush=True)
+            continue
         payload = {"text": line["synthesisText"], "model_id": catalog["modelId"]}
         if catalog["voiceSettings"]:
             payload["voice_settings"] = catalog["voiceSettings"]
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        digest = hashlib.sha256(catalog["voiceId"].encode() + b"\0" + body).hexdigest()
+        digest = hashlib.sha256(voice_id.encode() + b"\0" + body).hexdigest()
         audio = sources / (line["id"] + ".mp3")
         receipt = audio.with_suffix(".json")
         take = 1
@@ -74,7 +89,7 @@ def main():
         if not args.generate:
             continue
         request = urllib.request.Request(
-            "https://api.elevenlabs.io/v1/text-to-speech/" + catalog["voiceId"]
+            "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id
             + "?output_format=mp3_44100_128",
             data=body, headers={"xi-api-key": key, "Content-Type": "application/json"})
         try:
@@ -96,7 +111,7 @@ def main():
         temporary.replace(audio)
         line["durationSeconds"] = duration
         metadata.update(inputSha256=digest, audioSha256=hashlib.sha256(data).hexdigest(),
-                        voiceId=catalog["voiceId"], modelId=catalog["modelId"],
+                        voiceId=voice_id, modelId=catalog["modelId"],
                         durationSeconds=duration, outputFormat="mp3_44100_128", take=take)
         receipt.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
         catalog_path.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
