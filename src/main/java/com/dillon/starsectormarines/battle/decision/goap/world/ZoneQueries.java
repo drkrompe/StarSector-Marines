@@ -153,6 +153,15 @@ public final class ZoneQueries {
      * records parent pointers so the full path can be reconstructed.
      */
     public static List<Integer> zonePathBfs(int fromZone, int toZone, BattleView sim) {
+        return zonePathBfs(fromZone, toZone, sim, ApertureSpread.NO_VARIANT);
+    }
+
+    /**
+     * As {@link #zonePathBfs(int, int, BattleView)}, breaking ties between
+     * equally short paths by {@code variant} - see {@link ApertureSpread}.
+     */
+    public static List<Integer> zonePathBfs(int fromZone, int toZone, BattleView sim,
+                                            int variant) {
         if (sim == null) return Collections.emptyList();
         ZoneGraph graph = sim.getZoneGraph();
         if (graph.zoneById(fromZone) == null || graph.zoneById(toZone) == null) {
@@ -176,8 +185,11 @@ public final class ZoneQueries {
             if (cur == toZone) { found = true; break; }
             NavigationZone z = graph.zoneById(cur);
             if (z == null) continue;
-            for (int portalId : z.getPortalIds()) {
-                Portal p = graph.portalById(portalId);
+            List<Integer> portalIds = z.getPortalIds();
+            int portalCount = portalIds.size();
+            int start = ApertureSpread.startIndex(variant, portalCount);
+            for (int k = 0; k < portalCount; k++) {
+                Portal p = graph.portalById(portalIds.get((start + k) % portalCount));
                 if (p == null) continue;
                 int other = p.otherZone(cur);
                 if (other < 0 || visited[other]) continue;
@@ -212,8 +224,14 @@ public final class ZoneQueries {
      * sequence — just differ in how they pick the target zone.
      */
     public static SquadPlan synthesizeZonePushPlan(int fromZone, int toZone, BattleView sim) {
+        return synthesizeZonePushPlan(fromZone, toZone, sim, ApertureSpread.NO_VARIANT);
+    }
+
+    /** As above, entering by the way {@link ApertureSpread} gives {@code variant}. */
+    public static SquadPlan synthesizeZonePushPlan(int fromZone, int toZone, BattleView sim,
+                                                   int variant) {
         if (sim == null || fromZone < 0 || toZone < 0 || fromZone == toZone) return null;
-        List<Integer> path = zonePathBfs(fromZone, toZone, sim);
+        List<Integer> path = zonePathBfs(fromZone, toZone, sim, variant);
         if (path.size() < 2) return null;
 
         ZoneGraph graph = sim.getZoneGraph();
@@ -226,7 +244,8 @@ public final class ZoneQueries {
             if (i < path.size() - 1
                     && zone.getCellCount() == 1
                     && grid.isDoorwayAt(zone.getCellIndices()[0])) continue;
-            steps.add(new SquadPlan.Step(EnterZone.forZone(zone, grid)));
+            steps.add(new SquadPlan.Step(EnterZone.forZone(zone,
+                    graph.zoneById(path.get(i - 1)), variant, graph, grid)));
             steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
         }
         return new SquadPlan(steps);

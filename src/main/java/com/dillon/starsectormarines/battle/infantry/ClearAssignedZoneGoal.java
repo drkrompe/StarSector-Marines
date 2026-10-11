@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
+import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -126,6 +127,7 @@ public final class ClearAssignedZoneGoal implements Goal {
             // squad oscillates entering and re-entering the building.
             return new SquadPlan(List.of(new SquadPlan.Step(new ClearZone(to))));
         }
-        return ZoneQueries.synthesizeZonePushPlan(from, to, sim);
+        return ZoneQueries.synthesizeZonePushPlan(from, to, sim,
+                ApertureSpread.variant(squad));
     }
 }

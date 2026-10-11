@@ -14,7 +14,9 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +79,33 @@ public final class EnterZone extends AbstractZoneAction implements SquadRouteGoa
      */
     public static EnterZone forZone(NavigationZone zone, NavigationGrid grid) {
         return forZone(zone, grid, false);
+    }
+
+    /**
+     * As {@link #forZone(NavigationZone, NavigationGrid)}, aimed just inside
+     * the doorway the path arrived through when there is one to honour.
+     */
+    public static EnterZone forZone(NavigationZone zone, NavigationZone previous,
+                                    int variant, ZoneGraph graph,
+                                    NavigationGrid grid) {
+        return forZone(zone, previous, variant, graph, grid, false);
+    }
+
+    /** The committed final hop of {@link #forZone(NavigationZone, NavigationZone, int, ZoneGraph, NavigationGrid)}. */
+    public static EnterZone committedForZone(NavigationZone zone,
+                                             NavigationZone previous,
+                                             int variant, ZoneGraph graph,
+                                             NavigationGrid grid) {
+        return forZone(zone, previous, variant, graph, grid, true);
+    }
+
+    private static EnterZone forZone(NavigationZone zone, NavigationZone previous,
+                                     int variant, ZoneGraph graph,
+                                     NavigationGrid grid, boolean commit) {
+        int[] c = ApertureSpread.cellBehindDoorway(zone, previous, variant,
+                graph, grid);
+        if (c == null) return forZone(zone, grid, commit);
+        return new EnterZone(zone.getZoneId(), c[0], c[1], commit);
     }
 
     /** Builds the final room-taking hop, which cannot park at the threshold. */

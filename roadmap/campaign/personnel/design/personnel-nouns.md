@@ -29,8 +29,8 @@ Enlisted leadership follows current squad membership, fitness, and experience;
 it is re-derived rather than accumulated as a competing promotion track.
 
 A new campaign establishes that empty reserve structure but grants no line squad.
-**Squad founding** consumes one indivisible bill of twelve generic Marines, baseline
-arms, supplies, and provisions, then creates twelve named members in one new line
+**Squad founding** consumes one indivisible bill of twelve generic Marines, 36
+supplies, and 24 food, then creates twelve named members in one new line
 formation. Insufficient cargo changes neither inventory nor personnel. Subsequent
 vacancy filling remains reserves-first and consumes generic Marines one billet at a
 time. Existing saves keep their roster; free complement bootstrap is fixture and

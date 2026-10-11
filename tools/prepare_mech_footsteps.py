@@ -75,8 +75,9 @@ def main():
                     mix[offset + i] += value * gain
         save(ROOT / "build/audio-preview" / (name + ".wav"), mix)
 
-    preview("impacts", [(0.2 + i * 1.2, "marines_mech_land_0" + str(i + 1), 1)
-                        for i in range(3)], 4)
+    impacts = [clip["id"] for clip in catalog["clips"] if clip["kind"] == "impact"]
+    preview("impacts", [(0.2 + i * 1.2, sound, 1)
+                        for i, sound in enumerate(impacts)], len(impacts) * 1.2 + 0.4)
     preview("pneumatics", [(0.2 + i * 0.8, "marines_mech_lift_0" + str(i + 1), 1)
                            for i in range(2)], 2)
     # Audition only. Runtime timing comes exclusively from actual per-foot gait transitions.
@@ -84,7 +85,7 @@ def main():
     for i in range(10):
         start = 0.2 + i * 0.43
         events.append((start, "marines_mech_lift_0" + str(i % 2 + 1), 0.20))
-        events.append((start + 0.34, "marines_mech_land_0" + str(i % 3 + 1), 0.65))
+        events.append((start + 0.34, impacts[i % len(impacts)], 0.65))
     preview("foot-events", events, 5.5)
     print("Prepared independent one-shots and previews under build/audio-preview/")
 

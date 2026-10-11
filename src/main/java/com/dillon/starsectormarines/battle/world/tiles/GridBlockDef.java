@@ -41,21 +41,30 @@ public final class GridBlockDef {
     public final int[][] cells;
     /** Optional cardinal opening blocks paired with this wall or floor material. */
     public final String windowBlockId, doorBlockId;
+    /** Optional wall-faces-4x4 debris paired with this material. */
+    public final String rubbleBlockId;
 
     /** Autotile block (origin + named {@link GridLayout}). */
     public GridBlockDef(String id, String sheetPath, int cellPx,
                         int originCol, int originRow, GridLayout layout, Integer fillRgb) {
-        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null, null, null);
+        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null, null, null, null);
     }
 
     public GridBlockDef(String id, String sheetPath, int cellPx, int originCol, int originRow,
                         GridLayout layout, Integer fillRgb, String windowBlockId, String doorBlockId) {
-        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null, windowBlockId, doorBlockId);
+        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null, windowBlockId, doorBlockId, null);
+    }
+
+    public GridBlockDef(String id, String sheetPath, int cellPx, int originCol, int originRow,
+                        GridLayout layout, Integer fillRgb, String windowBlockId, String doorBlockId,
+                        String rubbleBlockId) {
+        this(id, sheetPath, cellPx, originCol, originRow, layout, fillRgb, null,
+                windowBlockId, doorBlockId, rubbleBlockId);
     }
 
     private GridBlockDef(String id, String sheetPath, int cellPx, int originCol, int originRow,
                          GridLayout layout, Integer fillRgb, int[][] cells,
-                         String windowBlockId, String doorBlockId) {
+                         String windowBlockId, String doorBlockId, String rubbleBlockId) {
         this.id = id;
         this.sheetPath = sheetPath;
         this.cellPx = cellPx;
@@ -66,6 +75,7 @@ public final class GridBlockDef {
         this.cells = cells;
         this.windowBlockId = windowBlockId;
         this.doorBlockId = doorBlockId;
+        this.rubbleBlockId = rubbleBlockId;
     }
 
     /** Variant pool — hash-picked from an explicit list of {@code {col,row}} cells. */
@@ -75,7 +85,13 @@ public final class GridBlockDef {
 
     public static GridBlockDef variantPool(String id, String sheetPath, int cellPx, int[][] cells,
                                           String windowBlockId, String doorBlockId) {
-        return new GridBlockDef(id, sheetPath, cellPx, 0, 0, null, null, cells, windowBlockId, doorBlockId);
+        return variantPool(id, sheetPath, cellPx, cells, windowBlockId, doorBlockId, null);
+    }
+
+    public static GridBlockDef variantPool(String id, String sheetPath, int cellPx, int[][] cells,
+                                          String windowBlockId, String doorBlockId, String rubbleBlockId) {
+        return new GridBlockDef(id, sheetPath, cellPx, 0, 0, null, null, cells,
+                windowBlockId, doorBlockId, rubbleBlockId);
     }
 
     public boolean isVariantPool() { return cells != null; }
