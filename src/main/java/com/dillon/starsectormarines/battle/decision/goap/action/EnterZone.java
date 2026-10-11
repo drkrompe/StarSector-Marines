@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
+import com.dillon.starsectormarines.battle.decision.goap.world.TransitSpacing;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 
@@ -58,6 +59,8 @@ public final class EnterZone extends AbstractZoneAction implements SquadRouteGoa
     private final int destY;
     /** Final assault hops push through contact; ordinary transit remains cautious. */
     private final boolean commitThroughContact;
+    /** Whether this hop keeps its distance from squads on the same approach. */
+    private final boolean spaced;
 
     public EnterZone(int targetZoneId, int destX, int destY) {
         this(targetZoneId, destX, destY, false);
@@ -65,10 +68,22 @@ public final class EnterZone extends AbstractZoneAction implements SquadRouteGoa
 
     private EnterZone(int targetZoneId, int destX, int destY,
                       boolean commitThroughContact) {
+        this(targetZoneId, destX, destY, commitThroughContact, false);
+    }
+
+    private EnterZone(int targetZoneId, int destX, int destY,
+                      boolean commitThroughContact, boolean spaced) {
         super(targetZoneId);
         this.destX = destX;
         this.destY = destY;
         this.commitThroughContact = commitThroughContact;
+        this.spaced = spaced;
+    }
+
+    /** This hop, marked to keep its distance from squads on the same approach. */
+    public EnterZone spaced() {
+        return TransitSpacing.enabled() && !commitThroughContact
+                ? new EnterZone(targetZoneId, destX, destY, false, true) : this;
     }
 
     /**
@@ -104,6 +119,7 @@ public final class EnterZone extends AbstractZoneAction implements SquadRouteGoa
                                      NavigationGrid grid, boolean commit) {
         int[] c = ApertureSpread.cellBehindDoorway(zone, previous, variant,
                 graph, grid);
+        if (c == null) c = ApertureSpread.roomCell(zone, grid, variant);
         if (c == null) return forZone(zone, grid, commit);
         return new EnterZone(zone.getZoneId(), c[0], c[1], commit);
     }
@@ -172,6 +188,10 @@ public final class EnterZone extends AbstractZoneAction implements SquadRouteGoa
             return ActionStatus.RUNNING;
         }
 
+        if (spaced && TransitSpacing.holds(squad, targetZoneId, destX, destY, sim)) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
         if (holdsForQuietEchelon(member, squad, sim, destX, destY)) {
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
             return ActionStatus.RUNNING;

@@ -29,18 +29,62 @@ public final class ApertureSpread {
 
     public static final String PROPERTY = "battle.squad.apertureSpread";
 
+    /** {@code -Dbattle.squad.roomCellSpread=true}: each squad clears toward its own cell. */
+    public static final String ROOM_CELL_PROPERTY = "battle.squad.roomCellSpread";
+
     /** Read once, like the other measured levers. */
-    static final boolean ENABLED = Boolean.parseBoolean(
+    static final boolean DOOR_ENABLED = Boolean.parseBoolean(
             System.getProperty(PROPERTY, "false"));
+
+    static final boolean ROOM_CELL_ENABLED = Boolean.parseBoolean(
+            System.getProperty(ROOM_CELL_PROPERTY, "false"));
 
     /** The legacy search order. */
     public static final int NO_VARIANT = 0;
 
     private ApertureSpread() { }
 
-    /** This squad's tie-break variant; {@link #NO_VARIANT} when disabled. */
+    /** This squad's variant; {@link #NO_VARIANT} when no spread is switched on. */
     public static int variant(Squad squad) {
-        return ENABLED && squad != null ? squad.id + 1 : NO_VARIANT;
+        return (DOOR_ENABLED || ROOM_CELL_ENABLED) && squad != null
+                ? squad.id + 1 : NO_VARIANT;
+    }
+
+    /** {@code variant} as the door choice sees it. */
+    static int doorVariant(int variant) {
+        return DOOR_ENABLED ? variant : NO_VARIANT;
+    }
+
+    /** {@code variant} as the in-room choice sees it. */
+    static int roomVariant(int variant) {
+        return ROOM_CELL_ENABLED ? variant : NO_VARIANT;
+    }
+
+    /**
+     * Where in {@code [0.15, 0.85]} of a zone's cells this variant aims. The
+     * golden-ratio step keeps consecutive squads far apart, so neighbours in
+     * the squad numbering do not become neighbours in the room.
+     */
+    static float roomFraction(int variant) {
+        double step = (variant * 0.6180339887498949) % 1.0;
+        return (float) (0.15 + 0.7 * step);
+    }
+
+    /**
+     * A cell of {@code zone} for this variant to clear toward: the middle cell
+     * for {@link #NO_VARIANT}, otherwise a squad-specific one. Cells are in
+     * detection order, so a fraction of the way through them is a spread of
+     * rows across the room. {@code null} for a missing or empty zone.
+     */
+    public static int[] roomCell(NavigationZone zone, NavigationGrid grid,
+                                 int variant) {
+        if (zone == null) return null;
+        int[] cells = zone.getCellIndices();
+        if (cells.length == 0) return null;
+        int v = roomVariant(variant);
+        int index = v == NO_VARIANT ? cells.length / 2
+                : Math.min(cells.length - 1, (int) (cells.length * roomFraction(v)));
+        return new int[] {cells[index] % grid.getWidth(), cells[index] / grid.getWidth()};
     }
 
     /** Where in a list of {@code size} portals the search starts. */
@@ -59,7 +103,7 @@ public final class ApertureSpread {
                                           NavigationZone previous,
                                           int variant, ZoneGraph graph,
                                           NavigationGrid grid) {
-        if (variant == NO_VARIANT || zone == null || previous == null
+        if (doorVariant(variant) == NO_VARIANT || zone == null || previous == null
                 || previous.getCellCount() != 1) return null;
         int doorway = previous.getCellIndices()[0];
         if (!grid.isDoorwayAt(doorway)) return null;
