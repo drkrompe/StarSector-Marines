@@ -125,6 +125,7 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<List<SquadCard>> squadCards;
     private final ComputedSignal<List<SquadGalleryCard>> squadGalleryCards;
     private final ComputedSignal<List<CargoCostRow>> foundingCargoRows;
+    private final ComputedSignal<List<CargoCostRow>> cargoStockRows;
     private final ComputedSignal<Boolean> foundingDisabled;
     private final MutableSignal<Feedback> foundingFeedback;
     private final ComputedSignal<String> foundingFeedbackText;
@@ -280,6 +281,7 @@ public final class FleetArmoryViewModel {
         companySummary = reactor.computed(this::buildCompanySummary);
         squadCards = reactor.computed(this::buildSquadCards);
         foundingCargoRows = reactor.computed(this::buildFoundingCargoRows);
+        cargoStockRows = reactor.computed(this::buildCargoStockRows);
         foundingDisabled = reactor.computed(() -> {
             domainRevision.get();
             return !squadFoundingResources.canAfford(SquadFoundingCost.STANDARD);
@@ -361,6 +363,7 @@ public final class FleetArmoryViewModel {
     public Signal<List<SquadCard>> squadCards() { return squadCards; }
     public Signal<List<SquadGalleryCard>> squadGalleryCards() { return squadGalleryCards; }
     public Signal<List<CargoCostRow>> foundingCargoRows() { return foundingCargoRows; }
+    public Signal<List<CargoCostRow>> cargoStockRows() { return cargoStockRows; }
     public Signal<Boolean> foundingDisabled() { return foundingDisabled; }
     public Signal<String> foundingFeedbackText() { return foundingFeedbackText; }
     public Signal<String> foundingFeedbackClasses() { return foundingFeedbackClasses; }
@@ -680,9 +683,6 @@ public final class FleetArmoryViewModel {
             int available = squadFoundingResources.available(line.commodityId());
             String id = "found-squad-cost:" + line.commodityId();
             String commodityName = squadFoundingResources.commodityName(line.commodityId());
-            if (Commodities.HAND_WEAPONS.equals(line.commodityId())) {
-                commodityName = "Armaments";
-            }
             rows.add(new CargoCostRow(
                     id, id + ":icon", id + ":label",
                     available >= line.quantity() ? "cargo-cost" : "cargo-cost short",
@@ -691,6 +691,20 @@ public final class FleetArmoryViewModel {
                             + "/" + line.quantity()));
         }
         return List.copyOf(rows);
+    }
+
+    private List<CargoCostRow> buildCargoStockRows() {
+        domainRevision.get();
+        return List.of(Commodities.MARINES, Commodities.SUPPLIES,
+                Commodities.FOOD, Commodities.HAND_WEAPONS,
+                Commodities.HEAVY_MACHINERY).stream().map(commodityId -> {
+            String id = "armory-cargo-stock:" + commodityId;
+            int available = squadFoundingResources.available(commodityId);
+            return new CargoCostRow(id, id + ":icon", id + ":label", "cargo-stock",
+                    squadFoundingResources.commodityIcon(commodityId),
+                    squadFoundingResources.commodityName(commodityId).toUpperCase(Locale.ROOT)
+                            + "  " + available);
+        }).toList();
     }
 
     private List<SquadGalleryCard> buildSquadGalleryCards() {
