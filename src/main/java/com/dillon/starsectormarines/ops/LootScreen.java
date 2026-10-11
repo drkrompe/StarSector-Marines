@@ -59,6 +59,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
         props.put("backAction", (Runnable) () -> context.goTo(ScreenId.RESULTS));
         props.put("confirmDisabled", preview == null);
         props.put("confirmAction", (Runnable) this::confirm);
+        props.put("confirmLabel", context.preparingAfterSettlement() ? "CONFIRM / PREPARE COMPANY" : "CONFIRM SALVAGE");
         return props;
     }
 
@@ -93,6 +94,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
     private static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("title", Strings.get("lootHeader"));
+        props.put("confirmLabel", "CONFIRM SALVAGE");
         return props;
     }
 
@@ -160,8 +162,7 @@ public final class LootScreen extends MissionFlowMlxScreen {
             rebuildDocument();
             return;
         }
-        context.clearResolvedMission();
-        context.goTo(ScreenId.MISSION_SELECT);
+        context.finishOperation(context.preparingAfterSettlement());
     }
 
     private static String number(int value) {
