@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — cell-blocking fences spend map structure and retain bent or destroyed prop identity.
+Updated: 2026-10-11 — cell-blocking fences and sandbags spend map structure and retain damaged or destroyed prop identity.
 
 ## Purpose
 
@@ -94,13 +94,14 @@ pool, and explosion wall damage may deplete it. Breaking the feature removes
 its cover and presentation identity and opens its navigation edge through the
 map editor; none of those effects enter `DurabilityModel` or actor telemetry.
 
-Cell-blocking industrial fences also spend map structure through weapon-authored
-wall damage. A surviving hit changes the prop to bent rails and torn mesh while
-retaining obstruction and cover. Exhaustion opens the cell, removes its cover,
-and retains low matching debris over the original ground. Neighboring fences
+Cell-blocking industrial fences and sandbags also spend map structure through
+weapon-authored wall damage. A surviving hit changes the prop to bent rails and
+torn mesh, or torn bags leaking sand, while retaining obstruction and cover.
+Exhaustion opens the cell, removes its cover, and retains low matching debris
+over the original ground, including collapsed sacks and spilled sand. Neighboring props
 keep their own protection, and navigation refreshes through the ordinary map
 editor boundary. These breaches are neither doorways nor masonry collapses;
-they do not peel adjacent roofs. Decorative walkable fence placements do not
+they do not peel adjacent roofs. Decorative walkable placements do not
 acquire this obstruction contract.
 
 Mitigation resolves **after cover and before armor**. Cover is a property of the
