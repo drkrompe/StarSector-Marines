@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Measures how bunched a side's squads are, as a side-channel of a replay.
@@ -37,7 +38,7 @@ final class SquadDensityProbe {
     record Reading(int tick, Faction faction, int squads, int bodies,
                    int linkedSquads, int largestCluster,
                    int maxSquadsOnOneTarget, int assignedSquads,
-                   int densestBlock) { }
+                   int densestBlock, String topTargets) { }
 
     private final List<Reading> readings = new ArrayList<>();
 
@@ -84,7 +85,18 @@ final class SquadDensityProbe {
         int densest = 0;
         for (int v : blocks.values()) densest = Math.max(densest, v);
         return new Reading(tick, faction, centroids.size(), bodies,
-                cluster[0], cluster[1], maxTarget, assigned, densest);
+                cluster[0], cluster[1], maxTarget, assigned, densest,
+                topTargets(perTarget));
+    }
+
+    /** The three most-shared targets, as {@code key=squads}. */
+    private static String topTargets(Map<String, Integer> perTarget) {
+        return perTarget.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                        .thenComparing(Map.Entry.comparingByKey()))
+                .limit(3)
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(" "));
     }
 
     /** What a task points at: the zone, node or cell its kind is scoped to. */
@@ -172,9 +184,9 @@ final class SquadDensityProbe {
             out.append("\nTimeline (tick: squads/linked/cluster/onTarget/block)\n\n");
             for (int i = 0; i < rows.size(); i += 10) {
                 Reading r = rows.get(i);
-                out.append(String.format(Locale.ROOT, "- %d: %d/%d/%d/%d/%d%n",
+                out.append(String.format(Locale.ROOT, "- %d: %d/%d/%d/%d/%d  %s%n",
                         r.tick, r.squads, r.linkedSquads, r.largestCluster,
-                        r.maxSquadsOnOneTarget, r.densestBlock));
+                        r.maxSquadsOnOneTarget, r.densestBlock, r.topTargets));
             }
             out.append('\n');
         }
