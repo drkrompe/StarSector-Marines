@@ -179,7 +179,10 @@ Do not run builds or leave generated task files there.
   `-Pmission=supply-route` checks the campaign construction/roster-overlay seam
   for Junction, Last Lift, Relay Nine and Thunder Run with eight/twenty-four named marines.
   It verifies fitted airframes, exact named seats and untouched employer/civilian
-  craft, observes fifty seconds of physical arrival, and renders 1920x1080 PNGs.
+  craft across mixed lift, paired six-seat boats and repeated single-boat trips.
+  Every committed landing is observed (up to 300 seconds), checking one battle
+  squad per campaign squad, NCOs, fire teams and completed assembly; it renders
+  1920x1080 PNGs at the final arrival.
   It is not a live campaign save or a full-mission balance replay. Broker/HQ flow
   evidence uses `createSnapshots -Psnapshot=supply-route` at 100% scale.
   `-Pmission=thunder-run` uses named campaign squads and fitted boats through

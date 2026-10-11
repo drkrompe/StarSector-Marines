@@ -138,6 +138,11 @@ selected squads with four ready marines each, using acting NCOs where necessary.
 One to four owned fitted boats cycle until the selected named force is delivered;
 partial final trips contain only real selected personnel. Issued equipment,
 squad identity and command groups cross the ordinary deployment boundary.
+All company berths on each chapter's insertion apron share one logical landing
+area. Six-seat loads and later ferry trips reunite into their original campaign
+squad, preserving its NCO, fire-team billets and command group; a berth is not
+a separate tactical destination. Arrival assembly counts every member once and
+releases the squad's duty when its committed strength has landed.
 Employer militia and the twelve-seat civilian pickup remain separate forces.
 These small ground operations supply no fighter cover or mech-support powers.
 
