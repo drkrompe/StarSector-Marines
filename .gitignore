@@ -5,6 +5,11 @@ build/
 !**/src/test/**/build/
 .kotlin
 
+### Local API credentials (templates must contain placeholders only) ###
+.env
+.env.*
+!.env.example
+
 ### Python asset tooling ###
 __pycache__/
 *.py[cod]
