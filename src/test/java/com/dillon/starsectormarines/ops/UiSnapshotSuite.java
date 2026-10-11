@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+
 import com.dillon.starsectormarines.marine.BarracksFlowCompany;
 import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
@@ -423,10 +425,27 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 context.modRoot(), context.starsectorCore());
         TileRegistryTestInstaller.install(context.projectRoot());
+        WaylineNarration narration = WaylineNarration.parse(new JSONObject(Files.readString(
+                context.modRoot().resolve(WaylineNarration.PATH))));
+        Map<String, Object> narratedBriefing = BriefingViewModel.campaignPreviewProps(false);
+        narratedBriefing.put("narrationAvailable", true);
+        narratedBriefing.put("missionTitle", "Hold Until Relieved");
+        narratedBriefing.put("missionKicker", "ASSAULT  ·  LOW RISK  ·  First Contract");
+        narratedBriefing.put("operationRisk", "LOW RISK");
+        BriefingViewModel.putReward(narratedBriefing, Mission.builder().payout(6000).build());
+        BriefingViewModel.putFactionIdentity(narratedBriefing, "employer", "Independent", OpeningBroker.CREST);
+
+        narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing").text());
         BriefingSurvey conquestSurvey = productionSurvey(context, "conquest-full-strength-west-v3.json", 1008);
         BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
         BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);
         return List.of(
+                new SnapshotArtifact("mission-briefing-narration-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                narratedBriefing, 1f, false)),
+                new SnapshotArtifact("battle-story-subtitle-wide.png",
+                        renderStorySubtitle(context, renderer, narration.find("story_opening_relief",
+                                "opening.relief.checkpoint_reached").text())),
                 new SnapshotArtifact("battle-hud-command-groups-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
@@ -738,6 +757,26 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     /** Full-screen evidence for the production MLX command rail over battle contrast. */
+    private static BufferedImage renderStorySubtitle(SnapshotContext context,
+            HeadlessUiRenderer renderer, String text) throws Exception {
+        BufferedImage image = renderBattleHudTaskForce(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                List.of(StorySubtitleOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (MarkupInstance instance = loader.build(new Reactor(), StorySubtitleOverlay.COMPONENT,
+                StorySubtitleOverlay.props(text))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            BufferedImage overlay = renderer.render(document, 640, 116);
+            Graphics2D graphics = image.createGraphics();
+            graphics.drawImage(overlay, (FULL_SCREEN_WIDTH - 640) / 2,
+                    FULL_SCREEN_HEIGHT - 180 - 116, null);
+            graphics.dispose();
+            return image;
+        }
+    }
+
     private static BufferedImage renderBattleHudCommandOverlay(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -1211,7 +1250,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
         try (MarkupInstance instance = loader.build(reactor,
                 BriefingScreen.ROOT_COMPONENT, props)) {
-            BriefingViewModel.applyDebugVisibility(instance, props);
+            BriefingViewModel.applyVisibility(instance, props);
             if (scrolled) {
                 instance.requireElement("mission-debug-controls").scrollTop(10000f);
                 instance.requireElement("mission-plan-sections").scrollTop(10000f);

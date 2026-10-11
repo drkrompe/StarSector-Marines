@@ -14,6 +14,22 @@
 // Comments and trailing commas are tolerated. ffmpeg must be on PATH (or $FFMPEG set).
 {
   "clips": [
+    // Mara Venn / Wayline story narration
+    {"id": "marines_mara_relief_briefing", "source": "wayline/marines_mara_relief_briefing.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_relief_started", "source": "wayline/marines_mara_relief_started.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_relief_player_landed", "source": "wayline/marines_mara_relief_player_landed.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_relief_employer_landed", "source": "wayline/marines_mara_relief_employer_landed.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_relief_checkpoint_reached", "source": "wayline/marines_mara_relief_checkpoint_reached.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_relief_militia_line_weakened", "source": "wayline/marines_mara_relief_militia_line_weakened.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_relief_militia_line_lost", "source": "wayline/marines_mara_relief_militia_line_lost.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_briefing", "source": "wayline/marines_mara_counterattack_briefing.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_started", "source": "wayline/marines_mara_counterattack_started.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_player_landed", "source": "wayline/marines_mara_counterattack_player_landed.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_employer_landed", "source": "wayline/marines_mara_counterattack_employer_landed.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_gate_reached", "source": "wayline/marines_mara_counterattack_gate_reached.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_yard_reached", "source": "wayline/marines_mara_counterattack_yard_reached.mp3", "kind": "ui", "out": "story/wayline"},
+    {"id": "marines_mara_counterattack_warehouse_reached", "source": "wayline/marines_mara_counterattack_warehouse_reached.mp3", "kind": "ui", "out": "story/wayline"},
+
     // ----- music -----
     // DEPRECATION (slated for removal before a stable public release): the MW4 music and radio
     // clips in this manifest are proprietary placeholders. Replace with CC-licensed equivalents.

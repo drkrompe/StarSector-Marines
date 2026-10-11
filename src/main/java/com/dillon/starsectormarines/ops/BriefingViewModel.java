@@ -35,6 +35,9 @@ final class BriefingViewModel {
     static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("screenHeader", "Mission Briefing");
+        props.put("narrationAvailable", false);
+        props.put("replayNarrationAction", (Runnable) () -> { });
+        props.put("stopNarrationAction", (Runnable) () -> { });
         putLeadership(props, false, false);
         props.put("debugHeader", "Mission DEBUG");
         props.put("commitmentHeader", "01 / FORCE COMMITMENT");
@@ -172,7 +175,13 @@ final class BriefingViewModel {
     }
 
     /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */
-    static void applyDebugVisibility(MarkupInstance markup, Map<String, Object> props) {
+    static void applyVisibility(MarkupInstance markup, Map<String, Object> props) {
+        if (!Boolean.TRUE.equals(props.get("narrationAvailable"))) {
+            for (String id : List.of("mission-narration-replay", "mission-narration-stop")) {
+                UiElement control = markup.requireElement(id);
+                control.parent().remove(control);
+            }
+        }
         if (!Boolean.TRUE.equals(props.get("debugAvailable"))) {
             UiElement toggle = markup.requireElement("mission-debug-toggle");
             toggle.parent().remove(toggle);

@@ -1,4 +1,19 @@
 {
+  "marines_mara_relief_briefing": [{"file": "sounds/story/wayline/marines_mara_relief_briefing.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_relief_started": [{"file": "sounds/story/wayline/marines_mara_relief_started.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_relief_player_landed": [{"file": "sounds/story/wayline/marines_mara_relief_player_landed.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_relief_employer_landed": [{"file": "sounds/story/wayline/marines_mara_relief_employer_landed.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_relief_checkpoint_reached": [{"file": "sounds/story/wayline/marines_mara_relief_checkpoint_reached.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_relief_militia_line_weakened": [{"file": "sounds/story/wayline/marines_mara_relief_militia_line_weakened.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_relief_militia_line_lost": [{"file": "sounds/story/wayline/marines_mara_relief_militia_line_lost.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_briefing": [{"file": "sounds/story/wayline/marines_mara_counterattack_briefing.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_started": [{"file": "sounds/story/wayline/marines_mara_counterattack_started.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_player_landed": [{"file": "sounds/story/wayline/marines_mara_counterattack_player_landed.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_employer_landed": [{"file": "sounds/story/wayline/marines_mara_counterattack_employer_landed.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_gate_reached": [{"file": "sounds/story/wayline/marines_mara_counterattack_gate_reached.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_yard_reached": [{"file": "sounds/story/wayline/marines_mara_counterattack_yard_reached.ogg", "pitch": 1.0, "volume": 1.0}],
+  "marines_mara_counterattack_warehouse_reached": [{"file": "sounds/story/wayline/marines_mara_counterattack_warehouse_reached.ogg", "pitch": 1.0, "volume": 1.0}],
+
 #collapseopen MUSIC
 
 	"music":{
