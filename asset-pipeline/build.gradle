@@ -28,6 +28,10 @@ sourceSets {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
     }
+    test {
+        compileClasspath += sourceSets.tool.output
+        runtimeClasspath += sourceSets.tool.output
+    }
 }
 
 configurations {
@@ -35,6 +39,8 @@ configurations {
     toolCompileOnly.extendsFrom compileOnly
     toolAnnotationProcessor.extendsFrom annotationProcessor
     toolRuntimeOnly.extendsFrom runtimeOnly
+    testImplementation.extendsFrom toolImplementation
+    testRuntimeOnly.extendsFrom toolRuntimeOnly
 }
 
 dependencies {
@@ -103,10 +109,13 @@ tasks.register('processAudio', JavaExec) {
 
     def inputDir  = file('src/tool/resources/audio')
     def outputDir = file("${rootDir}/mod/sounds")
+    def cacheDir = new File(gradle.gradleUserHomeDir, 'caches/starsector-marines/audio-v1')
 
     inputs.dir inputDir
     outputs.dir outputDir
-    args inputDir.absolutePath, outputDir.absolutePath
+    // The cheap per-clip check also detects ffmpeg upgrades and shares encodes across worktrees.
+    outputs.upToDateWhen { false }
+    args inputDir.absolutePath, outputDir.absolutePath, cacheDir.absolutePath
 
     javaLauncher = javaToolchains.launcherFor(project.java.toolchain)
 }

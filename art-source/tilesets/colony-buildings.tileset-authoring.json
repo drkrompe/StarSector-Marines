@@ -1,0 +1,626 @@
+{
+  "entries": [
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "nw",
+      "cover": "none",
+      "id": "colony.masonry.c0r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "n",
+      "cover": "none",
+      "id": "colony.masonry.c1r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        181,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "ne",
+      "cover": "none",
+      "id": "colony.masonry.c2r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        362,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "w",
+      "cover": "none",
+      "id": "colony.masonry.c0r1",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        190,
+        181,
+        245
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "e",
+      "cover": "none",
+      "id": "colony.masonry.c2r1",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        362,
+        190,
+        181,
+        245
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "sw",
+      "cover": "none",
+      "id": "colony.masonry.c0r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "s",
+      "cover": "none",
+      "id": "colony.masonry.c1r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        181,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.masonry-wall",
+      "included": true,
+      "slot": "se",
+      "cover": "none",
+      "id": "colony.masonry.c2r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        362,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.limestone",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.limestone.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        546,
+        3,
+        175,
+        184
+      ]
+    },
+    {
+      "block": "colony.terracotta",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.terracotta.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        546,
+        193,
+        175,
+        239
+      ]
+    },
+    {
+      "block": "colony.basalt",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.basalt.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        546,
+        438,
+        175,
+        204
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "nw",
+      "cover": "none",
+      "id": "colony.ceramic.c0r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        724,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "n",
+      "cover": "none",
+      "id": "colony.ceramic.c1r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        905,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "ne",
+      "cover": "none",
+      "id": "colony.ceramic.c2r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1086,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "w",
+      "cover": "none",
+      "id": "colony.ceramic.c0r1",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        724,
+        190,
+        181,
+        245
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "e",
+      "cover": "none",
+      "id": "colony.ceramic.c2r1",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1086,
+        190,
+        181,
+        245
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "sw",
+      "cover": "none",
+      "id": "colony.ceramic.c0r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        724,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "s",
+      "cover": "none",
+      "id": "colony.ceramic.c1r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        905,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.ceramic-wall",
+      "included": true,
+      "slot": "se",
+      "cover": "none",
+      "id": "colony.ceramic.c2r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1086,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.sage",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.sage.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1270,
+        3,
+        175,
+        184
+      ]
+    },
+    {
+      "block": "colony.terrazzo",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.terrazzo.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1270,
+        193,
+        175,
+        239
+      ]
+    },
+    {
+      "block": "colony.timber",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.timber.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1270,
+        438,
+        175,
+        204
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "nw",
+      "cover": "none",
+      "id": "colony.olive.c0r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1448,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "n",
+      "cover": "none",
+      "id": "colony.olive.c1r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1629,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "ne",
+      "cover": "none",
+      "id": "colony.olive.c2r0",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1810,
+        0,
+        181,
+        190
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "w",
+      "cover": "none",
+      "id": "colony.olive.c0r1",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1448,
+        190,
+        181,
+        245
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "e",
+      "cover": "none",
+      "id": "colony.olive.c2r1",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1810,
+        190,
+        181,
+        245
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "sw",
+      "cover": "none",
+      "id": "colony.olive.c0r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1448,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "s",
+      "cover": "none",
+      "id": "colony.olive.c1r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1629,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.olive-wall",
+      "included": true,
+      "slot": "se",
+      "cover": "none",
+      "id": "colony.olive.c2r2",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1810,
+        435,
+        181,
+        210
+      ]
+    },
+    {
+      "block": "colony.concrete",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.concrete.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1994,
+        3,
+        175,
+        184
+      ]
+    },
+    {
+      "block": "colony.ochre",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.ochre.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1994,
+        193,
+        175,
+        239
+      ]
+    },
+    {
+      "block": "colony.tread",
+      "included": true,
+      "slot": "only",
+      "cover": "none",
+      "id": "colony.tread.tile",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1994,
+        438,
+        175,
+        204
+      ]
+    }
+  ],
+  "gridCols": 12,
+  "idPrefix": "colony",
+  "sheet": "art-source/tilesets/colony-buildings.raw.png",
+  "cellPx": 32,
+  "gridRows": 3,
+  "note": "Three opaque architectural material kits. Hand-cut against actual art boundaries: generated plate is 2172x724; the surplus lower skirt is excluded. Wall slots name their exterior side. Empty wall centres are deliberately unassigned and use each block fill. Floor swatches crop their outer bevel. Source: built-in ImageGen; prompt retained in colony-buildings.prompt.txt. Do not re-slice these judged cuts.",
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "layout": "wall-3x3",
+      "id": "colony.masonry-wall",
+      "fillRgb": "0x4C3829"
+    },
+    {
+      "layout": "single",
+      "id": "colony.limestone"
+    },
+    {
+      "layout": "single",
+      "id": "colony.terracotta"
+    },
+    {
+      "layout": "single",
+      "id": "colony.basalt"
+    },
+    {
+      "layout": "wall-3x3",
+      "id": "colony.ceramic-wall",
+      "fillRgb": "0x665C4C"
+    },
+    {
+      "layout": "single",
+      "id": "colony.sage"
+    },
+    {
+      "layout": "single",
+      "id": "colony.terrazzo"
+    },
+    {
+      "layout": "single",
+      "id": "colony.timber"
+    },
+    {
+      "layout": "wall-3x3",
+      "id": "colony.olive-wall",
+      "fillRgb": "0x343629"
+    },
+    {
+      "layout": "single",
+      "id": "colony.concrete"
+    },
+    {
+      "layout": "single",
+      "id": "colony.ochre"
+    },
+    {
+      "layout": "single",
+      "id": "colony.tread"
+    }
+  ],
+  "sheetName": "colony-buildings"
+}

@@ -350,9 +350,6 @@ public class BattleRenderer {
 
     /** Builds the six per-sheet tile batches from the loaded sheets. Called from {@code BattleScreen.attach()}. */
     public void buildTileBatches() {
-        for (var sheet : sprites.additionalGroundSheets().values())
-            if (!batchBySheet.containsKey(sheet.sprite())) registerBatch(sheet.sprite(),
-                    new QuadBatch(sheet.sprite(), sheet.width(), sheet.height(), 4096));
         if (urbanBatch == null && sprites.tileSheet() != null)
             urbanBatch = new QuadBatch(sprites.tileSheet(), sprites.tileSheetPxW(), sprites.tileSheetPxH(), 16384);
         if (roadBatch == null && sprites.roadSheet() != null)
@@ -402,6 +399,12 @@ public class BattleRenderer {
         registerBatch(sprites.natureSheet(), natureBatch);
         registerBatch(sprites.doodadSheet(), doodadBatch);
         registerBatch(sprites.parkedVehicleSheet(), parkedVehicleBatch);
+        for (SpriteAPI sheet : sprites.extraTerrainSheets()) {
+            if (batchBySheet.containsKey(sheet)) continue;
+            registerBatch(sheet, new QuadBatch(sheet,
+                    Math.max(1, Math.round(sheet.getWidth())),
+                    Math.max(1, Math.round(sheet.getHeight())), 4096));
+        }
 
         // Sprite-sheet batches for the CONVOY layer (ConvoyRenderSystem). Its
         // sheets are loaded by ensureConvoySprites() before this runs

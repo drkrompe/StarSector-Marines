@@ -1,0 +1,187 @@
+{
+  "speaker": "Mara Venn",
+  "voiceId": "YHcCpa6SBWnKDaCPZJQR",
+  "voiceName": "Mora - Gritty and Enigmatic",
+  "modelId": "eleven_v4",
+  "voiceSettings": {},
+  "lines": [
+    {
+      "id": "marines_mara_relief_briefing",
+      "missionId": "story_opening_relief",
+      "event": "briefing",
+      "text": "The raiders have our depot. Now they're hitting our freight checkpoint. Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. Eliminate the bandit force, and bring as many people home as you can. Six thousand credits on success. Then we can deal with the depot.",
+      "synthesisText": "The raiders have our depot. Now they're hitting our freight checkpoint. Land on the rear unloading apron and reinforce the gate. More raiders are approaching along the freight and warehouse service roads. Wayline provides militia and one shuttle. Eliminate the bandit force, and bring as many people home as you can. Six thousand credits on success. Then we can deal with the depot.",
+      "durationSeconds": 22.8,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_started",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.started",
+      "text": "Mara here. Our people are holding the checkpoint. Get your first team down, then move up to the gate.",
+      "synthesisText": "Mara here. Our people are holding the checkpoint. Get your first team down, then move up to the gate.",
+      "durationSeconds": 6.48,
+      "priority": 10,
+      "expiresSeconds": 20,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_player_landed",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.player_landed",
+      "text": "Your people are on the ground. Get them to the checkpoint. Our militia need the help.",
+      "synthesisText": "Your people are on the ground. Get them to the checkpoint. Our militia need the help.",
+      "durationSeconds": 5.12,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": [
+        "opening.relief.started"
+      ]
+    },
+    {
+      "id": "marines_mara_relief_employer_landed",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.employer_landed",
+      "text": "Wayline militia are down. Keep them together with your people. These are drivers defending their road.",
+      "synthesisText": "Wayline militia are down. Keep them together with your people. These are drivers defending their road.",
+      "durationSeconds": 7.12,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_checkpoint_reached",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.checkpoint_reached",
+      "text": "You've reached the checkpoint. Hold together, and watch the approaches. We need this gate standing when it's over.",
+      "synthesisText": "You've reached the checkpoint. Hold together, and watch the approaches. We need this gate standing when it's over.",
+      "durationSeconds": 7.28,
+      "priority": 20,
+      "expiresSeconds": 18,
+      "supersedes": [
+        "opening.relief.started",
+        "opening.relief.player_landed"
+      ]
+    },
+    {
+      "id": "marines_mara_relief_militia_line_weakened",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.militia_line_weakened",
+      "text": "The checkpoint militia are taking heavy losses. Get support to the line before it breaks.",
+      "synthesisText": "The checkpoint militia are taking heavy losses. Get support to the line before it breaks.",
+      "durationSeconds": 5.84,
+      "priority": 40,
+      "expiresSeconds": 12,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_relief_militia_line_lost",
+      "missionId": "story_opening_relief",
+      "event": "opening.relief.militia_line_lost",
+      "text": "We've lost the checkpoint's original defenders. Finish this, Captain. Bring the rest of our people home.",
+      "synthesisText": "We've lost the checkpoint's original defenders. Finish this, Captain. Bring the rest of our people home.",
+      "durationSeconds": 6.88,
+      "priority": 50,
+      "expiresSeconds": 15,
+      "supersedes": [
+        "opening.relief.militia_line_weakened",
+        "opening.relief.started",
+        "opening.relief.player_landed",
+        "opening.relief.checkpoint_reached"
+      ]
+    },
+    {
+      "id": "marines_mara_counterattack_briefing",
+      "missionId": "story_opening_counterattack",
+      "event": "briefing",
+      "text": "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot. Land at the western staging apron and advance with our militia through the freight gate, loading yard, and dispatch warehouse. Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; your company needs lift for two sorties. Nine thousand credits on success, and I'll vouch for your company with Independent brokers. Let's give our drivers their road back.",
+      "synthesisText": "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot. Land at the western staging apron and advance with our militia through the freight gate, loading yard, and dispatch warehouse. Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; your company needs lift for two sorties. Nine thousand credits on success, and I'll vouch for your company with Independent brokers. Let's give our drivers their road back.",
+      "durationSeconds": 30.24,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_counterattack_started",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.started",
+      "text": "Mara here. The depot is ahead. Bring your teams in at the western apron, then work forward together.",
+      "synthesisText": "Mara here. The depot is ahead. Bring your teams in at the western apron, then work forward together.",
+      "durationSeconds": 6.88,
+      "priority": 10,
+      "expiresSeconds": 20,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_counterattack_player_landed",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.player_landed",
+      "text": "Your first team is down. Advance toward the freight gate, but leave room for the next landing.",
+      "synthesisText": "Your first team is down. Advance toward the freight gate, but leave room for the next landing.",
+      "durationSeconds": 6.08,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": [
+        "opening.counterattack.started"
+      ]
+    },
+    {
+      "id": "marines_mara_counterattack_employer_landed",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.employer_landed",
+      "text": "Our militia have landed. They'll support the advance. Keep your experienced people at the front.",
+      "synthesisText": "Our militia have landed. They'll support the advance. Keep your experienced people at the front.",
+      "durationSeconds": 6.08,
+      "priority": 10,
+      "expiresSeconds": 18,
+      "supersedes": []
+    },
+    {
+      "id": "marines_mara_counterattack_gate_reached",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.gate_reached",
+      "text": "You're at the freight gate. Check your flanks before pushing into the loading yard.",
+      "synthesisText": "You're at the freight gate. Check your flanks before pushing into the loading yard.",
+      "durationSeconds": 4.32,
+      "priority": 20,
+      "expiresSeconds": 18,
+      "supersedes": [
+        "opening.counterattack.started",
+        "opening.counterattack.player_landed"
+      ]
+    },
+    {
+      "id": "marines_mara_counterattack_yard_reached",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.yard_reached",
+      "text": "That's the loading yard ahead. Keep moving together. The dispatch warehouse is your next landmark.",
+      "synthesisText": "That's the loading yard ahead. Keep moving together. The dispatch warehouse is your next landmark.",
+      "durationSeconds": 6.08,
+      "priority": 25,
+      "expiresSeconds": 18,
+      "supersedes": [
+        "opening.counterattack.gate_reached",
+        "opening.counterattack.started",
+        "opening.counterattack.player_landed"
+      ]
+    },
+    {
+      "id": "marines_mara_counterattack_warehouse_reached",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.warehouse_reached",
+      "text": "You're near the dispatch warehouse. Clear the remaining bandits, and we'll have our depot back.",
+      "synthesisText": "You're near the dispatch warehouse. Clear the remaining bandits, and we'll have our depot back.",
+      "durationSeconds": 5.52,
+      "priority": 30,
+      "expiresSeconds": 18,
+      "supersedes": [
+        "opening.counterattack.yard_reached",
+        "opening.counterattack.gate_reached",
+        "opening.counterattack.started",
+        "opening.counterattack.player_landed"
+      ]
+    }
+  ]
+}

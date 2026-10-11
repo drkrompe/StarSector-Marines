@@ -19,7 +19,7 @@ record SupplyRouteWorkGuide(BrokenSupplyRouteProgress progress, OpeningBroker.De
             case "affiliation" -> "Wayline cooperative";
             case "heading" -> "BROKEN SUPPLY ROUTE";
             case "mission" -> mission;
-            case "payment" -> progress != null && progress.closed() ? "Story paid: " + progress.storyPayment() + " cr"
+            case "payment" -> progress != null && progress.closed() ? "Contract payments: " + progress.storyPayment() + " cr"
                     : progress != null && progress.operation() == BrokenSupplyRouteProgress.THUNDER ? "6,000 + 4,000 / delivered" : recovery ? "4,000 + 500 / recovered" : progress != null && progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Cr. 16,000" : "Cr. 12,000 / Junction";
             case "location" -> progress != null ? progress.planetName() + " / " + progress.systemName()
                     : destination == null ? "CONTACT UNAVAILABLE" : destination.label();

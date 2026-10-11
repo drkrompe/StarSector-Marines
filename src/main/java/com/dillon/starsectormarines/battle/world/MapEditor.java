@@ -79,6 +79,7 @@ public final class MapEditor {
         topology.setWindow(x, y, false);
         grid.setSeeThrough(x, y, false);
         topology.setGroundKind(x, y, CellTopology.GroundKind.RUBBLE);
+        topology.setSurface(x, y, 0);
         peelRoofAround(x, y);
         navigation.markCellOpened(x, y);
         return true;
@@ -203,6 +204,7 @@ public final class MapEditor {
         grid.setWalkable(cellX, cellY, true);
         grid.openAllEdges(cellX, cellY);
         topology.setGroundKind(cellX, cellY, CellTopology.GroundKind.RUBBLE);
+        topology.setSurface(cellX, cellY, 0);
         grid.recomputeCoverAt(cellX, cellY);
         grid.recomputeCoverAt(cellX + 1, cellY);
         grid.recomputeCoverAt(cellX - 1, cellY);

@@ -117,7 +117,15 @@ class StandaloneApartmentFillerTest {
         markRoadEdge(roads, leaf, frontage);
         GenContext ctx = new GenContext(grid, topology, new Random(73), W, H, 73L);
         ctx.put(BspKeys.ROAD_CELLS, roads);
-        new BuildingResidentialFiller().fill(leaf, ctx);
+        // Exercise the apartment recipe directly; ordinary residential lots
+        // now also select authored concave stamps before reaching this recipe.
+        if (BuildingResidentialFiller.qualifiesForApartment(leaf)) {
+            BuildingShellCore.carve(leaf, grid, topology, ctx.doodads, ctx.rng,
+                    BuildingResidentialFiller.APARTMENT_CONFIG,
+                    new BuildingPlacement(BuildingResidentialFiller.streetFrontage(leaf, ctx), true));
+        } else {
+            new BuildingResidentialFiller().fill(leaf, ctx);
+        }
         return new Fixture(grid, topology);
     }
 

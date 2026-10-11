@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
+import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.fs.starfarer.api.SoundAPI;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -273,6 +276,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             new BattleMusicPlaylist(List.of(BATTLE_MUSIC_POOL), audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
+    private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
+    private StoryNarrationPlayer storyNarration;
+    private SoundAPI radioSound;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -281,6 +287,17 @@ public class BattleScreen implements Screen, BattleUiContext {
             exitDirectControl();
             speedMultiplier = 1f;
             attachedSimulation = nextSimulation;
+            if (storyNarration != null) storyNarration.stop();
+            storySubtitles.detach();
+            if (radioSound != null) radioSound.stop();
+            radioSound = null;
+            radioChatter.reset();
+            storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
+                    WaylineNarration.storyMissionId(ctx != null ? ctx.getSelectedMission() : null), line -> {
+                        if (radioSound != null) radioSound.stop();
+                        radioSound = null;
+                        radioChatter.reserveVoice(line.durationSeconds());
+                    });
         }
         this.position = position;
         this.ctx = ctx;
@@ -306,6 +323,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         sprites.ensureObjectiveIcons();
         renderer.buildTileBatches();
         renderer.onAttach();
+        storySubtitles.attach(position);
         startBattleAudio();
         rebuild();
     }
@@ -560,11 +578,15 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
         playCombatEventSounds(sim);
-        if (speedMultiplier > 0f) playRadioChatter(sim, dt);
+        advanceVoices(sim, dt);
     }
 
     @Override
     public void detach() {
+        if (storyNarration != null) storyNarration.stop();
+        storySubtitles.detach();
+        if (radioSound != null) radioSound.stop();
+        radioSound = null;
         exitDirectControl();
         cameraControls.release();
         if (worldPicker != null) worldPicker.cancel();
@@ -1141,16 +1163,30 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
-    /** Plays at most one quiet radio cue at the speaking squad's current centroid. */
-    private void playRadioChatter(BattleSimulation sim, float dt) {
-        BattleRadioChatter.Emission emission = radioChatter.advance(dt, sim);
-        if (emission == null) return;
-        Vector2f loc = new Vector2f(
-                emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
-                emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
-        Global.getSoundPlayer().playSound(
-                emission.cue().soundId(), 1f, emission.cue().volume(), loc,
-                new Vector2f(0f, 0f));
+    /** Mission dialogue owns the channel ahead of squad chatter; presentation uses real time. */
+    private void advanceVoices(BattleSimulation sim, float dt) {
+        if (storyNarration != null) {
+            storyNarration.advance(dt, sim.getPlayerStoryBeatsAfter(storyNarration.cursor()),
+                    speedMultiplier <= 0f, sim.isComplete());
+        }
+        boolean channelBusy = storyNarration != null && storyNarration.busy()
+                || radioSound != null && radioSound.isPlaying();
+        boolean running = speedMultiplier > 0f && !sim.isComplete();
+        BattleRadioChatter.Emission emission = radioChatter.advance(running ? dt : 0f, sim,
+                running && !channelBusy);
+        if (emission != null) {
+            Vector2f loc = new Vector2f(
+                    emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
+                    emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
+            radioSound = Global.getSoundPlayer().playSound(
+                    emission.cue().soundId(), 1f, emission.cue().volume(), loc,
+                    new Vector2f(0f, 0f));
+        }
+        if (sim.isComplete() && radioSound != null) {
+            radioSound.stop();
+            radioSound = null;
+        }
+        storySubtitles.update(storyNarration != null ? storyNarration.current() : null, dt);
     }
 
     private void retreatFromBattle() {
@@ -1531,6 +1567,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.render(alphaMult);
         }
         if (directControlOverlay != null) directControlOverlay.render(alphaMult);
+        storySubtitles.render(alphaMult);
 
         if (sim != null && sim.isComplete()) {
             renderBanner(sim.getWinner(), alphaMult);
