@@ -80,6 +80,7 @@ public final class BarracksCommandModel {
         bind(reactor, "profiles", this::profiles);
         bind(reactor, "recruitIcon", () -> resources.commodityIcon(Commodities.MARINES));
         bind(reactor, "recruitStock", () -> Integer.toString(cargoMarines.getAsInt()));
+        bind(reactor, "issueCargoStock", this::issueCargoStock);
         bind(reactor, "recruitDraw", () -> Integer.toString(recruitsRequired()));
         bind(reactor, "profilesEmpty", () -> roster.armory().squadProfiles().isEmpty()
                 ? "No saved profiles. Choose NEW to pair a loadout and tactic sheet." : "");
@@ -358,6 +359,30 @@ public final class BarracksCommandModel {
                         "Fill vacancies transfers ready company reserves first, then enlists one cargo Marine per open billet. Wounded personnel keep their billets.",
                         "Equipment issue is a separate order."));
     }
+
+    private List<Map<String, Object>> issueCargoStock() {
+        revision.get();
+        return List.of(Commodities.SUPPLIES, Commodities.HAND_WEAPONS,
+                Commodities.HEAVY_MACHINERY, Commodities.FOOD).stream()
+                .map(commodity -> row(
+                        "id", "barracks-cargo-stock:" + commodity,
+                        "iconId", "barracks-cargo-stock:" + commodity + ":icon",
+                        "labelId", "barracks-cargo-stock:" + commodity + ":label",
+                        "icon", resources.commodityIcon(commodity),
+                        "label", resources.commodityName(commodity).toUpperCase(Locale.ROOT)
+                                + "  " + availableIssueCargo(commodity)))
+                .toList();
+    }
+
+    private int availableIssueCargo(String commodity) {
+        var stock = resources.available();
+        if (Commodities.SUPPLIES.equals(commodity)) return stock.supplies();
+        if (Commodities.HAND_WEAPONS.equals(commodity)) return stock.heavyArmaments();
+        if (Commodities.HEAVY_MACHINERY.equals(commodity)) return stock.heavyMachinery();
+        if (Commodities.FOOD.equals(commodity)) return stock.food();
+        return 0;
+    }
+
     public void reinforceSelected() {
         int reserves = 0;
         int cargo = 0;

@@ -2741,6 +2741,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("organization", viewModel.organization());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
+        props.put("cargoStockRows", viewModel.cargoStockRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
         props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
@@ -2835,6 +2836,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
         props.put("deckSummary", viewModel.deckSummary());
+        props.put("materialStock", viewModel.materialStock());
         props.put("boatRows", viewModel.boatRows());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
