@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-bridge.plot",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "ship-bridge.helm",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "ship-bridge.systems",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "ship-bridge.console-east",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "name": "ship-bridge.console-west",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "ship-bridge.data-cabinet",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "ship-bridge.plot",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 3,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "ship-bridge.helm",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        3,
+        1
+      ],
+      "id": "ship-bridge.systems",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 9,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "id": "ship-bridge.console-east",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 10,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        3
+      ],
+      "id": "ship-bridge.console-west",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 11,
+      "cover": "med",
+      "footprintCells": [
+        1,
+        2
+      ],
+      "id": "ship-bridge.data-cabinet",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-bridge.png"
+}
