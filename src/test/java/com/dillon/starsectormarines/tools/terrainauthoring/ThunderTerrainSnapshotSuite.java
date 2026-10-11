@@ -49,6 +49,10 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
                         ShipDeckBattleScene.DeckView.over(0,18,160,108,10)),1920,1080)));
                 frames.add(new SnapshotArtifact("crossing.png",renderer.renderHostPass(scene.pass(
                         ShipDeckBattleScene.DeckView.over(85,18,180,108,10)),1920,1080)));
+                frames.add(new SnapshotArtifact("dispatch-building.png",renderer.renderHostPass(scene.pass(
+                        ShipDeckBattleScene.DeckView.fitting(65,40,48,27,1920,1080)),1920,1080)));
+                frames.add(new SnapshotArtifact("crossing-building.png",renderer.renderHostPass(scene.pass(
+                        ShipDeckBattleScene.DeckView.fitting(171,84,48,27,1920,1080)),1920,1080)));
                 frames.add(new SnapshotArtifact("checkpoint.png",renderer.renderHostPass(scene.pass(
                         ShipDeckBattleScene.DeckView.over(205,18,115,108,10)),1920,1080)));
             }
