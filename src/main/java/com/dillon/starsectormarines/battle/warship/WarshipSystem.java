@@ -9,8 +9,11 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Ticks the warships over the battle: each mount picks the nearest enemy it can
@@ -41,6 +44,42 @@ public final class WarshipSystem {
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
+
+    /**
+     * Seconds between two fire cues from one mount. A Devastator fires twelve
+     * rounds a second and a cue per round would be static, so a burst is heard
+     * as one report per this interval; a single shot always sounds.
+     */
+    private static final float FIRE_CUE_GAP_SECONDS = 0.3f;
+    /** Seconds between two landing cues for one weapon, for the same reason. */
+    private static final float IMPACT_CUE_GAP_SECONDS = 0.2f;
+
+    private final List<WarshipSoundCue> cues = new ArrayList<>();
+    private final List<WarshipSoundCue> cuesView = Collections.unmodifiableList(cues);
+    private final Map<Object, Float> lastCueAt = new IdentityHashMap<>();
+    private final Set<Warship.Mount> litBeams = Collections.newSetFromMap(new IdentityHashMap<>());
+    private float clock;
+
+    /** Sounds asked for since the last {@link #beginFrame()}, for whoever presents the battle. */
+    public List<WarshipSoundCue> cuesThisFrame() {
+        return cuesView;
+    }
+
+    /** Forgets last frame's cues; called once per simulation advance so a paused caller does not replay them. */
+    public void beginFrame() {
+        cues.clear();
+    }
+
+    private boolean cueAllowed(Object key, float gap) {
+        Float last = lastCueAt.get(key);
+        if (last != null && clock - last < gap) return false;
+        lastCueAt.put(key, clock);
+        return true;
+    }
+
+    private void cue(WarshipSoundCue.Kind kind, String soundId, float x, float y) {
+        if (soundId != null) cues.add(new WarshipSoundCue(kind, soundId, x, y, 1f));
+    }
 
     /** Puts a ship over the battle. */
     public void add(Warship ship) {
@@ -74,8 +113,11 @@ public final class WarshipSystem {
     private static final float LANCE_REST_SECONDS = 2f;
 
     public void tick(float dt, BattleSimulation sim) {
+        clock += dt;
         landShells(dt, sim);
         for (Warship ship : ships) {
+            direct(dt, sim, ship);
+            moveHull(dt, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 if (mount.pointDefence()) {
@@ -88,13 +130,89 @@ public final class WarshipSystem {
         pointDefence.ageMarks(dt);
     }
 
+    /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
+    private static final float EMPTY_AREA_SECONDS = 2f;
+    private static final float RETRY_SECONDS = 1f;
+    /** A ship that has moved this far since choosing its heading chooses it again. */
+    private static final float REHEADING_DISTANCE = 3f;
+
+    /** A directed ship issues itself an area order, and a fresh one once its ground is empty. */
+    private void direct(float dt, BattleSimulation sim, Warship ship) {
+        if (!ship.isDirected()) return;
+        if (ship.order() instanceof WarshipOrder.FireOnArea area) {
+            if (hostileWithin(sim, ship, area)) {
+                ship.areaEmptySeconds = 0f;
+                return;
+            }
+            ship.areaEmptySeconds += dt;
+            if (ship.areaEmptySeconds < EMPTY_AREA_SECONDS) return;
+        } else {
+            // With nothing to fire on it looks again once a second, not every tick.
+            ship.areaEmptySeconds += dt;
+            if (ship.areaEmptySeconds < RETRY_SECONDS) return;
+        }
+        WarshipOrder.FireOnArea next = WarshipDirector.choose(sim, ship, ships);
+        ship.areaEmptySeconds = 0f;
+        ship.order(next != null ? next : WarshipOrder.HoldFire.INSTANCE);
+    }
+
+    private static boolean hostileWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        long[] dense = roster.denseArray();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long u = dense[i];
+            if (ship.faction.hostileTo(roster.identity().faction(u)) && area.contains(world.x(u), world.y(u))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Hovers the hull toward its station at its own speed: it accelerates, cruises
+     * and brakes in time to stop on the spot rather than drifting through it.
+     */
+    private static void moveHull(float dt, Warship ship) {
+        if (!ship.hasStation()) return;
+        float dx = ship.stationX() - ship.x;
+        float dy = ship.stationY() - ship.y;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float speed = Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
+        float wantX = dist > 0f ? dx / dist * speed : 0f;
+        float wantY = dist > 0f ? dy / dist * speed : 0f;
+        float ax = wantX - ship.velocityX;
+        float ay = wantY - ship.velocityY;
+        float change = (float) Math.sqrt(ax * ax + ay * ay);
+        float allowed = ship.acceleration * dt;
+        if (change > allowed && change > 0f) {
+            ax *= allowed / change;
+            ay *= allowed / change;
+        }
+        ship.velocityX += ax;
+        ship.velocityY += ay;
+        float stepX = ship.velocityX * dt;
+        float stepY = ship.velocityY * dt;
+        if (dist <= (float) Math.sqrt(stepX * stepX + stepY * stepY) && speed < allowed * 2f) {
+            ship.x = ship.stationX();
+            ship.y = ship.stationY();
+            ship.velocityX = 0f;
+            ship.velocityY = 0f;
+        } else {
+            ship.x += stepX;
+            ship.y += stepY;
+        }
+    }
+
     /**
      * Turns the hull toward the heading its order wants, at the hull's own rate:
      * it accelerates toward the turn, cruises at its maximum and brakes in time
      * to stop on the heading rather than swinging through it.
      */
     private static void turnHull(float dt, Warship ship) {
-        if (ship.order() instanceof WarshipOrder.FireOnArea area && area.bringGunsToBear() && !ship.headingChosen()) {
+        if (ship.order() instanceof WarshipOrder.FireOnArea area && area.bringGunsToBear()
+                && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
+                        ship.y - ship.headingChosenAtY) > REHEADING_DISTANCE)) {
             ship.desiredHeading = WarshipFacing.bestHeading(ship, area.x(), area.y());
             ship.markHeadingChosen();
         }
@@ -123,6 +241,9 @@ public final class WarshipSystem {
             if (!shell.advance(dt)) continue;
             shells.remove(i);
             sim.detonateNow(shell.landing());
+            if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
+            }
             if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells);
             }
@@ -183,9 +304,15 @@ public final class WarshipSystem {
         if (m.lance != null) {
             if (sim.lanceSweeps().active().contains(m.lance)) {
                 m.headingDegrees = (float) Math.toDegrees(m.lance.angle()) - 90f;
-                if (m.lance.isBurning()) m.secondsSinceFired = 0f;
+                if (m.lance.isBurning()) {
+                    m.secondsSinceFired = 0f;
+                    if (litBeams.add(m)) {
+                        cue(WarshipSoundCue.Kind.BEAM_LIT, w.fireSoundId(), ship.mountX(m), ship.mountY(m));
+                    }
+                }
                 return;
             }
+            litBeams.remove(m);
             m.lance = null;
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
@@ -285,6 +412,7 @@ public final class WarshipSystem {
         m.secondsSinceFired = 0f;
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
+        if (cueAllowed(m, FIRE_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.FIRE, w.fireSoundId(), mx, my);
         float dx = m.aimX - mx;
         float dy = m.aimY - my;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
