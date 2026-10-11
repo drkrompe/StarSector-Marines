@@ -40,6 +40,12 @@ public final class OpeningOperationFacilityFiller {
 
     public static void fill(PointOfInterest.Kind kind, BlockLeaf footprint,
                             GenContext ctx, Frontage frontage) {
+        fill(kind, footprint, ctx, frontage, false);
+    }
+
+    /** A story facility may owe both a direct entrance and a service entrance. */
+    public static void fill(PointOfInterest.Kind kind, BlockLeaf footprint,
+                            GenContext ctx, Frontage frontage, boolean opposedEntrances) {
         BuildingShellCore.BuildingConfig config = switch (kind) {
             case COMMS -> COMMS_CONFIG;
             case DEPOT -> BuildingIndustrialFiller.CONFIG;
@@ -47,7 +53,7 @@ public final class OpeningOperationFacilityFiller {
                     "opening-operation facility must be COMMS or DEPOT");
         };
         BuildingPlacement placement = new BuildingPlacement(
-                toBuildingSide(frontage), false);
+                toBuildingSide(frontage), opposedEntrances);
         PointOfInterest carved = BuildingShellCore.carve(
                 footprint, ctx.grid, ctx.topology, ctx.doodads, ctx.rng,
                 config, placement);

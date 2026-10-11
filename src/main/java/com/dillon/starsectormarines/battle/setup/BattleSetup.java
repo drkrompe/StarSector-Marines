@@ -73,7 +73,9 @@ import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.world.gen.ReliefCheckpoint;
 import com.dillon.starsectormarines.battle.world.gen.CounterattackDepot;
 import com.dillon.starsectormarines.battle.world.gen.JunctionCompound;
+import com.dillon.starsectormarines.battle.world.gen.RelayNineCompound;
 import com.dillon.starsectormarines.battle.command.JunctionCommand;
+import com.dillon.starsectormarines.battle.command.RelayNineCommand;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -1311,6 +1313,59 @@ public final class BattleSetup {
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY), ConquestCommandDisclosure.INSTANCE);
         sim.installJunctionStoryHooks();
+        return sim;
+    }
+
+    /** Finite territorial prototype; deliberately bypasses the generic siege production/airfield profile. */
+    public static BattleSimulation createRelayNine(long seed, List<ShuttleAssignment> playerManifest, TargetProfile profile) {
+        if (playerManifest == null || playerManifest.isEmpty() || playerManifest.size() > 4)
+            throw new IllegalArgumentException("RelayNine requires one to four committed player boats");
+        var layout = RelayNineCompound.generate(seed, profile);
+        MapResult map = layout.map();
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new ConquestObjective(sim.getCompoundService()));
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        List<ShuttleAssignment> assignments = new ArrayList<>();
+        assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 4));
+        assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 4));
+        assignments.addAll(playerManifest);
+        List<LandingPad> pads = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < assignments.size(); i++) {
+            var assignment = assignments.get(i);
+            var pad = pads.get(i);
+            Faction faction = i < 2 ? Faction.ALLY : Faction.MARINE;
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, faction,
+                    x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            ShuttleMission mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles;
+            mission.manifestOrdinal = i < 2 ? -1 : i - 2;
+            mission.commandClaim = SquadCommandClaim.mission(RelayNineCommand.issuer(faction), "RelayNine committed lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                mission.cycleLoadouts[cycle] = faction == Faction.ALLY
+                        ? InfantryLoadoutRolls.defenderSquad(assignment.seatsForCycle(cycle), UnitType.MILITIA, RiskLevel.LOW, rng)
+                        : InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            }
+            mission.marineLoadout = mission.cycleLoadouts[0];
+            if (faction == Faction.ALLY) mission.deboardUnitType = UnitType.MILITIA;
+        }
+        for (int i = 1; i < layout.sites().size(); i++) {
+            var post = layout.sites().get(i);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
+                    Faction.DEFENDER, "relay-nine-guard-" + i, post, rng);
+        }
+        List<EntitySpec> reserve = new ArrayList<>();
+        for (int[] cell : pickSpawnCluster(map.grid, 85, 2, 8))
+            reserve.add(makeOpeningMilitia("relay-reserve-" + reserve.size(), Faction.DEFENDER,
+                    cell[0], cell[1], rng).role(UnitRole.PATROL));
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new RelayNineCommand(faction), ConquestCommandDisclosure.INSTANCE);
+        sim.installRelayNine(reserve);
         return sim;
     }
 

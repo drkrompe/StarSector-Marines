@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — Last Lift escort, physical boarding and persistent story-person outcomes.
+Updated: 2026-10-10 — Relay Nine finite capture, militia holds and road counterattack.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -197,6 +197,32 @@ employer lift is separately identified. Victory requires all four territories
 held together and a company participant in play, including committed inbound
 personnel. Killing every raider alone does not close the mission.
 
+**Relay Nine** is the freight-recovery finale. Its western apron, Power Yard,
+Freight Gate and Relay Hall are four required territories, with the hall as the
+canonical command post. The hall guarantees opposed direct-road and loading-road
+entrances. Decorative service buildings add no objectives. Company boats retain
+their committed fittings; two employer boats deliver four militia each.
+
+The company normally clears Power Yard, Freight Gate, then Relay Hall. Explicit
+player orders can change that approach. Confirmed loss of a previous gain takes
+priority over a fresh assault; a contested gain can remain the militia's fight
+while the company advances. Two stable allied detachments take separate hold
+duties in capture order, supporting the first gain together until another is
+available. Loss or contest never silently turns those holders into assault squads.
+Their physical presence in the capture room, rather than their issued order,
+establishes a hold for story presentation.
+
+Twenty raiders begin at local posts. One precommitted eight-person road reserve
+enters after the first confirmed Power Yard or Freight Gate capture, using the
+service entrance associated with that first loss. Scripted authority covers its
+road approach and hands off on arrival or direct contact. The reserve then
+tries to retake that gain, or another publicly held gain if its first has been
+recovered. Recapture never replenishes it. Guards retain garrison authority;
+combat decisions use own reports and local contact. Victory requires all four
+territories held together with a company participant; surviving raiders elsewhere
+do not prevent success. Neither an extra hold timer nor destruction of relay
+equipment is part of this objective.
+
 ## Authored evacuation chapters
 
 **Last Lift** returns for Rill's twelve workers after the Junction choice. The
@@ -251,6 +277,11 @@ reports completed captures and the first confirmed recapture of each site. Its
 militia hold beat requires an accepted hold order and a living ally actually
 inside the secured capture room; ordering the move is insufficient.
 
+Relay Nine publishes each site's confirmed capture, first enemy recapture and
+first restoration, plus each established militia hold. Its actual road-reserve
+arrival remains observer-only. A capture announcement never implies a repaired
+machine or settled campaign reward.
+
 Each key fires once per attempt. Events remain in an immutable, ordered history
 so a slow presentation frame cannot miss a beat and multiple consumers cannot
 drain each other's events. A new battle or retry starts a new history and new
@@ -291,7 +322,9 @@ must validate arrival timing, actual lift requirements, force ratios, and
 briefing claims. Both chapters have production-factory headless replay evidence;
 actual campaign loadouts and the linked live sequence remain to be accepted.
 `broken-supply-route.md` plans a follow-on alpha arc with a committed choice;
-Junction and Last Lift have battle prototypes, including a save-owned rescue ledger and frozen outcomes. Relay Nine and campaign launch/choice/settlement integration remain open.
+Junction, Last Lift and Relay Nine have battle prototypes, including a save-owned
+rescue ledger and frozen outcomes. Campaign launch, choice, Results and settlement
+integration remain open.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.
 Shipped implementation evidence is in `shipped.md`.

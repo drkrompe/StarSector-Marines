@@ -15,6 +15,22 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpeningOperationFacilityFillerTest {
+    @Test void requiredOpposedEntrancesReachTheFurnishedInterior() {
+        NavigationGrid grid = new NavigationGrid(11, 11);
+        for (int y = 0; y < 11; y++) for (int x = 0; x < 11; x++) grid.setWalkableFloor(x, y);
+        GenContext ctx = new GenContext(grid, new CellTopology(11, 11), new Random(9), 11, 11, 9);
+        OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.COMMS,
+                new BlockLeaf(2, 2, 8, 8, false), ctx, OpeningOperationFacilityFiller.Frontage.BOTTOM, true);
+        PointOfInterest post = ctx.pois.get(0);
+        for (int edgeY : new int[]{post.top, post.bottom}) {
+            boolean connected = false;
+            for (int x = post.left + 1; x < post.right; x++) if (grid.isDoorway(x, edgeY))
+                connected |= !Paths.isEmpty(GridPathfinder.findPath(grid, x, edgeY,
+                        post.interiorAnchorX, post.interiorAnchorY));
+            assertTrue(connected, "Both required entrances reach the furnished mission room");
+        }
+    }
+
     @Test void furnishedPostPublishesReachableFloorForEveryFrontage() {
         // Isolated seven-cell facility: exercise furniture variation without
         // generating cities or running a battle in the unit suite.
