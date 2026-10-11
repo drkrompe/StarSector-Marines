@@ -5,7 +5,10 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 � crew lounges group seating, screen-watching and table
+Updated: 2026-10-11 — ship bridges use a central tactical plot and four
+inward-facing command banks in the muted ship material family.
+
+Earlier 2026-10-11 — crew lounges group seating, screen-watching and table
 recreation around clear circulation within the muted ship material family.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
@@ -494,6 +497,16 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+The ship bridge groups navigation, systems and paired side watch stations
+around one central tactical plot. Operators stand outboard of their consoles
+and face inward; the command position faces the plot's control edge. An inner
+walkway and open perimeter join the groups around the diamond footprint,
+including its chamfers and hatch approaches. The nine exclusive WATCH places
+belong to reachable standing cells beside physical fixtures. Enclosed data
+cabinets occupy side pockets without publishing extra staff work. Complete
+fixtures and their control edges follow the room pose. These command displays
+are visual dressing, not new navigation or combat controls.
 
 The crew lounge gathers off-watch activity into distinct groups: screen-facing
 seating, conversation sofas, seated table games and a pool area, with books and

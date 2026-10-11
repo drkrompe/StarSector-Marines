@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.deployable;
 
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -30,6 +31,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * without touching this file.
  */
 class PointDefenseEmplacementTest {
+
+    @Test
+    void onlyHostileMissilesTriggerPlacementAndInterception() {
+        for (Faction side : new Faction[]{Faction.MARINE, Faction.ALLY, Faction.DEFENDER}) {
+            for (Faction source : Faction.values()) {
+                try (BattleSimulation sim = openArena(40, 20)) {
+                    long carrier = sim.spawn(new EntitySpec("carrier", side,
+                            UnitType.MARINE, 10, 10).specialEquipment(pod(), pod().startingAmmo()));
+                    WeaponDef weapon = WeaponRegistry.require(ORDNANCE_WEAPON_ID);
+                    Projectile missile = new Projectile(13f, 10.5f, 10.5f, 10.5f,
+                            false, 0f, source, false, 5f, null, weapon.id, true);
+                    sim.queueProjectile(missile);
+                    boolean hostile = side.hostileTo(source);
+                    assertEquals(hostile, InfantryUnitPrep.tryOpportunitySpecial(carrier, sim),
+                            side + " watching " + source + " ordnance");
+                    sim.pointDefense().queuePlacement(carrier, side, 10, 10, podSpec());
+                    sim.pointDefense().tick(BattleSimulation.TICK_DT, sim);
+                    assertEquals(hostile ? 1 : 0, sim.telemetry().ordnanceEngaged(carrier));
+                    if (!hostile) assertFalse(missile.intercepted);
+                }
+            }
+        }
+    }
 
     private static final float EPS = 1e-3f;
     /** An LRM warhead is the canonical thing this exists to refuse. */

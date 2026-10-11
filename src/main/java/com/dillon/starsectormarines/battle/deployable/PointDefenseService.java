@@ -202,7 +202,7 @@ public final class PointDefenseService {
         for (int i = 0, n = inFlight.size(); i < n; i++) {
             Projectile p = inFlight.get(i);
             if (!p.pointDefenseTarget || p.intercepted) continue;
-            if (p.shooterFaction == pod.faction) continue;
+            if (!pod.faction.hostileTo(p.shooterFaction)) continue;
             float dx = p.currentX() - podX;
             float dy = p.currentY() - podY;
             float distanceSq = dx * dx + dy * dy;

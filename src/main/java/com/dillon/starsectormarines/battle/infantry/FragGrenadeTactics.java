@@ -42,7 +42,7 @@ public final class FragGrenadeTactics {
 
         Candidate best = null;
         for (BelievedContact anchor : squad.believedContacts()) {
-            if (!usableSoftContact(anchor, sim)) continue;
+            if (!usableSoftContact(anchor, squad.faction, sim)) continue;
             float targetX = anchor.lastSeenCellX() + 0.5f;
             float targetY = anchor.lastSeenCellY() + 0.5f;
             float dx = targetX - sim.world().x(carrier);
@@ -214,11 +214,12 @@ public final class FragGrenadeTactics {
         return false;
     }
 
-    private static boolean usableSoftContact(BelievedContact contact, BattleView sim) {
+    private static boolean usableSoftContact(BelievedContact contact, Faction faction, BattleView sim) {
         if (contact.source() != BeliefSource.DIRECT
                 || contact.confidence() < MIN_CONTACT_CONFIDENCE
                 || sim.getSimTickIndex() - contact.lastSeenTick() > MAX_DIRECT_CONTACT_AGE_TICKS
-                || !sim.identity().has(contact.unitId())) {
+                || !sim.identity().has(contact.unitId())
+                || !faction.hostileTo(sim.identity().faction(contact.unitId()))) {
             return false;
         }
         UnitType type = sim.identity().type(contact.unitId());
@@ -230,7 +231,7 @@ public final class FragGrenadeTactics {
         int count = 0;
         float radiusSq = radius * radius;
         for (BelievedContact contact : squad.believedContacts()) {
-            if (!usableSoftContact(contact, sim)) continue;
+            if (!usableSoftContact(contact, squad.faction, sim)) continue;
             float dx = contact.lastSeenCellX() + 0.5f - targetX;
             float dy = contact.lastSeenCellY() + 0.5f - targetY;
             if (dx * dx + dy * dy <= radiusSq) count++;

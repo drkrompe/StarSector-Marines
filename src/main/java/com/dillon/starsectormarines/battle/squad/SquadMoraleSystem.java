@@ -333,7 +333,7 @@ public final class SquadMoraleSystem {
      * {@link #NEAR_MISS_RADIUS_SQ} — a missed ballistic round's endpoint
      * lands far downrange under the S1 resolver, so distance-to-endpoint
      * alone under-triggers, while the path it actually flew still passes
-     * close by. Self-faction shots never count.
+     * close by. Only hostile shots count.
      *
      * <p>Returns the <em>closest</em> member rather than the first one found,
      * so a round rattles the fire team it actually flew past; a stray
@@ -352,7 +352,7 @@ public final class SquadMoraleSystem {
             if (!squads.hasSquad(member)) continue;
             Squad sq = roster.getSquad(squads.squadId(member));
             if (sq == null || sq.aliveMembers <= 0) continue;
-            if (sq.faction == shot.shooterFaction) continue;
+            if (!sq.faction.hostileTo(shot.shooterFaction)) continue;
             float distSq = distanceToSegmentSq(world.x(member), world.y(member),
                     shot.fromX, shot.fromY, shot.toX, shot.toY);
             if (distSq <= bestDistSq) {

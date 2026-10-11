@@ -31,7 +31,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * shot, same tick). Target <em>selection</em> and every posture-specific
  * pre-gate — leash windows, portal triggers, opportune picks, rocket-branch
  * suppression — stay in the behavior; this system applies only the uniform
- * gate every one of those fire sites duplicated inline: threat registered,
+ * gate every one of those fire sites duplicated inline: target not friendly, threat registered,
  * cooldown ready, target in range, and line-of-sight. <b>Consume-once</b>: {@code
  * fireTargetId} is cleared every tick whether or not the shot actually
  * fired, so a stale intent (the behavior didn't run again this tick, or
@@ -180,6 +180,12 @@ public final class FiringSystem {
                 if (!roster.isAliveById(ft)) {
                     lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
                     continue; // target released (death-in-flight)
+                }
+                // Revalidate the intended victim even if a behavior supplied a
+                // stale lock. Physical crossfire and point aim are separate.
+                if (roster.identity().faction(shooterId).friendlyTo(roster.identity().faction(ft))) {
+                    lastFireGate[r] = FireGate.FRIENDLY_TARGET.ordinal();
+                    continue;
                 }
 
                 UnitType type = (UnitType) unitType[r];
