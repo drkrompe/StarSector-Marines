@@ -22,7 +22,8 @@ import java.util.List;
  * publish directional edge cover onto adjacent standable cells. This keeps a
  * fixture from rolling both crossing and edge interception for the same shot.
  * Physical-cover storage is allocated lazily on the first covered addition.
- * Static prop cover arrays are append-only; nature cover is separately removable. Destructible cell-blocking props instead publish
+ * Static prop cover arrays are append-only; nature and walkable crate cover are
+ * separately removable. Destructible cell-blocking props instead publish
  * into grid facings; a breach rebakes those facings and restores surviving neighbors.
  */
 public final class DoodadService {
@@ -36,7 +37,8 @@ public final class DoodadService {
     private TileCover[] natureCoverOnCell;
 
     /**
-     * Per-cell, per-facing cover for static props. Mutable nature cover is merged at query time.
+     * Per-cell, per-facing cover for static props. Mutable nature and crate cover
+     * are merged at query time.
      * Indexed as
      * {@code (y * gridWidth + x) * FACING_COUNT + facing}. Updated on
      * {@link #addDoodad} or {@link #addStaticCover}; never decreases
@@ -94,10 +96,10 @@ public final class DoodadService {
      * grid facings instead.
      */
     public void addDoodad(Doodad d) {
-        destructibleCover.register(doodads.size(), d, TileRegistry.installed());
+        boolean removablePhysicalCover = destructibleCover.register(doodads.size(), d, TileRegistry.installed());
         trees.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
-        if (d.cover <= 0) return;
+        if (d.cover <= 0 || removablePhysicalCover) return;
         ensureCoverStorage();
         for (int dy = 0; dy < d.footprintCellsY; dy++) {
             for (int dx = 0; dx < d.footprintCellsX; dx++) {
@@ -273,7 +275,9 @@ public final class DoodadService {
             case NavigationGrid.FACING_E -> nx++;
             case NavigationGrid.FACING_W -> nx--;
         }
-        return Math.max(fixed, Math.max(natureCover(x, y).level(), natureCover(nx, ny).level()));
+        int removable = Math.max(destructibleCover.physicalCoverAt(x, y, 0),
+                destructibleCover.physicalCoverAt(nx, ny, 0));
+        return Math.max(Math.max(fixed, removable), Math.max(natureCover(x, y).level(), natureCover(nx, ny).level()));
     }
 
     private TileCover natureCover(int x, int y) {
@@ -306,6 +310,7 @@ public final class DoodadService {
         float absZ = Math.abs(roundZ);
         TileCover nature = natureCover(x, y);
         int natureLevel = nature.defaultBallisticHalfHeight() > 0 && absZ <= nature.defaultBallisticHalfHeight() ? nature.level() : 0;
+        natureLevel = Math.max(natureLevel, destructibleCover.physicalCoverAt(x, y, roundZ));
         if (doodadHalfHeightByLevelOnCell == null) return natureLevel;
         for (int level = NavigationGrid.MAX_COVER; level > natureLevel; level--) {
             float halfHeight = doodadHalfHeightByLevelOnCell[base + level];
