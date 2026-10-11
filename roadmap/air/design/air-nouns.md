@@ -1416,7 +1416,10 @@ goes and what it looks like. The mod authors none of those numbers or sprites.
 One conversion (`WarshipScale`, the density that sizes every hull) turns the
 game's units into cells, so a gun's reach and a shell's blast keep the
 proportion the player knows from the ship. A round is an ordinary detonation
-that lands after the flight time its own speed implies; point-defence-only
+that the ship carries from the muzzle to the ground over the flight time its own
+speed implies, so one clock serves what is drawn crossing the distance and what
+the ground suffers on arrival, and a heavy round lands as the existing heavy
+blast; point-defence-only
 weapons stay silent against ground. A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
 

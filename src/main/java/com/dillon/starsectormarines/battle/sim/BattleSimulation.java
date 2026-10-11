@@ -1562,11 +1562,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return warships;
     }
 
-    /** Queues a detonation that lands after its own flight time. */
-    public void queueDetonation(PendingDetonation det) {
-        synchronized (detonations) { detonations.queue(det); }
-    }
-
     /** Lance sweeps in progress, for presentation and evidence. */
     public LanceSweepSystem lanceSweeps() {
         return lanceSweeps;

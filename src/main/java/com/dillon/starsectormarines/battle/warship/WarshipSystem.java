@@ -34,7 +34,12 @@ public final class WarshipSystem {
 
     private final List<Warship> ships = new ArrayList<>();
     private final List<Warship> shipsView = Collections.unmodifiableList(ships);
+    private final List<WarshipShell> shells = new ArrayList<>();
+    private final List<WarshipShell> shellsView = Collections.unmodifiableList(shells);
     private final Random random = new Random(20261011L);
+
+    /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
+    private static final float HEAVY_IMPACT_DAMAGE = 100f;
 
     /** Puts a ship over the battle. */
     public void add(Warship ship) {
@@ -45,7 +50,13 @@ public final class WarshipSystem {
         return shipsView;
     }
 
+    /** Rounds in flight, for presentation and evidence. */
+    public List<WarshipShell> shells() {
+        return shellsView;
+    }
+
     public void tick(float dt, BattleSimulation sim) {
+        landShells(dt, sim);
         for (Warship ship : ships) {
             for (Warship.Mount mount : ship.mounts()) {
                 tickMount(dt, sim, ship, mount);
@@ -53,7 +64,21 @@ public final class WarshipSystem {
         }
     }
 
+    /** Advances every round in flight; one that arrives lands as a detonation and, if heavy, a heavy blast. */
+    private void landShells(float dt, BattleSimulation sim) {
+        for (int i = shells.size() - 1; i >= 0; i--) {
+            WarshipShell shell = shells.get(i);
+            if (!shell.advance(dt)) continue;
+            shells.remove(i);
+            sim.detonateNow(shell.landing());
+            if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
+                sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells);
+            }
+        }
+    }
+
     private void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {
+        m.secondsSinceFired += dt;
         m.cooldown -= dt;
         if (m.burstRemaining == 0) m.headingDegrees = ship.facingDegrees + m.slot.angleDegrees();
         VanillaWeapon w = m.weapon;
@@ -120,6 +145,7 @@ public final class WarshipSystem {
     private void fire(BattleSimulation sim, Warship ship, Warship.Mount m) {
         VanillaWeapon w = m.weapon;
         m.shotsFired++;
+        m.secondsSinceFired = 0f;
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
         float dx = m.aimX - mx;
@@ -135,15 +161,19 @@ public final class WarshipSystem {
         float speed = Math.max(1f, WarshipScale.cells(w.projectileSpeedPx()));
         float flight = dist / speed;
         float blast = Math.max(1f, WarshipScale.cells(w.explosionRadiusPx()));
-        sim.queueDetonation(new PendingDetonation(
-                0L, lx, ly, flight,
+        // A heavy round's own blast is the authored aftermath; the generic smoke
+        // plume belongs to the lighter ones that have no blast of their own.
+        boolean heavy = w.damagePerShot() >= HEAVY_IMPACT_DAMAGE;
+        PendingDetonation landing = new PendingDetonation(
+                0L, lx, ly, 0f,
                 blast, w.damagePerShot(), penetration(w.damageType()),
                 Math.round(w.damagePerShot()), ship.faction,
                 /*aerialDelivery*/ false,
                 /*wallDamageRadius*/ blast,
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
-                /*authoredAftermath*/ false));
+                /*authoredAftermath*/ heavy);
+        shells.add(new WarshipShell(w, mx, my, lx, ly, flight, blast, landing));
     }
 
     private static float penetration(String damageType) {

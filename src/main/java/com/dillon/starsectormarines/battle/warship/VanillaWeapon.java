@@ -41,6 +41,10 @@ public record VanillaWeapon(
         Color fringe,
         Color core,
         String projectileSprite,
+        float projectileLengthPx,
+        float projectileWidthPx,
+        Color muzzleColor,
+        float muzzleLengthPx,
         String turretSprite,
         String turretGunSprite,
         String hardpointSprite,
@@ -71,6 +75,10 @@ public record VanillaWeapon(
                 proj == null ? null : color(proj, "fringeColor"),
                 proj == null ? null : color(proj, "coreColor"),
                 proj == null ? null : sprite(proj),
+                proj == null ? 0f : (float) proj.optDouble("length", 0.0),
+                proj == null ? 0f : (float) proj.optDouble("width", 0.0),
+                muzzle(wpn, "particleColor"),
+                muzzleLength(wpn),
                 wpn == null ? null : wpn.optString("turretSprite", null),
                 wpn == null ? null : wpn.optString("turretGunSprite", null),
                 wpn == null ? null : wpn.optString("hardpointSprite", null),
@@ -85,6 +93,16 @@ public record VanillaWeapon(
         JSONObject behaviour = proj.optJSONObject("behaviorSpec");
         JSONObject blast = behaviour == null ? null : behaviour.optJSONObject("explosionSpec");
         return blast == null ? 0f : (float) blast.optDouble("radius", 0.0);
+    }
+
+    private static Color muzzle(JSONObject wpn, String key) {
+        JSONObject flash = wpn == null ? null : wpn.optJSONObject("muzzleFlashSpec");
+        return flash == null ? null : color(flash, key);
+    }
+
+    private static float muzzleLength(JSONObject wpn) {
+        JSONObject flash = wpn == null ? null : wpn.optJSONObject("muzzleFlashSpec");
+        return flash == null ? 0f : (float) flash.optDouble("length", 0.0);
     }
 
     private static String sprite(JSONObject proj) {
