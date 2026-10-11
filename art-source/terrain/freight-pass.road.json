@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "width": 128,
+  "height": 72,
+  "roads": [
+    {
+      "id": "freight-pass",
+      "width": 9,
+      "shoulder": 1,
+      "wear": 0.65,
+      "seed": 51,
+      "material": "ASPHALT",
+      "endCap": "BUTT",
+      "autoEdge": true,
+      "points": [
+        [
+          0,
+          34
+        ],
+        [
+          28,
+          36
+        ],
+        [
+          51,
+          40
+        ],
+        [
+          79,
+          40
+        ],
+        [
+          104,
+          36
+        ],
+        [
+          127,
+          35
+        ]
+      ]
+    }
+  ]
+}
