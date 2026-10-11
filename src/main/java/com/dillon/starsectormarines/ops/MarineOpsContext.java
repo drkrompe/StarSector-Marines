@@ -598,7 +598,7 @@ public class MarineOpsContext {
     public List<Mission> getMissionsFor(Client client) {
         if (client == null) return Collections.emptyList();
         String key = client.identity();
-        List<Mission> cached = missionsByClient.get(key);
+        List<Mission> cached = OpeningBroker.isContact(client) ? null : missionsByClient.get(key);
         if (cached != null) return cached;
         List<Mission> generated;
         if (POLITY_CLIENT_FACTION_ID.equals(client.factionId)) {
@@ -754,7 +754,7 @@ public class MarineOpsContext {
         boolean referral = client.patronHouseId == -1L && Factions.INDEPENDENT.equals(client.factionId)
                 && OpeningBroker.introductionPending() && OpeningBroker.current() != null;
         if (referral || !MissionGenerator.generate(planet, client).isEmpty()) {
-            out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet)));
+            out.add(OpeningBroker.present(client, OpeningBroker.isAt(planet) || SupplyRouteCampaign.atSite(planet)));
         }
     }
 

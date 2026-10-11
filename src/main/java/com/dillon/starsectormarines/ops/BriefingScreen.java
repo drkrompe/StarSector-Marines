@@ -380,7 +380,7 @@ public class BriefingScreen implements Screen {
             return BriefingViewModel.withEmptyStyles(props);
         }
 
-        props.put("missionKicker", mission.type.name() + "  ·  "
+        props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission) + "  ·  "
                 + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
         props.put("missionTitle", mission.name);
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
@@ -395,7 +395,7 @@ public class BriefingScreen implements Screen {
                         : surveyFailure != null ? "Survey unavailable / retry to prepare terrain"
                         : "Compiling terrain and landing intelligence...");
         props.put("termActions", retainedTermActions(mission));
-        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST,
+        BriefingViewModel.putLeadership(props, mission.type == MissionType.CONQUEST || SupplyRouteCampaign.isBattle(mission) && !SupplyRouteCampaign.recovery(mission),
                 mission.source == MissionSource.STATIONING);
         props.put("captains", retainedCaptainRows(mission));
         props.put("captainEmpty", retainedCaptainRows(mission).isEmpty()
@@ -449,13 +449,13 @@ public class BriefingScreen implements Screen {
     private void putFactionIdentities(Map<String, Object> props, Mission mission) {
         putFactionIdentity(props, "opposition", surveyPlan != null
                 ? surveyPlan.defenderFactionId() : null);
-        if (OpeningOperationKind.fromMission(mission) != null) {
+        if (OpeningOperationKind.fromMission(mission) != null || SupplyRouteCampaign.isBattle(mission)) {
             BriefingViewModel.putFactionIdentity(props, "opposition", "Local bandits", null);
         }
         // Authored jobs belong to their offering client; verify membership before using it.
         Client client = ctx.getSelectedClient();
         if ((mission.source == MissionSource.STORY || mission.source == MissionSource.RECURRING) && client != null
-                && ctx.getMissionsFor(client).contains(mission)) {
+                && ctx.getMissionsFor(client).stream().anyMatch(offer -> offer.id.equals(mission.id))) {
             putFactionIdentity(props, "employer", client.factionId);
             return;
         }
@@ -861,6 +861,13 @@ public class BriefingScreen implements Screen {
 
     private List<BriefingViewModel.InfoRow> retainedEmployerRows(Mission mission) {
         List<BriefingViewModel.InfoRow> rows = new ArrayList<>();
+        if (SupplyRouteCampaign.isBattle(mission)) {
+            var route = SupplyRouteCampaign.current();
+            int kind = route != null ? route.operation() : 0;
+            rows.add(BriefingViewModel.info("employer-militia", "Militia", kind == 3 ? "8 / two holding detachments" : "6 / local support", ""));
+            rows.add(BriefingViewModel.info("employer-transport", "Employer craft", kind == 2 ? "12-seat civilian pickup / separate from insertion" : kind == 3 ? "2 Aeroshuttles / militia only" : "1 Aeroshuttle / militia only", ""));
+            return List.copyOf(rows);
+        }
         rows.add(BriefingViewModel.info("employer-transport", "Landing craft",
                 mission.source.isDebug() ? "Overridden by DEBUG picker"
                         : mission.employerShuttles > 0
@@ -881,7 +888,8 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean personnelOk = debug || readiness == null || readiness.ready();
+        boolean routeReady = !SupplyRouteCampaign.isBattle(mission) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;
         MarineRoster roster = liveRoster();
@@ -907,6 +915,7 @@ public class BriefingScreen implements Screen {
         String label = canAccept ? "DEPLOY"
                 : !transportOk ? "INSUFFICIENT TRANSPORT"
                 : !commandOk ? "CHECK COMMAND GROUPS"
+                : !routeReady ? "ASSIGN TWO SQUADS / FOUR READY EACH"
                 : readiness != null && readiness.needsPersonnel()
                         ? canReinforce ? "REINFORCE +" + reinforcement + "  ·  " + cargoCost + " CARGO"
                                 : "NEED " + shortfall + "  ·  NO MARINES"

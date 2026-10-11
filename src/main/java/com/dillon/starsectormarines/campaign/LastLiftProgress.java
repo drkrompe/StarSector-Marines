@@ -42,10 +42,16 @@ public final class LastLiftProgress implements Serializable {
         if (siteId == null || siteId.isBlank()) throw new IllegalArgumentException("Frozen Rill site required");
         this.siteId = siteId;
     }
+    public boolean available() { return version == VERSION && !isClosed(); }
     public List<Integer> stranded() {
         List<Integer> people = new ArrayList<>();
         for (int i = 0; i < COHORT_SIZE; i++) if (((rescuedMask | deadMask) & (1 << i)) == 0) people.add(i);
         return List.copyOf(people);
+    }
+    /** Read-only briefing identity; opening a survey does not start an attempt. */
+    public Attempt previewAttempt() {
+        if (version != VERSION || isClosed()) throw new IllegalStateException("Last Lift is not available");
+        return new Attempt(siteId, activeAttempt == 0 ? settledAttempt + 1 : activeAttempt, stranded());
     }
     /** Reopening an outstanding attempt retains its identity, including after a save/load. */
     public Attempt beginAttempt() {

@@ -20,6 +20,8 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
+import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
@@ -139,6 +141,11 @@ public final class MissionLaunch {
                                         Collection<String> selectedPowerIds,
                                         List<FleetMemberAPI> committedPowerSources,
                                         DebugMechRoster debugMechs, long seed) {
+        if (SupplyRouteCampaign.owns(m.id)) {
+            SupplyRouteCampaign.requireCurrent(m);
+            if (!SupplyRouteCampaign.atSite(ctx.planet))
+                throw new IllegalStateException("Travel to the accepted supply-route site before deployment.");
+        }
         if (!DetachmentResolver.hasRequiredTransport(m, committedShuttles)) {
             throw new IllegalStateException("Company boats are required to cover this operation's lift.");
         }
@@ -169,7 +176,9 @@ public final class MissionLaunch {
         // (the debug board's faction-comparison group). This is the one place
         // that override is applied: it rewrites the profile's faction id and
         // nothing else, so only roster selection sees it and generation cannot.
-        TargetProfile profile = TargetProfileResolver.resolve(m.targetPlanetName)
+        TargetProfile profile = (SupplyRouteCampaign.isBattle(m)
+                ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
+                : TargetProfileResolver.resolve(m.targetPlanetName))
                 .withFactionId(m.defenderFactionOverride);
 
         // How settled the map is: the mission's own statement where it made one,
@@ -199,7 +208,10 @@ public final class MissionLaunch {
         Detachment constructionDetachment = det;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
-        if (openingOperation != null) {
+        if (SupplyRouteCampaign.isBattle(m)) {
+            BrokenSupplyRouteProgress route = SupplyRouteCampaign.requireCurrent(m);
+            builder = supplyRouteBuilder(route, seed, constructionDetachment.shuttleManifest, profile);
+        } else if (openingOperation != null) {
             builder = () -> BattleSetup.createOpeningOperation(seed,
                     constructionDetachment.shuttleManifest,
                     DetachmentResolver.employerPhysicalShipCount(m),
@@ -282,8 +294,21 @@ public final class MissionLaunch {
                 FighterWingCommitment.captureRoster(constructionDetachment.marineWings),
                 FighterWingCommitment.captureRoster(m.enemyFighterSupport));
         return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder,
-                openingOperation != null || isSilentColonyBattle(m) || isCivilianRescueBattle(m)
+                SupplyRouteCampaign.isBattle(m) || openingOperation != null || isSilentColonyBattle(m) || isCivilianRescueBattle(m)
                         ? "" : profile.factionId());
+    }
+
+    /** Shared campaign/evidence construction boundary; capture all save inputs before worker execution. */
+    static Supplier<BattleSimulation> supplyRouteBuilder(BrokenSupplyRouteProgress route, long seed,
+                                                        List<ShuttleAssignment> manifest, TargetProfile profile) {
+        int operation = route.operation();
+        LastLiftProgress.Attempt attempt = operation == BrokenSupplyRouteProgress.LIFT ? route.crew().previewAttempt() : null;
+        return switch (operation) {
+            case BrokenSupplyRouteProgress.JUNCTION -> () -> BattleSetup.createJunction(seed, manifest, profile);
+            case BrokenSupplyRouteProgress.LIFT -> () -> BattleSetup.createLastLift(seed, manifest, profile, attempt);
+            case BrokenSupplyRouteProgress.RELAY -> () -> BattleSetup.createRelayNine(seed, manifest, profile);
+            default -> throw new IllegalStateException("Unknown supply-route operation");
+        };
     }
 
     /** Pure construction input; contains no campaign API handles. */
@@ -324,8 +349,15 @@ public final class MissionLaunch {
             // it right); then install the active command-power roster.
             CampaignCommandPowerResources liveResources =
                     new CampaignCommandPowerResources();
+            boolean supplyRoute = SupplyRouteCampaign.isBattle(m);
+            BrokenSupplyRouteProgress route = supplyRoute ? SupplyRouteCampaign.requireCurrent(m) : null;
+            if (supplyRoute) {
+                if (!SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
+                    throw new IllegalStateException("Select at least two squads with four ready marines each.");
+                deployment.applyToAuthoredPlayerLift(sim);
+            }
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
-                    firstPlayerShuttle, deployment, det.marineWings, debugWings,
+                    firstPlayerShuttle, supplyRoute ? CampaignMarineDeployment.EMPTY : deployment, det.marineWings, debugWings,
                     det.powers, Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
@@ -333,6 +365,7 @@ public final class MissionLaunch {
                 fixture = new BattleLaunchFixture(fixture, launch);
             }
 
+            if (route != null && !route.begin(m.id)) throw new IllegalStateException("This supply-route attempt has already launched.");
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();

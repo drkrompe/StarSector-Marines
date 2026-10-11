@@ -30,6 +30,8 @@ public final class CampaignState implements Serializable {
 
     /** Null before the authored Rill evacuation is commissioned; absent in older saves. */
     public LastLiftProgress lastLift;
+    /** Null in pre-arc saves; introduced explicitly at the broker. */
+    public BrokenSupplyRouteProgress brokenSupplyRoute;
 
     // ---------- Id registries (interned vanilla strings) ----------
 

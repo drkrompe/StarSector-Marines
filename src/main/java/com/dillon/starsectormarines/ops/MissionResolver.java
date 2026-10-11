@@ -285,7 +285,9 @@ public final class MissionResolver {
         // acceptance (see contracts-nouns.md). 100 = baseline.
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
-        int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
+        int payoutEarned = SupplyRouteCampaign.isBattle(mission)
+                ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
+                : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
         // reopening Results cannot change the manifest with later fleet edits.
@@ -456,6 +458,11 @@ public final class MissionResolver {
         CargoAPI cargo = Global.getSector() != null && Global.getSector().getPlayerFleet() != null
                 ? Global.getSector().getPlayerFleet().getCargo()
                 : null;
+
+        if (SupplyRouteCampaign.owns(outcome.missionId) && (cargo == null || SupplyRouteCampaign.settle(outcome) < 0)) {
+            LOG.info("MarineOps: refused stale or invalid supply-route outcome " + outcome.missionId);
+            return;
+        }
 
         if (cargo != null) {
             if (outcome.payoutEarned > 0) {
