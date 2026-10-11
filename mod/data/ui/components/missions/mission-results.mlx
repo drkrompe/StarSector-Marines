@@ -1,4 +1,4 @@
-<template props="storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
+<template props="sceneClasses,sceneImage,sceneCaption,storyClasses,storyPortrait,storySender,storyProgress,storyMessage,title,outcomeClasses,outcomeLabel,missionName,missionMeta,resultRows,personnelHeader,squadRows,personnelEmpty,primaryLabel,primaryAction,secondaryClasses,secondaryLabel,secondaryAction">
   <div id="mission-results-root" class="mission-results-root">
     <div id="mission-results-header" class="mission-flow-header console-header">
       <img id="mission-results-header-lock" class="flow-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -29,6 +29,10 @@
         </div>
       </div>
       <div id="mission-results-personnel" class="console-section results-personnel">
+        <div id="mission-results-scene" class="{sceneClasses}">
+          <img id="results-scene-image" class="results-scene-image" src="{sceneImage}" />
+          <div id="results-scene-caption" class="label heading tone-muted scene-caption">{sceneCaption}</div>
+        </div>
         <div id="mission-results-personnel-heading" class="personnel-heading surface-dark">
           <div id="mission-results-personnel-title" class="label heading tone-edge">{personnelHeader}</div>
           <div id="mission-results-personnel-subtitle" class="label tone-muted">Returned / wounded / missing / killed</div>
@@ -105,4 +109,7 @@
   .results-squad-card { width: 440px; height: 100px; padding: 9px; gap: 8px; }
   .results-squad-card .tone-muted { white-space: normal; height: 52px; }
   .results-squad-summary { width: 220px; }
+  .results-scene { flex-direction: column; height: 426px; padding: 7px; gap: 6px; border-width: 2px; overflow: hidden; pointer-events: none; }
+  .results-scene-image { width: 100%; height: 384px; }
+  .scene-caption { height: 18px; }
 </style>

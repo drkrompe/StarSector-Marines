@@ -106,6 +106,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     }
 
     static void putStoryDebrief(Map<String, Object> props, MissionOutcome outcome) {
+        StoryScene scene = outcome == null ? null : StoryScene.forRecord(outcome.missionId, outcome.missionSource);
+        props.put("sceneClasses", scene == null ? "hidden" : "results-scene console-well");
+        props.put("sceneImage", scene == null ? null : scene.image);
+        props.put("sceneCaption", scene == null ? "" : "LOCATION ARCHIVE / " + scene.location);
         OpeningOperationKind chapter = WaylineArc.chapter(outcome);
         props.put("storyClasses", chapter != null ? "story-dispatch console-readout" : "hidden");
         props.put("storyPortrait", chapter != null ? OpeningBroker.PORTRAIT : null);

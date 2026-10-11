@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -41,7 +42,43 @@ public final class SupplyRouteSnapshotSuite implements SnapshotSuite {
         frames.add(board(context,renderer,freight,0,"09-route-security-new-job"));
         hq=CompanyHqViewModel.supplyRoutePreview(freight,null);
         frames.add(new SnapshotArtifact("10-hq-frozen-site-unavailable.png",UiSnapshotSuite.renderCompanyHq(context,renderer,1920,1080,1f,hq)));
+        frames.add(debrief(context, renderer, 1, true, "11-junction-debrief"));
+        frames.add(debrief(context, renderer, 2, false, "12-rill-partial-retreat"));
+        frames.add(debrief(context, renderer, 3, true, "13-relay-debrief"));
         return frames;
+    }
+    private SnapshotArtifact debrief(SnapshotContext context, HeadlessUiRenderer renderer,
+                                      int kind, boolean victory, String name) throws Exception {
+        var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
+        if (kind != BrokenSupplyRouteProgress.JUNCTION) { win(route); route.commit(kind); }
+        var mission = SupplyRouteCampaign.offers(route).get(0);
+        var result = MissionOutcome.builder().mission(mission).victory(victory)
+                .payoutEarned(victory ? mission.payout : 0).marinesEngaged(24).marinesLost(2);
+        if (kind == BrokenSupplyRouteProgress.LIFT) result.lastLiftOutcome(new LastLiftProgress.Outcome(
+                route.crew().previewAttempt(), List.of(0, 1), List.of(2), false));
+        var outcome = result.build();
+        var props = ResultsScreen.previewProps(victory, false);
+        props.put("missionName", outcome.missionName);
+        props.put("resultRows", ResultsScreen.resultRows(outcome,
+                LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
+        props.put("squadRows", List.of(
+                new ResultsScreen.PersonnelRow("scene-squad-1", "1st Squad", "10R 0W 0M 2K",
+                        "label heading results-squad-summary tone-danger",
+                        "Hale R · Chen R · Ilyin R · Okafor R · Bell K · Ruiz K"),
+                new ResultsScreen.PersonnelRow("scene-squad-2", "2nd Squad", "12R 0W 0M 0K",
+                        "label heading results-squad-summary tone-good",
+                        "Vale R · Sato R · Moss R · Holt R · Venn R · Ward R")));
+        ResultsScreen.putStoryDebrief(props, outcome);
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), ResultsScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (var instance = loader.build(new Reactor(), ResultsScreen.ROOT_COMPONENT, props)) {
+            var document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            var image = renderer.renderRelative(document, 1920, 1080, 1f,
+                    MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT);
+            return new SnapshotArtifact(name + ".png", image);
+        }
     }
     private void win(BrokenSupplyRouteProgress p){String id=p.missionId();p.begin(id);p.settle(id,true,null);}
     private SnapshotArtifact board(SnapshotContext context,HeadlessUiRenderer renderer,BrokenSupplyRouteProgress p,int selected,String name)throws Exception {

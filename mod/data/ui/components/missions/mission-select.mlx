@@ -1,4 +1,4 @@
-<template props="brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
+<template props="detailImageClasses,detailImage,brokerClasses,brokerPortrait,brokerName,brokerRole,brokerIntroduction,brokerProgress,screenTitle,locationLabel,planetImage,clientHeader,catalogHeader,detailHeader,clients,clientEmpty,missionHeader,missionSummary,missions,stationingRows,missionEmpty,detailClasses,detailKicker,detailTitle,detailMeta,detailFlavor,detailRows,briefLabel,briefDisabled,briefAction,declineDisabled,declineAction,backAction,armoryAction">
   <div id="mission-select-root" class="mission-select-root">
     <div id="mission-select-header" class="mission-select-header console-header">
       <img id="mission-select-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -69,10 +69,10 @@
         </div>
       </div>
       <div id="mission-detail-panel" class="{detailClasses}">
-        <div id="mission-detail-image-wrap" class="mission-detail-image-wrap surface-dark">
+        <div id="mission-detail-image-wrap" class="{detailImageClasses}">
           <div id="mission-detail-scope" class="mission-detail-scope console-well">
             <img id="mission-detail-reticle" class="mission-detail-reticle" src="graphics/ui/console/operation-scope.svg" />
-            <img id="mission-detail-image" class="mission-detail-image" src="{planetImage}" />
+            <img id="mission-detail-image" class="mission-detail-image" src="{detailImage}" />
           </div>
           <div id="mission-detail-image-label" class="label heading tone-edge">{detailHeader}</div>
         </div>
@@ -174,4 +174,8 @@
   .mission-detail-actions button { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; }
   .mission-detail-actions .mission-brief { flex-grow: 3; }
   .empty-copy { height: auto; padding: 4px; white-space: normal; }
+  .story-location { height: 280px; }
+  .story-location .mission-detail-scope { height: 248px; }
+  .story-location .mission-detail-image { height: 248px; }
+  .story-location .mission-detail-reticle { opacity: 0; }
 </style>
