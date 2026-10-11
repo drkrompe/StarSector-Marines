@@ -15,7 +15,9 @@
       "description": "Ring corner connecting east and south.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 10
+      "order": 10,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-straight-n.png": {
       "id": "doodad.sandbag-straight-n",
@@ -23,7 +25,9 @@
       "description": "Horizontal north edge of a defensive ring.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 11
+      "order": 11,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-corner-ne.png": {
       "id": "doodad.sandbag-corner-ne",
@@ -31,7 +35,9 @@
       "description": "Ring corner connecting west and south.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 12
+      "order": 12,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-straight-w.png": {
       "id": "doodad.sandbag-straight-w",
@@ -39,7 +45,9 @@
       "description": "Vertical west edge of a defensive ring.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 13
+      "order": 13,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-straight-e.png": {
       "id": "doodad.sandbag-straight-e",
@@ -47,7 +55,9 @@
       "description": "Vertical east edge of a defensive ring.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 14
+      "order": 14,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-corner-sw.png": {
       "id": "doodad.sandbag-corner-sw",
@@ -55,7 +65,9 @@
       "description": "Ring corner connecting east and north.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 15
+      "order": 15,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-straight-s.png": {
       "id": "doodad.sandbag-straight-s",
@@ -63,7 +75,9 @@
       "description": "Horizontal south edge of a defensive ring.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 16
+      "order": 16,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "sandbag-corner-se.png": {
       "id": "doodad.sandbag-corner-se",
@@ -71,7 +85,9 @@
       "description": "Ring corner connecting west and north.",
       "cover": "heavy",
       "ballisticHalfHeight": 0.3,
-      "order": 17
+      "order": 17,
+      "preserveCanvas": true,
+      "padding": 0
     },
     "industrial-crate-stack.png": {
       "id": "doodad.industrial-crate-stack",

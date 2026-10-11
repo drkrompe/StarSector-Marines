@@ -153,7 +153,7 @@ public final class ThunderRunCompound {
         for (int i = 0; i < 3; i++) {
             PointOfInterest p = c.pois.get(i);
             int y = i == 1 ? p.top - 2 : p.bottom + 2;
-            String face = i == 1 ? "n" : "s";
+            String face = i == 1 ? "s" : "n";
             for (int x = p.left; x <= p.right; x++) {
                 if (Math.abs(x - p.anchorCellX) <= 2) continue;
                 fixture(c, x, y, "doodad.sandbag-straight-" + face);
@@ -165,16 +165,16 @@ public final class ThunderRunCompound {
         for (Cell gun : EXIT_GUNS) {
             // West-facing horseshoe, open to its service yard on the east.
             for (int y = gun.y - 2; y <= gun.y + 2; y++)
-                fixture(c, gun.x - 2, y, "doodad.sandbag-" + (y == gun.y - 2 ? "corner-nw"
-                        : y == gun.y + 2 ? "corner-sw" : "straight-w"));
+                fixture(c, gun.x - 2, y, "doodad.sandbag-" + (y == gun.y - 2 ? "corner-sw"
+                        : y == gun.y + 2 ? "corner-nw" : "straight-w"));
             for (int x = gun.x - 1; x <= gun.x + 2; x++) {
-                fixture(c, x, gun.y - 2, "doodad.sandbag-straight-n");
-                fixture(c, x, gun.y + 2, "doodad.sandbag-straight-s");
+                fixture(c, x, gun.y - 2, "doodad.sandbag-straight-s");
+                fixture(c, x, gun.y + 2, "doodad.sandbag-straight-n");
             }
         }
         // Dispersed rifle bays overlook the approach without putting obstacles in the carriageway.
         for (int y : new int[]{61, 89}) for (int x = 287; x <= 293; x++)
-            fixture(c, x, y, "doodad.sandbag-straight-" + (y < 75 ? "s" : "n"));
+            fixture(c, x, y, "doodad.sandbag-straight-" + (y < 75 ? "n" : "s"));
         // Concrete gate abutments sit beyond the road shoulders; the full convoy band stays open.
         for (int x = 310; x <= 311; x++) for (int y : new int[]{66, 67, 83, 84}) {
             c.grid.setWalkable(x, y, false);

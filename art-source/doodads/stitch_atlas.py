@@ -49,6 +49,7 @@ class AssetSpec:
     footprint_x: int
     footprint_y: int
     preferred_wall_side: str | None
+    preserve_canvas: bool = False
 
 
 @dataclass(frozen=True)
@@ -65,6 +66,7 @@ class BuildOptions:
     resample: str = "lanczos"
     alpha_threshold: int = 1
     allow_opaque: bool = False
+    only_prefix: str | None = None
 
 
 def _load_metadata(path: Path) -> dict[str, Any]:
@@ -152,6 +154,9 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                 raise ValueError(
                     f"{path.name}: ballisticHalfHeight must be finite and non-negative"
                 )
+        preserve_canvas = item.get("preserveCanvas", False)
+        if not isinstance(preserve_canvas, bool):
+            raise ValueError(f"{path.name}: preserveCanvas must be a boolean")
         padding = int(item.get("padding", options.padding))
         if padding < 0 or padding * 2 >= options.cell_size:
             raise ValueError(f"{path.name}: padding {padding} leaves no drawable cell area")
@@ -184,6 +189,7 @@ def discover_assets(options: BuildOptions) -> list[AssetSpec]:
                 footprint_x=footprint_x,
                 footprint_y=footprint_y,
                 preferred_wall_side=preferred_wall_side,
+                preserve_canvas=preserve_canvas,
             )
         )
 
@@ -223,7 +229,8 @@ def normalize_asset(spec: AssetSpec, options: BuildOptions) -> Image.Image:
     bounds = crop_mask.getbbox()
     if bounds is None:
         raise ValueError(f"{spec.source.name}: image has no visible alpha bounds")
-    sprite = source.crop(bounds)
+    # Directional pieces own their transparent space and connection coordinates.
+    sprite = source if spec.preserve_canvas else source.crop(bounds)
 
     canvas_width = options.cell_size * spec.footprint_x
     canvas_height = options.cell_size * spec.footprint_y
@@ -294,14 +301,21 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
         (options.columns * options.cell_size, rows * options.cell_size),
         (0, 0, 0, 0),
     )
+    if options.only_prefix is not None:
+        if not any(spec.asset_id.startswith(options.only_prefix) for spec in specs):
+            raise ValueError("only-prefix matches no assets")
+        previous = Image.open(options.output_image).convert("RGBA")
+        if previous.size != atlas.size:
+            raise ValueError("Partial rebuild requires unchanged atlas dimensions")
+        atlas = previous.copy()
     doodads: list[dict[str, Any]] = []
     cells: list[dict[str, Any]] = []
 
     for spec, (col, row) in zip(specs, placements):
-        atlas.alpha_composite(
-            normalize_asset(spec, options),
-            (col * options.cell_size, row * options.cell_size),
-        )
+        if options.only_prefix is None or spec.asset_id.startswith(options.only_prefix):
+            # Replace the complete footprint, including newly transparent pixels.
+            atlas.paste(normalize_asset(spec, options),
+                        (col * options.cell_size, row * options.cell_size))
         doodad: dict[str, Any] = {
             "id": spec.asset_id,
             "col": col,
@@ -326,6 +340,10 @@ def build_atlas(options: BuildOptions) -> tuple[Path, Path, int]:
         "doodads": doodads,
         "cells": cells,
     }
+    if options.only_prefix is not None:
+        previous_manifest = _load_metadata(options.output_manifest)
+        if previous_manifest != manifest:
+            raise ValueError("Partial rebuild requires an unchanged manifest; run a full build")
     options.output_image.parent.mkdir(parents=True, exist_ok=True)
     options.output_manifest.parent.mkdir(parents=True, exist_ok=True)
     atlas.save(options.output_image, optimize=True)
@@ -354,6 +372,7 @@ def parse_args() -> BuildOptions:
     )
     parser.add_argument("--alpha-threshold", type=int, default=1)
     parser.add_argument("--allow-opaque", action="store_true")
+    parser.add_argument("--only-prefix", help="Replace matching IDs in an existing atlas; manifest must be unchanged")
     args = parser.parse_args()
     metadata_path = args.metadata or args.input_dir / "_atlas.json"
     return BuildOptions(
@@ -369,6 +388,7 @@ def parse_args() -> BuildOptions:
         resample=args.resample,
         alpha_threshold=args.alpha_threshold,
         allow_opaque=args.allow_opaque,
+        only_prefix=args.only_prefix,
     )
 
 
