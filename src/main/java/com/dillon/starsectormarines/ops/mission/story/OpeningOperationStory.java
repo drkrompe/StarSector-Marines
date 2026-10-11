@@ -56,7 +56,7 @@ public final class OpeningOperationStory implements StoryMissionDef {
                 .id(id).name(recurring ? kind.recurringName : kind.displayName)
                 .type(MissionType.ASSAULT).source(recurring ? MissionSource.RECURRING : MissionSource.STORY)
                 .payout(kind.payout).risk(RiskLevel.LOW)
-                .requirements("Player lift for " + playerSorties + (playerSorties == 1 ? " sortie" : " sorties"))
+                .requirements("Company lift for " + playerSorties + (playerSorties == 1 ? " sortie" : " sorties"))
                 .flavor(flavor).mapPosition(0.12f + random.nextFloat() * 0.76f, 0.12f + random.nextFloat() * 0.76f)
                 .requiredDrops(playerSorties + 1).employerShuttles(1).targetPlanetName(planet).build();
     }

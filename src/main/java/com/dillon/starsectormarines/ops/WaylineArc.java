@@ -46,7 +46,7 @@ public final class WaylineArc {
             case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
                     + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
                     + "Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; "
-                    + "you need lift for two player sorties. Cr. 9,000 on success, and I'll vouch for your company "
+                    + "your company needs lift for two sorties. Cr. 9,000 on success, and I'll vouch for your company "
                     + "with Independent brokers. Let's give our drivers their road back.";
         };
     }

@@ -352,6 +352,11 @@ objective and lanes instead of labelling every berth and building; the accompany
 summary retains strategic-site counts. Small objective-driven missions identify
 their actual target sites and extraction endpoints.
 
+The two Wayline chapter briefings begin Mara's recorded narration on entry and
+expose Replay Briefing and Stop Voice in the command rail. Other missions reserve
+no voice-control space. Text remains available independently of playback;
+terrain refreshes and viewport changes do not restart the recording.
+
 Preparation runs asynchronously from campaign-free captured construction inputs.
 The briefing pins its seed, shows a pending survey while generation runs, and
 requires a ready scenario before deployment. Relevant input changes supersede the
@@ -447,6 +452,12 @@ clickable. Only the live paint target converts that document rectangle into phys
 framebuffer pixels; the conversion observes Starsector UI scale and flips the
 top-left document Y axis exactly once. A headless target applies the same clip in
 document pixels.
+
+Story dialogue has a non-interactive subtitle panel above the lower command
+surfaces, naming its speaker and retaining the complete line while the recording
+plays. It remains visible in direct control and when audio is muted. The panel
+uses the shared theme and does not consume world-selection input. Its lifetime
+and factual validity follow the presentation queue in `battle-radio-nouns.md`.
 
 The standalone battle treats HUD chrome as an overlay rather than as space removed
 from the world. Its square-cell camera cover-fits the granted host viewport and pans

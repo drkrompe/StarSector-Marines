@@ -76,7 +76,7 @@ class MissionMlxTest {
         try (MarkupInstance instance = loader.build(new Reactor(),
                 BriefingScreen.ROOT_COMPONENT,
                 BriefingScreen.previewProps(false))) {
-            BriefingViewModel.applyDebugVisibility(instance, BriefingScreen.previewProps(false));
+            BriefingViewModel.applyVisibility(instance, BriefingScreen.previewProps(false));
             assertNull(instance.requireElement("mission-debug-drawer").parent());
             assertEquals("mission-briefing-header",
                     instance.requireElement("mission-debug-toggle").parent().id());
@@ -91,7 +91,7 @@ class MissionMlxTest {
         Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
         try (MarkupInstance instance = loader.build(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
             BriefingScreen.requireRetainedElements(instance);
-            BriefingViewModel.applyDebugVisibility(instance, props);
+            BriefingViewModel.applyVisibility(instance, props);
             assertNull(instance.requireElement("mission-debug-toggle").parent());
             assertNull(instance.requireElement("mission-debug-drawer").parent());
             assertEquals(List.of("mission-commitment", "mission-survey-slot"), instance.requireElement("mission-planning")
