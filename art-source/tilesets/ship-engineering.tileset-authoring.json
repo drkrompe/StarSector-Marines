@@ -1,0 +1,141 @@
+{
+  "sheetName": "ship-engineering",
+  "sheet": "art-source/tilesets/ship-engineering.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-engineering",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-engineering.png",
+  "note": "Complete connected machinery skids: pipe circuits stay inside each blocking assembly. Muted geometry-first ImageGen source, measured cuts with four-pixel padding; no post-export patch.",
+  "entries": [
+    {
+      "id": "ship-engineering.drive-train",
+      "rect": [
+        46,
+        73,
+        1158,
+        345
+      ],
+      "footprintCells": [
+        18,
+        6
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.cooling",
+      "rect": [
+        49,
+        476,
+        367,
+        246
+      ],
+      "footprintCells": [
+        6,
+        4
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.life-support",
+      "rect": [
+        448,
+        476,
+        361,
+        246
+      ],
+      "footprintCells": [
+        6,
+        4
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.generator",
+      "rect": [
+        836,
+        476,
+        370,
+        246
+      ],
+      "footprintCells": [
+        6,
+        4
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.control",
+      "rect": [
+        49,
+        832,
+        294,
+        101
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.bench",
+      "rect": [
+        456,
+        809,
+        369,
+        161
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.switchgear",
+      "rect": [
+        920,
+        809,
+        284,
+        163
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.9,
+      "included": true
+    },
+    {
+      "id": "ship-engineering.spares",
+      "rect": [
+        51,
+        1026,
+        294,
+        170
+      ],
+      "footprintCells": [
+        3,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    }
+  ]
+}
