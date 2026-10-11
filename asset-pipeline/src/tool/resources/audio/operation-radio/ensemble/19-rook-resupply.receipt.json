@@ -1,0 +1,11 @@
+{
+  "requestId": "9vCmOsc5QhuO4kM7FeHI",
+  "characterCost": "9",
+  "voiceId": "gpYq8Tu9Py4uI902kHOw",
+  "inputSha256": "7a646780e98f63cad1bb73c421c52c0d6c179cb97995f13af0602e487b6bd838",
+  "audioSha256": "eee4a2f8abc932b704b651f4f520daf91537dc9f9f0609918a9e244bd2d220d2",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[weary, wry voice] On it. Try to leave me a bit of ground that isn't being shot at."
+  }
+}

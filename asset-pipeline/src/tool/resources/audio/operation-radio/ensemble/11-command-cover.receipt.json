@@ -1,0 +1,11 @@
+{
+  "requestId": "8kNniMivHaHkMDINdi9P",
+  "characterCost": "8",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "inputSha256": "c08e094828b33e802ffe3425fccf9636275812e4e96b6e19ca3881f39d36b0c2",
+  "audioSha256": "e7c8ea1b20fd8c6c0f88bcd83183cff0b087b068328d56d6ab2a3e30e3c4b6db",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[firm, brisk voice] Cover Kestrel's advance. Keep that crossing open."
+  }
+}

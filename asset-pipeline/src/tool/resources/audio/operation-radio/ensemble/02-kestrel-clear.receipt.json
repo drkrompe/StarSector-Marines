@@ -1,0 +1,11 @@
+{
+  "requestId": "kZGOT9UEN2t5aOSJZ0rz",
+  "characterCost": "8",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "inputSha256": "0786761de37844cbd1795cedda8370bc3726a9e53bf9d917480c2a8249a49ce9",
+  "audioSha256": "e105a0b7ca3710ba1a7da8c5b6a50a426193988466857ca55ca73c5e07a5c08d",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[shouting] [strained, breathless voice] Last man's clear! Lift, Rook!"
+  }
+}

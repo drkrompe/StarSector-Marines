@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
+import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -283,6 +284,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private StoryNarrationPlayer storyNarration;
     private SoundAPI radioSound;
     private final CompanyOfficer companyOfficer = new CompanyOfficer();
+    private final OperationRadio operationRadio = new OperationRadio();
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -297,12 +299,14 @@ public class BattleScreen implements Screen, BattleUiContext {
             radioSound = null;
             radioChatter.reset();
             companyOfficer.reset();
+            operationRadio.reset();
             mechFootsteps.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.storyMissionId(ctx != null ? ctx.getSelectedMission() : null), line -> {
                         if (radioSound != null) radioSound.stop();
                         radioSound = null;
                         companyOfficer.stop();
+                        operationRadio.stop();
                         radioChatter.reserveVoice(line.durationSeconds());
                     });
         }
@@ -597,6 +601,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public void detach() {
         companyOfficer.stop();
+        operationRadio.stop();
         if (storyNarration != null) storyNarration.stop();
         storySubtitles.detach();
         if (radioSound != null) radioSound.stop();
@@ -1179,6 +1184,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     /** Mission dialogue owns the channel ahead of squad chatter; presentation uses real time. */
     private void advanceVoices(BattleSimulation sim, float dt) {
+        operationRadio.observe(sim);
         if (storyNarration != null) {
             storyNarration.advance(dt, sim.getPlayerStoryBeatsAfter(storyNarration.cursor()),
                     speedMultiplier <= 0f, sim.isComplete());
@@ -1187,25 +1193,38 @@ public class BattleScreen implements Screen, BattleUiContext {
                 || radioSound != null && radioSound.isPlaying();
         boolean running = speedMultiplier > 0f && !sim.isComplete();
         if (sim.isComplete()) companyOfficer.discardPending();
-        CompanyOfficer.Line response = companyOfficer.advance(dt, running, channelBusy);
+        CompanyOfficer.Line response = companyOfficer.advance(dt, running, channelBusy || operationRadio.busy());
         if (response != null) radioChatter.reserveVoice(response.durationSeconds());
+        OperationRadio.Transmission turn = operationRadio.advance(dt, running, sim.isComplete(),
+                channelBusy || companyOfficer.busy());
+        if (turn != null) radioChatter.reserveVoice(turn.line().durationSeconds());
+
+        // Confirmed tactical reports get first use of an open channel; assignment exchanges are ambient.
         BattleRadioChatter.Emission emission = radioChatter.advance(running ? dt : 0f, sim,
-                running && !channelBusy && !companyOfficer.busy());
+                running && !channelBusy && !companyOfficer.busy() && !operationRadio.busy());
         if (emission != null) {
-            companyOfficer.heard(emission.cue());
-            Vector2f loc = new Vector2f(
-                    emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
-                    emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
-            radioSound = Global.getSoundPlayer().playSound(
-                    emission.cue().soundId(), 1f, emission.cue().volume(), loc,
-                    new Vector2f(0f, 0f));
+            OperationRadio.Transmission report = operationRadio.report(emission.cue());
+            if (report != null) {
+                radioChatter.reserveVoice(report.line().durationSeconds());
+            } else {
+                companyOfficer.heard(emission.cue());
+                Vector2f loc = new Vector2f(
+                        emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
+                        emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
+                radioSound = Global.getSoundPlayer().playSound(
+                        emission.cue().soundId(), 1f, emission.cue().volume(), loc,
+                        new Vector2f(0f, 0f));
+            }
+        } else if (running && !channelBusy && !companyOfficer.busy() && radioChatter.voiceAvailable()) {
+            OperationRadio.Transmission opening = operationRadio.beginExchange();
+            if (opening != null) radioChatter.reserveVoice(opening.line().durationSeconds());
         }
         if (sim.isComplete() && radioSound != null) {
             radioSound.stop();
             radioSound = null;
         }
         storySubtitles.update(storyNarration != null ? storyNarration.current() : null,
-                companyOfficer.current(), dt);
+                companyOfficer.current(), operationRadio.current(), dt);
     }
 
     private void retreatFromBattle() {

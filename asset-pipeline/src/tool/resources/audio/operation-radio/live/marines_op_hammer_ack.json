@@ -1,0 +1,7 @@
+{
+  "audioSha256": "e13bd3e0933c3e78546343426dbc91ea38ec43f58043570fd175729be51d612f",
+  "voiceId": "HuAfwy9ycsANuERZQHLU",
+  "modelId": "eleven_v4",
+  "retainedFrom": "ensemble/10-hammer-ack.mp3",
+  "durationSeconds": 1.68
+}
