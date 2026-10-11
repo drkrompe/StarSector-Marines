@@ -1,0 +1,109 @@
+{
+  "sheetName": "ship-bridge",
+  "sheet": "art-source/tilesets/ship-bridge.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "ship-bridge",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-bridge.png",
+  "note": "Six geometry-first bridge fixtures. Controls face the outboard watch positions. Measured cuts from unchanged ImageGen output; alpha preserved.",
+  "entries": [
+    {
+      "id": "ship-bridge.plot",
+      "rect": [
+        80,
+        61,
+        327,
+        344
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-bridge.helm",
+      "rect": [
+        674,
+        128,
+        500,
+        178
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-bridge.systems",
+      "rect": [
+        80,
+        559,
+        472,
+        162
+      ],
+      "footprintCells": [
+        3,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-bridge.console-east",
+      "rect": [
+        765,
+        481,
+        126,
+        317
+      ],
+      "footprintCells": [
+        1,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-bridge.console-west",
+      "rect": [
+        88,
+        866,
+        133,
+        318
+      ],
+      "footprintCells": [
+        1,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-bridge.data-cabinet",
+      "rect": [
+        760,
+        891,
+        137,
+        269
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    }
+  ]
+}
