@@ -1,0 +1,12 @@
+Use case: sketch-to-render. Asset type: one production sprite atlas for a top-down spaceship shuttle bay.
+Image 1 is the AUTHORITATIVE GEOMETRY GUIDE / edit target. Image 2 is MATERIAL reference only, the accepted muted ship armory. Reskin image 1 into finished game art matching image 2. Preserve the seven isolated objects in exactly the same slot order, shape, scale and placement on the square canvas. Do not rearrange or enlarge them. Orthographic straight overhead, no isometric tilt.
+Guide slots, reading left to right:
+Top left: 2x3 flight operations desk, single dim olive display and writing surface, control edge on the right.
+Top middle: 2x3 wheeled servicing trolley, drawers and a securely coiled dark hose completely contained within the cart.
+Top right: 4x2 compact ground-power unit, broad enclosure, restrained vent slots, integral coiled electrical lead.
+Middle left: 4x2 fluid servicing skid, two rounded tank tops connected to one clearly continuous short manifold and pump, all pipes within the rectangular base.
+Middle middle: two landing-gear wheels in cradles, a 2x2 independent shelf CONTENTS overlay. Preserve empty transparent margins. NO shelving or floor under them.
+Middle right: flat seamless matte cool grey resin/concrete landing deck material square, uniform low contrast, only very subtle wear, NO border, slab edge, rim, bevel, seam, stripe or objects. This square alone is fully opaque and tileable.
+Bottom left: flat flush tie-down and simple worn off-white circular stencil on TRANSPARENT background. This is floor paint plus one tiny recessed fixing, NOT a raised platform. Preserve transparent space inside and outside the circle.
+Palette: neutral charcoal, grey steel, faint olive-grey enamel, warm-grey worktops, subdued off-white paint. No saturated blue, orange, bright yellow or colorful lights. Broad readable forms at 24 pixels per cell, restrained surface detail, no scattered junk, no fine repetitive grating. Soft short contact shadows within footprints, no cast shadows outside.
+Preserve genuinely transparent atlas background and gutters, no black or checkerboard background painted in. Only paint the supplied geometry. No labels, text, logos, characters, aircraft, extra props or added floor backing. Output the entire finished atlas.

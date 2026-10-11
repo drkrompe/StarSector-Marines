@@ -43,6 +43,7 @@ class BarracksCommandModelTest {
     }
 
     @Test void realPointerFlowSavesAndAssignsProfileThenInspectsAndReturns() throws Exception {
+        CompanyManagementGuide.install(new org.json.JSONObject(Files.readString(Path.of("mod", CompanyManagementGuide.PATH))));
         var reactor = new Reactor();
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -64,7 +65,23 @@ class BarracksCommandModelTest {
             try (var instance = loader.build(reactor, "shipboard-barracks", props)) {
                 var document = new UiDocument(instance.root());
                 instance.styles().forEach(document::addStyleSheet);
-                document.theme(MarineOpsThemes.standard()); document.layout(1920, 1080);
+                document.theme(MarineOpsThemes.standard());
+                BarracksGuideModal.bind(document, instance, model, model::showOverview);
+                document.layout(1920, 1080);
+                assertEquals("graphics/portraits/castle.png", value(model, "guidePortrait"));
+                click(document, instance, "barracks-select-all");
+                assertTrue(model.selected().isEmpty(), "The modal must block background orders");
+                for (int i = 0; i < 8; i++) {
+                    document.keyPressed(com.dillon.starsectormarines.ui.retained.UiKey.TAB, java.util.Set.of(), false);
+                    assertTrue(document.focusedElement().id().startsWith("guide-"));
+                }
+                document.keyPressed(com.dillon.starsectormarines.ui.retained.UiKey.ESCAPE, java.util.Set.of(), false);
+                instance.flush(); document.advance(0f);
+                assertFalse(model.guideVisible());
+                click(document, instance, "barracks-guide-help");
+                assertTrue(model.guideVisible());
+                click(document, instance, "guide-dismiss");
+
                 var hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 var bindings = new BarracksCardBindings();
                 bindings.update(document, instance, model, hints);
@@ -91,7 +108,7 @@ class BarracksCommandModelTest {
                 assertFalse(model.inspecting());
                 assertEquals(1, model.selected().size());
             }
-        } finally { SvgAsset.setSource(previous); }
+        } finally { SvgAsset.setSource(previous); CompanyManagementGuide.install(new org.json.JSONObject("{\"lines\":[]}")); }
     }
 
     private static Object value(BarracksCommandModel model, String key) { return ((Signal<?>) model.props().get(key)).get(); }

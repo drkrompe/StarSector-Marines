@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — forest destruction releases whole crowns while preserving overlapping trees, underlying hills and finished access.
+Updated: 2026-10-11 — forest destruction preserves overlapping trees, underlying hills and access; prop placement preserves supporting ground.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -45,6 +45,12 @@ graphs and tactical-region maps may remain in the context until an external
 consumer justifies result plumbing. Final validation protects connectivity,
 deployability, doors, and other cross-system assumptions. Decoration may
 express a place but cannot secretly create its movement, cover, or wall rules.
+
+Placing an individual prop preserves the existing ground material and surface
+override. Loading pads, gravel beds and floor markings are explicit layout
+operations, independent of the equipment standing on them. Previews use the
+production prop-placement rules without invoking a whole facility recipe just
+to obtain one object.
 
 ## Recipe, context, and stage
 
