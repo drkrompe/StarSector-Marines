@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: Square in-game dialogue portrait for Castle, original mercenary company shipboard operations officer in a worn low-tech space opera.
+Primary request: Painted head-and-shoulders character portrait, woman in her early fifties, capable, attentive, pragmatic and quietly wry. Warm pale olive skin, lived-in face with fine expression lines, steady grey-green eyes, dark brown hair with visible silver at temples tied back into a practical short bun. Slight three-quarter pose, eyes toward viewer, closed mouth, restrained knowing half-smile. Worn charcoal-olive high-collared duty jacket over faded undershirt, small functional communications earpiece and short boom microphone. No heavy armor.
+Style: Detailed hand-painted 1990s science-fiction RPG portrait, visible brush texture and sharply readable facial planes, natural human proportions, restrained realism rather than photographic gloss. Readable at 64 and 128 pixels, large face, crop shoulders at bottom, leave small clearance above hair. Warm amber key light and soft neutral fill, almost black muted shipboard background without discernible objects. Muted olive, umber, charcoal, cream. Confident experienced company officer with warmth for her crew. Single portrait filling square frame.
+Constraints: Original character, no resemblance to an actor or existing game character. No text, no insignia, no frame, no captions, no holograms, no blue neon, no beauty retouching, no exaggerated scowl, no weapons, no additional people.
+
+Generated with the built-in image_gen tool. Master retained as castle-master.png.
+Runtime export: 256 x 256 PNG, matching the existing Mara Venn portrait.
