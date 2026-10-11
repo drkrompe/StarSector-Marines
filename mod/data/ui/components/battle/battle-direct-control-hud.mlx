@@ -1,7 +1,12 @@
-<template props="healthStyle,healthClasses,armorStyle,weapons,weaponsClasses,allLabel,allClasses,allDisabled,allAction">
+<template props="healthStyle,healthClasses,armorStyle,weapons,weaponsClasses,allLabel,allClasses,allDisabled,allAction,heatClasses,heatStyle,heatLabel,heatState">
   <div id="direct-hud" class="direct-hud" style="background-color: #00000000;">
     <div id="direct-hud-armor-meter" class="meter"><div id="direct-hud-armor-fill" class="armor-fill" style="{armorStyle}"></div></div>
     <div id="direct-hud-health-meter" class="meter"><div id="direct-hud-health-fill" class="{healthClasses}" style="{healthStyle}"></div></div>
+    <div id="direct-hud-heat" class="{heatClasses}">
+      <div id="direct-hud-heat-label" class="heat-label">{heatLabel}</div>
+      <div id="direct-hud-heat-meter" class="heat-meter"><div id="direct-hud-heat-fill" class="heat-fill" style="{heatStyle}"></div></div>
+      <div id="direct-hud-heat-state" class="heat-state">{heatState}</div>
+    </div>
     <div id="direct-hud-weapons" class="{weaponsClasses}">
       <button id="direct-hud-all" class="{allClasses}" disabled="{allDisabled}" onclick="{allAction}">{allLabel}</button>
       <div id="direct-hud-mounts" class="mounts">
@@ -17,6 +22,12 @@
 
 <style>
   .direct-hud { width: 100%; height: 100%; gap: 2px; overflow: hidden; }
+  .heat { height: 16px; flex-direction: row; gap: 8px; align-items: center; }
+  .heat-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; }
+  .heat-label { width: 76px; font-family: compact; color: #e8c68d; }
+  .heat-state { width: 116px; font-family: compact; text-align: right; color: #e8c68d; }
+  .heat-meter { width: 0px; flex-grow: 1; height: 5px; flex-direction: row; background-color: #352b26; }
+  .heat-fill { height: 100%; }
   .meter { height: 3px; width: 100%; flex-direction: row; background-color: #253344; }
   .health-fill { height: 100%; background-color: #7cd89c; }
   .armor-fill { height: 100%; background-color: #a7ccc4; }

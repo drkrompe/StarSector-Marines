@@ -819,6 +819,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
                 mapEditor, effects, noiseEvents, this::applyPendingImpact);
+        detonations.observe(det -> warships.onDetonation(det, this));
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
         // is the line it comes into existence on.
@@ -1548,8 +1549,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * pipeline as a queued detonation — just without the timer delay.
      */
     /** Commits a warship's lance sweep; its arc is fixed from here. */
-    public void startLanceSweep(LanceSweep sweep) {
-        lanceSweeps.start(sweep);
+    public LanceSweepSystem.Active startLanceSweep(LanceSweep sweep) {
+        return lanceSweeps.start(sweep);
     }
 
     /** Puts a warship over the battle; it fires from the next tick. */
@@ -1914,6 +1915,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathsThisFrame.clear();
         friendlyFireSquadsThisFrame.clear();
         effects.beginFrame();
+        warships.beginFrame();
         systemFxSystem.beginFrame();
         directControl.validate();
         if (isComplete()) return;

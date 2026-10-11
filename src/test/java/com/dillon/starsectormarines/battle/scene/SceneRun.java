@@ -88,6 +88,7 @@ public final class SceneRun {
             frames.frame(loopId, sim, tick, caption == null ? "" : caption.apply(tick));
         }
         sim.advance(BattleSimulation.TICK_DT);
+        if (everyTicks > 0) frames.advanced(loopId, sim, tick);
         tick++;
     }
 }
