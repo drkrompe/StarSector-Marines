@@ -54,7 +54,7 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
    vanilla turret sprites.
 5. **Sweep, later.** Beam weapons resolve through `LanceSweep` with the vanilla
    beam textures. Not in the first slice.
-6. **Director.** Picks targets by density, as the airfield strike does.
+6. **Orders.** Hold fire and area fire (with optional bring-guns-to-bear heading) are shipped; a director that picks the area by density, as the airfield strike does, is open.
 7. **Faction, not allegiance.** The entity is owned by a faction supplied by its
    committer; the first acceptance uses the company's own ship and an enemy one.
 8. **Answerability.** A bounded station time and a hull pool that only heavy
