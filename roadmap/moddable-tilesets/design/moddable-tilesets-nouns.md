@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — cardinal wall/opening art and procedural pavement with reproducible transparent edge masks share the catalog and both render backends.
+Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
 
 Read `stories.md` for open work.
 
@@ -178,6 +178,27 @@ As with intact walls, code owns geometry, ImageGen supplies the material reskin,
 and the judged raw sheet, prompt and full-cell cuts remain art-source inputs
 to the ordinary exporter. The silhouette must retain open floor between pieces;
 its appearance does not add collision or change cover.
+
+### Geometry-guided ground damage
+
+A floor material may name a `damageBlock`: a single transparent overlay or a
+coordinate-stable variant pool. The nine colony floors pair with localized
+cracks and shallow gouges. The original floor remains underneath, so its
+pattern and tile seams survive. The ordinary scatter layer resolves the pair
+in both streamed and resident rendering; unpaired surfaces keep their existing
+appearance and impact decals.
+
+Structural area blasts mark solid, non-wall cells within their splash circle
+and line of sight. `GROUND_DAMAGED` is a persistent visual tag, recorded once
+in the cell change log; it changes neither the material id, ground kind,
+walkability nor cover. Water, void and rubble are excluded. Wall-collapse
+rubble retains its own material/footprint history and takes precedence.
+
+`GroundDamageReskinTemplate` defines the local shapes and clear perimeter;
+ImageGen reskins them to each floor material. The retained guide, prompt, raw
+plate and full-cell cuts reproduce the exported atlas. The `ground-damage`
+snapshot suite compares intact and damaged fields through the battle renderer.
+The repeatable production procedure is in `art-source/geometry-first-imagegen.md`.
 
 ### Id-addressed visual catalog
 
@@ -632,6 +653,21 @@ Additional fixed-grid block sheets load through the catalog in both the game
 and headless renderer. They retain registered per-sheet batches alongside the existing ground atlas;
 content on a new sheet must not
 silently render as an empty cell.
+
+Catalog-declared prop sheets are loaded and batched by both render backends as
+well. A map using additional prop sheets retains placement order across sheets,
+so deck covering laid first remains beneath the fixtures placed afterwards.
+Legacy-only maps retain their established sheet grouping and draw order.
+
+## Procedural natural surfaces
+
+Natural terrain has a retained material recipe and a single procedural atlas
+producer. Talus, rock summits and directional face tones are named variant
+pools; contour geometry and orientation select them without owning packed
+coordinates. Grass-topped masses reuse the ordinary grass appearance. The
+recipe and producer remain pre-pack inputs outside the shipped mod, while
+catalogs and the generated atlas load through the existing terrain-sheet path
+in both live and headless rendering.
 
 ## Validation and fallback laws
 

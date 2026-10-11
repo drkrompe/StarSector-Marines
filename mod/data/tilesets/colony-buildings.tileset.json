@@ -1,6 +1,7 @@
 {
   "blocks": [
     {
+      "damageBlock": "colony.limestone-damage",
       "doorBlock": "colony.masonry-door",
       "id": "colony.limestone",
       "layout": "single",
@@ -11,6 +12,7 @@
       "windowBlock": "colony.masonry-window"
     },
     {
+      "damageBlock": "colony.terracotta-damage",
       "doorBlock": "colony.ceramic-door",
       "id": "colony.terracotta",
       "layout": "single",
@@ -21,6 +23,7 @@
       "windowBlock": "colony.ceramic-window"
     },
     {
+      "damageBlock": "colony.basalt-damage",
       "doorBlock": "colony.ceramic-door",
       "id": "colony.basalt",
       "layout": "single",
@@ -31,6 +34,7 @@
       "windowBlock": "colony.ceramic-window"
     },
     {
+      "damageBlock": "colony.sage-damage",
       "doorBlock": "colony.ceramic-door",
       "id": "colony.sage",
       "layout": "single",
@@ -41,6 +45,7 @@
       "windowBlock": "colony.ceramic-window"
     },
     {
+      "damageBlock": "colony.terrazzo-damage",
       "doorBlock": "colony.ceramic-door",
       "id": "colony.terrazzo",
       "layout": "single",
@@ -51,6 +56,7 @@
       "windowBlock": "colony.ceramic-window"
     },
     {
+      "damageBlock": "colony.timber-damage",
       "doorBlock": "colony.masonry-door",
       "id": "colony.timber",
       "layout": "single",
@@ -61,6 +67,7 @@
       "windowBlock": "colony.masonry-window"
     },
     {
+      "damageBlock": "colony.concrete-damage",
       "doorBlock": "colony.olive-door",
       "id": "colony.concrete",
       "layout": "single",
@@ -71,6 +78,7 @@
       "windowBlock": "colony.olive-window"
     },
     {
+      "damageBlock": "colony.ochre-damage",
       "doorBlock": "colony.olive-door",
       "id": "colony.ochre",
       "layout": "single",
@@ -81,6 +89,7 @@
       "windowBlock": "colony.olive-window"
     },
     {
+      "damageBlock": "colony.tread-damage",
       "doorBlock": "colony.olive-door",
       "id": "colony.tread",
       "layout": "single",

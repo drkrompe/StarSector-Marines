@@ -86,6 +86,17 @@ public final class MapEditor {
         return true;
     }
 
+    /** Marks an exposed solid floor for its material-matched overlay; no navigation mutation. */
+    public boolean damageGround(int x, int y) {
+        if (!topology.inBounds(x, y) || topology.isWall(x, y)
+                || topology.hasTag(x, y, CellTopology.Tag.GROUND_DAMAGED)) return false;
+        CellTopology.GroundKind kind = topology.getGroundKind(x, y);
+        if (kind == CellTopology.GroundKind.VOID || kind == CellTopology.GroundKind.WATER
+                || kind == CellTopology.GroundKind.RUBBLE) return false;
+        topology.setTag(x, y, CellTopology.Tag.GROUND_DAMAGED, true);
+        return true;
+    }
+
     private void rememberWall(int x, int y) {
         int faces = 0;
         if (wasExposed(x, y + 1)) faces |= CellTopology.WALL_DIR_N;

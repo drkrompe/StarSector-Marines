@@ -49,11 +49,14 @@ public final class TileRegistry {
             "data/tilesets/doodads.tileset.json",
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/pavement.tileset.json",
+            "data/tilesets/natural-terrain.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
             "data/tilesets/colony-walls.tileset.json",
             "data/tilesets/colony-openings.tileset.json",
-            "data/tilesets/colony-rubble.tileset.json");
+            "data/tilesets/colony-rubble.tileset.json",
+            "data/tilesets/colony-ground-damage.tileset.json",
+            "data/tilesets/ship-bay.tileset.json");
 
     private static volatile TileRegistry installed;
 
@@ -303,7 +306,7 @@ public final class TileRegistry {
                 }
                 blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells,
                         o.optString("windowBlock", null), o.optString("doorBlock", null),
-                        o.optString("rubbleBlock", null)));
+                        o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
                 sourceById.put(id, source);
                 continue;
             }
@@ -314,7 +317,7 @@ public final class TileRegistry {
             Integer fillRgb = o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null;
             blocksById.put(id, new GridBlockDef(id, sheet, cellPx, oc, or, layout, fillRgb,
                     o.optString("windowBlock", null), o.optString("doorBlock", null),
-                    o.optString("rubbleBlock", null)));
+                    o.optString("rubbleBlock", null), o.optString("damageBlock", null)));
             sourceById.put(id, source);
         }
     }
@@ -347,6 +350,13 @@ public final class TileRegistry {
         for (GridBlockDef block : blocksById.values()) {
             validateOpening(block.id, block.windowBlockId);
             validateOpening(block.id, block.doorBlockId);
+            if (block.damageBlockId != null) {
+                GridBlockDef damage = block(block.damageBlockId);
+                if (damage == null || (!damage.isVariantPool() && damage.layout != GridLayout.SINGLE)) {
+                    throw new IllegalStateException("Ground damage '" + block.damageBlockId + "' on '" + block.id
+                            + "' must reference a single block or variant pool");
+                }
+            }
             if (block.rubbleBlockId != null) {
                 GridBlockDef rubble = block(block.rubbleBlockId);
                 if (rubble == null || rubble.layout != GridLayout.WALL_FACES_4X4) {

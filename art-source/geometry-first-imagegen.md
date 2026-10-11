@@ -1,0 +1,77 @@
+# Geometry-first ImageGen assets
+
+For modular terrain and cover, define the geometry in code and ask built-in
+ImageGen to reskin that guide. The guide owns placement, connectivity, openings
+and empty space; the generated pass owns material and surface detail. This is
+the preferred approach for this project's walls, openings, directional cover,
+rubble and ground damage.
+
+## Repeatable production loop
+
+1. Start from the runtime layout and render a deterministic guide. Keep the
+   complete cell canvas, even for an edge-hugging object. Define clear gutters,
+   exact pivots, a recorded slot order and meaningful transparent voids.
+2. Inspect the guide, then pass it to built-in ImageGen as the edit target.
+   Supply existing art separately as the material reference. Request a reskin
+   that preserves geometry, camera, placement and alpha; exclude added slabs,
+   aprons, floor backing and borders unless the consumer actually owns them.
+3. Save the guide under `art-source/templates/`, and retain the accepted raw
+   PNG and exact prompt beside its authoring document. ImageGen may change the
+   resolution: inspect actual dimensions and cuts, never assume the requested
+   canvas size came back unchanged.
+4. Annotate stable ids and material pairings in the source document. Export
+   using `tools/authoring.cmd tileset_export -` with a JSON object such as
+   `{"name":"colony-ground-damage"}` on stdin. The wrapper rebuilds the tools.
+   Do not invoke the stale generated launcher under `build/authoring/`.
+5. Preserve full-frame cuts and generated alpha. Crop/downsample/quarter-turn
+   mechanically through the retained pipeline. Do not trim/recenter an edge
+   piece or patch the final atlas separately from its producer. Re-derive
+   height/normal companions if that sheet has them.
+6. Register new sheets in both `TileRegistry.BUILTIN_TILESETS` and the provider
+   catalog. Optional material pairings must survive document editing, export,
+   reload and complete-catalog reference validation.
+7. Check the actual assembly through a registered `SnapshotSuite`, using
+   `gradlew.bat createSnapshots -Psnapshot=<id>`. Review at game scale, with
+   adjoining cells, all relevant orientations and before/after states. Test
+   important open regions spatially; average alpha cannot prove an opening is
+   still open. Use small unit tests for selection/state laws and the snapshot
+   catalog for whole-render evidence.
+
+Set `JAVA_HOME` to the path in `CLAUDE.md` before Gradle/authoring commands.
+Keep source inputs out of `mod/`; only exported art and its runtime catalog ship.
+
+## Working examples
+
+| Asset | Geometry / contract | Retained sources | Visual suite |
+| --- | --- | --- | --- |
+| Colony walls | `WallReskinTemplate`; 16 exposed-face masks, no privileged inside/outside | `templates/colony-walls.png`, `tilesets/colony-walls.*` | `building-stamps` |
+| Windows and doors | `OpeningReskinTemplate`; matching wall family, transparent apertures, four cardinal poses | `templates/colony-openings.png`, `tilesets/colony-openings.*` | `building-stamps` |
+| Sandbags | `SandbagReskinTemplate`; rounded straight run and L, exact quarter turns | `doodads/sandbags*`, doodad manifest and retained sources | `sandbags` |
+| Wall rubble | `RubbleReskinTemplate`; broken roots retain former connectivity and leave ground exposed | `templates/colony-rubble.png`, `tilesets/colony-rubble.*` | `wall-rubble` |
+| Ground damage | `GroundDamageReskinTemplate`; local cracks/gouges over the original material, clear perimeter | `templates/colony-ground-damage.png`, `tilesets/colony-ground-damage.*` | `ground-damage` |
+| Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
+
+Template classes live in `src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/`.
+Each accepted sheet's prompt and authoring note record its precise layout.
+
+## Details that matter
+
+- Wall atlas masks use N=1, E=2, S=4, W=8; `CellTopology` uses N=1, S=2,
+  E=4, W=8. Convert deliberately. Cardinal opening cells are N,E,S,W.
+- A window does not own an extra sidewalk cell. Building footprint code owns
+  the apron; image generation must not add one to individual pieces.
+- Sandbags use `preserveCanvas:true` and zero packing padding. When updating
+  only those entries, `stitch_atlas.py --only-prefix doodad.sandbag-` preserves
+  unrelated atlas pixels and requires an unchanged manifest layout.
+- Rubble is a transparent overlay over the captured floor, paired by
+  `rubbleBlock`. Ground damage uses `damageBlock` and keeps the original floor
+  directly underneath. This avoids mismatched replacement-floor seams.
+- Ground-damage marks should read as recessed fractures or shallow gouges,
+  not bright raised branches. Inspect them composited on their actual material.
+- An image preview can exaggerate RGB noise in almost-transparent pixels.
+  Inspect alpha and the real composite before deciding whether the asset has
+  a visible halo. Preserve genuine source alpha instead of keying by color.
+
+The general geometry-first technique is also linked from the installed
+ImageGen skill. This file owns project paths and commands; the skill owns the
+reusable prompting and verification approach.
