@@ -4,8 +4,8 @@ The `ship-neutral` review scene keeps the concrete bays and layered warehouse
 layout, with two material changes: graphite/galvanized shelving and a new
 neutral ship bulkhead. Red service equipment and yellow bay markings remain
 the principal accents. The neutral bulkhead is accepted and now supplies the
-ship generator's default shell. The layered rack arrangement remains a review
-fixture; see `ship-interior-materials.README.md` for the adopted material scope.
+ship generator's default shell. Generated Mech Labs also use the muted layered
+racks and short bay partitions; see `ship-interior-materials.README.md` for the adopted material scope.
 
 ## Layered shelving
 

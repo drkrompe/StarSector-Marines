@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
+import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -80,10 +82,17 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
                 if(!reached[to]){reached[to]=true;queue.add(to);}
             }
         }
+        boolean[] crowns = new boolean[w*h];
+        for (var doodad : map.doodads) for (var canopy : TreeCanopy.values()) {
+            var def = TileRegistry.installed().doodad(canopy.id);
+            if (!doodad.sheetPath.equals(def.sheetPath) || doodad.tile.col != def.col || doodad.tile.row != def.row) continue;
+            for (int y = 0; y < doodad.footprintCellsY; y++) for (int x = 0; x < doodad.footprintCellsX; x++)
+                if (canopy.blocks(x, y, doodad.quarterTurns)) crowns[(doodad.cellY+y)*w+doodad.cellX+x] = true;
+        }
         int solid=0,openNatural=0;
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
             boolean natural=grid.hasTag(x,y,CellTag.NATURAL_SOLID);
-            if(natural!=field.blocked(x,y))throw new IllegalStateException("Terrain field/grid mismatch");
+            if(natural!=(field.blocked(x,y)||crowns[y*w+x]))throw new IllegalStateException("Terrain field/grid mismatch");
             if(natural) {
                 solid++;
                 if(grid.isWalkable(x,y)||grid.isSeeThrough(x,y)||grid.getWallHp(x,y)!=0
