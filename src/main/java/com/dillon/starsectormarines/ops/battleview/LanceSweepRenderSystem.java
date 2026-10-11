@@ -2,9 +2,13 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
+import com.dillon.starsectormarines.battle.warship.VanillaBeamLook;
+import com.dillon.starsectormarines.battle.warship.VanillaWeaponLooks;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
+
+import java.awt.Color;
 
 /**
  * Draws a warship's lance: the line laid before it is lit, then the beam, its
@@ -112,13 +116,23 @@ public final class LanceSweepRenderSystem implements RenderSystem {
             py = dy;
         }
 
-        line(ox, oy, tx, ty, w * 1.9f, 1f, 0.35f, 0.12f, 0.20f * flicker * fade);
-        line(ox, oy, tx, ty, w * 1.0f, 1f, 0.62f, 0.25f, 0.55f * flicker * fade);
-        line(ox, oy, tx, ty, w * 0.38f, 1f, 0.97f, 0.88f, 0.95f * flicker * fade);
+        // The weapon's own colours when it has them: the Tachyon Lance is violet
+        // and white, not the generic orange of a sweep with no weapon behind it.
+        VanillaBeamLook look = VanillaWeaponLooks.beam(s.weaponId());
+        float[] glow = look != null && look.glow() != null ? rgb(look.glow()) : new float[]{1f, 0.35f, 0.12f};
+        float[] fringe = look != null && look.fringe() != null ? rgb(look.fringe()) : new float[]{1f, 0.62f, 0.25f};
+        float[] core = look != null && look.core() != null ? rgb(look.core()) : new float[]{0.97f, 0.88f, 0.75f};
+        line(ox, oy, tx, ty, w * 1.9f, glow[0], glow[1], glow[2], 0.20f * flicker * fade);
+        line(ox, oy, tx, ty, w * 1.0f, fringe[0], fringe[1], fringe[2], 0.55f * flicker * fade);
+        line(ox, oy, tx, ty, w * 0.38f, core[0], core[1], core[2], 0.95f * flicker * fade);
 
         // The tip, where the ground is actually being cut.
-        PolyTess.appendAnnulus(mesh, tx, ty, 0f, w * 1.1f, 20, 1f, 0.55f, 0.2f, 0.45f * fade);
-        PolyTess.appendAnnulus(mesh, tx, ty, 0f, w * 0.55f, 20, 1f, 0.95f, 0.8f, 0.9f * fade);
+        PolyTess.appendAnnulus(mesh, tx, ty, 0f, w * 1.1f, 20, fringe[0], fringe[1], fringe[2], 0.45f * fade);
+        PolyTess.appendAnnulus(mesh, tx, ty, 0f, w * 0.55f, 20, core[0], core[1], core[2], 0.9f * fade);
+    }
+
+    private static float[] rgb(Color c) {
+        return new float[]{c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f};
     }
 
     /** Full brightness through the burn, with a short ramp in and out. */

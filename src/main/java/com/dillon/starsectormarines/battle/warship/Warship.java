@@ -36,6 +36,8 @@ public final class Warship {
         float aimY;
         /** Whether {@code aimX/aimY} is a live choice the barrel is swinging to. */
         boolean aimed;
+        /** The sweep this beam mount has committed, while it lasts. */
+        LanceSweepSystem.Active lance;
         /** Rounds this mount has fired, for evidence. */
         public int shotsFired;
         /** Where the barrel points now, in the hull-facing convention; rests along the slot until it has a target. */

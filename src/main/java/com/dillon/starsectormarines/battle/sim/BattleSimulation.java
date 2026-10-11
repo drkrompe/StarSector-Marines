@@ -1548,8 +1548,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * pipeline as a queued detonation — just without the timer delay.
      */
     /** Commits a warship's lance sweep; its arc is fixed from here. */
-    public void startLanceSweep(LanceSweep sweep) {
-        lanceSweeps.start(sweep);
+    public LanceSweepSystem.Active startLanceSweep(LanceSweep sweep) {
+        return lanceSweeps.start(sweep);
     }
 
     /** Puts a warship over the battle; it fires from the next tick. */
