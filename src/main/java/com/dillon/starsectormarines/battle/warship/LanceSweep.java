@@ -27,7 +27,8 @@ public record LanceSweep(
         float burnSeconds,
         float damagePerSecond,
         float penetration,
-        int wallDamagePerTick) {
+        int wallDamagePerTick,
+        String weaponId) {
 
     public LanceSweep {
         if (reach <= 0f || halfWidth <= 0f) {
@@ -36,6 +37,15 @@ public record LanceSweep(
         if (burnSeconds <= 0f || telegraphSeconds < 0f) {
             throw new IllegalArgumentException("a lance needs a burn and a non-negative telegraph");
         }
+    }
+
+    /** A lance with no weapon behind it, drawn in the renderer's own colours. */
+    public LanceSweep(long shooterId, Faction faction, float originX, float originY,
+                      float startAngle, float endAngle, float reach, float halfWidth,
+                      float telegraphSeconds, float burnSeconds, float damagePerSecond,
+                      float penetration, int wallDamagePerTick) {
+        this(shooterId, faction, originX, originY, startAngle, endAngle, reach, halfWidth,
+                telegraphSeconds, burnSeconds, damagePerSecond, penetration, wallDamagePerTick, null);
     }
 
     /** Total seconds from commitment to the beam going out. */
