@@ -3,12 +3,21 @@ package com.dillon.starsectormarines.battle.audio;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.battle.story.StoryBeatLog;
+import com.dillon.starsectormarines.battle.story.OpeningOperationStoryHooks;
+import com.dillon.starsectormarines.battle.story.JunctionStoryHooks;
+import com.dillon.starsectormarines.battle.story.RelayNineStoryHooks;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.security.MessageDigest;
+import java.util.HexFormat;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,6 +39,9 @@ class WaylineNarrationTest {
             assertEquals(root.getString("modelId"), receipt.getString("modelId"));
             assertEquals(receipt.getDouble("durationSeconds"), line.durationSeconds(), 0.001);
             assertTrue(Files.size(sources.resolve("wayline/" + line.id() + ".mp3")) > 1000);
+            assertEquals(receipt.getString("audioSha256"), HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(
+                            Files.readAllBytes(sources.resolve("wayline/" + line.id() + ".mp3")))));
             int matching = 0;
             for (int i = 0; i < clips.length(); i++) {
                 JSONObject clip = clips.getJSONObject(i);
@@ -42,7 +54,7 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(14, ids.size());
+        assertEquals(66, ids.size());
     }
 
     @Test
@@ -54,5 +66,93 @@ class WaylineNarrationTest {
                     Mission.builder().id(kind.missionId).source(MissionSource.RECURRING).build()));
         }
         assertNull(WaylineNarration.storyMissionId(null));
+    }
+
+    @Test
+    void supplyChaptersResolveAcrossRetriesWithoutVoicingChoicesOrRecurringJobs() throws Exception {
+        WaylineNarration catalog = catalog();
+        String[] chapters = {"junction", "last_lift", "relay_nine", "thunder_run"};
+        for (int i = 0; i < chapters.length; i++) {
+            String chapter = "story_supply_route_" + chapters[i];
+            for (int attempt : new int[]{1, 2, 12}) {
+                String id = "supply_route_v1_" + (i + 1) + "_0_" + attempt;
+                assertEquals(chapter, WaylineNarration.storyMissionId(
+                        Mission.builder().id(id).source(MissionSource.STORY).build()));
+                assertNotNull(catalog.find(chapter, "briefing"));
+                assertNull(WaylineNarration.storyMissionId(
+                        Mission.builder().id(id).source(MissionSource.RECURRING).build()));
+            }
+        }
+        for (String id : List.of("supply_route_choice_2", "supply_route_choice_3",
+                "supply_route_v1_2_1_1", "supply_route_v1_3_4_2", "supply_route_v1_5_0_1",
+                "supply_route_v1_1_0_0", "supply_route_v1_1_0_1_extra", "unknown")) {
+            assertNull(WaylineNarration.storyMissionId(
+                    Mission.builder().id(id).source(MissionSource.STORY).build()), id);
+        }
+    }
+
+    @Test
+    void everyPublicOpeningAndTerritorialBeatHasDialogueOrAnOutcomeOwner() throws Exception {
+        WaylineNarration catalog = catalog();
+        for (OpeningOperationKind kind : OpeningOperationKind.values()) {
+            StoryBeatLog log = new StoryBeatLog();
+            OpeningOperationStoryHooks hooks = new OpeningOperationStoryHooks(kind, log);
+            hooks.observe(new OpeningOperationStoryHooks.Facts(1, true, true, true, true, true,
+                    6, 3, 2, true, true, OpeningOperationStoryHooks.Result.RUNNING));
+            hooks.observe(new OpeningOperationStoryHooks.Facts(2, true, true, true, true, true,
+                    6, 0, 2, true, true, OpeningOperationStoryHooks.Result.VICTORY));
+            assertCoverage(catalog, kind.missionId, log);
+        }
+        StoryBeatLog junction = new StoryBeatLog(), relay = new StoryBeatLog();
+        JunctionStoryHooks junctionHooks = new JunctionStoryHooks(junction);
+        RelayNineStoryHooks relayHooks = new RelayNineStoryHooks(relay);
+        for (int tick = 1; tick <= 3; tick++) {
+            CompoundState state = tick == 2 ? CompoundState.DEFENDER_HELD : CompoundState.MARINE_HELD;
+            List<CompoundState> states = List.of(state, state, state, state);
+            junctionHooks.observe(new JunctionStoryHooks.Facts(tick, true, true, true, true, states,
+                    JunctionStoryHooks.Result.RUNNING));
+            relayHooks.observe(new RelayNineStoryHooks.Facts(tick, true, true, List.of(1, 2, 3), true, states,
+                    RelayNineStoryHooks.Result.RUNNING));
+        }
+        junctionHooks.finish(4, JunctionStoryHooks.Result.VICTORY);
+        relayHooks.finish(4, RelayNineStoryHooks.Result.VICTORY);
+        assertCoverage(catalog, "story_supply_route_junction", junction);
+        assertCoverage(catalog, "story_supply_route_relay_nine", relay);
+    }
+
+    @Test
+    void evacuationAndFreightPublicContentContractsAreRecorded() throws Exception {
+        WaylineNarration catalog = catalog();
+        for (String key : List.of("start", "crew_contacted", "crew_released", "crossing_cleared",
+                "first_boarding", "escort_hold"))
+            assertNotNull(catalog.find("story_supply_route_last_lift", "supply_route.last_lift." + key), key);
+        for (String key : List.of("started", "player_landed", "column_released", "crossing_secured",
+                "final_run", "freight_committed", "heavy_lead_advancing", "rear_clear",
+                "cargo_0_delivered", "cargo_1_delivered", "cargo_2_delivered",
+                "cargo_0_lost", "cargo_1_lost", "cargo_2_lost"))
+            assertNotNull(catalog.find("story_supply_route_thunder_run", "supply_route.thunder_run." + key), key);
+        // Resolution belongs to outcome presentation; hidden arrivals are never radio intelligence.
+        for (String key : List.of("cohort_resolved", "last_boarding", "road_arrival_1", "road_arrival_2"))
+            assertNull(catalog.find("story_supply_route_last_lift", "supply_route.last_lift." + key));
+        assertNull(catalog.find("story_supply_route_thunder_run", "supply_route.thunder_run.road_reserve_committed"));
+        for (var line : catalog.lines()) {
+            String suffix = line.event().substring(line.event().lastIndexOf('.') + 1);
+            assertFalse(Set.of("victory", "defeat", "retreat").contains(suffix));
+        }
+    }
+
+    private static WaylineNarration catalog() throws Exception {
+        return WaylineNarration.parse(new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH))));
+    }
+
+    private static void assertCoverage(WaylineNarration catalog, String chapter, StoryBeatLog log) {
+        assertNotNull(catalog.find(chapter, "briefing"));
+        for (var event : log.events()) {
+            String suffix = event.id().substring(event.id().lastIndexOf('.') + 1);
+            if (event.audience() == StoryBeatLog.Audience.OBSERVER_ONLY
+                    || Set.of("victory", "defeat", "retreat").contains(suffix))
+                assertNull(catalog.find(chapter, event.id()), event.id());
+            else assertNotNull(catalog.find(chapter, event.id()), event.id());
+        }
     }
 }
