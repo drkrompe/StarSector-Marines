@@ -101,9 +101,7 @@ public final class OpeningOperationCommand implements AutonomousMissionCommand<
                     ? (depotIntent != null
                         ? ObjectiveAssignment.attackMove(squad.squadId(), rally[0], rally[1])
                         : ObjectiveAssignment.sweepSector(squad.squadId(), rally[0], rally[1]))
-                    : depotIntent != null
-                    ? ObjectiveAssignment.defendArea(squad.squadId(), rally[0], rally[1], 5)
-                    : ObjectiveAssignment.defendArea(squad.squadId(), rally[0], rally[1]);
+                    : ObjectiveAssignment.defendArea(squad.squadId(), rally[0], rally[1], 5);
             proposals.add(CommandProposal.assign(assignment,
                     CommandAuthority.MISSION_COMMAND, squadReason.name(),
                     stabilityBreak(squad, assignment)));

@@ -198,11 +198,20 @@ not erase different scenario roles or require identical map footprints.
 The finite-force command duel uses public scenario places rather than hidden
 enemy positions. In Relief, the local line keeps authored garrison ownership,
 mobile friendly squads preserve its anchor, and raiders advance on that anchor.
+The company receives a bounded five-cell defense area around its gate rally;
+acquiring a distant target must not discard the approach before it reinforces
+that area. Broken morale can still interrupt the duty.
 Relief's local line holds a freight checkpoint gate, with a relay office set
 back inside its compound. The compound is planned before surrounding buildings:
 its inspection frontage, warehouse, rear unloading apron, gates and connected
 freight/service roads form one authored place. The story keeps that geography
 stable while interior details and the target world's wild surface may vary.
+Low cliffs frame the checkpoint and service-road approaches, with open ground
+between its varied workshops. The rear compound has marked freight berths on
+concrete rather than isolated pad tiles. The employer unloads south of the
+through-road; the company's two berths share the northern apron so a split
+transport load can assemble and advance together. Inspection parking and small
+service yards stay outside the gate fight, relay entrances and attacker routes.
 Employer troops arriving by shuttle reinforce the gate under allied garrison
 authority. They do not become player squads or remain stationed at their pad.
 
@@ -236,6 +245,11 @@ sightline from the approach to dispatch. The map publishes three command places:
 gate, yard and the finished warehouse interior. Building detail and surface may
 vary without moving this sequence. A larger footprint buys distinct encounters;
 it does not increase the operation tier or replace the small-company force model.
+Hills shelter the western insertion and frame the depot edges while leaving
+infantry maneuver space. Varied freight sheds enclose loading and maintenance
+courts; truck bays, cargo and a fenced trailer court establish the depot's use.
+The weigh office, dispatch interior, gate cover and reserve/fallback places
+remain fixed when those peripheral structures change.
 
 Employer troops advance under separate allied mission authority alongside the
 company. Each attacking squad progresses through the three places from its own

@@ -549,6 +549,15 @@ it cannot recover them from unrelated spawn points after generation. A fixed
 story layout may vary interiors and the world's wild surfaces without moving
 its core tactical relationships.
 
+Relief's compact landscape uses edge ridges around its road mouths and rear
+compound, leaving the inspection frontage open. Three freight berths occupy
+two concrete banks beside the through-road: the employer uses the southern
+stand, while both company stands share the northern apron. Offset supply
+stores and T-shaped workshops replace the peripheral rectangular shells;
+the relay interior and gate remain mission-owned places. Inspection parking,
+receiving freight and relay-service equipment have real blocking footprints,
+with clear thresholds and landing approaches.
+
 Counterattack likewise owns its layout before staging. Its 160 by 96 freight
 depot separates the western boat apron, gate, loading yard and dispatch
 warehouse; a weigh office breaks the straight firing corridor with a freight
@@ -557,6 +566,16 @@ reachable from the apron, all three authored berths are clear, and the road
 graph follows walkable circulation. The shared small-company campaign tier does
 not force this second chapter into Relief's smaller footprint. Mission command
 consumes these public places without learning occupant identities.
+
+Counterattack's western hills shelter the boat apron and approach workshops;
+outer ridges frame the depot without closing infantry flank routes. L-, T-
+and offset freight stamps form smaller loading courts around the unchanged
+weigh office and dispatch warehouse. Truck parking, a fenced inbound trailer
+court, workshop spares and cargo handling give those courts distinct uses.
+Concrete yards and internal access lanes form one industrial surface. Both
+opening maps consume installed terrain documents, preserve all outdoor
+connectivity, and retain their authored obstruction on non-verdant worlds.
+Expanded Relief fixtures extend boundary ridges without moving the checkpoint.
 
 City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also
