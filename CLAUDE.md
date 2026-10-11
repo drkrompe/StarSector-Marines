@@ -1506,6 +1506,11 @@ test**, and belongs in an opt-in Gradle task excluded from `test`, the shape
 
 ## Mod layout
 
+For new modular terrain/cover art and damage states, use the geometry-first
+ImageGen workflow in `art-source/geometry-first-imagegen.md`: code owns the
+silhouette and assembly contract, ImageGen reskins the retained guide, and
+the ordinary exporter produces shipped assets.
+
 The `mod/` folder in this repo is what ships. Pre-pack art inputs — raw
 generated sheets, ImageGen masters, retained `sources/` originals, tileset
 authoring documents, and the scripts
