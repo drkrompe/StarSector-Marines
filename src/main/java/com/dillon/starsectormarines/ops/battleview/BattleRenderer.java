@@ -262,6 +262,7 @@ public class BattleRenderer {
         // debug overlay producers sit right after the body producer they paint over.
         // Stateful/own-GL passes keep their state + render* bodies on this class and
         // join via RenderSystem.of(...) emitting a Custom (the FBO/own-GL escape hatch).
+        DoodadRenderSystem doodads = new DoodadRenderSystem(sprites);
         this.worldSystems = List.of(
                 new GroundRenderSystem(sprites, groundMesh, groundAtlas),
                 // Zone debug overlay paints on top of ground tiles, under decals.
@@ -272,13 +273,14 @@ public class BattleRenderer {
                 RenderSystem.of(RenderLayer.DECALS, (ctx, out) ->
                         out.addCustom(RenderLayer.DECALS, () -> renderDecals(ctx.sim, ctx.alphaMult))),
                 new ParkedAircraftRenderSystem(sprites),
-                new DoodadRenderSystem(sprites),
+                doodads,
                 // Bodies cast here rather than through the ground composite:
                 // terrain carries a height per cell and a marine does not.
                 new UnitShadowRenderSystem(sprites, sun),
                 RenderSystem.of(RenderLayer.HIGHLIGHTS, (ctx, out) ->
                         highlightRenderer.collect(ctx.highlights, ctx.camera, out, ctx.alphaMult)),
                 RenderSystem.of(RenderLayer.FOG, (ctx, out) -> collectFogOverlay(ctx, out)),
+                RenderSystem.of(RenderLayer.FOG, doodads::collectVisibleSurfaces),
                 // The unit atlas is built inside the layer it serves, the way
                 // the ground atlas is, and only until it is built: once it
                 // serves there is no custom pass here at all, so a settled frame

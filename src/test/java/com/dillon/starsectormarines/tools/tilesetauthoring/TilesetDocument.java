@@ -121,6 +121,7 @@ public final class TilesetDocument {
             if (entry.ballisticHalfHeight != null) {
                 o.put("ballisticHalfHeight", entry.ballisticHalfHeight.doubleValue());
             }
+            if (entry.fogSurface != null) o.put("fogSurface", new JSONArray(entry.fogSurface));
             if (!entry.preferredWallSide.isEmpty()) {
                 o.put("preferredWallSide", entry.preferredWallSide);
             }
@@ -281,6 +282,11 @@ public final class TilesetDocument {
             JSONArray validOn = o.optJSONArray("validOn");
             for (int v = 0; validOn != null && v < validOn.length(); v++) {
                 entry.validOn.add(validOn.getString(v));
+            }
+            if (o.has("fogSurface")) {
+                JSONArray mask = o.getJSONArray("fogSurface");
+                entry.fogSurface = new ArrayList<>();
+                for (int r = 0; r < mask.length(); r++) entry.fogSurface.add(mask.getString(r));
             }
             entry.label = o.optString("name", "");
             JSONArray border = o.optJSONArray("spriteBorderPx");
