@@ -26,6 +26,17 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
  * simulation responsibilities, separate from this physical arrangement.
  */
 public final class BoatBayFitting implements RoomFitting {
+    private final boolean shipboard;
+
+    public BoatBayFitting() { this(false); }
+    private BoatBayFitting(boolean shipboard) { this.shipboard = shipboard; }
+    public static BoatBayFitting shipboard() { return new BoatBayFitting(true); }
+
+    private boolean usesShipKit(RoomFloor floor) {
+        return shipboard && floor.canonicalWidth() >= 16 && floor.canonicalHeight() >= 10
+                && ShuttleBayEquipment.available();
+    }
+
 
     /**
      * Cells of gear ranked inboard from each bulkhead.
@@ -193,8 +204,13 @@ public final class BoatBayFitting implements RoomFitting {
         // off - the difference between this and a firing range's beaten zone.
         // It runs right up to the door wall, because the door wall is the door.
         reserve(floor, band, 0, along - 2 * band, across - band);
-        mark(floor, band, 0, along - 2 * band, across - band);
+        if (!usesShipKit(floor)) mark(floor, band, 0, along - 2 * band, across - band);
         clearApproaches(floor);
+        if (usesShipKit(floor)) {
+            layBoats(floor, along, across, band);
+            new ShuttleBayEquipment().fit(floor);
+            return;
+        }
         layCorners(floor, along, across, band);
         layBowser(floor, along, across, band);
         layBoats(floor, along, across, band);
@@ -376,6 +392,7 @@ public final class BoatBayFitting implements RoomFitting {
 
         for (int boat = 0; boat < boats; boat++) {
             int start = first + boat * pitch;
+            landing(floor, start, rankAcross, span, depth);
             int[] rect = floor.toLocalRect(start, rankAcross, span, depth);
             int berth = floor.berth(rect[0], rect[1], rect[2], rect[3],
                     Gantry.Facing.of(out[0], out[1]), Gantry.Holds.BOAT);
@@ -407,6 +424,7 @@ public final class BoatBayFitting implements RoomFitting {
             int[] direction = floor.pose().mapDirection(side == 0 ? 1 : -1, 0);
             for (int row = 0; row < rows; row++) {
                 int at = first + row * (BOAT_SPAN + BOAT_GAP);
+                landing(floor, start, at, BOAT_DEPTH, BOAT_SPAN);
                 int[] rect = floor.toLocalRect(start, at, BOAT_DEPTH, BOAT_SPAN);
                 int berth = floor.berth(rect[0], rect[1], rect[2], rect[3],
                         Gantry.Facing.of(direction[0], direction[1]), Gantry.Holds.BOAT);
@@ -414,6 +432,18 @@ public final class BoatBayFitting implements RoomFitting {
                 berthTask(floor, nose, at + BOAT_SPAN - 2, berth,
                         focus, at + BOAT_SPAN - 2);
             }
+        }
+    }
+
+    /** Landing surfaces are visual only; the same berth arithmetic owns capacity and clearance. */
+    private void landing(RoomFloor floor, int x, int y, int w, int h) {
+        if (!usesShipKit(floor)) return;
+        int[] rect = floor.toLocalRect(x, y, w, h);
+        floor.markFloorSurface(rect[0], rect[1], rect[2], rect[3], "shuttle-bay.landing-deck");
+        // A square, rotationally symmetric flush marking needs no directional sprite variant.
+        for (int cx : new int[]{x, x+w-1}) for (int cy : new int[]{y, y+h-1}) {
+            int[] cell = floor.toLocal(cx, cy);
+            floor.pave(cell[0], cell[1], "shuttle-bay.tie-down");
         }
     }
 
