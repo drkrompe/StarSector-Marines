@@ -110,10 +110,86 @@ public final class WarshipSystem {
         clock += dt;
         landShells(dt, sim);
         for (Warship ship : ships) {
+            direct(dt, sim, ship);
+            moveHull(dt, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 tickMount(dt, sim, ship, mount);
             }
+        }
+    }
+
+    /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
+    private static final float EMPTY_AREA_SECONDS = 2f;
+    private static final float RETRY_SECONDS = 1f;
+    /** A ship that has moved this far since choosing its heading chooses it again. */
+    private static final float REHEADING_DISTANCE = 3f;
+
+    /** A directed ship issues itself an area order, and a fresh one once its ground is empty. */
+    private void direct(float dt, BattleSimulation sim, Warship ship) {
+        if (!ship.isDirected()) return;
+        if (ship.order() instanceof WarshipOrder.FireOnArea area) {
+            if (hostileWithin(sim, ship, area)) {
+                ship.areaEmptySeconds = 0f;
+                return;
+            }
+            ship.areaEmptySeconds += dt;
+            if (ship.areaEmptySeconds < EMPTY_AREA_SECONDS) return;
+        } else {
+            // With nothing to fire on it looks again once a second, not every tick.
+            ship.areaEmptySeconds += dt;
+            if (ship.areaEmptySeconds < RETRY_SECONDS) return;
+        }
+        WarshipOrder.FireOnArea next = WarshipDirector.choose(sim, ship, ships);
+        ship.areaEmptySeconds = 0f;
+        ship.order(next != null ? next : WarshipOrder.HoldFire.INSTANCE);
+    }
+
+    private static boolean hostileWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        long[] dense = roster.denseArray();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long u = dense[i];
+            if (ship.faction.hostileTo(roster.identity().faction(u)) && area.contains(world.x(u), world.y(u))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Hovers the hull toward its station at its own speed: it accelerates, cruises
+     * and brakes in time to stop on the spot rather than drifting through it.
+     */
+    private static void moveHull(float dt, Warship ship) {
+        if (!ship.hasStation()) return;
+        float dx = ship.stationX() - ship.x;
+        float dy = ship.stationY() - ship.y;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float speed = Math.min(ship.maxSpeed, (float) Math.sqrt(2f * ship.deceleration * dist));
+        float wantX = dist > 0f ? dx / dist * speed : 0f;
+        float wantY = dist > 0f ? dy / dist * speed : 0f;
+        float ax = wantX - ship.velocityX;
+        float ay = wantY - ship.velocityY;
+        float change = (float) Math.sqrt(ax * ax + ay * ay);
+        float allowed = ship.acceleration * dt;
+        if (change > allowed && change > 0f) {
+            ax *= allowed / change;
+            ay *= allowed / change;
+        }
+        ship.velocityX += ax;
+        ship.velocityY += ay;
+        float stepX = ship.velocityX * dt;
+        float stepY = ship.velocityY * dt;
+        if (dist <= (float) Math.sqrt(stepX * stepX + stepY * stepY) && speed < allowed * 2f) {
+            ship.x = ship.stationX();
+            ship.y = ship.stationY();
+            ship.velocityX = 0f;
+            ship.velocityY = 0f;
+        } else {
+            ship.x += stepX;
+            ship.y += stepY;
         }
     }
 
@@ -123,7 +199,9 @@ public final class WarshipSystem {
      * to stop on the heading rather than swinging through it.
      */
     private static void turnHull(float dt, Warship ship) {
-        if (ship.order() instanceof WarshipOrder.FireOnArea area && area.bringGunsToBear() && !ship.headingChosen()) {
+        if (ship.order() instanceof WarshipOrder.FireOnArea area && area.bringGunsToBear()
+                && (!ship.headingChosen() || Math.hypot(ship.x - ship.headingChosenAtX,
+                        ship.y - ship.headingChosenAtY) > REHEADING_DISTANCE)) {
             ship.desiredHeading = WarshipFacing.bestHeading(ship, area.x(), area.y());
             ship.markHeadingChosen();
         }
