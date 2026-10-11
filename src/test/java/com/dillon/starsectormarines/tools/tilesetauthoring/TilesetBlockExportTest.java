@@ -122,6 +122,7 @@ class TilesetBlockExportTest {
         TilesetExport.Entry sofa = piece(0, "doodad.test.sofa");
         sofa.cover = "med";
         sofa.ballisticHalfHeight = 0.42;
+        sofa.fogSurface = List.of(".");
         sofa.preferredWallSide = "N";
         TilesetExport.Entry crate = piece(1, "doodad.test.crate");
         crate.cover = "med";
@@ -140,6 +141,8 @@ class TilesetBlockExportTest {
         assertEquals(DoodadCover.MED.defaultBallisticHalfHeight(),
                 registry.doodad("doodad.test.crate").ballisticHalfHeight, 1e-6f);
         assertNull(registry.doodad("doodad.test.crate").preferredWallSide);
+        assertEquals(List.of("."), registry.doodad("doodad.test.sofa").fogSurface);
+        assertEquals(List.of("#"), registry.doodad("doodad.test.crate").fogSurface);
     }
 
     @Test

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Counterattack introduces a recoverable company walker; later chapters carry owned mechs.
+Updated: 2026-10-11 — Castle voices the walker introduction and negotiates its recovery agreement in the debrief.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -268,6 +268,13 @@ manual play. A radio prompt offers Tab to take control, WASD movement and mouse
 fire; Tab or Escape returns it to its crew. No automatic takeover interrupts the
 company's orders.
 
+Castle is the company's shipboard operations officer, distinct from the client,
+Mara Venn. Confirmed discovery, startup, first sampled takeover, first sampled
+handback and disablement supply named, portrait-backed dialogue. The keyboard
+instructions remain readable; spoken guidance stays in-universe. These are
+once-per-attempt hooks, not compulsory tutorial steps. Obsolete unspoken
+instructions are superseded and no dialogue takes control on the player's behalf.
+
 Victory transfers the recovered chassis and its installed fit to the persistent
 Mech Bay once. Wayline recovers and repairs it even if destroyed or left offline,
 so learning the controls cannot permanently lose the introductory reward.
@@ -275,6 +282,17 @@ Defeat or withdrawal grants nothing; a later successful attempt can still earn
 it. The award cannot repeat on settlement replay, completed legacy chapters or
 recurring depot work. Full gantries retain the reward in a separate recovery
 group rather than overwriting an existing asset. Existing owned mechs are preserved.
+
+The qualifying victory debrief includes Castle and Mara's recovery agreement:
+the company keeps the chassis and fitted chaingun, Wayline covers recovery and
+the initial repair, and the company accepts subsequent upkeep. A confirmed
+wreck receives its own closing line; an intact or unused walker never claims
+wreck recovery. This correspondence describes the existing settled award,
+not a second claim, discount, maintenance charge or negotiation minigame.
+The four-turn transcript remains readable beside the outcome and personnel
+report, with explicit Replay and Stop. Screen exit stops owned playback;
+revisiting the same outcome does not automatically replay or grant anything.
+Defeat, repeatable work and legacy outcomes without a recovery report omit it.
 
 Employer troops advance under separate allied mission authority alongside the
 company. Each attacking squad progresses through the three places from its own
@@ -508,7 +526,7 @@ mission identity chooses story-specific content, so a recurring job cannot
 replay Mara's historic chapter dialogue accidentally.
 
 The battle publishes facts without running presentation callbacks or consuming
-randomness. Both story arcs map public keys to Mara Venn's recorded dialogue
+randomness. Both story arcs map public keys to recorded character dialogue
 after simulation advance, with mission-speech precedence as defined in
 `battle-radio-nouns.md`. All six chapter briefings play on entry with Replay
 and Stop controls; readable briefing text remains available. Mara gives the

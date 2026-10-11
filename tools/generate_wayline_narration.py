@@ -61,7 +61,7 @@ def main():
         if not re.fullmatch(r"[a-z0-9_]+", line["id"]):
             raise SystemExit("Invalid sound ID")
         voice_id = (catalog["voices"][line["speaker"]]["voiceId"]
-                    if args.cast == "operation-radio" else catalog["voiceId"])
+                    if args.cast == "operation-radio" else line.get("voiceId", catalog["voiceId"]))
         if line.get("retained"):
             audio = sources / (line["id"] + ".mp3")
             receipt = audio.with_suffix(".json")

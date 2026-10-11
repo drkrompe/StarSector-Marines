@@ -226,7 +226,9 @@ public class NavigationGrid {
         long before = cellFlags[idx];
         long after = on ? before | tag.mask() : before & ~tag.mask();
         if (after == before) return;
+        boolean wasOpaque = blocksStructuralLineOfSightAt(idx);
         cellFlags[idx] = after;
+        recordStructuralOpacityChange(idx, wasOpaque);
         markTopologyChanged(idx);
     }
 
@@ -432,7 +434,14 @@ public class NavigationGrid {
         return inBounds(x, y) && hasTransientOpacityAt(index(x, y));
     }
 
+    /** Changes to structural sight or smoke invalidate stationary observation footprints. */
     public long opacityRevision() { return opacityRevision; }
+
+    private void recordStructuralOpacityChange(int idx, boolean wasOpaque) {
+        if (wasOpaque == blocksStructuralLineOfSightAt(idx)) return;
+        opacityRevision++;
+        losCaches.clearAll();
+    }
 
     public void addTransientOpacityAt(int idx) {
         if (transientOpacity[idx] == Short.MAX_VALUE) return;
@@ -996,7 +1005,9 @@ public class NavigationGrid {
         // set RUBBLE, set FLOOR on the topology) is handled by the caller
         // (BattleSimulation.damageCell), since the rendering tag-bag isn't
         // visible from this class.
+        boolean wasOpaque = blocksStructuralLineOfSightAt(idx);
         cellFlags[idx] |= CellTag.WALKABLE.mask() | CellTag.DOORWAY.mask();
+        recordStructuralOpacityChange(idx, wasOpaque);
         edgePassability[idx] = (byte) 0xFF;
         markTopologyChanged(idx);
         recomputeCoverAt(x, y);

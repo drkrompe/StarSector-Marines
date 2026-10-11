@@ -76,6 +76,7 @@ public final class TileRegistry {
             "data/tilesets/crew-lounge.tileset.json",
             "data/tilesets/ship-bridge.tileset.json",
             "data/tilesets/ship-engineering.tileset.json",
+            "data/tilesets/machine-shop.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 
@@ -233,9 +234,15 @@ public final class TileRegistry {
                 throw new IllegalStateException("TileRegistry: doodad '" + id
                         + "' has invalid preferredWallSide", e);
             }
+            List<String> fogSurface = null;
+            if (o.has("fogSurface")) {
+                JSONArray mask = o.getJSONArray("fogSurface");
+                fogSurface = new ArrayList<>();
+                for (int r = 0; r < mask.length(); r++) fogSurface.add(mask.getString(r));
+            }
             doodadsById.put(id, new DoodadDef(
                     id, sheet, col, row, cover, ballisticHalfHeight,
-                    footprintCellsX, footprintCellsY, preferredWallSide, cellPx));
+                    footprintCellsX, footprintCellsY, preferredWallSide, cellPx, fogSurface));
             sourceById.put(id, source);
         }
     }

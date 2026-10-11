@@ -118,4 +118,3 @@ class BarracksTurnaroundTest {
     private static Object value(BarracksCommandModel model, String key) { return ((Signal<?>) model.props().get(key)).get(); }
     private static void action(BarracksCommandModel model, String key) { ((Runnable) model.props().get(key)).run(); }
 }
-

@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.world.model;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
+import java.util.List;
+import java.util.Collections;
 
 /**
  * Prop placed on one or more battle-map cells — chairs, crates, beds, etc.
@@ -34,6 +36,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
  */
 public final class Doodad {
     private String definitionId;
+    private List<String> fogSurface = List.of();
 
     /** Stable catalog identity, or null for legacy coordinate-only placements. */
     public String definitionId() { return definitionId; }
@@ -109,6 +112,7 @@ public final class Doodad {
                 rotateSide(def.preferredWallSide, quarterTurns),
                 def.sourceCellPx, quarterTurns, mirrored);
         this.definitionId = def.id;
+        this.fogSurface = def.fogSurface;
     }
 
     public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns) {
@@ -120,6 +124,7 @@ public final class Doodad {
                 rotateSide(def.preferredWallSide, quarterTurns),
                 def.sourceCellPx, normalizeTurns(quarterTurns));
         this.definitionId = def.id;
+        this.fogSurface = def.fogSurface;
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -211,11 +216,29 @@ public final class Doodad {
         this.preferredWallSide = preferredWallSide;
         this.quarterTurns = quarterTurns;
         this.mirrored = mirrored;
+        this.fogSurface = this.ballisticHalfHeight > 0
+                ? Collections.nCopies(sourceCellsY, "#".repeat(sourceCellsX)) : List.of();
     }
 
     public boolean occupiesCell(int x, int y) {
         return x >= cellX && x < cellX + footprintCellsX
                 && y >= cellY && y < cellY + footprintCellsY;
+    }
+
+    public boolean hasFogSurface() { return !fogSurface.isEmpty(); }
+
+    /** The authored visible surface in local world cells, with the sprite's exact transform. */
+    public boolean hasFogSurfaceAt(int x, int y) {
+        if (fogSurface.isEmpty() || x < 0 || y < 0 || x >= footprintCellsX || y >= footprintCellsY) return false;
+        int sx, sy;
+        switch (normalizeTurns(quarterTurns)) {
+            case 1 -> { sx = y; sy = sourceCellsY - 1 - x; }
+            case 2 -> { sx = sourceCellsX - 1 - x; sy = sourceCellsY - 1 - y; }
+            case 3 -> { sx = sourceCellsX - 1 - y; sy = x; }
+            default -> { sx = x; sy = y; }
+        }
+        if (mirrored) sx = sourceCellsX - 1 - sx;
+        return fogSurface.get(sy).charAt(sx) == '#';
     }
 
     private static int clamp(int v) {
