@@ -181,8 +181,10 @@
       "description": "Chain-link corner connecting east and south.",
       "cover": "light",
       "ballisticHalfHeight": 0.72,
-      "scale": 0.96,
-      "order": 41
+      "scale": 1.0,
+      "order": 41,
+      "padding": 0,
+      "preserveCanvas": true
     },
     "industrial-fence-corner-ne.png": {
       "id": "doodad.industrial-fence-corner-ne",
@@ -190,8 +192,10 @@
       "description": "Chain-link corner connecting west and south.",
       "cover": "light",
       "ballisticHalfHeight": 0.72,
-      "scale": 0.96,
-      "order": 42
+      "scale": 1.0,
+      "order": 42,
+      "padding": 0,
+      "preserveCanvas": true
     },
     "industrial-fence-corner-sw.png": {
       "id": "doodad.industrial-fence-corner-sw",
@@ -199,8 +203,10 @@
       "description": "Chain-link corner connecting east and north.",
       "cover": "light",
       "ballisticHalfHeight": 0.72,
-      "scale": 0.96,
-      "order": 43
+      "scale": 1.0,
+      "order": 43,
+      "padding": 0,
+      "preserveCanvas": true
     },
     "industrial-fence-corner-se.png": {
       "id": "doodad.industrial-fence-corner-se",
@@ -208,8 +214,10 @@
       "description": "Chain-link corner connecting west and north.",
       "cover": "light",
       "ballisticHalfHeight": 0.72,
-      "scale": 0.96,
-      "order": 44
+      "scale": 1.0,
+      "order": 44,
+      "padding": 0,
+      "preserveCanvas": true
     },
     "industrial-fence-straight-h.png": {
       "id": "doodad.industrial-fence-straight-h",
@@ -217,8 +225,10 @@
       "description": "Straight horizontal chain-link security fence.",
       "cover": "light",
       "ballisticHalfHeight": 0.72,
-      "scale": 0.98,
-      "order": 45
+      "scale": 1.0,
+      "order": 45,
+      "padding": 0,
+      "preserveCanvas": true
     },
     "industrial-fence-straight-v.png": {
       "id": "doodad.industrial-fence-straight-v",
@@ -226,8 +236,10 @@
       "description": "Straight vertical chain-link security fence.",
       "cover": "light",
       "ballisticHalfHeight": 0.72,
-      "scale": 0.98,
-      "order": 46
+      "scale": 1.0,
+      "order": 46,
+      "padding": 0,
+      "preserveCanvas": true
     },
     "military-radar-dish.png": {
       "id": "doodad.military-radar-dish",
