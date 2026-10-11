@@ -112,14 +112,9 @@ public final class RoomLayoutCheck {
         int dropped = floor.dropUnreachableWork();
 
         List<String> unknown = new ArrayList<>();
-        int declared = 0;
-        for (LayoutOp op : layout.ops()) {
-            if (!(op instanceof LayoutOp.Fixture fixture)) continue;
-            declared++;
-            if (TileRegistry.installed().doodad(fixture.doodadId()) == null
-                    && !unknown.contains(fixture.doodadId())) {
-                unknown.add(fixture.doodadId());
-            }
+        int declared = layout.provides();
+        for (String id : layout.doodadIds()) {
+            if (TileRegistry.installed().doodad(id) == null && !unknown.contains(id)) unknown.add(id);
         }
         return new Report(declared, floor.placedFixtures(), ctx.fixtureTasks.size(),
                 dropped, floor.circulationSurvives(), unknown, bulkheadComplaint(layout));

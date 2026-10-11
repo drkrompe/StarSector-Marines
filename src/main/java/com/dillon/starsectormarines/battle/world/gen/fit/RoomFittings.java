@@ -200,6 +200,13 @@ public final class RoomFittings {
         return level == null ? RoomFit.STANDARD : level;
     }
 
+    /** Ship material fixtures, while preserving authored layouts as the first choice. */
+    public static RoomFitting forShipRoom(RoomPurpose purpose, RoomShape shape, RoomFit fit) {
+        if (purpose != RoomPurpose.VEHICLE_BAY) return forRoom(purpose, shape, fit);
+        RoomLayout layout = RoomLayouts.installed().find(purpose, shape, fit);
+        return layout != null ? new AuthoredFitting(layout) : VehicleBayFitting.shipboard();
+    }
+
     public static RoomFitting forRoom(RoomPurpose purpose, RoomShape shape, RoomFit fit) {
         if (purpose == null) return null;
         RoomLayout layout = RoomLayouts.installed().find(purpose, shape, fit);

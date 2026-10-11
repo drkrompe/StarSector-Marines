@@ -49,6 +49,17 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
             DeckGraph.Compartment room = generator.getLastDeckGraph().compartments().stream()
                     .filter(c -> c.purpose() == purpose).findFirst().orElse(null);
             if (room == null) continue;
+            if (purpose == RoomPurpose.VEHICLE_BAY) {
+                images.add(new SnapshotArtifact("ship-materials-mech-lab-game-scale.png",
+                        renderer.renderView(deck, 42, room.originX() + room.width() / 2f,
+                                room.originY() + room.depth() / 2f, room.width() + 4, room.depth() + 4, 24)));
+                int[] storage = room.pose().map(room.pose().posedWidth(room.width(), room.depth()) - 4,
+                        8, room.pose().posedWidth(room.width(), room.depth()),
+                        room.pose().posedHeight(room.width(), room.depth()));
+                images.add(new SnapshotArtifact("ship-materials-mech-lab-storage.png",
+                        renderer.renderView(deck, 42, room.originX() + storage[0] + 0.5f,
+                                room.originY() + storage[1] + 0.5f, 18, 20, 48)));
+            }
             // Eight cells beyond the room include its passage and adjoining compartment boundaries.
             images.add(new SnapshotArtifact("ship-materials-" + purpose.name().toLowerCase() + ".png",
                     renderer.renderView(deck, 42, room.originX() + room.width() / 2f,

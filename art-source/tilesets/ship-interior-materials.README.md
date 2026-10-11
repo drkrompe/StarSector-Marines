@@ -12,9 +12,12 @@ It changes no navigation, fixtures, cover, task points or capacity.
 Complete legacy 5x7 machine-bay paving is replaced by `auto-shop.bay`, positioned
 from the actual 3x6 clear berth plus its head station and side working columns.
 The open mouth follows the berth heading in every quarter turn. Short bays,
-boat berths and custom/partial paving keep their authored covering. The approved
-layered warehouse arrangement and red fixture reskins are still review-fixture
-work; this pass does not transplant their fixed coordinates onto generated rooms.
+boat berths and custom/partial paving keep their authored covering. Generated Mech Labs use the approved muted warehouse racks in parallel rows at
+one end, with separate base, stocked slots and frame layers. Two-cell handling
+lanes meet the main service aisle. Short dark bulkhead runs replace loose stock
+between bays, ending before the technician's waist access. The layout follows
+the compartment pose and reserves door approaches before placing whole racks.
+The red fixture reskins remain part of the review scene.
 
 ## Retained producer
 
