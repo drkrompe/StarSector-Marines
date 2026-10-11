@@ -202,6 +202,16 @@ The repeatable production procedure is in `art-source/geometry-first-imagegen.md
 
 ### Id-addressed visual catalog
 
+Industrial fences retain matching intact, damaged and destroyed straight and
+corner identities. Geometry guides own the cell centers, rail endpoints and
+breach voids; ImageGen supplies one material family, and exact quarter turns
+supply the remaining facings. A damage swap retains placement rotation and
+mirroring. Destroyed sprites carry no cover; the combat map editor owns the
+opened cell and cover refresh, rather than inferring those from transparency.
+The retained sources and cuts reproduce a separate damage atlas through the
+ordinary doodad packer. The `fences` visual suite exercises the same damage
+entry point used by structural attacks.
+
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than
 enum order or hardcoded origins. Sliced definitions pin their frame explicitly;
 fixed-grid definitions name the layout convention or the member cells of a
