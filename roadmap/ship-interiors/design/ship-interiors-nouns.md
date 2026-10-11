@@ -180,7 +180,12 @@ authored content.
   berth one hand instead of one, and the compartment holds half as many people
   in the same floor. That is why real berthing looks like this, and it is the
   only arrangement in which the recipe's few square metres a hand is reachable
-  at all.
+  at all. Shipboard bunks combine a physical base, bedding and retaining rails;
+  each complete assembly follows the room's orientation, with pillows outboard.
+  Personal locker banks occupy the ends of the near rank and divide the far
+  rank. They replace loose kit without consuming another berth. The central
+  aisle and whole hatch approaches stay clear, and rest and stowage happen
+  from reachable standing cells beside the fixtures.
 - A **room program is gated by size as well as role.** Room footprints do not
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a
@@ -1101,6 +1106,8 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     concrete working floors. Open thresholds and observation glass follow that
     shell. Material selection changes presentation, not circulation, cover,
     work sites or berth capacity; an authored surface remains authoritative.
+    Structural shell cells receive that material even where vacuum remains
+    beneath them. Open vacuum never receives a floor through this material pass.
 
     A bulkhead is one cell thick with open deck on both sides, which is not
     what the wall autotile was built for. A building's interior wall sits under
