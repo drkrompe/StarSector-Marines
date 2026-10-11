@@ -11,8 +11,12 @@ import java.util.List;
 public final class CompanyManagementGuide {
     public static final String PATH = "data/marines/company_management_guide.json";
     private static List<Line> lines = List.of();
+    private static String speaker = "Castle";
+    private static String portrait = "graphics/portraits/castle.png";
     private CompanyManagementGuide() { }
     public record Line(String id, String title, String text) { }
+    public static String speaker() { return speaker; }
+    public static String portrait() { return portrait; }
     public static List<Line> lines() { return lines; }
     public static void loadBuiltins() {
         try { install(Global.getSettings().loadJSON(PATH)); }
@@ -28,5 +32,7 @@ public final class CompanyManagementGuide {
             result.add(new Line(entry.getString("id"), entry.getString("title"), entry.getString("text")));
         }
         lines = List.copyOf(result);
+        speaker = root.optString("speaker", "Castle");
+        portrait = root.optString("portrait", "graphics/portraits/castle.png");
     }
 }
