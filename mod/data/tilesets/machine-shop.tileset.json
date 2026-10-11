@@ -1,0 +1,120 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "machine-shop.lathe",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "machine-shop.mill",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "name": "machine-shop.assembly-bench",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "machine-shop.inspection-bench",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "machine-shop.bearings",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "name": "machine-shop.electrical",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "name": "machine-shop.bar-stock",
+      "row": 2
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "machine-shop.lathe",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 4,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "machine-shop.mill",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 8,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "machine-shop.assembly-bench",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 12,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "machine-shop.inspection-bench",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "machine-shop.bearings",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 2,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "machine-shop.electrical",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "machine-shop.bar-stock",
+      "row": 2
+    }
+  ],
+  "sheet": "graphics/tilesets/machine-shop.png"
+}

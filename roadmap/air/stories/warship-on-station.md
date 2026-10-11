@@ -1,10 +1,10 @@
-# Story — Warship on station (Paragon)
+# Story — Warship on station
 
 Status: PLANNED
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — the beam and its telegraph render; weapons come from hull slots.
+Updated: 2026-10-11 — Onslaught first (Hegemony, shells and rockets); Paragon and the lance sweep follow.
 
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
 `combat-durability-nouns.md`, `command-powers-nouns.md` and
@@ -20,43 +20,57 @@ ground forces, which only the ground simulation can resolve.
 ## Goal
 
 A native sim entity, the **warship on station**, with its own hover flight model
-and ground-effect weapons. The first hull is the Paragon, its laser lance
-sweeping across a compound in the manner of the Harkonnen assault in Dune:
-slow, enormous, and not survivable by standing still. Friendly fire is on.
+and ground-effect weapons whose look is the game's own. Friendly fire is on.
+
+**First hull: the Onslaught.** The opening missions are on Jangala, a Hegemony
+world, and the Onslaught is the Hegemony's capital: a gun-and-rocket ship whose
+stock variants carry Devastator Cannons, Hypervelocity Drivers, Mark IX and
+heavy autocannon turrets, Annihilator/Sabot rocket pods and flak, with two
+built-in Thermal Pulse Cannons on its large hardpoints. That is the *barrage*
+side of the design: shells and rockets landing as ordinary detonations, with a
+fall time to run from.
+
+**Paragon follows, with the beam.** Its Tachyon Lances (large turrets, WS 003
+and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
+`LanceSweep` already exists for it and waits for that hull.
 
 ## Scope
 
 1. **Body and flight.** Reuse `AirBody` and hull-derived footprint. A hover
    model with mass-limited translation and yaw; phases arrive, station, shift,
    depart. No sortie, landing or run.
-2. **Sweep weapon.** Authored arc, duration, band width and per-tick damage. The
-   swept segment damages units, cover, walls, roofs and structures through the
-   existing damage and `MapEditor` paths at capital magnitude, leaving rubble
-   and persistent scorch in the manner of the fence-breach debris.
-3. **Director.** Picks sweep arcs over the densest opposing concentration not
-   already being worked; telegraphs the arc before the beam lights.
-4. **Weapons sit in the hull's own slots.** `TurretSlotResolver` already reads a hull's
-   `weaponSlots`. The Paragon's two large hardpoints (the lance) are the origins
-   of its sweeps, one beam each; its turret slots are fitted as `AirTurrets` and
-   fire on their own at ground targets, so the hull is never only one weapon.
-   A sweep's origin is therefore a mount's world position, not the hull centre.
-5. **Faction, not allegiance.** The entity is owned by a faction supplied by its
+2. **Weapons come from the hull's own slots and a variant.** `TurretSlotResolver`
+   already reads a hull's `weaponSlots`; a vanilla variant (or the fleet
+   member's fitted one) names the weapon in each slot. Each slot's weapon is
+   mapped to a ground effect, and the turret auto-fires at ground targets.
+   Hardpoints and turrets are different mounts: the Onslaught's pulse cannons
+   are fixed hardpoints, its guns traverse.
+3. **Barrage first.** Shells and rockets resolve as `Detonations` at the landing
+   point with a telegraphed fall time and capital-scale splash, wall breach and
+   roof loss. Damage and radius derive from the weapon's own figures.
+4. **The look is the game's.** Colours, sprites, projectile art and impact art
+   are read from the weapon's own spec and the install's `fx` sprites through
+   `VanillaWeaponLooks`; the mod authors none of them. Turret bodies use the
+   vanilla turret sprites.
+5. **Sweep, later.** Beam weapons resolve through `LanceSweep` with the vanilla
+   beam textures. Not in the first slice.
+6. **Director.** Picks targets by density, as the airfield strike does.
+7. **Faction, not allegiance.** The entity is owned by a faction supplied by its
    committer; the first acceptance uses the company's own ship and an enemy one.
-6. **Answerability.** A bounded station time and a hull pool that only heavy
+8. **Answerability.** A bounded station time and a hull pool that only heavy
    anti-air, mechs or batteries reach.
-7. **Presentation.** Large shadow on the ground, beam, burn, dust and debris.
-   Rendering stays downstream of the simulation.
 
 ## Acceptance
 
-- A `BehaviorScene` with a Paragon over a generated compound: the sweep razes
-  walls and roofs, kills units in the band, and spares dispersed units outside
-  it. A control loop with the ship absent.
+- A `BehaviorScene` with an Onslaught over a generated compound: its barrage
+  razes walls and roofs, kills units in the splash, and spares dispersed units
+  outside it. A control loop with the ship absent.
 - Friendly fire is demonstrated in a loop with own marines in the arc.
 - `createSnapshots` suite renders the sweep at 1920x1080.
 - Headless hull size is measured (`HullFootprintResolver.isMeasured`).
 
 ## Out of scope
 
-Barrage weapons, point defence, modules, ship-to-ship combat, campaign
-commitment through a command power, and every hull other than the Paragon.
+Point defence, modules (the Onslaught's armour modules included),
+ship-to-ship combat, campaign commitment through a command power, and every
+hull other than the Onslaught and, afterwards, the Paragon.
