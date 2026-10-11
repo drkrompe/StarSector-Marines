@@ -63,6 +63,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
 | Ship briefing room | `BriefingRoomTemplate`; central table, inset tactical overlay, four chair headings, display and lectern | `templates/briefing-room.png`, `tilesets/briefing-room.*` | `ship-materials` |
 | Ship gym | `ShipGymTemplate`; treadmill, rower, bench press, dumbbell rack, rubber mats, coping and water | `templates/ship-gym.png`, `tilesets/ship-gym.*` | `ship-materials`, `ShipGymWaterGlEvidence` |
+| Ship firing range | `FiringRangeTemplate`; heavy bullet traps, ballistic dividers, preparation and control benches, quiet lane materials | `templates/firing-range.png`, `tilesets/firing-range.*` | `ship-materials` |
 | Ship washrooms | `ShipWashroomTemplate`; basin counters, toilet and shower cubicles, quiet non-slip deck | `templates/ship-washrooms.png`, `tilesets/ship-washrooms.*` | `ship-materials` |
 | Ship provisions bay | `LoadingBayTemplate`; manifest desk, open-fork tug, continuous roller conveyor, separate cargo layers and staging deck | `templates/loading-bay.png`, `tilesets/loading-bay.*` | `ship-materials` |
 | Ship shuttle bay | `ShuttleBayTemplate`; contained service equipment, shelf loads, landing material and flush tie-downs | `templates/shuttle-bay.png`, `tilesets/shuttle-bay.*` | `ship-materials` |
