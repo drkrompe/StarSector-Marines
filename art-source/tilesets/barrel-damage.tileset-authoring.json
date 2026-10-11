@@ -1,0 +1,76 @@
+{
+  "sheetName": "barrel-damage",
+  "sheet": "art-source/tilesets/barrel-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 2,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Geometry-first built-in ImageGen reskin. Reviewed 2x2 source grid: damaged industrial/shipboard drums above matching low debris. Full frames preserve transparent shell centers and perimeter; original one-cell and 2x2 footprints, pivots and cover profiles remain. See barrel-damage.prompt.txt and ../templates/barrel-damage.png.",
+  "entries": [
+    {
+      "id": "doodad.industrial-drum-cluster-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        627,
+        627
+      ]
+    },
+    {
+      "id": "main-stores.drums-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "rect": [
+        627,
+        0,
+        627,
+        627
+      ]
+    },
+    {
+      "id": "doodad.industrial-drum-cluster-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        627,
+        627,
+        627
+      ]
+    },
+    {
+      "id": "main-stores.drums-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "rect": [
+        627,
+        627,
+        627,
+        627
+      ]
+    }
+  ]
+}

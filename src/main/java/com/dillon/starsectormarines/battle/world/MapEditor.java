@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.TreeDamage;
 import com.dillon.starsectormarines.battle.world.model.RockDamage;
+import com.dillon.starsectormarines.battle.world.model.BarrelDamage;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 
 /**
@@ -70,6 +71,7 @@ public final class MapEditor {
     private DoodadService doodads;
     private long structuralAttack;
     private final TreeDamage.ClearedCell treeCellCleared = this::clearTreeCell;
+    private final BarrelDamage.ClearedCell barrelCellCleared = this::clearBarrelCell;
 
     public void setDoodads(DoodadService doodads) { this.doodads = doodads; }
 
@@ -84,7 +86,8 @@ public final class MapEditor {
      * when the cell wasn't breached. Registered fences, sandbags and crates use the same
      * entry point, retaining the ground and replacing their prop with damaged
      * art or debris; they do not become masonry rubble or roof-collapse sources.
-     * Walkable crates release cover without changing navigation.
+     * Walkable crates and barrels release cover without changing navigation.
+     * Barrel groups share a pool across their footprint; stock overlays retain underlying racks.
      * Trees resolve one whole-crown structure pool before the cell-wall path.
      * Nature rocks spend per-cell structure, removing their cover and leaving low rubble.
      */
@@ -92,7 +95,7 @@ public final class MapEditor {
         return damageWall(x, y, amount, ++structuralAttack);
     }
 
-    /** One blast spends each tree's structure once, regardless of canopy size or cell visitation order. */
+    /** One blast spends each tree or barrel group's structure once, regardless of footprint or visitation order. */
     public void damageWallsInRadius(float centerX, float centerY, float radius, int amount, CellCallback broken) {
         long attack = ++structuralAttack;
         int minX = Math.max(0, (int)Math.floor(centerX - radius));
@@ -128,6 +131,8 @@ public final class MapEditor {
             if (rock != RockDamage.Result.NOT_ROCK) return false;
             TreeDamage.Result tree = doodads.damageTree(x, y, amount, attack, treeCellCleared);
             if (tree != TreeDamage.Result.NOT_TREE) return tree == TreeDamage.Result.DESTROYED;
+            CoverPropDamage.Result barrel = doodads.damageBarrel(x, y, amount, attack, barrelCellCleared);
+            if (barrel != CoverPropDamage.Result.NOT_COVER_PROP) return barrel == CoverPropDamage.Result.DESTROYED;
             boolean alreadyWalkable = grid.inBounds(x, y) && grid.isWalkable(x, y);
             CoverPropDamage.Result result = doodads.damageCoverProp(x, y, amount);
             if (result == CoverPropDamage.Result.DESTROYED) {
@@ -154,10 +159,20 @@ public final class MapEditor {
         return true;
     }
 
+    private void clearBarrelCell(int x, int y) {
+        if (grid.isWalkable(x, y) || topology.isWall(x, y)
+                || grid.hasTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID)) return;
+        openFixtureCell(x, y);
+    }
+
     private void clearTreeCell(int x, int y) {
         // Summit trees share their cells with permanent terrain; felling the crown cannot excavate the hill.
         if (ForestBrush.isGrassySummit(grid, topology, x, y)) return;
         grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, false);
+        openFixtureCell(x, y);
+    }
+
+    private void openFixtureCell(int x, int y) {
         grid.setWalkable(x, y, true);
         grid.setSeeThrough(x, y, false);
         grid.setDoorway(x, y, false);

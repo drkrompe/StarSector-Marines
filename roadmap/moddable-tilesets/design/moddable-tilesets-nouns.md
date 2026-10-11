@@ -219,6 +219,13 @@ full-cell pivot, rotation and mirroring; destroyed art supplies zero cover.
 Walkable crate cover is removable independently of static props and nature,
 while blocking crates use the established cell-breach boundary.
 
+Industrial drum clusters and shipboard drum stock likewise have matching
+dented and destroyed identities, preserving their one-cell and two-by-two
+footprints. Open curved shells and scattered metal expose the original ground.
+Full-frame cuts preserve pivots and orientation; the group owns one structure
+pool across its footprint. Stock overlays retain zero cover in every state,
+and their destruction leaves underlying rack and pallet bases intact.
+
 Tree crowns likewise retain intact, damaged and destroyed identities for each
 species, with identical multi-cell dimensions and placement pivots. Broken
 foliage remains inside the original canopy envelope; low stumps and fallen
