@@ -81,9 +81,10 @@ public final class MapEditor {
      * {@link CellTopology.GroundKind#RUBBLE},
      * cracks the four adjacent roof cells open, and marks the zone graph dirty
      * so the new portal is picked up at tick end. Returns {@code false} (no-op)
-     * when the cell wasn't breached. Registered fences and sandbags use the same
+     * when the cell wasn't breached. Registered fences, sandbags and crates use the same
      * entry point, retaining the ground and replacing their prop with damaged
      * art or debris; they do not become masonry rubble or roof-collapse sources.
+     * Walkable crates release cover without changing navigation.
      * Trees resolve one whole-crown structure pool before the cell-wall path.
      * Nature rocks spend per-cell structure, removing their cover and leaving low rubble.
      */
@@ -127,8 +128,10 @@ public final class MapEditor {
             if (rock != RockDamage.Result.NOT_ROCK) return false;
             TreeDamage.Result tree = doodads.damageTree(x, y, amount, attack, treeCellCleared);
             if (tree != TreeDamage.Result.NOT_TREE) return tree == TreeDamage.Result.DESTROYED;
+            boolean alreadyWalkable = grid.inBounds(x, y) && grid.isWalkable(x, y);
             CoverPropDamage.Result result = doodads.damageCoverProp(x, y, amount);
             if (result == CoverPropDamage.Result.DESTROYED) {
+                if (alreadyWalkable) return true;
                 topology.setFixture(x, y, false);
                 // damageCell's wall-breach portal must not turn a cover gap into a doorway.
                 grid.setDoorway(x, y, false);
