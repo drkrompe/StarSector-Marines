@@ -14,9 +14,11 @@
 
     <div id="fireteam-cargo-stock" class="cargo-stock-strip panel">
       <div id="fireteam-cargo-stock-title" class="label heading tone-muted">FLEET CARGO</div>
-      <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
-        <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />
-        <div id="{stock.labelId}" class="label cargo-stock-label">{stock.label}</div>
+      <div id="fireteam-cargo-stock-rows" class="cargo-stock-rows">
+        <div each="stock in cargoStockRows" key="{stock.id}" id="{stock.id}" class="cargo-stock-row">
+          <img id="{stock.iconId}" class="cargo-stock-icon" src="{stock.icon}" />
+          <div id="{stock.labelId}" class="label cargo-stock-label">{stock.label}</div>
+        </div>
       </div>
     </div>
 
@@ -51,6 +53,7 @@
 
   .cargo-stock-strip { flex-direction: row; align-items: center; height: 30px; padding: 3px 7px; gap: 8px; border-width: 1px; }
   #fireteam-cargo-stock-title { width: 92px; height: 18px; }
+  .cargo-stock-rows { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 22px; gap: 8px; }
   .cargo-stock-row { flex-direction: row; align-items: center; width: 0px; height: 22px; flex-grow: 1; gap: 5px; padding: 2px 4px; background-color: #121719; border-width: 1px; border-color: #39423a; }
   .cargo-stock-icon { width: 16px; height: 16px; }
   .cargo-stock-label { width: 0px; flex-grow: 1; height: 15px; font-family: heading; }
