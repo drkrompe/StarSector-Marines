@@ -44,8 +44,10 @@ public final class LanceSweepSystem {
     private final List<Active> activeView = Collections.unmodifiableList(active);
 
     /** Commits a sweep. Its arc is fixed from here. */
-    public void start(LanceSweep sweep) {
-        active.add(new Active(sweep));
+    public Active start(LanceSweep sweep) {
+        Active a = new Active(sweep);
+        active.add(a);
+        return a;
     }
 
     /** Sweeps in progress, telegraphing or burning. */

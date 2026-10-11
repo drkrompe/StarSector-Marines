@@ -34,6 +34,9 @@ public record VanillaWeapon(
         float projectileSpeedPx,
         float spreadDegrees,
         float turnRateDegPerSec,
+        boolean beam,
+        float damagePerSecond,
+        float beamWidthPx,
         boolean missile,
         boolean pointDefenceOnly,
         float explosionRadiusPx,
@@ -59,6 +62,7 @@ public record VanillaWeapon(
     public static VanillaWeapon of(String id, Map<String, String> row, JSONObject wpn, JSONObject proj) {
         String hints = row.getOrDefault("hints", "");
         boolean pd = hints.contains("PD") && !hints.contains("PD_ALSO");
+        boolean beam = wpn != null && "beam".equals(wpn.optString("specClass"));
         boolean missile = proj != null && "missile".equals(proj.optString("specClass"));
         float explosion = explosionRadius(proj);
         return new VanillaWeapon(id,
@@ -71,6 +75,9 @@ public record VanillaWeapon(
                 number(row, "proj speed", 600f),
                 number(row, "min spread", 0f),
                 number(row, "turn rate", 0f),
+                beam,
+                number(row, "damage/second", 0f),
+                wpn == null ? 0f : (float) wpn.optDouble("width", 0.0),
                 missile, pd, explosion,
                 proj == null ? 0f : (float) proj.optDouble("hitGlowRadius", 0.0),
                 proj == null ? null : color(proj, "explosionColor"),
