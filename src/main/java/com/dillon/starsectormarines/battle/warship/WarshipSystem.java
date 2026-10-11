@@ -9,8 +9,11 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Ticks the warships over the battle: each mount picks the nearest enemy it can
@@ -41,6 +44,42 @@ public final class WarshipSystem {
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
 
+    /**
+     * Seconds between two fire cues from one mount. A Devastator fires twelve
+     * rounds a second and a cue per round would be static, so a burst is heard
+     * as one report per this interval; a single shot always sounds.
+     */
+    private static final float FIRE_CUE_GAP_SECONDS = 0.3f;
+    /** Seconds between two landing cues for one weapon, for the same reason. */
+    private static final float IMPACT_CUE_GAP_SECONDS = 0.2f;
+
+    private final List<WarshipSoundCue> cues = new ArrayList<>();
+    private final List<WarshipSoundCue> cuesView = Collections.unmodifiableList(cues);
+    private final Map<Object, Float> lastCueAt = new IdentityHashMap<>();
+    private final Set<Warship.Mount> litBeams = Collections.newSetFromMap(new IdentityHashMap<>());
+    private float clock;
+
+    /** Sounds asked for since the last {@link #beginFrame()}, for whoever presents the battle. */
+    public List<WarshipSoundCue> cuesThisFrame() {
+        return cuesView;
+    }
+
+    /** Forgets last frame's cues; called once per simulation advance so a paused caller does not replay them. */
+    public void beginFrame() {
+        cues.clear();
+    }
+
+    private boolean cueAllowed(Object key, float gap) {
+        Float last = lastCueAt.get(key);
+        if (last != null && clock - last < gap) return false;
+        lastCueAt.put(key, clock);
+        return true;
+    }
+
+    private void cue(WarshipSoundCue.Kind kind, String soundId, float x, float y) {
+        if (soundId != null) cues.add(new WarshipSoundCue(kind, soundId, x, y, 1f));
+    }
+
     /** Puts a ship over the battle. */
     public void add(Warship ship) {
         ships.add(ship);
@@ -68,6 +107,7 @@ public final class WarshipSystem {
     private static final float LANCE_REST_SECONDS = 2f;
 
     public void tick(float dt, BattleSimulation sim) {
+        clock += dt;
         landShells(dt, sim);
         for (Warship ship : ships) {
             turnHull(dt, ship);
@@ -108,6 +148,9 @@ public final class WarshipSystem {
             if (!shell.advance(dt)) continue;
             shells.remove(i);
             sim.detonateNow(shell.landing());
+            if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
+            }
             if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells);
             }
@@ -168,9 +211,15 @@ public final class WarshipSystem {
         if (m.lance != null) {
             if (sim.lanceSweeps().active().contains(m.lance)) {
                 m.headingDegrees = (float) Math.toDegrees(m.lance.angle()) - 90f;
-                if (m.lance.isBurning()) m.secondsSinceFired = 0f;
+                if (m.lance.isBurning()) {
+                    m.secondsSinceFired = 0f;
+                    if (litBeams.add(m)) {
+                        cue(WarshipSoundCue.Kind.BEAM_LIT, w.fireSoundId(), ship.mountX(m), ship.mountY(m));
+                    }
+                }
                 return;
             }
+            litBeams.remove(m);
             m.lance = null;
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
@@ -270,6 +319,7 @@ public final class WarshipSystem {
         m.secondsSinceFired = 0f;
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
+        if (cueAllowed(m, FIRE_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.FIRE, w.fireSoundId(), mx, my);
         float dx = m.aimX - mx;
         float dy = m.aimY - my;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
