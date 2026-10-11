@@ -21,7 +21,8 @@
     "data/tilesets/auto-shop.tileset.json",
     "data/tilesets/warehouse-racks.tileset.json",
     "data/tilesets/warehouse-racks-muted.tileset.json",
-    "data/tilesets/ship-bulkheads.tileset.json"
+    "data/tilesets/ship-bulkheads.tileset.json",
+    "data/tilesets/ship-interior-materials.tileset.json"
   ],
   "tileMappings": [
     "data/tilesets/urban.mapping.json"

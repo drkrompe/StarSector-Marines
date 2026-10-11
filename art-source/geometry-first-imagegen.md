@@ -52,6 +52,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
 | Neutral ship bulkheads | `ShipBulkheadTemplate`; sixteen exposed-face masks, quiet charcoal/enamel materials | `templates/ship-bulkheads.png`, `tilesets/ship-bulkheads.*`, `tilesets/ship-neutral.README.md` | `ship-neutral` |
+| Ship openings and decks | `ShipInteriorMaterialTemplate`; full-cell cardinal openings and seamless resin samples | `templates/ship-interior-materials.png`, `tilesets/ship-interior-materials.*` | `ship-materials` |
 
 Template classes live in `src/test/java/com/dillon/starsectormarines/tools/tilesetauthoring/`.
 Each accepted sheet's prompt and authoring note record its precise layout.

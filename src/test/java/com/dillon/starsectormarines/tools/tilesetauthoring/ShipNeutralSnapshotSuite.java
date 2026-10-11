@@ -46,7 +46,7 @@ public final class ShipNeutralSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("ship-neutral-guide.png", ShipBulkheadTemplate.render()));
     }
 
-    private static MapResult room(String wall) {
+    static MapResult room(String wall) {
         MapResult base = WarehouseRackSnapshotSuite.room();
         for (int y=0; y<24; y++) for (int x=0; x<32; x++) {
             if (base.topology.isWall(x,y)) base.topology.setSurface(x,y,base.topology.surfaceIndex(wall));
