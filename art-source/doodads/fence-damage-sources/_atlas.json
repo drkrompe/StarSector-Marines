@@ -1,0 +1,112 @@
+{
+  "assets": {
+    "industrial-fence-damaged-straight-h.png": {
+      "id": "doodad.industrial-fence-damaged-straight-h",
+      "order": 0,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-damaged-straight-v.png": {
+      "id": "doodad.industrial-fence-damaged-straight-v",
+      "order": 1,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-damaged-corner-nw.png": {
+      "id": "doodad.industrial-fence-damaged-corner-nw",
+      "order": 2,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-damaged-corner-ne.png": {
+      "id": "doodad.industrial-fence-damaged-corner-ne",
+      "order": 3,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-damaged-corner-se.png": {
+      "id": "doodad.industrial-fence-damaged-corner-se",
+      "order": 4,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-damaged-corner-sw.png": {
+      "id": "doodad.industrial-fence-damaged-corner-sw",
+      "order": 5,
+      "cover": "light",
+      "ballisticHalfHeight": 0.72,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-destroyed-straight-h.png": {
+      "id": "doodad.industrial-fence-destroyed-straight-h",
+      "order": 6,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-destroyed-straight-v.png": {
+      "id": "doodad.industrial-fence-destroyed-straight-v",
+      "order": 7,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-destroyed-corner-nw.png": {
+      "id": "doodad.industrial-fence-destroyed-corner-nw",
+      "order": 8,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-destroyed-corner-ne.png": {
+      "id": "doodad.industrial-fence-destroyed-corner-ne",
+      "order": 9,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-destroyed-corner-se.png": {
+      "id": "doodad.industrial-fence-destroyed-corner-se",
+      "order": 10,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "industrial-fence-destroyed-corner-sw.png": {
+      "id": "doodad.industrial-fence-destroyed-corner-sw",
+      "order": 11,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    }
+  }
+}

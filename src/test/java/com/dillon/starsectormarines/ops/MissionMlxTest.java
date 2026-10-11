@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
+import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import org.json.JSONObject;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -92,10 +95,59 @@ class MissionMlxTest {
         try (MarkupInstance instance = loader.build(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
             BriefingScreen.requireRetainedElements(instance);
             BriefingViewModel.applyVisibility(instance, props);
+            assertNull(instance.requireElement("mission-briefing-speaker").parent());
+            assertNull(instance.requireElement("mission-narration-replay").parent());
+            assertNull(instance.requireElement("mission-narration-stop").parent());
             assertNull(instance.requireElement("mission-debug-toggle").parent());
             assertNull(instance.requireElement("mission-debug-drawer").parent());
             assertEquals(List.of("mission-commitment", "mission-survey-slot"), instance.requireElement("mission-planning")
                     .children().stream().map(element -> element.id()).toList());
+        }
+    }
+
+    @Test
+    void briefingSpeakerIsTheRecordedContactAndSurvivesPlaybackStateChanges() throws Exception {
+        WaylineNarration catalog = WaylineNarration.parse(new JSONObject(Files.readString(
+                Path.of("mod", WaylineNarration.PATH))));
+        var line = catalog.find("story_opening_relief", "briefing");
+        NarrationPlayer player = new NarrationPlayer(ignored -> null);
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        BriefingViewModel.putNarration(props, line, false);
+        MarkupLoader loader = loader(BriefingScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(new Reactor(), BriefingScreen.ROOT_COMPONENT, props)) {
+            BriefingViewModel.applyVisibility(instance, props);
+            var portrait = instance.requireElement("mission-briefing-speaker-portrait");
+            var speaker = instance.requireElement("mission-briefing-speaker");
+            assertEquals(OpeningBroker.PORTRAIT, portrait.imageSource());
+            assertEquals(OpeningBroker.NAME, instance.requireElement("mission-briefing-speaker-name").text());
+            assertEquals("graphics/portraits/portrait_mercenary01.png",
+                    instance.requireElement("captain-preview-icon").imageSource());
+            assertEquals("mission-overview", speaker.parent().id());
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard()).layout(1920, 1080);
+            Rect overview = instance.requireElement("mission-overview").box().contentBox();
+            Rect commanders = instance.requireElement("mission-captain-block").box().borderBox();
+            assertTrue(commanders.bottom() <= overview.bottom(), "Portrait must leave the commander picker in view");
+            Rect status = instance.requireElement("mission-narration-status").box().borderBox();
+            assertTrue(status.bottom() <= speaker.box().contentBox().bottom(), "Playback label stays inside its panel");
+            player.start(line);
+            BriefingViewModel.updateNarration(instance, player.busy());
+            assertTrue(speaker.hasClass("speaking"));
+            assertEquals("PLAYING BRIEFING", instance.requireElement("mission-narration-status").text());
+            player.stop();
+            BriefingViewModel.updateNarration(instance, player.busy());
+            assertFalse(speaker.hasClass("speaking"));
+            assertEquals("BRIEFING RECORDING", instance.requireElement("mission-narration-status").text());
+            player.start(line);
+            BriefingViewModel.updateNarration(instance, player.busy());
+            assertTrue(speaker.hasClass("speaking"));
+            player.advance(line.durationSeconds() + 1);
+            BriefingViewModel.updateNarration(instance, player.busy());
+            assertFalse(speaker.hasClass("speaking"));
+            assertEquals(portrait, instance.requireElement("mission-briefing-speaker-portrait"));
+            assertEquals(OpeningBroker.PORTRAIT, portrait.imageSource());
         }
     }
 
