@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.DevConfig;
 
+import java.awt.Color;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -136,6 +137,21 @@ public final class EffectsService {
     /** Queues a presentation event for an externally delivered heavy blast. */
     public void spawnHeavyImpact(float x, float y, float radius) {
         heavyImpactsThisFrame.add(new float[]{x, y, radius});
+    }
+
+    /**
+     * Queues a heavy blast in the colour of the ordnance that made it: the event
+     * carries {@code tint} as three further floats (0..1), which a host that
+     * understands them draws the blast with and which one that does not can
+     * ignore, since the first three entries are unchanged.
+     */
+    public void spawnHeavyImpact(float x, float y, float radius, Color tint) {
+        if (tint == null) {
+            spawnHeavyImpact(x, y, radius);
+            return;
+        }
+        heavyImpactsThisFrame.add(new float[]{x, y, radius,
+                tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f});
     }
 
     // ---- Delivered ordnance ----

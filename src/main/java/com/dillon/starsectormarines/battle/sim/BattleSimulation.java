@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+import java.awt.Color;
 import java.util.UUID;
 
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
@@ -1583,6 +1584,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public void detonateNow(PendingDetonation det) {
         detonations.detonateNow(det);
+    }
+
+    public void spawnHeavyImpact(float x, float y, float radius, Color tint) {
+        effects.spawnHeavyImpact(x, y, radius, tint);
     }
 
     @Override
