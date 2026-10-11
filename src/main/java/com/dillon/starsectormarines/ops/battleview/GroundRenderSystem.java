@@ -211,8 +211,7 @@ public final class GroundRenderSystem implements RenderSystem {
             float x=pad.centerX+.5f,y=pad.centerY+.5f;
             paintLine(x-1.6f,y,x+1.6f,y);
             paintLine(x+.8f,y-.7f,x+1.6f,y);paintLine(x+.8f,y+.7f,x+1.6f,y);
-            paintLine(left-2,y,left-.8f,y);
-            paintLine(right+1.5f,bottom-1,right+1.5f,top+1);
+            paintLine(left+.8f,y,left+2f,y);
         }
     }
     private void paintLine(float x0,float y0,float x1,float y1) {
