@@ -23,18 +23,23 @@ public final class ForestField {
     public List<Tree> trees() { return trees; }
 
     public static ForestField build(ForestPlan plan) {
-        int w = plan.width(), h = plan.height();
-        boolean[] paint = paint(plan), blocked = new boolean[w * h];
+        return build(plan.width(), plan.height(), plan.seed(), plan.woodland(), paint(plan));
+    }
+
+    /** Procedural hosts supply eligible ground; packing remains identical to the authored brush. */
+    public static ForestField build(int w, int h, long seed, ForestPlan.Woodland woodland, boolean[] paint) {
+        if (paint.length != w * h) throw new IllegalArgumentException("Forest mask dimensions differ");
+        boolean[] blocked = new boolean[w * h];
         List<Tree> trees = new ArrayList<>();
         List<Candidate> candidates = new ArrayList<>();
         // A fixed jittered lattice keeps the seed stable when strokes are edited.
         for (int y = 0; y < h; y += 2) for (int x = 0; x < w; x += 2) {
-            long key = mix(plan.seed() ^ ((long)x << 32) ^ y);
+            long key = mix(seed ^ ((long)x << 32) ^ y);
             int cx = Math.min(w - 1, x + (int)(key & 1)), cy = Math.min(h - 1, y + (int)((key >>> 1) & 1));
             if (paint[cy * w + cx]) candidates.add(new Candidate(cx, cy, key));
         }
         candidates.sort(Comparator.comparingLong(Candidate::key).thenComparingInt(Candidate::y).thenComparingInt(Candidate::x));
-        TreeCanopy[] pool = Arrays.stream(TreeCanopy.values()).filter(plan.woodland()::includes).toArray(TreeCanopy[]::new);
+        TreeCanopy[] pool = Arrays.stream(TreeCanopy.values()).filter(woodland::includes).toArray(TreeCanopy[]::new);
         for (Candidate candidate : candidates) {
             int first = (int)Math.floorMod(candidate.key() >>> 3, pool.length);
             int turns = (int)((candidate.key() >>> 12) & 3);

@@ -3,12 +3,40 @@ package com.dillon.starsectormarines.battle.world.gen.forest;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ForestBrushTest {
+    @Test void productionCrownsFitGrassySummitsButRefuseBareRockAndCliffFaces() {
+        var tree = new ForestField.Tree(10, 10, TreeCanopy.PINE, 0);
+        for (var finish : TerrainPlan.Finish.values()) {
+            var grid = new NavigationGrid(24, 24); var topology = ground(grid);
+            var field = TerrainBrush.stamp(new TerrainPlan(24, 24, finish, 2, 0, 1, List.of(
+                    new TerrainPlan.Stroke(TerrainPlan.Mode.RAISE, 8, List.of(new TerrainPlan.Point(12, 12))))), grid, topology);
+            List<Doodad> art = new ArrayList<>();
+            for (int y = 0; y < 24; y++) for (int x = 0; x < 24; x++) {
+                boolean fullCap = finish == TerrainPlan.Finish.GRASS_TOP && field.corner(x, y) >= 2
+                        && field.corner(x + 1, y) >= 2 && field.corner(x, y + 1) >= 2 && field.corner(x + 1, y + 1) >= 2;
+                assertEquals(fullCap, ForestBrush.isGrassySummit(grid, topology, x, y),
+                        "a clipped four-vertex polygon is not necessarily a full cell");
+            }
+            if (finish == TerrainPlan.Finish.GRASS_TOP) {
+                ForestBrush.stampTrees(List.of(tree), grid, topology, art, null, true);
+                assertEquals(1, art.size());
+                assertFalse(grid.isWalkable(11, 11));
+                assertFalse(topology.isWall(11, 11));
+            } else assertThrows(IllegalArgumentException.class,
+                    () -> ForestBrush.stampTrees(List.of(tree), grid, topology, art, null, true));
+            var faceTree = new ForestField.Tree(4, 10, TreeCanopy.PINE, 0);
+            assertThrows(IllegalArgumentException.class,
+                    () -> ForestBrush.stampTrees(List.of(faceTree), grid, topology, art, null, true));
+        }
+    }
+
     static ForestPlan plan() {
         return new ForestPlan(24, 24, ForestPlan.Woodland.MIXED, 7821, List.of(
                 new ForestPlan.Stroke(ForestPlan.Mode.PAINT, 8, List.of(new ForestPlan.Point(12, 4), new ForestPlan.Point(12, 20)))));

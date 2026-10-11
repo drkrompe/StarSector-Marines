@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
@@ -42,7 +43,7 @@ public final class JunctionCompound {
         new GenRecipe("Open the Junction", List.of(JunctionCompound::grounds,
                 JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                JunctionCompound::yardSurfaces, JunctionCompound::terrain, new FinalizeStage())).run(c);
+                JunctionCompound::yardSurfaces, JunctionCompound::terrain, new FinalizeStage(), new OutdoorLandscapeStage(21, 56, 148, 55))).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
                 10, 9, 40, 60, Faction.MARINE, 20, 0));

@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OpeningOperationFacilityStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.OutdoorLandscapeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FrontDepthStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.HinterlandFillStage;
@@ -221,6 +222,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
                 new SpawnAnchorStage(),                     // spawn anchors
                 new ConquestLandingAreaStage(),             // paired BEACH arrival geometry
+                new OutdoorLandscapeStage(),                // finished access owns its clear ground
                 new FrontDepthStage(),                      // the front, as a depth
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
@@ -286,6 +288,7 @@ public final class BspCityGenerator implements MapGenerator {
                 landingAreaStage,                           // precinct-only; null omits it
                 frontStage,                                 // precinct-only; null omits it
                 laneRouteStage,                             // precinct-only; the road each lane runs on
+                new OutdoorLandscapeStage(),                // retain those finished lane routes
                 new InteriorAnchorFitStage()));             // closing: POI anchors vs the finished grid
     }
 
