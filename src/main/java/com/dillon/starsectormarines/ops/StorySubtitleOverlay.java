@@ -25,12 +25,17 @@ final class StorySubtitleOverlay {
     private WaylineNarration.Line current;
 
     void attach(PositionAPI position) {
-        UiViewport host = MarineOpsUiViewport.from(position);
+        viewport = viewport(MarineOpsUiViewport.from(position));
+        if (document != null) document.layout(viewport.documentWidth(), viewport.documentHeight());
+    }
+
+    /** Shared live/preview placement, inset from the granted host's top-left corner. */
+    static UiViewport viewport(UiViewport host) {
         float scale = host.documentScale();
         float width = Math.min(640, host.documentWidth() - 24) * scale;
-        viewport = new UiViewport(position.getX() + (position.getWidth() - width) / 2,
-                position.getY() + 180 * scale, width, 116 * scale, scale);
-        if (document != null) document.layout(viewport.documentWidth(), viewport.documentHeight());
+        float height = 116 * scale;
+        return new UiViewport(host.screenXFor(12), host.screenTopFor(12) - height,
+                width, height, scale);
     }
 
     static Map<String, Object> props(String subtitle) {

@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — animated intelligence instruments share the live and headless canvas path.
+Updated: 2026-10-11 — mission voice dialogue is inset from the battlefield's top-left corner.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -453,8 +453,8 @@ framebuffer pixels; the conversion observes Starsector UI scale and flips the
 top-left document Y axis exactly once. A headless target applies the same clip in
 document pixels.
 
-Story dialogue has a non-interactive subtitle panel above the lower command
-surfaces, naming its speaker and retaining the complete line while the recording
+Story dialogue has a non-interactive subtitle panel inset from the battlefield's
+top-left corner, naming its speaker and retaining the complete line while the recording
 plays. It remains visible in direct control and when audio is muted. The panel
 uses the shared theme and does not consume world-selection input. Its lifetime
 and factual validity follow the presentation queue in `battle-radio-nouns.md`.
