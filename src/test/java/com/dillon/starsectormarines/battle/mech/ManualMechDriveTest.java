@@ -6,6 +6,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ManualMechDriveTest {
     @Test
+    void facingKeepsWorldInputButMakesReverseAndStrafeSlowerAndHeavier() {
+        ManualMechDrive forward = new ManualMechDrive(), reverse = new ManualMechDrive(), side = new ManualMechDrive();
+        forward.advanceFacing(0, 1, 2f, 1f, 0f, 3f);
+        reverse.advanceFacing(0, -1, 2f, 1f, 0f, 3f);
+        side.advanceFacing(1, 0, 2f, 1f, 0f, 3f);
+        assertEquals(2f, forward.velocityY(), .001f);
+        assertEquals(-1f, reverse.velocityY(), .001f);
+        assertEquals(1.44f, side.velocityX(), .001f);
+        assertEquals(0f, side.velocityY());
+        var diagonal = new ManualMechDrive().advanceFacing(1, -1, 2f, 1f, 0f, 3f);
+        assertEquals(diagonal.dx(), -diagonal.dy(), .00001f);
+        var east = new ManualMechDrive();
+        east.advanceFacing(-1, 0, 2f, 1f, -90f, 3f);
+        assertEquals(-1f, east.velocityX(), .001f, "reverse follows actual hip bearing");
+    }
+
+    @Test
     void constantInputHasTheSameVelocityAndTravelAtDifferentTickSizes() {
         ManualMechDrive whole = new ManualMechDrive(), split = new ManualMechDrive();
         var once = whole.advance(1f, 1f, 2f, 1.8f, .4f);

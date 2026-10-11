@@ -70,6 +70,7 @@ import com.dillon.starsectormarines.ops.battleview.RenderContext;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceAudio;
+import com.dillon.starsectormarines.ops.battleview.WarshipAudio;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceFxRuntime;
 import com.dillon.starsectormarines.ops.battleview.OrdnanceTraceFxService;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
@@ -1070,6 +1071,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                     renderer.getImpactFx(), renderer.getGroundLights(), arrivals.get(i));
         }
         ordnanceAudio.update(releases, arrivals, simDt);
+        WarshipAudio.play(sim.warships().cuesThisFrame());
     }
 
     private void spawnImpactFx(BattleSimulation sim) {
