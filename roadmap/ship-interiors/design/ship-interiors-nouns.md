@@ -5,7 +5,10 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — engineering spaces separate complete piped machinery
+Updated: 2026-10-11 — the ship machine shop pairs fabrication equipment and
+service benches with layered, organized parts storage and clear work aisles.
+
+Earlier 2026-10-11 — engineering spaces separate complete piped machinery
 skids, service aisles and control/workshop aprons in the muted ship materials.
 
 Earlier 2026-10-11 — ship bridges use a central tactical plot and four
@@ -500,6 +503,17 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+The ship machine shop separates cutting and milling from assembly and
+inspection. Its lathe and mill face the working floor across from a repair
+bench and a metrology/diagnostic bench. A single side rack groups bar stock,
+bearings and electrical parts in separate shelf loads, with a retaining frame
+above them. The shelf bed owns the complete physical footprint, and its layers
+follow the same room pose. A central cross-aisle joins the workstations to the
+picking aisle and perimeter hatch route. Fabrication belongs to the machines,
+repair to the assembly bench, readings to inspection and stowage to the rack;
+each position is exclusive and reachable. Small utility parts cages retain
+secured storage. Displayed parts do not assert campaign stock or crafting rules.
 
 Ship engineering distinguishes the main drive from auxiliary plant. The drive
 room carries one connected reactor/turbine/heat-exchanger assembly, separate
