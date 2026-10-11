@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — mission speech finishes active lines and takes precedence over squad chatter.
+Updated: 2026-10-11 - command-ship officer coordinates deployed units over the radio net.
 
 Read `stories.md` for the open-work board.
 
@@ -130,6 +130,19 @@ She belongs to the company rather than Wayline. Mara remains the employer's
 mission contact. Command replies are available in the Marine Operations battle
 host; the hybrid debug host has no company command identity and retains its
 squad net. Both hosts still use the same squad cue policy.
+
+The player normally oversees deployment from the command ship. Ground radio is
+traffic between deployed units and shipboard command, not commentary addressed
+to the player. The officer coordinates and supports ground teams; individual
+squad voices report their own situation and address other units. Friendly-fire
+warnings concern a confirmed incident among those units, without implying the
+player chose to cause it. Direct control can place the player behind a unit's
+actions, but does not change who a generic net-wide warning addresses.
+
+Write each line with a clear speaker and recipient. Use ground-team or company
+address for shared command recordings; specific callsigns, directions and
+requests for support require facts supplied by their trigger. A recorded order
+is radio presentation, not evidence that an AI action has been issued or obeyed.
 
 Command answers contact, fallback, check-fire, visible-mech and confirmed-kill
 reports admitted by the squad policy. It does not observe hidden simulation

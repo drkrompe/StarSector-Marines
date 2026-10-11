@@ -12,6 +12,13 @@ are two takes for each of contact, fallback, check fire, enemy mech spotted,
 and confirmed enemy down. These are short command responses to squad reports,
 not squad voice replacements. Mara remains the mission contact.
 
+The officer speaks from the command ship to deployed ground teams. The player
+normally oversees the deployment aboard that ship; generic warnings must not
+sound like personal blame or tutorial instructions. Ground voices report and
+coordinate unit activity. Command addresses the net, acknowledges those reports,
+and supports the teams. Specific callsigns and directions need trigger context;
+never invent a movement or imply that a voice line itself orders the AI.
+
 Generate only missing/changed takes explicitly:
 
 ```powershell
