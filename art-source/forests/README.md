@@ -8,7 +8,9 @@ three cells gives a crown room to fit. One drag is one undoable stroke.
 **Show blocked cells** overlays the actual collision grid. All cells touched by
 the canopy are impassable, including leaves and branches away from the trunk.
 Erasing excludes those cells from placement, so a cleared path has no canopy
-overhang. Crowns are opaque, permanent natural obstacles, not destructible walls.
+overhang. Intact and damaged crowns are opaque obstacles. Combat can fell a
+whole tree, leaving low broken trunks and branches and releasing its canopy
+cells wherever no surviving tree or hill still obstructs them.
 
 The example `woodland.forest.json` is a 96x54 woodland with an open central lane.
 Save/Open retains brush strokes, tree mix and seed. **Road context** optionally
@@ -45,6 +47,31 @@ forest scene, individual canopy examples and editor screenshots, and exercises
 paint/erase/undo/redo/save/reload through real controls. Small unit tests verify
 placement, refusal, rotation and that visible exported foliage lies inside the
 blocked footprint.
+
+### Combat damage art
+
+`TreeDamageReskinTemplate` retains the six species' full-frame centers and
+draws broken crowns or detached fallen limbs around low stumps. Built-in
+ImageGen reskins the two guides under `art-source/templates/tree-*.png` using
+the intact canopy sheet as the material reference. Accepted raw sheets, exact
+prompts and reviewed crop documents live in
+`art-source/tilesets/forest-damaged.*` and `forest-destroyed.*`.
+The generated sheets retained the 1536x1024 canvas; reviewed cuts include
+branch tips and empty margins without alpha trimming or recentering.
+
+Export each with `tools/authoring.cmd tileset_export -` and JSON
+`{"name":"forest-damaged"}` or `{"name":"forest-destroyed"}` on stdin.
+The ordinary exporter supplies six multi-cell props per sheet at 64 source
+pixels per world cell, retaining generated alpha and runtime quarter turns.
+`createSnapshots -Psnapshot=tree-damage` shows all three states, an overlapping
+grove, and a tree felled on a hill through the production renderer.
+
+Each tree starts with 200 structural HP. Positive weapon-authored wall damage
+to any occupied canopy cell tears its crown; a blast spends its damage only
+once per tree. Exhaustion swaps to zero-cover remnants and clears the whole
+tree's obstruction, preserving overlapping live crowns, underlying hills and
+the original ground. No doorway or masonry rubble is created. Trees on
+walkable display-only placements do not acquire collision or combat durability.
 
 ## Outdoor map adoption
 

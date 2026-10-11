@@ -29,6 +29,7 @@ public final class DoodadService {
     private final NavigationGrid grid;
     private final List<Doodad> doodads = new ArrayList<>();
     private final CoverPropDamage destructibleCover;
+    private final TreeDamage trees;
 
     /**
      * Per-cell, per-facing cover for doodads and walkable nature overlays.
@@ -76,6 +77,7 @@ public final class DoodadService {
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
         this.destructibleCover = new CoverPropDamage(grid, doodads);
+        this.trees = new TreeDamage(grid, doodads);
     }
 
     public List<Doodad> getDoodads() { return doodads; }
@@ -88,6 +90,7 @@ public final class DoodadService {
      */
     public void addDoodad(Doodad d) {
         destructibleCover.register(doodads.size(), d, TileRegistry.installed());
+        trees.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
         if (d.cover <= 0) return;
         ensureCoverStorage();
@@ -107,6 +110,10 @@ public final class DoodadService {
 
     public CoverPropDamage.Result damageCoverProp(int x, int y, int amount) {
         return destructibleCover.damage(x, y, amount);
+    }
+
+    public TreeDamage.Result damageTree(int x, int y, int amount, long attack, TreeDamage.ClearedCell cleared) {
+        return trees.damage(x, y, amount, attack, cleared);
     }
 
     /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
