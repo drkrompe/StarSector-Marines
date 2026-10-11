@@ -37,7 +37,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> frames = new ArrayList<>();
         TargetProfile profile = new TargetProfile(0,0,0,0,"",Set.of(),SurfacePalette.VERDANT,SettlementLink.ROAD);
         String[] names = {"relief","counterattack","junction","last-lift","relay-nine"};
-        int[][] close = {{36,19},{62,24},{63,25},{57,30},{52,25}};
+        int[][] close = {{36,19},{62,24},{58,25},{57,30},{52,25}};
         for (int seed = 8101; seed <= 8103; seed++) {
             List<MapResult> maps = List.of(ReliefCheckpoint.generate(112,64,seed,profile).map(),
                     CounterattackDepot.generate(seed,profile).map(),JunctionCompound.generate(seed,profile).map(),
@@ -62,6 +62,8 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                     if(names[index].equals("junction") || names[index].equals("relay-nine"))
                         frames.add(new SnapshotArtifact(names[index]+"-apron.png",renderer.renderHostPass(
                                 scene.pass(ShipDeckBattleScene.DeckView.over(0,0,72,72,15)),1920,1080)));
+                    if(index==2 || index==4) frames.add(new SnapshotArtifact(names[index]+"-loading-court.png",renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.fitting(index==2?92:103,index==2?61:76,80,45,1920,1080)),1920,1080)));
                     if(names[index].equals("junction")) frames.add(new SnapshotArtifact("junction-east.png",renderer.renderHostPass(
                             scene.pass(ShipDeckBattleScene.DeckView.over(135,26,60,68,16)),1920,1080)));
                     if(names[index].equals("relay-nine")) frames.add(new SnapshotArtifact("relay-nine-east.png",renderer.renderHostPass(

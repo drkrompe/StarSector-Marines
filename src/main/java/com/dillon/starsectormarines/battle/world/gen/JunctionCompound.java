@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
@@ -119,13 +120,13 @@ public final class JunctionCompound {
                 c.get(BspKeys.MARKET_PROFILE).surface()), c.grid, c.topology, reserved);
     }
     private static void buildings(GenContext c) {
-        shell(c, 61, 39, 77, 52, Frontage.BOTTOM); // Weigh station by the inbound gate.
-        shell(c, 97, 38, 115, 51, Frontage.TOP); // Freight office off the service road.
+        BuildingStamp.T_WORKSHOP.place(c, 63, 40, 2); // Weigh-house hall faces the inbound road.
+        BuildingStamp.OFFSET_DEPOT.place(c, 100, 39, 1); // Offset loading rooms open onto the service road.
         shell(c, 137, 41, 160, 53, Frontage.BOTTOM); // Dispatch overlooking the junction.
         shell(c, 42, 28, 53, 49, Frontage.BOTTOM); // Screens shield the apron from the gate.
-        shell(c, 43, 65, 55, 84, Frontage.TOP);
+        BuildingStamp.OFFSET_DEPOT.place(c, 44, 69, 1); // Smaller service annex above the apron.
         shell(c, 94, 66, 119, 85, Frontage.TOP); // Warehouse blocks a map-wide firing corridor.
-        shell(c, 138, 66, 160, 87, Frontage.TOP);
+        BuildingStamp.FREIGHT_L.place(c, 139, 68, 0); // Depot wing encloses an outdoor loading court.
         shell(c, 92, 8, 115, 17, Frontage.BOTTOM); // Maintenance staging beside the reserve road.
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {

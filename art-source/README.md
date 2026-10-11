@@ -21,6 +21,7 @@ work that cannot be redone mechanically.
 | Directory | Holds |
 |-----------|-------|
 | `tilesets/` | Raw tileset sheets, their authoring documents, and the normalization and atlas-packing scripts. |
+| `forests/` | Reusable forest-brush plans and the overhead canopy authoring workflow. |
 | `vehicles/` | Dedicated vehicle masters, built-in imagegen prompts and whole-frame PNG packing script. |
 | `portraits/` | Character portrait masters and built-in imagegen prompts. `pack.ps1` downsamples complete square frames to 256px PNGs for contacts and mission dialogue. |
 | `story-scenes/` | Approved chapter illustration masters and built-in imagegen prompts. `pack.ps1` encodes the complete frames as quality-92 JPEGs for the mission UI without cropping or recoloring. |

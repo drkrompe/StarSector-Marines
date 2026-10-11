@@ -271,7 +271,11 @@ This is a mission-scoped exception, not a lower risk setting for a large siege.
 Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
 four required territories. Dispatch is the canonical command post. Decorative
 warehouses and the roads toward Rill and Relay Nine add no capture requirements.
-Those roads do not choose the later campaign branch.
+Those roads do not choose the later campaign branch. The weigh-house has a
+T-shaped service wing; offset freight rooms face the maintenance access, and
+an L-shaped depot encloses a northern loading recess. The broad central
+warehouse still screens long sightlines, and the maintenance reserve retains
+its separate building behind the perimeter.
 
 The company takes the first outstanding site in approach order, returning to
 lost ground when needed. Employer militia initially cover the landing, then
@@ -294,6 +298,10 @@ Freight Gate and Relay Hall are four required territories, with the hall as the
 canonical command post. The hall guarantees opposed direct-road and loading-road
 entrances. Decorative service buildings add no objectives. Company boats retain
 their committed fittings; two employer boats deliver four militia each.
+The Power Yard switch-house uses a T-shaped service plan, while the Freight
+Gate depot wraps an open loading recess with its office wing. Smaller rotated
+annexes and workshops sit beside the main facilities. The long service shop
+still screens the direct advance, and Relay Hall retains its dedicated layout.
 
 The company normally clears Power Yard, Freight Gate, then Relay Hall. Explicit
 player orders can change that approach. Confirmed loss of a previous gain takes

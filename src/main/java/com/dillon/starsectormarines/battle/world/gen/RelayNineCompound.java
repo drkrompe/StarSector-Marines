@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
+import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
@@ -112,14 +113,14 @@ public final class RelayNineCompound {
                 c.get(BspKeys.MARKET_PROFILE).surface()), c.grid, c.topology, reserved);
     }
     private static void buildings(GenContext c) {
-        shell(c, 68, 40, 86, 55, Frontage.BOTTOM); // Power switch house, beside its service road.
-        shell(c, 107, 80, 130, 96, Frontage.BOTTOM); // Freight gate office, northern outbound road.
+        BuildingStamp.T_WORKSHOP.place(c, 71, 42, 2); // Switch-house service wing faces the road.
+        BuildingStamp.FREIGHT_L.place(c, 109, 80, 2); // Gate depot and office wing shelter a loading recess.
         OpeningOperationFacilityFiller.fill(PointOfInterest.Kind.COMMS,
                 new BlockLeaf(155, 47, 178, 60, false), c, Frontage.BOTTOM, true);
         shell(c, 42, 30, 53, 55, Frontage.BOTTOM); // Apron screens retain two ways inland.
-        shell(c, 42, 73, 53, 96, Frontage.TOP);
+        BuildingStamp.OFFSET_DEPOT.place(c, 43, 77, 1); // Staggered northern service annex.
         shell(c, 96, 47, 117, 57, Frontage.TOP); // Service shop interrupts the direct firing corridor.
-        shell(c, 142, 80, 169, 95, Frontage.BOTTOM);
+        BuildingStamp.T_WORKSHOP.place(c, 148, 82, 2); // Relay maintenance shop, separate from the hall.
         shell(c, 103, 9, 130, 18, Frontage.BOTTOM);
     }
     private static void shell(GenContext c, int l, int t, int r, int b, Frontage facing) {

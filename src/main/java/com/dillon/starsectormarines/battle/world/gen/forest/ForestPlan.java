@@ -1,0 +1,72 @@
+package com.dillon.starsectormarines.battle.world.gen.forest;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONException;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Reusable generation-time forest paint. Cell centers are integer coordinates, as in terrain plans. */
+public record ForestPlan(int width, int height, Woodland woodland, long seed, List<Stroke> strokes) {
+    public enum Woodland {
+        MIXED, BROADLEAF, CONIFER;
+        @Override public String toString() {
+            return switch (this) { case MIXED -> "Mixed woodland"; case BROADLEAF -> "Broadleaf"; case CONIFER -> "Conifers"; };
+        }
+        public boolean includes(TreeCanopy tree) {
+            return this == MIXED || (this == BROADLEAF) == (tree.ordinal() < 3);
+        }
+    }
+    public enum Mode {
+        PAINT, ERASE;
+        @Override public String toString() { return this == PAINT ? "Paint trees" : "Erase / clear a path"; }
+    }
+    public record Point(double x, double y) {
+        public Point {
+            if (!Double.isFinite(x) || !Double.isFinite(y)) throw new IllegalArgumentException("Finite brush points required");
+        }
+    }
+    public record Stroke(Mode mode, double radius, List<Point> points) {
+        public Stroke {
+            points = List.copyOf(points);
+            if (mode == null || !Double.isFinite(radius) || radius < 1 || radius > 64
+                    || points.isEmpty() || points.size() > 4096)
+                throw new IllegalArgumentException("Brush radius 1-64; 1-4096 points required");
+        }
+    }
+    public ForestPlan {
+        strokes = List.copyOf(strokes);
+        if (width < 8 || height < 8 || width > 1024 || height > 1024 || woodland == null || strokes.size() > 512)
+            throw new IllegalArgumentException("Map 8-1024; woodland required; at most 512 strokes");
+        int points = 0;
+        for (Stroke stroke : strokes) for (Point p : stroke.points()) {
+            if (p.x() < 0 || p.y() < 0 || p.x() > width - 1 || p.y() > height - 1)
+                throw new IllegalArgumentException("Brush point outside map");
+            if (++points > 32768) throw new IllegalArgumentException("Too many brush points");
+        }
+    }
+    public ForestPlan append(Stroke stroke) {
+        List<Stroke> next = new ArrayList<>(strokes); next.add(stroke);
+        return new ForestPlan(width, height, woodland, seed, next);
+    }
+    public static ForestPlan read(JSONObject doc) throws JSONException {
+        if (doc.getInt("version") != 1) throw new IllegalArgumentException("Unsupported forest document version");
+        List<Stroke> strokes = new ArrayList<>(); JSONArray all = doc.getJSONArray("strokes");
+        for (int i = 0; i < all.length(); i++) {
+            JSONObject s = all.getJSONObject(i); List<Point> points = new ArrayList<>(); JSONArray ps = s.getJSONArray("points");
+            for (int j = 0; j < ps.length(); j++) points.add(new Point(ps.getJSONArray(j).getDouble(0), ps.getJSONArray(j).getDouble(1)));
+            strokes.add(new Stroke(Mode.valueOf(s.getString("mode")), s.getDouble("radius"), points));
+        }
+        return new ForestPlan(doc.getInt("width"), doc.getInt("height"), Woodland.valueOf(doc.getString("woodland")),
+                doc.getLong("seed"), strokes);
+    }
+    public JSONObject json() throws JSONException {
+        JSONArray all = new JSONArray();
+        for (Stroke s : strokes) {
+            JSONArray points = new JSONArray(); for (Point p : s.points()) points.put(new JSONArray().put(p.x()).put(p.y()));
+            all.put(new JSONObject().put("mode", s.mode().name()).put("radius", s.radius()).put("points", points));
+        }
+        return new JSONObject().put("version", 1).put("width", width).put("height", height)
+                .put("woodland", woodland.name()).put("seed", seed).put("strokes", all);
+    }
+}
