@@ -73,6 +73,8 @@ public final class TilesetExport {
          * what it is rather than inherit a bucket's average.
          */
         public Double ballisticHalfHeight;
+        /** Optional source-cell visibility mask; null uses the physical-height default. */
+        public List<String> fogSurface;
         /**
          * The edge that naturally backs onto a wall — {@code N}, {@code S},
          * {@code E}, {@code W} — or empty where the piece has no such edge.
@@ -881,6 +883,7 @@ public final class TilesetExport {
             o.put("col", entry.col);
             o.put("row", entry.row);
             o.put("cover", entry.cover);
+            if (entry.fogSurface != null) o.put("fogSurface", new JSONArray(entry.fogSurface));
             if (entry.ballisticHalfHeight != null) {
                 o.put("ballisticHalfHeight", entry.ballisticHalfHeight.doubleValue());
             }

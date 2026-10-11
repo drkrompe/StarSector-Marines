@@ -100,6 +100,11 @@ public final class FleetArmoryScreen implements Screen {
         viewModel.cancelOrganization();
         projectedCampaignHour = campaignHour();
         view = View.SQUADS;
+        String requestedSquad = context.takeRequestedArmorySquadId();
+        if (requestedSquad != null && roster.squadById(requestedSquad) != null) {
+            viewModel.selectSquad(requestedSquad);
+            view = View.FIRETEAMS;
+        }
         installDocument(true);
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
