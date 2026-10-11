@@ -70,6 +70,15 @@ public final class GroundLightService {
                 HE_IMPACT, 1.35f, 0.85f);
     }
 
+    /** A heavy blast's light in the colour of the ordnance, washed toward white at the centre by the bloom itself. */
+    public void spawnHeavyImpact(float x, float y, float radiusCells, Color tint) {
+        if (tint == null) {
+            spawnHeavyImpact(x, y, radiusCells);
+            return;
+        }
+        spawn(x, y, 1.8f, Math.max(7f, radiusCells * 2.2f), tint, 1.35f, 0.85f);
+    }
+
     /** Brief warm halo paired with each authored ambient flame burst. */
     public void spawnFire(float x, float y, float radiusCells) {
         spawn(x, y, 0.8f, Math.max(2.5f, radiusCells * 4f),
