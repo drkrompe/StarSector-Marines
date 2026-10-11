@@ -14,7 +14,8 @@ public final class ShipMaterialStage implements GenStage {
         CellTopology topology = ctx.topology;
         for (int y = 0; y < ctx.height; y++) {
             for (int x = 0; x < ctx.width; x++) {
-                if (topology.getGroundKind(x, y) == GroundKind.VOID) continue;
+                // Hull boundary walls can retain VOID ground beneath their structural shell.
+                if (topology.getGroundKind(x, y) == GroundKind.VOID && !topology.isWall(x, y)) continue;
                 String existing = topology.getSurfaceId(x, y);
                 if (existing != null && !existing.equals("urban.wall")) continue;
                 String material = topology.isWall(x, y) ? "ship.neutral-bulkhead"

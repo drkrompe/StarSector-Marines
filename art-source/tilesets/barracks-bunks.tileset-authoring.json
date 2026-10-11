@@ -1,0 +1,109 @@
+{
+  "sheetName": "barracks-bunks",
+  "sheet": "art-source/tilesets/barracks-bunks.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "barracks-bunks",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/barracks-bunks.png",
+  "note": "Geometry-first built-in ImageGen reskin; measured full component canvases on 1254px RGBA raw. Bedding canvases register inside the bed rails. See barracks-bunks.README.md.",
+  "entries": [
+    {
+      "id": "barracks-bunks.bed",
+      "rect": [
+        100,
+        64,
+        236,
+        468
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.bedding-high",
+      "rect": [
+        488,
+        34,
+        280,
+        550
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.bedding-low",
+      "rect": [
+        880,
+        34,
+        280,
+        550
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.frame",
+      "rect": [
+        100,
+        688,
+        236,
+        460
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.locker",
+      "rect": [
+        508,
+        688,
+        240,
+        460
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "barracks-bunks.locker-open",
+      "rect": [
+        900,
+        688,
+        240,
+        460
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    }
+  ]
+}
