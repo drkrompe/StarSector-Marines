@@ -8,7 +8,9 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
@@ -84,6 +86,13 @@ public final class HeadlessArmoryPreviewRenderer {
                 weapons.ingest(new JSONObject(Files.readString(modRoot.resolve(path))));
             }
             WeaponRegistry.install(weapons);
+        }
+        if (TurretCatalogRegistry.installed() == null) {
+            TurretCatalogRegistry turrets = new TurretCatalogRegistry();
+            for (String path : TurretCatalogRegistry.BUILTIN_CATALOGS) {
+                turrets.ingest(new JSONObject(Files.readString(modRoot.resolve(path))), WeaponRegistry.installed());
+            }
+            TurretCatalogRegistry.install(turrets);
         }
         if (SpecialEquipmentRegistry.installed() == null) {
             SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();

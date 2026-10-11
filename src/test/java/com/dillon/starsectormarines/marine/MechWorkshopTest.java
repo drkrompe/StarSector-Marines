@@ -101,15 +101,15 @@ class MechWorkshopTest {
         assertEquals(MechVariant.HOUND, hound.mech().variant());
         assertEquals(MechWeaponComponent.NOSE_CHAINGUN, hound.mech().arms());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
-                MechVariant.SIROCCO).succeeded());
+                MechVariant.HOUND).succeeded());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
                 MechVariant.HOUND).succeeded());
         assertTrue(workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID,
-                MechVariant.SIROCCO).succeeded());
+                MechVariant.HOUND).succeeded());
 
         int supplies = resources.available(Commodities.SUPPLIES);
         MechWorkshop.Result full = workshop.fabricateChassis(
-                MechBay.STARTER_SQUAD_ID, MechVariant.BULWARK);
+                MechBay.STARTER_SQUAD_ID, MechVariant.HOUND);
         assertFalse(full.succeeded());
         assertEquals(MechWorkshop.Status.LANCE_FULL, full.status());
         assertEquals(supplies, resources.available(Commodities.SUPPLIES));

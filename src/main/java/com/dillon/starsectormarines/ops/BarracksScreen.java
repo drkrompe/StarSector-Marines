@@ -96,7 +96,8 @@ public final class BarracksScreen implements Screen {
             requireWiredElements(candidate);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard()).onCancel(() -> {
+            built.theme(MarineOpsThemes.standard());
+            BarracksGuideModal.bind(built, candidate, viewModel.command(), () -> {
                 if (viewModel.command().inspecting()) viewModel.command().showOverview();
                 else close();
             });
