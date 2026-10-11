@@ -48,13 +48,17 @@ public final class MechGaitState {
     private float waistVelocityY;
     private float lastBodyX;
     private float lastBodyY;
-    private long touchdownCount;
-    private Touchdown lastTouchdown;
+    private long footEventSequence;
+    private FootEvent lastTouchdown;
+    private FootEvent lastLiftOff;
 
-    /** Latest real swing completion; spawn and teleport replants are silent. */
-    public record Touchdown(long sequence, float x, float y) {}
+    public enum FootPhase { LIFT, LAND }
 
-    public Touchdown lastTouchdown() { return lastTouchdown; }
+    /** Ordered transitions from the actual gait, with the individual pad's world position. */
+    public record FootEvent(long sequence, FootPhase phase, int foot, float x, float y) {}
+
+    public FootEvent lastTouchdown() { return lastTouchdown; }
+    public FootEvent lastLiftOff() { return lastLiftOff; }
 
     private MechGaitState(float bodyX, float bodyY, float hipFacing,
                           int chassis, float renderScale) {
@@ -73,6 +77,7 @@ public final class MechGaitState {
     /** Replants both feet in the chassis's neutral stance after spawn or teleport. */
     public void reset(float bodyX, float bodyY, float hipFacing) {
         lastTouchdown = null;
+        lastLiftOff = null;
         Point left = nominalFoot(bodyX, bodyY, hipFacing, LEFT_FOOT);
         Point right = nominalFoot(bodyX, bodyY, hipFacing, RIGHT_FOOT);
         leftFootX = left.x;
@@ -165,6 +170,8 @@ public final class MechGaitState {
         swingStartX = foot == LEFT_FOOT ? leftFootX : rightFootX;
         swingStartY = foot == LEFT_FOOT ? leftFootY : rightFootY;
         swingStartFacing = foot == LEFT_FOOT ? leftFootFacing : rightFootFacing;
+        lastLiftOff = new FootEvent(++footEventSequence, FootPhase.LIFT,
+                foot, swingStartX, swingStartY);
 
         float duration = stepDurationSeconds();
         float projectedBodyX = bodyX + velocityX * duration;
@@ -208,7 +215,7 @@ public final class MechGaitState {
             rightFootFacing = facing;
         }
         if (swingProgress >= 1f) {
-            lastTouchdown = new Touchdown(++touchdownCount, x, y);
+            lastTouchdown = new FootEvent(++footEventSequence, FootPhase.LAND, swingFoot, x, y);
             nextSwingFoot = swingFoot == LEFT_FOOT ? RIGHT_FOOT : LEFT_FOOT;
             swingFoot = NO_SWING_FOOT;
             swingProgress = 0f;
