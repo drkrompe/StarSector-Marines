@@ -4,7 +4,7 @@ Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, a
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — cell-blocking fences and sandbags spend map structure and retain damaged or destroyed prop identity.
+Updated: 2026-10-11 — fences, sandbags and whole tree crowns spend map structure and retain matching damage remnants.
 
 ## Purpose
 
@@ -103,6 +103,14 @@ keep their own protection, and navigation refreshes through the ordinary map
 editor boundary. These breaches are neither doorways nor masonry collapses;
 they do not peel adjacent roofs. Decorative walkable placements do not
 acquire this obstruction contract.
+
+Trees use the same weapon-authored structural damage channel, with one pool
+per tree across all its canopy cells. A blast spends damage once per tree,
+including where crowns overlap. Surviving damage exposes broken limbs but
+retains the full obstruction. Felling leaves low broken trunks and branches;
+only cells free of surviving crowns and underlying hills reopen. Original
+ground and permanent terrain remain, and neither actor durability nor
+building collapse owns these changes.
 
 Mitigation resolves **after cover and before armor**. Cover is a property of the
 world the shot crossed; mitigation is a property of the target at that instant;

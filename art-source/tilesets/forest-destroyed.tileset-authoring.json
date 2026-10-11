@@ -1,0 +1,108 @@
+{
+  "sheetName": "forest-destroyed",
+  "sheet": "art-source/tilesets/forest-destroyed.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "alphaMin": 40,
+  "note": "Geometry-first ImageGen reskin from TreeDamageReskinTemplate. Six species retain intact footprint dimensions and pivots. Full-frame cuts preserve alpha; cover and ballistic height are zero because whole-tree runtime state owns obstruction. See forest-destroyed.prompt.txt and ../templates/tree-destroyed.png. Reviewed cuts keep panel centers, with wider full frames than intact art to retain broken branch tips and empty margins. Cedar uses its reviewed centered panel frame. No alpha trimming or recentering.",
+  "entries": [
+    {
+      "id": "forest.oak-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.oak-small-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        496,
+        0,
+        544,
+        528
+      ]
+    },
+    {
+      "id": "forest.birch-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-large-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        512,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.cedar-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        6
+      ],
+      "rect": [
+        1088,
+        512,
+        384,
+        512
+      ]
+    }
+  ]
+}
