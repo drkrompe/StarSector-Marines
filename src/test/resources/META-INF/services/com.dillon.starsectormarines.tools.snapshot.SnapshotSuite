@@ -31,3 +31,4 @@ com.dillon.starsectormarines.ops.FirstContractSnapshotSuite
 com.dillon.starsectormarines.ops.SupplyRouteSnapshotSuite
 com.dillon.starsectormarines.tools.roadauthoring.RoadSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStampSnapshotSuite
+com.dillon.starsectormarines.tools.roadauthoring.StoryRoadSnapshotSuite

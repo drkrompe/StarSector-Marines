@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -35,7 +37,9 @@ public final class JunctionCompound {
                 new CellTopology(WIDTH, HEIGHT), new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Open the Junction", List.of(JunctionCompound::grounds,
-                JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo, new FinalizeStage())).run(c);
+                JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
+                finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
+                new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
                 10, 24, 34, 87, Faction.MARINE, 20, 0));
@@ -72,14 +76,9 @@ public final class JunctionCompound {
         pave(c, 56, 22, 164, 91, GroundKind.SIDEWALK);
         pave(c, 58, 24, 162, 89, GroundKind.COURTYARD);
         // Through-road, northern loading spur, then two distinct outbound roads.
-        pave(c, 0, 54, 180, 60, GroundKind.STREET);
-        pave(c, 82, 31, 88, 57, GroundKind.STREET);
-        pave(c, 57, 30, 176, 36, GroundKind.STREET);
-        pave(c, 57, 20, 128, 26, GroundKind.STREET);
-        pave(c, 57, 23, 63, 33, GroundKind.STREET);
-        pave(c, 170, 0, 176, 85, GroundKind.STREET);
-        pave(c, 173, 79, 191, 85, GroundKind.STREET);
-        pave(c, 10, 23, 34, 88, GroundKind.STREET);
+
+        var roads = RoadCatalog.plan(RoadCatalog.JUNCTION);
+        RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
         for (int y : new int[]{31, 43, 55, 67, 79}) {
             LandingPad pad = new LandingPad(21, y, 3, 3, LandingPad.Approach.WEST);
             c.landingPads.add(pad);

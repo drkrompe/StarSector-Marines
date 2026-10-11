@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "width": 112,
+  "height": 64,
+  "roads": [
+    {
+      "id": "freight-through-road",
+      "points": [
+        [
+          0,
+          30.0
+        ],
+        [
+          111,
+          30.0
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.45,
+      "seed": 5100,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "north-service-road",
+      "points": [
+        [
+          82.0,
+          33
+        ],
+        [
+          82.0,
+          63
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.7,
+      "seed": 5101,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "rear-boat-apron",
+      "points": [
+        [
+          16,
+          41.5
+        ],
+        [
+          34,
+          41.5
+        ]
+      ],
+      "width": 12,
+      "shoulder": 0,
+      "wear": 0.3,
+      "seed": 5102,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    }
+  ]
+}

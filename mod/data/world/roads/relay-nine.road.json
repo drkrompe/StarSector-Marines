@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "width": 208,
+  "height": 128,
+  "roads": [
+    {
+      "id": "freight-through-road",
+      "points": [
+        [
+          0,
+          63.0
+        ],
+        [
+          207,
+          63.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.45,
+      "seed": 5100,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "west-service-spine",
+      "points": [
+        [
+          60.0,
+          20
+        ],
+        [
+          60.0,
+          105
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.6,
+      "seed": 5101,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "north-freight-road",
+      "points": [
+        [
+          60,
+          101.0
+        ],
+        [
+          207,
+          101.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.5,
+      "seed": 5102,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "south-loading-street",
+      "points": [
+        [
+          60,
+          33.0
+        ],
+        [
+          185,
+          33.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.3,
+      "seed": 5103,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "relay-service-spine",
+      "points": [
+        [
+          183.0,
+          33
+        ],
+        [
+          183.0,
+          101
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.3,
+      "seed": 5104,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "reserve-approach",
+      "points": [
+        [
+          85.0,
+          0
+        ],
+        [
+          85.0,
+          23
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5105,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "reserve-turnout",
+      "points": [
+        [
+          57,
+          23.0
+        ],
+        [
+          88,
+          23.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5106,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "north-reserve-road",
+      "points": [
+        [
+          130.0,
+          101
+        ],
+        [
+          130.0,
+          127
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.65,
+      "seed": 5107,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "western-boat-apron",
+      "points": [
+        [
+          22.0,
+          14
+        ],
+        [
+          22.0,
+          113
+        ]
+      ],
+      "width": 25,
+      "shoulder": 0,
+      "wear": 0.25,
+      "seed": 5108,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    }
+  ]
+}

@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "width": 160,
+  "height": 96,
+  "roads": [
+    {
+      "id": "gate-approach",
+      "points": [
+        [
+          0,
+          46.0
+        ],
+        [
+          82,
+          46.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.5,
+      "seed": 5100,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "loading-dogleg",
+      "points": [
+        [
+          76,
+          35.0
+        ],
+        [
+          108,
+          35.0
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.35,
+      "seed": 5101,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "warehouse-access",
+      "points": [
+        [
+          106.0,
+          33
+        ],
+        [
+          106.0,
+          49
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.35,
+      "seed": 5102,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "dispatch-threshold",
+      "points": [
+        [
+          104,
+          46.5
+        ],
+        [
+          110,
+          46.5
+        ]
+      ],
+      "width": 6,
+      "shoulder": 0,
+      "wear": 0.35,
+      "seed": 5103,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "boundary-service-road",
+      "points": [
+        [
+          78.0,
+          0
+        ],
+        [
+          78.0,
+          95
+        ]
+      ],
+      "width": 5,
+      "shoulder": 0,
+      "wear": 0.7,
+      "seed": 5104,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "western-boat-apron",
+      "points": [
+        [
+          21.0,
+          22
+        ],
+        [
+          21.0,
+          59
+        ]
+      ],
+      "width": 23,
+      "shoulder": 0,
+      "wear": 0.25,
+      "seed": 5105,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    }
+  ]
+}

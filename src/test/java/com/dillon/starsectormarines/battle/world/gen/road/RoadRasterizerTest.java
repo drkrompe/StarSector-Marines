@@ -28,6 +28,26 @@ class RoadRasterizerTest {
             previous=next.age();
         }
     }
+    @Test void flushEndsPreserveRectangularApronsAndSurviveEditing() throws Exception {
+        Route road=new Route("apron",List.of(new Point(8,6),new Point(8,17)),9,0,.3,1,Material.CONCRETE,EndCap.BUTT);
+        RoadPlan p=new RoadPlan(24,24,List.of(road));
+        assertEquals(p,RoadPlan.read(new JSONObject(p.json().toString())));
+        assertEquals(EndCap.BUTT,road.withWear(.9).endCap());
+        var raster=RoadRasterizer.rasterize(p);
+        for(int y=0;y<24;y++) for(int x=0;x<24;x++)
+            assertEquals(x>=4 && x<=12 && y>=6 && y<=17,raster.road(x,y),x+","+y);
+    }
+    @Test void laterMarkingsAndRoomsReplacePavementWithoutErasingOtherSurfaces() {
+        var topology=new CellTopology(8,8);
+        int pavement=topology.surfaceIndex("pavement.asphalt.worn"), indoor=topology.surfaceIndex("test.indoor");
+        topology.setGroundKind(1,1,GroundKind.STRIPED);topology.setSurface(1,1,pavement);
+        topology.setGroundKind(2,1,GroundKind.INDOOR);topology.setSurface(2,1,pavement);
+        topology.setGroundKind(3,1,GroundKind.STREET);topology.setSurface(3,1,pavement);
+        topology.setGroundKind(4,1,GroundKind.INDOOR);topology.setSurface(4,1,indoor);
+        RoadRasterizer.clearReplacedSurfaces(topology,8,8);
+        assertEquals(0,topology.getSurface(1,1));assertEquals(0,topology.getSurface(2,1));
+        assertEquals(pavement,topology.getSurface(3,1));assertEquals(indoor,topology.getSurface(4,1));
+    }
     @Test void crossingShoulderCannotEraseAnotherRoad() {
         Route cross=new Route("cross",List.of(new Point(15,0),new Point(15,23)),3,2,1,1,Material.CONCRETE);
         var r=RoadRasterizer.rasterize(new RoadPlan(32,24,List.of(straight(0),cross)));

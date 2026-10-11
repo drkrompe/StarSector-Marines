@@ -42,7 +42,7 @@ public final class DiskRegistries {
      */
     public static void install(Path projectRoot) throws Exception {
         Path mod = projectRoot.resolve("mod");
-        if (!RoadCatalog.installed()) RoadCatalog.installThunderRun(new JSONObject(Files.readString(mod.resolve(RoadCatalog.THUNDER_RUN))));
+        if (!RoadCatalog.installed()) RoadCatalog.loadBuiltins(path -> new JSONObject(Files.readString(mod.resolve(path))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {

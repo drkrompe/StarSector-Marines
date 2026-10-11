@@ -248,7 +248,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     }
 
     private static void installTileCatalogs(Path modRoot) throws Exception {
-        if (!RoadCatalog.installed()) RoadCatalog.installThunderRun(new JSONObject(Files.readString(modRoot.resolve(RoadCatalog.THUNDER_RUN))));
+        if (!RoadCatalog.installed()) RoadCatalog.loadBuiltins(path -> new JSONObject(Files.readString(modRoot.resolve(path))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {
