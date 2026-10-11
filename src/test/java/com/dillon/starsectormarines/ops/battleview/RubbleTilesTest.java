@@ -40,7 +40,7 @@ class RubbleTilesTest {
         }
     }
 
-    @Test void rubblePairsMustResolveAfterAllCatalogSheetsLoad() {
+    @Test void rubblePairsMustResolveAfterAllCatalogSheetsLoad() throws Exception {
         TileRegistry registry = new TileRegistry();
         registry.ingestSheet(new JSONObject("{sheet:'wall.png',cellPx:64,blocks:["
                 + "{id:'wall',layout:'wall-faces-4x4',origin:[0,0],rubbleBlock:'broken'}]}"));
