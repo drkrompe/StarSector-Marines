@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — clarified shared per-clip audio build caching.
+Updated: 2026-10-11 — mission speech finishes active lines and takes precedence over squad chatter.
 
 Read `stories.md` for the open-work board.
 
@@ -97,23 +97,24 @@ laws.
 Authored opening operations also expose a retained story-beat history, as defined
 in `early-operation-nouns.md`. It is a dialogue input, separate from transient combat cues. Player presentation consumes only the public
 projection; observer-only wave and defender-order events cannot become radio
-intelligence. Story dialogue shares this voice budget and chooses content by the enclosing
+intelligence. Story dialogue bypasses the squad voice budget and chooses content by the enclosing
 chapter identity. Stable event
 keys do not by themselves grant a speaker, a sound asset, or playback priority.
 
 The campaign battle host consumes the two Wayline chapters' public beats once
-per attempt. Mara's non-positional clips and marine chatter share one channel:
-active sound handles prevent overlap, and a story line reserves its recorded
-duration plus the normal radio gap. Squad transitions continue to be sampled
-while speech owns the channel. Queued story lines expire in real time; later
+per attempt. Mara's non-positional clips own the voice channel ahead of marine
+chatter. A mission line starts without waiting for the squad cooldown and stops
+any playing squad call; squad chatter stays quiet while Mara speaks and observes
+the normal gap afterwards. Mission lines never interrupt each other, including
+when a newer event supersedes the instruction being spoken. Squad transitions
+continue to be sampled while speech owns the channel. Queued story lines expire in real time; later
 facts supersede obsolete instructions (for example, a lost militia line cancels
-its earlier request for support). Story dialogue takes priority over a waiting
-squad cue but does not interrupt an already speaking squad.
+its earlier request for support if that request has not started playing).
 
 Story subtitles name Mara and remain readable for the recorded duration even
 when sound is muted or unavailable, in both strategic and direct-control views.
 Speech runs in real time while simulation speed changes; pause allows the
-current recording to finish but starts no new line. Completion cancels tactical
-speech and pending lines. Leaving a screen stops its owned audio. Resizing does
+current recording to finish but starts no new line. Completion discards pending
+instructions but lets the active mission sentence finish. Leaving a screen stops its owned audio. Resizing does
 not reset the battle cursor or replay briefings. The hybrid debug host has no
 campaign chapter identity and therefore does not play Mara's story dialogue.

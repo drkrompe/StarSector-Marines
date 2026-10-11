@@ -32,15 +32,14 @@ class StoryNarrationQueueTest {
     }
 
     @Test
-    void newFactsCancelObsoleteOrdersEvenAfterTheyStartPlaying() {
+    void newFactsReplaceOnlyQueuedObsoleteOrders() {
         Line weak = line("weak", 20), lost = line("lost", 50, "weak"), landed = line("landed", 10);
         StoryNarrationQueue queue = new StoryNarrationQueue(new WaylineNarration(List.of(weak, lost, landed)), "chapter");
         queue.advance(0, List.of(event(1, "weak")), false);
-        assertEquals(weak, queue.poll());
         queue.advance(1, List.of(event(2, "landed"), event(3, "lost")), false);
-        assertTrue(queue.invalidates(weak));
         assertEquals(lost, queue.poll());
         assertEquals(landed, queue.poll());
+        assertNull(queue.poll());
     }
 
     @Test
@@ -54,7 +53,6 @@ class StoryNarrationQueueTest {
         queue = new StoryNarrationQueue(catalog, "chapter");
         queue.advance(0, List.of(event(1, "start")), true);
         assertNull(queue.poll());
-        assertTrue(queue.invalidates(start));
         queue = new StoryNarrationQueue(catalog, "chapter");
         queue.advance(0, List.of(event(1, "start")), false);
         queue.clearPending();

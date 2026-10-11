@@ -43,15 +43,11 @@ public final class StoryNarrationQueue {
         pending.removeIf(p -> ended || p.expiresAt() <= clock || superseded.contains(p.line().event()));
     }
 
-    public boolean invalidates(Line line) {
-        return ended || line != null && superseded.contains(line.event());
-    }
-
     public void clearPending() { pending.clear(); }
 
     public boolean hasPending() { return !pending.isEmpty(); }
 
-    /** Caller owns the shared radio budget and calls only when the channel is available. */
+    /** Caller waits for the current mission line to finish; squad chatter cannot delay mission speech. */
     public Line poll() {
         Pending next = null;
         for (Pending candidate : pending)
