@@ -61,8 +61,10 @@ def main():
         digest = hashlib.sha256(catalog["voiceId"].encode() + b"\0" + body).hexdigest()
         audio = sources / (line["id"] + ".mp3")
         receipt = audio.with_suffix(".json")
+        take = 1
         if audio.exists() and receipt.exists():
             saved = json.loads(receipt.read_text(encoding="utf-8"))
+            take = saved.get("take", 1) + 1
             if saved["inputSha256"] == digest:
                 print("Unchanged:", line["id"], flush=True)
                 continue
@@ -95,7 +97,7 @@ def main():
         line["durationSeconds"] = duration
         metadata.update(inputSha256=digest, audioSha256=hashlib.sha256(data).hexdigest(),
                         voiceId=catalog["voiceId"], modelId=catalog["modelId"],
-                        durationSeconds=duration, outputFormat="mp3_44100_128", take=1)
+                        durationSeconds=duration, outputFormat="mp3_44100_128", take=take)
         receipt.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
         catalog_path.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print("Saved:", line["id"], str(duration) + "s", flush=True)

@@ -8,9 +8,9 @@
     {
       "id": "marines_officer_contact_01",
       "cue": "CONTACT",
-      "text": "Contact received. Keep your spacing, and watch each other.",
-      "synthesisText": "[urgent] Contact received. Keep your spacing, and watch each other.",
-      "durationSeconds": 3.68
+      "text": "Ground teams, contact received. Keep your spacing and cover each other.",
+      "synthesisText": "[focused] Ground teams, contact received. Keep your spacing and cover each other.",
+      "durationSeconds": 4.4
     },
     {
       "id": "marines_officer_contact_02",
@@ -29,23 +29,23 @@
     {
       "id": "marines_officer_fallback_02",
       "cue": "FALLBACK",
-      "text": "Breathe. Find cover and get yourselves together. I need you alive.",
-      "synthesisText": "[reassuring] Breathe. Find cover and get yourselves together. I need you alive.",
+      "text": "Command to ground teams. Find cover and regroup. Keep each other alive.",
+      "synthesisText": "[reassuring] Command to ground teams. Find cover and regroup. Keep each other alive.",
       "durationSeconds": 4.96
     },
     {
       "id": "marines_officer_check_fire_01",
       "cue": "CHECK_FIRE",
-      "text": "Check your fire! Those are our people.",
-      "synthesisText": "[stern] Check your fire! Those are our people.",
-      "durationSeconds": 3.04
+      "text": "Ground teams, check fire. Friendlies are taking hits.",
+      "synthesisText": "[urgent] Ground teams, check fire. Friendlies are taking hits.",
+      "durationSeconds": 3.36
     },
     {
       "id": "marines_officer_check_fire_02",
       "cue": "CHECK_FIRE",
-      "text": "Mind your lanes! Confirm your targets before you fire.",
-      "synthesisText": "[urgent] Mind your lanes! Confirm your targets before you fire.",
-      "durationSeconds": 3.6
+      "text": "All ground teams, watch your lanes. Keep friendlies clear of your fire.",
+      "synthesisText": "[firm] All ground teams, watch your lanes. Keep friendlies clear of your fire.",
+      "durationSeconds": 4.56
     },
     {
       "id": "marines_officer_mech_spotted_01",
