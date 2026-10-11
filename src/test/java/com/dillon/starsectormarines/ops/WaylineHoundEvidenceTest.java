@@ -83,7 +83,13 @@ class WaylineHoundEvidenceTest {
                     sim.getSquadCommandDirective(sim.squad().squadId(mech)).issuer());
             assertFalse(sim.directControl().active(), "the introduction is optional");
             assertTrue(sim.directControl().enter(mech));
+            tick(recovery, sim, 2);
             sim.directControl().exit();
+            tick(recovery, sim, 2);
+            assertTrue(sim.directControl().enter(mech));
+            tick(recovery, sim, 2);
+            sim.directControl().exit();
+            tick(recovery, sim, 2);
             assertFalse(sim.directControl().active());
             assertEquals(MechWeaponComponent.NOSE_CHAINGUN, sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS).component);
             assertNull(sim.world().mechLoadout(mech).mount(MechMountSlot.LEFT_SHOULDER));
@@ -92,7 +98,8 @@ class WaylineHoundEvidenceTest {
             tick(recovery, sim, 180);
             assertEquals(new WaylineHoundRecovery.Report(true, true), recovery.report(sim));
             assertEquals(mech, recovery.mechId(), "no replacement appears during the mission");
-            assertEquals(List.of(WaylineHoundRecovery.FOUND, WaylineHoundRecovery.READY, WaylineHoundRecovery.LOST),
+            assertEquals(List.of(WaylineHoundRecovery.FOUND, WaylineHoundRecovery.READY,
+                    WaylineHoundRecovery.CONTROL, WaylineHoundRecovery.RETURN, WaylineHoundRecovery.LOST),
                     log.events().stream().map(StoryBeatLog.Event::id).toList());
         }
     }

@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - Marine Operations samples assignment exchanges and combat reports from an exchange-local cast under one global voice budget.
+Updated: 2026-10-11 — Castle has a company-command portrait and character-specific story speech; debrief conversations retain ordered playback.
 
 Read `stories.md` for the open-work board.
 
@@ -108,16 +108,17 @@ chapter identity. Stable event
 keys do not by themselves grant a speaker, a sound asset, or playback priority.
 
 The campaign battle host consumes both story arcs' public beats once
-per attempt. Mara's non-positional clips own the voice channel ahead of marine
+per attempt. Authored character clips own the voice channel ahead of marine
 chatter. A mission line starts without waiting for the squad cooldown and stops
-any playing squad call; squad chatter stays quiet while Mara speaks and observes
+any playing squad call; squad chatter stays quiet during story speech and observes
 the normal gap afterwards. Mission lines never interrupt each other, including
 when a newer event supersedes the instruction being spoken. Squad transitions
 continue to be sampled while speech owns the channel. Queued story lines expire in real time; later
 facts supersede obsolete instructions (for example, a lost militia line cancels
 its earlier request for support if that request has not started playing).
 
-Story subtitles name Mara and remain readable for the recorded duration even
+Story subtitles identify the actual speaker and portrait and remain readable
+for the recorded duration even
 when sound is muted or unavailable, in both strategic and direct-control views.
 Speech runs in real time while simulation speed changes; pause allows the
 current recording to finish but starts no new line. Completion discards pending
@@ -129,7 +130,8 @@ campaign chapter identity and therefore does not play Mara's story dialogue.
 
 The company officer is an original mature British female Voice Design selection,
 retained by stable voice ID with clean source takes and generation provenance.
-She belongs to the company rather than Wayline. Mara remains the employer's
+Her callsign is Castle. She belongs to the company rather than Wayline.
+Mara remains the employer's
 mission contact. Command replies are available in the Marine Operations battle
 host; the hybrid debug host has no company command identity and retains its
 squad net. Both hosts still use the same squad cue policy.
@@ -154,17 +156,20 @@ policy. The older generic officer replies remain only as a fallback when the
 ensemble catalog is unavailable. No generic reply is added behind an ensemble
 report. Assignment handshakes provide the officer's addressed coordination.
 
-Command subtitles identify COMPANY COMMAND; infantry subtitles identify the
+Command subtitles identify CASTLE / COMPANY COMMAND and use her original
+painted portrait; infantry subtitles identify the
 current exchange's callsign. They remain visible for the recorded lifetime even
-when audio is muted or unavailable. No portrait is assigned until that character
-has approved art. Selection and timing are presentation state and leave
+when audio is muted or unavailable. Selection and timing are presentation state and leave
 simulation randomness untouched.
 
 Clean generated masters remain separate from a shared offline comms profile:
 band limiting, moderate compression, subtle saturation and peak limiting. The
 profile is an optional audio-manifest treatment and participates in the encode
 cache key. Changing it rebuilds treated clips without regenerating speech or
-invalidating unrelated clean audio. Runtime playback needs no provider account,
+invalidating unrelated clean audio. Alternating story speakers may instead use
+a clean dialogue loudness treatment,
+with a shared target and peak ceiling; source takes remain untouched.
+Runtime playback needs no provider account,
 API access or DSP dependency. Transmit clicks or interference, if introduced,
 are separate channel effects rather than instructions in synthesis text.
 

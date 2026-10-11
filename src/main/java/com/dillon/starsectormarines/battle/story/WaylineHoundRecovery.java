@@ -18,6 +18,8 @@ public final class WaylineHoundRecovery {
     public static final String FOUND = "opening.counterattack.hound_found";
     public static final String READY = "opening.counterattack.hound_ready";
     public static final String LOST = "opening.counterattack.hound_disabled";
+    public static final String CONTROL = "opening.counterattack.hound_control";
+    public static final String RETURN = "opening.counterattack.hound_return";
     public static final float STARTUP_SECONDS = 5f;
     public record Report(boolean activated, boolean disabled) {}
 
@@ -27,6 +29,7 @@ public final class WaylineHoundRecovery {
     private long mech;
     private float startup;
     private boolean found;
+    private boolean controlled;
 
     public WaylineHoundRecovery(BattleSimulation sim, int cellX, int cellY, StoryBeatLog log) {
         x = cellX + .5f;
@@ -53,6 +56,10 @@ public final class WaylineHoundRecovery {
         if (sim.isComplete()) return;
         if (mech != 0L) {
             if (!sim.world().isAlive(mech)) emit(sim, LOST);
+            else if (sim.directControl().isControlling(mech)) {
+                controlled = true;
+                emit(sim, CONTROL);
+            } else if (controlled) emit(sim, RETURN);
             return;
         }
         boolean companyPresent = false, sighted = false, contested = false;
