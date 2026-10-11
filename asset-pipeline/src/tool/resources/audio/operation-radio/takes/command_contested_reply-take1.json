@@ -1,0 +1,15 @@
+{
+  "requestId": "Fhrd6zaI9khodc1NTwKq",
+  "characterCost": "9",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "c2e7662a19bca58f57a687b9c1c432b661c3685567cad11055da0a886cddcca3",
+  "audioSha256": "a38e360ead0cc0cf637215782b5fc955e9bf4fa78701f252b385a2d4c77fbe9a",
+  "durationSeconds": 4.0,
+  "payload": {
+    "text": "[firm, brisk voice] Received, Kestrel. Hold your assignment. Report when it's secure.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}
