@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
@@ -247,6 +248,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
     }
 
     private static void installTileCatalogs(Path modRoot) throws Exception {
+        if (!RoadCatalog.installed()) RoadCatalog.installThunderRun(new JSONObject(Files.readString(modRoot.resolve(RoadCatalog.THUNDER_RUN))));
         if (TileRegistry.installed() == null) {
             TileRegistry tiles = new TileRegistry();
             for (String path : TileRegistry.BUILTIN_TILESETS) {

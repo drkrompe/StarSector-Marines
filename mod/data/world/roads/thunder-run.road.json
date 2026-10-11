@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "width": 320,
+  "height": 144,
+  "roads": [
+    {
+      "id": "freight-arterial",
+      "material": "ASPHALT",
+      "width": 15,
+      "shoulder": 0,
+      "wear": 0.55,
+      "seed": 9301,
+      "points": [
+        [
+          0,
+          75
+        ],
+        [
+          319,
+          75
+        ]
+      ]
+    },
+    {
+      "id": "east-crossing",
+      "material": "ASPHALT",
+      "width": 13,
+      "shoulder": 0,
+      "wear": 0.7,
+      "seed": 165,
+      "points": [
+        [
+          165,
+          0
+        ],
+        [
+          165,
+          143
+        ]
+      ]
+    },
+    {
+      "id": "outbound-crossing",
+      "material": "ASPHALT",
+      "width": 13,
+      "shoulder": 0,
+      "wear": 0.7,
+      "seed": 275,
+      "points": [
+        [
+          275,
+          0
+        ],
+        [
+          275,
+          143
+        ]
+      ]
+    }
+  ]
+}
