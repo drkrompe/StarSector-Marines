@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
+Updated: 2026-10-11 — authored natural masses and forests share geometry-owned obstruction and production brush previews.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -451,6 +451,36 @@ remain connected, including small pockets beside map boundaries. Verdant
 worlds retain grass-topped masses; other palettes use bare rock without changing
 the authored obstruction or repainting the surrounding ground.
 
+
+## Authored forests
+
+A **forest plan** paints or erases woodland with ordered, continuous area strokes.
+The retained seed, species mix and painted area determine a repeatable set of
+multi-cell tree crowns. Broadleaf, conifer and mixed woods share this placement
+model. A tree's geometry defines both its overhead silhouette and the cells
+touched by that silhouette, including its outer branches and foliage. The
+blocked area is the union of those canopy footprints, not a set of trunk cells
+or the rectangular bounds of each sprite.
+
+Forest crowns are inaccessible natural terrain: they block ground travel,
+sight and direct fire and carry no building, roof or destructible wall identity.
+Infantry and vehicles obey the ordinary grid; aircraft retain their flight model.
+Structural damage cannot open an invisible route under a surviving canopy.
+The original ground remains beneath the trees. ImageGen reskins the code-owned
+canopy geometry; the texture cannot silently change the tactical footprint.
+
+An erased path excludes whole canopy cells from placement, so tree centers
+outside the path cannot leave foliage over it. Editing rebuilds the plan from
+clean ground. The stamper preflights every blocked canopy cell before changing
+anything, refusing roads, structures, fixtures, engineered ground and host
+reservations. Mission adoption still owns required reachability and circulation;
+the brush is deliberately allowed to create impassable forest barriers.
+
+The Forests authoring page exposes drag painting, radius, species mix, seed,
+undo/redo, a blocked-cell overlay and versioned JSON persistence. Optional road
+context protects authored pavement during editing; it does not bind a forest
+plan to a mission implicitly. The editor and map generation share the same
+placement and collision rules, and the preview uses the battle renderer.
 
 ## City, station, and ship families
 
