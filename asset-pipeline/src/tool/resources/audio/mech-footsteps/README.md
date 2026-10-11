@@ -1,6 +1,6 @@
 # Mech footfalls
 
-Five ElevenLabs Sound Effects v2 source takes: three heavy muffled ground impacts
+Four ElevenLabs Sound Effects v2 source takes: two heavy muffled ground impacts
 and two separate pneumatic strokes. `generation.json` retains prompts and settings;
 the adjacent receipts retain input/audio hashes and billing metadata, never credentials.
 
@@ -19,7 +19,7 @@ Unchanged takes are skipped after verifying both input and audio hashes.
 `--clip ID` limits generation; replacing a changed take requires `--replace`.
 Network failures are not retried automatically because the request may be billed.
 
-Preparation preserves MP3 originals and writes five independent mono WAV masters.
+Preparation preserves MP3 originals and writes four independent mono WAV masters.
 Impacts retain low body through a 28Hz high-pass and 1100Hz low-pass, with up to
 700ms decay and -4.5dBFS peak. Pneumatics use 140–3200Hz, up to 300ms, and -8dBFS
 peak. Both trim leading silence and fade the edges. No machinery is mixed into an
@@ -31,7 +31,7 @@ filters needs no credits; rerun preparation and the audio pipeline afterward.
 it is only an audition artifact, never a shipped walking recording. Runtime pitch,
 distance, and actual gait vary in game.
 
-Only the five encoded one-shots ship. Each actual foot lift plays a pneumatic
+Only the four encoded one-shots ship. Each actual foot lift plays a pneumatic
 stroke; that foot's touchdown plays a separate impact at its planted position.
 The two pools have independent variation and volume in `MechFootstepAudio`.
 Nearby events play with small pitch variations, and impacts have their own

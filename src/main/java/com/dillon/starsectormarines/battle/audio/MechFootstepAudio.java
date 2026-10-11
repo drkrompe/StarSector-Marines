@@ -95,7 +95,7 @@ public final class MechFootstepAudio {
         if (distance >= RANGE_CELLS) return;
         if (chassis == null) chassis = MechVariant.BULWARK;
         boolean impact = event.phase() == FootPhase.LAND;
-        int variant = nextVariant(impact ? lastImpact : lastPneumatic, impact ? 3 : 2);
+        int variant = nextVariant(impact ? lastImpact : lastPneumatic, 2);
         if (impact) lastImpact = variant;
         else lastPneumatic = variant;
         float pitch = chassis == MechVariant.BULWARK ? 0.86f
