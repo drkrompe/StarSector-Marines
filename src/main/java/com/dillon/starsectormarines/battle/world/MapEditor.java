@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
 import com.dillon.starsectormarines.battle.world.model.TreeDamage;
+import com.dillon.starsectormarines.battle.world.model.RockDamage;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 
 /**
@@ -84,6 +85,7 @@ public final class MapEditor {
      * entry point, retaining the ground and replacing their prop with damaged
      * art or debris; they do not become masonry rubble or roof-collapse sources.
      * Trees resolve one whole-crown structure pool before the cell-wall path.
+     * Nature rocks spend per-cell structure, removing their cover and leaving low rubble.
      */
     public boolean damageWall(int x, int y, int amount) {
         return damageWall(x, y, amount, ++structuralAttack);
@@ -105,6 +107,24 @@ public final class MapEditor {
 
     private boolean damageWall(int x, int y, int amount, long attack) {
         if (doodads != null) {
+            RockDamage.Result rock = doodads.damageRock(x, y, amount, topology);
+            if (rock == RockDamage.Result.DESTROYED) {
+                if (!grid.isWalkable(x, y)) {
+                    grid.setWalkable(x, y, true);
+                    grid.setSeeThrough(x, y, false);
+                    grid.setDoorway(x, y, false);
+                    grid.setWallHp(x, y, 0);
+                    grid.openAllEdges(x, y);
+                    topology.setFixture(x, y, false);
+                    grid.recomputeCoverAt(x, y);
+                    grid.recomputeCoverAt(x - 1, y); grid.recomputeCoverAt(x + 1, y);
+                    grid.recomputeCoverAt(x, y - 1); grid.recomputeCoverAt(x, y + 1);
+                    doodads.refreshBlockingCover(x, y, topology);
+                    navigation.markCellOpened(x, y);
+                }
+                return true;
+            }
+            if (rock != RockDamage.Result.NOT_ROCK) return false;
             TreeDamage.Result tree = doodads.damageTree(x, y, amount, attack, treeCellCleared);
             if (tree != TreeDamage.Result.NOT_TREE) return tree == TreeDamage.Result.DESTROYED;
             CoverPropDamage.Result result = doodads.damageCoverProp(x, y, amount);
