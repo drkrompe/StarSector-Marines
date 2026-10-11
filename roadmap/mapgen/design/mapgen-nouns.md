@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — outdoor recipes mix environment-appropriate forests and wooded hills while preserving finished access.
+Updated: 2026-10-11 — forest destruction releases whole crowns while preserving overlapping trees, underlying hills and finished access.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -488,6 +488,12 @@ Forest crowns are inaccessible natural terrain: they block ground travel,
 sight and direct fire and carry no building, roof or destructible wall identity.
 Infantry and vehicles obey the ordinary grid; aircraft retain their flight model.
 Structural damage cannot open an invisible route under a surviving canopy.
+Each tree owns one structure pool across its entire crown. A structural hit
+changes the whole crown to broken foliage; destruction leaves low stumps and
+fallen branches and releases only cells no surviving crown still occupies.
+One blast damages a tree once even when it reaches several canopy cells.
+Underlying hills remain inaccessible after their trees fall, and the ordinary
+navigation and sight refresh follows actual released cells.
 The original ground remains beneath the trees. ImageGen reskins the code-owned
 canopy geometry; the texture cannot silently change the tactical footprint.
 

@@ -1,0 +1,108 @@
+{
+  "sheetName": "forest-damaged",
+  "sheet": "art-source/tilesets/forest-damaged.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "alphaMin": 40,
+  "note": "Geometry-first ImageGen reskin from TreeDamageReskinTemplate. Six species retain intact footprint dimensions and pivots. Full-frame cuts preserve alpha; cover and ballistic height are zero because whole-tree runtime state owns obstruction. See forest-damaged.prompt.txt and ../templates/tree-damaged.png. Reviewed cuts keep panel centers, with wider full frames than intact art to retain broken branch tips and empty margins. Cedar uses its reviewed centered panel frame. No alpha trimming or recentering. Large damaged pine extends its frame 16px upward to retain needle tips and a clear edge.",
+  "entries": [
+    {
+      "id": "forest.oak-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.oak-small-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        512,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.birch-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-large-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        512,
+        496,
+        512,
+        528
+      ]
+    },
+    {
+      "id": "forest.cedar-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        6
+      ],
+      "rect": [
+        1024,
+        512,
+        512,
+        512
+      ]
+    }
+  ]
+}

@@ -88,7 +88,7 @@ public class NavigationGrid {
          * wall or authored doodad profile supplies edge cover.
          */
         NO_EDGE_COVER,
-        /** Permanent natural mass: blocks ground travel and cannot be demolished as a wall. */
+        /** Natural obstruction: ordinary cell wall damage cannot clear it; tree ownership may release a whole crown. */
         NATURAL_SOLID;
 
         public long mask() { return 1L << ordinal(); }

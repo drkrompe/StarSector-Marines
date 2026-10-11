@@ -225,24 +225,9 @@ public class Detonations {
         }
         if (det.wallDamage > 0) {
             if (det.wallDamageRadius > 0f) {
-                float wr = det.wallDamageRadius;
-                float wr2 = wr * wr;
-                int minX = (int) Math.floor(det.endpointX - wr);
-                int maxX = (int) Math.floor(det.endpointX + wr);
-                int minY = (int) Math.floor(det.endpointY - wr);
-                int maxY = (int) Math.floor(det.endpointY + wr);
-                for (int cy = minY; cy <= maxY; cy++) {
-                    for (int cx = minX; cx <= maxX; cx++) {
-                        float cdx = (cx + 0.5f) - det.endpointX;
-                        float cdy = (cy + 0.5f) - det.endpointY;
-                        if (cdx * cdx + cdy * cdy > wr2) continue;
-                        if (mapEditor.damageWall(cx, cy, det.wallDamage)) {
-                            if (det.spawnDustOnWallBreak) {
-                                effects.spawnDustBurst(cx + 0.5f, cy + 0.5f);
-                            }
-                        }
-                    }
-                }
+                mapEditor.damageWallsInRadius(det.endpointX, det.endpointY, det.wallDamageRadius,
+                        det.wallDamage, det.spawnDustOnWallBreak
+                                ? (x, y) -> effects.spawnDustBurst(x + 0.5f, y + 0.5f) : null);
             } else if (grid.inBounds(targetCx, targetCy)) {
                 if (mapEditor.damageWall(targetCx, targetCy, det.wallDamage)
                         && det.spawnDustOnWallBreak) {

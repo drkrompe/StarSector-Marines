@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.model.CoverPropDamage;
+import com.dillon.starsectormarines.battle.world.model.TreeDamage;
+import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 
 /**
  * Coordinates the runtime map-modification cycle — the cross-domain operations
@@ -65,6 +67,8 @@ public final class MapEditor {
 
     private CellCallback roofCollapseSink;
     private DoodadService doodads;
+    private long structuralAttack;
+    private final TreeDamage.ClearedCell treeCellCleared = this::clearTreeCell;
 
     public void setDoodads(DoodadService doodads) { this.doodads = doodads; }
 
@@ -79,9 +83,30 @@ public final class MapEditor {
      * when the cell wasn't breached. Registered fences and sandbags use the same
      * entry point, retaining the ground and replacing their prop with damaged
      * art or debris; they do not become masonry rubble or roof-collapse sources.
+     * Trees resolve one whole-crown structure pool before the cell-wall path.
      */
     public boolean damageWall(int x, int y, int amount) {
+        return damageWall(x, y, amount, ++structuralAttack);
+    }
+
+    /** One blast spends each tree's structure once, regardless of canopy size or cell visitation order. */
+    public void damageWallsInRadius(float centerX, float centerY, float radius, int amount, CellCallback broken) {
+        long attack = ++structuralAttack;
+        int minX = Math.max(0, (int)Math.floor(centerX - radius));
+        int maxX = Math.min(grid.getWidth() - 1, (int)Math.floor(centerX + radius));
+        int minY = Math.max(0, (int)Math.floor(centerY - radius));
+        int maxY = Math.min(grid.getHeight() - 1, (int)Math.floor(centerY + radius));
+        for (int y = minY; y <= maxY; y++) for (int x = minX; x <= maxX; x++) {
+            float dx = x + .5f - centerX, dy = y + .5f - centerY;
+            if (dx * dx + dy * dy > radius * radius) continue;
+            if (damageWall(x, y, amount, attack) && broken != null) broken.accept(x, y);
+        }
+    }
+
+    private boolean damageWall(int x, int y, int amount, long attack) {
         if (doodads != null) {
+            TreeDamage.Result tree = doodads.damageTree(x, y, amount, attack, treeCellCleared);
+            if (tree != TreeDamage.Result.NOT_TREE) return tree == TreeDamage.Result.DESTROYED;
             CoverPropDamage.Result result = doodads.damageCoverProp(x, y, amount);
             if (result == CoverPropDamage.Result.DESTROYED) {
                 topology.setFixture(x, y, false);
@@ -104,6 +129,23 @@ public final class MapEditor {
         peelRoofAround(x, y);
         navigation.markCellOpened(x, y);
         return true;
+    }
+
+    private void clearTreeCell(int x, int y) {
+        // Summit trees share their cells with permanent terrain; felling the crown cannot excavate the hill.
+        if (ForestBrush.isGrassySummit(grid, topology, x, y)) return;
+        grid.setTag(x, y, NavigationGrid.CellTag.NATURAL_SOLID, false);
+        grid.setWalkable(x, y, true);
+        grid.setSeeThrough(x, y, false);
+        grid.setDoorway(x, y, false);
+        grid.setWallHp(x, y, 0);
+        grid.openAllEdges(x, y);
+        topology.setFixture(x, y, false);
+        grid.recomputeCoverAt(x, y);
+        grid.recomputeCoverAt(x - 1, y); grid.recomputeCoverAt(x + 1, y);
+        grid.recomputeCoverAt(x, y - 1); grid.recomputeCoverAt(x, y + 1);
+        doodads.refreshBlockingCover(x, y, topology);
+        navigation.markCellOpened(x, y);
     }
 
     /** Marks an exposed solid floor for its material-matched overlay; no navigation mutation. */
