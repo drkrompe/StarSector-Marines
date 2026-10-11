@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed APC orders, and direct control shar
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — fresh recovery proofs retain progress under per-vehicle tick allowances.
+Updated: 2026-10-10 — employer cargo and armed escorts follow capture-released road legs.
 
 ## Purpose and boundary
 
@@ -541,6 +541,15 @@ retains the same existing cross-domain behavior as an autonomous hull.
   combat actor does — the shared ownership-coded gauge over its chassis, armor
   row over structure row — for as long as it is alive. A wreck drops the gauge;
   the darkened hull is the whole report.
+
+A **story column** is an employer-owned group of deployed chassis released by
+public scenario conditions. It uses ordinary movement legs, footprint checks,
+steering and weapons; it does not obtain player order authority or become a
+second reinforcement provider. Delivery of identified freight is confirmed by
+physical exit, while destruction retains the ordinary wreck and damage rules.
+An unarmed cargo conversion has no passenger or turret payload. Mission-owned
+travel is dormant outside an explicit allied deployed route; player orders and
+ordinary arrive/deboard/depart missions retain their existing lifecycle.
 
 ## Adjacent domains and extension points
 

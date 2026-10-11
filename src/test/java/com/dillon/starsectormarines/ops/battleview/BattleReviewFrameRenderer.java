@@ -58,6 +58,7 @@ public final class BattleReviewFrameRenderer {
     private final HeadlessUiRenderer renderer;
     private final int width;
     private final int height;
+    private float focusX = Float.NaN, focusY, focusWidth;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         Path root = modRoot.toAbsolutePath().normalize();
@@ -69,6 +70,12 @@ public final class BattleReviewFrameRenderer {
                 new HeadlessBattleSceneRenderer(root, true));
         this.width = width;
         this.height = height;
+    }
+
+    /** Camera-only close view, collected through the same production layers. */
+    public BattleReviewFrameRenderer(Path modRoot, int width, int height, float focusX, float focusY, float cellsAcross) {
+        this(modRoot, width, height);
+        this.focusX = focusX; this.focusY = focusY; this.focusWidth = cellsAcross;
     }
 
     public int width() { return width; }
@@ -222,7 +229,7 @@ public final class BattleReviewFrameRenderer {
         };
     }
 
-    private static BattleSceneHostPass pass(BattleSimulation simulation) {
+    private BattleSceneHostPass pass(BattleSimulation simulation) {
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
@@ -231,7 +238,9 @@ public final class BattleReviewFrameRenderer {
                         null, alphaMult, 0f, false,
                         new HighlightOverlay(), new Selection(),
                         BattleRenderHostProfile.EMBEDDED_SCENE);
-                return new BattleSceneFrame(context, REVIEW_LAYERS);
+                EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
+                if (Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
+                return new BattleSceneFrame(context, layers);
             }
 
             @Override
@@ -242,10 +251,14 @@ public final class BattleReviewFrameRenderer {
     }
 
     /** Fits the whole grid under the caption band, so a frame never crops the battlefield. */
-    private static BattleCamera cameraFor(float viewportWidth, float viewportHeight,
+    private BattleCamera cameraFor(float viewportWidth, float viewportHeight,
                                           BattleSimulation simulation) {
-        return cameraFor(viewportWidth, viewportHeight,
+        if (!Float.isFinite(focusX)) return cameraFor(viewportWidth, viewportHeight,
                 simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
+        BattleCamera camera = new BattleCamera(simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
+        camera.setViewport(0, 0, viewportWidth, viewportHeight - HEADER_HEIGHT, (float)Math.floor(viewportWidth / focusWidth));
+        camera.centerOn(focusX, focusY);
+        return camera;
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
@@ -81,6 +82,17 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
                 objectives.add(entry.getValue() + " / " + entry.getKey().name().replace('_', ' ')
                         .toLowerCase(Locale.ROOT));
             }
+        }
+        if (sim.getThunderRun() != null) {
+            int i = 0;
+            for (var compound : sim.getCompoundService().getRecords()) {
+                var node = compound.node;
+                markers.add(new Marker(ThunderRunCompound.SITE_NAMES.get(i++).toUpperCase(Locale.ROOT), node.anchorX, node.anchorY, false));
+                areas.add(new Area(node.left, node.top, node.right - node.left + 1, node.bottom - node.top + 1, false));
+            }
+            markers.add(new Marker("FREIGHT EXIT", ThunderRunCompound.WIDTH - 8, 75, false));
+            objectives.add("Dispatch Post > East Crossing > Outbound Gate");
+            objectives.add("Escort the freight through the marked exit");
         }
         for (Objective objective : sim.getObjectives()) {
             if (objective.owningFaction() != Faction.MARINE) continue;

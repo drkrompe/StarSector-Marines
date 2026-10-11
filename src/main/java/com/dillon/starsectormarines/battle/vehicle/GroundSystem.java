@@ -242,8 +242,14 @@ public class GroundSystem {
                     break;
 
                 case DEPLOYED:
-                    // No errand to advance. Move orders pre-empt this loop
-                    // entirely, so a chassis between orders simply holds.
+                    // Story columns retain ordinary steering, footprint collision and weapons.
+                    if (convoy.faction(id) == Faction.ALLY && m.authoredRouteX != null) {
+                        controlSystem.tick(id, dt, m.authoredRouteX, m.authoredRouteY, m.authoredLeg);
+                        if (controlSystem.consumeArrived(id)) {
+                            m.authoredRouteX = null; m.authoredRouteY = null;
+                            convoy.body(id).speed = 0f;
+                        }
+                    }
                     break;
 
                 case GONE:

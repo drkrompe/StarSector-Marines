@@ -75,10 +75,36 @@ public final class ConvoyRenderSystem implements RenderSystem {
             float cy = cam.cellToScreenY(body.y);
             boolean wrecked = v.state == VehicleState.WRECKED;
             float wreckTint = wrecked ? 0.38f : 1f;
+            if (!wrecked && Math.abs(body.speed) > .3f && cellPx >= 4f) {
+                float bearing = (float) Math.toRadians(body.facingDegrees);
+                float fx = (float) Math.sin(bearing), fy = (float) Math.cos(bearing);
+                float pulse = (ctx.sim.getSimTickIndex() % 12) / 12f;
+                for (int i = 0; i < 5; i++) {
+                    float trail = 1.2f + (i + pulse) * .55f;
+                    float spread = .4f + i * .14f;
+                    float x = body.x - fx * trail, y = body.y - fy * trail;
+                    out.addLine(RenderLayer.CONVOY, cam.cellToScreenX(x - fy * spread), cam.cellToScreenY(y + fx * spread),
+                            cam.cellToScreenX(x + fy * spread), cam.cellToScreenY(y - fx * spread), cellPx * .5f,
+                            .60f, .54f, .40f, alphaMult * .13f * (1f - i / 6f));
+                }
+            }
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
                     wreckTint, wreckTint, wreckTint, alphaMult);
+
+            if (type == VehicleType.CARGO_CARRIER) {
+                float bearing = (float) Math.toRadians(body.facingDegrees);
+                float fx = (float) Math.sin(bearing), fy = (float) Math.cos(bearing);
+                // Two amber freight bands on the sealed APC conversion distinguish it from escorts.
+                for (int band = 0; band < 2; band++) {
+                    float offset = band == 0 ? -.35f : .35f;
+                    float x = body.x + fx * offset, y = body.y + fy * offset;
+                    out.addLine(RenderLayer.CONVOY, cam.cellToScreenX(x - fy * .38f), cam.cellToScreenY(y + fx * .38f),
+                            cam.cellToScreenX(x + fy * .38f), cam.cellToScreenY(y - fx * .38f), Math.max(1f, cellPx * .12f),
+                            .85f * wreckTint, .63f * wreckTint, .27f * wreckTint, alphaMult);
+                }
+            }
 
             if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
                 SpriteSheetFrames.Frame tf = frames.frames[type.turretFrame];

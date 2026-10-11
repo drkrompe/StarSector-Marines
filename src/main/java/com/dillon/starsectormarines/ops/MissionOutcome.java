@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +32,7 @@ public final class MissionOutcome {
 
     /** Stable story-person outcomes; separate from representative population scaling. */
     public final LastLiftProgress.Outcome lastLiftOutcome;
+    public final FreightRunProgress.Outcome freightOutcome;
     public final boolean        victory;
     public final String         missionId;
     public final String         missionName;
@@ -130,6 +132,7 @@ public final class MissionOutcome {
 
     private MissionOutcome(Builder b) {
         this.lastLiftOutcome    = b.lastLiftOutcome;
+        this.freightOutcome = b.freightOutcome;
         this.victory            = b.victory;
         this.missionId          = b.missionId;
         this.missionName        = b.missionName;
@@ -197,6 +200,7 @@ public final class MissionOutcome {
     public static final class Builder {
 
         private LastLiftProgress.Outcome lastLiftOutcome;
+        private FreightRunProgress.Outcome freightOutcome;
         private boolean victory;
         private String missionId;
         private String missionName;
@@ -276,6 +280,7 @@ public final class MissionOutcome {
             return this;
         }
 
+        public Builder freightOutcome(FreightRunProgress.Outcome outcome) { this.freightOutcome = outcome; return this; }
         public Builder lastLiftOutcome(LastLiftProgress.Outcome outcome) {
             this.lastLiftOutcome = outcome;
             return this;

@@ -87,6 +87,9 @@ import com.dillon.starsectormarines.battle.story.OpeningOperationStoryObserver;
 import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryObserver;
 import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
+import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
+import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObjective;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.CommandStrategy;
 import com.dillon.starsectormarines.battle.command.CommandFrame;
@@ -404,6 +407,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private OpeningOperationStoryObserver openingStory;
     private JunctionStoryObserver junctionStory;
     private RelayNineStoryObserver relayNineStory;
+    private ThunderRunSequence thunderRun;
+    public ThunderRunSequence getThunderRun() { return thunderRun; }
+    public void installThunderRun(FreightRunProgress.Attempt attempt, int delivered, List<EntitySpec> reserve) {
+        if (simTickIndex != 0 || thunderRun != null || openingStory != null || junctionStory != null || lastLiftAttempt != null || relayNineStory != null)
+            throw new IllegalStateException("Install one story at setup");
+        thunderRun = new ThunderRunSequence(this, attempt, delivered, reserve, storyBeats);
+        addObjective(new FreightConvoyObjective(thunderRun));
+    }
     private RelayNineSequence relayNineSequence;
     public RelayNineSequence getRelayNineSequence() { return relayNineSequence; }
     public void installRelayNine(List<EntitySpec> reserve) {
@@ -447,7 +458,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public int pendingGroundArrivals(Faction faction) {
         return faction != Faction.DEFENDER ? 0 : (reliefAssault == null ? 0 : reliefAssault.pendingMembers())
                 + (lastLiftSequence == null ? 0 : lastLiftSequence.pendingMembers())
-                + (relayNineSequence == null ? 0 : relayNineSequence.pendingMembers());
+                + (relayNineSequence == null ? 0 : relayNineSequence.pendingMembers())
+                + (thunderRun == null ? 0 : thunderRun.pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */
@@ -1222,6 +1234,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         boolean accepted = completion.retreat();
         if (accepted && openingStory != null) openingStory.retreat(simTickIndex);
         if (accepted && junctionStory != null) junctionStory.retreat(simTickIndex);
+        if (accepted && thunderRun != null) thunderRun.freeze(this, true);
         if (accepted && relayNineStory != null) relayNineStory.retreat(simTickIndex);
         if (accepted && lastLiftAttempt != null) {
             lastLiftAttempt.freeze(this);
@@ -2306,6 +2319,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (reliefAssault != null) reliefAssault.tick(this);
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
+        if (thunderRun != null) thunderRun.tick(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall
@@ -2329,6 +2343,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (openingStory != null) openingStory.observe(this);
         if (junctionStory != null) junctionStory.observe(this);
         if (relayNineStory != null) relayNineStory.observe(this);
+        if (thunderRun != null && isComplete()) thunderRun.freeze(this, false);
         if (lastLiftSequence != null) {
             lastLiftSequence.observe(this);
             lastLiftAttempt.freeze(this);

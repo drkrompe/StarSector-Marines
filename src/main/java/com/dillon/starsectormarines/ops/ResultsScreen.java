@@ -130,6 +130,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                         + outcome.lastLiftOutcome.dead().size() + " confirmed dead / " + stranded + " still stranded."
                         + (stranded > 0 ? " Retry covers those still stranded." : " This crew has no remaining rescue attempts.");
             }
+            if (outcome.freightOutcome != null) {
+                var freight = outcome.freightOutcome;
+                int waiting = freight.attempt().cargo().size() - freight.delivered().size() - freight.lost().size();
+                report += " This sortie: " + freight.delivered().size() + " freight carriers delivered / "
+                        + freight.lost().size() + " lost / " + waiting + " awaiting transport."
+                        + (waiting > 0 ? " Only unresolved freight returns on a retry." : " This column is fully accounted for.");
+            }
             var route = SupplyRouteCampaign.current();
             if (route != null && outcome.missionSource == MissionSource.STORY) report += " " + route.status();
             props.put("storyMessage", report);

@@ -41,6 +41,14 @@ public enum VehicleType {
                     /*maxSteeringDeg*/ 22f, /*steeringSlewDegPerSec*/ 150f,
                     accel, brakingAccel, maxSpeed);
         }
+    },
+    /** Sealed freight conversion of the APC chassis. No passengers or roof weapon. */
+    CARGO_CARRIER("graphics/battle/vehicles/army-apc.png", 0, 2, -90f,
+            0, 2.4f, 1.4f, 2.8f, 1.8f, 3.5f, .8f, 2.2f,
+            -1, 0, 0, 0, 0, 0, 0, null, 180f, 90f, 10f, 1.25f, .75f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
+        }
     };
 
     public final String spritePath;

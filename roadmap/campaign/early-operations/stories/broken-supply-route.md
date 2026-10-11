@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — campaign integration and headless checks implemented; live acceptance remains.
 Written: 2026-10-10
-Updated: 2026-10-10 — branch commitment, fitted named deployment, retry settlement and recurring work connected.
+Updated: 2026-10-10 — branch commitment, fitted named deployment, Thunder Run extends the freight branch; physical delivery and persistent cargo join acceptance.
 
 ## Standing model
 
@@ -10,7 +10,7 @@ Updated: 2026-10-10 — branch commitment, fitted named deployment, retry settle
 accounting, rewards and recurring arrangements. `company-view-nouns.md` owns
 personnel, fitted boats and HQ projection. `narrative-nouns.md` and
 `battle-radio-nouns.md` own correspondence and future presentation hooks.
-The existing finite Junction, Last Lift and Relay Nine factories remain the
+The existing finite Junction, Last Lift, Relay Nine and Thunder Run factories remain the
 battle authority; normal personnel and boat losses remain ordinary settlement.
 No vanilla economic or ownership mutation is part of this arc.
 
@@ -35,6 +35,12 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 - Relay Nine: take ground, leave militia holding it, observe a recapture and
   restoration, and settle territorial victory with surviving raiders elsewhere.
   Defeat keeps only this branch retryable; success awards the story fee once.
+- Thunder Run: clear the three road sites, observe the two staging stops and final
+  road ambush, and escort surviving carriers through the exit. Withdraw after a
+  delivery, save/reload, then verify only unresolved cargo retries. Cargo lost on
+  a defeated attempt never returns. Confirm the cumulative delivery award once,
+  Route Security after success, and no unlock after total loss. An older save
+  already completed at Relay Nine must retain its prior recurring work.
 - Revisit Results, dismiss and reopen HQ/broker, and reload after either ending.
   Verify the chosen recurring arrangement, new job identities, new rescue crews,
   repeatable fees, and the unchanged historical story record. Unchosen work is
@@ -47,13 +53,13 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
 The focused ledger/adapter tests exercise commitment, replay refusal, mismatched
 site/source/payment, partial rescue, exhausted failure, Java campaign save and
 primitive XStream round-trips. `commanderEvidence -Pmission=supply-route` checks
-the shared campaign construction/roster-overlay seam for all three missions
+the shared campaign construction/roster-overlay seam for all four missions
 with eight and twenty-four named marines, fitted boats, physical arrival and
 untouched employer/civilian craft. It observes fifty seconds, not whole campaign
 victory or an installed save. `createSnapshots -Psnapshot=supply-route` renders
 the production broker and HQ documents at 1920x1080 / 100% through both branches.
 
-The existing `junction`, `last-lift` and `relay-nine` evidence selectors own full
+The existing `junction`, `last-lift` , `relay-nine` and `thunder-run` evidence selectors own full
 battle replay, timing, reserve, capture and rescue controls. Those factory
 controls and the campaign bridge checks do not substitute for the live pass
 above. Opening Wayline acceptance remains in `opening-ladder-live-acceptance.md`

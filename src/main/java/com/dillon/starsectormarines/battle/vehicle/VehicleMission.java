@@ -36,6 +36,10 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * the payload.
  */
 public final class VehicleMission {
+    /** Mission-owned travel for an allied deployed column; never a player move order. */
+    public float[] authoredRouteX, authoredRouteY;
+    public VehicleLeg authoredLeg = VehicleLeg.MOVE_ORDER;
+
 
     public VehicleState state = VehicleState.PENDING;
 

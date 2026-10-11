@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.command.ThunderRunCommand;
+import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.world.gen.LastLiftCompound;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
@@ -1366,6 +1369,58 @@ public final class BattleSetup {
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new RelayNineCommand(faction), ConquestCommandDisclosure.INSTANCE);
         sim.installRelayNine(reserve);
+        return sim;
+    }
+
+    /** Employer column finale; committed player boats retain their exact airframes. */
+    public static BattleSimulation createThunderRun(long seed, List<ShuttleAssignment> playerManifest, TargetProfile profile, FreightRunProgress.Attempt attempt, int delivered) {
+        if (playerManifest == null || playerManifest.isEmpty() || playerManifest.size() > 4)
+            throw new IllegalArgumentException("ThunderRun requires one to four committed player boats");
+        var layout = ThunderRunCompound.generate(seed, profile);
+        MapResult map = layout.map();
+        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        sim.getBattleResources().disableCompoundProduction();
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        Random rng = new Random(seed);
+        List<ShuttleAssignment> assignments = new ArrayList<>();
+        assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 4));
+        assignments.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 4));
+        assignments.addAll(playerManifest);
+        List<LandingPad> pads = LandingPadSelector.select(map, assignments.size(), LZ_MIN_SEPARATION);
+        stampLzPads(sim, pads);
+        for (int i = 0; i < assignments.size(); i++) {
+            var assignment = assignments.get(i);
+            var pad = pads.get(i);
+            Faction faction = i < 2 ? Faction.ALLY : Faction.MARINE;
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, faction,
+                    x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            ShuttleMission mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles;
+            mission.manifestOrdinal = i < 2 ? -1 : i - 2;
+            mission.commandClaim = SquadCommandClaim.mission(ThunderRunCommand.issuer(faction), "ThunderRun committed lift");
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++) {
+                mission.cycleLoadouts[cycle] = faction == Faction.ALLY
+                        ? InfantryLoadoutRolls.defenderSquad(assignment.seatsForCycle(cycle), UnitType.MILITIA, RiskLevel.LOW, rng)
+                        : InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle), rng);
+            }
+            mission.marineLoadout = mission.cycleLoadouts[0];
+            if (faction == Faction.ALLY) mission.deboardUnitType = UnitType.MILITIA;
+        }
+        for (int i = 1; i < layout.sites().size(); i++) {
+            var post = layout.sites().get(i);
+            spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
+                    Faction.DEFENDER, "thunder-run-guard-" + i, post, rng);
+        }
+        List<EntitySpec> reserve = new ArrayList<>();
+        for (int side = 0; side < 2; side++) for (int[] cell : pickSpawnCluster(map.grid, 275, side == 0 ? 2 : 140, 6))
+            reserve.add(makeOpeningMilitia("freight-ambush-" + reserve.size(), Faction.DEFENDER,
+                    cell[0], cell[1], rng).role(UnitRole.PATROL));
+        for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
+            sim.setAutonomousCommander(faction, new ThunderRunCommand(faction), ConquestCommandDisclosure.INSTANCE);
+        sim.installThunderRun(attempt, delivered, reserve);
         return sim;
     }
 

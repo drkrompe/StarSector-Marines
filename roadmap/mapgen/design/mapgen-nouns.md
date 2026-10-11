@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — the grown-settlement laws folded in from their story;
+Updated: 2026-10-10 — authored freight corridor preserves a continuous vehicle carriageway.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -230,6 +230,13 @@ their backs meet supporting walls, their working faces meet open room cells,
 and centerpieces are centered by their complete footprint. On the compact
 footprint, office facade windows yield to that required room capacity;
 reception and conference facades retain the building's firing apertures.
+
+Thunder Run owns a wider, elongated freight corridor with three roadside
+objectives and two staging stops. Its fifteen-cell carriageway is reserved
+before facilities, perimeter runs and dressing. Finished berths, interior
+anchors and both ambush approaches remain connected; no furnishing may narrow
+the vehicle road. The fixed mission axis supports distinct release, crossing
+and exit beats without randomizing their causal order.
 
 ## Vehicle circulation
 

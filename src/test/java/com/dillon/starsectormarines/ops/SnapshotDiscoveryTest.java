@@ -17,11 +17,11 @@ class SnapshotDiscoveryTest {
                 .toList();
 
         assertEquals(List.of("airfield-sortie", "armory", "barracks-command", "deployable-cover", "direct-control-ui", "durability-bars",
-                "firing-line", "frontage-scene", "hq-intel",
+                "firing-line", "first-contract", "frontage-scene", "hq-intel",
                 "integral-system-fx", "killing-ground", "late-arrival", "layers", "mech-console", "mech-doctrine", "mission-ui",
                 "perception-sweep",
                 "player-order", "point-defence", "prosecution-hold", "runway-sortie", "ship-decks",
-                "ships-boats", "squad-traffic", "sun-shadows",
+                "ships-boats", "squad-traffic", "sun-shadows", "supply-route",
                 "swarm-overkill",
                 "turrets", "ui", "yield-freeze"), ids);
     }

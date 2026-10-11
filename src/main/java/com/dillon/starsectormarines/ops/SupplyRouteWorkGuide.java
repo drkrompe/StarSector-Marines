@@ -9,8 +9,8 @@ record SupplyRouteWorkGuide(BrokenSupplyRouteProgress progress, OpeningBroker.De
     @Override public Object markupProperty(String property) {
         boolean recovery = progress != null && progress.readable() && progress.branch() == BrokenSupplyRouteProgress.LIFT;
         String mission = progress == null ? "Open the Junction" : progress.choicePending() ? "Choose local support"
-                : progress.closed() ? progress.successful() ? recovery ? "Crew Recovery" : "Route Security" : "Last Lift / closed"
-                : recovery ? "Last Lift" : progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Relay Nine" : "Open the Junction";
+                : progress.closed() ? progress.successful() ? recovery ? "Crew Recovery" : "Route Security" : recovery ? "Last Lift / closed" : "Thunder Run / closed"
+                : progress.operation() == BrokenSupplyRouteProgress.THUNDER ? "Thunder Run" : recovery ? "Last Lift" : progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Relay Nine" : "Open the Junction";
         return switch (property) {
             case "classes" -> "opening-guide console-readout" + (destination == null ? " opening-unavailable" : "");
             case "crest" -> OpeningBroker.CREST;
@@ -20,7 +20,7 @@ record SupplyRouteWorkGuide(BrokenSupplyRouteProgress progress, OpeningBroker.De
             case "heading" -> "BROKEN SUPPLY ROUTE";
             case "mission" -> mission;
             case "payment" -> progress != null && progress.closed() ? "Story paid: " + progress.storyPayment() + " cr"
-                    : recovery ? "4,000 + 500 / recovered" : progress != null && progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Cr. 16,000" : "Cr. 12,000 / Junction";
+                    : progress != null && progress.operation() == BrokenSupplyRouteProgress.THUNDER ? "6,000 + 4,000 / delivered" : recovery ? "4,000 + 500 / recovered" : progress != null && progress.branch() == BrokenSupplyRouteProgress.RELAY ? "Cr. 16,000" : "Cr. 12,000 / Junction";
             case "location" -> progress != null ? progress.planetName() + " / " + progress.systemName()
                     : destination == null ? "CONTACT UNAVAILABLE" : destination.label();
             case "route" -> destination == null ? "Access unavailable. Accepted work stays at its original site."

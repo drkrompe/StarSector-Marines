@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — authored location illustrations accompany chapter dossiers and debriefs.
+Updated: 2026-10-10 — freight corridor finale, persistent cargo and post-convoy recurring work.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -106,10 +106,19 @@ Commitment alone earns neither money nor recurring access.
   Exhausting the cohort without victory closes the actual result without payment
   or an unlock. Successful rescue leaves this commercial route suspended and
   establishes Iona's **Crew Recovery** arrangement. Relay Nine is not undertaken.
-- **Relay Nine** victory pays 16,000 once, records the authored route reopened
-  and establishes Mara's **Route Security** arrangement. Rill's rescue is not
-  undertaken: correspondence invents neither deaths nor a safe evacuation.
-  Iona remains a correspondent. A defeated freight attempt remains retryable.
+- **Relay Nine** victory pays 16,000 once and authorizes **Thunder Run**. It
+  secures the relay but does not by itself deliver freight or unlock recurring
+  work. Rill's rescue is not undertaken: correspondence invents neither deaths
+  nor a safe evacuation. Iona remains a correspondent.
+- **Thunder Run** closes the freight branch. Three identified employer cargo
+  carriers have persistent delivered, lost and awaiting-transport states.
+  Retry fields only unresolved carriers. A qualifying victory accounts for all
+  active cargo with a surviving company presence and at least one delivery
+  across the job. It pays 6,000 plus 4,000 per cumulative delivery, at most
+  18,000, once, and establishes Mara's **Route Security** arrangement. Exhausted
+  cargo on a defeated sortie closes the actual result without payment or an
+  unlock. Older saves already closed after Relay Nine retain Route Security;
+  unfinished freight commitments continue through the convoy finale.
 
 Recurring offers carry new job and attempt identities. Crew Recovery receives a
 new twelve-person ledger for each job and the same rescue formula; a retry keeps
@@ -119,7 +128,7 @@ resetting the story crew or replaying a chapter bonus. The completed dossier
 separates historical results from the current posting. Existing Wayline
 repeatables and unrelated contracts remain available.
 
-All three operations recommend twenty-four marines. They accept at least two
+All four operations recommend twenty-four marines. They accept at least two
 selected squads with four ready marines each, using acting NCOs where necessary.
 One to four owned fitted boats cycle until the selected named force is delivered;
 partial final trips contain only real selected personnel. Issued equipment,
@@ -131,7 +140,7 @@ The arc owns a versioned save record, including its frozen site, commitment,
 current job and attempt, story outcome and awards. Unknown or inconsistent
 records fail closed. Terrain surveys read prospective identities; acceptance
 starts the attempt only after construction and the roster overlay succeed.
-Settlement consumes the frozen mission and rescue identities once before the
+Settlement consumes the frozen mission and rescue/freight identities once before the
 ordinary credits, personnel and lost-boat writeback. Duplicate or foreign results
 cannot repeat any of those writes. Outcome presentation is not reward authority.
 This is local commercial fiction: no vanilla market ownership, population,
@@ -266,7 +275,7 @@ employer lift is separately identified. Victory requires all four territories
 held together and a company participant in play, including committed inbound
 personnel. Killing every raider alone does not close the mission.
 
-**Relay Nine** is the freight-recovery finale. Its western apron, Power Yard,
+**Relay Nine** secures the freight route before the convoy finale. Its western apron, Power Yard,
 Freight Gate and Relay Hall are four required territories, with the hall as the
 canonical command post. The hall guarantees opposed direct-road and loading-road
 entrances. Decorative service buildings add no objectives. Company boats retain
@@ -291,6 +300,41 @@ combat decisions use own reports and local contact. Victory requires all four
 territories held together with a company participant; surviving raiders elsewhere
 do not prevent success. Neither an extra hold timer nor destruction of relay
 equipment is part of this objective.
+
+## Authored freight finale
+
+**Thunder Run** is a 320 by 144 road corridor, separating the western staging
+apron, Dispatch Post, East Crossing and Outbound Gate. The carriageway has a
+fifteen-cell width contract reserved before construction; roadside facilities
+and cargo yards remain outside it. Two employer APCs escort up to three unarmed
+armored cargo conversions of the same chassis. Two boats deliver eight militia;
+the company's named troops arrive in their own fitted boats.
+
+The company clears the three sites in sequence while two stable militia
+sections hold its gains. Recovered earlier gains are required to release the
+next convoy leg; a leg already underway is not canceled by a later recapture.
+The column waits at two road stops and then commits to an uninterrupted final
+run. Physical chassis steering, terrain, shared damage, turret fire and wrecks
+remain authoritative. A hull must leave the map through the freight exit to
+count as delivered; capture, release, apparent proximity and a missing sprite
+cannot grant delivery. Each active carrier must be accounted for before victory.
+Fourteen low-tech raiders guard the posts. Twelve more enter at the two road
+mouths when the final run commits; repeated capture cannot create another wave.
+
+Freight belongs to the employer, not the player's inventory. Losses persist by
+cargo identity; employer escorts are operation support and can be replaced on
+another attempt. Confirmed Retreat freezes only observed delivery/loss facts.
+A later retry contains no delivered cargo or destroyed load, and only one
+successful settlement pays the chapter award. This locally authorized convoy
+changes no vanilla diplomacy, trade, market ownership or bombardment permission.
+
+The battle HUD distinguishes release instructions from actual freight results,
+with stable load numbers and delivered/lost counts. Moving hulls produce a
+bounded dust treatment, and cargo conversions carry amber bands instead of the
+escort's roof turret. Presentation changes no collision, visibility or damage.
+Start, actual player landing, each released leg, each cargo delivery/loss and
+terminal results publish once-only story hooks. Hidden ambush deployment remains
+observer-only, ready for a future sighting-aware dialogue adapter.
 
 ## Authored evacuation chapters
 
@@ -391,8 +435,8 @@ must validate arrival timing, actual lift requirements, force ratios, and
 briefing claims. Both chapters have production-factory headless replay evidence;
 actual campaign loadouts and the linked live sequence remain to be accepted.
 `broken-supply-route.md` tracks remaining live campaign acceptance for the
-follow-on arc. Its three factories, campaign choice, named deployment, rescue
-ledger and one-time settlement have headless evidence; that does not establish
+follow-on arc. Its four factories, campaign choice, named deployment, rescue/freight
+ledgers and one-time settlement have headless evidence; that does not establish
 live host behavior, travel access or in-game save/load acceptance.
 Live first-offer discovery and save/reload acceptance remains a separate alpha
 gate tracked in `first-contract-discovery.md`.

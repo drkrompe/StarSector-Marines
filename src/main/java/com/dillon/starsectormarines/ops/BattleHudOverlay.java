@@ -202,8 +202,13 @@ final class BattleHudOverlay {
 
     private BattleHudOverlayModel.Presentation updateModel(
             BattleSimulation sim, float speedMultiplier) {
-        return model.update(speedMultiplier,
+        var result = model.update(speedMultiplier,
                 sim == null ? List.of() : sim.getCompoundService().getRecords(),
                 sim == null ? null : sim.getCommanderSnapshot(Faction.MARINE));
+        if (sim != null && sim.getThunderRun() != null) {
+            var column = sim.getThunderRun();
+            model.updateFreight(column.phase(), column.cargoIdentities(), column.cargoStates(), column.deliveredCount(), column.lostCount());
+        }
+        return result;
     }
 }

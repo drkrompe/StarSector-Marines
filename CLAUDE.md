@@ -128,7 +128,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, and `supply-route`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, `extraction`, `relief`, `counterattack`, `junction`, `last-lift`, `relay-nine`, `thunder-run`, and `supply-route`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`.
   **Each fixture is replayed once.** It used to be replayed twice, with the two
@@ -177,11 +177,18 @@ Do not run builds or leave generated task files there.
   road reserve. Source frames remain 1920x1080. These are factory-loadout
   battle controls; campaign offers, roster launch and settlement are separate.
   `-Pmission=supply-route` checks the campaign construction/roster-overlay seam
-  for Junction, Last Lift and Relay Nine with eight/twenty-four named marines.
+  for Junction, Last Lift, Relay Nine and Thunder Run with eight/twenty-four named marines.
   It verifies fitted airframes, exact named seats and untouched employer/civilian
   craft, observes fifty seconds of physical arrival, and renders 1920x1080 PNGs.
   It is not a live campaign save or a full-mission balance replay. Broker/HQ flow
   evidence uses `createSnapshots -Psnapshot=supply-route` at 100% scale.
+  `-Pmission=thunder-run` uses named campaign squads and fitted boats through
+  the production launch seam on the 320x144 freight corridor. Three ordinary
+  interiors, absent arrival, total cargo loss, partial-cargo retry and confirmed
+  withdrawal controls report physical exits, losses, phase times, once-only
+  settlement and story hooks. Frames are 1920x1080 at 100%; close views change
+  camera framing only. Optional fixtures select `id`, `seed`, `absent`,
+  `destroyCargo`, `retry` or `retreat`. Default observation is 18000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial
   control. It was serial until `simDeterminism` found two process-globals —
