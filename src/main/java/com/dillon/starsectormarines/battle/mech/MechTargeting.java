@@ -125,7 +125,7 @@ public final class MechTargeting {
                                          BattleView sim) {
         return squad != null && squad.believedContact(target) != null
                 && target != 0L
-                && sim.identity().faction(target) != sim.identity().faction(mech)
+                && sim.identity().faction(mech).hostileTo(sim.identity().faction(target))
                 && sim.canEngage(mech, target);
     }
 
@@ -138,7 +138,7 @@ public final class MechTargeting {
         // lifted, a chassis that became a wreck — drops here rather than
         // surviving until range or line of sight happens to break it.
         if (!sim.canEngage(mech, target)) return false;
-        if (sim.identity().faction(target) == sim.identity().faction(mech)) return false;
+        if (!sim.identity().faction(mech).hostileTo(sim.identity().faction(target))) return false;
         float dx = sim.world().x(target) - sim.world().x(mech);
         float dy = sim.world().y(target) - sim.world().y(mech);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);

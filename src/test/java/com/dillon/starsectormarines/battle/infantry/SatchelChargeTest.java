@@ -117,6 +117,8 @@ class SatchelChargeTest {
                 assertEquals(0L, sim.world().secondaryAimTargetId(marine));
 
                 assertTrue(sim.satchelCharges().tryReserve(marine, target));
+                assertFalse(sim.plantSatchel(marine, target),
+                        "the payload entry point must independently reject non-hostiles");
                 sim.world().setSecondaryAimTargetId(marine, target);
                 sim.world().setSecondaryActionTimer(marine, BattleSimulation.TICK_DT);
                 assertTrue(InfantryUnitPrep.tickAimAndShortCircuit(marine, sim));

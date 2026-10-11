@@ -217,7 +217,7 @@ public final class DeployableTactics {
         for (int i = 0, n = inFlight.size(); i < n; i++) {
             Projectile p = inFlight.get(i);
             if (!p.pointDefenseTarget || p.intercepted) continue;
-            if (p.shooterFaction == faction) continue;
+            if (!faction.hostileTo(p.shooterFaction)) continue;
             float dx = p.toX - x;
             float dy = p.toY - y;
             if (dx * dx + dy * dy <= reachSq) return true;

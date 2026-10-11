@@ -129,7 +129,7 @@ public final class BreakLOS implements Action {
                                               Squad squad, BattleView sim) {
         Set<Integer> exposed = new HashSet<>();
         for (ShotEvent shot : sim.snapshotActiveShots()) {
-            if (shot.shooterFaction == squad.faction) continue;
+            if (!squad.faction.hostileTo(shot.shooterFaction)) continue;
             int fromX = (int) Math.floor(shot.fromX);
             int fromY = (int) Math.floor(shot.fromY);
             for (FireTeamGroups.Team team : teams) {

@@ -2639,7 +2639,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         SpecialEquipmentDef secondary = world.specialEquipment(carrier);
         if (secondary.activation() != SpecialActivation.UTILITY_SATCHEL
                 || !isHardenedTarget(target)
-                || identity().faction(carrier) == identity().faction(target)) return false;
+                || !identity().faction(carrier).hostileTo(identity().faction(target))) return false;
         SatchelChargeSpec spec = secondary.satchelChargeSpec();
         float dx = world.x(target) - world.x(carrier);
         float dy = world.y(target) - world.y(carrier);

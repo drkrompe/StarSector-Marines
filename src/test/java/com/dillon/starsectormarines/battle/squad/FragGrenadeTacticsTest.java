@@ -26,6 +26,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FragGrenadeTacticsTest {
 
     @Test
+    void staleNonHostileContactsCannotSupplyAGrenadeCluster() {
+        for (Faction faction : new Faction[]{Faction.ALLY, Faction.CIVILIAN}) {
+            Fixture fixture = fixture();
+            long first = enemy(fixture.sim, faction, 10, 5);
+            long second = enemy(fixture.sim, faction, 10, 6);
+            observe(fixture, first, second);
+            // Move the bodies away so the friendly-footprint check cannot mask
+            // an invalid target accepted from the old contact positions.
+            fixture.sim.world().setCellPos(first, 22, 16);
+            fixture.sim.world().setCellPos(second, 22, 17);
+            assertFalse(FragGrenadeTactics.tryCommitThrow(fixture.carrier,
+                    SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), fixture.sim));
+            fixture.sim.close();
+        }
+    }
+
+    @Test
     void isolatedSoftTargetIsRejectedButAClusterIsReserved() {
         Fixture isolated = fixture();
         long lone = enemy(isolated.sim, 10, 5);

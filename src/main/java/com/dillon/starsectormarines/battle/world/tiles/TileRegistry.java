@@ -73,6 +73,7 @@ public final class TileRegistry {
             "data/tilesets/sickbay-clinic.tileset.json",
             "data/tilesets/main-stores.tileset.json",
             "data/tilesets/crew-lounge.tileset.json",
+            "data/tilesets/ship-bridge.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 

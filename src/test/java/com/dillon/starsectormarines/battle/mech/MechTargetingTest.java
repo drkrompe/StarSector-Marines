@@ -18,6 +18,23 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechTargetingTest {
 
     @Test
+    void alliedLocksAndBeliefsAreRejectedAtBothRanges() {
+        for (Faction faction : new Faction[]{Faction.MARINE, Faction.ALLY, Faction.CIVILIAN}) {
+            for (int y : new int[]{26, 34}) {
+                try (BattleSimulation sim = arena()) {
+                    SquadMech fixture = squadMechFacingNorth(sim);
+                    long target = sim.spawn(new EntitySpec("protected", faction, UnitType.MARINE, 20, y));
+                    SquadBeliefTestAccess.observeDirect(fixture.squad(), target, 20, y, sim.getSimTickIndex());
+                    sim.world().setTargetId(fixture.mech(), target);
+                    assertEquals(0L, MechTargeting.refreshTarget(fixture.mech(), sim));
+                    long enemy = alien(sim, 24, 20);
+                    assertEquals(enemy, MechTargeting.refreshTarget(fixture.mech(), sim));
+                }
+            }
+        }
+    }
+
+    @Test
     void replacesRearTargetWithEnemyInsideCurrentTraverse() {
         BattleSimulation sim = arena();
         long mech = mechFacingNorth(sim);
