@@ -118,3 +118,30 @@ The prefix-limited rebuild replaces complete sandbag cells in the existing atlas
 and requires an unchanged manifest. It preserves unrelated shipped props whose
 sources may have drifted (the current medical privacy screen is one such case).
 Use a full build when adding IDs or changing layout metadata.
+
+## Connected industrial fences
+
+`FenceReskinTemplate` draws one connected overhead frame. Built-in ImageGen
+reskins it using `industrial-fence.prompt.txt`; the untouched accepted output
+is `imagegen-raw/industrial-fence-geometry.raw.png`. The generated canvas is
+1254px square, with the top and left rail centerlines near 314px and the
+top middle post near 628px. `industrial-fence-geometry.json` records the
+reviewed full 314px square cuts for one northwest elbow and one horizontal run.
+`derive_industrial_fence_frames.py` derives all other facings by quarter turns.
+
+All six pieces meet at the cell edge's midpoint. Keep `preserveCanvas: true`,
+`padding: 0`, and `scale: 1`: alpha trimming, centering the visible bounds,
+or separately fitting corners and straights breaks the assembly. The earlier
+two unrelated masters remain historical references only. Registry ids, atlas
+slots, light cover and ballistic height stay unchanged.
+
+```powershell
+python art-source/doodads/derive_industrial_fence_frames.py
+python art-source/doodads/stitch_atlas.py --only-prefix doodad.industrial-fence-
+python -m unittest discover -s art-source/doodads -p 'test_*.py'
+./gradlew.bat createSnapshots -Psnapshot=fences
+```
+
+The `fences` snapshot suite publishes the guide and production-rendered closed
+enclosures, a two-cell gate gap, and all four rotated elbows at 32px and 48px
+per cell. Pixel tests check both rails at every valid pairing of cell edges.
