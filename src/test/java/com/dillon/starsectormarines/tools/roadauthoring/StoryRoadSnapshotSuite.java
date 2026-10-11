@@ -124,6 +124,26 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             if(field.maximum(x,y)>=-.65)throw new IllegalStateException(name+" terrain intrudes on western boat approach");
         System.out.println("[story-terrain] "+name+": "+solid+" solid / "+openNatural+" open natural cells; outdoor ground connected, western approaches clear.");
     }
+    /** Real equipment footprints must agree with the picture after all generation stages. */
+    private static void verifyServiceYards(String name, MapResult map) {
+        int equipment = 0;
+        for(var prop:map.doodads) {
+            if(!map.topology.isFixture(prop.cellX,prop.cellY)
+                    || map.topology.getBuildingId(prop.cellX,prop.cellY)!=0) continue;
+            equipment++;
+            for(int y=prop.cellY;y<prop.cellY+prop.footprintCellsY;y++)
+                for(int x=prop.cellX;x<prop.cellX+prop.footprintCellsX;x++) {
+                    if(map.grid.isWalkable(x,y)||!map.topology.isFixture(x,y)
+                            ||map.topology.isWall(x,y)||map.topology.getBuildingId(x,y)!=0
+                            ||map.topology.getGroundKind(x,y)==GroundKind.STREET)
+                        throw new IllegalStateException(name+" yard fixture footprint disagrees at "+x+","+y);
+                    for(int yy=y-2;yy<=y+2;yy++)for(int xx=x-2;xx<=x+2;xx++)
+                        if(map.grid.inBounds(xx,yy)&&map.grid.isDoorway(xx,yy))
+                            throw new IllegalStateException(name+" yard fixture crowds a doorway");
+                }
+        }
+        if(equipment==0)throw new IllegalStateException(name+" working yards disappeared");
+    }
     private static void verify(String name,MapResult map) {
         if(name.equals("junction") || name.equals("relay-nine")) for(var edge:map.roadGraph.edges()) for(int i=0;i<edge.cellsX.length;i++) {
             int x=edge.cellsX[i],y=edge.cellsY[i];
@@ -131,6 +151,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             if(!map.grid.isWalkable(x,y) || (kind!=GroundKind.STREET && kind!=GroundKind.STRIPED))
                 throw new IllegalStateException(name+" graph leaves the road at "+x+","+y);
         }
+        if(name.equals("junction") || name.equals("relay-nine")) verifyServiceYards(name,map);
         int streets=0,stripes=0;
         for(int y=0;y<map.grid.getHeight();y++) for(int x=0;x<map.grid.getWidth();x++) {
             var kind=map.topology.getGroundKind(x,y);
