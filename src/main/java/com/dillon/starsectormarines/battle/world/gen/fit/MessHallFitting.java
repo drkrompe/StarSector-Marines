@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -35,6 +36,15 @@ import java.util.List;
  * a cook to it.
  */
 public final class MessHallFitting implements RoomFitting {
+
+    private final boolean shipboard;
+
+    public MessHallFitting() { this(false); }
+
+    private MessHallFitting(boolean shipboard) { this.shipboard = shipboard; }
+
+    /** Coordinated furniture follows the room pose; generic messes retain their existing kit. */
+    public static MessHallFitting shipboard() { return new MessHallFitting(true); }
 
     /** Gangway between the galley's working lines, and in front of the counter. */
     private static final int GANGWAY = 2;
@@ -271,8 +281,9 @@ public final class MessHallFitting implements RoomFitting {
     private void layTable(RoomFloor floor, int rank, int seat, int[] table) {
         if (!place(floor, MESS_TABLE, rank, seat + 1, null)) return;
         for (int cell = 0; cell < table[0]; cell++) {
-            seatAt(floor, rank + cell, seat, rank, seat + 1);
-            seatAt(floor, rank + cell, seat + 1 + table[1], rank, seat + 1);
+            int target = shipboard ? rank + cell : rank;
+            seatAt(floor, rank + cell, seat, target, seat + 1);
+            seatAt(floor, rank + cell, seat + 1 + table[1], target, seat + 1);
         }
     }
 
@@ -281,7 +292,11 @@ public final class MessHallFitting implements RoomFitting {
                         int tableAlong, int tableAcross) {
         int[] cell = floor.toLocalRect(along, across, 1, 1);
         int[] fixture = floor.toLocalRect(tableAlong, tableAcross, 1, 1);
-        floor.fixtureTask(cell[0], cell[1], Affordance.MESS, fixture[0], fixture[1]);
+        if (floor.fixtureTask(cell[0], cell[1], Affordance.MESS, fixture[0], fixture[1]) && shipboard) {
+            // A round stool has no heading. Its seated activity cell must remain traversable;
+            // it is visual seating at an exclusive MESS point, not another blocking fixture.
+            floor.pave(cell[0], cell[1], "mess-galley.stool");
+        }
     }
 
     /**
@@ -305,24 +320,50 @@ public final class MessHallFitting implements RoomFitting {
      *
      * <p>Read off the registry rather than restated here, because a footprint is
      * a property of the art and a number copied into a fitting goes stale in
-     * silence. Doodads are placed unrotated, so a piece drawn three cells long
+     * silence. Ship assemblies use canonical footprints and turn with the room.
+     * Generic doodads are placed unrotated, so a piece drawn three cells long
      * lies along the <em>deck's</em> x axis whatever the room did.
      */
-    private static int[] span(RoomFloor floor, String id) {
-        DoodadDef def = definition(available(id));
+    private int[] span(RoomFloor floor, String id) {
+        DoodadDef def = definition(shipboard ? shipArt(id) : available(id));
         int x = def == null ? 1 : def.footprintCellsX;
         int y = def == null ? 1 : def.footprintCellsY;
-        return floor.pose().upright() ? new int[]{ x, y } : new int[]{ y, x };
+        return shipboard || floor.pose().upright() ? new int[]{ x, y } : new int[]{ y, x };
     }
 
-    private static boolean place(RoomFloor floor, String id, int along, int across,
+    private boolean place(RoomFloor floor, String id, int along, int across,
                                  Affordance affordance) {
+        if (shipboard) {
+            List<LayoutOp.Layer> layers = id.equals(MESS_TABLE) && (along / 4 + across / 3) % 2 == 0
+                    ? List.of(new LayoutOp.Layer(0, 0, "mess-galley.meals")) : List.of();
+            if (!floor.placeAssembly(along, across, shipArt(id), layers)) return false;
+            if (affordance != null) {
+                // Heat and washing face the working gangway; preparation and storage face back into it.
+                int standingX = along + (id.equals(RANGE) || id.equals(SCULLERY) ? 1 : -1);
+                int[] stand = floor.toLocal(standingX, across);
+                int[] fixture = floor.toLocal(along, across);
+                floor.fixtureTask(stand[0], stand[1], affordance, fixture[0], fixture[1]);
+            }
+            return true;
+        }
         String art = available(id);
         int[] extent = span(floor, id);
         int[] rect = floor.toLocalRect(along, across, extent[0], extent[1]);
         return affordance == null
                 ? floor.place(art, rect[0], rect[1])
                 : floor.place(art, rect[0], rect[1], affordance);
+    }
+
+    private static String shipArt(String id) {
+        return "mess-galley." + switch (id) {
+            case RANGE -> "range";
+            case PREP_BENCH -> "prep";
+            case SERVERY -> "servery";
+            case SCULLERY -> "sink";
+            case COLD_STORE -> "cold-store";
+            case MESS_TABLE -> "table";
+            default -> throw new IllegalArgumentException("Unknown mess fixture: " + id);
+        };
     }
 
     /** The authored id if the registry has it, else this piece's stand-in. */
