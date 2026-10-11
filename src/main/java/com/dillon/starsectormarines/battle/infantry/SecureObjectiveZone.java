@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.world.ApertureSpread;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 
@@ -78,7 +79,8 @@ public final class SecureObjectiveZone implements Goal {
             return squad.currentPlan;
         }
         int from = ZoneQueries.squadCurrentZone(squad, sim);
-        return ZoneQueries.synthesizeZonePushPlan(from, to, sim);
+        return ZoneQueries.synthesizeZonePushPlan(from, to, sim,
+                ApertureSpread.variant(squad));
     }
 
     /**
