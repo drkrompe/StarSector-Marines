@@ -64,6 +64,12 @@ public final class DrawList {
         slot(layer).setSheetQuad(sheet, srcX, srcY, srcW, srcH, cx, cy, w, h, r, g, b, a);
     }
 
+    /** A convex clipped part of a tile; vertices are normalized within its uncut destination. */
+    public void addSheetPatch(RenderLayer layer, SpriteAPI sheet,int sx,int sy,int sw,int sh,
+                              float cx,float cy,float w,float h,float alpha,float[] patch) {
+        DrawCommand cmd=slot(layer);cmd.setSheetQuad(sheet,sx,sy,sw,sh,cx,cy,w,h,1,1,1,alpha);cmd.setPatch(patch);
+    }
+
     /** Rotated sheet-quad: {@code angleDeg} rotates the dst rect about its center. */
     public void addSheetQuad(RenderLayer layer, SpriteAPI sheet,
                              int srcX, int srcY, int srcW, int srcH,

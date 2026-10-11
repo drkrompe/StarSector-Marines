@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -36,6 +38,11 @@ import java.util.List;
  * — both sides set independently.
  */
 public class CellTopology {
+    private RoadSurface roadSurface;
+    public RoadSurface roadSurface() { return roadSurface; }
+    public void setRoadSurface(RoadSurface value) {
+        roadSurface=value;for(int i=0;i<width*height;i++)markChanged(i);
+    }
 
     /**
      * The ground surface the renderer paints at this cell under any overlays.

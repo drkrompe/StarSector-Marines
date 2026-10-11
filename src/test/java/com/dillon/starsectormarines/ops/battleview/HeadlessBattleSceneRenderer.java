@@ -188,7 +188,17 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                         command.sourceWidth() / (float) asset.width(),
                         command.sourceHeight() / (float) asset.height());
                 if (command.flippedVertically()) region = region.flippedVertically();
-                context.sprite(asset.path(), null, command.centerX(),
+                if(command.patch()!=null) context.spritePatch(asset.path(),command.centerX(),
+                        surfaceHeight-command.centerY(),command.width(),command.height(),tint,region,command.patch());
+                else if(command.angleDegrees()==0) {
+                    // Shared pixel edges prevent Java2D seams at fractional overview scales.
+                    float left=pixelEdge(command.centerX()-command.width()/2);
+                    float right=pixelEdge(command.centerX()+command.width()/2);
+                    float top=pixelEdge(surfaceHeight-command.centerY()-command.height()/2);
+                    float bottom=pixelEdge(surfaceHeight-command.centerY()+command.height()/2);
+                    context.sprite(asset.path(),null,(left+right)/2,(top+bottom)/2,right-left,bottom-top,
+                            0,tint,region,CanvasBlend.NORMAL);
+                } else context.sprite(asset.path(), null, command.centerX(),
                         surfaceHeight - command.centerY(), command.width(), command.height(),
                         command.angleDegrees(), tint, region, CanvasBlend.NORMAL);
             }
@@ -265,4 +275,5 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             GenMappingRegistry.install(mappings);
         }
     }
+    static float pixelEdge(float value) { return (float)Math.floor(value+.5001d); }
 }

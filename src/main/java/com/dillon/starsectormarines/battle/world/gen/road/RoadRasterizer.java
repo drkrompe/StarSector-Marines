@@ -94,6 +94,7 @@ public final class RoadRasterizer {
             if(!grid.isWalkable(x,y) || topology.isWall(x,y) || topology.isFixture(x,y) || topology.getGroundKind(x,y)==GroundKind.INDOOR)
                 throw new IllegalArgumentException("Road overlaps occupied ground at "+x+","+y);
         }
+        topology.setRoadSurface(RoadSurface.build(plan,raster,topology));
         for(int r=0;r<surfaces.length;r++) for(int a=0;a<3;a++) surfaces[r][a]=topology.surfaceIndex(plan.routes().get(r).material().block(a));
         for(int y=0;y<plan.height();y++) for(int x=0;x<plan.width();x++) {
             int i=y*plan.width()+x,r=raster.owner()[i];

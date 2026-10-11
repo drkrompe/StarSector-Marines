@@ -331,15 +331,15 @@
       "id": "western-boat-apron",
       "points": [
         [
-          22,
-          14
+          25,
+          9
         ],
         [
-          22,
-          113
+          25,
+          62
         ]
       ],
-      "width": 25,
+      "width": 32,
       "shoulder": 0,
       "wear": 0.25,
       "seed": 5211,

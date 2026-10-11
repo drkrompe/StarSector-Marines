@@ -80,6 +80,17 @@ class GroundMeshTest {
     }
 
     /** Floor everywhere, a wall along the top and bottom rows, one cell of nothing. */
+    @Test void clippedTileKeepsMatchingSubcellPositionsAndTextureCoordinates() {
+        var topology=grid();var mesh=new GroundMesh();
+        float[] patch={.5f,0,1,0,1,1,.5f,.5f};
+        mesh.catchUp(topology,(x,y,sink)->sink.patch(FLOORS,32,0,32,32,patch));
+        assertArrayEquals(new float[]{2.5f,2,3,2,3,3,2.5f,2.5f},mesh.cellPos(cell(2,2)),1e-6f);
+        assertArrayEquals(new float[]{.75f,.5f,1,.5f,1,1,.75f,.75f},mesh.cellUv(cell(2,2)),1e-6f);
+        topology.setWall(2,2,true);
+        mesh.catchUp(topology,(x,y,sink)->sink.quad(FLOORS,0,0,32,32));
+        assertArrayEquals(new float[]{2,2,3,2,3,3,2,3},mesh.cellPos(cell(2,2)),1e-6f);
+    }
+
     private static CellTopology grid() {
         CellTopology topology = new CellTopology(4, 4);
         for (int y = 0; y < 4; y++) {

@@ -54,6 +54,10 @@ public final class DrawCommand {
 
     public enum Kind { SHEET_QUAD, SPRITE, SOLID_RECT, LINE, RIBBON, POLY, CUSTOM }
 
+    private float[] patch;
+    public float[] patch() { return patch; }
+    public void setPatch(float[] value) { patch=value; }
+
     Kind kind;
     SpriteAPI sprite;
     int srcX, srcY, srcW, srcH;
@@ -107,6 +111,7 @@ public final class DrawCommand {
                              float cx, float cy, float w, float h, float angleDeg,
                              float r, float g, float b, float a) {
         this.kind = Kind.SHEET_QUAD;
+        this.patch = null;
         this.sprite = sheet;
         this.srcX = srcX; this.srcY = srcY; this.srcW = srcW; this.srcH = srcH;
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
