@@ -3,8 +3,10 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiKey;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -12,13 +14,15 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,11 +47,12 @@ class BarracksCommandModelTest {
     }
 
     @Test void realPointerFlowSavesAndAssignsProfileThenInspectsAndReturns() throws Exception {
-        CompanyManagementGuide.install(new org.json.JSONObject(Files.readString(Path.of("mod", CompanyManagementGuide.PATH))));
+        CompanyManagementGuide.install(new JSONObject(Files.readString(Path.of("mod", CompanyManagementGuide.PATH))));
         var reactor = new Reactor();
         var roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         var squad = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
+        roster.applySoldierOutcome(Map.of(squad.memberIds().get(0), MarineSoldierStatus.KIA), 0f, 0f);
         var vm = new BarracksViewModel(reactor, roster, () -> 1d);
         var model = vm.command();
         var props = new LinkedHashMap<String, Object>();
@@ -66,21 +71,41 @@ class BarracksCommandModelTest {
                 var document = new UiDocument(instance.root());
                 instance.styles().forEach(document::addStyleSheet);
                 document.theme(MarineOpsThemes.standard());
-                BarracksGuideModal.bind(document, instance, model, model::showOverview);
+                var guide = BarracksGuideCallout.bind(document, instance, model, model::showOverview);
                 document.layout(1920, 1080);
+                guide.update();
                 assertEquals("graphics/portraits/castle.png", value(model, "guidePortrait"));
-                click(document, instance, "barracks-select-all");
-                assertTrue(model.selected().isEmpty(), "The modal must block background orders");
-                for (int i = 0; i < 8; i++) {
-                    document.keyPressed(com.dillon.starsectormarines.ui.retained.UiKey.TAB, java.util.Set.of(), false);
-                    assertTrue(document.focusedElement().id().startsWith("guide-"));
-                }
-                document.keyPressed(com.dillon.starsectormarines.ui.retained.UiKey.ESCAPE, java.util.Set.of(), false);
-                instance.flush(); document.advance(0f);
+                assertEquals("formation:" + squad.id() + ":mark", model.guideTargetId());
+                click(document, instance, model.guideTargetId());
+                assertEquals(1, model.selected().size(), "Squad selection works while Castle is speaking");
+                assertTrue(model.guideVisible());
+                guide.update();
+                assertEquals("barracks-choose-donors", model.guideTargetId());
+                var target = instance.requireElement(model.guideTargetId()).box().borderBox();
+                var panel = instance.requireElement("barracks-guide").box().borderBox();
+                assertEquals(0, panel.intersect(target).width() * panel.intersect(target).height());
+                document.requestFocus(instance.requireElement("barracks-select-all"), true);
+                assertEquals("barracks-select-all", document.focusedElement().id(), "Keyboard focus can leave the guide");
+                document.keyPressed(UiKey.ESCAPE, Set.of(), false);
+                instance.flush(); document.advance(0f); guide.update();
                 assertFalse(model.guideVisible());
                 click(document, instance, "barracks-guide-help");
+                guide.update();
                 assertTrue(model.guideVisible());
+                assertEquals("barracks-choose-donors", model.guideTargetId(), "Reopening resumes the lesson");
+                action(model, "guideNext");
+                action(model, "guideNext");
+                instance.flush(); document.advance(0f); guide.update();
+                document.layout(1280, 720);
+                guide.update();
+                var issue = instance.requireElement("barracks-issue").box().borderBox();
+                var coach = instance.requireElement("barracks-guide").box().borderBox();
+                assertTrue(issue.y() >= 0 && issue.bottom() <= 720, "Resizing reveals the next real order");
+                assertEquals(0, coach.intersect(issue).width() * coach.intersect(issue).height());
+                document.layout(1920, 1080);
+                guide.update();
                 click(document, instance, "guide-dismiss");
+                click(document, instance, "barracks-clear");
 
                 var hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 var bindings = new BarracksCardBindings();
@@ -108,7 +133,7 @@ class BarracksCommandModelTest {
                 assertFalse(model.inspecting());
                 assertEquals(1, model.selected().size());
             }
-        } finally { SvgAsset.setSource(previous); CompanyManagementGuide.install(new org.json.JSONObject("{\"lines\":[]}")); }
+        } finally { SvgAsset.setSource(previous); CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
     }
 
     private static Object value(BarracksCommandModel model, String key) { return ((Signal<?>) model.props().get(key)).get(); }

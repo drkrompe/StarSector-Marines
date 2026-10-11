@@ -121,17 +121,16 @@ public final class BarracksCommandModel {
         props.put("reviewTransfers", (Runnable) this::reviewTransfers);
         props.put("applyTransfers", (Runnable) this::applyTransfers);
         props.put("cancelTransfers", (Runnable) () -> { donors.clear(); choosingDonors = false; reviewedTransfers = null; refresh(); });
-        bind(reactor, "guideClasses", () -> guideVisible() ? "guide-backdrop" : "guide-backdrop-hidden");
+        bind(reactor, "guideClasses", () -> guideVisible() ? "guide-callout console-readout" : "guide-callout hidden");
         bind(reactor, "guideTitle", () -> CompanyManagementGuide.speaker().toUpperCase(Locale.ROOT) + " / " + (guideStep + 1) + " / " + CompanyManagementGuide.lines().size() + " / " + guideLine().title());
         bind(reactor, "guidePortrait", CompanyManagementGuide::portrait);
         bind(reactor, "guideText", () -> guideLine().text());
-        bind(reactor, "guideStatus", () -> lineSquads().isEmpty() ? "No line squads yet. Raise Squad opens the existing founding desk."
-                : selected.isEmpty() ? "Your company has " + lineSquads().size() + " squads. Mark receiving squads to begin."
-                : "Selected recipients: " + recruitment().replace("\n", " / "));
+        bind(reactor, "guideStatus", this::guideHint);
+        bind(reactor, "guideDismissDisabled", () -> !guideVisible());
         bind(reactor, "guideHelpDisabled", () -> CompanyManagementGuide.lines().isEmpty());
-        bind(reactor, "guidePreviousDisabled", () -> guideStep == 0);
-        bind(reactor, "guideNextDisabled", () -> guideStep + 1 >= CompanyManagementGuide.lines().size());
-        props.put("guideHelp", (Runnable) () -> { guideOpen = true; guideStep = 0; refresh(); });
+        bind(reactor, "guidePreviousDisabled", () -> !guideVisible() || guideStep == 0);
+        bind(reactor, "guideNextDisabled", () -> !guideVisible() || guideStep + 1 >= CompanyManagementGuide.lines().size());
+        props.put("guideHelp", (Runnable) () -> { guideOpen = true; refresh(); });
         props.put("guidePrevious", (Runnable) () -> { guideStep = Math.max(0, guideStep - 1); refresh(); });
         props.put("guideNext", (Runnable) () -> { guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
         props.put("guideDismiss", (Runnable) this::dismissGuide);
@@ -188,6 +187,7 @@ public final class BarracksCommandModel {
                 if (choosingDonors) { if (!selected.contains(s.id())) donors.add(s.id()); }
                 else { if (!donors.contains(s.id())) selected.add(s.id()); }
             });
+            if (guideVisible() && guideStep <= 1 && !selected.isEmpty()) guideStep = 2;
             reviewedTransfers = null; refresh();
         });
         props.put("clear", (Runnable) this::resetSelection);
@@ -234,6 +234,7 @@ public final class BarracksCommandModel {
             if (!selected.remove(id)) selected.add(id);
         }
         reviewedTransfers = null;
+        if (guideVisible() && guideStep <= 1 && !selected.isEmpty()) guideStep = 2;
         refresh();
     }
     private void resetSelection() { selected.clear(); donors.clear(); reviewedTransfers = null; choosingDonors = false; page = 0; refresh(); }
@@ -454,18 +455,56 @@ public final class BarracksCommandModel {
             PersonnelDrawResult result = reinforce.apply(squad.id());
             reserves += result.reservesAssigned(); cargo += result.cargoMarinesConsumed();
         }
+        if (guideVisible() && guideStep == 3 && reserves + cargo > 0) guideStep = 4;
         feedback = "Filled " + (reserves + cargo) + " billets: " + reserves + " reserves, " + cargo
                 + " recruits enlisted. Equipment issue remains a separate order.";
         changed.run();
     }
     public void issueSelected() {
         var result = equipment.apply(selected);
+        if (guideVisible() && guideStep == 4 && result.succeeded()) guideStep = 5;
         feedback = result.succeeded() ? "Issued equipment to " + result.issued() + " squads; " + result.skipped() + " skipped."
                 : "Issue blocked. Check personnel readiness, known equipment and the combined cargo bill.";
         changed.run();
     }
     public boolean guideVisible() { return guideOpen && !CompanyManagementGuide.lines().isEmpty(); }
     public void dismissGuide() { guideOpen = false; roster.dismissManagementGuide(); refresh(); }
+    public String guideTargetId() {
+        if (detail) return "barracks-back-command";
+        if (lineSquads().isEmpty()) return "barracks-raise-squad";
+        if (guideStep == 5) return localMissions ? "barracks-missions" : "page-nav-return";
+        if (organizing || editing) return "barracks-preparation";
+        if (guideStep <= 1 || selected.isEmpty()) return guideSquadTarget(false);
+        if (guideStep == 2) {
+            if (donors.isEmpty()) return choosingDonors ? guideSquadTarget(true) : "barracks-choose-donors";
+            return reviewedTransfers != null && reviewedTransfers.canApply()
+                    ? "barracks-apply-transfers" : "barracks-review-transfers";
+        }
+        return guideStep == 3 ? "barracks-reinforce" : "barracks-issue";
+    }
+
+    private String guideSquadTarget(boolean donor) {
+        var candidates = filtered().stream().skip((long) pageNumber() * PAGE_SIZE).limit(PAGE_SIZE)
+                .filter(s -> !s.stationed() && (donor ? !selected.contains(s.id()) && roster.readyCount(s) > 0
+                        : !donors.contains(s.id()) && roster.vacancies(s) > 0)).toList();
+        return candidates.isEmpty() ? "barracks-formation-list" : "formation:" + candidates.get(0).id() + ":mark";
+    }
+
+    private String guideHint() {
+        if (detail) return "Use Back to Company to resume preparation. You can still inspect people here.";
+        if (lineSquads().isEmpty()) return "Start with Raise Squad / Armory. Come back here once the company has a formation.";
+        if (guideStep == 5) return localMissions ? "Use Missions when you are ready for another job." : "Use Return when you are ready to leave Barracks.";
+        if (organizing || editing) return "Choose Preparation to return to the personnel orders.";
+        if (selected.isEmpty() || guideStep <= 1) return "Select a receiving squad on the board. Look for vacant places; wounded billets stay occupied. Next skips any lesson you do not need.";
+        if (guideStep == 2) {
+            if (donors.isEmpty()) return choosingDonors ? "Select a donor squad on the board. Its ready marines can move into the receiving squads." : "Choose Donors, then mark the squads that may supply personnel.";
+            if (reviewedTransfers == null) return "Review Transfers to see every affected squad before anyone moves.";
+            return reviewedTransfers.canApply() ? "Check the projected strengths, then Apply Transfers when satisfied. The guide advances after the order succeeds." : reviewedTransfers.reason() + " Next continues without transferring anyone.";
+        }
+        if (guideStep == 3) return recruitment().replace("\n", " / ") + ". Fill Vacancies if needed, or Next to continue.";
+        return "Review the equipment bill and skipped-squad reasons, then Issue Assigned Equipment. Next continues without spending cargo.";
+    }
+
     private CompanyManagementGuide.Line guideLine() {
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", "Guide unavailable", "") : lines.get(Math.min(guideStep, lines.size() - 1));
@@ -481,6 +520,7 @@ public final class BarracksCommandModel {
     }
     public void applyTransfers() {
         boolean applied = SquadConsolidation.apply(roster, reviewedTransfers);
+        if (applied && guideVisible() && guideStep == 2) guideStep = 3;
         feedback = applied ? "Transferred " + reviewedTransfers.moves().size() + " marines with their equipment. Fill remaining vacancies, then review equipment issue."
                 : "Personnel changed or no transfer is ready. Review transfers again; nothing moved.";
         reviewedTransfers = null;

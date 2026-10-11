@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - Tutorial dialogue uses a portrait-led pop-over modal with isolated input.
+Updated: 2026-10-11 - Tutorial dialogue uses an anchored portrait callout alongside live screen interactions.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -284,15 +284,18 @@ catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at
 Company preparation groups personnel actions in Barracks before organization
 administration. A transfer review separates receiving and donor selections and
 keeps projected strength visible before its commit. The company officer's optional
-first-use guide is a bounded, replayable pop-over modal above the existing screen,
+first-use guide is a bounded, replayable callout beside the relevant screen control,
 with Castle's portrait, speaker name and current roster context beside the lesson.
-A dim backdrop retains the room's context without moving its layout. Pointer and
-keyboard input stay inside the modal; Escape and Close / Try It dismiss it so
-the player can act, and Company Guide reopens it. It never owns a gameplay
+A gold outline draws attention to the real action. The callout moves to keep that
+action clear and reveals it within its scrolling pane when the target or viewport
+changes. The screen keeps pointer and keyboard interaction throughout the lesson;
+there is no dim backdrop or focus trap. Successful preparation orders advance the
+guide. Next skips an unnecessary lesson without issuing an order. Escape or
+Dismiss closes it, and Company Guide resumes it. Guidance never owns a gameplay
 transition or requires audio.
 Mission preparation navigation preserves the existing salvage settlement gate.
 
-Tutorials use this pop-over treatment. Whenever a character is talking, show
+Tutorials use this interactive callout treatment. Whenever a character is talking, show
 their portrait with their name and readable dialogue to draw attention to the
 speaker; audio alone is not the character presentation. This convention applies
 to future tutorial and conversation surfaces as well as existing story subtitles.
