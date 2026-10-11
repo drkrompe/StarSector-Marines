@@ -11,7 +11,7 @@ class WarshipPointDefenceTest {
     private static VanillaWeapon gun(float rangePx, float speedPx, float spread, int burst, boolean beam) {
         return new VanillaWeapon("t", 0f, "FRAGMENTATION", rangePx, burst, 0.1f, 1f, speedPx, spread, 60f,
                 beam, 0f, 0f, false, true, 0f, 0f, null, null, null, null, 0f, 0f, null, 0f,
-                null, null, null, null);
+                null, null, null, null, null, null, null);
     }
 
     @Test
