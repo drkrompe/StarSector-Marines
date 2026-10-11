@@ -461,13 +461,13 @@ public final class GroundParallaxPipeline {
             return;
         }
 
-        ensureFbo();
+        ensureFbo(rc);
         if (broken) {
             drainColor.run();
             return;
         }
 
-        if (!renderColorFbo(drainColor)) {
+        if (!renderColorFbo(rc, drainColor)) {
             drainColor.run();
             return;
         }
@@ -479,7 +479,9 @@ public final class GroundParallaxPipeline {
             drainColor.run();
             return;
         }
-        waveTimeSeconds = (waveTimeSeconds + Math.max(0f, rc.realDt)) % 4096f;
+        waveTimeSeconds = (Float.isFinite(rc.animationTimeSeconds)
+                ? Math.max(0f, rc.animationTimeSeconds)
+                : waveTimeSeconds + Math.max(0f, rc.realDt)) % 4096f;
         if (!composite(rc)) {
             drainColor.run();
         }
@@ -509,10 +511,11 @@ public final class GroundParallaxPipeline {
 
     // ------------------------------------------------------------------
 
-    private boolean renderColorFbo(Runnable drainColor) {
+    private boolean renderColorFbo(RenderContext rc, Runnable drainColor) {
         return withFboBound(colorFbo, fboPxW, fboPxH, 0f, () -> {
             glColorMask(true, true, true, true);
-            glClearColor(0f, 0f, 0f, 1f);
+            // Ship void has no ground: preserve the host's background outside the hull.
+            glClearColor(0f, 0f, 0f, rc.hostProfile == BattleRenderHostProfile.DECK_SCENE ? 0f : 1f);
             glClear(GL_COLOR_BUFFER_BIT);
             drainColor.run();
         });
@@ -547,7 +550,21 @@ public final class GroundParallaxPipeline {
         });
     }
 
+    /** Decks opt into water motion only when water enters the framed view. */
+    static boolean deckWaterVisible(RenderContext rc) {
+        if (rc.hostProfile != BattleRenderHostProfile.DECK_SCENE) return false;
+        var grid = rc.sim.getGrid();
+        var topology = rc.sim.getTopology();
+        var view = rc.camera.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS,
+                grid.getWidth(), grid.getHeight());
+        for (int y=view.minY();y<=view.maxY();y++) for (int x=view.minX();x<=view.maxX();x++)
+            if (topology.isWater(x,y) && !topology.isWall(x,y)) return true;
+        return false;
+    }
+
     private boolean composite(RenderContext rc) {
+        // The deck keeps its flat, unlit presentation. Only water displacement is enabled.
+        boolean waterOnly = rc.hostProfile == BattleRenderHostProfile.DECK_SCENE;
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         try {
             // Bind AFTER the push so glPopAttrib restores the caller's texture
@@ -566,8 +583,8 @@ public final class GroundParallaxPipeline {
             shader.set1i("normalTex", 2);
             shader.set2f("screenCenter", 0.5f, 0.5f);
             shader.set1f("eyeHeight", EYE_HEIGHT);
-            shader.set1f("structureStrength", structureStrength);
-            shader.set1f("surfaceStrength", surfaceStrength);
+            shader.set1f("structureStrength", waterOnly ? 0f : structureStrength);
+            shader.set1f("surfaceStrength", waterOnly ? 0f : surfaceStrength);
             shader.set1f("microScale", GroundHeightPass.MICRO_SCALE);
             shader.set1f("waterWaveAmplitude", waterWaveAmplitude);
             shader.set1f("waterMacroScale", WATER_MACRO_SCALE);
@@ -589,11 +606,11 @@ public final class GroundParallaxPipeline {
             shader.set2f("sunDir", sun.dirX(), sun.dirY());
             shader.set1f("sunRisePerCell", sun.risePerCell());
             shader.set1f("shadowRangeCells", shadowRangeCells());
-            shader.set1f("shadowStrength", sun.shadowStrength());
+            shader.set1f("shadowStrength", waterOnly ? 0f : sun.shadowStrength());
             shader.set1f("shadowSoftnessMeters", SHADOW_SOFTNESS_METERS);
             shader.set3f("shadowTint", SunLight.TINT_R, SunLight.TINT_G, SunLight.TINT_B);
             shader.set1f("aspect", fboPxW / (float) fboPxH);
-            shader.set1f("lightingStrength", lightingStrength);
+            shader.set1f("lightingStrength", waterOnly ? 0f : lightingStrength);
             uploadLights(rc.camera);
 
             glEnable(GL_TEXTURE_2D);
@@ -687,7 +704,7 @@ public final class GroundParallaxPipeline {
      */
     private static final int MAX_FBO_DIM = 8192;
 
-    private void ensureFbo() {
+    private void ensureFbo(RenderContext rc) {
         // A display of zero is not a scale, it is the absence of one: headless
         // GL evidence makes a pbuffer and never creates a Display, and
         // `0 / screenWidth` sized every target here 1x1 — which the composite
@@ -702,7 +719,8 @@ public final class GroundParallaxPipeline {
         // widen the whole GROUND drain -- every tile, prop and decal drawn over
         // an area several times the view -- to feed a march that never reads
         // them. The shader addresses height by world position instead.
-        int padCells = heightPadCells();
+        int padCells = rc.hostProfile == BattleRenderHostProfile.DECK_SCENE
+                ? VisibleCellRect.GEOMETRY_MARGIN_CELLS : heightPadCells();
         float padUi = padCells * cellPxUi;
         int wantHeightW = Math.max(1, wantW + 2 * Math.round(padUi * sx));
         int wantHeightH = Math.max(1, wantH + 2 * Math.round(padUi * sy));

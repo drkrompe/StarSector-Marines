@@ -359,7 +359,8 @@ public final class CompanyDeck {
      *
      * <p>Only what a deck actually paints. {@code INDOOR} plate resolves to the
      * urban sheet and a door threshold to the road sheet; the outdoor surfaces,
-     * nature and water are ground a ship does not have.
+     * nature stays outside the hull. Gym pool water uses a registered ship material
+     * sheet loaded with the other custom room art.
      */
     private void ensureSceneSprites() {
         if (sprites == null) return;

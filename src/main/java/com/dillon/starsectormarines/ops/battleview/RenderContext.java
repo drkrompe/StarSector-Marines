@@ -22,6 +22,8 @@ public final class RenderContext {
     final float alphaMult;
     /** Real-time dt from the most recent advance() call. Used to age contrails during pause. */
     final float realDt;
+    /** Optional absolute host clock for repeatable animation across multiple deck passes. */
+    final float animationTimeSeconds;
     final boolean debugZonesVisible;
     final HighlightOverlay highlights;
     /** Shared selection state — read by renderSelectedVehicleDebug. */
@@ -39,12 +41,21 @@ public final class RenderContext {
                   float alphaMult, float realDt, boolean debugZonesVisible,
                   HighlightOverlay highlights, Selection selection,
                   BattleRenderHostProfile hostProfile) {
+        this(sim, camera, layout, alphaMult, realDt, debugZonesVisible, highlights, selection,
+                hostProfile, Float.NaN);
+    }
+
+    public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
+                  float alphaMult, float realDt, boolean debugZonesVisible,
+                  HighlightOverlay highlights, Selection selection,
+                  BattleRenderHostProfile hostProfile, float animationTimeSeconds) {
         if (hostProfile == null) throw new IllegalArgumentException("host profile is required");
         this.sim = sim;
         this.camera = camera;
         this.layout = layout;
         this.alphaMult = alphaMult;
         this.realDt = realDt;
+        this.animationTimeSeconds = animationTimeSeconds;
         this.debugZonesVisible = debugZonesVisible;
         this.highlights = highlights;
         this.selection = selection;
