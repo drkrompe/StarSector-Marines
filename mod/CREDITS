@@ -114,6 +114,12 @@ Mara Venn: generated with ElevenLabs, using Mora - Gritty and Enigmatic
 Dialogue written for Starsector Marines. Source takes and production metadata
 are retained in asset-pipeline/src/tool/resources/audio/wayline/.
 
+Wayline portrait
+----------------
+Mara Venn portrait generated with built-in imagegen, October 2026.
+The original master, exact prompt and whole-frame downsample script are retained
+in art-source/portraits/. Runtime portrait is a 256x256 PNG.
+
 Mech footfalls
 --------------
 Heavy ground impacts and separate pneumatic strokes generated with ElevenLabs
