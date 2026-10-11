@@ -320,10 +320,13 @@ equipment is part of this objective.
 **Thunder Run** is a 320 by 144 road corridor, separating the western staging
 apron, Dispatch Post, East Crossing and Outbound Gate. The carriageway has a
 fifteen-cell width contract reserved before construction; roadside facilities
-and cargo yards remain outside it. Dense industrial blocks extend to the district
-edges; service alleys and inspection-yard gates admit infantry but do not offer
-an intact hauler-width bypass around the checkpoint. This restriction comes
-from visible structures and chassis clearance, not an invisible movement ban.
+and cargo yards remain outside it. Cliff-backed hills frame the north and south
+sides of the freight district, with low ground between their faces and the
+roadside warehouses for infantry maneuver. Cross streets cut through those
+masses; the western staging apron and boat approaches remain open. Terminal
+blocks, service alleys and inspection-yard gates admit infantry around the
+checkpoint but leave no intact hauler-width bypass. Visible terrain, structures
+and chassis clearance keep freight on the road.
 Cross streets still admit the raider reserve. Quiet dark carriageways, dirt
 loading lots and gravel inspection yards distinguish exterior surfaces from the
 repeated industrial building interiors using the existing terrain palette.

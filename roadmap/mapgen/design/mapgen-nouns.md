@@ -259,9 +259,14 @@ reception and conference facades retain the building's firing apertures.
 
 Thunder Run owns a wider, elongated freight corridor with three roadside
 objectives and two staging stops. Its fifteen-cell carriageway is reserved
-before facilities, perimeter runs and dressing. Finished berths, interior
-anchors and the road-reserve approaches remain connected; no furnishing may
-narrow the vehicle road. Roadside objective buildings have sandbag firing
+before facilities, perimeter runs and dressing. Cliff-backed northern and
+southern hills replace outer filler blocks, leaving low-ground infantry routes
+behind the roadside facilities. Cross streets remain full-width cuts through
+the hills, and the entire western staging and boat approach stays clear.
+Finished berths, interior anchors and the road-reserve approaches remain
+connected; no terrain or furnishing may narrow the vehicle road. The terminal
+blocks retain pedestrian service alleys around the checkpoint, while cargo,
+APCs and the heavy tank must pass through its carriageway. Roadside objective buildings have sandbag firing
 aprons with gaps aligned to their actual doors. Two fixed exit gun pits sit
 beyond the shoulders inside open-backed sandbag bays, served by gated wire
 yards and support buildings. The rifle positions and yard entrances must stay

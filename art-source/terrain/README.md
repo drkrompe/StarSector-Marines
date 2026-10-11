@@ -21,8 +21,8 @@ The optional cell mask reserves landing areas, objective access and circulation.
 Placement refuses all overlap before mutation. The owning recipe must still
 validate connectivity, vehicle clearance, objectives and arrival routes afterwards.
 Rebuild from clean ground to apply edits; do not restamp a running battle.
-The freight-pass example remains a tool fixture. Open the Junction and Relay Nine
-instead consume their own documents under `mod/data/world/terrain/`, installed
+The freight-pass example remains a tool fixture. Open the Junction, Relay Nine
+and Thunder Run instead consume their own documents under `mod/data/world/terrain/`, installed
 at application startup by `TerrainCatalog`. Open those documents in Terrain to
 edit their strokes with the matching road context. Road context does not include
 mission buildings: after edits, run the production map evidence to check the
@@ -39,6 +39,14 @@ space, objective access, road ownership and clear western boat approaches.
 Junction and Relay Nine are checked with three verdant seeds and the other
 surface palettes. `commanderEvidence` with `-Pmission=junction` or
 `-Pmission=relay-nine` exercises their fitted-boat arrivals and mission play.
+
+`gradlew.bat createSnapshots '-Psnapshot=thunder-terrain'` renders Thunder Run's
+hill-framed freight corridor at 1920x1080 / 100%. Six production maps check
+connected outdoor ground, northern and southern infantry flanks, clear boat
+approaches, and actual cargo/APC/tank clearance. The road stays traversable,
+but closing its checkpoint band leaves only an infantry bypass.
+`commanderEvidence '-Pmission=thunder-run'` exercises the named campaign squads,
+fitted player boats, mechanized breakthrough and freight settlement.
 
 `python art-source/terrain/bake_materials.py` reproduces the shipped material atlas
 and catalog from `materials.recipe.json`, using only Python's standard library.
