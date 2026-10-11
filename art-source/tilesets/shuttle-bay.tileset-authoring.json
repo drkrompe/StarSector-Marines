@@ -1,0 +1,133 @@
+{
+  "sheetName": "shuttle-bay",
+  "sheet": "art-source/tilesets/shuttle-bay.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 3,
+  "idPrefix": "shuttle-bay",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/shuttle-bay.png",
+  "note": "Geometry-first ship shuttle bay. Measured RGBA cuts; landing material cropped from seamless interior, decorative loads retain clear full-canvas margins.",
+  "entries": [
+    {
+      "id": "shuttle-bay.flight-desk",
+      "rect": [
+        48,
+        84,
+        172,
+        251
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "shuttle-bay.service-cart",
+      "rect": [
+        451,
+        75,
+        156,
+        267
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "shuttle-bay.ground-power",
+      "rect": [
+        804,
+        112,
+        404,
+        178
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "shuttle-bay.fluid-skid",
+      "rect": [
+        49,
+        557,
+        390,
+        178
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.6,
+      "included": true
+    },
+    {
+      "id": "shuttle-bay.wheels",
+      "rect": [
+        483,
+        548,
+        212,
+        212
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "shuttle-bay.landing-deck",
+      "rect": [
+        887,
+        525,
+        270,
+        270
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "shuttle-bay.landing-deck",
+      "slot": "v1"
+    },
+    {
+      "id": "shuttle-bay.tie-down",
+      "rect": [
+        47,
+        965,
+        205,
+        205
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ],
+  "blocks": [
+    {
+      "id": "shuttle-bay.landing-deck",
+      "layout": "variants"
+    }
+  ]
+}
