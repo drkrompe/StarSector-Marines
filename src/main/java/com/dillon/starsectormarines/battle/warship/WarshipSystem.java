@@ -9,8 +9,11 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Ticks the warships over the battle: each mount picks the nearest enemy it can
@@ -37,9 +40,46 @@ public final class WarshipSystem {
     private final List<WarshipShell> shells = new ArrayList<>();
     private final List<WarshipShell> shellsView = Collections.unmodifiableList(shells);
     private final Random random = new Random(20261011L);
+    private final WarshipPointDefence pointDefence = new WarshipPointDefence();
 
     /** A round this heavy lands as a heavy blast; lighter ones are only a detonation. */
     private static final float HEAVY_IMPACT_DAMAGE = 100f;
+
+    /**
+     * Seconds between two fire cues from one mount. A Devastator fires twelve
+     * rounds a second and a cue per round would be static, so a burst is heard
+     * as one report per this interval; a single shot always sounds.
+     */
+    private static final float FIRE_CUE_GAP_SECONDS = 0.3f;
+    /** Seconds between two landing cues for one weapon, for the same reason. */
+    private static final float IMPACT_CUE_GAP_SECONDS = 0.2f;
+
+    private final List<WarshipSoundCue> cues = new ArrayList<>();
+    private final List<WarshipSoundCue> cuesView = Collections.unmodifiableList(cues);
+    private final Map<Object, Float> lastCueAt = new IdentityHashMap<>();
+    private final Set<Warship.Mount> litBeams = Collections.newSetFromMap(new IdentityHashMap<>());
+    private float clock;
+
+    /** Sounds asked for since the last {@link #beginFrame()}, for whoever presents the battle. */
+    public List<WarshipSoundCue> cuesThisFrame() {
+        return cuesView;
+    }
+
+    /** Forgets last frame's cues; called once per simulation advance so a paused caller does not replay them. */
+    public void beginFrame() {
+        cues.clear();
+    }
+
+    private boolean cueAllowed(Object key, float gap) {
+        Float last = lastCueAt.get(key);
+        if (last != null && clock - last < gap) return false;
+        lastCueAt.put(key, clock);
+        return true;
+    }
+
+    private void cue(WarshipSoundCue.Kind kind, String soundId, float x, float y) {
+        if (soundId != null) cues.add(new WarshipSoundCue(kind, soundId, x, y, 1f));
+    }
 
     /** Puts a ship over the battle. */
     public void add(Warship ship) {
@@ -48,6 +88,11 @@ public final class WarshipSystem {
 
     public List<Warship> ships() {
         return shipsView;
+    }
+
+    /** The ships' point defence, for presentation and evidence. */
+    public WarshipPointDefence pointDefence() {
+        return pointDefence;
     }
 
     /** Rounds in flight, for presentation and evidence. */
@@ -68,15 +113,22 @@ public final class WarshipSystem {
     private static final float LANCE_REST_SECONDS = 2f;
 
     public void tick(float dt, BattleSimulation sim) {
+        clock += dt;
         landShells(dt, sim);
+        ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
             direct(dt, sim, ship);
             moveHull(dt, ship);
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
-                tickMount(dt, sim, ship, mount);
+                if (mount.pointDefence()) {
+                    pointDefence.tickMount(dt, sim, ship, mount, shells);
+                } else {
+                    tickMount(dt, sim, ship, mount);
+                }
             }
         }
+        pointDefence.ageMarks(dt);
     }
 
     /** How long a directed ship fires on ground that holds no hostile before it chooses again. */
@@ -179,13 +231,37 @@ public final class WarshipSystem {
         }
     }
 
+    /**
+     * Lets a landing detonation hurt any hostile hull whose footprint its blast
+     * reaches, through the hull's armour rule. A ship's own side never hurts it.
+     * A hull taken to nothing goes up in a heavy blast and is removed from the
+     * battle on the next tick, so it stops firing at once.
+     */
+    public void onDetonation(PendingDetonation det, BattleSimulation sim) {
+        for (Warship ship : ships) {
+            if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
+            if (ship.distanceTo(det.endpointX, det.endpointY) > det.aoeRadius) continue;
+            ship.takeDamage(det.damage, det.penetration);
+            if (ship.destroyed()) {
+                sim.spawnHeavyImpact(ship.x, ship.y, Math.max(6f, ship.lengthCells * 0.5f));
+            }
+        }
+    }
+
     /** Advances every round in flight; one that arrives lands as a detonation and, if heavy, a heavy blast. */
     private void landShells(float dt, BattleSimulation sim) {
         for (int i = shells.size() - 1; i >= 0; i--) {
             WarshipShell shell = shells.get(i);
+            if (shell.intercepted) {
+                shells.remove(i);
+                continue;
+            }
             if (!shell.advance(dt)) continue;
             shells.remove(i);
             sim.detonateNow(shell.landing());
+            if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
+                cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
+            }
             if (shell.weapon.damagePerShot() >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells);
             }
@@ -246,9 +322,15 @@ public final class WarshipSystem {
         if (m.lance != null) {
             if (sim.lanceSweeps().active().contains(m.lance)) {
                 m.headingDegrees = (float) Math.toDegrees(m.lance.angle()) - 90f;
-                if (m.lance.isBurning()) m.secondsSinceFired = 0f;
+                if (m.lance.isBurning()) {
+                    m.secondsSinceFired = 0f;
+                    if (litBeams.add(m)) {
+                        cue(WarshipSoundCue.Kind.BEAM_LIT, w.fireSoundId(), ship.mountX(m), ship.mountY(m));
+                    }
+                }
                 return;
             }
+            litBeams.remove(m);
             m.lance = null;
         }
         float rest = ship.facingDegrees + m.slot.angleDegrees();
@@ -300,7 +382,7 @@ public final class WarshipSystem {
      * A fixed mount, a hardpoint or a weapon with no traverse, points where the
      * hull points it.
      */
-    private static void traverse(float dt, Warship ship, Warship.Mount m, float bearing) {
+    static void traverse(float dt, Warship ship, Warship.Mount m, float bearing) {
         float rest = ship.facingDegrees + m.slot.angleDegrees();
         float rate = m.weapon.turnRateDegPerSec();
         if (m.slot.hardpoint() || rate <= 0f) {
@@ -348,6 +430,7 @@ public final class WarshipSystem {
         m.secondsSinceFired = 0f;
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
+        if (cueAllowed(m, FIRE_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.FIRE, w.fireSoundId(), mx, my);
         float dx = m.aimX - mx;
         float dy = m.aimY - my;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -373,7 +456,7 @@ public final class WarshipSystem {
                 /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
                 /*authoredAftermath*/ heavy);
-        shells.add(new WarshipShell(w, mx, my, lx, ly, flight, blast, landing));
+        shells.add(new WarshipShell(w, ship.faction, mx, my, lx, ly, flight, blast, landing));
     }
 
     private static float penetration(String damageType) {

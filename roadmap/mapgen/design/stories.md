@@ -13,7 +13,7 @@ three lane-seeding defects it uncovered are fixed and folded into
 |---|---|---|
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
 | `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
-| `world-surface-palette.md` | IN PROGRESS | Wild ground follows the target planet, not an Earth default; rock is the baseline. Cultivated ground and ice art open. |
+| `world-surface-palette.md` | IN PROGRESS | Distinct toxic, irradiated, volcanic and ash material families remain; palette-specific terrain and obstacles must preserve access. |
 | `settlement-off-map-link.md` | PLANNED | Every settlement reachable off-map by road or by landing pad; an off-grid outpost is the pad case. |
 | `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. First step of `compound-programs.md`. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |

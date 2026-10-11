@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.forest.ForestBrush;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestField;
 import com.dillon.starsectormarines.battle.world.gen.forest.ForestPlan;
 import com.dillon.starsectormarines.battle.world.gen.forest.LandscapeAccess;
+import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
@@ -38,6 +39,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         Random random = new Random(c.seed ^ 0x574f4f444c414e44L);
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
         if (surface == SurfacePalette.VERDANT) trees(c, reserved);
+        else FormationBrush.scatter(c,surface,reserved);
     }
 
     private boolean[] reservations(GenContext c) {
@@ -88,19 +90,21 @@ public final class OutdoorLandscapeStage implements GenStage {
 
     private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, Random random) {
         TerrainPlan plan = new TerrainPlan(c.width, c.height,
-                surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP : TerrainPlan.Finish.ROCK,
+                surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
+                        : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK,
                 1.8, .55, c.seed ^ 0x48494c4cL, List.of());
         boolean[] occupied = new boolean[reserved.length], closed = new boolean[reserved.length];
         int desired = Math.max(1, Math.min(10, c.width * c.height / 6000));
         for (int attempt = 0; attempt < desired * 12 && plan.strokes().size() < desired; attempt++) {
             int radius = 7 + random.nextInt(6);
             int x = 10 + random.nextInt(c.width - 20), y = 10 + random.nextInt(c.height - 20);
-            var stroke = new TerrainPlan.Stroke(TerrainPlan.Mode.RAISE, radius,
-                    List.of(new TerrainPlan.Point(x, y), new TerrainPlan.Point(Math.min(c.width - 1, x + radius / 2), y + 2)));
+            var stroke = ridge(c,surface,x,y,radius,attempt);
             TerrainField field = TerrainField.build(new TerrainPlan(c.width, c.height, plan.finish(),
                     plan.faceDepth(), plan.ruggedness(), plan.seed(), List.of(stroke)));
-            int l = Math.max(0, x - radius - 4), b = Math.max(0, y - radius - 4);
-            int r = Math.min(c.width - 1, x + radius * 2 + 4), t = Math.min(c.height - 1, y + radius + 6);
+            int l = Math.max(0,(int)Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).min().orElseThrow()-stroke.radius()-4));
+            int b = Math.max(0,(int)Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::y).min().orElseThrow()-stroke.radius()-4));
+            int r = Math.min(c.width-1,(int)Math.ceil(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).max().orElseThrow()+stroke.radius()+4));
+            int t = Math.min(c.height-1,(int)Math.ceil(stroke.points().stream().mapToDouble(TerrainPlan.Point::y).max().orElseThrow()+stroke.radius()+4));
             boolean fits = true;
             for (int yy = b; yy <= t && fits; yy++) for (int xx = l; xx <= r; xx++) {
                 if (field.maximum(xx, yy) < -.65) continue;
@@ -116,6 +120,31 @@ public final class OutdoorLandscapeStage implements GenStage {
             }
         }
         if (!plan.strokes().isEmpty()) TerrainBrush.stamp(plan, c.grid, c.topology, reserved);
+    }
+
+    private static TerrainPlan.Stroke ridge(GenContext c,SurfacePalette surface,int x,int y,int radius,int attempt) {
+        List<TerrainPlan.Point> points=new ArrayList<>();
+        double brushRadius=radius;
+        if(surface==SurfacePalette.ROCK) {
+            // Open crescent rim: a crater suggests enclosure without sealing a movement island.
+            brushRadius=3;
+            for(int i=0;i<=6;i++) {
+                double angle=i*Math.PI/6+(attempt%4)*Math.PI/2;
+                points.add(new TerrainPlan.Point(Math.max(0,Math.min(c.width-1,x+Math.cos(angle)*radius)),
+                        Math.max(0,Math.min(c.height-1,y+Math.sin(angle)*radius))));
+            }
+        } else if(surface==SurfacePalette.FROZEN) {
+            brushRadius=3.5;
+            for(int i=-2;i<=2;i++) {
+                double along=i*radius*.55,across=(i%2)*2;
+                points.add(new TerrainPlan.Point(Math.max(0,Math.min(c.width-1,x+((attempt&1)==0?along:across))),
+                        Math.max(0,Math.min(c.height-1,y+((attempt&1)==0?across:along)))));
+            }
+        } else {
+            points.add(new TerrainPlan.Point(x,y));
+            points.add(new TerrainPlan.Point(Math.min(c.width-1,x+radius/2),y+2));
+        }
+        return new TerrainPlan.Stroke(TerrainPlan.Mode.RAISE,brushRadius,points);
     }
 
     private static void trees(GenContext c, boolean[] reserved) {

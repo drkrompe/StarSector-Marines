@@ -5,7 +5,10 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — briefing rooms gather eight seats around one tactical
+Updated: 2026-10-11 — washrooms group sinks opposite toilet and shower cubicles,
+with a two-person aisle and complete hatch approaches in the muted ship materials.
+
+Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
 
 Earlier 2026-10-11 — engineering spaces separate complete piped machinery
@@ -503,6 +506,25 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+Ship washrooms group basins along one bulkhead, facing toilet and shower
+cubicles across a two-person aisle. Dark privacy panels belong to each complete
+cubicle; quiet non-slip deck joins the banks. Hatch approaches take precedence
+over furniture, and the remaining cubicles are divided between toilets and
+showers so a hatch at one end cannot remove a whole kind. Each fixture affords
+one exclusive wash position on the aisle. The complete fixtures and their
+approaches turn with the room; smaller and ground washrooms retain their
+existing arrangement. These are shared amenities, not additional watch postings.
+
+Ship gyms separate a treadmill and rower from a bench press, dumbbell rack and
+rubber mat area. Seven exclusive exercise positions stand on dry deck. A small
+pool occupies the other flank with a complete walkable coping ring; its basin
+is nonwalkable, see-through water terrain and publishes no swimming activity.
+The central aisle and perimeter route connect to the hatches, and all equipment,
+surfaces and positions turn with the room. The deck host enables the existing
+water displacement only while water is visible, preserving flat dry materials
+and the background outside the hull. Smaller and ground gyms retain their
+existing fitting, and authored layouts take precedence.
 
 Ship briefing rooms gather eight inward-facing chairs around one long table.
 The tactical map is a separate visual layer inset within that physical table;

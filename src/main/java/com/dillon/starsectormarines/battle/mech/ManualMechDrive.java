@@ -9,6 +9,21 @@ public final class ManualMechDrive {
     public float velocityY() { return velocityY; }
     public void clear() { velocityX = 0f; velocityY = 0f; }
 
+    /** Aim-relative gait: full forward, 72% lateral, 50% reverse, with heavier off-axis response. */
+    public Step advanceFacing(float axisX, float axisY, float speed, float relativeMass,
+                              float facingDegrees, float dt) {
+        if (!Float.isFinite(facingDegrees)) throw new IllegalArgumentException("Invalid hip bearing");
+        double radians = Math.toRadians(facingDegrees + 90f);
+        double length = Math.hypot(axisX, axisY);
+        float forward = length > 0d
+                ? (float) ((axisX * Math.cos(radians) + axisY * Math.sin(radians)) / length) : 1f;
+        forward = Math.max(-1f, Math.min(1f, forward));
+        // Interpolate by angle without bending the requested world-space travel direction.
+        float scale = forward >= 0f ? .72f + .28f * forward : .72f + .22f * forward;
+        return advance(axisX, axisY, speed * scale,
+                relativeMass * (1f + (1f - scale) * .8f), dt);
+    }
+
     /** Exact exponential velocity response and its integrated displacement for constant input. */
     public Step advance(float axisX, float axisY, float speed, float relativeMass, float dt) {
         if (!Float.isFinite(axisX) || !Float.isFinite(axisY) || !Float.isFinite(speed)

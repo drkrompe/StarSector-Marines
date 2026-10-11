@@ -1,0 +1,256 @@
+{
+  "alphaMin": 40,
+  "cellPx": 64,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.boulders",
+      "included": true,
+      "rect": [
+        17,
+        55,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###.",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.boulders-damaged",
+      "included": true,
+      "rect": [
+        17,
+        417,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.boulders-destroyed",
+      "included": true,
+      "rect": [
+        17,
+        779,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.spires",
+      "included": true,
+      "rect": [
+        459,
+        15,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.spires-damaged",
+      "included": true,
+      "rect": [
+        459,
+        377,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.spires-destroyed",
+      "included": true,
+      "rect": [
+        459,
+        739,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.ice-blocks",
+      "included": true,
+      "rect": [
+        763,
+        55,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.ice-blocks-damaged",
+      "included": true,
+      "rect": [
+        763,
+        417,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        4,
+        3
+      ],
+      "id": "formation.ice-blocks-destroyed",
+      "included": true,
+      "rect": [
+        763,
+        779,
+        339,
+        254
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.ice-pinnacles",
+      "included": true,
+      "rect": [
+        1207,
+        15,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [
+        "##.",
+        "###",
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.ice-pinnacles-damaged",
+      "included": true,
+      "rect": [
+        1207,
+        377,
+        199,
+        332
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "fogSurface": [],
+      "footprintCells": [
+        3,
+        5
+      ],
+      "id": "formation.ice-pinnacles-destroyed",
+      "included": true,
+      "rect": [
+        1207,
+        739,
+        199,
+        332
+      ]
+    }
+  ],
+  "gridCols": 4,
+  "gridRows": 3,
+  "idPrefix": "formation",
+  "note": "PlanetFormationTemplate full-footprint cuts. Accepted built-in ImageGen correction is 1448x1086 versus guide 1536x1152. Full frames measured against guide: boulders [17,55,339,254], spires [459,15,199,332], ice blocks [763,55,339,254], ice pinnacles [1207,15,199,332]; later rows add 362 to y. Shared registration across all states; generated alpha untouched. MineralFormation owns collision and fog; no ground backing.",
+  "sheet": "art-source/tilesets/planet-formations.raw.png",
+  "sheetName": "planet-formations"
+}

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.warship;
 
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * One round in flight from a warship's mount to the ground.
@@ -14,6 +15,8 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 public final class WarshipShell {
 
     public final VanillaWeapon weapon;
+    /** The side that fired it. */
+    public final Faction faction;
     public final float fromX;
     public final float fromY;
     public final float toX;
@@ -23,10 +26,13 @@ public final class WarshipShell {
     public final float blastCells;
     private final PendingDetonation landing;
     private float elapsed;
+    /** Set when point defence has shot the round down; it is dropped without landing. */
+    boolean intercepted;
 
-    WarshipShell(VanillaWeapon weapon, float fromX, float fromY, float toX, float toY,
+    WarshipShell(VanillaWeapon weapon, Faction faction, float fromX, float fromY, float toX, float toY,
                  float flightSeconds, float blastCells, PendingDetonation landing) {
         this.weapon = weapon;
+        this.faction = faction;
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
@@ -39,6 +45,23 @@ public final class WarshipShell {
     /** How far along the flight, 0 at the muzzle to 1 on the ground. */
     public float progress() {
         return Math.min(1f, elapsed / flightSeconds);
+    }
+
+    /** World X of the round now. */
+    public float x() {
+        return fromX + (toX - fromX) * progress();
+    }
+
+    /** World Y of the round now. */
+    public float y() {
+        return fromY + (toY - fromY) * progress();
+    }
+
+    /** Cells per second along the flight. */
+    float speedCells() {
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        return (float) Math.sqrt(dx * dx + dy * dy) / flightSeconds;
     }
 
     boolean advance(float dt) {
