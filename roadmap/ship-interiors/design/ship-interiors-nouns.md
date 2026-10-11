@@ -5,7 +5,10 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — briefing rooms gather eight seats around one tactical
+Updated: 2026-10-11 — gyms separate cardio, strength and training mats from a
+small animated pool, with dry exercise positions and a complete walking surround.
+
+Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
 
 Earlier 2026-10-11 — engineering spaces separate complete piped machinery
@@ -503,6 +506,16 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+Ship gyms separate a treadmill and rower from a bench press, dumbbell rack and
+rubber mat area. Seven exclusive exercise positions stand on dry deck. A small
+pool occupies the other flank with a complete walkable coping ring; its basin
+is nonwalkable, see-through water terrain and publishes no swimming activity.
+The central aisle and perimeter route connect to the hatches, and all equipment,
+surfaces and positions turn with the room. The deck host enables the existing
+water displacement only while water is visible, preserving flat dry materials
+and the background outside the hull. Smaller and ground gyms retain their
+existing fitting, and authored layouts take precedence.
 
 Ship briefing rooms gather eight inward-facing chairs around one long table.
 The tactical map is a separate visual layer inset within that physical table;

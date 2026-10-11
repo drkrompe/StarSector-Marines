@@ -295,7 +295,7 @@ public final class DirectControlSession {
         ManualIntent input = intent;
         if (roster.identity().type(id).isMech()) {
             roster.movement().moveDirectMech(id, battle.getGrid(), input.moveX(), input.moveY(),
-                    battle.physicalRadius(id), BattleSimulation.TICK_DT);
+                    battle.physicalRadius(id), BattleSimulation.TICK_DT, input.aimX(), input.aimY());
             return; // HeavyWeapons owns every mount clock and trigger in its serial pass.
         }
         InfantryUnitPrep.tickCooldowns(id, roster.world());

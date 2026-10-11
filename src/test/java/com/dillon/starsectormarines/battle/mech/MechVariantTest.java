@@ -209,8 +209,8 @@ class MechVariantTest {
         hound.torsoOnTarget = true;
         MechCombatantBehavior.tryFireMechWeapons(houndId, hound, target, 10f, sim, true);
 
-        assertTrue(hound.mount(MechMountSlot.ARMS).cooldown > 0f);
-        assertTrue(hound.mount(MechMountSlot.LEFT_SHOULDER).cooldown > 0f);
+        assertTrue(hound.mount(MechMountSlot.ARMS).cycleRemaining > 0f);
+        assertTrue(hound.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
         assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
 
@@ -222,9 +222,9 @@ class MechVariantTest {
         sirocco.torsoOnTarget = true;
         MechCombatantBehavior.tryFireMechWeapons(siroccoId, sirocco, target, 35f, sim, false);
 
-        assertEquals(0f, sirocco.mount(MechMountSlot.ARMS).cooldown, 0.001f);
-        assertTrue(sirocco.mount(MechMountSlot.LEFT_SHOULDER).cooldown > 0f);
-        assertTrue(sirocco.mount(MechMountSlot.RIGHT_SHOULDER).cooldown > 0f);
+        assertEquals(0f, sirocco.mount(MechMountSlot.ARMS).cycleRemaining, 0.001f);
+        assertTrue(sirocco.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
+        assertTrue(sirocco.mount(MechMountSlot.RIGHT_SHOULDER).cycleRemaining > 0f);
         assertFalse(sirocco.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
     }
 

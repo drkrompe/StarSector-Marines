@@ -43,11 +43,11 @@ class MechPointFireTest {
         MechWeaponMount lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
         f.fire(NORTH);
         assertEquals(2, f.shots.getActiveShots().size());
-        assertEquals(arms.weaponDef().cooldown - BattleSimulation.TICK_DT, arms.cooldown, 0.00001f);
-        assertEquals(srm.weaponDef().cooldown - BattleSimulation.TICK_DT, srm.cooldown, 0.00001f);
+        assertEquals(arms.component.cycleSeconds() - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
+        assertEquals(srm.component.cycleSeconds() - BattleSimulation.TICK_DT, srm.cycleRemaining, 0.00001f);
         assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
         assertEquals(lrm.component.ammoCapacity, lrm.ammo);
-        assertEquals(0f, lrm.cooldown);
+        assertEquals(0f, lrm.cycleRemaining);
         assertEquals(0, lrm.burstRemaining);
         assertEquals(11, arms.burstRemaining);
         assertEquals(1, srm.burstRemaining, "the installed small rack owns packet size");
@@ -62,15 +62,15 @@ class MechPointFireTest {
         var arms = f.loadout.mount(MechMountSlot.ARMS);
         var srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         var lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
-        arms.cooldown = 1f;
+        arms.cycleRemaining = 1f;
         int ammo = srm.ammo;
         f.weapons.tick(f.shooter, NORTH, true, 2);
         assertEquals(1, f.shots.getActiveShots().size());
         assertEquals(0, arms.burstRemaining);
-        assertEquals(1f - BattleSimulation.TICK_DT, arms.cooldown, 0.00001f);
+        assertEquals(1f - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
         assertEquals(ammo - 1, srm.ammo);
         assertEquals(1, srm.burstRemaining);
-        assertEquals(0f, lrm.cooldown);
+        assertEquals(0f, lrm.cycleRemaining);
         assertEquals(lrm.component.ammoCapacity, lrm.ammo);
         assertFalse(HeavyWeapons.supportsPointFire(lrm));
         for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, 2);
@@ -100,7 +100,7 @@ class MechPointFireTest {
         assertTrue(f.shots.getActiveShots().subList(1, 12).stream().allMatch(s -> s.toX > s.fromX));
         assertNotEquals(f.shots.getActiveShots().get(1).fromY, f.shots.getActiveShots().get(2).fromY,
                 "paired barrels still alternate after changing aim");
-        assertEquals(arms.weaponDef().cooldown - ticks * BattleSimulation.TICK_DT, arms.cooldown, 0.00001f);
+        assertEquals(arms.component.cycleSeconds() - ticks * BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
     }
 
     @Test
@@ -115,7 +115,7 @@ class MechPointFireTest {
         f.loadout.torsoFacingDegrees = 180f;
         f.fire(new PointFireAim(20.5f, 2.5f));
         assertTrue(f.shots.getActiveShots().isEmpty());
-        assertEquals(0f, arms.cooldown);
+        assertEquals(0f, arms.cycleRemaining);
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
     }
 
@@ -130,7 +130,7 @@ class MechPointFireTest {
         assertEquals(0, mount.burstRemaining);
         assertNull(mount.burstPointAim);
         assertEquals(mount.component.ammoCapacity - 1, mount.ammo);
-        assertEquals(mount.weaponDef().cooldown - 13 * BattleSimulation.TICK_DT, mount.cooldown, 0.00001f);
+        assertEquals(mount.component.cycleSeconds() - 13 * BattleSimulation.TICK_DT, mount.cycleRemaining, 0.00001f);
         assertTrue(mount.replenishmentProgressSeconds > 0f);
         f.loadout.torsoFacingDegrees = 0f;
         f.weapons.tick(f.shooter, NORTH, false);
@@ -148,11 +148,11 @@ class MechPointFireTest {
         for (int i = 0; i < 30; i++) f.weapons.tick(f.shooter, NORTH, false);
         assertEquals(1, f.shots.getActiveShots().size());
         assertEquals(0, mount.burstRemaining);
-        float cooldown = mount.cooldown;
+        float cooldown = mount.cycleRemaining;
         float replenishment = mount.replenishmentProgressSeconds;
         int ammo = mount.ammo;
         f.loadout.clearQueuedFire();
-        assertEquals(cooldown, mount.cooldown);
+        assertEquals(cooldown, mount.cycleRemaining);
         assertEquals(replenishment, mount.replenishmentProgressSeconds);
         assertEquals(ammo, mount.ammo);
         for (int x = 0; x < 128; x++) f.grid.setWalkableFloor(x, 21);
@@ -253,7 +253,7 @@ class MechPointFireTest {
         assertTrue(ManualTerrainMotion.canStand(f.grid, 20.5f, 20.35f, MechVariant.BULWARK.radius));
         assertFalse(f.weapons.canFireMechMount(f.shooter, mount));
         f.fire(NORTH);
-        assertEquals(0f, mount.cooldown);
+        assertEquals(0f, mount.cycleRemaining);
         assertTrue(f.shots.getActiveShots().isEmpty());
 
         long victim = f.roster.spawn(new EntitySpec("beyond wall", Faction.DEFENDER, UnitType.MARINE, 20, 60));
@@ -267,7 +267,7 @@ class MechPointFireTest {
                     throw new AssertionError("Blocked trigger reached " + method.getName());
                 });
         MechCombatantBehavior.tryFireArms(f.shooter, f.loadout, victim, 20f, battle, true);
-        assertEquals(0f, mount.cooldown);
+        assertEquals(0f, mount.cycleRemaining);
         f.weapons.fireMechWeapon(f.shooter, victim, mount, 1f);
         assertTrue(f.shots.getActiveShots().isEmpty());
         mount.burstRemaining = 1;
@@ -279,6 +279,37 @@ class MechPointFireTest {
         for (int x = 0; x < 128; x++) f.grid.setWalkableFloor(x, 21);
         f.grid.setCoverAtFacing(20, 21, NavigationGrid.FACING_N, 3);
         assertTrue(f.weapons.canFireMechMount(f.shooter, mount));
+    }
+
+    @Test
+    void heatAndMechanicalCycleIndependentlyGateFireWithoutSpendingAmmo() {
+        Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
+        var arms = f.loadout.mount(MechMountSlot.ARMS);
+        var srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        f.loadout.heat.commit(90f);
+        f.fire(NORTH);
+        assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
+        assertEquals(6, srm.ammo);
+        f.loadout.heat.advance(20f);
+        arms.cycleRemaining = 2f;
+        f.fire(NORTH);
+        assertEquals(1, f.roster.telemetry().roundsFired(f.shooter), "ready SRM can fire beside cycling gun");
+        assertEquals(28f - 8f * BattleSimulation.TICK_DT, f.loadout.heat.value(), .001f);
+        assertEquals(5, srm.ammo);
+        for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, false);
+        assertEquals(2, f.roster.telemetry().roundsFired(f.shooter));
+        assertEquals(28f - 8f * 11 * BattleSimulation.TICK_DT, f.loadout.heat.value(), .001f,
+                "continuation does not charge a second salvo's heat");
+        f.loadout.clearQueuedFire();
+        assertTrue(f.loadout.heat.value() > 0f);
+    }
+
+    @Test
+    void unaimedTriggerDoesNotReserveHeat() {
+        Fixture f = new Fixture(MechWeaponComponent.NOSE_CHAINGUN, null, null);
+        f.fire(EAST);
+        assertEquals(0f, f.loadout.heat.value());
+        assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
     }
 
     private static final class Fixture {

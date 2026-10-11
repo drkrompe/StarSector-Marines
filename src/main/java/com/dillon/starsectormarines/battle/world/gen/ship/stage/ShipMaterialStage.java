@@ -31,7 +31,7 @@ public final class ShipMaterialStage implements GenStage {
         if (purpose == null) return "ship.passage-deck";
         return switch (purpose) {
             case BARRACKS, CREW_QUARTERS, MESS_HALL, CREW_LOUNGE, CONFERENCE_ROOM,
-                    BRIDGE, PATIENT_WARD, WASHROOM -> "ship.crew-deck";
+                    BRIDGE, PATIENT_WARD, WASHROOM, GYMNASIUM -> "ship.crew-deck";
             case VEHICLE_BAY, HANGAR, STOCKROOM, LOADING_BAY, PRODUCTION_FLOOR,
                     PARTS_CAGE, ENGINE_ROOM -> "auto-shop.concrete";
             default -> "ship.passage-deck";

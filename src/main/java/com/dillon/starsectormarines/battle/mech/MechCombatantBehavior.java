@@ -139,8 +139,9 @@ public final class MechCombatantBehavior implements UnitBehavior {
     private static void tryFireMount(long u, MechLoadoutComponent loadout,
                                      MechWeaponMount mount, long target, float dist,
                                      BattleControl sim, boolean hasLos) {
-        if (mount == null || !loadout.isAimedAt(target) || mount.cooldown > 0f
+        if (mount == null || !loadout.isAimedAt(target) || mount.cycleRemaining > 0f
                 || mount.burstRemaining > 0 || !mount.hasAmmo()
+                || !loadout.heat.permits(mount.component.heatPerTrigger(), true)
                 || !sim.canFireMechMount(u, mount)) return;
         WeaponDef weapon = mount.weaponDef();
         if (dist > weapon.range) return;
@@ -152,6 +153,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
         float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult : 1f;
         sim.fireMechWeapon(u, target, mount, accuracyMult);
+        loadout.heat.commit(mount.component.heatPerTrigger());
         mount.commitTrigger(target, null);
     }
 }

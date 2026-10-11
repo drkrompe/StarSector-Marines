@@ -103,7 +103,8 @@ class MechDirectControlSessionTest {
         var loadout = roster.world().mechLoadout(mech);
         var mount = loadout.mounts()[0];
         assertTrue(session.enter(mech));
-        mount.cooldown = 3f;
+        mount.cycleRemaining = 3f;
+        loadout.heat.commit(80f);
         mount.replenishmentProgressSeconds = 1.2f;
         int ammo = mount.ammo;
         mount.burstRemaining = 2;
@@ -111,13 +112,17 @@ class MechDirectControlSessionTest {
         session.submit(new ManualIntent(1, 0, 20, 5, true, true));
         session.tick();
         assertEquals(MarineSprint.EMPTY, session.sprintStatus(), "Mechs do not acquire Marine stamina");
-        assertEquals(3f, mount.cooldown, "session cannot tick the heavy-weapon clock");
+        assertEquals(3f, mount.cycleRemaining, "session cannot tick the heavy-weapon clock");
         assertEquals(ammo, mount.ammo, "session cannot spend a mount trigger");
         session.suspendInput();
         assertEquals(0, mount.burstRemaining);
         assertNull(mount.burstPointAim);
-        assertEquals(3f, mount.cooldown);
+        assertEquals(3f, mount.cycleRemaining);
         assertEquals(1.2f, mount.replenishmentProgressSeconds);
+        assertEquals(80f, loadout.heat.value());
+        session.exit();
+        assertEquals(80f, loadout.heat.value());
+        assertTrue(session.enter(mech));
         mount.burstRemaining = 1;
         mount.burstPointAim = new PointFireAim(18, 5);
         session.exit();
@@ -178,7 +183,7 @@ class MechDirectControlSessionTest {
         var srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         arms.burstRemaining = 3;
         arms.burstPointAim = new PointFireAim(20, 5);
-        srm.cooldown = 3f;
+        srm.cycleRemaining = 3f;
         srm.ammo = 0;
         srm.replenishmentProgressSeconds = 1.2f;
         srm.burstRemaining = 1;
@@ -189,7 +194,7 @@ class MechDirectControlSessionTest {
         assertEquals(2, session.selectedWeapon());
         assertEquals(0, arms.burstRemaining);
         assertEquals(0, srm.burstRemaining);
-        assertEquals(3f, srm.cooldown);
+        assertEquals(3f, srm.cycleRemaining);
         assertEquals(0, srm.ammo);
         assertEquals(1.2f, srm.replenishmentProgressSeconds);
         assertEquals(1f, session.intent().moveX());
@@ -256,6 +261,22 @@ class MechDirectControlSessionTest {
         session.validate();
         assertFalse(session.active());
         assertEquals(0f, drive.velocityX());
+    }
+
+    @Test
+    void reverseInputDoesNotTurnHipsAwayFromAim() {
+        long mech = spawn();
+        roster.world().setPos(mech, 12.5f, 8.5f);
+        roster.entityWorld().setFloat(mech, roster.components().MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, -90f);
+        assertTrue(session.enter(mech));
+        for (int i = 0; i < 30; i++) {
+            session.submit(new ManualIntent(-1f, 0f, 22f, 8.5f, false));
+            session.tick();
+        }
+        assertTrue(roster.world().x(mech) < 12.4f);
+        assertEquals(-90f, roster.world().mechHipFacingDegrees(mech), .01f);
+        assertEquals(8.5f, roster.world().y(mech), .001f);
     }
 
     private long spawn() {
