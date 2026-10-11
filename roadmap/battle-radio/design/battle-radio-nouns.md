@@ -101,7 +101,7 @@ intelligence. Story dialogue bypasses the squad voice budget and chooses content
 chapter identity. Stable event
 keys do not by themselves grant a speaker, a sound asset, or playback priority.
 
-The campaign battle host consumes the two Wayline chapters' public beats once
+The campaign battle host consumes both story arcs' public beats once
 per attempt. Mara's non-positional clips own the voice channel ahead of marine
 chatter. A mission line starts without waiting for the squad cooldown and stops
 any playing squad call; squad chatter stays quiet while Mara speaks and observes
