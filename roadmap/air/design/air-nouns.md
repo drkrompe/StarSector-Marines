@@ -1430,6 +1430,27 @@ Onslaught's heavy turrets are port and starboard; ahead of it only its
 hardpoints and bow guns answer. Choosing a heading that brings the battery to
 bear is the director's job and part of what makes a capital worth positioning.
 
+**A warship takes orders, and an area order leaves the choosing to the ship.**
+The mission's voice is a value: hold fire, or fire on an area. An area order
+names ground and a radius, and every mount picks, at random among the hostile
+units inside it that it can reach, what to fire on, so a battery spreads over
+the ground it was given. Nothing outside the circle is fired on, though a round
+that lands inside it hurts whoever stands there. The order may also ask the ship
+to bring its guns to bear: it then turns, once, to the heading that puts the most
+firepower on the area, preferring the smaller turn when two are nearly as good.
+The hull turns at its own table rate and acceleration and brakes onto the
+heading; a turret swings at its weapon's own traverse rate and fires only when
+it has come onto its bearing, and a fixed mount points where the hull does. A
+choice is kept until it has been fired on. Eventually these orders belong to
+every such unit, not just to cinematics.
+
+**A lance is a beam weapon strong enough to cut ground, and under an area order
+it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
+Tachyon Lance, lays one committed sweep across the ordered area as that mount
+sees it, walked at the weapon's own traverse rate, kept inside its slot's arc and
+drawn in the weapon's own colours. Weaker beams (the Graviton Beam, the Tactical
+Laser) are anti-ship weapons and stay silent against ground for now.
+
 **Ownership is the mission's, not the ship's.** The same entity serves the
 company's own flagship, an allied or neutral hull, and an enemy's. Who may call
 it, what it is aimed at and why it is present are decided by the mission or the

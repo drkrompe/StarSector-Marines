@@ -55,3 +55,4 @@ com.dillon.starsectormarines.ops.CastleStorySnapshotSuite
 com.dillon.starsectormarines.battle.warship.OnslaughtBarrageSceneSnapshotSuite
 
 com.dillon.starsectormarines.ops.HoundHeatSnapshotSuite
+com.dillon.starsectormarines.battle.warship.ParagonSweepSceneSnapshotSuite

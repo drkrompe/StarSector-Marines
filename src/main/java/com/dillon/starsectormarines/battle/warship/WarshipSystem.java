@@ -55,12 +55,49 @@ public final class WarshipSystem {
         return shellsView;
     }
 
+    /** A turret fires once its barrel is this close to the bearing of what it has chosen. */
+    private static final float ALIGNED_DEGREES = 2f;
+    /** A beam this strong, in damage per second, is a lance that cuts ground; weaker beams are anti-ship and silent here. */
+    private static final float LANCE_MIN_DPS = 500f;
+    private static final float LANCE_TELEGRAPH_SECONDS = 1.5f;
+    private static final float LANCE_PENETRATION = 10f;
+    private static final int LANCE_WALL_DAMAGE = 100;
+    private static final float LANCE_MIN_HALF_WIDTH = 1.2f;
+    private static final float LANCE_MIN_SWEEP_RATE = 8f;
+    private static final float LANCE_MAX_HALF_ANGLE = 1.2f;
+    private static final float LANCE_REST_SECONDS = 2f;
+
     public void tick(float dt, BattleSimulation sim) {
         landShells(dt, sim);
         for (Warship ship : ships) {
+            turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
                 tickMount(dt, sim, ship, mount);
             }
+        }
+    }
+
+    /**
+     * Turns the hull toward the heading its order wants, at the hull's own rate:
+     * it accelerates toward the turn, cruises at its maximum and brakes in time
+     * to stop on the heading rather than swinging through it.
+     */
+    private static void turnHull(float dt, Warship ship) {
+        if (ship.order() instanceof WarshipOrder.FireOnArea area && area.bringGunsToBear() && !ship.headingChosen()) {
+            ship.desiredHeading = WarshipFacing.bestHeading(ship, area.x(), area.y());
+            ship.markHeadingChosen();
+        }
+        float error = WarshipFacing.wrap(ship.desiredHeading - ship.facingDegrees);
+        float wanted = Math.signum(error)
+                * Math.min(ship.maxTurnDegPerSec, (float) Math.sqrt(2f * ship.turnAccelDegPerSec2 * Math.abs(error)));
+        float step = ship.turnAccelDegPerSec2 * dt;
+        ship.turnVelocity += Math.max(-step, Math.min(step, wanted - ship.turnVelocity));
+        float move = ship.turnVelocity * dt;
+        if (Math.abs(error) <= Math.abs(move) && Math.abs(ship.turnVelocity) < step * 2f) {
+            ship.facingDegrees = ship.desiredHeading;
+            ship.turnVelocity = 0f;
+        } else {
+            ship.facingDegrees = WarshipFacing.wrap(ship.facingDegrees + move);
         }
     }
 
@@ -80,66 +117,151 @@ public final class WarshipSystem {
     private void tickMount(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {
         m.secondsSinceFired += dt;
         m.cooldown -= dt;
-        if (m.burstRemaining == 0) m.headingDegrees = ship.facingDegrees + m.slot.angleDegrees();
         VanillaWeapon w = m.weapon;
+        if (w.beam()) {
+            tickBeam(dt, sim, ship, m);
+            return;
+        }
         if (m.burstRemaining > 0) {
+            traverse(dt, ship, m, AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m)));
             m.burstTimer -= dt;
             if (m.burstTimer <= 0f) {
                 fire(sim, ship, m);
                 m.burstRemaining--;
                 m.burstTimer = w.burstDelaySeconds();
-                if (m.burstRemaining == 0) m.cooldown = Math.max(w.cooldownSeconds(), 0.05f);
+                if (m.burstRemaining == 0) {
+                    m.cooldown = Math.max(w.cooldownSeconds(), 0.05f);
+                    m.aimed = false;
+                }
             }
             return;
         }
-        if (m.cooldown > 0f) return;
-        if (!acquire(sim, ship, m)) {
-            m.cooldown = 0.5f;
+        float rest = ship.facingDegrees + m.slot.angleDegrees();
+        WarshipOrder.FireOnArea area = ship.order() instanceof WarshipOrder.FireOnArea a ? a : null;
+        // A choice is kept until the mount has fired on it, so a turret can finish
+        // swinging; it is dropped if the order changed or the hull has turned it out of arc.
+        if (m.aimed && (area == null || !area.contains(m.aimX, m.aimY) || !Warship.bears(
+                m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY))) {
+            m.aimed = false;
+        }
+        if (!m.aimed && area != null) m.aimed = acquire(sim, ship, m, area);
+        if (!m.aimed) {
+            traverse(dt, ship, m, rest);
             return;
         }
+        float bearing = AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m));
+        traverse(dt, ship, m, bearing);
+        if (m.cooldown > 0f) return;
+        if (Math.abs(WarshipFacing.wrap(bearing - m.headingDegrees)) > ALIGNED_DEGREES) return;
         m.burstRemaining = w.burstSize();
         m.burstTimer = 0f;
-        m.headingDegrees = AirBody.facingToward(m.aimX - ship.mountX(m), m.aimY - ship.mountY(m));
     }
 
-    /** Commits the mount's aim to the nearest enemy it can reach and traverse to. */
-    private boolean acquire(BattleSimulation sim, Warship ship, Warship.Mount m) {
+    /**
+     * A beam mount with an area to cut lays one sweep across the area's width as
+     * seen from the mount, walked at the weapon's own traverse rate and kept inside
+     * the slot's arc. Once laid the sweep is committed, like any lance: the
+     * barrel follows it but does not re-aim it.
+     */
+    private void tickBeam(float dt, BattleSimulation sim, Warship ship, Warship.Mount m) {
+        VanillaWeapon w = m.weapon;
+        if (m.lance != null) {
+            if (sim.lanceSweeps().active().contains(m.lance)) {
+                m.headingDegrees = (float) Math.toDegrees(m.lance.angle()) - 90f;
+                if (m.lance.isBurning()) m.secondsSinceFired = 0f;
+                return;
+            }
+            m.lance = null;
+        }
+        float rest = ship.facingDegrees + m.slot.angleDegrees();
+        WarshipOrder.FireOnArea area = ship.order() instanceof WarshipOrder.FireOnArea a ? a : null;
+        if (area == null || m.cooldown > 0f || w.damagePerSecond() < LANCE_MIN_DPS
+                || !acquire(sim, ship, m, area)) {
+            traverse(dt, ship, m, rest);
+            return;
+        }
+        float mx = ship.mountX(m);
+        float my = ship.mountY(m);
+        float dx = area.x() - mx;
+        float dy = area.y() - my;
+        float dist = (float) Math.sqrt(dx * dx + dy * dy);
+        float centre = (float) Math.atan2(dy, dx);
+        float half = dist > area.radius()
+                ? Math.min(LANCE_MAX_HALF_ANGLE, (float) Math.asin(area.radius() / dist)) : LANCE_MAX_HALF_ANGLE;
+        // Kept inside the slot's own arc, measured about the slot's direction.
+        float slotWorld = (float) Math.toRadians(rest + 90f);
+        float halfArc = (float) Math.toRadians(Math.max(m.slot.arcDegrees(), 1f) * 0.5f);
+        float start = Math.max(-halfArc, wrapRadians(centre - half - slotWorld));
+        float end = Math.min(halfArc, wrapRadians(centre + half - slotWorld));
+        if (end - start < 0.05f) {
+            traverse(dt, ship, m, rest);
+            return;
+        }
+        float rate = Math.max(LANCE_MIN_SWEEP_RATE, w.turnRateDegPerSec());
+        float burn = Math.max(1f, (float) Math.toDegrees(end - start) / rate);
+        LanceSweep sweep = new LanceSweep(0L, ship.faction, mx, my,
+                slotWorld + start, slotWorld + end,
+                WarshipScale.cells(w.rangePx()),
+                Math.max(LANCE_MIN_HALF_WIDTH, WarshipScale.cells(w.beamWidthPx())),
+                LANCE_TELEGRAPH_SECONDS, burn, w.damagePerSecond(),
+                LANCE_PENETRATION, LANCE_WALL_DAMAGE, w.id());
+        m.lance = sim.startLanceSweep(sweep);
+        m.shotsFired++;
+        m.cooldown = sweep.totalSeconds() + Math.max(w.cooldownSeconds(), LANCE_REST_SECONDS);
+    }
+
+    private static float wrapRadians(float r) {
+        float d = (float) (r % (2 * Math.PI));
+        if (d > Math.PI) d -= (float) (2 * Math.PI);
+        if (d < -Math.PI) d += (float) (2 * Math.PI);
+        return d;
+    }
+
+    /**
+     * Swings the barrel toward {@code bearing} at the weapon's own traverse rate.
+     * A fixed mount, a hardpoint or a weapon with no traverse, points where the
+     * hull points it.
+     */
+    private static void traverse(float dt, Warship ship, Warship.Mount m, float bearing) {
+        float rest = ship.facingDegrees + m.slot.angleDegrees();
+        float rate = m.weapon.turnRateDegPerSec();
+        if (m.slot.hardpoint() || rate <= 0f) {
+            m.headingDegrees = rest;
+            return;
+        }
+        float step = rate * dt;
+        float error = WarshipFacing.wrap(bearing - m.headingDegrees);
+        m.headingDegrees = Math.abs(error) <= step
+                ? bearing : WarshipFacing.wrap(m.headingDegrees + Math.signum(error) * step);
+    }
+
+    /**
+     * Chooses, at random among the hostile units inside the ordered area that this
+     * mount can reach, the one to fire on. Random rather than nearest so a
+     * battery spreads over the ground it was given instead of piling every round
+     * on the nearest man.
+     */
+    private boolean acquire(BattleSimulation sim, Warship ship, Warship.Mount m, WarshipOrder.FireOnArea area) {
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
         float mx = ship.mountX(m);
         float my = ship.mountY(m);
-        float range = WarshipScale.cells(m.weapon.rangePx());
-        float bestD2 = range * range;
-        boolean found = false;
+        int seen = 0;
         long[] dense = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
             Faction f = roster.identity().faction(u);
             if (!ship.faction.hostileTo(f)) continue;
-            float dx = world.x(u) - mx;
-            float dy = world.y(u) - my;
-            float d2 = dx * dx + dy * dy;
-            if (d2 >= bestD2 || !withinArc(ship, m, dx, dy)) continue;
-            bestD2 = d2;
-            m.aimX = world.x(u);
-            m.aimY = world.y(u);
-            found = true;
+            float ux = world.x(u);
+            float uy = world.y(u);
+            if (!area.contains(ux, uy) || !Warship.bears(m, ship.facingDegrees, mx, my, ux, uy)) continue;
+            seen++;
+            if (random.nextInt(seen) == 0) {
+                m.aimX = ux;
+                m.aimY = uy;
+            }
         }
-        return found;
-    }
-
-    private static boolean withinArc(Warship ship, Warship.Mount m, float dx, float dy) {
-        float bearing = AirBody.facingToward(dx, dy);
-        float mountHeading = ship.facingDegrees + m.slot.angleDegrees();
-        float diff = Math.abs(wrap(bearing - mountHeading));
-        return diff <= Math.max(m.slot.arcDegrees(), 1f) * 0.5f;
-    }
-
-    private static float wrap(float degrees) {
-        float d = degrees % 360f;
-        if (d > 180f) d -= 360f;
-        if (d < -180f) d += 360f;
-        return d;
+        return seen > 0;
     }
 
     private void fire(BattleSimulation sim, Warship ship, Warship.Mount m) {

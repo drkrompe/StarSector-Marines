@@ -217,9 +217,9 @@
     </div>
     <div id="barracks-feedback" class="label command-feedback">{command.feedback}</div>
   </div>
+  <div id="guide-spotlight" class="guide-spotlight"></div>
+  <div id="guide-target" class="guide-target"></div>
   <div id="barracks-guide" class="{command.guideClasses}">
-    <div id="guide-space-above" class="guide-space"></div>
-    <div id="guide-dialog" class="management-guide console-readout">
       <div id="guide-heading" class="label heading warm guide-heading">{command.guideTitle}</div>
       <div id="guide-dialogue" class="guide-dialogue">
         <img id="guide-portrait" class="guide-portrait" src="{command.guidePortrait}" />
@@ -229,11 +229,9 @@
       <div id="guide-controls" class="board-tools">
         <button id="guide-previous" class="tool-button console-action" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
         <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">NEXT</button>
-        <button id="guide-dismiss" class="guide-dismiss console-action" onclick="{command.guideDismiss}">CLOSE / TRY IT</button>
-        <div id="guide-close-hint" class="label muted guide-close-hint">ESC TO CLOSE / COMPANY GUIDE TO REPLAY</div>
+        <button id="guide-dismiss" class="guide-dismiss console-action" disabled="{command.guideDismissDisabled}" onclick="{command.guideDismiss}">DISMISS</button>
+        <div id="guide-close-hint" class="label muted guide-close-hint">USE THE HIGHLIGHTED CONTROL / ESC TO DISMISS</div>
       </div>
-    </div>
-    <div id="guide-space-below" class="guide-space"></div>
   </div>
   </div>
 </template>
@@ -342,17 +340,19 @@
   .orders { flex-direction: column; width: 356px; padding: 10px; gap: 8px; border-width: 1px; }
   .barracks-surface { width: 100%; height: 100%; overflow: hidden; }
   .barracks-root { width: 100%; height: 100%; }
-  .guide-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12c9; overflow: scroll; }
-  .guide-backdrop-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
-  .guide-space { height: 0px; flex-grow: 1; }
-  .management-guide { flex-direction: column; width: 820px; height: 340px; padding: 18px; gap: 10px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
-  .guide-heading { height: 24px; }
-  .guide-dialogue { flex-direction: row; height: 176px; gap: 18px; }
-  .guide-portrait { width: 176px; height: 176px; border-width: 2px; border-color: #8a967f; pointer-events: none; }
-  .guide-text { width: 0px; flex-grow: 1; height: 176px; overflow: scroll; }
-  #guide-status { height: 38px; }
-  .guide-dismiss { width: 148px; height: 28px; font-family: heading; text-align: center; }
-  .guide-close-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; }
+  .guide-callout { position: absolute; left: 340px; top: 200px; flex-direction: column; width: 500px; height: 232px; padding: 12px; gap: 6px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .guide-callout.hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .guide-spotlight { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; pointer-events: none; }
+  .guide-target { position: absolute; width: 0px; height: 0px; border-width: 0px; pointer-events: none; background-color: transparent; }
+  .guide-heading { height: 22px; }
+  .guide-dialogue { flex-direction: row; height: 116px; gap: 12px; }
+  .guide-portrait { width: 96px; height: 96px; border-width: 2px; border-color: #8a967f; pointer-events: none; }
+  .guide-text { width: 0px; flex-grow: 1; height: 116px; overflow: scroll; }
+  #guide-status { height: 42px; overflow: scroll; }
+  #guide-controls { height: 28px; }
+  #guide-controls .tool-button { width: 94px; }
+  .guide-dismiss { width: 82px; height: 28px; font-family: heading; text-align: center; }
+  .guide-close-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; font-family: compact; }
   .flow-button { width: 220px; height: 28px; font-family: heading; text-align: center; }
   .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
   .preparation-copy { height: auto; }

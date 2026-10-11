@@ -59,6 +59,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Tree damage | `TreeDamageReskinTemplate`; broken crowns, low stumps and separated fallen limbs inside original footprints | `templates/tree-*.png`, `tilesets/forest-damaged.*`, `tilesets/forest-destroyed.*` | `tree-damage` |
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
+| Ship briefing room | `BriefingRoomTemplate`; central table, inset tactical overlay, four chair headings, display and lectern | `templates/briefing-room.png`, `tilesets/briefing-room.*` | `ship-materials` |
 | Ship provisions bay | `LoadingBayTemplate`; manifest desk, open-fork tug, continuous roller conveyor, separate cargo layers and staging deck | `templates/loading-bay.png`, `tilesets/loading-bay.*` | `ship-materials` |
 | Ship shuttle bay | `ShuttleBayTemplate`; contained service equipment, shelf loads, landing material and flush tie-downs | `templates/shuttle-bay.png`, `tilesets/shuttle-bay.*` | `ship-materials` |
 | Ship crew lounge | `CrewLoungeTemplate`; opposing sofas, layered tables and distinct recreation groups | `templates/crew-lounge.png`, `tilesets/crew-lounge.*` | `ship-materials` |

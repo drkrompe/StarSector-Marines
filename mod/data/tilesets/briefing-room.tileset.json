@@ -1,0 +1,120 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "briefing-room.table",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "briefing-room.tactical-map",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "name": "briefing-room.display",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "briefing-room.lectern",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "name": "briefing-room.chair-back-top",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "name": "briefing-room.chair-back-bottom",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "name": "briefing-room.chair-back-left",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "name": "briefing-room.chair-back-right",
+      "row": 2
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.4,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        6,
+        2
+      ],
+      "id": "briefing-room.table",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        2
+      ],
+      "id": "briefing-room.tactical-map",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.7,
+      "col": 12,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        1
+      ],
+      "id": "briefing-room.display",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "briefing-room.lectern",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.35,
+      "col": 2,
+      "cover": "light",
+      "id": "briefing-room.chair-back-top",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.35,
+      "col": 3,
+      "cover": "light",
+      "id": "briefing-room.chair-back-bottom",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.35,
+      "col": 4,
+      "cover": "light",
+      "id": "briefing-room.chair-back-left",
+      "row": 2
+    },
+    {
+      "ballisticHalfHeight": 0.35,
+      "col": 5,
+      "cover": "light",
+      "id": "briefing-room.chair-back-right",
+      "row": 2
+    }
+  ],
+  "sheet": "graphics/tilesets/briefing-room.png"
+}

@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - Tutorial dialogue uses a portrait-led pop-over modal with isolated input.
+Updated: 2026-10-11 - Tutorial spotlights dim the screen around declared interactive regions and portrait guidance.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -284,15 +284,26 @@ catalog or gameplay authority. Player-facing visual reviews use 1920x1080 at
 Company preparation groups personnel actions in Barracks before organization
 administration. A transfer review separates receiving and donor selections and
 keeps projected strength visible before its commit. The company officer's optional
-first-use guide is a bounded, replayable pop-over modal above the existing screen,
+first-use guide is a bounded, replayable callout beside the relevant screen control,
 with Castle's portrait, speaker name and current roster context beside the lesson.
-A dim backdrop retains the room's context without moving its layout. Pointer and
-keyboard input stay inside the modal; Escape and Close / Try It dismiss it so
-the player can act, and Company Guide reopens it. It never owns a gameplay
-transition or requires audio.
+A gold outline draws attention to the next real action. The callout moves clear
+of it and avoids the other lesson regions where space permits. Each lesson declares
+one or more groups of real controls and readouts: their clipped live bounds form
+openings in a darkened backdrop. The shared `UiSpotlight` builds disjoint shade
+tiles around their union, so overlapping regions never accumulate extra darkness.
+It tracks scrolling and viewport changes without moving the underlying screen.
+The same declared elements constrain pointer targets, keyboard focus, armed
+activation and pointer capture through `UiDocument.inputRegions`. A grouped
+opening does not authorize unrelated controls that happen to lie inside its bounds.
+Scrolling from an allowed control may move its enclosing pane; darkened areas
+consume input, and pointer events do not bubble into unrelated ancestor actions.
+Castle's dialogue controls remain available. Escape (including from a search field)
+or Dismiss immediately removes the restriction; Company Guide resumes it.
+Successful preparation orders advance the guide. Next skips an unnecessary lesson
+without issuing an order. Guidance never owns a gameplay transition or requires audio.
 Mission preparation navigation preserves the existing salvage settlement gate.
 
-Tutorials use this pop-over treatment. Whenever a character is talking, show
+Interactive tutorials use this spotlight and callout treatment. Whenever a character is talking, show
 their portrait with their name and readable dialogue to draw attention to the
 speaker; audio alone is not the character presentation. This convention applies
 to future tutorial and conversation surfaces as well as existing story subtitles.
