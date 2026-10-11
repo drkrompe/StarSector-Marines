@@ -14,13 +14,19 @@ public record RoadPlan(int width, int height, List<Route> routes) {
         public String block(int age) { return "pavement." + name().toLowerCase(Locale.ROOT)
                 + "." + new String[]{"new", "worn", "cracked"}[age]; }
     }
+    public enum EndCap { ROUND, BUTT;
+        @Override public String toString() { return this == ROUND ? "Round" : "Flush"; }
+    }
     public record Point(double x, double y) {
         public Point { if (!Double.isFinite(x) || !Double.isFinite(y)) throw new IllegalArgumentException("Finite anchors required"); }
     }
-    public record Route(String id, List<Point> points, double width, double shoulder, double wear, long seed, Material material) {
+    public record Route(String id, List<Point> points, double width, double shoulder, double wear, long seed, Material material, EndCap endCap) {
+        public Route(String id, List<Point> points, double width, double shoulder, double wear, long seed, Material material) {
+            this(id, points, width, shoulder, wear, seed, material, EndCap.ROUND);
+        }
         public Route {
             points = List.copyOf(points);
-            if (id == null || id.isBlank() || material == null || points.size() < 2 || points.size() > 64)
+            if (id == null || id.isBlank() || material == null || endCap == null || points.size() < 2 || points.size() > 64)
                 throw new IllegalArgumentException("A road needs an id, material and 2–64 anchors");
             if (!Double.isFinite(width) || width < 3 || width > 32 || !Double.isFinite(shoulder) || shoulder < 0 || shoulder > 8
                     || !Double.isFinite(wear) || wear < 0 || wear > 1)
@@ -28,7 +34,7 @@ public record RoadPlan(int width, int height, List<Route> routes) {
             for (int i=1;i<points.size();i++) if (points.get(i).equals(points.get(i-1)))
                 throw new IllegalArgumentException("Consecutive anchors must differ");
         }
-        public Route withWear(double value) { return new Route(id,points,width,shoulder,value,seed,material); }
+        public Route withWear(double value) { return new Route(id,points,width,shoulder,value,seed,material,endCap); }
     }
     public RoadPlan {
         routes = List.copyOf(routes);
@@ -50,7 +56,7 @@ public record RoadPlan(int width, int height, List<Route> routes) {
             JSONArray p=r.getJSONArray("points");
             for(int j=0;j<p.length();j++) points.add(new Point(p.getJSONArray(j).getDouble(0),p.getJSONArray(j).getDouble(1)));
             roads.add(new Route(r.getString("id"),points,r.getDouble("width"),r.getDouble("shoulder"),r.getDouble("wear"),
-                    r.getLong("seed"),Material.valueOf(r.getString("material"))));
+                    r.getLong("seed"),Material.valueOf(r.getString("material")),EndCap.valueOf(r.optString("endCap", "ROUND"))));
         }
         return new RoadPlan(doc.getInt("width"),doc.getInt("height"),roads);
     }
@@ -59,7 +65,7 @@ public record RoadPlan(int width, int height, List<Route> routes) {
         for(Route r:routes) {
             JSONArray points=new JSONArray(); for(Point p:r.points()) points.put(new JSONArray().put(p.x()).put(p.y()));
             all.put(new JSONObject().put("id",r.id()).put("points",points).put("width",r.width()).put("shoulder",r.shoulder())
-                    .put("wear",r.wear()).put("seed",r.seed()).put("material",r.material().name()));
+                    .put("wear",r.wear()).put("seed",r.seed()).put("material",r.material().name()).put("endCap",r.endCap().name()));
         }
         return new JSONObject().put("version",1).put("width",width).put("height",height).put("roads",all);
     }

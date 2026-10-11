@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "width": 192,
+  "height": 128,
+  "roads": [
+    {
+      "id": "rill-main-street",
+      "points": [
+        [
+          0,
+          64.0
+        ],
+        [
+          191,
+          64.0
+        ]
+      ],
+      "width": 9,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5100,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "motor-pool-access",
+      "points": [
+        [
+          96.0,
+          25
+        ],
+        [
+          96.0,
+          103
+        ]
+      ],
+      "width": 9,
+      "shoulder": 0,
+      "wear": 0.65,
+      "seed": 5101,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "old-maintenance-lane",
+      "points": [
+        [
+          68.5,
+          31
+        ],
+        [
+          68.5,
+          103
+        ]
+      ],
+      "width": 8,
+      "shoulder": 0,
+      "wear": 0.95,
+      "seed": 5102,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "north-loading-crossing",
+      "points": [
+        [
+          68,
+          87.0
+        ],
+        [
+          117,
+          87.0
+        ]
+      ],
+      "width": 7,
+      "shoulder": 0,
+      "wear": 0.65,
+      "seed": 5103,
+      "material": "CONCRETE",
+      "endCap": "BUTT"
+    },
+    {
+      "id": "south-loading-crossing",
+      "points": [
+        [
+          68,
+          34.5
+        ],
+        [
+          123,
+          34.5
+        ]
+      ],
+      "width": 8,
+      "shoulder": 0,
+      "wear": 0.8,
+      "seed": 5104,
+      "material": "ASPHALT",
+      "endCap": "BUTT"
+    }
+  ]
+}

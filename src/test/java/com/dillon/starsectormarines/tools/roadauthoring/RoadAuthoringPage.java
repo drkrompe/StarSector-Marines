@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Route;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Point;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.EndCap;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
@@ -29,6 +30,7 @@ public final class RoadAuthoringPage implements AuthoringPage {
     private final Canvas canvas=new Canvas();
     private final JComboBox<String> roads=new JComboBox<>();
     private final JComboBox<Material> material=new JComboBox<>(Material.values());
+    private final JComboBox<EndCap> endCap=new JComboBox<>(EndCap.values());
     private final JSpinner width=new JSpinner(new SpinnerNumberModel(9d,3d,32d,.5));
     private final JSpinner shoulder=new JSpinner(new SpinnerNumberModel(2d,0d,8d,.5));
     private final JSpinner seed=new JSpinner(new SpinnerNumberModel(51L,Long.MIN_VALUE,Long.MAX_VALUE,1L));
@@ -54,15 +56,15 @@ public final class RoadAuthoringPage implements AuthoringPage {
         button(toolbar,"Remove anchor",this::removePoint);
         root.add(toolbar,BorderLayout.NORTH);
         JPanel controls=new JPanel();controls.setLayout(new BoxLayout(controls,BoxLayout.Y_AXIS));controls.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-        field(controls,"Selected road",roads);field(controls,"Pavement",material);field(controls,"Width · cells",width);
+        field(controls,"Selected road",roads);field(controls,"Pavement",material);field(controls,"Ends · round / flush",endCap);field(controls,"Width · cells",width);
         field(controls,"Shoulder · cells",shoulder);field(controls,"Wear pattern seed",seed);field(controls,"Wear · new → cracked",wear);
         JLabel help=new JLabel("<html>Drag an anchor to bend the road.<br>Double-click to insert an anchor.<br>Roads merge at intersections.<br><br>Wear changes art, not clearance.<br>Save JSON to reuse in a map recipe.<br><br>Preview: production tiles, 100% scale.</html>");
         help.setAlignmentX(Component.LEFT_ALIGNMENT);help.setMaximumSize(new Dimension(245,230));controls.add(help);controls.add(Box.createVerticalGlue());controls.setPreferredSize(new Dimension(265,600));
         root.add(controls,BorderLayout.WEST);root.add(canvas,BorderLayout.CENTER);root.add(state,BorderLayout.SOUTH);
         roads.addActionListener(e->{if(!binding){selectedPoint=-1;bind();canvas.repaint();}});
-        material.addActionListener(e->controlsChanged());width.addChangeListener(e->controlsChanged());shoulder.addChangeListener(e->controlsChanged());seed.addChangeListener(e->controlsChanged());
+        material.addActionListener(e->controlsChanged());endCap.addActionListener(e->controlsChanged());width.addChangeListener(e->controlsChanged());shoulder.addChangeListener(e->controlsChanged());seed.addChangeListener(e->controlsChanged());
         wear.setMajorTickSpacing(50);wear.setPaintLabels(true);wear.addChangeListener(e->{if(!wear.getValueIsAdjusting())controlsChanged();});
-        canvas.setName("road-canvas");wear.setName("road-wear");
+        canvas.setName("road-canvas");wear.setName("road-wear");endCap.setName("road-end-cap");
         canvas.setToolTipText("Drag a gold anchor; double-click to insert one. The line is the editable spline, not a vehicle route.");
         bind();requestRender();
     }
@@ -76,7 +78,8 @@ public final class RoadAuthoringPage implements AuthoringPage {
         plan=loaded;saved=plan;file=path;undo.clear();selectedPoint=-1;bind();requestRender();
     }
     void saveDocument(Path target) throws Exception {
-        if(target.toAbsolutePath().normalize().equals(context.projectRoot().resolve("mod").resolve(RoadCatalog.THUNDER_RUN)))RoadCatalog.validateThunderRun(plan);
+        for (String path : RoadCatalog.BUILTINS)
+            if(target.toAbsolutePath().normalize().equals(context.projectRoot().resolve("mod").resolve(path).toAbsolutePath().normalize())) RoadCatalog.validate(path,plan);
         Files.writeString(target,plan.json().toString(2)+"\n");file=target;saved=plan;requestRender();context.reportStatus("Saved road plan: "+file);
     }
     boolean previewReady() { return image!=null && !busy && !debounce.isRunning(); }
@@ -87,11 +90,11 @@ public final class RoadAuthoringPage implements AuthoringPage {
     private Route route() { return plan.routes().get(selected()); }
     private void bind() {
         binding=true;int index=selected();roads.removeAllItems();for(Route r:plan.routes())roads.addItem(r.id());roads.setSelectedIndex(Math.min(index,plan.routes().size()-1));
-        Route r=route();material.setSelectedItem(r.material());width.setValue(r.width());shoulder.setValue(r.shoulder());seed.setValue(r.seed());wear.setValue((int)Math.round(r.wear()*100));binding=false;
+        Route r=route();material.setSelectedItem(r.material());endCap.setSelectedItem(r.endCap());width.setValue(r.width());shoulder.setValue(r.shoulder());seed.setValue(r.seed());wear.setValue((int)Math.round(r.wear()*100));binding=false;
     }
     private void controlsChanged() {
         if(binding)return;
-        Route r=route();replace(new Route(r.id(),r.points(),((Number)width.getValue()).doubleValue(),((Number)shoulder.getValue()).doubleValue(),wear.getValue()/100d,((Number)seed.getValue()).longValue(),(Material)material.getSelectedItem()),true);
+        Route r=route();replace(new Route(r.id(),r.points(),((Number)width.getValue()).doubleValue(),((Number)shoulder.getValue()).doubleValue(),wear.getValue()/100d,((Number)seed.getValue()).longValue(),(Material)material.getSelectedItem(),(EndCap)endCap.getSelectedItem()),true);
     }
     private void remember() {undo.push(plan);while(undo.size()>50)undo.removeLast();}
     private void replace(Route road,boolean history) {
@@ -122,7 +125,7 @@ public final class RoadAuthoringPage implements AuthoringPage {
     private void removeRoad() {if(plan.routes().size()<2)return;remember();List<Route> rs=new ArrayList<>(plan.routes());rs.remove(selected());plan=new RoadPlan(plan.width(),plan.height(),rs);selectedPoint=-1;bind();requestRender();}
     private void removePoint() {if(selectedPoint<0 || route().points().size()<=2)return;List<Point> points=new ArrayList<>(route().points());points.remove(selectedPoint);selectedPoint=-1;points(points,true);}
     private void points(List<Point> points,boolean history) {
-        Route r=route();try{replace(new Route(r.id(),points,r.width(),r.shoulder(),r.wear(),r.seed(),r.material()),history);}catch(IllegalArgumentException ex){state.setText(ex.getMessage());}
+        Route r=route();try{replace(new Route(r.id(),points,r.width(),r.shoulder(),r.wear(),r.seed(),r.material(),r.endCap()),history);}catch(IllegalArgumentException ex){state.setText(ex.getMessage());}
     }
     private boolean discard() {return !hasUnsavedChanges() || JOptionPane.showConfirmDialog(root,"Discard unsaved road edits?","Open roads",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION;}
     private JFileChooser chooser() {var c=new JFileChooser(context.projectRoot().resolve("art-source/roads").toFile());c.setFileFilter(new FileNameExtensionFilter("Road document (*.json)","json"));return c;}

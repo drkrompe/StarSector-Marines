@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -35,7 +37,9 @@ public final class RelayNineCompound {
                 new CellTopology(WIDTH, HEIGHT), new Random(seed), WIDTH, HEIGHT, seed);
         c.put(BspKeys.MARKET_PROFILE, profile == null ? TargetProfile.NEUTRAL : profile);
         new GenRecipe("Relay Nine", List.of(RelayNineCompound::grounds,
-                RelayNineCompound::buildings, RelayNineCompound::perimeter, RelayNineCompound::cargo, new FinalizeStage())).run(c);
+                RelayNineCompound::buildings, RelayNineCompound::perimeter, RelayNineCompound::cargo,
+                finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
+                new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 64,
                 10, 14, 34, 113, Faction.MARINE, 20, 0));
@@ -75,15 +79,9 @@ public final class RelayNineCompound {
         pave(c, 60, 32, 189, 109, GroundKind.COURTYARD);
         // Inbound road branches around the power installation; the loading
         // corridor reaches the hall from its south, away from the direct road.
-        pave(c, 0, 60, 207, 66, GroundKind.STREET);
-        pave(c, 57, 20, 63, 105, GroundKind.STREET);
-        pave(c, 60, 98, 207, 104, GroundKind.STREET);
-        pave(c, 60, 30, 185, 36, GroundKind.STREET);
-        pave(c, 180, 33, 186, 101, GroundKind.STREET);
-        pave(c, 82, 0, 88, 23, GroundKind.STREET);
-        pave(c, 57, 20, 88, 26, GroundKind.STREET);
-        pave(c, 127, 101, 133, 127, GroundKind.STREET);
-        pave(c, 10, 14, 34, 113, GroundKind.STREET);
+
+        var roads = RoadCatalog.plan(RoadCatalog.RELAY_NINE);
+        RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
         for (int y : new int[]{22, 38, 54, 70, 86, 102}) {
             LandingPad pad = new LandingPad(21, y, 3, 3, LandingPad.Approach.WEST);
             c.landingPads.add(pad);
