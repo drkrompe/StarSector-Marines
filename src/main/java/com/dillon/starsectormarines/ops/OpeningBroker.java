@@ -16,7 +16,7 @@ import java.util.List;
 public final class OpeningBroker {
     public static final String ID = "marines_mara_venn";
     public static final String NAME = "Mara Venn";
-    public static final String PORTRAIT = "graphics/portraits/portrait31.png";
+    public static final String PORTRAIT = "graphics/portraits/mara-venn.png";
     public static final String CREST = "graphics/factions/crest_neutral_traders.png";
 
     private OpeningBroker() { }
