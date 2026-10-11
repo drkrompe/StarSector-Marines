@@ -226,6 +226,20 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public SpriteAPI tileSheet() { return tile; }
     @Override public int tileSheetPxW() { return asset(tile).width(); }
     @Override public int tileSheetPxH() { return asset(tile).height(); }
+    private Map<String, GroundSheet> extraGround;
+    @Override public Map<String, GroundSheet> additionalGroundSheets() {
+        if (extraGround == null) {
+            Map<String, GroundSheet> loaded = new LinkedHashMap<>();
+            try {
+                for (String path : additionalGroundPaths()) {
+                    SpriteAPI token = sprite(path); Asset asset = assets.get(token);
+                    loaded.put(path, new GroundSheet(path, token, asset.width(), asset.height()));
+                }
+            } catch (Exception failure) { throw new IllegalStateException("Cannot load additional ground art", failure); }
+            extraGround = loaded;
+        }
+        return extraGround;
+    }
     @Override public SpriteAPI roadSheet() { return road; }
     @Override public int roadSheetPxW() { return asset(road).width(); }
     @Override public int roadSheetPxH() { return asset(road).height(); }

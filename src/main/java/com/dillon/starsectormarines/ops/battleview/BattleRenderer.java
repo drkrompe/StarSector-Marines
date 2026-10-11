@@ -350,6 +350,9 @@ public class BattleRenderer {
 
     /** Builds the six per-sheet tile batches from the loaded sheets. Called from {@code BattleScreen.attach()}. */
     public void buildTileBatches() {
+        for (var sheet : sprites.additionalGroundSheets().values())
+            if (!batchBySheet.containsKey(sheet.sprite())) registerBatch(sheet.sprite(),
+                    new QuadBatch(sheet.sprite(), sheet.width(), sheet.height(), 4096));
         if (urbanBatch == null && sprites.tileSheet() != null)
             urbanBatch = new QuadBatch(sprites.tileSheet(), sprites.tileSheetPxW(), sprites.tileSheetPxH(), 16384);
         if (roadBatch == null && sprites.roadSheet() != null)

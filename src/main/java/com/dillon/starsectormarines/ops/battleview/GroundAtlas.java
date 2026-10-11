@@ -80,6 +80,8 @@ public final class GroundAtlas extends SpriteAtlas {
                 sprites.urbanTile3SheetPxW(), sprites.urbanTile3SheetPxH()));
         candidates.add(new Source(sprites.natureSheet(),
                 sprites.natureSheetPxW(), sprites.natureSheetPxH()));
+        for (var sheet : sprites.additionalGroundSheets().values())
+            candidates.add(new Source(sheet.sprite(), sheet.width(), sheet.height()));
         return plan(candidates, 2);
     }
 }
