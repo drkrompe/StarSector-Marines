@@ -1,5 +1,6 @@
 {
-  "speaker": "Company Officer",
+  "speaker": "Castle",
+  "portrait": "graphics/portraits/castle.png",
   "voiceId": "cuwCdnt9CKAB9XrTA1j0",
   "voiceName": "Company Officer B - British Matriarch",
   "direction": "A pragmatic, matriarchal officer who cares for the company and its people. Warm and reassuring while teaching, firm about responsibility. Occasional dry humor, never a permanently dry delivery. Speak to the commander as a capable colleague.",

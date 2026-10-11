@@ -1,4 +1,5 @@
 <template props="command,contextLabel,squadRows,musterRows,recordCells,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+  <div id="barracks-surface" class="barracks-surface">
   <div id="barracks-root" class="barracks-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
 
@@ -23,16 +24,6 @@
       </div>
     </div>
 
-    <div id="barracks-guide" class="{command.guideClasses}">
-      <div id="guide-heading" class="label heading warm guide-heading">{command.guideTitle}</div>
-      <div id="guide-text" class="label wrap guide-text">{command.guideText}</div>
-      <div id="guide-status" class="label wrap warm guide-text">{command.guideStatus}</div>
-      <div id="guide-controls" class="board-tools">
-        <button id="guide-previous" class="tool-button console-action" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
-        <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">NEXT</button>
-        <button id="guide-dismiss" class="tool-button console-action" onclick="{command.guideDismiss}">DISMISS GUIDE</button>
-      </div>
-    </div>
     <div id="barracks-flow-actions" class="board-tools">
       <button id="barracks-raise-squad" class="flow-button console-action" onclick="{command.raiseSquad}">RAISE SQUAD / ARMORY</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">COMPANY GUIDE</button>
@@ -226,6 +217,25 @@
     </div>
     <div id="barracks-feedback" class="label command-feedback">{command.feedback}</div>
   </div>
+  <div id="barracks-guide" class="{command.guideClasses}">
+    <div id="guide-space-above" class="guide-space"></div>
+    <div id="guide-dialog" class="management-guide console-readout">
+      <div id="guide-heading" class="label heading warm guide-heading">{command.guideTitle}</div>
+      <div id="guide-dialogue" class="guide-dialogue">
+        <img id="guide-portrait" class="guide-portrait" src="{command.guidePortrait}" />
+        <div id="guide-text" class="label wrap guide-text">{command.guideText}</div>
+      </div>
+      <div id="guide-status" class="label wrap warm">{command.guideStatus}</div>
+      <div id="guide-controls" class="board-tools">
+        <button id="guide-previous" class="tool-button console-action" disabled="{command.guidePreviousDisabled}" onclick="{command.guidePrevious}">PREVIOUS</button>
+        <button id="guide-next" class="tool-button console-action" disabled="{command.guideNextDisabled}" onclick="{command.guideNext}">NEXT</button>
+        <button id="guide-dismiss" class="guide-dismiss console-action" onclick="{command.guideDismiss}">CLOSE / TRY IT</button>
+        <div id="guide-close-hint" class="label muted guide-close-hint">ESC TO CLOSE / COMPANY GUIDE TO REPLAY</div>
+      </div>
+    </div>
+    <div id="guide-space-below" class="guide-space"></div>
+  </div>
+  </div>
 </template>
 
 <style>
@@ -330,10 +340,19 @@
   .empty-message { height: auto; }
   .page-label { width: 0px; flex-grow: 1; text-align: center; }
   .orders { flex-direction: column; width: 356px; padding: 10px; gap: 8px; border-width: 1px; }
-  .management-guide { flex-direction: column; height: 154px; padding: 8px 10px; gap: 5px; border-width: 1px; }
-  .guide-heading { height: 19px; }
-  .guide-text { height: 42px; overflow: scroll; }
-  #guide-status { height: 26px; }
+  .barracks-surface { width: 100%; height: 100%; overflow: hidden; }
+  .barracks-root { width: 100%; height: 100%; }
+  .guide-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12c9; overflow: scroll; }
+  .guide-backdrop-hidden { position: absolute; width: 0px; height: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
+  .guide-space { height: 0px; flex-grow: 1; }
+  .management-guide { flex-direction: column; width: 820px; height: 340px; padding: 18px; gap: 10px; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
+  .guide-heading { height: 24px; }
+  .guide-dialogue { flex-direction: row; height: 176px; gap: 18px; }
+  .guide-portrait { width: 176px; height: 176px; border-width: 2px; border-color: #8a967f; pointer-events: none; }
+  .guide-text { width: 0px; flex-grow: 1; height: 176px; overflow: scroll; }
+  #guide-status { height: 38px; }
+  .guide-dismiss { width: 148px; height: 28px; font-family: heading; text-align: center; }
+  .guide-close-hint { width: 0px; flex-grow: 1; height: 30px; white-space: normal; }
   .flow-button { width: 220px; height: 28px; font-family: heading; text-align: center; }
   .tab-button { width: 0px; flex-grow: 1; height: 28px; font-family: heading; text-align: center; }
   .preparation-copy { height: auto; }
