@@ -10,37 +10,24 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Looks up how a vanilla weapon is drawn, by weapon id.
  *
- * <p>In the game the spec comes from the loaded data, so a mod's own weapon or
- * a re-tuned vanilla one resolves the same way. Outside the game there is no
- * settings API, so a tool installs a {@link Source} that reads the install's
- * files — the same shape as the hull-dimension seam — and without one an
- * unresolvable weapon is simply absent rather than an error: a beam that cannot
- * be looked up draws as the plain fallback.
+ * <p>The spec comes through {@link VanillaData}, so in the game a mod's own
+ * weapon or a re-tuned vanilla one resolves the same way; an unresolvable weapon
+ * is simply absent rather than an error, and a beam that cannot be looked up
+ * draws as the plain fallback.
  */
 public final class VanillaWeaponLooks {
 
     private static final Logger LOG = Global.getLogger(VanillaWeaponLooks.class);
 
-    /** Where a weapon's {@code .wpn} spec comes from. */
-    @FunctionalInterface
-    public interface Source {
-        JSONObject load(String weaponId) throws Exception;
-    }
-
-    private static final Source GAME = id ->
-            Global.getSettings().loadJSON("data/weapons/" + id + ".wpn");
-
     private static final VanillaBeamLook ABSENT = new VanillaBeamLook(
             "", null, null, null, 0f, null, null, 0f, 0f, null, null, null, null);
 
-    private static volatile Source source = GAME;
     private static final Map<String, VanillaBeamLook> CACHE = new ConcurrentHashMap<>();
 
     private VanillaWeaponLooks() {}
 
-    /** Replaces where specs are read from, and forgets what was cached. */
-    public static void useSource(Source replacement) {
-        source = replacement != null ? replacement : GAME;
+    /** Forgets what was cached, for a tool that has just changed where data is read from. */
+    public static void clearCache() {
         CACHE.clear();
     }
 
@@ -53,7 +40,7 @@ public final class VanillaWeaponLooks {
 
     private static VanillaBeamLook resolve(String weaponId) {
         try {
-            VanillaBeamLook look = VanillaBeamLook.fromSpec(weaponId, source.load(weaponId));
+            VanillaBeamLook look = VanillaBeamLook.fromSpec(weaponId, VanillaData.json("data/weapons/" + weaponId + ".wpn"));
             return look != null ? look : ABSENT;
         } catch (Exception e) {
             LOG.warn("VanillaWeaponLooks: " + weaponId + " — "
