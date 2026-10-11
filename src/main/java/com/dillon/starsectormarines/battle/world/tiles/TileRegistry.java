@@ -54,6 +54,7 @@ public final class TileRegistry {
             "data/tilesets/natural-terrain.tileset.json",
             "data/tilesets/forest-canopies.tileset.json",
             "data/tilesets/forest-damaged.tileset.json",
+            "data/tilesets/rock-damage.tileset.json",
             "data/tilesets/forest-destroyed.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
@@ -70,6 +71,7 @@ public final class TileRegistry {
             "data/tilesets/mess-galley.tileset.json",
             "data/tilesets/sickbay-clinic.tileset.json",
             "data/tilesets/main-stores.tileset.json",
+            "data/tilesets/crew-lounge.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 

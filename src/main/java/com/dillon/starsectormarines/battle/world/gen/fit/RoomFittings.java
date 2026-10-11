@@ -205,12 +205,13 @@ public final class RoomFittings {
         boolean berthing = purpose == RoomPurpose.BARRACKS || purpose == RoomPurpose.CREW_QUARTERS;
         if (purpose != RoomPurpose.VEHICLE_BAY && purpose != RoomPurpose.ARMORY && !berthing
                 && purpose != RoomPurpose.MESS_HALL && purpose != RoomPurpose.PATIENT_WARD
-                && purpose != RoomPurpose.STOCKROOM)
+                && purpose != RoomPurpose.STOCKROOM && purpose != RoomPurpose.CREW_LOUNGE)
             return forRoom(purpose, shape, fit);
         RoomLayout layout = RoomLayouts.installed().find(purpose, shape, fit);
         if (layout != null) return new AuthoredFitting(layout);
         if (berthing) return BerthingFitting.shipboard(purpose);
         if (purpose == RoomPurpose.STOCKROOM) return new MainStoresFitting();
+        if (purpose == RoomPurpose.CREW_LOUNGE) return new CrewLoungeFitting();
         if (purpose == RoomPurpose.MESS_HALL) return MessHallFitting.shipboard();
         if (purpose == RoomPurpose.PATIENT_WARD) return SickBayFitting.shipboard();
         return purpose == RoomPurpose.ARMORY ? ArmoryFitting.shipboard() : VehicleBayFitting.shipboard();

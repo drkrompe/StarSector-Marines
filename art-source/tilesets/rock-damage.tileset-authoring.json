@@ -1,0 +1,236 @@
+{
+  "sheetName": "rock-damage",
+  "sheet": "art-source/tilesets/rock-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 4,
+  "idPrefix": "nature",
+  "alphaMin": 40,
+  "note": "Geometry-first built-in ImageGen reskin; reviewed full frames from the returned 1254-square image. Upper two source rows are cracked stone; lower two are separated rubble. Uneven returned row pitch is recorded in cuts, including transparent margins. No alpha trimming or recentering. Runtime rock state retains original cover until destroyed.",
+  "entries": [
+    {
+      "id": "nature.rock-small-1-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        50,
+        314,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-small-2-damaged",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        50,
+        314,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-medium-1-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        628,
+        50,
+        314,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-medium-2-damaged",
+      "included": true,
+      "cover": "light",
+      "ballisticHalfHeight": 0.18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        942,
+        50,
+        312,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-large-1-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        380,
+        314,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-large-2-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        380,
+        314,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-large-3-damaged",
+      "included": true,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.6,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        628,
+        380,
+        314,
+        314
+      ]
+    },
+    {
+      "id": "nature.rock-small-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        710,
+        314,
+        270
+      ]
+    },
+    {
+      "id": "nature.rock-small-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        710,
+        314,
+        270
+      ]
+    },
+    {
+      "id": "nature.rock-medium-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        628,
+        710,
+        314,
+        270
+      ]
+    },
+    {
+      "id": "nature.rock-medium-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        942,
+        710,
+        312,
+        270
+      ]
+    },
+    {
+      "id": "nature.rock-large-1-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        978,
+        314,
+        270
+      ]
+    },
+    {
+      "id": "nature.rock-large-2-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        314,
+        978,
+        314,
+        270
+      ]
+    },
+    {
+      "id": "nature.rock-large-3-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        628,
+        978,
+        314,
+        270
+      ]
+    }
+  ]
+}

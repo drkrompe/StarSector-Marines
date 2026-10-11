@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.tiles.TileDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileCover;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import java.util.List;
  * publish directional edge cover onto adjacent standable cells. This keeps a
  * fixture from rolling both crossing and edge interception for the same shot.
  * Physical-cover storage is allocated lazily on the first covered addition.
- * Physical cover arrays are append-only. Destructible cell-blocking props instead publish
+ * Static prop cover arrays are append-only; nature cover is separately removable. Destructible cell-blocking props instead publish
  * into grid facings; a breach rebakes those facings and restores surviving neighbors.
  */
 public final class DoodadService {
@@ -30,12 +31,15 @@ public final class DoodadService {
     private final List<Doodad> doodads = new ArrayList<>();
     private final CoverPropDamage destructibleCover;
     private final TreeDamage trees;
+    private final RockDamage rocks;
+    /** Mutable overlay cover stays separate from append-only props so shattered rocks can release it. */
+    private TileCover[] natureCoverOnCell;
 
     /**
-     * Per-cell, per-facing cover for doodads and walkable nature overlays.
+     * Per-cell, per-facing cover for static props. Mutable nature cover is merged at query time.
      * Indexed as
      * {@code (y * gridWidth + x) * FACING_COUNT + facing}. Updated on
-     * {@link #addDoodad} or {@link #addNatureOverlayCover}; never decreases
+     * {@link #addDoodad} or {@link #addStaticCover}; never decreases
      * during a battle. Lazy-initialized on first use.
      *
      * <p>Each cell in a feature's authored footprint contributes cover two ways:
@@ -64,7 +68,7 @@ public final class DoodadService {
      * Per-cell physical-cover ballistic half-height by cover level — footprint only,
      * no cardinal-neighbor bleed (unlike {@link #doodadCoverByFacing}). Indexed
      * as {@code grid.index(x, y) * (MAX_COVER + 1) + level}. Lazily allocated
-     * on the first covered doodad or walkable-overlay addition; each level's
+     * on the first covered static prop addition; each level's
      * height is max-merged independently. Exists for
      * ballistic ray crossings ({@link com.dillon.starsectormarines.battle.combat.BallisticResolver}),
      * which must roll a block chance only against a cell a round's ray
@@ -78,6 +82,7 @@ public final class DoodadService {
         this.grid = grid;
         this.destructibleCover = new CoverPropDamage(grid, doodads);
         this.trees = new TreeDamage(grid, doodads);
+        this.rocks = new RockDamage(grid, doodads);
     }
 
     public List<Doodad> getDoodads() { return doodads; }
@@ -114,6 +119,13 @@ public final class DoodadService {
 
     public TreeDamage.Result damageTree(int x, int y, int amount, long attack, TreeDamage.ClearedCell cleared) {
         return trees.damage(x, y, amount, attack, cleared);
+    }
+
+    public RockDamage.Result damageRock(int x, int y, int amount, CellTopology topology) {
+        RockDamage.Result result = rocks.damage(x, y, amount, topology, TileRegistry.installed());
+        if (result == RockDamage.Result.DESTROYED && natureCoverOnCell != null)
+            natureCoverOnCell[grid.index(x, y)] = null;
+        return result;
     }
 
     /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
@@ -163,8 +175,8 @@ public final class DoodadService {
                 TileDef def = registry.byIndex(tileIndex);
                 if (def.cover.level() <= 0) continue;
                 if (def.passable) {
-                    addStaticCover(x, y, def.cover.level(),
-                            def.cover.defaultBallisticHalfHeight());
+                    if (natureCoverOnCell == null) natureCoverOnCell = new TileCover[grid.getWidth() * grid.getHeight()];
+                    natureCoverOnCell[grid.index(x, y)] = def.cover;
                 } else {
                     addDirectionalEdgeCover(x, y, def.cover.level(),
                             def.cover.defaultBallisticHalfHeight());
@@ -198,7 +210,7 @@ public final class DoodadService {
                         : Math.max(existingHeight, ballisticHalfHeight));
     }
 
-    /** Adds one non-doodad physical cover cell, such as a nature overlay. */
+    /** Adds one permanent non-doodad physical cover cell. */
     public void addStaticCover(int cellX, int cellY, int cover,
                                float ballisticHalfHeight) {
         if (cover <= 0 || !grid.inBounds(cellX, cellY)) return;
@@ -251,10 +263,23 @@ public final class DoodadService {
     }
 
     public int getDoodadCoverAtFacing(int x, int y, int facing) {
-        if (doodadCoverByFacing == null) return 0;
         if (!grid.inBounds(x, y)) return 0;
         if (facing < 0 || facing >= NavigationGrid.FACING_COUNT) return 0;
-        return doodadCoverByFacing[(grid.index(x, y) * NavigationGrid.FACING_COUNT) + facing] & 0xFF;
+        int fixed = doodadCoverByFacing == null ? 0 : doodadCoverByFacing[(grid.index(x, y) * NavigationGrid.FACING_COUNT) + facing] & 0xFF;
+        int nx = x, ny = y;
+        switch (facing) {
+            case NavigationGrid.FACING_N -> ny--;
+            case NavigationGrid.FACING_S -> ny++;
+            case NavigationGrid.FACING_E -> nx++;
+            case NavigationGrid.FACING_W -> nx--;
+        }
+        return Math.max(fixed, Math.max(natureCover(x, y).level(), natureCover(nx, ny).level()));
+    }
+
+    private TileCover natureCover(int x, int y) {
+        if (natureCoverOnCell == null || !grid.inBounds(x, y)) return TileCover.NONE;
+        TileCover cover = natureCoverOnCell[grid.index(x, y)];
+        return cover == null ? TileCover.NONE : cover;
     }
 
     /**
@@ -276,15 +301,17 @@ public final class DoodadService {
      * clears every stacked prop; no neighbor-facing cover participates.
      */
     public int getDoodadLevelOnCell(int x, int y, float roundZ) {
-        if (doodadHalfHeightByLevelOnCell == null) return 0;
         if (!grid.inBounds(x, y)) return 0;
         int base = grid.index(x, y) * (NavigationGrid.MAX_COVER + 1);
         float absZ = Math.abs(roundZ);
-        for (int level = NavigationGrid.MAX_COVER; level > 0; level--) {
+        TileCover nature = natureCover(x, y);
+        int natureLevel = nature.defaultBallisticHalfHeight() > 0 && absZ <= nature.defaultBallisticHalfHeight() ? nature.level() : 0;
+        if (doodadHalfHeightByLevelOnCell == null) return natureLevel;
+        for (int level = NavigationGrid.MAX_COVER; level > natureLevel; level--) {
             float halfHeight = doodadHalfHeightByLevelOnCell[base + level];
             if (halfHeight > 0f && absZ <= halfHeight) return level;
         }
-        return 0;
+        return natureLevel;
     }
 
     /** Package-visible diagnostic for deterministic stacked-profile tests. */
@@ -298,13 +325,11 @@ public final class DoodadService {
 
     /** Direction-agnostic doodad cover at (x, y) — max across all 4 facings. Back-compat accessor for {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#findFallbackPosition} and other callers that don't carry a threat direction. */
     public int getDoodadCoverAt(int x, int y) {
-        if (doodadCoverByFacing == null) return 0;
         if (!grid.inBounds(x, y)) return 0;
-        int base = grid.index(x, y) * NavigationGrid.FACING_COUNT;
-        int n = doodadCoverByFacing[base    ] & 0xFF;
-        int e = doodadCoverByFacing[base + 1] & 0xFF;
-        int s = doodadCoverByFacing[base + 2] & 0xFF;
-        int w = doodadCoverByFacing[base + 3] & 0xFF;
+        int n = getDoodadCoverAtFacing(x, y, NavigationGrid.FACING_N);
+        int e = getDoodadCoverAtFacing(x, y, NavigationGrid.FACING_E);
+        int s = getDoodadCoverAtFacing(x, y, NavigationGrid.FACING_S);
+        int w = getDoodadCoverAtFacing(x, y, NavigationGrid.FACING_W);
         return Math.max(Math.max(n, e), Math.max(s, w));
     }
 }
