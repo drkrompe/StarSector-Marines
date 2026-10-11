@@ -45,6 +45,8 @@ public final class WaylineArc {
                     + "Cr. 6,000 on success; then we can deal with the depot.";
             case COUNTERATTACK -> "Their assault is broken. Recovered traffic logs identify the occupied Wayline depot"
                     + location + ". Land at the western staging apron and advance with our militia through the freight gate, loading yard and dispatch warehouse. "
+                    + "Our Hound, Wayward, is offline in the maintenance berth just beyond the gate. Secure the berth and keep a squad there while they bring its chaingun online. "
+                    + "Use it for the push into dispatch; direct control is optional. Win the depot and the walker is yours, including recovery and repair if it is knocked out. "
                     + "Expect gate guards and a reserve deeper inside. Eliminate the bandit force. We provide one shuttle; "
                     + "your company needs lift for two sorties. Cr. 9,000 on success, and I'll vouch for your company "
                     + "with Independent brokers. Let's give our drivers their road back.";
@@ -80,6 +82,9 @@ public final class WaylineArc {
             report += " We'll see to the families of the militia we lost.";
         }
         if (outcome.marinesLost > 0) report += " I'm sorry for your company's losses.";
+        if (WaylineHoundAward.eligible(outcome)) report += outcome.waylineHound.disabled()
+                ? " We've recovered Wayward's wreck and repaired the chassis. The Hound is yours: one chaingun, empty missile mounts. You'll find it in the Mech Lab. We'll arrange heavy lift for your active lance on the supply-route jobs."
+                : " Wayward is signed over to your company: one Hound, one chaingun, empty missile mounts. You'll find it in the Mech Lab. We'll arrange heavy lift for your active lance on the supply-route jobs.";
         return report;
     }
 }

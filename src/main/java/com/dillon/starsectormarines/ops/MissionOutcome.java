@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -33,6 +34,7 @@ public final class MissionOutcome {
     /** Stable story-person outcomes; separate from representative population scaling. */
     public final LastLiftProgress.Outcome lastLiftOutcome;
     public final FreightRunProgress.Outcome freightOutcome;
+    public final WaylineHoundRecovery.Report waylineHound;
     public final boolean        victory;
     public final String         missionId;
     public final String         missionName;
@@ -133,6 +135,7 @@ public final class MissionOutcome {
     private MissionOutcome(Builder b) {
         this.lastLiftOutcome    = b.lastLiftOutcome;
         this.freightOutcome = b.freightOutcome;
+        this.waylineHound = b.waylineHound;
         this.victory            = b.victory;
         this.missionId          = b.missionId;
         this.missionName        = b.missionName;
@@ -201,6 +204,7 @@ public final class MissionOutcome {
 
         private LastLiftProgress.Outcome lastLiftOutcome;
         private FreightRunProgress.Outcome freightOutcome;
+        private WaylineHoundRecovery.Report waylineHound;
         private boolean victory;
         private String missionId;
         private String missionName;
@@ -281,6 +285,7 @@ public final class MissionOutcome {
         }
 
         public Builder freightOutcome(FreightRunProgress.Outcome outcome) { this.freightOutcome = outcome; return this; }
+        public Builder waylineHound(WaylineHoundRecovery.Report report) { this.waylineHound = report; return this; }
         public Builder lastLiftOutcome(LastLiftProgress.Outcome outcome) {
             this.lastLiftOutcome = outcome;
             return this;

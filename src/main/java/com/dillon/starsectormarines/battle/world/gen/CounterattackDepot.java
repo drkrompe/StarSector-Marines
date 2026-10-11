@@ -30,6 +30,7 @@ import java.util.Random;
 /** The second Wayline chapter buys space for approach, yard and depot fighting. */
 public final class CounterattackDepot {
     public static final int WIDTH = 160, HEIGHT = 96;
+    public static final int HOUND_X = 84, HOUND_Y = 39;
     public record Layout(MapResult map, PointOfInterest depot, List<Place> stages) {}
     private CounterattackDepot() {}
 
@@ -53,6 +54,7 @@ public final class CounterattackDepot {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Depot berth obstructed");
         for (Place place : stages) requireRoute(map, place.x(), place.y());
         for (PointOfInterest place : c.pois) requireRoute(map, place.interiorAnchorX, place.interiorAnchorY);
+        requireRoute(map, HOUND_X, HOUND_Y);
         for (LandingPad pad : map.landingPads) requireRoute(map, pad.centerX, pad.centerY);
         for (RoadGraph.Edge edge : map.roadGraph.edges()) for (int i = 0; i < edge.cellsX.length; i++)
             if (!map.grid.isWalkable(edge.cellsX[i], edge.cellsY[i])) throw new IllegalStateException("Depot freight route obstructed");
@@ -143,6 +145,9 @@ public final class CounterattackDepot {
     }
     private static void cargo(GenContext c) {
         StoryServiceYard yard = new StoryServiceYard(c);
+        // Open maintenance berth behind the freight gate; its approach stays
+        // sits beside the loading dogleg, south of the weigh office.
+        yard.bay(82, 38, 86, 40);
         // Inbound trailer court, outside the gate's line of advance.
         yard.gravel(39, 8, 59, 17);
         yard.fence(39, 8, 59, 17);

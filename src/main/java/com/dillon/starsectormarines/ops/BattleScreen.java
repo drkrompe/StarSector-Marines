@@ -1276,6 +1276,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // and the plain-RMB pan handler never sees it. Plain RMB (no shift)
         // is unclaimed and falls through to pan.
         if (Display.isCreated() && Display.isActive() && Keyboard.isCreated()) {
+            directControlInput.reconcileToggleKeyRelease(Keyboard.isKeyDown(Keyboard.KEY_TAB));
             directControlInput.reconcileAbilityKeyReleases(
                     Keyboard.isKeyDown(Keyboard.KEY_E), Keyboard.isKeyDown(Keyboard.KEY_G));
             directControlInput.reconcileShiftKeyReleases(

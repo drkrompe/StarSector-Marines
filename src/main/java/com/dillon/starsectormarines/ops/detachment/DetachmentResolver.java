@@ -60,8 +60,8 @@ public final class DetachmentResolver {
                                      FlybyRoster committedWings,
                                      List<FleetMemberAPI> committedPowerSources) {
         List<ShuttleAssignment> manifest = buildShuttleManifest(m, committedShuttles);
-        if (SupplyRouteCampaign.isBattle(m)) return new Detachment(manifest, FlybyRoster.EMPTY, List.of());
-        FlybyRoster marineWings = FlybyRoster.combine(m.clientFighterSupport, committedWings);
+        FlybyRoster marineWings = SupplyRouteCampaign.isBattle(m) ? FlybyRoster.EMPTY
+                : FlybyRoster.combine(m.clientFighterSupport, committedWings);
         List<CommandPower> powers = PowerCatalog.resolve(
                 committedPowerSources, m, campaignMechDeployment());
         return new Detachment(manifest, marineWings, powers);

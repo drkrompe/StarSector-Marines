@@ -1136,6 +1136,13 @@ public final class BattleSetup {
     public static BattleSimulation createOpeningOperation(
             long seed, List<ShuttleAssignment> manifest, int employerShips,
             OpeningOperationKind kind, TargetProfile profile) {
+        return createOpeningOperation(seed, manifest, employerShips, kind, profile, false);
+    }
+
+    /** The unique Wayline chapter may include its recoverable walker; repeatables never do. */
+    public static BattleSimulation createOpeningOperation(
+            long seed, List<ShuttleAssignment> manifest, int employerShips,
+            OpeningOperationKind kind, TargetProfile profile, boolean recoverHound) {
         if (kind == null) throw new IllegalArgumentException(
                 "opening operation kind is required");
 
@@ -1267,6 +1274,8 @@ public final class BattleSetup {
         if (depot != null) sim.setAutonomousCommander(Faction.ALLY,
                 new OpeningOperationCommand(Faction.ALLY), disclosure);
         sim.installOpeningStoryHooks(commandFacts);
+        if (recoverHound && depot != null)
+            sim.installWaylineHound(CounterattackDepot.HOUND_X, CounterattackDepot.HOUND_Y);
         return sim;
     }
 
@@ -1319,6 +1328,7 @@ public final class BattleSetup {
                 throw new IllegalStateException("Junction reserve command handoff failed");
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY), ConquestCommandDisclosure.INSTANCE);
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(JunctionCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installJunctionStoryHooks();
         return sim;
     }
@@ -1372,6 +1382,7 @@ public final class BattleSetup {
                     cell[0], cell[1], rng).role(UnitRole.PATROL));
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new RelayNineCommand(faction), ConquestCommandDisclosure.INSTANCE);
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(RelayNineCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installRelayNine(reserve);
         return sim;
     }
@@ -1433,6 +1444,7 @@ public final class BattleSetup {
                     cell[0], cell[1], rng).role(UnitRole.PATROL));
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
             sim.setAutonomousCommander(faction, new ThunderRunCommand(faction), ConquestCommandDisclosure.INSTANCE);
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(ThunderRunCommand.issuer(Faction.MARINE), "Company support joins the operation"));
         sim.installThunderRun(attempt, delivered, reserve);
         return sim;
     }
@@ -1446,6 +1458,7 @@ public final class BattleSetup {
         MapResult map = layout.map();
         BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
         sim.getBattleResources().disableCompoundProduction();
+        sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission("rescue-corridor", "Company support joins the operation"));
         var payload = CivilianEvacuationPayload.installAuthored(sim, layout.placement(), "RILL-CREW", "Rill work crew", true);
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
         Random rng = new Random(seed);

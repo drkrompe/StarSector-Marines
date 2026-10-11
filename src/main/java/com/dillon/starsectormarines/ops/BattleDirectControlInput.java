@@ -35,11 +35,15 @@ final class BattleDirectControlInput {
             boolean pointer = event.isMouseMoveEvent() || event.isLMBDownEvent()
                     || event.isLMBUpEvent() || event.isRMBDownEvent()
                     || event.isRMBUpEvent() || event.isMouseScrollEvent();
+            boolean toggleKey = (event.isKeyDownEvent() || event.isKeyUpEvent())
+                    && event.getEventValue() == Keyboard.KEY_TAB;
             samples.add(new Sample(event, event.isKeyDownEvent(), event.isKeyUpEvent(),
                     event.isKeyDownEvent() || event.isKeyUpEvent() ? event.getEventValue() : 0,
                     pointer, pointer ? event.getX() : 0f, pointer ? event.getY() : 0f,
                     event.isLMBDownEvent(), event.isLMBUpEvent(),
                     event.isRMBDownEvent() || event.isRMBUpEvent()));
+            // Reserve Tab before retained UI can turn it into focus traversal.
+            if (toggleKey) event.consume();
         }
         return samples;
     }
@@ -72,7 +76,7 @@ final class BattleDirectControlInput {
             boolean newShiftPress = sample.keyDown && shiftKey(sample.key)
                     && !shiftKeyHeld(sample.key);
             if (sample.keyDown) setShiftKeyHeld(sample.key, true);
-            if (sample.keyUp && sample.key == Keyboard.KEY_C) toggleHeld = false;
+            if (sample.keyUp && sample.key == Keyboard.KEY_TAB) toggleHeld = false;
             int weaponKey = weaponKey(sample.key);
             if (sample.keyUp && weaponKey >= 0) weaponKeyHeld[weaponKey] = false;
             int abilityKey = abilityKey(sample.key);
@@ -85,13 +89,13 @@ final class BattleDirectControlInput {
                 sample.event.consume();
                 continue;
             }
-            if (sample.event.isConsumed()) continue;
-            if (sample.keyDown && sample.key == Keyboard.KEY_C) {
+            if (sample.keyDown && sample.key == Keyboard.KEY_TAB) {
                 if (!toggleHeld) toggle.run();
                 toggleHeld = true;
                 sample.event.consume();
                 continue;
             }
+            if (sample.event.isConsumed()) continue;
             if (!active) continue;
             if ((sample.keyDown || sample.keyUp) && abilityKey >= 0) {
                 if (newAbilityPress) requestAbility.test(abilityKey == 0
@@ -166,11 +170,16 @@ final class BattleDirectControlInput {
     }
 
     void releaseHeld() {
-        north = south = west = east = firing = toggleHeld = leftShift = rightShift = false;
+        north = south = west = east = firing = leftShift = rightShift = false;
         for (int i = 0; i < weaponKeyHeld.length; i++) weaponKeyHeld[i] = false;
         // Ability presses have no held intent. Keep their physical debounce until
         // keyup so pause, rejected input, or handback cannot turn repeat into a new use.
     }
+    /** A missed Tab keyup can rearm the shortcut; a physical hold cannot activate it. */
+    void reconcileToggleKeyRelease(boolean held) {
+        if (!held) toggleHeld = false;
+    }
+
     /** Reconcile releases the host may have missed while unfocused; observations never activate. */
     void reconcileAbilityKeyReleases(boolean shieldHeld, boolean smokeHeld) {
         if (!shieldHeld) abilityKeyHeld[0] = false;

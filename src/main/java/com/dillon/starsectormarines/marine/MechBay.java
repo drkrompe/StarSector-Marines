@@ -102,6 +102,17 @@ public final class MechBay implements Serializable {
         return squad != null && squad.mechs().size() < CampaignMechSquad.CAPACITY;
     }
 
+    /** Retains a recovered chassis even when the existing gantries are full. */
+    public boolean receiveRecoveredMech(CampaignMech mech) {
+        if (mech == null || mechById(mech.id()) != null) return false;
+        for (CampaignMechSquad squad : squads) {
+            if (canAddMech(squad.id())) return addMech(squad.id(), mech);
+        }
+        CampaignMechSquad recovery = new CampaignMechSquad("recovery_" + mech.id(), "Recovered walkers");
+        squads.add(recovery);
+        return addMech(recovery.id(), mech);
+    }
+
     /** Builds one standard-fit chassis into a vacant gantry in the selected lance. */
     public CampaignMech fabricateChassis(String squadId, MechVariant variant) {
         if (variant == null || !canAddMech(squadId)) return null;

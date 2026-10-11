@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — Mara's narration covers both story arcs; attempt identities resolve to stable chapters.
+Updated: 2026-10-11 — Counterattack introduces a recoverable company walker; later chapters carry owned mechs.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -36,7 +36,8 @@ not a simulated change to vanilla market ownership, trade, or faction relations.
    the depot chapter. Recovered traffic logs connect the two operations; the
    story does not require or invent surviving militia witnesses.
 2. **Take Back the Depot**: join the local advance and eliminate the depot's
-   bandit force. Successful settlement pays 9,000 credits and closes the arc.
+   bandit force. Secure Wayline's offline Hound for the push into dispatch.
+   Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
    Mara reports that dispatch can resume and refers the company to other
    Independent brokers. Her completed dossier preserves both chapter labels.
 
@@ -144,7 +145,12 @@ squad, preserving its NCO, fire-team billets and command group; a berth is not
 a separate tactical destination. Arrival assembly counts every member once and
 releases the squad's duty when its committed strength has landed.
 Employer militia and the twelve-seat civilian pickup remain separate forces.
-These small ground operations supply no fighter cover or mech-support powers.
+Wayline supplies heavy lift for the company's active mech lance on these chapters
+and their recurring jobs. Mech Support carries only owned chassis with their
+frozen installed equipment; an empty bay grants no substitute walker. The company
+selects the support power in its briefing and calls it onto clear ground during
+battle. Arriving mechs join that operation's mission commander and remain eligible
+for optional direct control. Fighter cover and other strategic powers remain absent.
 
 The arc owns a versioned save record, including its frozen site, commitment,
 current job and attempt, story outcome and awards. Unknown or inconsistent
@@ -250,6 +256,25 @@ infantry maneuver space. Varied freight sheds enclose loading and maintenance
 courts; truck bays, cargo and a fenced trailer court establish the depot's use.
 The weigh office, dispatch interior, gate cover and reserve/fallback places
 remain fixed when those peripheral structures change.
+
+The story depot contains **Wayward**, Wayline's offline light Hound, in a marked
+maintenance berth beyond the gate. It is inert neutral equipment until company
+infantry reaches it. Clear sight from nearby infantry reveals the berth; five
+continuous seconds of nearby, uncontested company presence brings the walker
+online. Leaving or enemy pressure resets that work. Its close-range chaingun is
+the whole weapon fit; both missile mounts remain empty. Startup preserves damage
+already taken. The walker joins the company's depot advance without requiring
+manual play. A radio prompt offers Tab to take control, WASD movement and mouse
+fire; Tab or Escape returns it to its crew. No automatic takeover interrupts the
+company's orders.
+
+Victory transfers the recovered chassis and its installed fit to the persistent
+Mech Bay once. Wayline recovers and repairs it even if destroyed or left offline,
+so learning the controls cannot permanently lose the introductory reward.
+Defeat or withdrawal grants nothing; a later successful attempt can still earn
+it. The award cannot repeat on settlement replay, completed legacy chapters or
+recurring depot work. Full gantries retain the reward in a separate recovery
+group rather than overwriting an existing asset. Existing owned mechs are preserved.
 
 Employer troops advance under separate allied mission authority alongside the
 company. Each attacking squad progresses through the three places from its own

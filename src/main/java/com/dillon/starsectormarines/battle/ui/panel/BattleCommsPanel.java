@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.comms.BattleCommsFeed;
 import com.dillon.starsectormarines.battle.ui.comms.CounterattackCommsPresenter;
+import com.dillon.starsectormarines.battle.ui.comms.WaylineHoundCommsPresenter;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
@@ -51,6 +52,7 @@ public final class BattleCommsPanel implements HudPanel {
     private final BattleUiContext ctx;
     private final BattleCommsFeed feed = new BattleCommsFeed();
     private final CounterattackCommsPresenter counterattackPresenter = new CounterattackCommsPresenter();
+    private final WaylineHoundCommsPresenter houndPresenter = new WaylineHoundCommsPresenter();
     private final BitmapFont font = Fonts.ORBITRON_20;
     private float wallClock;
 
@@ -62,6 +64,7 @@ public final class BattleCommsPanel implements HudPanel {
     public void update(float dt) {
         feed.update(dt);
         counterattackPresenter.update(ctx.getSim(), feed);
+        houndPresenter.update(ctx.getSim(), feed);
         wallClock += Math.max(0f, dt);
     }
 
@@ -76,6 +79,7 @@ public final class BattleCommsPanel implements HudPanel {
         try {
             CounterattackSystem counterattack = counterattack();
             if (hasActiveSignpost(counterattack)) renderSignpost(counterattack, alphaMult);
+            renderRecoveryBerth(alphaMult);
 
             BattleCommsFeed.Notice notice = feed.activeNotice();
             if (notice != null) renderNotice(notice, alphaMult);
@@ -90,20 +94,35 @@ public final class BattleCommsPanel implements HudPanel {
         if (layout == null) return;
 
         float width = Math.min(PANEL_MAX_W, Math.max(240f, layout.gridW - PANEL_INSET * 2f));
+        float height = Math.max(PANEL_H, 40f + font.measureWrappedHeight(notice.body(), width - PAD * 2f - 4f));
         float x = layout.gridX + (layout.gridW - width) * 0.5f;
-        float y = layout.controlsY - BattleLayout.CONTROLS_GAP - PANEL_H;
+        float y = layout.controlsY - BattleLayout.CONTROLS_GAP - height;
         float fade = Math.min(1f, feed.remainingSec());
         float alpha = alphaMult * fade;
         Color accent = toneColor(notice.tone());
 
         HudDraw.prepBlend();
-        HudDraw.filledRect(x, y, width, PANEL_H, PANEL_BG, alpha);
-        HudDraw.filledRect(x, y, 4f, PANEL_H, accent, alpha);
-        HudDraw.borderRect(x, y, width, PANEL_H, accent, alpha);
+        HudDraw.filledRect(x, y, width, height, PANEL_BG, alpha);
+        HudDraw.filledRect(x, y, 4f, height, accent, alpha);
+        HudDraw.borderRect(x, y, width, height, accent, alpha);
 
-        font.drawString(notice.heading(), x + PAD + 4f, y + PANEL_H - 8f, accent, alpha);
-        font.drawStringWrapped(notice.body(), x + PAD + 4f, y + PANEL_H - 32f,
+        font.drawString(notice.heading(), x + PAD + 4f, y + height - 8f, accent, alpha);
+        font.drawStringWrapped(notice.body(), x + PAD + 4f, y + height - 32f,
                 width - PAD * 2f - 4f, TEXT, alpha);
+    }
+
+    private void renderRecoveryBerth(float alpha) {
+        var sim = ctx.getSim();
+        var recovery = sim == null ? null : sim.getWaylineHound();
+        BattleCamera camera = ctx.getCamera();
+        if (recovery == null || !recovery.found() || recovery.mechId() != 0L
+                || recovery.report(sim).disabled() || sim.isComplete() || camera == null) return;
+        float sx = camera.cellToScreenX(recovery.x()), sy = camera.cellToScreenY(recovery.y());
+        if (!camera.containsScreen(sx, sy)) return;
+        float size = Math.max(12f, camera.cellPxSize() * 2f);
+        HudDraw.prepBlend();
+        HudDraw.borderRect(sx - size, sy - size, size * 2, size * 2, WARNING, alpha);
+        font.drawString("WAYWARD / SECURE BERTH", sx + size + 4, sy, WARNING, alpha);
     }
 
     private void renderSignpost(CounterattackSystem counterattack, float alphaMult) {

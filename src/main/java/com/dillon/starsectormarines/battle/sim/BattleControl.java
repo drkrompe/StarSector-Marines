@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
@@ -31,6 +32,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
  * {@code BattleControl}. See {@code ecs-nouns.md}.
  */
 public interface BattleControl extends BattleView, SquadDirectiveControl {
+
+    /** Authored ownership for player support deliveries; absent on generic battlefields. */
+    default SquadCommandClaim playerSupportCommandClaim() { return null; }
 
     /** Optional battle-owned async routing service; null for the synchronous control. */
     default AsyncDefendTrackRoutes asyncDefendTrackRoutes() { return null; }

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.battle.fixture.CommandPowerCommitment;
+import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
@@ -21,6 +24,19 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PowerCatalogTest {
+
+    @Test void everySupplyRouteBattleCarriesOnlyTheOwnedFitThroughTheFrozenPowerSeam() {
+        for (int operation : new int[]{1, 2, 3, 4}) for (MissionSource source : new MissionSource[]{MissionSource.STORY, MissionSource.RECURRING}) {
+            var mission = Mission.builder().id(BrokenSupplyRouteProgress.PREFIX + operation + "_test")
+                    .name("Route").type(MissionType.ASSAULT).source(source).risk(RiskLevel.LOW).build();
+            assertEquals(List.of(), PowerCatalog.resolve(List.of(), mission, List.of()));
+            var powers = PowerCatalog.resolve(List.of(), mission, List.of(WaylineHound.deployment()));
+            assertEquals(1, powers.size());
+            MechSupport restored = (MechSupport) CommandPowerCommitment.capture(powers.get(0)).toPower();
+            assertEquals(List.of(WaylineHound.deployment()), restored.deployments());
+        }
+    }
+
 
     @Test
     void valkyrieCommitsEveryGroundSupportCapabilityItCarries() {

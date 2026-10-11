@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.power.MarineInsertion;
 import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -73,6 +74,12 @@ public final class PowerCatalog {
     /** Resolve powers and, when sourced, configure Mech Support from campaign inventory. */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
                                              List<MechDeploymentSpec> configuredMechs) {
+        // Wayline arranges the heavy lift, but supplies no free chassis. Empty
+        // bays must not fall through MechSupport's legacy debug default.
+        if (SupplyRouteCampaign.isBattle(m)) {
+            return configuredMechs == null || configuredMechs.isEmpty() ? List.of()
+                    : List.of(MechSupport.configured(configuredMechs));
+        }
         Map<String, CommandPower> byId = new LinkedHashMap<>();
 
         // Dev convenience — grant recon ping for free (see DevConfig). Off in prod.

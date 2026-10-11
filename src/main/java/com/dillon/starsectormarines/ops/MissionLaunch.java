@@ -216,7 +216,8 @@ public final class MissionLaunch {
             builder = () -> BattleSetup.createOpeningOperation(seed,
                     constructionDetachment.shuttleManifest,
                     DetachmentResolver.employerPhysicalShipCount(m),
-                    openingOperation, profile);
+                    openingOperation, profile,
+                    m.source == MissionSource.STORY && openingOperation == OpeningOperationKind.COUNTERATTACK);
         } else if (isSilentColonyBattle(m)) {
             builder = () -> BattleSetup.createSilentColony(seed,
                     m.campaignEventThreatSeed, m.civiliansAtRisk,

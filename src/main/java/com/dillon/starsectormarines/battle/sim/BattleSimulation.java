@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
@@ -94,6 +95,7 @@ import com.dillon.starsectormarines.battle.command.objective.FreightConvoyObject
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommandFacts;
 import com.dillon.starsectormarines.battle.command.CommandStrategy;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.CommandFrame;
 import com.dillon.starsectormarines.battle.command.CommandFrameDisclosure;
 import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
@@ -407,6 +409,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final ReinforcementService reinforcement = new ReinforcementService();
     private final StoryBeatLog storyBeats = new StoryBeatLog();
     private OpeningOperationStoryObserver openingStory;
+    private WaylineHoundRecovery waylineHound;
+    private SquadCommandClaim playerSupportCommandClaim;
+
+    public void installWaylineHound(int x, int y) {
+        if (simTickIndex != 0 || waylineHound != null) throw new IllegalStateException("Install recovery once at setup");
+        waylineHound = new WaylineHoundRecovery(this, x, y, storyBeats);
+    }
+
+    public WaylineHoundRecovery getWaylineHound() { return waylineHound; }
     private JunctionStoryObserver junctionStory;
     private RelayNineStoryObserver relayNineStory;
     private ThunderRunSequence thunderRun;
@@ -1596,6 +1607,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(handler);
     }
 
+    /** Scenario-owned command handoff for later player support arrivals. */
+    public void setPlayerSupportCommandClaim(SquadCommandClaim claim) {
+        if (simTickIndex != 0) throw new IllegalStateException("Support command belongs to battle setup");
+        playerSupportCommandClaim = claim;
+    }
+
+    @Override public SquadCommandClaim playerSupportCommandClaim() { return playerSupportCommandClaim; }
+
     /** Install (or replace) the strategic commander for one faction. Pass {@code null} to clear. Typically called once during {@code BattleSetup} per faction that wants the layer. */
     public void setCommander(Faction faction, MissionCommand commander) {
         commanders.setCommander(faction, commander);
@@ -2336,6 +2355,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (lastLiftSequence != null) lastLiftSequence.tick(this);
         if (relayNineSequence != null) relayNineSequence.tick(this);
         if (thunderRun != null) thunderRun.tick(this);
+        if (waylineHound != null) waylineHound.tick(this);
         objectivesService.tick(o -> o.tick(this));
         tickProfile.lap(TickProfile.Phase.OBJECTIVES);
         // Single navigation-topology drain for the whole tick — takes any wall
