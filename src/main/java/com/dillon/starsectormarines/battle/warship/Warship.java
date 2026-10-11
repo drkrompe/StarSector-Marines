@@ -41,6 +41,8 @@ public final class Warship {
         LanceSweepSystem.Active lance;
         /** Rounds this mount has fired, for evidence. */
         public int shotsFired;
+        /** Hostile ordnance a point-defence mount has shot down, for evidence. */
+        public int intercepts;
         /** Where the barrel points now, in the hull-facing convention; rests along the slot until it has a target. */
         public float headingDegrees;
         /** Seconds since this mount last fired; large until it first does. */
@@ -49,6 +51,11 @@ public final class Warship {
         Mount(WarshipSlot slot, VanillaWeapon weapon) {
             this.slot = slot;
             this.weapon = weapon;
+        }
+
+        /** Whether this mount only shoots down ordnance; it is {@link WarshipPointDefence}'s, not an area-fire gun. */
+        public boolean pointDefence() {
+            return weapon.pointDefenceOnly();
         }
     }
 
@@ -271,8 +278,8 @@ public final class Warship {
 
     /**
      * Fits {@code hullId} as {@code variantId} names, over {@code (x, y)}. A slot
-     * whose weapon is unknown, or is point defence that only shoots down
-     * ordnance, is left empty.
+     * whose weapon is unknown is left empty. Point defence is mounted like any
+     * gun and told apart by {@link Mount#pointDefence()}.
      */
     public static Warship fit(String hullId, String variantId, Faction faction,
                               float x, float y, float facingDegrees) throws Exception {
@@ -281,7 +288,7 @@ public final class Warship {
         List<Mount> mounts = new ArrayList<>();
         for (WarshipSlot slot : WarshipSlot.parse(hull)) {
             VanillaWeapon weapon = VanillaWeapons.get(loadout.get(slot.id()));
-            if (weapon == null || weapon.pointDefenceOnly()) continue;
+            if (weapon == null) continue;
             Mount mount = new Mount(slot, weapon);
             mount.headingDegrees = facingDegrees + slot.angleDegrees();
             mounts.add(mount);
