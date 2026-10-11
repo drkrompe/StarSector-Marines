@@ -58,9 +58,11 @@ public final class Warship {
         }
     }
 
-    /** Fallback handling for a hull the table does not list, in degrees per second and per second squared. */
-    private static final float DEFAULT_TURN_RATE = 4f;
-    private static final float DEFAULT_TURN_ACCEL = 4f;
+    /** The hull's handling from its table row, in cells for travel and degrees for turning. */
+    private record Handling(float maxSpeed, float accel, float decel, float turnRate, float turnAccel) {}
+
+    /** A battleship's handling, used for a hull the table does not list. */
+    private static final Handling DEFAULT_HANDLING = new Handling(1.1f, 0.4f, 0.4f, 4f, 4f);
 
     public final String hullId;
     public final String spritePath;
@@ -73,6 +75,21 @@ public final class Warship {
     /** The hull's own maximum turn rate and turn acceleration. */
     public final float maxTurnDegPerSec;
     public final float turnAccelDegPerSec2;
+    /** Hover translation limits, in cells per second and per second squared. */
+    public final float maxSpeed;
+    public final float acceleration;
+    public final float deceleration;
+    float velocityX;
+    float velocityY;
+    private float stationX;
+    private float stationY;
+    private boolean hasStation;
+    private float directorRadius;
+    private boolean directorBringsGunsToBear;
+    private boolean directing;
+    float areaEmptySeconds;
+    float headingChosenAtX;
+    float headingChosenAtY;
     public float x;
     public float y;
     public float facingDegrees;
@@ -85,15 +102,18 @@ public final class Warship {
     private final List<Mount> mountsView;
 
     private Warship(String hullId, String spritePath, float lengthCells, float pivotX, float pivotY,
-                    float maxTurn, float turnAccel,
+                    Handling handling,
                     Faction faction, float x, float y, float facingDegrees, List<Mount> mounts) {
         this.hullId = hullId;
         this.spritePath = spritePath;
         this.lengthCells = lengthCells;
         this.pivotX = pivotX;
         this.pivotY = pivotY;
-        this.maxTurnDegPerSec = maxTurn;
-        this.turnAccelDegPerSec2 = turnAccel;
+        this.maxTurnDegPerSec = handling.turnRate();
+        this.turnAccelDegPerSec2 = handling.turnAccel();
+        this.maxSpeed = handling.maxSpeed();
+        this.acceleration = handling.accel();
+        this.deceleration = handling.decel();
         this.faction = faction;
         this.x = x;
         this.y = y;
@@ -123,6 +143,64 @@ public final class Warship {
 
     void markHeadingChosen() {
         headingChosen = true;
+        headingChosenAtX = x;
+        headingChosenAtY = y;
+    }
+
+    /** Orders the ship to hover over {@code (stationX, stationY)}, arriving at its own speed and braking onto it. */
+    public void stationTo(float targetX, float targetY) {
+        this.stationX = targetX;
+        this.stationY = targetY;
+        this.hasStation = true;
+    }
+
+    boolean hasStation() {
+        return hasStation;
+    }
+
+    float stationX() {
+        return stationX;
+    }
+
+    float stationY() {
+        return stationY;
+    }
+
+    /** Whether the ship is still travelling to its station. */
+    public boolean isMoving() {
+        return velocityX != 0f || velocityY != 0f
+                || (hasStation && (x != stationX || y != stationY));
+    }
+
+    /**
+     * Puts the ship's targeting in the hands of a director: it picks the densest
+     * hostile concentration within {@code radius} that is not already being worked,
+     * and picks again when that ground is empty. The order it issues is an
+     * ordinary {@link WarshipOrder.FireOnArea}.
+     */
+    public void direct(float radius, boolean bringGunsToBear) {
+        if (!(radius > 0f)) throw new IllegalArgumentException("a director needs an area radius");
+        this.directorRadius = radius;
+        this.directorBringsGunsToBear = bringGunsToBear;
+        this.directing = true;
+        this.areaEmptySeconds = Float.MAX_VALUE;
+    }
+
+    /** Takes targeting back from the director; the standing order stays until replaced. */
+    public void stopDirecting() {
+        this.directing = false;
+    }
+
+    boolean isDirected() {
+        return directing;
+    }
+
+    float directorRadius() {
+        return directorRadius;
+    }
+
+    boolean directorBringsGunsToBear() {
+        return directorBringsGunsToBear;
     }
 
     /**
@@ -150,24 +228,27 @@ public final class Warship {
         // authored centre of gravity, so the CoG stays fixed at the body.
         float pivotX = c == null ? 0f : (w / 2f - (float) c.optDouble(0)) * k;
         float pivotY = c == null ? 0f : (h / 2f - (float) c.optDouble(1)) * k;
-        float[] turn = handling(hullId);
+        Handling handling = handling(hullId);
         return new Warship(hullId, hull.optString("spriteName"), h * k, pivotX, pivotY,
-                turn[0], turn[1], faction, x, y, facingDegrees, mounts);
+                handling, faction, x, y, facingDegrees, mounts);
     }
 
-    /** {@code [max turn rate, turn acceleration]} from the hull table, or the battleship default. */
-    private static float[] handling(String hullId) {
+    /** The hull's handling from the table, or a battleship's. */
+    private static Handling handling(String hullId) {
         try {
             for (Map<String, String> row : VanillaData.csv("data/hulls/ship_data.csv")) {
                 if (!hullId.equals(row.get("id"))) continue;
-                return new float[]{
-                        positive(row.get("max turn rate"), DEFAULT_TURN_RATE),
-                        positive(row.get("turn acceleration"), DEFAULT_TURN_ACCEL)};
+                return new Handling(
+                        WarshipScale.cells(positive(row.get("max speed"), DEFAULT_HANDLING.maxSpeed() / WarshipScale.cells(1f))),
+                        WarshipScale.cells(positive(row.get("acceleration"), DEFAULT_HANDLING.accel() / WarshipScale.cells(1f))),
+                        WarshipScale.cells(positive(row.get("deceleration"), DEFAULT_HANDLING.decel() / WarshipScale.cells(1f))),
+                        positive(row.get("max turn rate"), DEFAULT_HANDLING.turnRate()),
+                        positive(row.get("turn acceleration"), DEFAULT_HANDLING.turnAccel()));
             }
         } catch (Exception e) {
-            // A hull whose handling cannot be read turns like a battleship.
+            // A hull whose handling cannot be read handles like a battleship.
         }
-        return new float[]{DEFAULT_TURN_RATE, DEFAULT_TURN_ACCEL};
+        return DEFAULT_HANDLING;
     }
 
     private static float positive(String value, float fallback) {
