@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -40,7 +42,7 @@ public final class JunctionCompound {
         new GenRecipe("Open the Junction", List.of(JunctionCompound::grounds,
                 JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                JunctionCompound::yardSurfaces, new FinalizeStage())).run(c);
+                JunctionCompound::yardSurfaces, JunctionCompound::terrain, new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
                 10, 9, 40, 60, Faction.MARINE, 20, 0));
@@ -105,6 +107,16 @@ public final class JunctionCompound {
         for(int y=0;y<c.height;y++) for(int x=0;x<c.width;x++)
             if(c.topology.getGroundKind(x,y)==GroundKind.COURTYARD && !c.topology.isWall(x,y))
                 c.topology.setSurface(x,y,concrete[RoadRasterizer.age(y>62 ? .35 : .55,5119,x,y)]);
+    }
+    private static void terrain(GenContext c) {
+        // Reserve the complete western landing approach, including the open ground
+        // outside the apron. Aircraft do not gain altitude collision from this mask.
+        boolean[] reserved = new boolean[c.width * c.height];
+        for (LandingPad pad : c.landingPads)
+            for (int y = Math.max(0, pad.bottom() - 2); y <= Math.min(c.height - 1, pad.top() + 2); y++)
+                for (int x = 0; x <= pad.right() + 2; x++) reserved[y * c.width + x] = true;
+        TerrainBrush.stamp(TerrainCatalog.plan(TerrainCatalog.JUNCTION,
+                c.get(BspKeys.MARKET_PROFILE).surface()), c.grid, c.topology, reserved);
     }
     private static void buildings(GenContext c) {
         shell(c, 61, 39, 77, 52, Frontage.BOTTOM); // Weigh station by the inbound gate.

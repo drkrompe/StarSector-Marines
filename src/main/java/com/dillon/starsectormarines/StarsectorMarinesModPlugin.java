@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingDollCatalog;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.fit.layout.RoomLayoutCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
@@ -84,6 +85,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // it, which is a worse room and not a broken ship.
         RoomLayoutCatalog.loadBuiltins();
         RoadCatalog.loadBuiltins();
+        TerrainCatalog.loadBuiltins();
         WaylineNarration.loadBuiltins();
         CompanyOfficer.loadBuiltins();
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
