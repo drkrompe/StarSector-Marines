@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored spline roads share topology and rendering with the workbench; pavement wear remains visual.
+Updated: 2026-10-11 — authored building stamps add concave plans and distinct materials; spline roads share topology and rendering with the workbench, with visual pavement wear.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -196,6 +196,24 @@ or an already-claimed compound, but it must not infer a multi-leaf building by
 overwriting roads or neighboring fills after dispatch. Cross-leaf structures
 therefore require an explicit planning stage that publishes the claimed
 footprint and its circulation obligations.
+
+Ordinary city buildings mix procedural shells with authored **building stamps**.
+A stamp owns its occupied footprint, room connections, entrances, firing recesses,
+fixtures and material pairing in one local frame. A cardinal placement rotates
+all of those together; it never stretches a plan to fit a parcel. Selection tries
+only fitting poses and retains procedural shells for smaller or oversized lots.
+L-shaped wings, open courts, T-shaped halls and offset loading rooms leave real
+outdoor ground in their cuts: the bounding rectangle is not a building mask and
+must not roof or repaint those cells. Every usable interior and firing recess
+remains reachable through doors with fixtures present, in all four orientations.
+
+Building materials are paired wall, floor and accent surfaces, independent of
+the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and
+olive industrial panels also diversify procedural shells. A stage replacing a
+building clears its material overrides along with its other authored facts;
+destruction clears them so rubble cannot continue drawing an intact wall.
+The `building-stamps` snapshot suite shows the same plans through the battle
+renderer at each cardinal placement.
 
 Ordinary hollow building shells place shared-edge windows on facade runs
 belonging to tactically usable rooms. The former facade wall cell becomes a

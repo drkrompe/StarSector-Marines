@@ -119,6 +119,12 @@ public final class WorldPicker implements HudPanel {
         }
 
         for (InputEventAPI e : events) {
+            if (e.isConsumed()) {
+                // A consumed event's data is inaccessible (getX throws); if it ended our
+                // gesture, abandon it rather than leave the drag stuck.
+                if (primaryGestureActive && e.isLMBUpEvent()) primaryGestureActive = false;
+                continue;
+            }
             if (primaryGestureActive && e.isLMBUpEvent()) {
                 updateDragPointer(camera, e.getX(), e.getY());
                 completePrimaryGesture(sim, camera);
@@ -131,7 +137,6 @@ public final class WorldPicker implements HudPanel {
                 e.consume();
                 continue;
             }
-            if (e.isConsumed()) continue;
             if (!e.isLMBDownEvent()) continue;
             if (!camera.containsScreen(e.getX(), e.getY())) continue;
 

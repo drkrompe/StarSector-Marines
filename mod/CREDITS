@@ -106,3 +106,10 @@ Explosions
     explosion01 through explosion09, explosion-muffled-distant
   License: Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)
            https://creativecommons.org/licenses/by-sa/3.0/
+
+Wayline narration
+-----------------
+Mara Venn: generated with ElevenLabs, using Mora - Gritty and Enigmatic
+(voice YHcCpa6SBWnKDaCPZJQR), model eleven_v4, October 2026.
+Dialogue written for Starsector Marines. Source takes and production metadata
+are retained in asset-pipeline/src/tool/resources/audio/wayline/.

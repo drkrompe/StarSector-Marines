@@ -11,14 +11,12 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_COMMERCIAL} leaves. Carves
- * a hollow shell with the polished {@link GroundKind#TILE} floor across the
- * whole interior (fl-2 on the road sheet — same uniform-fill model as
- * residential's INDOOR `fl` blanket) and shop-style props (shelves, desks,
- * chests, crates) drawn from the {@code "COMMERCIAL"} doodad pool.
+ * rotated authored shops or procedural shells, with warm masonry or ceramic
+ * materials and shop-style props (shelves, desks, chests and crates).
  *
  * <p>No dedicated {@code SHOP} POI kind exists yet, so the building is tagged
  * as {@link PointOfInterest.Kind#RESIDENTIAL} for mission-anchor purposes —
- * the visual identity (TILE floor + shop pool) differentiates from residential.
+ * the materials and shop furnishings differentiate them from residential.
  */
 public final class BuildingCommercialFiller implements BlockFiller {
 
@@ -36,6 +34,7 @@ public final class BuildingCommercialFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.COMMERCIAL)) return;
         PointOfInterest poi = BuildingShellCore.carve(leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG);
         if (poi != null) ctx.pois.add(poi);
     }

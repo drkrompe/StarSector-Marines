@@ -252,7 +252,7 @@ public final class GroundRenderSystem implements RenderSystem {
         if (sheet == water) return waterOrigin;
         if (sheet == urbanTile3) return urbanTile3Origin;
         if (sheet == nature) return natureOrigin;
-        return atlas == null ? -1 : atlas.origin(sheet);
+        return -1;
     }
 
     /**
@@ -937,9 +937,7 @@ public final class GroundRenderSystem implements RenderSystem {
             case TileManifest.ROAD_SHEET:   return road;
             case TileManifest.FLOORS_SHEET: return floors;
             case TileManifest.WATER_SHEET:  return water;
-            default:
-                var extra = sprites.additionalGroundSheets().get(sheetPath);
-                return extra == null ? null : extra.sprite();
+            default:                        return sprites.extraTerrainSheet(sheetPath);
         }
     }
 

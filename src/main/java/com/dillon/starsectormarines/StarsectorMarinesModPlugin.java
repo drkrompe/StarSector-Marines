@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines;
 
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
@@ -81,6 +83,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // it, which is a worse room and not a broken ship.
         RoomLayoutCatalog.loadBuiltins();
         RoadCatalog.loadBuiltins();
+        WaylineNarration.loadBuiltins();
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
         // tile registries this is NOT self-defensive: a weapon whose stats failed to
         // load would read zero range and zero damage, so a bad catalog must stop

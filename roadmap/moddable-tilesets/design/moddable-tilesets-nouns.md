@@ -562,8 +562,8 @@ The road authoring layer selects between them; the renderer resolves the chosen
 pool by ordinary stable cell selection. A wear seed controls where age patches
 appear, while tile variants remain coordinate-stable within each pool.
 Additional fixed-grid block sheets load through the catalog in both the game
-and headless renderer. They join the ground atlas when available and retain
-registered per-sheet batches as the fallback; content on a new sheet must not
+and headless renderer. They retain registered per-sheet batches alongside the existing ground atlas;
+content on a new sheet must not
 silently render as an empty cell.
 
 ## Validation and fallback laws

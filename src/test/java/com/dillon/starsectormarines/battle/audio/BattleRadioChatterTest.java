@@ -14,6 +14,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class BattleRadioChatterTest {
 
     @Test
+    void narrationReservesTheSharedChannelWithoutLosingSquadTransitions() {
+        BattleRadioChatter chatter = new BattleRadioChatter(new Random(1));
+        Squad squad = infantry(1, Faction.MARINE);
+        squad.alertLevel = SquadAlertLevel.ENGAGED;
+        var events = new BattleRadioChatter.FrameEvents(List.of(), false, Squad.NO_SQUAD, false, 0, 0);
+        assertNull(chatter.advance(3, List.of(squad), events, false));
+        chatter.reserveVoice(5);
+        squad.moraleBroken = true;
+        assertNull(chatter.advance(10, List.of(squad), events, true));
+        assertEquals(BattleRadioChatter.Cue.FALLBACK,
+                chatter.advance(2, List.of(squad), events, true).cue());
+    }
+
+    @Test
     void contactWaitsForInitialRadioDelay() {
         BattleRadioChatter chatter = new BattleRadioChatter(new Random(1L));
         Squad marines = infantry(7, Faction.MARINE);

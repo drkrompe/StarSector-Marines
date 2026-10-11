@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.audio.NarrationPlayer;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -260,6 +263,8 @@ public class BriefingScreen implements Screen {
     private boolean commandDeckInitialized;
     /** Developer controls are opt-in and never consume briefing width on entry. */
     private boolean debugDrawerExpanded;
+    private final NarrationPlayer narration = new NarrationPlayer();
+    private boolean narrationAutoplay;
 
     /**
      * Debug aircraft-picker selections — keys {@code "<SIDE>|<PROFILE>"} (e.g.
@@ -275,6 +280,7 @@ public class BriefingScreen implements Screen {
         boolean reactivating = input == null;
         this.position = position;
         this.ctx = ctx;
+        if (reactivating) narrationAutoplay = true;
         viewport = MarineOpsUiViewport.from(position);
         if (document == null || reactivating) rebuild();
         else document.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -345,7 +351,7 @@ public class BriefingScreen implements Screen {
         UiDocument built;
         try {
             requireRetainedElements(candidate);
-            BriefingViewModel.applyDebugVisibility(candidate, props);
+            BriefingViewModel.applyVisibility(candidate, props);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onBack);
@@ -383,6 +389,11 @@ public class BriefingScreen implements Screen {
         props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission) + "  ·  "
                 + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
         props.put("missionTitle", mission.name);
+        if (briefingNarration() != null) {
+            props.put("narrationAvailable", true);
+            props.put("replayNarrationAction", (Runnable) () -> narration.start(briefingNarration()));
+            props.put("stopNarrationAction", (Runnable) narration::stop);
+        }
         props.put("missionFlavor", mission.flavor != null ? mission.flavor : "");
         props.put("missionRows", retainedMissionRows(mission));
         BriefingViewModel.putReward(props, mission);
@@ -867,7 +878,7 @@ public class BriefingScreen implements Screen {
             rows.add(BriefingViewModel.info("employer-militia", "Militia", (kind == 3 || kind == 4) ? "8 / two holding detachments" : "6 / local support", ""));
             rows.add(BriefingViewModel.info("employer-transport", "Employer craft", kind == 2 ? "12-seat civilian pickup / separate from insertion" : (kind == 3 || kind == 4) ? "2 Aeroshuttles / militia only" : "1 Aeroshuttle / militia only", ""));
             if (kind == 4) rows.add(BriefingViewModel.info("employer-convoy", "Freight column",
-                    "2 armed APC escorts / 3 cargo carriers; only unresolved cargo retries", ""));
+                    "Heavy tank / 2 APCs / 3 haulers; remaining loads only", ""));
             return List.copyOf(rows);
         }
         rows.add(BriefingViewModel.info("employer-transport", "Landing craft",
@@ -2256,6 +2267,11 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        if (narrationAutoplay) {
+            narrationAutoplay = false;
+            narration.start(briefingNarration());
+        }
+        narration.advance(dt);
         if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
             surveyComplete = true;
             if (survey.failure() != null) LOG.warn("Briefing terrain generation failed", survey.failure());
@@ -2279,11 +2295,18 @@ public class BriefingScreen implements Screen {
 
     @Override
     public void detach() {
+        narrationAutoplay = false;
+        narration.stop();
         survey.close();
         surveyPlan = null;
         if (hints != null) hints.clear();
         if (document != null) document.deactivateInput();
         input = null;
+    }
+
+    private WaylineNarration.Line briefingNarration() {
+        Mission mission = ctx != null ? ctx.getSelectedMission() : null;
+        return WaylineNarration.builtins().find(WaylineNarration.storyMissionId(mission), "briefing");
     }
 
     private void renderFlavor(float alphaMult) {

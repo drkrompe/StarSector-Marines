@@ -10,7 +10,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 
 /**
  * {@link BlockFiller} for {@link BlockKind#BUILDING_INDUSTRIAL} leaves. Carves
- * a yellow safety-striped industrial shell. Lots at least 15x12 cells become
+ * olive-metal workshops and depots, including rotated T and offset plans.
+ * Procedural lots at least 15x12 cells become
  * frontage-aware factories with production and support rooms; smaller lots
  * retain the compact warehouse treatment.
  *
@@ -33,6 +34,7 @@ public final class BuildingIndustrialFiller implements BlockFiller {
 
     @Override
     public void fill(BlockLeaf leaf, GenContext ctx) {
+        if (BuildingStamp.tryPlace(leaf, ctx, BuildingKind.INDUSTRIAL)) return;
         BuildingPlacement placement = new BuildingPlacement(frontage(leaf, ctx), true);
         PointOfInterest poi = BuildingShellCore.carve(
                 leaf, ctx.grid, ctx.topology, ctx.doodads, ctx.rng, CONFIG, placement);

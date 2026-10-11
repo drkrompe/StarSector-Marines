@@ -1,0 +1,11 @@
+{
+  "requestId": "RN9kgEQoqpGEGkLsoRHL",
+  "characterCost": "10",
+  "inputSha256": "7e97e9144606cad8ae163ed561e598fbc1be45f756287ec7b52e1780afcf2488",
+  "audioSha256": "cf8d980dfe52a86d657c0cd2ece5bb142b9b13f27e0556fdfd9d0ded3f1f52be",
+  "voiceId": "YHcCpa6SBWnKDaCPZJQR",
+  "modelId": "eleven_v4",
+  "durationSeconds": 6.08,
+  "outputFormat": "mp3_44100_128",
+  "take": 1
+}
