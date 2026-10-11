@@ -571,13 +571,15 @@ The ordinary mission-list exit remains available, and a planet-backed Barracks
 visit exposes Missions to resume local work. Campaign-map visits never invent a
 market-backed mission route.
 
-The company officer offers a short, dismissible first-use management guide and a
-Company Guide replay action. She is pragmatic and matriarchal: warm, observant and
+The company officer offers a short, dismissible first-use management guide in a
+pop-over modal with her portrait and name, plus a Company Guide replay action. She is pragmatic and matriarchal: warm, observant and
 firm as the moment needs, with occasional dry humor rather than a fixed dry tone.
 The guide names the real preparation controls, keeps current selection/shortfall
 facts beside its advice, and asks for no unnecessary spending or fake training
 casualty. Its dismissal is saved with the company; older saves default to an
-available introduction. Step navigation and replay are presentation only. Text
+available introduction. The modal leaves the room visible behind a dim backdrop and blocks background
+orders and keyboard focus until Close / Try It or Escape. Step navigation and
+replay are presentation only. Text
 is complete without a recording; stable beat IDs allow separately auditioned
 ElevenLabs clips using the existing company-officer cast.
 
