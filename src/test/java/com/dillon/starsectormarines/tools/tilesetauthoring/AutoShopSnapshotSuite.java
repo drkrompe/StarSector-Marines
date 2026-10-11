@@ -31,7 +31,7 @@ public final class AutoShopSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("auto-shop-close.png",renderer.renderView(after,42,8,7,12,12,48)));
     }
 
-    private static MapResult room() {
+    static MapResult room() {
         MapResult base = ShipBaySnapshotSuite.room(false);
         int concrete = base.topology.surfaceIndex("auto-shop.concrete");
         int passage = base.topology.surfaceIndex("auto-shop.passage");

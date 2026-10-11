@@ -1,0 +1,141 @@
+{
+  "sheetName": "warehouse-racks",
+  "sheet": "art-source/tilesets/warehouse-racks.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "warehouse-racks",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/warehouse-racks.png",
+  "note": "Layer order: base, three independently selected 2x2 stock overlays, retaining frame. Base and frame have complete 2x6 canvases. Measured cuts normalize ImageGen's changed spacing; stocks keep transparent inset margins and are never recentered at runtime. Rack base owns physical cover. Contents and frame add no extra cover. Preview-only room layout.",
+  "entries": [
+    {
+      "id": "warehouse-racks.base",
+      "rect": [
+        44,
+        56,
+        298,
+        940
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.frame",
+      "rect": [
+        406,
+        56,
+        324,
+        940
+      ],
+      "footprintCells": [
+        2,
+        6
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.cartons",
+      "rect": [
+        751,
+        54,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.bins",
+      "rect": [
+        1076,
+        54,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.engine",
+      "rect": [
+        751,
+        364,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.pipes",
+      "rect": [
+        1076,
+        364,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.picked-tray",
+      "rect": [
+        751,
+        674,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "warehouse-racks.cases",
+      "rect": [
+        1076,
+        674,
+        352,
+        352
+      ],
+      "footprintCells": [
+        2,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}
