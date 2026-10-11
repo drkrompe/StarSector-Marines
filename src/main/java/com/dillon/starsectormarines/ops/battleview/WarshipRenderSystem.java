@@ -78,10 +78,12 @@ public final class WarshipRenderSystem implements RenderSystem {
         float hx = ship.x + (ship.pivotX * c - ship.pivotY * s);
         float hy = ship.y + (ship.pivotX * s + ship.pivotY * c);
         float pxH = ship.lengthCells * cellPx;
+        // A battered hull darkens toward charcoal as its hit points go.
+        float tint = 0.4f + 0.6f * ship.hullFraction();
         out.addSprite(RenderLayer.SHUTTLES, hull.sprite,
                 cam.cellToScreenX(hx), cam.cellToScreenY(hy),
                 pxH * hull.aspect, pxH, ship.facingDegrees,
-                1f, 1f, 1f, alpha);
+                tint, tint, tint, alpha);
     }
 
     private void drawMount(DrawList out, BattleCamera cam, float cellPx, float alpha,

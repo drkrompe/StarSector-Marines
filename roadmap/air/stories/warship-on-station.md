@@ -57,8 +57,11 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
 6. **Orders.** Hold fire and area fire (with optional bring-guns-to-bear heading) are shipped; a director that picks the area by density, as the airfield strike does, is open.
 7. **Faction, not allegiance.** The entity is owned by a faction supplied by its
    committer; the first acceptance uses the company's own ship and an enemy one.
-8. **Answerability.** A bounded station time and a hull pool that only heavy
-   anti-air, mechs or batteries reach.
+8. **Answerability.** The hull pool is shipped (hit points and armour from the
+   hull table, one armour rule, destruction removes the ship); a bounded station
+   time and an ordnance budget are open. Whether stock ground weapons should be
+   able to reach a hull at all, rather than only scripted or heavy ordnance, is a
+   balance question for the mission that fields a counter.
 
 ## Acceptance
 

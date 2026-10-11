@@ -1459,11 +1459,23 @@ a faction and no allegiance logic of its own. What it fires at is chosen by a
 director from the densest concentration of opposing force not already being
 worked, the same rule a fighter strike uses.
 
-It must be answerable. A hull and armour pool that only heavy anti-air, mechs or
-batteries can reach, a bounded time on station or ordnance budget, and
-telegraphed sweeps and falls are the counterplay; none of them is optional.
-Modules, cumulative ship damage and ground-weapon ceiling rules remain future
-decisions. Altitude is ultimately a shared camera-space axis, never a fake
+**A warship is hittable, but only by ordnance.** It carries its hull table's own
+hit points and armour (the Onslaught's 20000 and 1750). Any hostile detonation
+whose blast reaches the hull's footprint is a hit, through one armour rule: a
+hit's strength is its damage times its penetration, the share that gets through
+is strength over armour plus strength, and a hit weaker than a tenth of the armour
+glances off and does nothing. A rifle round is nothing to it however many fire; a
+mortar or orbital strike chips it; only anti-ship-grade ordnance in numbers brings
+it down. Its own side never hurts it. A hull taken to nothing goes up in a heavy
+blast and leaves the battle at once, and every gun with it; a battered hull is
+drawn darker. The hit comes from the detonation pipeline itself, so any source
+that already lands a detonation is a counter without a ship-specific shortcut.
+
+It must be answerable. The hull and armour pool above, a bounded time on station
+or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
+them is optional. The station time and ordnance budget are still to build.
+Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
+rules remain future decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
 
 ## Standing laws

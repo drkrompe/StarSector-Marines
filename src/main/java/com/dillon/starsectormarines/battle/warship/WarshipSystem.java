@@ -69,6 +69,7 @@ public final class WarshipSystem {
 
     public void tick(float dt, BattleSimulation sim) {
         landShells(dt, sim);
+        ships.removeIf(Warship::destroyed);
         for (Warship ship : ships) {
             turnHull(dt, ship);
             for (Warship.Mount mount : ship.mounts()) {
@@ -98,6 +99,23 @@ public final class WarshipSystem {
             ship.turnVelocity = 0f;
         } else {
             ship.facingDegrees = WarshipFacing.wrap(ship.facingDegrees + move);
+        }
+    }
+
+    /**
+     * Lets a landing detonation hurt any hostile hull whose footprint its blast
+     * reaches, through the hull's armour rule. A ship's own side never hurts it.
+     * A hull taken to nothing goes up in a heavy blast and is removed from the
+     * battle on the next tick, so it stops firing at once.
+     */
+    public void onDetonation(PendingDetonation det, BattleSimulation sim) {
+        for (Warship ship : ships) {
+            if (ship.destroyed() || !ship.faction.hostileTo(det.shooterFaction)) continue;
+            if (ship.distanceTo(det.endpointX, det.endpointY) > det.aoeRadius) continue;
+            ship.takeDamage(det.damage, det.penetration);
+            if (ship.destroyed()) {
+                sim.spawnHeavyImpact(ship.x, ship.y, Math.max(6f, ship.lengthCells * 0.5f));
+            }
         }
     }
 
