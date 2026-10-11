@@ -21,13 +21,14 @@ import java.util.List;
  * publish directional edge cover onto adjacent standable cells. This keeps a
  * fixture from rolling both crossing and edge interception for the same shot.
  * Physical-cover storage is allocated lazily on the first covered addition.
- * Cover features aren't removed mid-fight, so the arrays are append-only —
- * values only ever monotonically increase via the max-merge rule.
+ * Physical cover arrays are append-only. Destructible cell-blocking props instead publish
+ * into grid facings; a breach rebakes those facings and restores surviving neighbors.
  */
 public final class DoodadService {
 
     private final NavigationGrid grid;
     private final List<Doodad> doodads = new ArrayList<>();
+    private final CoverPropDamage destructibleCover;
 
     /**
      * Per-cell, per-facing cover for doodads and walkable nature overlays.
@@ -74,6 +75,7 @@ public final class DoodadService {
 
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
+        this.destructibleCover = new CoverPropDamage(grid, doodads);
     }
 
     public List<Doodad> getDoodads() { return doodads; }
@@ -85,6 +87,7 @@ public final class DoodadService {
      * grid facings instead.
      */
     public void addDoodad(Doodad d) {
+        destructibleCover.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
         if (d.cover <= 0) return;
         ensureCoverStorage();
@@ -99,6 +102,34 @@ public final class DoodadService {
                             d.cover, d.ballisticHalfHeight);
                 }
             }
+        }
+    }
+
+    public CoverPropDamage.Result damageCoverProp(int x, int y, int amount) {
+        return destructibleCover.damage(x, y, amount);
+    }
+
+    /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
+    public void refreshBlockingCover(int x, int y, CellTopology topology) {
+        for (Doodad prop : doodads) {
+            if (prop.cover <= 0) continue;
+            if (prop.cellX > x + 2 || prop.cellY > y + 2
+                    || prop.cellX + prop.footprintCellsX <= x - 2
+                    || prop.cellY + prop.footprintCellsY <= y - 2) continue;
+            for (int yy = prop.cellY; yy < prop.cellY + prop.footprintCellsY; yy++)
+                for (int xx = prop.cellX; xx < prop.cellX + prop.footprintCellsX; xx++)
+                    if (Math.abs(xx - x) <= 2 && Math.abs(yy - y) <= 2 && !grid.isWalkable(xx, yy))
+                        addDirectionalEdgeCover(xx, yy, prop.cover, prop.ballisticHalfHeight);
+        }
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return;
+        for (int yy = y - 2; yy <= y + 2; yy++) for (int xx = x - 2; xx <= x + 2; xx++) {
+            if (!grid.inBounds(xx, yy)) continue;
+            int index = topology.getNatureOverlayIndex(xx, yy);
+            if (index < 0) continue;
+            TileDef def = registry.byIndex(index);
+            if (!def.passable && def.cover.level() > 0)
+                addDirectionalEdgeCover(xx, yy, def.cover.level(), def.cover.defaultBallisticHalfHeight());
         }
     }
 

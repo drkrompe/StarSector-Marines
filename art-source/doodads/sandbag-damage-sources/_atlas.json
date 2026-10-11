@@ -1,0 +1,148 @@
+{
+  "assets": {
+    "sandbag-damaged-straight-n.png": {
+      "id": "doodad.sandbag-damaged-straight-n",
+      "order": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-straight-e.png": {
+      "id": "doodad.sandbag-damaged-straight-e",
+      "order": 1,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-straight-s.png": {
+      "id": "doodad.sandbag-damaged-straight-s",
+      "order": 2,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-straight-w.png": {
+      "id": "doodad.sandbag-damaged-straight-w",
+      "order": 3,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-corner-nw.png": {
+      "id": "doodad.sandbag-damaged-corner-nw",
+      "order": 4,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-corner-ne.png": {
+      "id": "doodad.sandbag-damaged-corner-ne",
+      "order": 5,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-corner-se.png": {
+      "id": "doodad.sandbag-damaged-corner-se",
+      "order": 6,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-damaged-corner-sw.png": {
+      "id": "doodad.sandbag-damaged-corner-sw",
+      "order": 7,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-straight-n.png": {
+      "id": "doodad.sandbag-destroyed-straight-n",
+      "order": 8,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-straight-e.png": {
+      "id": "doodad.sandbag-destroyed-straight-e",
+      "order": 9,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-straight-s.png": {
+      "id": "doodad.sandbag-destroyed-straight-s",
+      "order": 10,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-straight-w.png": {
+      "id": "doodad.sandbag-destroyed-straight-w",
+      "order": 11,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-corner-nw.png": {
+      "id": "doodad.sandbag-destroyed-corner-nw",
+      "order": 12,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-corner-ne.png": {
+      "id": "doodad.sandbag-destroyed-corner-ne",
+      "order": 13,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-corner-se.png": {
+      "id": "doodad.sandbag-destroyed-corner-se",
+      "order": 14,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    },
+    "sandbag-destroyed-corner-sw.png": {
+      "id": "doodad.sandbag-destroyed-corner-sw",
+      "order": 15,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "preserveCanvas": true,
+      "padding": 0,
+      "scale": 1
+    }
+  }
+}

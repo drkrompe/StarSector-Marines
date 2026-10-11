@@ -47,6 +47,8 @@ public final class TileRegistry {
             "data/tilesets/Floors_Tiles.tileset.json",
             "data/tilesets/Water_tiles.tileset.json",
             "data/tilesets/doodads.tileset.json",
+            "data/tilesets/fence-damage.tileset.json",
+            "data/tilesets/sandbag-damage.tileset.json",
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
@@ -63,6 +65,7 @@ public final class TileRegistry {
             "data/tilesets/warehouse-racks-muted.tileset.json",
             "data/tilesets/armory-workshop.tileset.json",
             "data/tilesets/barracks-bunks.tileset.json",
+            "data/tilesets/mess-galley.tileset.json",
             "data/tilesets/ship-bulkheads.tileset.json",
             "data/tilesets/ship-interior-materials.tileset.json");
 

@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -48,9 +51,31 @@ public final class FenceSnapshotSuite implements SnapshotSuite {
         }
         MapResult map = new MapResult(grid, topology, 0, 0, 23, 14, List.of(), props);
         HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
-        return List.of(new SnapshotArtifact("fence-reskin-template.png", FenceReskinTemplate.render()),
+        List<SnapshotArtifact> artifacts = new ArrayList<>(List.of(new SnapshotArtifact("fence-reskin-template.png", FenceReskinTemplate.render()),
                 new SnapshotArtifact("fence-layouts.png", renderer.render(map, 42, 48)),
-                new SnapshotArtifact("fence-layouts-game-scale.png", renderer.render(map, 42, 32)));
+                new SnapshotArtifact("fence-layouts-game-scale.png", renderer.render(map, 42, 32))));
+        DoodadService service = new DoodadService(grid);
+        for (Doodad prop : props) service.addDoodad(prop);
+        MapResult live = new MapResult(grid, topology, 0, 0, 23, 14, List.of(), service.getDoodads());
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            MapEditor editor = new MapEditor(navigation);
+            editor.setDoodads(service);
+            for (Doodad prop : props) {
+                // Alternating cells show the joints against surviving pristine neighbors.
+                if ((prop.cellX + prop.cellY) % 2 == 0) editor.damageWall(prop.cellX, prop.cellY, 25);
+            }
+            artifacts.add(new SnapshotArtifact("fence-damaged.png", renderer.render(live, 42, 48)));
+            for (Doodad prop : props) {
+                if ((prop.cellX + prop.cellY) % 2 == 0) {
+                    if (!editor.damageWall(prop.cellX, prop.cellY, 100)) throw new AssertionError("Fence did not breach");
+                    if (!grid.isWalkable(prop.cellX, prop.cellY)) throw new AssertionError("Invisible fence blocker");
+                }
+            }
+            artifacts.add(new SnapshotArtifact("fence-destroyed.png", renderer.render(live, 42, 48)));
+            artifacts.add(new SnapshotArtifact("fence-destroyed-game-scale.png", renderer.render(live, 42, 32)));
+        }
+        artifacts.add(new SnapshotArtifact("fence-damage-template.png", FenceDamageReskinTemplate.render()));
+        return artifacts;
     }
 
     private static void ring(List<Doodad> props, int left, int bottom, int right, int top, boolean gate) {

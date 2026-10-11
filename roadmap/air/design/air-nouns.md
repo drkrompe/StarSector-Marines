@@ -1382,10 +1382,44 @@ concave authored polygon; a hit belongs to the true contact point, not an
 enclosing circle or box. That fidelity is the standing contract, not a claim
 that overhead ships are implemented today.
 
-Size determines which ships may be on-map. The shared density ladder makes
-fighters and smaller ships plausible at ground scope; very large capitals are
-off-map/orbital support rather than giant polygons forced into a small battle.
-Modules, cumulative ship damage, and ground-weapon ceiling rules remain future
+**A warship on station is not an aircraft that happens to be large.** The shared
+density ladder (`AirScale`) puts even a capital at a few tens of cells, small
+beside a 560x336 map, so size does not keep a capital off the map. What keeps it
+from flying the atmospheric fighter model is that the model is about circles,
+sorties and ground procedures, and a capital has none of them. It hovers: it
+arrives, holds a station, drifts between stations on a mass-limited translation
+and yaw, and leaves. It never lands, never orbits and never flies a run.
+
+**It is a superweapon, used rarely, and it is the map's dominant fact while it
+is there.** Its weapons are authored *ground effects* resolved by the simulation,
+not vanilla projectiles bridged in, because the vanilla combat model cannot
+express area effect against infantry (`vanilla-combat-bridge-nouns.md`, law 4).
+Two classes carry the design:
+
+- A **sweep** is a beam whose ground end is walked across an arc over seconds.
+  Each tick the swept segment damages everything in its band — units, cover,
+  walls, roofs, whole buildings — through the ordinary detonation and map-edit
+  paths at far larger magnitude. A sweep is slow enough to read and to run from;
+  that is its counterplay, and dispersal is the answer to it.
+- A **barrage** is a telegraphed footprint with a real fall time, the bomb
+  class of `AirOrdnance` scaled up.
+
+Friendly fire is unconditional, as it is for every detonation: a ship's weapons
+do not check colours. The cost of calling one in over your own marines is the
+point.
+
+**Ownership is the mission's, not the ship's.** The same entity serves the
+company's own flagship, an allied or neutral hull, and an enemy's. Who may call
+it, what it is aimed at and why it is present are decided by the mission or the
+command power that committed it (`command-powers-nouns.md`); the entity carries
+a faction and no allegiance logic of its own. What it fires at is chosen by a
+director from the densest concentration of opposing force not already being
+worked, the same rule a fighter strike uses.
+
+It must be answerable. A hull and armour pool that only heavy anti-air, mechs or
+batteries can reach, a bounded time on station or ordnance budget, and
+telegraphed sweeps and falls are the counterplay; none of them is optional.
+Modules, cumulative ship damage and ground-weapon ceiling rules remain future
 decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
 

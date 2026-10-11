@@ -1,0 +1,200 @@
+{
+  "sheet": "graphics/doodads/sandbag-damage.png",
+  "cellPx": 32,
+  "doodads": [
+    {
+      "id": "doodad.sandbag-damaged-straight-n",
+      "col": 0,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-straight-e",
+      "col": 1,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-straight-s",
+      "col": 2,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-straight-w",
+      "col": 3,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-corner-nw",
+      "col": 4,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-corner-ne",
+      "col": 5,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-corner-se",
+      "col": 6,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-damaged-corner-sw",
+      "col": 7,
+      "row": 0,
+      "cover": "heavy",
+      "ballisticHalfHeight": 0.3
+    },
+    {
+      "id": "doodad.sandbag-destroyed-straight-n",
+      "col": 0,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-straight-e",
+      "col": 1,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-straight-s",
+      "col": 2,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-straight-w",
+      "col": 3,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-corner-nw",
+      "col": 4,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-corner-ne",
+      "col": 5,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-corner-se",
+      "col": 6,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    },
+    {
+      "id": "doodad.sandbag-destroyed-corner-sw",
+      "col": 7,
+      "row": 1,
+      "cover": "none",
+      "ballisticHalfHeight": 0.0
+    }
+  ],
+  "cells": [
+    {
+      "col": 0,
+      "row": 0,
+      "name": "sandbag-damaged-straight-n"
+    },
+    {
+      "col": 1,
+      "row": 0,
+      "name": "sandbag-damaged-straight-e"
+    },
+    {
+      "col": 2,
+      "row": 0,
+      "name": "sandbag-damaged-straight-s"
+    },
+    {
+      "col": 3,
+      "row": 0,
+      "name": "sandbag-damaged-straight-w"
+    },
+    {
+      "col": 4,
+      "row": 0,
+      "name": "sandbag-damaged-corner-nw"
+    },
+    {
+      "col": 5,
+      "row": 0,
+      "name": "sandbag-damaged-corner-ne"
+    },
+    {
+      "col": 6,
+      "row": 0,
+      "name": "sandbag-damaged-corner-se"
+    },
+    {
+      "col": 7,
+      "row": 0,
+      "name": "sandbag-damaged-corner-sw"
+    },
+    {
+      "col": 0,
+      "row": 1,
+      "name": "sandbag-destroyed-straight-n"
+    },
+    {
+      "col": 1,
+      "row": 1,
+      "name": "sandbag-destroyed-straight-e"
+    },
+    {
+      "col": 2,
+      "row": 1,
+      "name": "sandbag-destroyed-straight-s"
+    },
+    {
+      "col": 3,
+      "row": 1,
+      "name": "sandbag-destroyed-straight-w"
+    },
+    {
+      "col": 4,
+      "row": 1,
+      "name": "sandbag-destroyed-corner-nw"
+    },
+    {
+      "col": 5,
+      "row": 1,
+      "name": "sandbag-destroyed-corner-ne"
+    },
+    {
+      "col": 6,
+      "row": 1,
+      "name": "sandbag-destroyed-corner-se"
+    },
+    {
+      "col": 7,
+      "row": 1,
+      "name": "sandbag-destroyed-corner-sw"
+    }
+  ]
+}

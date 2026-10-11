@@ -352,10 +352,14 @@ objective and lanes instead of labelling every berth and building; the accompany
 summary retains strategic-site counts. Small objective-driven missions identify
 their actual target sites and extraction endpoints.
 
-The two Wayline chapter briefings begin Mara's recorded narration on entry and
-expose Replay Briefing and Stop Voice in the command rail. Other missions reserve
-no voice-control space. Text remains available independently of playback;
-terrain refreshes and viewport changes do not restart the recording.
+Wayline's voiced chapter briefings begin Mara's recorded narration on entry and
+expose Replay Briefing and Stop Voice in the command rail. A compact contact panel
+above the dossier shows her existing portrait and name, distinct from the force's
+selected officers. Its speaking indicator follows narration playback, including
+replay, stop and natural completion; the portrait remains as the recording's
+identity while idle. Other missions reserve no speaker-panel or voice-control
+space. Text remains available independently of playback; terrain refreshes and
+viewport changes do not restart the recording.
 
 Preparation runs asynchronously from campaign-free captured construction inputs.
 The briefing pins its seed, shows a pending survey while generation runs, and

@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored natural masses share smooth contours, permanent grid obstruction and production previews.
+Updated: 2026-10-11 — fences and sandbags retain matching damage states; authored natural masses share smooth contours, permanent grid obstruction and production previews.
 
 Read `stories.md` for open work.
 
@@ -201,6 +201,16 @@ snapshot suite compares intact and damaged fields through the battle renderer.
 The repeatable production procedure is in `art-source/geometry-first-imagegen.md`.
 
 ### Id-addressed visual catalog
+
+Industrial fences and sandbags retain matching intact, damaged and destroyed
+straight and corner identities. Geometry guides own cell centers, shared endpoints and
+breach voids; ImageGen supplies one material family, and exact quarter turns
+supply the remaining facings. A damage swap retains placement rotation and
+mirroring. Destroyed sprites carry no cover; the combat map editor owns the
+opened cell and cover refresh, rather than inferring those from transparency.
+The retained sources and cuts reproduce separate damage atlases through the
+ordinary doodad packer. The `fences` and `sandbags` visual suites exercise the same damage
+entry point used by structural attacks.
 
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than
 enum order or hardcoded origins. Sliced definitions pin their frame explicitly;

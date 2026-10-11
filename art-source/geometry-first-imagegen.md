@@ -47,13 +47,16 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Colony walls | `WallReskinTemplate`; 16 exposed-face masks, no privileged inside/outside | `templates/colony-walls.png`, `tilesets/colony-walls.*` | `building-stamps` |
 | Windows and doors | `OpeningReskinTemplate`; matching wall family, transparent apertures, four cardinal poses | `templates/colony-openings.png`, `tilesets/colony-openings.*` | `building-stamps` |
 | Sandbags | `SandbagReskinTemplate`; rounded straight run and L, exact quarter turns | `doodads/sandbags*`, doodad manifest and retained sources | `sandbags` |
+| Sandbag damage | `SandbagDamageReskinTemplate`; matching rounded roots, torn seams, local sand spills and open breaches | `templates/sandbag-damage.png`, `doodads/sandbag-damage*`, retained raw and sources | `sandbags` |
 | Industrial fences | `FenceReskinTemplate`; one connected frame, shared centerlines and full-cell cuts | `templates/industrial-fence.png`, `doodads/industrial-fence*`, retained raw and sources | `fences` |
+| Fence damage | `FenceDamageReskinTemplate`; matching edge roots, bent spans and open breaches | `templates/industrial-fence-damage.png`, `doodads/industrial-fence-damage*`, `doodads/fence-damage-sources/` | `fences` |
 | Wall rubble | `RubbleReskinTemplate`; broken roots retain former connectivity and leave ground exposed | `templates/colony-rubble.png`, `tilesets/colony-rubble.*` | `wall-rubble` |
 | Ground damage | `GroundDamageReskinTemplate`; local cracks/gouges over the original material, clear perimeter | `templates/colony-ground-damage.png`, `tilesets/colony-ground-damage.*` | `ground-damage` |
 | Forest canopies | `TreeCanopy` and `TreeReskinTemplate`; overhead rounded crowns, full foliage obstruction across 3-6 cells | `templates/forest-canopies.png`, `tilesets/forest-canopies.*`, `forests/` | `forest-brush` |
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
 | Ship armory | `ArmoryWorkshopTemplate`; issue counter, layered weapons racks and repair bench, separate cabinets | `templates/armory-workshop.png`, `tilesets/armory-workshop.*` | `ship-materials` |
+| Ship mess | `MessGalleyTemplate`; long tables, separate meals and stools, coordinated galley appliances | `templates/mess-galley.png`, `tilesets/mess-galley.*` | `ship-materials` |
 | Ship berthing | `BarracksBunkTemplate`; full bunk bases, separate bedding and rails, personal locker banks | `templates/barracks-bunks.png`, `tilesets/barracks-bunks.*` | `ship-materials` |
 | Neutral ship bulkheads | `ShipBulkheadTemplate`; sixteen exposed-face masks, quiet charcoal/enamel materials | `templates/ship-bulkheads.png`, `tilesets/ship-bulkheads.*`, `tilesets/ship-neutral.README.md` | `ship-neutral` |
 | Ship openings and decks | `ShipInteriorMaterialTemplate`; full-cell cardinal openings and seamless resin samples | `templates/ship-interior-materials.png`, `tilesets/ship-interior-materials.*` | `ship-materials` |

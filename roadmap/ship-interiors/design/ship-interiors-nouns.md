@@ -5,10 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — ship workshops use layered fixtures, with organized Mech Lab
-storage and a dedicated armory issue counter, repair bench and weapons run. The six-berth hangar opens to space on its central aisle;
-ship boats follow that aisle and aperture on departure and return; machine servicing
-resolves close standing positions against the parked body.
+Updated: 2026-10-11 — ship messes use posed dining furniture and organized galleys;
+berthing and workshops use layered fixtures within the dark bulkhead shell.
 
 Earlier 2026-09-01 — same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -505,6 +503,16 @@ layers on their furniture, while issue, repair and stowage belong to reachable
 standing positions. These displayed contents do not assert a campaign inventory.
 The complete assemblies follow the room pose and yield whole footprints to
 fallback door approaches.
+
+The mess separates its dining ranks from a working galley with a servery and
+an open public apron. Aligned staff openings connect the preparation line to
+the heat and washing line; cold storage sits at the preparation ends. Long
+tables seat people on both sides, with one visible stool for each exclusive
+dining point. A stool's cell stays traversable so its diner can reach it; the
+table and galley appliances own the blocking footprints. Diners face their own
+place at table. Whole furniture assemblies turn with the room and yield to
+hatch approaches. Sparse meal settings are visual layers, not food inventory.
+Small secondary messes remain dining rooms without additional cooking postings.
 
 Crew routes are **derived from fixtures**, never hand-listed per deck. A route
 author reads a compartment's placed fixtures and their affordances and emits the

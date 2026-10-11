@@ -33,6 +33,10 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
  * pass explicit cover and may optionally provide a ballistic half-height.
  */
 public final class Doodad {
+    private String definitionId;
+
+    /** Stable catalog identity, or null for legacy coordinate-only placements. */
+    public String definitionId() { return definitionId; }
 
     /** Open ground — empty interaction with cover scoring. */
     public static final int COVER_NONE  = 0;
@@ -104,6 +108,7 @@ public final class Doodad {
                 rotatedHeight(def.footprintCellsX, def.footprintCellsY, quarterTurns),
                 rotateSide(def.preferredWallSide, quarterTurns),
                 def.sourceCellPx, quarterTurns, mirrored);
+        this.definitionId = def.id;
     }
 
     public Doodad(int cellX, int cellY, DoodadDef def, int quarterTurns) {
@@ -114,6 +119,7 @@ public final class Doodad {
                 rotatedHeight(def.footprintCellsX, def.footprintCellsY, quarterTurns),
                 rotateSide(def.preferredWallSide, quarterTurns),
                 def.sourceCellPx, normalizeTurns(quarterTurns));
+        this.definitionId = def.id;
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
