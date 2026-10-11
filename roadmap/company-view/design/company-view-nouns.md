@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — transport berths share campaign squad identity by default; only explicit tactical areas split squads.
+Updated: 2026-10-11 - Barracks preparation separates consolidation, refill and issue, with an optional company-officer guide.
 
 ## Purpose
 
@@ -543,6 +543,43 @@ turnaround: a better boat is faster and tougher in the air and is not serviced
 faster on the deck.
 
 ## Shipboard Barracks
+
+Barracks leads with **Preparation**: consolidate survivors, fill vacancies, then
+restore assigned equipment. **Organization** holds officer assignments and saved
+profiles. These are separate explicit orders, not a button that silently spends
+all available resources. Current billet counts state ready, wounded and vacant
+separately. Inspecting a squad can open its exact Armory equipment workspace;
+returning retains the Barracks selection. Raise Squad opens the existing Armory
+founding desk, including from an empty company.
+
+**Consolidation** transfers ready named marines from explicitly marked donor
+squads into true vacancies of separately selected receiving squads. The preview
+shows every selected formation's before/after ready and vacant counts alongside
+its wounded. Only Apply Transfers commits; a changed roster invalidates the
+reviewed order before any move. Both sets follow roster order. Wounded retain
+their billets, historical casualties stay on their original rolls, and stationed
+formations cannot participate. Marines carry their identity, actual kit and career;
+formation identity, career, home command and desired profile remain with the
+formation, including an emptied donor. Consolidation consumes no cargo and does
+not assert equipment conformance. Reserves and cargo enter only through the
+separate vacancy-filling order.
+
+After an operation, Prepare Company opens Barracks once salvage has been settled.
+When a claim remains, that route first opens the normal salvage picker; it never
+forfeits a claim just to change rooms. A ship still being prepared routes to HQ.
+The ordinary mission-list exit remains available, and a planet-backed Barracks
+visit exposes Missions to resume local work. Campaign-map visits never invent a
+market-backed mission route.
+
+The company officer offers a short, dismissible first-use management guide and a
+Company Guide replay action. She is pragmatic and matriarchal: warm, observant and
+firm as the moment needs, with occasional dry humor rather than a fixed dry tone.
+The guide names the real preparation controls, keeps current selection/shortfall
+facts beside its advice, and asks for no unnecessary spending or fake training
+casualty. Its dismissal is saved with the company; older saves default to an
+available introduction. Step navigation and replay are presentation only. Text
+is complete without a recording; stable beat IDs allow separately auditioned
+ElevenLabs clips using the existing company-officer cast.
 
 Barracks opens on company formations grouped by their home officer, with an
 independent acting-NCO group for squads without an officer. Commander portraits,

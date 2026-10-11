@@ -1,14 +1,15 @@
 # Company view open work
 
-Status: ACTIVE — 9 open stories
+Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-10-06 — C13 bulk organization implemented; per-officer settlement
-and live acceptance remain open.
+Updated: 2026-10-11 — Barracks turnaround and shared resource bills added for Alpha.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
+| `barracks-turnaround.md` | In progress | Alpha pickup: explicit survivor consolidation, replenishment, preparation navigation and castellan guidance; WIA keep billets. |
+| `company-resource-bills.md` | Planned | Follow turnaround with one Cost / Available / Short by presentation across company rooms. |
 | `c2-formation-model.md` | Planned | Defines the shared read model required by C3 and C4. |
 | `c3-company-card-stack.md` | Planned | Depends on C2; expands the shipped HQ roster area. |
 | `c4-whereabouts-and-deployed-state.md` | Planned | Depends on C2 and C3; derives whereabouts rather than persisting them. |

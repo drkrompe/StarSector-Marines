@@ -76,6 +76,7 @@ class BarracksCommandModelTest {
                 bindings.update(document, instance, model, hints);
                 assertEquals(canvasRevision, document.canvases().revision(), "Unchanged cards should reuse the cached muster");
                 assertEquals(1, model.selected().size());
+                click(document, instance, "barracks-organization");
                 click(document, instance, "barracks-new-profile");
                 click(document, instance, "barracks-save-profile");
                 assertEquals(1, roster.armory().squadProfiles().size());

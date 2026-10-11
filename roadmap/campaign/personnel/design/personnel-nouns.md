@@ -4,8 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-09 — squad profiles preserve desired equipment independently of
-issued kit; bulk replenishment retains named personnel and wounded billets.
+Updated: 2026-10-11 — Reviewed survivor consolidation preserves wounded billets and formation identity.
 
 ## Purpose
 
@@ -57,6 +56,14 @@ assigning it preserves personnel, history, current kit and the last issued doctr
 pair. Bulk replenishment uses the same reserves-first personnel draw and exact
 equipment transactions as individual administration. Wounded retain their billets;
 stationed squads remain unavailable for organization, replacement and refit.
+
+Explicit consolidation chooses separate receiving and donor line squads. It draws
+only ACTIVE members from marked donors, in roster order, and never consumes cargo.
+The reviewed plan must still match personnel, vacancy and posting state before any
+transfer commits. WIA remain assigned; KIA/MIA remain historical records. An empty
+donor remains a named formation with its own career, equipment intent and home
+command. A transferred marine retains identity, kit and individual history;
+leadership is re-derived through the ordinary roster authority.
 
 ## Availability and deployment
 

@@ -58,6 +58,11 @@ public class MarineRoster implements Serializable {
     private int nextSquadNumber = 1;
     private String reserveSquadId;
     private boolean initialComplementIssued;
+    /** Optional company-management introduction; absent legacy values mean not yet dismissed. */
+    private boolean managementGuideDismissed;
+
+    public boolean managementGuideDismissed() { return managementGuideDismissed; }
+    public void dismissManagementGuide() { managementGuideDismissed = true; }
     private int capacity = DEFAULT_CAPACITY;
     /**
      * The fleet member the company lives aboard, by id. Null until the company
