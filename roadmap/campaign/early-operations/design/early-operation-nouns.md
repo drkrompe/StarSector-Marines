@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — Broken Supply Route campaign commitment, named deployment and settlement.
+Updated: 2026-10-10 — authored location illustrations accompany chapter dossiers and debriefs.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -136,6 +136,21 @@ ordinary credits, personnel and lost-boat writeback. Duplicate or foreign result
 cannot repeat any of those writes. Outcome presentation is not reward authority.
 This is local commercial fiction: no vanilla market ownership, population,
 stability, industry or trade simulation is changed.
+
+## Illustrated location records
+
+Each of the five authored chapters has a wide location illustration: the
+Wayline checkpoint, occupied freight depot, Junction Dispatch, Rill motor pool,
+and Relay Nine. The selected story dossier replaces its generic planetary scope
+with this location file; the two branch requests have their own scenes before
+commitment. Portraits continue to identify the correspondent.
+
+A debrief can retain that same pre-operation location image as an explicitly
+labelled archive beside the frozen outcome and personnel report. It is not a
+picture of the result: it promises neither surviving militia, a completed rescue,
+nor an intact player boat. The tactical survey still owns actual map geometry.
+Recurring jobs do not borrow historical story scenes or depict the old Rill
+cohort. Unknown chapters retain the ordinary presentation.
 
 ## Small-company promise
 

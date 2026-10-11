@@ -328,7 +328,12 @@ selected operation's dossier into bounded columns. Mission prose and facts wrap
 inside inset readouts; lists and the dossier scroll independently while their
 navigation and briefing actions remain available. The dossier's SVG scope is
 decorative framing for the planet image, never a tactical map or an intelligence
-claim.
+claim. Authored story dossiers replace that scope with a framed, aspect-fitted
+location illustration and a location-file caption. Debriefs can place the same
+pre-operation image above personnel records with an archive caption; outcome
+text and casualty facts remain separate and authoritative. Art never sits behind
+readable prose or occupies the tactical survey. Inapplicable story
+art uses the ordinary planetary view and reserves no debrief image panel.
 
 The briefing groups a compact mission dossier beside the selected force and its
 command deck, with a tactical survey on the right. Contract payment is a prominent

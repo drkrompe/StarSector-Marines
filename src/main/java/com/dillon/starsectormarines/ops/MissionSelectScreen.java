@@ -291,6 +291,11 @@ public final class MissionSelectScreen implements Screen {
 
     static void putDetail(Map<String, Object> props, Mission mission, Runnable brief, Runnable collapse) {
         boolean present = mission != null;
+        StoryScene scene = StoryScene.forMission(mission);
+        props.put("detailImageClasses", scene == null ? "mission-detail-image-wrap surface-dark"
+                : "mission-detail-image-wrap story-location surface-dark");
+        props.put("detailImage", scene == null ? props.get("planetImage") : scene.image);
+        props.put("detailHeader", scene == null ? "Dossier" : "LOCATION FILE / " + scene.location);
         props.put("detailClasses", "mission-detail panel" + (present ? "" : " empty-detail"));
         props.put("detailKicker", present
                 ? SupplyRouteCampaign.operationLabel(mission) + "  ·  " + mission.risk.name() + " RISK"
@@ -350,6 +355,8 @@ public final class MissionSelectScreen implements Screen {
         props.put("clientHeader", "Clients");
         props.put("catalogHeader", "Contracts");
         props.put("detailHeader", "Dossier");
+        props.put("detailImageClasses", "mission-detail-image-wrap surface-dark");
+        props.put("detailImage", null);
         return props;
     }
 
