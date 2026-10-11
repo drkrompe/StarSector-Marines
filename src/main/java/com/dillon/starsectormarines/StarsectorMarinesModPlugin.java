@@ -2,6 +2,7 @@ package com.dillon.starsectormarines;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
+import com.dillon.starsectormarines.battle.audio.OperationRadio;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -88,6 +89,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         TerrainCatalog.loadBuiltins();
         WaylineNarration.loadBuiltins();
         CompanyOfficer.loadBuiltins();
+        OperationRadio.loadBuiltins();
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
         // tile registries this is NOT self-defensive: a weapon whose stats failed to
         // load would read zero range and zero damage, so a bad catalog must stop

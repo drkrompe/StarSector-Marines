@@ -1,0 +1,223 @@
+{
+  "modelId": "eleven_v4",
+  "candidate": "B",
+  "status": "retained ensemble audition; individual turns require valid runtime facts",
+  "note": "Compressed fictional operation sequence, not in-game event evidence. The audition used candidate B for each new role; current casting is retained in cast.json.",
+  "lines": [
+    {
+      "id": "01-rook-clear",
+      "speaker": "rook",
+      "text": "Kestrel, last man clear?",
+      "synthesisText": "[urgent, clipped voice] Kestrel, last man clear?",
+      "file": "01-rook-clear.mp3",
+      "audioSha256": "5e0e70705964f111add0715a066052e2f0fb897d6470b15bdcac57785be90bb8"
+    },
+    {
+      "id": "02-kestrel-clear",
+      "speaker": "kestrel",
+      "text": "Last man's clear! Lift, Rook!",
+      "synthesisText": "[shouting] [strained, breathless voice] Last man's clear! Lift, Rook!",
+      "file": "02-kestrel-clear.mp3",
+      "audioSha256": "e105a0b7ca3710ba1a7da8c5b6a50a426193988466857ca55ca73c5e07a5c08d"
+    },
+    {
+      "id": "03-rook-lifting",
+      "speaker": "rook",
+      "text": "Heads down, I'm lifting! Command, Rook One. Your marines are down.",
+      "synthesisText": "[urgent voice] Heads down, I'm lifting! [focused, brisk voice] Command, Rook One. Your marines are down.",
+      "file": "03-rook-lifting.mp3",
+      "audioSha256": "dff4429f027e01a6683a6286c233b9d41a0042727c2e35987ef4c18087f7b46a"
+    },
+    {
+      "id": "04-command-return",
+      "speaker": "command",
+      "reuse": "takes/command_rook_return-take1.mp3",
+      "text": "Received, Rook. Return to the ship.",
+      "file": "../takes/command_rook_return-take1.mp3",
+      "audioSha256": "3fa5124ea03ecb854b3b9c171d597d14983448505eb8eca3ddeeb78c8ecde3ac",
+      "originalSource": "takes/command_rook_return-take1.mp3"
+    },
+    {
+      "id": "05-command-kestrel",
+      "speaker": "command",
+      "reuse": "retained/01-callout-clean.wav",
+      "text": "Kestrel Two. This is Command.",
+      "file": "../retained/01-callout-clean.wav",
+      "audioSha256": "cbf6b3e612782041a19a19f49a2c91f41ac11a1bf28980f1bfa073c09d071c1b",
+      "originalSource": "retained/01-callout-clean.wav"
+    },
+    {
+      "id": "06-kestrel-ack",
+      "speaker": "kestrel",
+      "reuse": "retained/02-acknowledgement-clean.wav",
+      "text": "Command! Kestrel Two, go ahead!",
+      "file": "../retained/02-acknowledgement-clean.wav",
+      "audioSha256": "85537d98891b929c0299d2c8b2e4127a95e572738c84163c3479288c454d4ee3",
+      "originalSource": "retained/02-acknowledgement-clean.wav"
+    },
+    {
+      "id": "07-command-assignment",
+      "speaker": "command",
+      "reuse": "takes/command_assign_yard-take1.mp3",
+      "text": "Take the freight yard. Hold it for the convoy.",
+      "file": "../takes/command_assign_yard-take1.mp3",
+      "audioSha256": "10da651f64eb47e090e254a39d2f491d29a6799ac8eee4a98f93dbf5b4e473f3",
+      "originalSource": "takes/command_assign_yard-take1.mp3"
+    },
+    {
+      "id": "08-kestrel-accept",
+      "speaker": "kestrel",
+      "reuse": "takes/kestrel_accept_yard-take1.mp3",
+      "text": "Freight yard! We'll hold it!",
+      "file": "../takes/kestrel_accept_yard-take1.mp3",
+      "audioSha256": "5807b6dba7203aca40db7369c5b61ae1ee8e7a2f2a95738513299a2b343d7c4b",
+      "originalSource": "takes/kestrel_accept_yard-take1.mp3"
+    },
+    {
+      "id": "09-command-hammer",
+      "speaker": "command",
+      "text": "Hammer Three. Command.",
+      "synthesisText": "[focused, brisk voice] Hammer Three. Command.",
+      "file": "09-command-hammer.mp3",
+      "audioSha256": "87334789bf255ada620aa5004b9fffb57273fa10bdc7cd96d64072abc3478601"
+    },
+    {
+      "id": "10-hammer-ack",
+      "speaker": "hammer",
+      "text": "Hammer. Send it.",
+      "synthesisText": "[clipped, gravelly voice] Hammer. Send it.",
+      "file": "10-hammer-ack.mp3",
+      "audioSha256": "e13bd3e0933c3e78546343426dbc91ea38ec43f58043570fd175729be51d612f"
+    },
+    {
+      "id": "11-command-cover",
+      "speaker": "command",
+      "text": "Cover Kestrel's advance. Keep that crossing open.",
+      "synthesisText": "[firm, brisk voice] Cover Kestrel's advance. Keep that crossing open.",
+      "file": "11-command-cover.mp3",
+      "audioSha256": "e7c8ea1b20fd8c6c0f88bcd83183cff0b087b068328d56d6ab2a3e30e3c4b6db"
+    },
+    {
+      "id": "12-hammer-cover",
+      "speaker": "hammer",
+      "text": "Kestrel, Hammer! I'll hold this end. Get across!",
+      "synthesisText": "[shouting] [strained, gravelly voice] Kestrel, Hammer! I'll hold this end. Get across!",
+      "file": "12-hammer-cover.mp3",
+      "audioSha256": "c2dd643aaee20e24f2beea60bfee610e17e3a2adc23288b01b4f583d7d18afa3"
+    },
+    {
+      "id": "13-viper-cross",
+      "speaker": "viper",
+      "text": "Kestrel, Viper! Two at a time through that bloody doorway. I've got the crossing. Move!",
+      "synthesisText": "[shouting] [urgent, strained voice] Kestrel, Viper! Two at a time through that bloody doorway. I've got the crossing. Move!",
+      "file": "13-viper-cross.mp3",
+      "audioSha256": "e6a6c706a18e4eab2483ccd35501303f6e029847ad19110662e29af0c549c44c"
+    },
+    {
+      "id": "14-kestrel-moving",
+      "speaker": "kestrel",
+      "reuse": "takes/kestrel_crossing-take1.mp3",
+      "text": "Viper One! Moving now!",
+      "file": "../takes/kestrel_crossing-take1.mp3",
+      "audioSha256": "31200e57bf505d8833ea08cd927ee79a9071210b3f3cd271181a1ffeb423b82d",
+      "originalSource": "takes/kestrel_crossing-take1.mp3"
+    },
+    {
+      "id": "15-viper-encourage",
+      "speaker": "viper",
+      "text": "That's it! Heads down. Keep coming!",
+      "synthesisText": "[shouting] [encouraging, strained voice] That's it! Heads down. Keep coming!",
+      "file": "15-viper-encourage.mp3",
+      "audioSha256": "ac45e8615c36ee3fe9ae79d1607e85d6ab7072211b6ccef52f30d6160f9373e7"
+    },
+    {
+      "id": "16-kestrel-through",
+      "speaker": "kestrel",
+      "reuse": "takes/kestrel_crossing_done-take1.mp3",
+      "text": "We're through! Much appreciated!",
+      "file": "../takes/kestrel_crossing_done-take1.mp3",
+      "audioSha256": "eb23e730a2bf31c23f0af5621d0f4b76fca016188508b5b70844cce584d4dbee",
+      "originalSource": "takes/kestrel_crossing_done-take1.mp3"
+    },
+    {
+      "id": "17-hammer-secure",
+      "speaker": "hammer",
+      "text": "Command, Hammer. Yard's ours. Two magazines each. Make the next job a short one.",
+      "synthesisText": "[breathless, gravelly voice] Command, Hammer. Yard's ours. Two magazines each. [wry] Make the next job a short one.",
+      "file": "17-hammer-secure.mp3",
+      "audioSha256": "ba34659bb92b6613a6222fde5ed3e4d4a7c3119976cda18022e73a5621f87570"
+    },
+    {
+      "id": "18-command-resupply",
+      "speaker": "command",
+      "text": "Hold there, Hammer. Rook, bring them ammunition.",
+      "synthesisText": "[firm, brisk voice] Hold there, Hammer. Rook, bring them ammunition.",
+      "file": "18-command-resupply.mp3",
+      "audioSha256": "aa3ec446b55e9a73627a7a738d9416bb79558b58e1abd546ddea6f74a30eaa46"
+    },
+    {
+      "id": "19-rook-resupply",
+      "speaker": "rook",
+      "text": "On it. Try to leave me a bit of ground that isn't being shot at.",
+      "synthesisText": "[weary, wry voice] On it. Try to leave me a bit of ground that isn't being shot at.",
+      "file": "19-rook-resupply.mp3",
+      "audioSha256": "eee4a2f8abc932b704b651f4f520daf91537dc9f9f0609918a9e244bd2d220d2"
+    },
+    {
+      "id": "20-command-reply",
+      "speaker": "command",
+      "text": "I'll see what I can arrange.",
+      "synthesisText": "[lightly amused, brisk voice] I'll see what I can arrange.",
+      "file": "20-command-reply.mp3",
+      "audioSha256": "3beed3e5c5f7632d00e282ee6fbad5487f19735c2746de2610728588233b0e81"
+    }
+  ],
+  "cast": {
+    "command": {
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "name": "Company Officer",
+      "status": "selected for first live operation-radio pass"
+    },
+    "kestrel": {
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "name": "Kestrel Two",
+      "status": "selected for first live operation-radio pass"
+    },
+    "hammer": {
+      "voiceId": "HuAfwy9ycsANuERZQHLU",
+      "name": "Hammer Three - Military B Audition",
+      "generatedVoiceId": "HuAfwy9ycsANuERZQHLU",
+      "candidate": "B",
+      "status": "selected for first live operation-radio pass",
+      "description": "Native American English, a restrained upper-Midwestern dialect. Male, 45 to 50. Excellent clean recording quality. Persona: veteran infantry sergeant. Emotion: watchful, stubborn, protective. A worn medium-low baritone with a little throat rasp and compact, uneven conversational phrasing. He has spent twenty years getting other people through bad positions. He counts ammunition and notices exposed troops. His authority comes from certainty and economical speech, with audible physical effort when he projects over a fight. Short pauses to breathe, quick decisive commands, a small weary chuckle only after danger passes. React sharply when needed; let affection for his troops show beneath the impatience. Natural character dialogue at a brisk speaking pace.",
+      "receipt": {
+        "requestId": null,
+        "characterCost": null
+      }
+    },
+    "viper": {
+      "voiceId": "1I6DkREjhKUTww20MdUm",
+      "name": "Viper One - Military B Audition",
+      "generatedVoiceId": "1I6DkREjhKUTww20MdUm",
+      "candidate": "B",
+      "status": "selected for first live operation-radio pass",
+      "description": "Native British English, clearly northern English from Yorkshire. Female, 35 to 40. Excellent clean recording quality. Persona: battle-seasoned infantry corporal. Emotion: fierce, impatient, fiercely protective. A distinctly feminine middle-register voice, forward and wiry, with a lightly frayed edge when she raises it. Brisk, clipped phrases with animated rises and falls; she can turn from sharp command to a quick reassuring word in the same breath. Years of fighting have made her direct and observant. She hates seeing people freeze in doorways or bunch up in the open. Project hard during urgent commands and allow exertion into the breathing. Her practical warmth comes through in short encouragement once people start moving. Lively, rough-edged spoken character dialogue.",
+      "receipt": {
+        "requestId": null,
+        "characterCost": null
+      }
+    },
+    "rook": {
+      "voiceId": "gpYq8Tu9Py4uI902kHOw",
+      "name": "Rook One - Military B Audition",
+      "generatedVoiceId": "gpYq8Tu9Py4uI902kHOw",
+      "candidate": "B",
+      "status": "selected for first live operation-radio pass",
+      "description": "Native Australian English, a natural regional Australian dialect. Male, 40 to 45. Excellent clean recording quality. Persona: veteran combat transport pilot. Emotion: alert, irreverent, stubbornly dependable. A mid-pitched, slightly nasal and sun-worn voice with a scratch at the ends of words. Quick practical phrasing, clipped checks and a habit of grumbling after the dangerous part is done. He has flown too many rough extractions to waste breath sounding impressive. Under pressure the words tighten and rise in force; when his passengers are clear he releases the held breath and his crooked humor returns. Varied natural intonation and compact conversational pace, capable of warmth, irritation and sudden urgency.",
+      "receipt": {
+        "requestId": null,
+        "characterCost": null
+      }
+    }
+  }
+}

@@ -4,13 +4,13 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - addressed operational exchanges and role casting are in authoring audition; runtime retains its current cue policy.
+Updated: 2026-10-11 - Marine Operations samples assignment exchanges and combat reports from an exchange-local cast under one global voice budget.
 
 Read `stories.md` for the open-work board.
 
 ## Purpose
 
-Battle radio is the quiet, positional presentation layer that makes the
+Battle radio is the quiet presentation layer that makes the
 deployed marine infantry net feel responsive to the battle already being
 simulated. It reinforces confirmed tactical moments; it neither creates
 gameplay state nor serves as a continuous voice track.
@@ -19,7 +19,7 @@ gameplay state nor serves as a continuous voice track.
 
 - A **cue** is one eligible radio call: contact, fallback, check fire, mech
   spotted, enemy down, acknowledgement, or sustained-combat chatter.
-- A **speaker** is the eligible marine infantry squad selected for a cue. A
+- A **speaker** is the eligible marine infantry squad providing evidence for a cue. A
   squad must be alive, belong to the Marine faction, and be neither a mech nor
   a drone. Defenders and ineligible or wiped squads never speak on this net.
 - A **presentation event** is a fact the completed simulation exposes for the
@@ -27,7 +27,7 @@ gameplay state nor serves as a continuous voice track.
   simulation.
 - **Company command** is the off-field company officer, distinct from squad
   speakers and employer mission contacts. In Marine Operations she occasionally
-  answers an admitted tactical squad report over a non-positional comms channel.
+  addresses sampled assignment exchanges over a non-positional comms channel.
 - The **voice budget** is the single global throttle for every squad cue. It keeps
   the radio subordinate to combat sound and music.
 - A **host** is a presentation environment: the standalone battle screen or
@@ -71,16 +71,18 @@ mutates battle state, and its timing and clip selection use presentation-owned
 randomness rather than the simulation's seeded stream. Consequently, radio
 may vary between presentations without changing a replay or outcome.
 
-The two hosts consume the same policy, events, speaker selection, and voice
-budget. Their different audio coordinate systems are deliberately the last
-step, after a cue has selected its speaker centroid.
+The two hosts consume the same combat cue policy, events, speaker eligibility,
+and voice budget. The hybrid host positions stock calls at the speaker centroid;
+Marine Operations presents generated voices over the shipboard radio net and
+adds sampled assignment exchanges under that same budget.
 
 ## Content and extension law
 
-Each cue maps to a positional sound pool produced by the audio pipeline and
-registered for the mod runtime. The current standard-pilot library is
-proprietary placeholder content and must not be treated as cleared release
-audio.
+Each cue maps to audio produced by the pipeline and registered for the mod
+runtime. Marine Operations uses the generated ensemble; the hybrid host and
+unavailable-catalog fallback retain the standard-pilot positional library. That
+library is proprietary placeholder content and must not be treated as cleared
+release audio.
 
 Audio builds cache each encode by source bytes, effective encoding settings,
 and ffmpeg version/build. Adding or editing a manifest entry only encodes new
@@ -91,8 +93,9 @@ in the user home). A cold or cleared cache needs one full encode. Only the
 resulting Ogg files go into `mod/sounds`; cache files never ship with the mod.
 
 New radio vocabulary needs a stable, confirmed simulation fact and a clear
-eligible speaker. It must enter the shared policy rather than become a
-host-specific shortcut, compete under the same voice budget, and preserve the
+eligible speaker. Combat reports enter the shared cue policy; assignment
+exchanges observe accepted own-force directives. Both compete under the same
+voice budget and preserve the
 presentation-only boundary. New identity treatments (faction, patron, alien,
 or named-captain nets) may vary content or treatment but must not weaken those
 laws.
@@ -139,30 +142,23 @@ warnings concern a confirmed incident among those units, without implying the
 player chose to cause it. Direct control can place the player behind a unit's
 actions, but does not change who a generic net-wide warning addresses.
 
-Write each line with a clear speaker and recipient. Prefer an actual squad,
-aircraft or individual identity over collective addresses such as "all" or
-"ground teams". Specific callsigns, destinations and requests for support require
-facts supplied by their trigger. The existing generic command bank remains in
-runtime until addressed replacements are approved and connected to those facts.
-A recorded order is radio presentation, not evidence that an AI action has been
-issued or obeyed.
+Write each line with a clear speaker and recipient. Prefer an addressed callsign
+within a conversation over collective addresses such as "all" or "ground teams".
+An exchange's radio callsign is local casting, not a roster label or permanent
+squad identity. Specific destinations, support relationships and successful
+actions still require facts supplied by their trigger. A recorded order is
+radio presentation, not evidence that an AI action has been issued or obeyed.
 
-Command answers contact, fallback, check-fire, visible-mech and confirmed-kill
-reports admitted by the squad policy. It does not observe hidden simulation
-facts, replace the reporting squad, or answer routine acknowledgement chatter.
-A reply waits for the squad recording to finish and a short quiet interval;
-old reports expire rather than produce a delayed instruction. Responses have
-a longer shared cooldown than squad calls and alternate available takes.
-Command reserves the same speech channel while playing, so squad calls cannot
-overlap it. Pausing admits no new reply, completion discards pending replies,
-and leaving the host stops owned audio. Active replies may finish during pause
-or completion. Mara's scripted mission lines preempt incidental command replies
-and discard their pending response; mission sentences still finish uninterrupted.
+The generated ensemble supplies tactical reports admitted by the existing cue
+policy. The older generic officer replies remain only as a fallback when the
+ensemble catalog is unavailable. No generic reply is added behind an ensemble
+report. Assignment handshakes provide the officer's addressed coordination.
 
-Command subtitles identify COMPANY COMMAND and remain visible for the recorded
-lifetime even when audio is muted or unavailable. No portrait is assigned until
-the officer has approved character art. All selection and timing is presentation
-state and leaves simulation randomness untouched.
+Command subtitles identify COMPANY COMMAND; infantry subtitles identify the
+current exchange's callsign. They remain visible for the recorded lifetime even
+when audio is muted or unavailable. No portrait is assigned until that character
+has approved art. Selection and timing are presentation state and leave
+simulation randomness untouched.
 
 Clean generated masters remain separate from a shared offline comms profile:
 band limiting, moderate compression, subtle saturation and peak limiting. The
@@ -172,7 +168,7 @@ invalidating unrelated clean audio. Runtime playback needs no provider account,
 API access or DSP dependency. Transmit clicks or interference, if introduced,
 are separate channel effects rather than instructions in synthesis text.
 
-## Operational exchanges (authoring direction)
+## Operational exchanges
 
 Operation chatter makes deployed units and shipboard command legible as people
 coordinating an ongoing battle. It is optional to follow; objectives and critical
@@ -188,14 +184,23 @@ for dialogue. Assignment traffic requires an accepted own-force directive;
 routine renewals of the same task must not repeat the conversation. Arrival,
 engagement, capture and hold are different facts, not interchangeable reports.
 
-Names belong to stable unit identities. Retain the same leader's voice for that
-unit, choose delivery to match observed pressure, and never randomly recast it
-between lines. Infantry leaders can project through exertion; a transport pilot
-has a cockpit delivery; shipboard command remains measured. The approved
-company officer and Kestrel combat delivery anchor the current auditions.
-Additional infantry and transport voices remain casting samples. The existing
-infantry speaker eligibility rule is unchanged; an aircraft role needs its own
-eligible physical aircraft and delivery evidence before it can enter playback.
+The net represents a larger battlefield, including maps with one to a hundred
+squads. It does not simulate permanent radio identities. Cast rotates between
+self-contained exchanges; a callsign and actor remain consistent throughout one
+exchange, without binding that voice to a deployed squad's roster name. The
+company officer and Kestrel's strained delivery anchor the cast, with Hammer's
+worn, protective authority and Viper's forceful impatience giving infantry
+reports different personalities. Rook's cockpit delivery remains authoring
+content until an eligible physical aircraft and delivery evidence support it.
+
+Changed accepted assignments are sampled into one pending exchange, never a
+queue per squad. Unselected and throttled changes are consumed. The global
+assignment cooldown does not shrink with army size; a hundred squads supply
+more candidates, not a hundred conversations. Recreated assignment snapshots,
+capture-zone renumbering at the same compound and a moving escort rally do not
+constitute fresh orders. Confirmed combat reports get first use of an open
+channel before a new assignment exchange. Admitted turns retain their order
+and wait for actual playback completion plus a short quiet gap.
 
 Calls and replies must share a valid context. Cancel unspoken turns when a unit
 is lost, an assignment changes, or a later fact makes the exchange obsolete.
@@ -203,13 +208,17 @@ Only public or own-force facts may supply nouns; dialogue must not reveal hidden
 enemy state. A recorded covering maneuver or successful landing needs evidence
 of that action, not merely a plausible battlefield setting. Forced alignment
 and edits at phrase boundaries can assemble recorded callsigns and destinations;
-unsupported names need a truthful nameless variant or silence, never a wrong
-unit's call sign. No synthesis API is part of runtime.
+authored place names must match disclosed destinations or use a generic
+instruction. Callsigns are exchange-local, not claims about a roster name. No synthesis API is part of runtime.
 
 Future mixing may allow a quiet secondary monitored net behind one foreground
 exchange, with ducking around identities, instructions and urgent warnings.
 Foreground turn order remains protected, and one character cannot transmit
 twice at once. Mara's mission sentences retain their existing priority and
-completion guarantee. The current single-channel runtime does not yet implement
-these exchanges or secondary-net overlap; the retained authoring auditions are
-for casting, delivery and mix acceptance.
+completion guarantee. Runtime currently uses one foreground exchange and no secondary-net overlap.
+Pausing starts no new turn; stale pending and ongoing contexts expire in real
+time. Completion drops unspoken turns and lets an active sentence finish. Mara
+preempts incidental speech and discards the interrupted exchange. Leaving the
+host stops its audio; resizing does not restart it. Bespoke covering maneuvers,
+resupply and transport conversations remain authoring auditions until their
+required operational evidence is connected.

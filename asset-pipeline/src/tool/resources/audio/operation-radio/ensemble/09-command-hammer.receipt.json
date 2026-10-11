@@ -1,0 +1,11 @@
+{
+  "requestId": "0EXycIs8nvfbDhYhCpLq",
+  "characterCost": "5",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "inputSha256": "b13b534747669073a60b0f9bfca862e2f5e60dfad258e3fabdee97ea171d9df3",
+  "audioSha256": "87334789bf255ada620aa5004b9fffb57273fa10bdc7cd96d64072abc3478601",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[focused, brisk voice] Hammer Three. Command."
+  }
+}

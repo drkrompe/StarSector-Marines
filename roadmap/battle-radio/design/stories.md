@@ -12,6 +12,6 @@ Read `battle-radio-nouns.md` before changing a battle-radio story.
 | `radio-credits-cleanup.md` | Proposed | The expanded manifest and current proprietary-source credits disagree; resolve without changing runtime content. |
 
 Additional event vocabulary and replacement of proprietary placeholder audio
-remain direction, not contracted work. Objective, reinforcement, casualty,
+remain direction, not contracted work. Further objective reports, reinforcement, casualty,
 command-power, extraction, and faction/net identity treatments need their own
 stories once their event evidence, speaker, and content sources are defined.

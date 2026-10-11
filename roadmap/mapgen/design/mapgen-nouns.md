@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored natural masses and forests share geometry-owned obstruction and production brush previews.
+Updated: 2026-10-11 — outdoor recipes mix environment-appropriate forests and wooded hills while preserving finished access.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -215,6 +215,15 @@ an L-shaped gate depot and smaller maintenance annexes. These substitutions
 keep the original capture-site ordering and retain broad buildings where they
 screen a firing corridor, shelter a reserve or owe dedicated hall entrances.
 Their outdoor cuts remain connected to the surrounding yards and service roads.
+The surrounding ground is part of each facility's program: Junction has vehicle
+inspection, freight staging and warehouse overflow; Relay Nine has a fenced
+switch-house equipment bed, freight marshalling and a maintenance yard. Gravel
+beds, parked haulers, grouped cargo and loading machinery break up the shared
+concrete without filling its circulation space. Yard equipment reserves its
+whole rotated footprint as a visible fixture; floor markings do not obstruct.
+Fence openings preserve cross-yard movement, while thresholds, roads, berths
+and mission destinations remain reachable. A smaller building does not imply
+that its old parcel should become undifferentiated empty pavement.
 
 Building materials are paired wall, floor and accent surfaces, independent of
 the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and
@@ -488,6 +497,33 @@ clean ground. The stamper preflights every blocked canopy cell before changing
 anything, refusing roads, structures, fixtures, engineered ground and host
 reservations. Mission adoption still owns required reachability and circulation;
 the brush is deliberately allowed to create impassable forest barriers.
+
+Outdoor city and story-facility recipes also place forests procedurally after
+facilities, furnishing and landing reservations are finished. Wild trees belong
+only to the living surface palette, on grass or soil; an unknown, barren,
+toxic, volcanic, arid or frozen environment does not acquire a forest because
+one of its parks happens to be green. Interior recipes never run this pass.
+The landscape has its own seed stream so accepting or refusing nature does not
+reroll buildings or consume the host's placement randomness.
+
+Finished places own access before landscape competes for it. Facility aprons,
+road widths, engineered ground, existing props, spawn clearings and the full
+cardinal approach to each landing berth are reserved. A five-cell-wide envelope
+around existing connecting routes preserves available maneuvering space between
+required places; it never widens an existing narrow door. Each proposed mass or
+canopy must also leave all remaining walkable ground in its local neighborhood
+connected through actual reciprocal navigation edges. This conservative local
+detour proof refuses optional scenery rather than cutting a route through it
+later, and preserves connectivity even for places a mission chooses after the
+map is generated. Existing disconnected ground is not repaired by this pass.
+
+Open countryside can gain small cliff-backed hills where their entire visible
+footprint fits, using the same terrain brush as authored hills. A map with an
+existing authored terrain plan retains that plan. Living worlds use grassy
+summits, while other palettes keep bare rock. Forest crowns may sit entirely
+on full grassy summit cells; they do not straddle cliff faces or talus. Summit
+trees add appearance to already inaccessible ground, never a playable upper
+level. Exposed cliff rims and low-ground routes remain legible around the woods.
 
 The Forests authoring page exposes drag painting, radius, species mix, seed,
 undo/redo, a blocked-cell overlay and versioned JSON persistence. Optional road
