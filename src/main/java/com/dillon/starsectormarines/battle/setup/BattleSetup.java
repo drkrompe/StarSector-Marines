@@ -1416,10 +1416,17 @@ public final class BattleSetup {
             spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, post.anchorX, post.anchorY, post.garrisonSize),
                     Faction.DEFENDER, "thunder-run-guard-" + i, post, rng);
         }
-        for (int y : new int[]{65, 85}) sim.spawn(MapTurret.create("freight-road-gun-" + y,
-                Faction.DEFENDER, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 304, y));
+        for (var gun : ThunderRunCompound.EXIT_GUNS) sim.spawn(MapTurret.create("freight-road-gun-" + gun.y(),
+                Faction.DEFENDER, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, gun.x(), gun.y()));
+        // Six of the finite raiders man the prepared checkpoint before the road reserve arrives.
+        for (var cell : ThunderRunCompound.EXIT_RIFLE_POSTS) {
+            var post = openingDefenseNode(cell.x(), cell.y(), Faction.DEFENDER, map.grid);
+            spawnOpeningMilitiaSquads(sim, List.of(new int[]{cell.x() - 1, cell.y()},
+                            new int[]{cell.x(), cell.y()}, new int[]{cell.x() + 1, cell.y()}),
+                    Faction.DEFENDER, "freight-checkpoint-" + cell.y(), post, rng, 3);
+        }
         List<EntitySpec> reserve = new ArrayList<>();
-        for (int side = 0; side < 3; side++) for (int[] cell : pickSpawnCluster(map.grid, side == 2 ? 317 : 275, side == 0 ? 2 : side == 1 ? 140 : 75, 6))
+        for (int side = 0; side < 2; side++) for (int[] cell : pickSpawnCluster(map.grid, 275, side == 0 ? 2 : 140, 6))
             reserve.add(makeOpeningMilitia("freight-ambush-" + reserve.size(), Faction.DEFENDER,
                     cell[0], cell[1], rng).role(UnitRole.PATROL));
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))
