@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — shuttle bays use distinct landing surfaces, contained
-service equipment and layered ready stores around the existing clear boat routes.
+Updated: 2026-10-11 — provisions bays separate receiving, transfer and staged
+loads around a clear hatch apron, with layered shelf storage in muted materials.
 
 Earlier 2026-10-11 — engineering spaces separate complete piped machinery
 skids, service aisles and control/workshop aprons in the muted ship materials.
@@ -503,6 +503,18 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+Provisions bays receive cargo through the near short bulkhead onto a clear
+four-cell apron. A manifest desk faces the receiving floor; a parked pallet
+tug and a short continuous roller conveyor form the handling flank. Three
+staged pallet loads sit apart from one layered picking rack, with insulated
+totes and strapped dry provisions drawn separately from their physical beds
+and retaining frame. Quiet staging surfaces identify the pallet positions.
+The central handling aisle and perimeter routes connect all work to the hatch;
+whole assemblies yield to obstructed approaches. Readings belong to the desk,
+tending to the tug, repair and handling to the conveyor, and stowage to the
+loads. Ground loading bays and smaller rooms retain their existing fitting.
+Displayed provisions do not assert campaign inventory.
 
 Shuttle bays distinguish landing pads from the common taxi deck with quiet
 concrete surfaces and flush tie-down markings. Flight operations, mobile

@@ -238,6 +238,26 @@ final class HeadlessBattleSprites extends BattleSprites {
         }
     }
 
+    private final Map<String, ShuttleSpriteCache> byPath = new java.util.HashMap<>();
+
+    /** A sprite by path off the same disk roots as every other headless sprite; a path that will not read is absent. */
+    @Override public ShuttleSpriteCache spriteByPath(String path) {
+        if (path == null || path.isEmpty()) return null;
+        if (byPath.containsKey(path)) return byPath.get(path);
+        ShuttleSpriteCache cache = null;
+        try {
+            SpriteAPI token = sprite(path);
+            Asset asset = asset(token);
+            cache = new ShuttleSpriteCache(token,
+                    asset.height() == 0 ? 1f : asset.width() / (float) asset.height(),
+                    asset.width(), asset.height());
+        } catch (IOException | RuntimeException missing) {
+            // Left out, as with a hull.
+        }
+        byPath.put(path, cache);
+        return cache;
+    }
+
     @Override public SpriteAPI tileSheet() { return tile; }
     @Override public int tileSheetPxW() { return asset(tile).width(); }
     @Override public int tileSheetPxH() { return asset(tile).height(); }
