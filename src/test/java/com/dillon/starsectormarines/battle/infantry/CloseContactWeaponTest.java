@@ -31,6 +31,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class CloseContactWeaponTest {
 
+    @Test
+    void contactToolsUseHostilityForSelectionAndDamage() {
+        for (SpecialEquipmentDef tool : new SpecialEquipmentDef[]{blade(), cutter()}) {
+            for (Faction side : new Faction[]{Faction.MARINE, Faction.ALLY, Faction.DEFENDER}) {
+                for (Faction other : Faction.values()) {
+                    try (BattleSimulation sim = openArena(16, 12)) {
+                        long user = carrier(sim, tool, side, 5, 5);
+                        long target = tool == blade()
+                                ? infantry(sim, other, 6, 5)
+                                : sim.spawn(MapTurret.create("target", other,
+                                        TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 6, 5));
+                        boolean hostile = side.hostileTo(other);
+                        assertEquals(hostile, InfantryUnitPrep.tryOpportunitySpecial(user, sim));
+                        assertEquals(hostile, sim.applyContactStrike(user, target));
+                        if (!hostile) {
+                            assertEquals(0f, sim.world().secondaryCooldownTimer(user));
+                            assertTrue(sim.getShotsThisFrame().isEmpty());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private static final float EPS = 1e-3f;
 
     private static SpecialEquipmentDef cutter() {

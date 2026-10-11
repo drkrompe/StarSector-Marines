@@ -523,6 +523,22 @@ public class SquadMoraleTest {
     }
 
     // ---- near-miss morale keys on path proximity (segment), not endpoint proximity ----
+
+    @Test
+    public void alliedSupportingFireDoesNotDrainNearMissMorale() {
+        for (Faction source : new Faction[]{Faction.MARINE, Faction.ALLY, Faction.CIVILIAN}) {
+            try (BattleSimulation sim = openSim()) {
+                Squad squad = marineSquad(sim, 4);
+                squad.aliveMembers = 4;
+                ShotService shots = new ShotService();
+                shots.postShot(new ShotEvent(0f, 2f, 10f, 2f, false, source, 1f));
+                new SquadMoraleSystem(sim.getRoster(), shots).tick(BattleSimulation.TICK_DT);
+                assertEquals(1f, team(squad).morale, 1e-6f,
+                        source + " fire must not count as hostile suppression");
+            }
+        }
+    }
+
     //
     // These drive SquadMoraleSystem directly against a throwaway ShotService
     // rather than through sim.advance/postShot: squadHitByMiss only needs

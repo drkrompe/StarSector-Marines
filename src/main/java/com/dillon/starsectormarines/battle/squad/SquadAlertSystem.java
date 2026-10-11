@@ -309,7 +309,7 @@ public final class SquadAlertSystem {
             float listenerY = squad.centroidY / squad.centroidMembers;
             if (profile != null) noisesConsidered += pendingNoises.size();
             for (NoiseEvent event : pendingNoises) {
-                if (event.sourceFaction() == squad.faction) continue;
+                if (!squad.faction.hostileTo(event.sourceFaction())) continue;
                 NoiseDetection.Detection detection = NoiseDetection.detect(
                         event, squad.id, listenerX, listenerY, grid);
                 if (detection == null) continue;
@@ -359,7 +359,7 @@ public final class SquadAlertSystem {
                 int fromCellY = (int) Math.floor(shot.fromY);
                 for (int i = 0; i < underFireCandidates.size; i++) {
                     long u = underFireCandidates.ids[i];
-                    if (shot.shooterFaction == identity.faction(u)) continue;
+                    if (!identity.faction(u).hostileTo(shot.shooterFaction)) continue;
                     Squad squad = roster.squad().hasSquad(u)
                             ? roster.getSquad(roster.squad().squadId(u)) : null;
                     boolean squadNeedsFlag = squad != null && !squad._underFireAtLosThisTick;

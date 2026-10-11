@@ -14,7 +14,8 @@ public enum FireGate {
     OUT_OF_RANGE,
     NO_LOS,
     INVALID_AIM,
-    UNSUPPORTED_WEAPON;
+    UNSUPPORTED_WEAPON,
+    FRIENDLY_TARGET;
 
     public static final FireGate[] VALUES = values();
 }

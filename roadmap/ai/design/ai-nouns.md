@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-09-27 — optional quiet guard travel has finite effort and retained
-refusal, distinct from required homeward or investigative movement.
+Updated: 2026-10-11 — faction relations govern targeting, remembered threats,
+interception, and final friendly-target rejection.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -125,6 +125,13 @@ three-sided one silently wrong, so no such chain is allowed to exist. MARINE
 and ALLY are friendly to each other and hostile to DEFENDER; nothing is hostile
 to CIVILIAN or to itself; fire from the player's side, allied fire included,
 treats civilians as protected non-targets.
+
+The same relation governs retained target locks, remembered or heard enemy
+contacts, threat pressure, and missile interception. A friendly shot does not
+become enemy activity merely because its owner belongs to a different faction.
+Primary fire intents and burst continuation also reject friendly entity targets
+at execution. This does not remove physical crossfire or explosive collateral:
+choosing a victim and hitting an intervening body are separate questions.
 
 An ally is not the player's to command. Allied squads are never in the
 player's command pool and never take a player order; they plan under garrison

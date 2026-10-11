@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadBeliefTestAccess;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
@@ -20,6 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommanderInfluenceServiceTest {
+
+    @Test
+    void staleAlliedBeliefsAreNotPublishedAsCommanderEnemies() {
+        NavigationGrid grid = new NavigationGrid(16, 8);
+        try (BattleSimulation sim = new BattleSimulation(grid, new CellTopology(16, 8))) {
+            int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+            sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 2, 3).squad(squadId));
+            Squad squad = sim.getSquad(squadId);
+            squad.aliveMembers = 1;
+            long ally = sim.spawn(new EntitySpec("ally", Faction.ALLY, UnitType.MARINE, 4, 3));
+            long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MARINE, 8, 3));
+            SquadBeliefTestAccess.observeDirect(squad, ally, 4, 3, 1);
+            SquadBeliefTestAccess.observeDirect(squad, enemy, 8, 3, 1);
+            CommanderInfluenceService service = new CommanderInfluenceService(grid, sim.getRoster(), () -> 1L);
+            assertEquals(1, service.aggregateContacts(Faction.MARINE).size());
+            assertEquals(enemy, service.aggregateContacts(Faction.MARINE).get(0).unitId());
+        }
+    }
 
     @Test
     void cachedTopologyRebuildsOnlyAfterNavigationRevisionAdvances() {
