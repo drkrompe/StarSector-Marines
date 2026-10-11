@@ -1033,7 +1033,7 @@ post-building cleanup retaining ownership of interior floors and markings.
 
 A freight landing area is a connected terminal apron containing multiple
 `LandingPad` reservations, rather than one disconnected square per boat.
-Junction and Relay Nine group their existing berth capacity in paired stands
+Junction and Relay Nine group their existing berth capacity in staggered, elongated stands
 beside the western terminal, connected to the inbound road. `FREIGHT_APRON`
 selects restrained guidance paint without replacing their clear footprints or
 aircraft approach authority.

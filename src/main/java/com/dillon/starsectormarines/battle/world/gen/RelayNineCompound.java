@@ -86,10 +86,10 @@ public final class RelayNineCompound {
         yardSurfaces(c);
         var roads = RoadCatalog.plan(RoadCatalog.RELAY_NINE);
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
-        // Paired freight stands share one service apron beside the terminal buildings.
-        int[][] stands = {{17,44},{32,44},{17,30},{32,30},{17,16},{32,16}};
+        // Staggered, elongated stands fit the player boats on one terminal apron.
+        int[][] stands = {{18,50},{32,43},{18,36},{32,29},{18,22},{32,15}};
         for(int i=0;i<6;i++) c.landingPads.add(new LandingPad(stands[i][0],stands[i][1],
-                3,3,LandingPad.Approach.WEST,LandingPad.Purpose.FREIGHT_APRON));
+                8,3,LandingPad.Approach.WEST,LandingPad.Purpose.FREIGHT_APRON));
         for (int x = 100; x < 176; x += 9) pave(c, x, 38, x + 3, 42, GroundKind.STRIPED);
     }
     private static void yardSurfaces(GenContext c) {
