@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -197,6 +199,72 @@ public class InfantryUnitPrepTest {
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer, sim),
                 "friendly turret must not be a rocket target");
+    }
+
+    @Test
+    void specialOpportunityUsesHostilityForArmoredVehicles() {
+        for (String equipment : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+                SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)) {
+            for (Faction shooterSide : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER)) {
+                for (Faction targetSide : Faction.values()) {
+                    try (BattleSimulation sim = openArena(50, 20)) {
+                        long carrier = sim.spawn(new EntitySpec("carrier", shooterSide,
+                                UnitType.MARINE, 5, 10).specialEquipment(
+                                SpecialEquipmentRegistry.require(equipment), 3));
+                        long apc = sim.convoy().spawn(VehicleType.HEAVY_APC, targetSide,
+                                VehicleMission.deployed(20.5f, 10.5f));
+                        sim.getUnitIndex().rebuild(sim.getRoster());
+                        boolean hostile = shooterSide.hostileTo(targetSide);
+                        String context = equipment + ": " + shooterSide + " -> " + targetSide;
+                        assertEquals(hostile, InfantryUnitPrep.tryOpportunitySpecial(carrier, sim), context);
+                        assertEquals(hostile ? apc : 0L, sim.world().secondaryAimTargetId(carrier), context);
+                        sim.world().setSecondaryActionTimer(carrier, 0f);
+                        sim.world().setSecondaryAimTargetId(carrier, 0L);
+                        assertEquals(hostile, InfantryUnitPrep.tryHardenedOpportunity(carrier, sim), context);
+                        assertEquals(hostile ? apc : 0L, sim.world().secondaryAimTargetId(carrier), context);
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void nearerAlliedArmorDoesNotHideAnEnemyRocketTarget() {
+        try (BattleSimulation sim = openArena(50, 20)) {
+            long carrier = rocketeer(sim, Faction.MARINE, 5, 10);
+            sim.convoy().spawn(VehicleType.HEAVY_APC, Faction.ALLY,
+                    VehicleMission.deployed(10.5f, 14.5f));
+            long enemy = turret(sim, Faction.DEFENDER,
+                    TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 10);
+            sim.getUnitIndex().rebuild(sim.getRoster());
+            assertTrue(InfantryUnitPrep.tryOpportunitySpecial(carrier, sim));
+            assertEquals(enemy, sim.world().secondaryAimTargetId(carrier));
+        }
+    }
+
+    @Test
+    void preexistingSpecialAimFiresOnlyAtHostileArmor() {
+        for (String equipment : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+                SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)) {
+            for (Faction targetSide : List.of(Faction.ALLY, Faction.CIVILIAN, Faction.DEFENDER)) {
+                try (BattleSimulation sim = openArena(50, 20)) {
+                    long carrier = sim.spawn(new EntitySpec("carrier", Faction.MARINE,
+                            UnitType.MARINE, 5, 10).specialEquipment(
+                            SpecialEquipmentRegistry.require(equipment), 3));
+                    long apc = sim.convoy().spawn(VehicleType.HEAVY_APC, targetSide,
+                            VehicleMission.deployed(20.5f, 10.5f));
+                    sim.world().setSecondaryAimTargetId(carrier, apc);
+                    sim.world().setSecondaryActionTimer(carrier,
+                            SpecialEquipmentRegistry.require(equipment).aimDuration() * 0.5f);
+                    assertTrue(InfantryUnitPrep.tickAimAndShortCircuit(carrier, sim));
+                    boolean hostile = Faction.MARINE.hostileTo(targetSide);
+                    assertEquals(hostile ? 2 : 3, sim.world().secondaryAmmo(carrier));
+                    assertEquals(hostile ? SpecialEquipmentRegistry.require(equipment).cooldown() : 0f,
+                            sim.world().secondaryCooldownTimer(carrier));
+                    assertEquals(!hostile, sim.getShotsThisFrame().isEmpty());
+                }
+            }
+        }
     }
 
     @Test
