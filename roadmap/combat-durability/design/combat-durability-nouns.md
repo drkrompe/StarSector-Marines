@@ -104,6 +104,13 @@ editor boundary. These breaches are neither doorways nor masonry collapses;
 they do not peel adjacent roofs. Decorative walkable placements do not
 acquire this obstruction contract.
 
+Storage boxes, wooden crates and industrial crate stacks spend that same
+structural damage in both walkable and blocking placements. Broken panels and
+scattered supplies retain the original material and placement. Surviving damage
+keeps protection; destruction removes only the crate contribution and opens a
+blocking placement. Walkable crates carry independent removable physical cover,
+so their destruction preserves other props and nature on the same cell.
+
 Trees use the same weapon-authored structural damage channel, with one pool
 per tree across all its canopy cells. A blast spends damage once per tree,
 including where crowns overlap. Surviving damage exposes broken limbs but
