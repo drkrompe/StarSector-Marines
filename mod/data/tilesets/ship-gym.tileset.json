@@ -1,0 +1,113 @@
+{
+  "blocks": [
+    {
+      "cells": [[
+        10,
+        0
+      ]],
+      "id": "ship-gym.mat"
+    },
+    {
+      "cells": [[
+        11,
+        0
+      ]],
+      "id": "ship-gym.coping"
+    },
+    {
+      "cells": [[
+        12,
+        0
+      ]],
+      "id": "ship-gym.water"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "ship-gym.treadmill",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "ship-gym.rower",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "ship-gym.bench-press",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "ship-gym.weights",
+      "row": 0
+    },
+    {
+      "col": 10,
+      "description": "variant 1 of the pool",
+      "name": "ship-gym.mat v1",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "description": "variant 1 of the pool",
+      "name": "ship-gym.coping v1",
+      "row": 0
+    },
+    {
+      "col": 12,
+      "description": "variant 1 of the pool",
+      "name": "ship-gym.water v1",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "ship-gym.treadmill",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 2,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "ship-gym.rower",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 4,
+      "cover": "med",
+      "footprintCells": [
+        2,
+        3
+      ],
+      "id": "ship-gym.bench-press",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.5,
+      "col": 6,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        1
+      ],
+      "id": "ship-gym.weights",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/tilesets/ship-gym.png"
+}

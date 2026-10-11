@@ -96,7 +96,7 @@ class BattleDirectControlStatusTest {
     void committedBurstCanFinishItsLastPackAndProjectionDoesNotMutateRuntimeState() {
         var mount = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
         mount.ammo = 0;
-        mount.cooldown = 1f;
+        mount.cycleRemaining = 1f;
         mount.burstRemaining = 1;
         mount.burstTimer = .12f;
         mount.replenishmentProgressSeconds = 2f;
@@ -105,7 +105,7 @@ class BattleDirectControlStatusTest {
         assertEquals(1, status.burstRemaining());
         assertEquals(.12f, status.burstSeconds());
         assertEquals(0, mount.ammo);
-        assertEquals(1f, mount.cooldown);
+        assertEquals(1f, mount.cycleRemaining);
         assertEquals(2f, mount.replenishmentProgressSeconds);
         mount.clearBurst();
         mount.ammo = 1;

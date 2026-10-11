@@ -33,6 +33,7 @@ public final class UiDocument {
     private UiElement spaceArmed;
     private Runnable onCancel;
     private Supplier<UiElement> inputScope;
+    private Supplier<List<UiElement>> inputRegions;
     private float pointerX;
     private float pointerY;
     private boolean pointerKnown;
@@ -51,6 +52,34 @@ public final class UiDocument {
         return this;
     }
 
+    /** Multiple interactive subtrees, e.g. tutorial spotlights. Null restores unrestricted input;
+     * an empty list blocks all controls. The supplier is evaluated at every input event. */
+    public UiDocument inputRegions(Supplier<List<UiElement>> regions) {
+        inputRegions = regions;
+        validateInteractionReferences();
+        return this;
+    }
+
+    private List<UiElement> activeRegions() {
+        return inputRegions == null ? null : inputRegions.get();
+    }
+
+    private UiElement eventRoot(UiElement target) {
+        List<UiElement> regions = activeRegions();
+        if (regions != null) {
+            for (UiElement candidate = target; candidate != null; candidate = candidate.parent()) {
+                if (regions.contains(candidate)) return candidate;
+            }
+        }
+        return inputRoot();
+    }
+
+    private boolean inRegion(UiElement element) {
+        List<UiElement> regions = activeRegions();
+        return regions == null || regions.stream().anyMatch(region -> attached(region)
+                && (element == region || isAncestor(region, element)));
+    }
+
     private UiElement inputRoot() {
         UiElement scope = inputScope == null ? null : inputScope.get();
         return scope != null && attached(scope) ? scope : root;
@@ -58,7 +87,17 @@ public final class UiDocument {
 
     private boolean acceptsInput(UiElement element) {
         UiElement scope = inputRoot();
-        return attached(element) && (element == scope || isAncestor(scope, element));
+        if (!attached(element) || !(element == scope || isAncestor(scope, element)) || !inRegion(element)) return false;
+        if (activeRegions() == null) return true;
+        Rect visible = UiSpotlight.visibleBounds(this, element);
+        return activeRegions().stream().anyMatch(region -> attached(region)
+                && (element == region || isAncestor(region, element))
+                && overlaps(visible, UiSpotlight.visibleBounds(this, region)));
+    }
+
+    private static boolean overlaps(Rect first, Rect second) {
+        Rect intersection = first.intersect(second);
+        return intersection.width() > 0 && intersection.height() > 0;
     }
 
     public UiElement root() {
@@ -181,12 +220,12 @@ public final class UiDocument {
         updateHover(target);
         UiPointerEvent event = dispatchPointer(target, x, y, button, PointerPhase.DOWN);
         if (button != PointerButton.PRIMARY || (event != null && event.defaultPrevented())) {
-            return target != null;
+            return target != null || activeRegions() != null;
         }
         requestFocus(nearestFocusable(target), false);
         if (pressed != null) pressed.armed(false);
         pressed = nearestClickable(target);
-        if (pressed == null) return target != null;
+        if (pressed == null) return target != null || activeRegions() != null;
         pressed.armed(true);
         return true;
     }
@@ -217,7 +256,7 @@ public final class UiDocument {
             pointerCapture = null;
             updateHover(elementAt(x, y));
         }
-        return target != null || wasPressed != null || captureAtRelease != null;
+        return target != null || wasPressed != null || captureAtRelease != null || activeRegions() != null;
     }
 
     public UiDocument onCancel(Runnable onCancel) {
@@ -290,6 +329,10 @@ public final class UiDocument {
             return moveFocus(held.contains(KeyModifier.SHIFT));
         }
         if (!held.isEmpty()) return false;
+        if (key == UiKey.ESCAPE && activeRegions() != null && onCancel != null) {
+            if (!repeat) onCancel.run();
+            return true;
+        }
         if (focused != null && focused.tag() == UiTag.INPUT) {
             if (key == UiKey.BACKSPACE) {
                 if (!repeat || focused.text() != null && !focused.text().isEmpty()) {
@@ -368,12 +411,13 @@ public final class UiDocument {
             }
             if (target == inputRoot()) break;
         }
-        return overScrollSurface;
+        return overScrollSurface || activeRegions() != null;
     }
 
     UiElement hit(float x, float y) {
         for (UiElement target = elementAt(x, y); target != null; target = target.parent()) {
             if (target.clickable()) return target;
+            if (target == eventRoot(target)) break;
         }
         return null;
     }
@@ -384,7 +428,13 @@ public final class UiDocument {
      * hit order agree (law 6), so children are tested last-first.
      */
     public UiElement elementAt(float x, float y) {
-        return elementAt(inputRoot(), x, y, viewport);
+        UiElement hit = elementAt(inputRoot(), x, y, viewport);
+        if (hit == null) return null;
+        List<UiElement> regions = activeRegions();
+        if (regions == null) return hit;
+        return regions.stream().anyMatch(region -> attached(region)
+                && (hit == region || isAncestor(region, hit))
+                && UiSpotlight.visibleBounds(this, region).contains(x, y)) ? hit : null;
     }
 
     private static UiElement elementAt(UiElement element, float x, float y,
@@ -405,6 +455,7 @@ public final class UiDocument {
     private boolean moveFocus(boolean reverse) {
         List<UiElement> order = new ArrayList<>();
         collectTabOrder(inputRoot(), order);
+        order.removeIf(element -> !acceptsInput(element));
         if (order.isEmpty()) {
             requestFocus(null, false);
             return false;
@@ -457,9 +508,10 @@ public final class UiDocument {
     private List<UiElement> pathToRoot(UiElement target) {
         if (target == null) return List.of();
         List<UiElement> path = new ArrayList<>();
+        UiElement boundary = eventRoot(target);
         for (UiElement element = target; element != null; element = element.parent()) {
             path.add(element);
-            if (element == inputRoot()) break;
+            if (element == boundary) break;
         }
         return Collections.unmodifiableList(path);
     }
@@ -468,6 +520,7 @@ public final class UiDocument {
                                            PointerButton button, PointerPhase phase) {
         if (target == null) return null;
         UiPointerEvent event = new UiPointerEvent(this, target, x, y, button);
+        UiElement boundary = eventRoot(target);
         for (UiElement element = target; element != null; element = element.parent()) {
             event.currentTarget(element);
             switch (phase) {
@@ -475,23 +528,25 @@ public final class UiDocument {
                 case DOWN -> element.pointerDown(event);
                 case UP -> element.pointerUp(event);
             }
-            if (event.propagationStopped() || element == inputRoot()) break;
+            if (event.propagationStopped() || element == boundary) break;
         }
         return event;
     }
 
     private UiElement nearestClickable(UiElement target) {
+        UiElement boundary = eventRoot(target);
         for (UiElement element = target; element != null; element = element.parent()) {
             if (element.clickable()) return element;
-            if (element == inputRoot()) break;
+            if (element == boundary) break;
         }
         return null;
     }
 
     private UiElement nearestFocusable(UiElement target) {
+        UiElement boundary = eventRoot(target);
         for (UiElement element = target; element != null; element = element.parent()) {
             if (element.focusable()) return element;
-            if (element == inputRoot()) break;
+            if (element == boundary) break;
         }
         return null;
     }

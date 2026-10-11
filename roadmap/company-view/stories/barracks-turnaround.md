@@ -46,8 +46,12 @@ work. Advice names real controls and current blockers. It never advances gamepla
 spends resources, invents a casualty, or requires wasteful orders to progress.
 Present each lesson as an anchored callout beside the real Barracks controls,
 with Castle's portrait and speaker name beside her words. Highlight the next
-control and move the callout clear of it. Keep the room interactive while she
-speaks, including keyboard focus and scrolling. Successful orders advance the
+control and move the callout clear of it. Dim the rest of the screen and declare
+one or more interactive openings for each lesson. Keep squad scrolling, filtering
+and paging available during selection; expose transfer preview and Apply/Cancel
+together; expose each resource order with its costs and available stock. Pointer
+and keyboard input share the same regions. Openings follow scrolling and resizing;
+Dismiss restores the whole screen immediately. Successful orders advance the
 guide; Next skips any unnecessary action without spending cargo. Escape and
 Dismiss close it; Company Guide resumes the lesson sequence. All future speaking
 characters require their portrait alongside dialogue.
@@ -117,13 +121,14 @@ failures. Each failing case was reproduced in an unchanged `cef164b21` checkout:
 Live casualty settlement, Armory round trip, save/reload and another deployment
 remain unperformed. Keep the story open for that host acceptance and voice work.
 
-The interactive callout is covered by production MLX pointer/keyboard tests:
-select a squad while Castle speaks, move focus outside the guide, dismiss/resume,
-and keep the equipment control revealed and unobstructed after resizing. Guide
-progress follows successful orders and blocked orders stay on the current lesson.
+The reusable spotlight is covered by production MLX pointer/keyboard tests:
+select a squad while Castle speaks, focus a highlighted region, reject a darkened
+order, dismiss/resume, and keep equipment revealed and unobstructed after resizing.
+Retained-UI coverage checks multiple/overlapping apertures, clipping, shade input
+consumption, tab boundaries, stale capture/armed activation and immediate dismissal.
+Guide progress follows successful orders; blocked orders stay on the current lesson.
 Production snapshots cover selection, transfers, replenishment and equipment at
-100% and 150% scale. Results retains the recovery conversation alongside the new
-preparation action.
+100% and 150% scale. Results retains the recovery conversation alongside preparation.
 
-Interactive-guide verification: 149 focused retained-UI, Barracks and consolidation
-tests passed; shadowJar packaged successfully and all 32 Barracks snapshots rendered.
+Spotlight verification: 155 focused retained-UI, Barracks and consolidation tests
+passed; shadowJar packaged successfully and all 32 Barracks snapshots rendered.

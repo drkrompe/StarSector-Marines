@@ -1,0 +1,145 @@
+{
+  "sheetName": "ship-gym",
+  "sheet": "art-source/tilesets/ship-gym.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 3,
+  "idPrefix": "ship-gym",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-gym.png",
+  "note": "Geometry-first gym fixtures plus opaque material interior cuts. Pool water topology owns animated identity; coping and mats remain walkable.",
+  "entries": [
+    {
+      "id": "ship-gym.treadmill",
+      "rect": [
+        85,
+        54,
+        172,
+        309
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "ship-gym.rower",
+      "rect": [
+        545,
+        26,
+        153,
+        342
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "ship-gym.bench-press",
+      "rect": [
+        877,
+        54,
+        305,
+        304
+      ],
+      "footprintCells": [
+        2,
+        3
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "ship-gym.weights",
+      "rect": [
+        46,
+        537,
+        347,
+        128
+      ],
+      "footprintCells": [
+        4,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "ship-gym.mat",
+      "rect": [
+        492,
+        476,
+        260,
+        260
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "ship-gym.mat",
+      "slot": "v1"
+    },
+    {
+      "id": "ship-gym.coping",
+      "rect": [
+        908,
+        476,
+        260,
+        260
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "ship-gym.coping",
+      "slot": "v1"
+    },
+    {
+      "id": "ship-gym.water",
+      "rect": [
+        72,
+        873,
+        288,
+        288
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true,
+      "block": "ship-gym.water",
+      "slot": "v1"
+    }
+  ],
+  "blocks": [
+    {
+      "id": "ship-gym.mat",
+      "layout": "variants"
+    },
+    {
+      "id": "ship-gym.coping",
+      "layout": "variants"
+    },
+    {
+      "id": "ship-gym.water",
+      "layout": "variants"
+    }
+  ]
+}

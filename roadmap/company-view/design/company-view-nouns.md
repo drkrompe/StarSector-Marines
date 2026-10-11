@@ -575,8 +575,12 @@ The company officer offers a short, dismissible first-use management guide in an
 anchored callout with her portrait and name, plus a Company Guide resume action.
 She is pragmatic and matriarchal: warm, observant and firm as the moment needs,
 with occasional dry humor rather than a fixed dry tone. The guide highlights the
-next real preparation control and moves beside it while leaving screen interactions
-and keyboard focus available. Successful selection and preparation orders advance
+next real preparation control and moves beside it. A dim backdrop leaves openings
+around the lesson's declared controls and readouts: formations with filters and
+paging, donor/transfer review, or the current resource order with its availability.
+Only those regions and the portrait callout accept pointer and keyboard input;
+scrolling stays available for the relevant pane. Openings track the live layout,
+and dismissal immediately restores the full screen. Successful selection and preparation orders advance
 the lesson; Next skips a lesson without spending resources. Advice includes current
 selection and shortfalls, asks for no unnecessary spending or fake training casualty,
 and keeps WIA in their billets. Dismiss or Escape closes it. Dismissal is saved

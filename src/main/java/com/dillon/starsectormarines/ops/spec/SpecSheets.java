@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.MechCatalog;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.ReconPing;
@@ -302,8 +303,11 @@ public final class SpecSheets {
                         titleCase(component.hardpointType.name())),
                 null,
                 ACCENT_MECH,
-                List.of(),
-                paragraphs(entry.description()));
+                List.of(Stat.of(component.cycleLabel(), component.cycleSeconds() + " s"),
+                        Stat.of("Heat / burst", whole(component.heatPerTrigger()) + " / 100"),
+                        Stat.of("Cooling / burst", (component.heatPerTrigger() / MechHeat.COOLING_PER_SECOND) + " s alone")),
+                paragraphs(entry.description() + " Mechanical cycling and shared chassis heat both limit fire. "
+                        + "Missile pack replenishment is separate; combining weapons shares the same cooling."));
     }
 
     /**
