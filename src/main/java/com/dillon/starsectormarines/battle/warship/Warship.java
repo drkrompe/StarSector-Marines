@@ -36,6 +36,8 @@ public final class Warship {
         public int shotsFired;
         /** Where the barrel points now, in the hull-facing convention; rests along the slot until it has a target. */
         public float headingDegrees;
+        /** Seconds since this mount last fired; large until it first does. */
+        public float secondsSinceFired = 1000f;
 
         Mount(WarshipSlot slot, VanillaWeapon weapon) {
             this.slot = slot;
