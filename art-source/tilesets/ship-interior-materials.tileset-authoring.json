@@ -1,0 +1,338 @@
+{
+  "sheetName": "ship-interior-materials",
+  "sheet": "art-source/tilesets/ship-interior-materials.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 4,
+  "idPrefix": "ship",
+  "alphaMin": 40,
+  "note": "ShipInteriorMaterialTemplate. ImageGen 1254px RGBA; measured opening canvases 286x276 on x17,329,640,952 and y16,321. Full opening canvases retained. Floor cuts are inset into opaque material to exclude generated edge bevels. Four low-contrast variants per surface.",
+  "blocks": [
+    {
+      "id": "ship.neutral-window",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "ship.neutral-door",
+      "layout": "cardinal-2x2"
+    },
+    {
+      "id": "ship.passage-deck",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    },
+    {
+      "id": "ship.crew-deck",
+      "layout": "variants",
+      "doorBlock": "ship.neutral-door",
+      "windowBlock": "ship.neutral-window"
+    }
+  ],
+  "entries": [
+    {
+      "id": "ship.neutral-window.n",
+      "block": "ship.neutral-window",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        17,
+        16,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-window.e",
+      "block": "ship.neutral-window",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        329,
+        16,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-window.s",
+      "block": "ship.neutral-window",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        17,
+        321,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-window.w",
+      "block": "ship.neutral-window",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        329,
+        321,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-door.n",
+      "block": "ship.neutral-door",
+      "slot": "facing-n",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        640,
+        16,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-door.e",
+      "block": "ship.neutral-door",
+      "slot": "facing-e",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        952,
+        16,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-door.s",
+      "block": "ship.neutral-door",
+      "slot": "facing-s",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        640,
+        321,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.neutral-door.w",
+      "block": "ship.neutral-door",
+      "slot": "facing-w",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        952,
+        321,
+        286,
+        276
+      ]
+    },
+    {
+      "id": "ship.passage-deck-1",
+      "block": "ship.passage-deck",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        635,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.passage-deck-2",
+      "block": "ship.passage-deck",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        337,
+        635,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.passage-deck-3",
+      "block": "ship.passage-deck",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        25,
+        941,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.passage-deck-4",
+      "block": "ship.passage-deck",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        337,
+        941,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.crew-deck-1",
+      "block": "ship.crew-deck",
+      "slot": "v1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        648,
+        635,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.crew-deck-2",
+      "block": "ship.crew-deck",
+      "slot": "v2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        960,
+        635,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.crew-deck-3",
+      "block": "ship.crew-deck",
+      "slot": "v3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        648,
+        941,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "ship.crew-deck-4",
+      "block": "ship.crew-deck",
+      "slot": "v4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        960,
+        941,
+        267,
+        261
+      ],
+      "spriteBorderPx": [
+        2,
+        2
+      ]
+    }
+  ]
+}

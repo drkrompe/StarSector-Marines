@@ -206,6 +206,9 @@ L-shaped wings, open courts, T-shaped halls and offset loading rooms leave real
 outdoor ground in their cuts: the bounding rectangle is not a building mask and
 must not roof or repaint those cells. Every usable interior and firing recess
 remains reachable through doors with fixtures present, in all four orientations.
+Story maps may explicitly place the same plans, with larger freight variants
+reserved for authored facilities. They retain the same rotation, interior,
+window and material rules; they are not stretched versions of a small stamp.
 
 Building materials are paired wall, floor and accent surfaces, independent of
 the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and
@@ -258,7 +261,11 @@ footprint, office facade windows yield to that required room capacity;
 reception and conference facades retain the building's firing apertures.
 
 Thunder Run owns a wider, elongated freight corridor with three roadside
-objectives and two staging stops. Its fifteen-cell carriageway is reserved
+objectives and two staging stops. Dispatch uses an L-shaped depot and office
+wing; East Crossing uses a T-shaped transfer workshop. Rotated offset depots
+and smaller workshops mix with long warehouse sheds along the corridor,
+leaving usable loading courts and recesses outside their actual footprints.
+The checkpoint's terminal blocks retain the mass needed to contain the road. Its fifteen-cell carriageway is reserved
 before facilities, perimeter runs and dressing. Cliff-backed northern and
 southern hills replace outer filler blocks, leaving low-ground infantry routes
 behind the roadside facilities. Cross streets remain full-width cuts through

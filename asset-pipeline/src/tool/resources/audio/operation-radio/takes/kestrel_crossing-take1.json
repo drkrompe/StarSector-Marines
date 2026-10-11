@@ -1,0 +1,15 @@
+{
+  "requestId": "92VkWZ8rWmJ45WprqiBd",
+  "characterCost": "7",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "f1a2a9385e3a1219df328c3d0bdd97dd7aff9b27a346028c5dc57fffa87d6fef",
+  "audioSha256": "31200e57bf505d8833ea08cd927ee79a9071210b3f3cd271181a1ffeb423b82d",
+  "durationSeconds": 2.32,
+  "payload": {
+    "text": "[shouting] [strained, breathless voice] Viper One! Moving now!",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

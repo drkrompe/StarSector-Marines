@@ -33,8 +33,9 @@ public final class BuildingStampSnapshotSuite implements SnapshotSuite {
         artifacts.add(new SnapshotArtifact("wall-reskin-template.png",
                 WallReskinTemplate.render()));
         artifacts.add(new SnapshotArtifact("opening-reskin-template.png", OpeningReskinTemplate.render()));
-        int panel = 17 * 32, header = 38;
-        BufferedImage overview = new BufferedImage(panel * 2, (panel + header) * 3,
+        int extent = 24;
+        int panel = extent * 24, header = 38;
+        BufferedImage overview = new BufferedImage(panel * 2, (panel + header) * ((BuildingStamp.values().length + 1) / 2),
                 BufferedImage.TYPE_INT_RGB);
         Graphics2D gallery = overview.createGraphics();
         int index = 0;
@@ -43,12 +44,12 @@ public final class BuildingStampSnapshotSuite implements SnapshotSuite {
                     BufferedImage.TYPE_INT_RGB);
             Graphics2D g = rotations.createGraphics();
             for (int turn = 0; turn < 4; turn++) {
-                GenContext ctx = open();
-                stamp.place(ctx, (17 - stamp.width(turn)) / 2,
-                        (17 - stamp.height(turn)) / 2, turn);
-                MapResult map = new MapResult(ctx.grid, ctx.topology, 0, 0, 16, 16,
+                GenContext ctx = open(extent);
+                stamp.place(ctx, (extent - stamp.width(turn)) / 2,
+                        (extent - stamp.height(turn)) / 2, turn);
+                MapResult map = new MapResult(ctx.grid, ctx.topology, 0, 0, extent - 1, extent - 1,
                         ctx.pois, ctx.doodads);
-                BufferedImage frame = renderer.render(map, 42, 32);
+                BufferedImage frame = renderer.render(map, 42, 24);
                 int x = (turn % 2) * panel, y = (turn / 2) * (panel + header);
                 String facing = new String[]{"N", "W", "S", "E"}[turn];
                 panel(g, frame, x, y, stamp.label + " / " + facing, panel, header);
@@ -65,14 +66,14 @@ public final class BuildingStampSnapshotSuite implements SnapshotSuite {
         return artifacts;
     }
 
-    private static GenContext open() {
-        NavigationGrid grid = new NavigationGrid(17, 17);
-        CellTopology topology = new CellTopology(17, 17);
-        for (int y = 0; y < 17; y++) for (int x = 0; x < 17; x++) {
+    private static GenContext open(int extent) {
+        NavigationGrid grid = new NavigationGrid(extent, extent);
+        CellTopology topology = new CellTopology(extent, extent);
+        for (int y = 0; y < extent; y++) for (int x = 0; x < extent; x++) {
             grid.setWalkableFloor(x, y);
             topology.setGroundKind(x, y, CellTopology.GroundKind.STREET);
         }
-        return new GenContext(grid, topology, new Random(42), 17, 17, 42);
+        return new GenContext(grid, topology, new Random(42), extent, extent, 42);
     }
 
     private static void panel(Graphics2D g, BufferedImage frame, int x, int y,

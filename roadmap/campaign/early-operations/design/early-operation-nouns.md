@@ -336,7 +336,9 @@ from the slower, longer freight column. Two boats deliver eight militia;
 the company's named troops arrive in their own fitted boats.
 
 The company clears three occupied roadside buildings in sequence while two
-stable militia sections hold its gains. Each building overlooks the road and
+stable militia sections hold its gains. Dispatch's L-shaped freight depot and
+East Crossing's T-shaped workshop create side approaches and exterior recesses;
+the Outbound Gate retains its dedicated communications building. Each building overlooks the road and
 has a sandbag firing apron with an entrance aligned to its doorway. Clearing
 these strongpoints removes sheltered small-arms positions before the next
 convoy leg; it does not disable an abstract damage aura or invent anti-tank

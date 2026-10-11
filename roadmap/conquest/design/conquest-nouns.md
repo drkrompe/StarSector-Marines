@@ -402,7 +402,13 @@ fixed compass lane.
 
 The broader front is organized into lateral **tracks**. A squad keeps a sticky
 preferred track so the assault remains readable, but the track is a coordination
-frame rather than an ownership fence. When its preferred track has no actionable
+frame rather than an ownership fence. The preferred track is not where the squad
+happened to land: the whole force lands in one place, so a new squad takes the
+least-loaded track and the front is held by three bodies of squads rather than
+rolled from lane to lane by one. On the way, a squad does not close up on another
+squad ahead of it on the same approach, so a force sent to one target arrives as a
+procession; both are presentation laws bounded by contact and a maximum wait.
+Winning is not their measure. When its preferred track has no actionable
 resistance, a mobile squad may support either neighboring track without being
 permanently re-homed. Useful resistance in the preferred track wins, preventing
 routine lateral churn.

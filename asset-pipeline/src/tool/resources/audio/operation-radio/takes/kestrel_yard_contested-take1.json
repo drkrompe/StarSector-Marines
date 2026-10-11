@@ -1,0 +1,15 @@
+{
+  "requestId": "oQ7jmzzVT7xI752HnBbS",
+  "characterCost": "11",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "6425138ab564907d4022fdffd36fa69b955888bf7f0da9b4bb691f221ff94d11",
+  "audioSha256": "8e31e3e3dce4b40da5754b4613577fecc51bf7d055eafece45057e534a541d16",
+  "durationSeconds": 4.4,
+  "payload": {
+    "text": "[shouting] [strained, breathless voice] Command, Kestrel Two! We're at the yard. Still taking fire!",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

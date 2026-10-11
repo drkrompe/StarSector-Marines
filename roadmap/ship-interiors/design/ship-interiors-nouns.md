@@ -5,7 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-09 — the six-berth hangar opens to space on its central aisle;
+Updated: 2026-10-11 — ships share neutral bulkhead and deck defaults; authored
+room materials remain authoritative. The six-berth hangar opens to space on its central aisle;
 ship boats follow that aisle and aperture on departure and return; machine servicing
 resolves close standing positions against the parked body.
 
@@ -1075,6 +1076,12 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     moves with it. Rooms are packed against one another, so where two rings run
     together the cells belong to both and the later room wins them — there is
     one wall there and it can only look like one thing.
+
+    A ship supplies a consistent material family wherever a room has not named
+    its own: neutral enamel bulkheads, restrained passage and crew decks, and
+    concrete working floors. Open thresholds and observation glass follow that
+    shell. Material selection changes presentation, not circulation, cover,
+    work sites or berth capacity; an authored surface remains authoritative.
 
     A bulkhead is one cell thick with open deck on both sides, which is not
     what the wall autotile was built for. A building's interior wall sits under
