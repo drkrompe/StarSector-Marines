@@ -267,9 +267,13 @@ reversal first arrests the old momentum. Relative handling mass belongs to the
 chassis: the Bulwark responds more slowly, the Hound is more agile, and the
 Sirocco lies between them. It does not change top speed or depend on damage.
 
-Manual translation continues while the damped hips turn toward travel instead
-of waiting for the autonomous eight-degree path-alignment gate. Mouse aim does
-not rotate the legs. Every momentum step still sweeps the actual chassis
+Manual translation continues while the damped hips turn toward cursor aim,
+without waiting for the autonomous eight-degree path-alignment gate. WASD stays
+world-relative: forward travel gets full speed, lateral travel 72%, reverse 50%,
+with continuous interpolation between them. Off-axis motion has a heavier
+acceleration/braking response. Turning and speed depend on the actual hip
+bearing; a mouse reversal cannot instantly rotate the body. With no valid aim,
+travel supplies the fallback heading. Every momentum step still sweeps the actual chassis
 envelope; terrain contact removes blocked velocity and retains only legal
 sliding, so a wall cannot bank a later speed surge. Applied velocity and gait
 describe achieved travel, separately from retained manual drive. Entry,
@@ -355,7 +359,7 @@ actual torso and muzzle to align legally; a refused release consumes its
 scheduled slot without emitting a shot or refunding the accepted trigger pack.
 A blocked or unaimed mount cannot retain a backlog or steer the torso. Entry,
 exit, and input suspension cancel queued rounds and aim while preserving
-ammunition, cooldowns, and replenishment progress.
+ammunition, mechanical cycle clocks, shared chassis heat, and replenishment progress.
 
 AI and manual Mech direct rounds originate at the installed barrel's actual
 posed muzzle. The body-to-barrel structural segment must also be clear, so a
@@ -398,3 +402,20 @@ direct control there requires its own host input adapter and cannot leak WASD
 or fire into vanilla ship controls.
 
 Open implementation slices and acceptance are indexed in `stories.md`.
+
+
+### Mech heat and mechanical cycling
+
+Mech mounts use component-authored trigger cycles, separate from projectile
+catalog cadence used by other carriers. Ballistics have cyclers, missiles have
+loaders, and energy weapons recharge capacitors. Missile mini-fabs separately
+restore ready packs. The shared battle-owned heat reservoir admits both AI and
+player triggers; an accepted first round reserves heat for the entire packet.
+Continuation and cancellation never charge again or refund that reservation.
+All mounts cool through one reservoir once per simulation tick. Pause freezes
+it and takeover/handback preserves it. Hot mounts remain fitted and supplied:
+heat does not cause an ammunition fallback or change the mission assignment.
+
+The action strip shows a 0-100 heat bar, amber warning at 75, red venting at 95
+until 55, and a HEAT hold on each thermally blocked weapon. Mechanical progress
+and finite ammunition remain separate. See `mechs-nouns` for baseline tuning.

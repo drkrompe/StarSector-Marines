@@ -1423,6 +1423,8 @@ blast; point-defence-only
 weapons stay silent against ground. A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
 
+A ship is heard in the game's own sounds, never a mod clip: the weapon's fire sound and its blast's sound come from the same specs, the simulation only records the requests, and the presentation plays them positionally. A burst is thinned to a report every fraction of a second rather than a cue per round, and a lance sounds once when it lights, not while it telegraphs.
+
 **A hull must bring its guns to bear, and a broadside cannot shoot dead ahead.**
 A turret traverses within its slot's arc and a hardpoint fires where the nose
 points, so which guns reach a target is a fact about the ship's heading. The
@@ -1443,6 +1445,15 @@ heading; a turret swings at its weapon's own traverse rate and fires only when
 it has come onto its bearing, and a fixed mount points where the hull does. A
 choice is kept until it has been fired on. Eventually these orders belong to
 every such unit, not just to cinematics.
+
+**A warship hovers to a station at its hull's own speed, and a director can choose
+its ground.** The ship translates in any direction regardless of heading,
+accelerating, cruising and braking onto its station at the speed and
+acceleration its table row gives; a ship that has moved far re-chooses the
+heading that brings its guns to bear. A director, given only an area size,
+issues ordinary area orders itself: the densest hostile concentration within
+the ship's longest reach that no friendly ship's area already covers, chosen
+again once that ground holds nobody. Ground beyond every gun is never chosen.
 
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
