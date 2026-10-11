@@ -1,0 +1,7 @@
+Generator: built-in image_gen.imagegen, 2026-10-10
+Transparent background: true
+Master: wayline-hauler.master.png
+Runtime: mod/graphics/battle/vehicles/wayline-hauler.png
+Packing: pack.ps1; whole frame, 512px long edge, preserved alpha and aspect ratio.
+
+Use case: stylized-concept. Asset type: production 2D top-down tactical game vehicle sprite, isolated with true transparent background. Draw ONE complete low-tech science-fiction industrial cargo hauler: rugged eight-wheel rigid chassis, blunt armored driver's cab at LEFT, large long rectangular ribbed rust-orange cargo container occupying rear/right two thirds, olive gray cab, dirty off-white container roof panels, black tires, amber hazard strips, readable mechanical roof vents and tie-downs. It must be unmistakably a civilian heavy freight truck, NO turret, NO weapon, NO APC passenger roof or tank tracks. Composition: strict orthographic directly overhead, zero perspective, nose points LEFT, horizontal long axis; center whole vehicle with tight even transparent margin, nothing cut off. Vehicle overall length roughly 2.7 times overall width. Match grounded 1990s painted sci-fi RTS/Starsector sprite aesthetic with sharp silhouette, dark thin edge outlines, restrained surface wear, strong large-scale shapes readable at 80 pixels. No surroundings, no ground plane, no cast shadow, no smoke or particles, no text or labels, no watermark. Single vehicle only, no alternate views or sprite sheet.

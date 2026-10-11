@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — freight corridor finale, persistent cargo and post-convoy recurring work.
+Updated: 2026-10-10 — reinforced convoy screen, dedicated freight haulers and staged final crossing.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -306,20 +306,24 @@ equipment is part of this objective.
 **Thunder Run** is a 320 by 144 road corridor, separating the western staging
 apron, Dispatch Post, East Crossing and Outbound Gate. The carriageway has a
 fifteen-cell width contract reserved before construction; roadside facilities
-and cargo yards remain outside it. Two employer APCs escort up to three unarmed
-armored cargo conversions of the same chassis. Two boats deliver eight militia;
+and cargo yards remain outside it. Two reinforced employer APCs escort up to
+three unarmed industrial container haulers. Their distinct silhouettes separate fire support
+from the slower, longer freight column. Two boats deliver eight militia;
 the company's named troops arrive in their own fitted boats.
 
 The company clears the three sites in sequence while two stable militia
 sections hold its gains. Recovered earlier gains are required to release the
 next convoy leg; a leg already underway is not canceled by a later recapture.
-The column waits at two road stops and then commits to an uninterrupted final
-run. Physical chassis steering, terrain, shared damage, turret fire and wrecks
-remain authoritative. A hull must leave the map through the freight exit to
+The column waits at two road stops. At the final release, the two escorts
+advance along the road flanks and hold the crossing; freight follows after a
+short lead interval. The escorts leave only after the last surviving load passes
+the crossing. Physical chassis steering, terrain, shared damage, turret fire
+and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
-Fourteen low-tech raiders guard the posts. Twelve more enter at the two road
-mouths when the final run commits; repeated capture cannot create another wave.
+Fourteen low-tech raiders guard the posts. Eighteen more enter from the north,
+south and eastern road mouths when the final run commits; repeated capture
+cannot create another wave.
 
 Freight belongs to the employer, not the player's inventory. Losses persist by
 cargo identity; employer escorts are operation support and can be replaced on
@@ -330,10 +334,11 @@ changes no vanilla diplomacy, trade, market ownership or bombardment permission.
 
 The battle HUD distinguishes release instructions from actual freight results,
 with stable load numbers and delivered/lost counts. Moving hulls produce a
-bounded dust treatment, and cargo conversions carry amber bands instead of the
-escort's roof turret. Presentation changes no collision, visibility or damage.
-Start, actual player landing, each released leg, each cargo delivery/loss and
-terminal results publish once-only story hooks. Hidden ambush deployment remains
+bounded dust treatment; industrial container bodies identify the freight and
+independently aimed roof turrets identify the escorts. Presentation changes no
+collision, visibility or damage.
+Start, actual player landing, each released leg, freight commitment, rear clearance,
+each cargo delivery/loss and terminal results publish once-only story hooks. Hidden ambush deployment remains
 observer-only, ready for a future sighting-aware dialogue adapter.
 
 ## Authored evacuation chapters

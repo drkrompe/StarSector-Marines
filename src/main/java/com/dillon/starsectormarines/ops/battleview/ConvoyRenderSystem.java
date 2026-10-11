@@ -77,10 +77,10 @@ public final class ConvoyRenderSystem implements RenderSystem {
             float wreckTint = wrecked ? 0.38f : 1f;
             if (!wrecked && Math.abs(body.speed) > .3f && cellPx >= 4f) {
                 float bearing = (float) Math.toRadians(body.facingDegrees);
-                float fx = (float) Math.sin(bearing), fy = (float) Math.cos(bearing);
+                float fx = -(float) Math.sin(bearing), fy = (float) Math.cos(bearing);
                 float pulse = (ctx.sim.getSimTickIndex() % 12) / 12f;
                 for (int i = 0; i < 5; i++) {
-                    float trail = 1.2f + (i + pulse) * .55f;
+                    float trail = type.visualLengthCells * .5f + .1f + (i + pulse) * .55f;
                     float spread = .4f + i * .14f;
                     float x = body.x - fx * trail, y = body.y - fy * trail;
                     out.addLine(RenderLayer.CONVOY, cam.cellToScreenX(x - fy * spread), cam.cellToScreenY(y + fx * spread),
@@ -93,19 +93,6 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
                     wreckTint, wreckTint, wreckTint, alphaMult);
 
-            if (type == VehicleType.CARGO_CARRIER) {
-                float bearing = (float) Math.toRadians(body.facingDegrees);
-                float fx = (float) Math.sin(bearing), fy = (float) Math.cos(bearing);
-                // Two amber freight bands on the sealed APC conversion distinguish it from escorts.
-                for (int band = 0; band < 2; band++) {
-                    float offset = band == 0 ? -.35f : .35f;
-                    float x = body.x + fx * offset, y = body.y + fy * offset;
-                    out.addLine(RenderLayer.CONVOY, cam.cellToScreenX(x - fy * .38f), cam.cellToScreenY(y + fx * .38f),
-                            cam.cellToScreenX(x + fy * .38f), cam.cellToScreenY(y - fx * .38f), Math.max(1f, cellPx * .12f),
-                            .85f * wreckTint, .63f * wreckTint, .27f * wreckTint, alphaMult);
-                }
-            }
-
             if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
                 SpriteSheetFrames.Frame tf = frames.frames[type.turretFrame];
                 float turretAspect = (float) tf.w / (float) tf.h;
@@ -117,7 +104,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 GroundTurret turret = convoy.turret(id);
                 float turretStateFacing = (turret != null) ? turret.facingDeg : 0f;
                 float turretFacingDeg = turretStateFacing + type.turretSpriteFacingOffsetDeg;
-                float cRad = (float) Math.toRadians(chassisFacingDeg);
+                float cRad = (float) Math.toRadians(body.facingDegrees);
                 float cc = (float) Math.cos(cRad);
                 float cs = (float) Math.sin(cRad);
                 float mountWorldX = type.turretMountX * cc - type.turretMountY * cs;

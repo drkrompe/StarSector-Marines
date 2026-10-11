@@ -1415,7 +1415,7 @@ public final class BattleSetup {
                     Faction.DEFENDER, "thunder-run-guard-" + i, post, rng);
         }
         List<EntitySpec> reserve = new ArrayList<>();
-        for (int side = 0; side < 2; side++) for (int[] cell : pickSpawnCluster(map.grid, 275, side == 0 ? 2 : 140, 6))
+        for (int side = 0; side < 3; side++) for (int[] cell : pickSpawnCluster(map.grid, side == 2 ? 317 : 275, side == 0 ? 2 : side == 1 ? 140 : 75, 6))
             reserve.add(makeOpeningMilitia("freight-ambush-" + reserve.size(), Faction.DEFENDER,
                     cell[0], cell[1], rng).role(UnitRole.PATROL));
         for (Faction faction : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER))

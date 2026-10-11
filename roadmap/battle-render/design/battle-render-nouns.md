@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — moving hull dust, cargo markings and complete headless vehicle sprites.
+Updated: 2026-10-10 — distinct freight art, body-aligned turret mounts and headless projectile sprites.
 
 ## Vocabulary
 
@@ -353,10 +353,12 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     about its neighbours.
 
 Convoy presentation follows actual chassis motion. Bounded dust streaks appear
-only for moving live hulls at readable scale, while amber freight bands identify
-an unarmed cargo conversion. Neither is smoke, concealment or a combat effect.
+only behind moving live hulls at readable scale; these are not smoke, concealment
+or a combat effect. Freight uses its own industrial vehicle art. Turret mounts
+rotate in chassis coordinates independently of the sprite's authored heading.
 The headless sprite catalog loads every ground-vehicle variant through the same
-asset paths and slicing as the live host; a close review changes camera framing,
+asset paths and slicing as the live host, including projectile resources;
+a close review changes camera framing,
 not actor size or scene composition.
 
 ## Boundaries and extension paths

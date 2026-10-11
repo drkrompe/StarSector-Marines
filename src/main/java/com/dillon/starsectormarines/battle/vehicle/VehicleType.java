@@ -42,12 +42,21 @@ public enum VehicleType {
                     accel, brakingAccel, maxSpeed);
         }
     },
-    /** Sealed freight conversion of the APC chassis. No passengers or roof weapon. */
-    CARGO_CARRIER("graphics/battle/vehicles/army-apc.png", 0, 2, -90f,
-            0, 2.4f, 1.4f, 2.8f, 1.8f, 3.5f, .8f, 2.2f,
-            -1, 0, 0, 0, 0, 0, 0, null, 180f, 90f, 10f, 1.25f, .75f) {
+    /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
+    ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 2, -90f,
+            0, 3.2f, 1.8f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
+            1, -.21156f, .35733f, .14444f, .03333f, .94f, -90f,
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 620f, 420f, 24f, 1.25f, .9f) {
         @Override public GroundBody createBody() {
-            return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
+            return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
+        }
+    },
+    /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
+    CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 1, -90f,
+            0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
+            -1, 0, 0, 0, 0, 0, 0, null, 400f, 120f, 10f, 1.4f, .9f) {
+        @Override public GroundBody createBody() {
+            return new BicycleBody(2.8f, 26f, 130f, accel, brakingAccel, maxSpeed);
         }
     };
 

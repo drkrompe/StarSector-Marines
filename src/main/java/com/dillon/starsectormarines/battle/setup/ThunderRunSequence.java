@@ -29,23 +29,24 @@ public final class ThunderRunSequence {
     private final List<Integer> delivered = new ArrayList<>(), lost = new ArrayList<>();
     private final List<EntitySpec> reserve;
     private int phase;
-    private boolean ambush;
+    private boolean ambush, freightReleased, escortExitOrdered;
+    private int finalRunTick;
     private FreightRunProgress.Outcome outcome;
 
     public ThunderRunSequence(BattleSimulation sim, FreightRunProgress.Attempt attempt, int previouslyDelivered,
                               List<EntitySpec> reserve, StoryBeatLog log) {
         if (attempt == null || previouslyDelivered < 0 || previouslyDelivered + attempt.cargo().size() > FreightRunProgress.COHORT_SIZE
-                || reserve == null || reserve.size() != 12) throw new IllegalArgumentException("A finite freight attempt and twelve committed raiders are required");
+                || reserve == null || reserve.size() != 18) throw new IllegalArgumentException("A finite freight attempt and eighteen committed raiders are required");
         this.attempt = attempt; this.previouslyDelivered = previouslyDelivered;
         this.reserve = List.copyOf(reserve); this.log = log;
-        escorts.add(spawn(sim, VehicleType.HEAVY_APC, 26, 72));
-        escorts.add(spawn(sim, VehicleType.HEAVY_APC, 6, 78));
-        for (int i : attempt.cargo()) cargo.put(i, spawn(sim, VehicleType.CARGO_CARRIER, 21 - i * 6, 75));
+        escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 70));
+        escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 80));
+        for (int i : attempt.cargo()) cargo.put(i, spawn(sim, VehicleType.CARGO_CARRIER, 21 - i * 8, 75));
     }
     private long spawn(BattleSimulation sim, VehicleType type, float x, float y) {
         long id = sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(x, y));
         // Initial map pose, before tick zero; all later motion goes through the chassis controller.
-        sim.convoy().body(id).teleport(x, y, 90f);
+        sim.convoy().body(id).teleport(x, y, -90f);
         return id;
     }
     public int phase() { return phase; }
@@ -88,6 +89,21 @@ public final class ThunderRunSequence {
             }
         }
         if (resolved()) return;
+        if (phase == 3) {
+            // Armed vehicles establish the crossing before the long, slower cargo column commits.
+            if (!freightReleased && sim.getSimTickIndex() - finalRunTick >= 14 * 30) {
+                freightReleased = true;
+                for (long id : cargo.values()) order(sim, id);
+                beat(sim, "freight_committed");
+            }
+            boolean rearPassed = freightReleased;
+            for (long id : cargo.values()) if (sim.convoy().isTargetable(id) && sim.convoy().body(id).x < 282) rearPassed = false;
+            if (rearPassed && !escortExitOrdered) {
+                escortExitOrdered = true;
+                for (long id : escorts) order(sim, id);
+                beat(sim, "rear_clear");
+            }
+        }
         var sites = new ArrayList<>(sim.getCompoundService().getRecords());
         // Militia must retain earlier gains when a new leg is released. A release is not revocable mid-road.
         boolean held = sites.size() == 4;
@@ -96,8 +112,8 @@ public final class ThunderRunSequence {
             phase++;
             beat(sim, phase == 1 ? "column_released" : phase == 2 ? "crossing_secured" : "final_run");
             for (long id : escorts) order(sim, id);
-            for (long id : cargo.values()) order(sim, id);
-            if (phase == 3) releaseAmbush(sim);
+            if (phase < 3) for (long id : cargo.values()) order(sim, id);
+            if (phase == 3) { finalRunTick = sim.getSimTickIndex(); releaseAmbush(sim); }
         }
     }
     private boolean columnStopped(BattleSimulation sim) {
@@ -108,20 +124,20 @@ public final class ThunderRunSequence {
     private void order(BattleSimulation sim, long id) {
         if (!sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED) return;
         var body = sim.convoy().body(id); var mission = sim.convoy().mission(id);
-        // Parallel wide road lanes preserve initial spacing, including the armed lead and rear escorts.
-        float offset = escorts.indexOf(id) == 0 ? 12 : escorts.indexOf(id) == 1 ? -12 :
-                6 - 6 * new ArrayList<>(cargo.values()).indexOf(id);
-        float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 18 + offset;
+        // Parallel wide road lanes preserve initial spacing, with the armed escorts screening both flanks.
+        float offset = escorts.contains(id) ? 8 : 0 - 8 * new ArrayList<>(cargo.values()).indexOf(id);
+        float goal = phase == 1 ? 117 + offset : phase == 2 ? 214 + offset : ThunderRunCompound.WIDTH + 40 + offset;
+        if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = 273;
         mission.authoredRouteX = new float[]{body.x, goal};
         mission.authoredRouteY = new float[]{body.y, body.y};
-        mission.authoredLeg = phase == 3 ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER;
+        mission.authoredLeg = phase == 3 && (!escorts.contains(id) || escortExitOrdered) ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER;
     }
     private void releaseAmbush(BattleSimulation sim) {
         ambush = true;
-        for (int side = 0; side < 2; side++) {
+        for (int side = 0; side < 3; side++) {
             int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
-            for (int i = side * (reserve.size() / 2); i < (side + 1) * (reserve.size() / 2); i++) sim.spawn(reserve.get(i).squad(squad));
-            sim.getSquad(squad).originalSize = reserve.size() / 2;
+            for (int i = side * (reserve.size() / 3); i < (side + 1) * (reserve.size() / 3); i++) sim.spawn(reserve.get(i).squad(squad));
+            sim.getSquad(squad).originalSize = reserve.size() / 3;
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, 275, 75),
                     CommandAuthority.SCRIPTED, "thunder-run-ambush", "cut off the freight at the outbound road");
         }
