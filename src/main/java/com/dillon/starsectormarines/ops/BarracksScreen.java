@@ -48,6 +48,7 @@ public final class BarracksScreen implements Screen {
     private BarracksViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
+    private BarracksGuideCallout guide;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private SpecSheetBinder specSheets;
@@ -84,6 +85,7 @@ public final class BarracksScreen implements Screen {
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
+        guide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -92,12 +94,13 @@ public final class BarracksScreen implements Screen {
         UiDocument built;
         SpecSheetBinder candidateSheets;
         BarracksCardBindings candidateCards;
+        BarracksGuideCallout candidateGuide;
         try {
             requireWiredElements(candidate);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard());
-            BarracksGuideModal.bind(built, candidate, viewModel.command(), () -> {
+            candidateGuide = BarracksGuideCallout.bind(built, candidate, viewModel.command(), () -> {
                 if (viewModel.command().inspecting()) viewModel.command().showOverview();
                 else close();
             });
@@ -122,6 +125,7 @@ public final class BarracksScreen implements Screen {
         if (specSheets != null) specSheets.clear();
         specSheets = candidateSheets;
         cardBindings = candidateCards;
+        guide = candidateGuide;
         document = built;
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
@@ -187,6 +191,7 @@ public final class BarracksScreen implements Screen {
         if (markupInstance != null) markupInstance.flush();
         if (cardBindings != null) cardBindings.update(document, markupInstance, viewModel, specSheets);
         if (document != null) document.advance(dt);
+        if (guide != null) guide.update();
         if (specSheets != null) specSheets.update();
     }
 
@@ -219,6 +224,7 @@ public final class BarracksScreen implements Screen {
         if (specSheets != null) specSheets.clear();
         specSheets = null;
         cardBindings = null;
+        guide = null;
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
         document = null;
