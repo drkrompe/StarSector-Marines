@@ -45,6 +45,8 @@ import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -2259,7 +2261,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         List<BufferedImage> bulwark = new ArrayList<>();
         BufferedImage heavy = renderMechLab(context, renderer, 1920, 1080, 1f,
                 false, false, false, false, bulwark);
-        return List.of(new SnapshotArtifact("mech-welding-1920x1080.png",
+        return List.of(
+                new SnapshotArtifact("castle-lab-introduction.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-1")),
+                new SnapshotArtifact("castle-lab-fit.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-2")),
+                new SnapshotArtifact("castle-lab-swap.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-3")),
+                new SnapshotArtifact("castle-lab-ready.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-4")),
+                new SnapshotArtifact("mech-welding-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f,
                                 false, false, false, false, null, null, true)),
                 new SnapshotArtifact("mech-overview-1920x1080.png",
@@ -2327,8 +2334,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Maximum-length callsign fixture was rejected");
             }
         }
+        if (materialHint != null && materialHint.startsWith("lesson-")) {
+            bay = new MechBay();
+            bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
+            bay.beginLabLesson();
+        }
         MechLabViewModel viewModel = new MechLabViewModel(
                 reactor, bay, snapshotMechResources());
+        if (materialHint != null && materialHint.startsWith("lesson-")) {
+            int step = Integer.parseInt(materialHint.substring(7));
+            if (step >= 2) viewModel.guideLabLesson();
+            if (step >= 3) viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
+            if (step >= 4) {
+                viewModel.stripWeapon(SocketId.LEFT_SHOULDER);
+                viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
+            }
+        }
         if (selectHound) {
             viewModel.mechRows().get().stream()
                     .filter(row -> row.name().startsWith("Hound"))
@@ -2403,7 +2424,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 () -> viewModel.socketOccupied(row.socketId()),
                                 MechLabDollCanvas::headlessAssets));
             }
-            if (specSheet || materialHint != null && !"long-name".equals(materialHint)) {
+            if (specSheet || materialHint != null && !"long-name".equals(materialHint)
+                    && !materialHint.startsWith("lesson-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -2889,6 +2911,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("bayNavigatorClasses", "bay-navigator hidden");
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
+        viewModel.putTutorialProps(props);
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
@@ -27,11 +28,13 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Consumer;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
 public final class MechLabViewModel {
 
+    private final Reactor reactor;
     private final MechBay bay;
     private final FabricationResources resources;
     private final MechWorkshop workshop;
@@ -95,6 +98,7 @@ public final class MechLabViewModel {
         if (resources == null || bayChanged == null) {
             throw new IllegalArgumentException("fabrication resources and change callback are required");
         }
+        this.reactor = reactor;
         this.bay = bay;
         this.resources = resources;
         workshop = new MechWorkshop(bay, resources);
@@ -198,6 +202,53 @@ public final class MechLabViewModel {
                 ? "overview-rail hidden" : "overview-rail");
         garageTitle = reactor.computed(() -> fittingFocused.get()
                 ? activeGantryLabel.get() : "ACTIVE LANCE  //  ALL GANTRIES");
+    }
+
+    public void putTutorialProps(Map<String, Object> props) {
+        props.put("lessonClasses", reactor.computed(() -> {
+            revision.get();
+            return bay.labLesson() > 0 && bay.labLesson() < 5 && !bay.labLessonPaused()
+                    ? "castle-lesson surface-dark" : "castle-lesson hidden";
+        }));
+        props.put("lessonTitle", reactor.computed(() -> {
+            revision.get();
+            return "CASTLE // GANTRY INDUCTION  " + Math.min(4, bay.labLesson()) + " / 4";
+        }));
+        props.put("lessonCopy", reactor.computed(() -> {
+            revision.get();
+            return switch (bay.labLesson()) {
+                case 1 -> "Wayward is ours. A lance holds up to four walkers. BROWSE LANCES selects which lance answers Mech Support; the others stay aboard. Let's open Wayward's gantry.";
+                case 2 -> "One basic SRM-5 is waiting in stores. Select an empty shoulder, then INSTALL SPARE or drag the rack onto it. Its 2 x 2 footprint fits the shoulder mount. The nose chaingun stays fitted.";
+                case 3 -> "Now practice a refit: drag the fitted SRM back to stores, or use its remove control. Then select the shoulder and INSTALL SPARE again. We reuse the same rack; removing equipment does not destroy it.";
+                case 4 -> "Fit checked. Your active lance travels on Mech Support when a mission provides heavy lift. SRMs fire short bursts; the standard replenisher restores spent packs. Keep infantry ahead to spot threats. Leave the sealed internals to our technicians.";
+                default -> "";
+            };
+        }));
+        props.put("lessonActionLabel", reactor.computed(() -> {
+            revision.get();
+            return bay.labLesson() == 1 ? "OPEN WAYWARD" : bay.labLesson() == 4 ? "READY" : "SHOW MOUNT";
+        }));
+        props.put("lessonAction", (Runnable) this::guideLabLesson);
+        props.put("lessonPause", (Runnable) () -> { bay.pauseLabLesson(true); revision.update(value -> value + 1); });
+        props.put("lessonResumeClasses", reactor.computed(() -> {
+            revision.get();
+            return bay.labLesson() > 0 && bay.labLesson() < 5 && bay.labLessonPaused()
+                    ? "compact-action console-action" : "hidden";
+        }));
+        props.put("lessonResume", (Runnable) () -> { bay.pauseLabLesson(false); revision.update(value -> value + 1); });
+    }
+
+    public void guideLabLesson() {
+        if (bay.labLesson() == 4) { bay.advanceLabLesson(); revision.update(value -> value + 1); return; }
+        for (CampaignMechSquad squad : bay.squads()) {
+            if (squad.mechById(WaylineHound.ID) == null) continue;
+            selectSquad(squad.id());
+            selectMech(WaylineHound.ID);
+            bay.advanceLabLesson();
+            selectSlot(SocketId.LEFT_SHOULDER);
+            revision.update(value -> value + 1);
+            return;
+        }
     }
 
     public Signal<String> labSummary() { return labSummary; }
@@ -309,7 +360,7 @@ public final class MechLabViewModel {
             return true;
         }
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.weapon(component);
-        return recipe != null && resources.canAfford(recipe.cost());
+        return bay.canFabricate(component) && recipe != null && resources.canAfford(recipe.cost());
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -613,6 +664,7 @@ public final class MechLabViewModel {
 
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
             MechWeaponComponent component = recipe.component();
+            if (!bay.canFabricate(component) && bay.ownedWeapon(component.id) == 0) continue;
             SocketDef socket = selectedSocketDefinition();
             if (socket == null || !component.accepts(mount)
                     || socket.type() != MechFittingLayout.SocketType.OMNI
@@ -634,7 +686,8 @@ public final class MechLabViewModel {
             boolean inCargo = free > 0;
             boolean fabricate = !inCargo;
             boolean affordable = resources.canAfford(recipe.cost());
-            boolean disabled = installed || !fits || fabricate && !affordable;
+            boolean locked = !bay.canFabricate(component);
+            boolean disabled = installed || !fits || fabricate && (locked || !affordable);
 
             String badge = installed ? "FITTED" : inCargo ? "IN CARGO" : "FABRICATION";
             String badgeClasses = installed || inCargo ? "catalog-badge in-cargo" : "catalog-badge fabrication";
@@ -667,10 +720,10 @@ public final class MechLabViewModel {
             }
 
             String actionLabel = installed ? "INSTALLED" : !fits ? "TOO LARGE"
-                    : inCargo ? "INSTALL SPARE" : !affordable ? "MATERIALS SHORT" : "FABRICATE + INSTALL";
+                    : inCargo ? "INSTALL SPARE" : locked ? "PATTERN LOCKED" : !affordable ? "MATERIALS SHORT" : "FABRICATE + INSTALL";
 
             String base = "mech-catalog:" + component.id;
-            boolean showMaterials = !inCargo && !installed && fits;
+            boolean showMaterials = !inCargo && !installed && fits && !locked;
             List<MaterialRow> materials = showMaterials ? materialRows(base, recipe.cost()) : List.of();
             String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
 
@@ -689,6 +742,7 @@ public final class MechLabViewModel {
                     actionLabel,
                     installed ? "Already installed in this mount."
                             : !fits ? "This assembly exceeds the selected fitting grid."
+                            : !inCargo && locked ? "Owned hardware can be refitted; its fabrication pattern is unavailable."
                             : !inCargo && !affordable ? "Not enough materials. Hover a cost for its shortfall."
                             : inCargo ? "Install a spare; return the current assembly to stores."
                             : "Build and install this assembly using the listed materials.",
@@ -703,6 +757,7 @@ public final class MechLabViewModel {
         boolean hasSpace = squad != null && bay.canAddMech(squad.id());
         List<CatalogRow> rows = new ArrayList<>();
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.chassis()) {
+            if (!bay.canFabricate(recipe.variant())) continue;
             boolean affordable = resources.canAfford(recipe.cost());
             MechVariant variant = recipe.variant();
             String base = "mech-catalog:" + recipe.id();
@@ -929,6 +984,7 @@ public final class MechLabViewModel {
             case INSTALLED_FROM_STORES -> component.displayName + " installed from bay stores.";
             case FABRICATED_AND_INSTALLED -> component.displayName
                     + " fabricated from fleet cargo and installed.";
+            case PATTERN_LOCKED -> "This fabrication pattern has not been acquired.";
             case INCOMPATIBLE -> "Refit blocked: incompatible socket type or capacity.";
             case INSUFFICIENT_MATERIALS -> "Fabrication blocked: required fleet materials are short.";
             default -> "Refit blocked: campaign hardware was not changed.";

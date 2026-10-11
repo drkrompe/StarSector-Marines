@@ -160,8 +160,9 @@ public final class LootScreen extends MissionFlowMlxScreen {
             rebuildDocument();
             return;
         }
+        ScreenId destination = ResultsScreen.returnDestination(context.getLastOutcome());
         context.clearResolvedMission();
-        context.goTo(ScreenId.MISSION_SELECT);
+        context.goTo(destination);
     }
 
     private static String number(int value) {

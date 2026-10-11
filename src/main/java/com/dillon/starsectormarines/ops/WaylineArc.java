@@ -83,7 +83,7 @@ public final class WaylineArc {
         }
         if (outcome.marinesLost > 0) report += " I'm sorry for your company's losses.";
         if (WaylineHoundAward.eligible(outcome)) report +=
-                " Castle has filed Wayward's transfer: one repaired Hound and its chaingun, with empty missile mounts. The chassis is in your Mech Bay; Wayline supplies heavy lift on the supply-route jobs.";
+                " Castle has filed Wayward's transfer: one repaired Hound and its chaingun, with empty missile mounts. Castle is waiting in the Mech Lab with a spare SRM-5 and a fitting walkthrough. The chassis is in your Mech Bay; Wayline supplies heavy lift on the supply-route jobs.";
         return report;
     }
 }

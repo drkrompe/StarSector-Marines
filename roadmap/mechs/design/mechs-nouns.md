@@ -442,6 +442,21 @@ The Wayline depot chapter introduces a recovered Hound named Wayward, fitted
 with a nose chaingun and empty missile mounts. It is a normal owned chassis
 after victory, including when Wayline must recover and repair its wreck.
 The transfer is once-only and adds its installed parts to owned inventory.
+The award also supplies one loose SRM-5 and Castle's optional, text-only gantry
+induction. Return from debrief (including salvage settlement) leads to the lab.
+The lesson selects Wayward's owning lance, explains four gantries and active-lance
+support, waits for a real SRM installation, then observes that rack returned to
+stores and refitted into the Hound's single authored shoulder mount. Progress
+and dismissal survive saves; presentation cannot grant another rack. An older
+save that already owns Wayward receives the lesson package once on load.
+
+New campaigns fabricate only the basic nose chaingun, SRM-5 and Hound pattern.
+These are the existing baseline weapons, without a new quality modifier. Other
+owned weapons remain refittable, but ownership does not confer their fabrication
+pattern. The workshop checks permission before spending cargo, including drag
+commits; older saves retain their prior unrestricted workshop. Wider pattern
+acquisition is reserved for subsequent progression content.
+
 A full lance receives it in a recovery group; neither existing mechs nor the
 active-lance selection is overwritten. Later Broken Supply Route contracts
 provide employer heavy lift for the active owned lance. Physical arrival claims
@@ -657,7 +672,7 @@ support sortie, subject only to practical runtime resources.
 A new chassis requires a distinct information or combat doctrine and a real
 capability it gives up; hardware variety alone does not earn another variant.
 
-Salvage acquisition, engine cores, ammunition modules, recipe unlock progression,
+General salvage acquisition, engine cores, ammunition modules, wider recipe unlock progression,
 and chassis recovery still belong to future progression and economy authority.
 The current Mech Lab owns a bounded workshop catalog: registered weapon and chassis
 patterns, typed capacity checks, finite component stores, and atomic player-cargo

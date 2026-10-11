@@ -567,6 +567,7 @@ class MechLabViewModelTest {
         props.put("bayNavigatorClasses", "bay-navigator hidden");
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
+        viewModel.putTutorialProps(props);
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
