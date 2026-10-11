@@ -28,10 +28,13 @@ Mask bits are N=1, E=2, S=4, W=8, in row-major order; joining sides have no rim.
 
 Built-in ImageGen produced `sources/ship-bulkheads-first-pass.png` from the guide and
 `ship-bulkheads.prompt.txt`. A targeted edit using
-`ship-bulkheads-readability.prompt.txt` produced the accepted
-`ship-bulkheads.raw.png`. Both outputs are 1254x1254 RGB. The first enamel value
-was too close to the concrete floor; the accepted pass raises its brightness
-without adding color accents. Source crops are recorded in
+`ship-bulkheads-readability.prompt.txt` produced the pale-rim study retained as
+`sources/ship-bulkheads-pale-rim.png`. The current `ship-bulkheads.raw.png` is a
+built-in ImageGen edit of that sheet using `ship-bulkheads-dark.prompt.txt`:
+near-black graphite caps and subdued gunmetal faces make the wall mass read as
+impassable structure against the lighter floors. Sampled cap RGB is 31/33/33;
+face RGB is 74/79/80. The 1254x1254 canvas, masks and crop registration remain
+unchanged. Source crops are recorded in
 `ship-bulkheads.tileset-authoring.json`. The ordinary exporter produces the
 64px/cell atlas. No hand-painted patching or post-export recoloring is used.
 

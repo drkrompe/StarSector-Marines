@@ -7,7 +7,7 @@
   "idPrefix": "ship",
   "alphaMin": 40,
   "outputSheet": "graphics/tilesets/ship-bulkheads.png",
-  "note": "ShipBulkheadTemplate; full opaque wall caps, row-major exposure N1 E2 S4 W8. ImageGen output1254 square, measured274px tiles at origins20,333,647,960. Neutral structural steel with pale enamel exposed edges. Ship deck material; matching opening companions in ship-interior-materials.",
+  "note": "ShipBulkheadTemplate; full opaque wall caps, row-major exposure N1 E2 S4 W8. ImageGen output1254 square, measured274px tiles at origins20,333,647,960. Dark graphite caps and subdued gunmetal exposed faces; value edit via ship-bulkheads-dark.prompt.txt preserves registration. Ship deck material; matching opening companions in ship-interior-materials.",
   "blocks": [
     {
       "id": "ship.neutral-bulkhead",
