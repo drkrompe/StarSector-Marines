@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "width": 192,
+  "height": 112,
+  "finish": "GRASS_TOP",
+  "faceDepth": 3.4,
+  "ruggedness": 0.75,
+  "seed": 6111,
+  "strokes": [
+    {
+      "mode": "RAISE",
+      "radius": 17,
+      "points": [
+        [
+          0,
+          88
+        ],
+        [
+          8,
+          91
+        ],
+        [
+          19,
+          103
+        ],
+        [
+          34,
+          111
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 8,
+      "points": [
+        [
+          69,
+          111
+        ],
+        [
+          85,
+          108
+        ],
+        [
+          103,
+          109
+        ],
+        [
+          122,
+          111
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 9,
+      "points": [
+        [
+          145,
+          111
+        ],
+        [
+          167,
+          107
+        ],
+        [
+          183,
+          103
+        ],
+        [
+          191,
+          102
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 8,
+      "points": [
+        [
+          50,
+          0
+        ],
+        [
+          58,
+          7
+        ],
+        [
+          70,
+          5
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 8,
+      "points": [
+        [
+          137,
+          0
+        ],
+        [
+          146,
+          5
+        ],
+        [
+          154,
+          0
+        ]
+      ]
+    },
+    {
+      "mode": "RAISE",
+      "radius": 40,
+      "points": [
+        [
+          0,
+          111
+        ]
+      ]
+    }
+  ],
+  "previewRoad": "mod/data/world/roads/junction.road.json"
+}

@@ -18,6 +18,11 @@ import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
+import com.dillon.starsectormarines.battle.nav.Direction;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainCatalog;
+import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +45,7 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
             for (int index=0;index<maps.size();index++) {
                 MapResult map=maps.get(index);
                 verify(names[index],map);
+                if(index==2 || index==4) verifyTerrain(names[index],map);
                 if(seed!=8101) continue;
                 try(var scene=new ShipDeckBattleScene(map,0)) {
                     int w=map.grid.getWidth(),h=map.grid.getHeight();
@@ -51,6 +57,8 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                         if((overview.getRGB(px,py)&0xffffff)==0)
                             throw new IllegalStateException("Black preview seam in Relay Nine meadow at "+px+","+py);
                     frames.add(new SnapshotArtifact(names[index]+".png",overview));
+                    if(index==2 || index==4) frames.add(new SnapshotArtifact(names[index]+"-terrain-approach.png",renderer.renderHostPass(
+                            scene.pass(ShipDeckBattleScene.DeckView.over(0,50,120,68,16)),1920,1080)));
                     if(names[index].equals("junction") || names[index].equals("relay-nine"))
                         frames.add(new SnapshotArtifact(names[index]+"-apron.png",renderer.renderHostPass(
                                 scene.pass(ShipDeckBattleScene.DeckView.over(0,0,72,72,15)),1920,1080)));
@@ -71,9 +79,48 @@ public final class StoryRoadSnapshotSuite implements SnapshotSuite {
                 }
             }
         }
+        for (SurfacePalette surface : SurfacePalette.values()) if(surface!=SurfacePalette.VERDANT) {
+            TargetProfile world = new TargetProfile(0,0,0,0,"",Set.of(),surface,SettlementLink.ROAD);
+            verifyTerrain("junction",JunctionCompound.generate(8101,world).map());
+            verifyTerrain("relay-nine",RelayNineCompound.generate(8101,world).map());
+        }
         verify("relief-expanded",ReliefCheckpoint.generate(144,80,8101,profile).map());
         System.out.println("[story-roads] 15 production maps and expanded Relief: paved streets, clean markings/floors, clear berths and connected mission routes.");
         return frames;
+    }
+    /** Full-world connectivity and finalized terrain identity belong in opt-in evidence. */
+    private static void verifyTerrain(String name, MapResult map) {
+        var grid=map.grid; int w=grid.getWidth(),h=grid.getHeight();
+        String path=name.equals("junction") ? TerrainCatalog.JUNCTION : TerrainCatalog.RELAY_NINE;
+        TerrainField field=TerrainField.build(TerrainCatalog.plan(path,SurfacePalette.VERDANT));
+        if(map.topology.terrainSurface()==null)throw new IllegalStateException(name+" has no terrain surface");
+        boolean[] reached=new boolean[w*h];ArrayDeque<Integer> queue=new ArrayDeque<>();
+        int start=grid.index(map.marineSpawnX,map.marineSpawnY);reached[start]=true;queue.add(start);
+        while(!queue.isEmpty()) {
+            int at=queue.remove(),x=at%w,y=at/w;
+            for(Direction dir:Direction.ALL) if(grid.canTraverseCellStep(x,y,dir)) {
+                int to=grid.index(x+dir.dx,y+dir.dy);
+                if(!reached[to]){reached[to]=true;queue.add(to);}
+            }
+        }
+        int solid=0,openNatural=0;
+        for(int y=0;y<h;y++)for(int x=0;x<w;x++) {
+            boolean natural=grid.hasTag(x,y,CellTag.NATURAL_SOLID);
+            if(natural!=field.blocked(x,y))throw new IllegalStateException(name+" terrain contour/grid mismatch");
+            if(natural) {
+                solid++;
+                if(grid.isWalkable(x,y)||grid.isSeeThrough(x,y)||grid.getWallHp(x,y)!=0
+                        ||map.topology.isWall(x,y)||map.topology.getBuildingId(x,y)!=0||grid.damageCell(x,y,100000))
+                    throw new IllegalStateException(name+" terrain became destructible structure");
+            } else if(grid.isWalkable(x,y)&&map.topology.getBuildingId(x,y)==0) {
+                if(!reached[grid.index(x,y)])throw new IllegalStateException(name+" isolated outdoor ground at "+x+","+y);
+                switch(map.topology.getGroundKind(x,y)) {case GRASS,STONE,SAND,SNOW -> openNatural++;default -> {}}
+            }
+        }
+        if(solid==0)throw new IllegalStateException(name+" terrain plan was empty");
+        for(var pad:map.landingPads)for(int y=pad.bottom()-2;y<=pad.top()+2;y++)for(int x=0;x<=pad.right()+2;x++)
+            if(field.maximum(x,y)>=-.65)throw new IllegalStateException(name+" terrain intrudes on western boat approach");
+        System.out.println("[story-terrain] "+name+": "+solid+" solid / "+openNatural+" open natural cells; outdoor ground connected, western approaches clear.");
     }
     private static void verify(String name,MapResult map) {
         if(name.equals("junction") || name.equals("relay-nine")) for(var edge:map.roadGraph.edges()) for(int i=0;i<edge.cellsX.length;i++) {

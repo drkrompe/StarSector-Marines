@@ -21,12 +21,24 @@ The optional cell mask reserves landing areas, objective access and circulation.
 Placement refuses all overlap before mutation. The owning recipe must still
 validate connectivity, vehicle clearance, objectives and arrival routes afterwards.
 Rebuild from clean ground to apply edits; do not restamp a running battle.
-No existing story map adopts this example automatically.
+The freight-pass example remains a tool fixture. Open the Junction and Relay Nine
+instead consume their own documents under `mod/data/world/terrain/`, installed
+at application startup by `TerrainCatalog`. Open those documents in Terrain to
+edit their strokes with the matching road context. Road context does not include
+mission buildings: after edits, run the production map evidence to check the
+whole layout before accepting a change.
 
 `freight-pass.terrain.json` and its separate road document demonstrate the format.
 `gradlew.bat createSnapshots '-Psnapshot=terrain'` produces production frames and
 exercises actual paint, erase, undo, redo, save and reopen interactions at
 1920x1080 / 100%, plus obstruction and freight-clearance checks.
+
+`gradlew.bat createSnapshots '-Psnapshot=story-roads'` renders the actual story
+maps at 1920x1080 and validates final natural collision, connected outdoor
+space, objective access, road ownership and clear western boat approaches.
+Junction and Relay Nine are checked with three verdant seeds and the other
+surface palettes. `commanderEvidence` with `-Pmission=junction` or
+`-Pmission=relay-nine` exercises their fitted-boat arrivals and mission play.
 
 `python art-source/terrain/bake_materials.py` reproduces the shipped material atlas
 and catalog from `materials.recipe.json`, using only Python's standard library.
