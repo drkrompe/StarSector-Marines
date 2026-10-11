@@ -4,7 +4,7 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-10-08 — frozen command groups distinguish named-officer coordination
+Updated: 2026-10-10 — freight territorial orders and physical column release remain separate.
 from independent acting-NCO leadership and physical mission routes.
 Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
@@ -425,6 +425,13 @@ A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,
 forces, or combat privileges. Mission adapters define which profile axes are
 meaningful in their geometry.
+
+Thunder Run shares the public-territory advance/hold model: the company clears
+successive road posts, stable militia detachments occupy gains, and player
+interventions retain their claims. The scenario separately authorizes employer
+vehicle travel from held-site facts. Infantry mission command receives no cargo
+entity positions or hidden ambush roster. Its final hold supports a physical
+convoy-exit objective; taking all sites is not itself victory.
 
 ## Boundaries
 

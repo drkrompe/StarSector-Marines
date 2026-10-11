@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
+import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -23,6 +24,9 @@ class SupplyRouteCampaignTest {
         assertFalse(SupplyRouteCampaign.isBattle(choices.get(0)));
         p.commit(3);var relay=SupplyRouteCampaign.offers(p).get(0); assertTrue(SupplyRouteCampaign.isBattle(relay));
         assertEquals(MissionSource.STORY,relay.source);p.begin(relay.id);p.settle(relay.id,true,null);
+        var convoy=SupplyRouteCampaign.offers(p).get(0); assertEquals("Thunder Run",convoy.name);
+        assertTrue(SupplyRouteCampaign.freight(convoy)); assertEquals(MissionSource.STORY,convoy.source);
+        p.begin(convoy.id); p.settle(convoy.id,true,null,new FreightRunProgress.Outcome(p.freight().previewAttempt(),List.of(0,1),List.of(2),true));
         var repeat=SupplyRouteCampaign.offers(p).get(0);assertEquals("Route Security",repeat.name);
         assertEquals(MissionSource.RECURRING,repeat.source);assertEquals(12000,repeat.payout);
         assertNotEquals(relay.id,repeat.id);assertTrue(repeat.flavor.contains("new security job"));

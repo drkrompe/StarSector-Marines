@@ -864,8 +864,10 @@ public class BriefingScreen implements Screen {
         if (SupplyRouteCampaign.isBattle(mission)) {
             var route = SupplyRouteCampaign.current();
             int kind = route != null ? route.operation() : 0;
-            rows.add(BriefingViewModel.info("employer-militia", "Militia", kind == 3 ? "8 / two holding detachments" : "6 / local support", ""));
-            rows.add(BriefingViewModel.info("employer-transport", "Employer craft", kind == 2 ? "12-seat civilian pickup / separate from insertion" : kind == 3 ? "2 Aeroshuttles / militia only" : "1 Aeroshuttle / militia only", ""));
+            rows.add(BriefingViewModel.info("employer-militia", "Militia", (kind == 3 || kind == 4) ? "8 / two holding detachments" : "6 / local support", ""));
+            rows.add(BriefingViewModel.info("employer-transport", "Employer craft", kind == 2 ? "12-seat civilian pickup / separate from insertion" : (kind == 3 || kind == 4) ? "2 Aeroshuttles / militia only" : "1 Aeroshuttle / militia only", ""));
+            if (kind == 4) rows.add(BriefingViewModel.info("employer-convoy", "Freight column",
+                    "2 armed APC escorts / 3 cargo carriers; only unresolved cargo retries", ""));
             return List.copyOf(rows);
         }
         rows.add(BriefingViewModel.info("employer-transport", "Landing craft",

@@ -4,7 +4,7 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — fitted aircraft share pattern artwork across ground, flight and shadow rendering.
+Updated: 2026-10-10 — moving hull dust, cargo markings and complete headless vehicle sprites.
 
 ## Vocabulary
 
@@ -351,6 +351,13 @@ perimeters whose aperture genuinely occupies a thick structural cell.
     already pays. It remains the right instrument for a proximity question,
     which this is not: this asks a fixed rectangle about every body, not a body
     about its neighbours.
+
+Convoy presentation follows actual chassis motion. Bounded dust streaks appear
+only for moving live hulls at readable scale, while amber freight bands identify
+an unarmed cargo conversion. Neither is smoke, concealment or a combat effect.
+The headless sprite catalog loads every ground-vehicle variant through the same
+asset paths and slicing as the live host; a close review changes camera framing,
+not actor size or scene composition.
 
 ## Boundaries and extension paths
 

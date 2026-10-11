@@ -286,7 +286,8 @@ public final class MissionResolver {
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
         int payoutEarned = SupplyRouteCampaign.isBattle(mission)
-                ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
+                ? SupplyRouteCampaign.payment(mission, victory, sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome(),
+                        sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 : victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
@@ -372,6 +373,7 @@ public final class MissionResolver {
         }
 
         return MissionOutcome.builder()
+                .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)
                 .victory(victory)

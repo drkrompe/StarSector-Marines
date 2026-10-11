@@ -31,13 +31,14 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Production construction/roster overlay seam, not a live Starsector campaign. */
 @Tag("supply-route-campaign-evidence")
 class SupplyRouteCampaignEvidenceTest {
-    @Test void launchesAllThreeFactoriesWithNamedSeatsAndFittedBoatsWithoutTouchingEmployerLift() throws Exception {
+    @Test void launchesAllFourFactoriesWithNamedSeatsAndFittedBoatsWithoutTouchingEmployerLift() throws Exception {
         Path output=Path.of(System.getProperty("supplyroute.command.evidence.outputDir","build/reports/commander/supply-route"));
         Files.createDirectories(output);JSONArray reports=new JSONArray();
         var renderer=new BattleReviewFrameRenderer(Path.of("mod"),1920,1080);
-        for(int kind : new int[]{1,2,3}) for(int strength : new int[]{8,24}) {
+        for(int kind : new int[]{1,2,3,4}) for(int strength : new int[]{8,24}) {
             var route=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");
-            if(kind!=1){String id=route.missionId();route.begin(id);route.settle(id,true,null);route.commit(kind);}
+            if(kind!=1){String id=route.missionId();route.begin(id);route.settle(id,true,null);route.commit(kind == 4 ? 3 : kind);}
+            if(kind==4){String id=route.missionId();route.begin(id);route.settle(id,true,null);}
             Mission mission=SupplyRouteCampaign.offers(route).get(0);
             var roster=new MarineRoster();roster.ensureActiveSoldiers(strength);
             if(strength==8) {

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -82,6 +83,7 @@ final class HeadlessBattleSprites extends BattleSprites {
             new EnumMap<>(LayeredArmorFamily.class);
     private final Map<Airframe, ShuttleSpriteCache> airframes =
             new LinkedHashMap<>();
+    private final EnumMap<VehicleType, UnitSpriteCache> vehicles = new EnumMap<>(VehicleType.class);
     private final UnitLayerLayouts layouts;
 
     private final SpriteAPI tile;
@@ -124,6 +126,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         natureFrames = slice(TileManifest.NATURE_SHEET);
         loadInfantry();
         loadHulls();
+        for (VehicleType type : VehicleType.values()) vehicles.put(type, new UnitSpriteCache(sprite(type.spritePath), slice(type.spritePath)));
         loadEngineFx();
         loadDecals();
         mech = loadMech();
@@ -230,6 +233,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         return infantry;
     }
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
+    @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
     /**
      * The decal sheet, off the resource roots.

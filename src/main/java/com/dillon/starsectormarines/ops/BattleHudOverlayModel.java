@@ -52,6 +52,7 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> doubleStyle;
     private final MutableSignal<String> quadStyle;
     private final MutableSignal<String> objectivePanelClasses;
+    private final MutableSignal<String> objectiveTitle;
     private final MutableSignal<String> objectiveScore;
     private final MutableSignal<String> objectiveTally;
     private final MutableSignal<List<ObjectiveChip>> objectiveChips;
@@ -84,6 +85,7 @@ final class BattleHudOverlayModel {
         doubleStyle = reactor.signal(TIME_STYLE);
         quadStyle = reactor.signal(TIME_STYLE);
         objectivePanelClasses = reactor.signal(OBJECTIVE_PANEL_HIDDEN);
+        objectiveTitle = reactor.signal("CAPTURE");
         objectiveScore = reactor.signal("");
         objectiveTally = reactor.signal("");
         objectiveChips = reactor.signal(List.of());
@@ -120,6 +122,7 @@ final class BattleHudOverlayModel {
         props.put("doubleAction", (Runnable) () -> speedSetter.accept(DOUBLE));
         props.put("quadAction", (Runnable) () -> speedSetter.accept(QUAD));
         props.put("objectivePanelClasses", objectivePanelClasses);
+        props.put("objectiveTitle", objectiveTitle);
         props.put("objectiveScore", objectiveScore);
         props.put("objectiveTally", objectiveTally);
         props.put("objectiveChips", objectiveChips);
@@ -158,6 +161,7 @@ final class BattleHudOverlayModel {
     Presentation updateProjected(float speedMultiplier,
                                  List<CaptureObjective> objectives,
                                  CommanderSnapshot<?> commander) {
+        objectiveTitle.set("CAPTURE");
         setSelectedSpeed(speedMultiplier);
         List<CaptureObjective> stable = objectives == null ? List.of() : List.copyOf(objectives);
         boolean visible = !stable.isEmpty();
@@ -226,6 +230,27 @@ final class BattleHudOverlayModel {
             }
         }
         return new Presentation(visible, updateConquestCommand(commander));
+    }
+
+    /** Read-only convoy report; a captured site is a release condition, never a delivery. */
+    void updateFreight(int phase, List<Integer> identities, List<String> cargo, int delivered, int lost) {
+        objectiveTitle.set(phase == 3 ? "THUNDER RUN" : "FREIGHT COLUMN");
+        objectivePanelClasses.set(OBJECTIVE_PANEL);
+        objectiveScore.set(delivered + " / " + cargo.size());
+        List<ObjectiveChip> chips = new ArrayList<>();
+        for (int i = 0; i < cargo.size(); i++) chips.add(new ObjectiveChip("battle-cargo-" + i,
+                (identities.get(i) + 1) + " / " + (cargo.get(i).equals("DELIVERED") ? "OUT" : cargo.get(i).equals("LOST") ? "LOST" : "ROAD"), "objective-chip objective-cargo " + (cargo.get(i).equals("DELIVERED") ? "objective-secured"
+                : cargo.get(i).equals("LOST") ? "objective-hostile" : "objective-contested")));
+        objectiveChips.set(List.copyOf(chips));
+        objectiveTally.set(delivered + " DELIVERED  /  " + lost + " LOST");
+        objectiveFocusClasses.set(OBJECTIVE_FOCUS);
+        objectiveFocus.set(switch (phase) {
+            case 0 -> "SECURE DISPATCH POST";
+            case 1 -> "SECURE EAST CROSSING";
+            case 2 -> "SECURE OUTBOUND GATE";
+            default -> "COVER THE COLUMN TO THE EXIT";
+        });
+        objectiveProgressStyle.set("width: " + Math.round(100f * (delivered + lost) / Math.max(1, cargo.size())) + "%;");
     }
 
     private boolean updateConquestCommand(CommanderSnapshot<?> commander) {

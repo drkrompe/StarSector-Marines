@@ -238,7 +238,7 @@ public final class MissionSelectScreen implements Screen {
                             : mission.source == MissionSource.STORY ? "Story" : mission.tier.displayName)
                             + "  ·  " + recommended
                             + (recommended == 1 ? " squad" : " squads") + active,
-                    SupplyRouteCampaign.recovery(mission) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
+                    (SupplyRouteCampaign.recovery(mission) || SupplyRouteCampaign.freight(mission)) ? "MAX " + credits.format(payout) : credits.format(payout) + " cr", () -> select.accept(mission)));
         }
         return List.copyOf(rows);
     }
@@ -325,6 +325,7 @@ public final class MissionSelectScreen implements Screen {
                 detailRow("opposition", "Opposition", "Finite local raiders / no fighter or mech support"),
                 detailRow("payout", "Payment on victory", SupplyRouteCampaign.recovery(mission)
                         ? "4,000 + 500 per recovered person / maximum 10,000 cr"
+                        : SupplyRouteCampaign.freight(mission) ? "6,000 + 4,000 per delivered carrier / maximum 18,000 cr"
                         : NumberFormat.getIntegerInstance().format(mission.payout) + " credits"));
         int multiplier = mission.cashMultiplier & 0xFF;
         if (multiplier <= 0) multiplier = 100;

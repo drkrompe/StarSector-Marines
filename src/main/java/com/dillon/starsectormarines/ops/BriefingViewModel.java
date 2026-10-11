@@ -201,6 +201,12 @@ final class BriefingViewModel {
         int multiplier = mission.cashMultiplier & 0xff;
         if (multiplier == 0) multiplier = 100;
         long payment = (long) mission.payout * multiplier / 100;
+        if (SupplyRouteCampaign.freight(mission)) {
+            props.put("rewardHeader", "FREIGHT DELIVERY AUTHORIZATION");
+            props.put("rewardValue", "Up to 18,000 credits");
+            props.put("rewardTerms", "6,000 + 4,000 per carrier delivered / once on victory");
+            return;
+        }
         if (SupplyRouteCampaign.recovery(mission)) {
             props.put("rewardHeader", "CREW RECOVERY AUTHORIZATION");
             props.put("rewardValue", "Up to 10,000 credits");
