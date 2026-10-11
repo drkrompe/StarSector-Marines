@@ -294,4 +294,3 @@ public final class OperationRadio {
         lastActor = -1;
     }
 }
-
