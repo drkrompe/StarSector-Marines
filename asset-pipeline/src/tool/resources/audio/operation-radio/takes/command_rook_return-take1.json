@@ -1,0 +1,15 @@
+{
+  "requestId": "epwIH292cYkDV4XIIe0k",
+  "characterCost": "7",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "4ba26212836b8f4aa7ea4de72d17eff6deafc6d09e78d8226f90a2f411c3c58e",
+  "audioSha256": "3fa5124ea03ecb854b3b9c171d597d14983448505eb8eca3ddeeb78c8ecde3ac",
+  "durationSeconds": 2.32,
+  "payload": {
+    "text": "[matter-of-fact, brisk voice] Received, Rook. Return to the ship.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}
