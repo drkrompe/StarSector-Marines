@@ -1423,6 +1423,8 @@ blast; point-defence-only
 weapons stay silent against ground. A weapon fires at its tightest cone, because
 the wider figure is only what sustained fire builds up.
 
+A ship is heard in the game's own sounds, never a mod clip: the weapon's fire sound and its blast's sound come from the same specs, the simulation only records the requests, and the presentation plays them positionally. A burst is thinned to a report every fraction of a second rather than a cue per round, and a lance sounds once when it lights, not while it telegraphs.
+
 **A hull must bring its guns to bear, and a broadside cannot shoot dead ahead.**
 A turret traverses within its slot's arc and a hardpoint fires where the nose
 points, so which guns reach a target is a fact about the ship's heading. The
