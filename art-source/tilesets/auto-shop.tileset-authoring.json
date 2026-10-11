@@ -1,0 +1,207 @@
+{
+  "sheetName": "auto-shop",
+  "sheet": "art-source/tilesets/auto-shop.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "auto-shop",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/auto-shop.png",
+  "note": "Geometry-first automotive service shop study. Whole 5x7 bay and closed 2x6 service run eliminate generated tile joins. Raw ImageGen output 1254x1254; measured interior floor cuts exclude ragged rims; props retain full guide cell padding. Preview-only fitting selection.",
+  "blocks": [
+    {
+      "id": "auto-shop.concrete",
+      "layout": "variants"
+    },
+    {
+      "id": "auto-shop.passage",
+      "layout": "variants"
+    }
+  ],
+  "entries": [
+    {
+      "id": "auto-shop.bay",
+      "rect": [
+        40,
+        40,
+        488,
+        686
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        7
+      ]
+    },
+    {
+      "id": "auto-shop.concrete-1",
+      "rect": [
+        592,
+        44,
+        184,
+        184
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "block": "auto-shop.concrete",
+      "slot": "v1",
+      "spriteBorderPx": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "auto-shop.concrete-2",
+      "rect": [
+        808,
+        44,
+        184,
+        184
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "block": "auto-shop.concrete",
+      "slot": "v2",
+      "spriteBorderPx": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "auto-shop.concrete-3",
+      "rect": [
+        1024,
+        44,
+        184,
+        184
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "block": "auto-shop.concrete",
+      "slot": "v3",
+      "spriteBorderPx": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "auto-shop.passage-cell",
+      "rect": [
+        592,
+        280,
+        184,
+        184
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "block": "auto-shop.passage",
+      "slot": "v1",
+      "spriteBorderPx": [
+        3,
+        3
+      ]
+    },
+    {
+      "id": "auto-shop.tool-chest",
+      "rect": [
+        804,
+        274,
+        196,
+        196
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "auto-shop.diagnostic",
+      "rect": [
+        1020,
+        274,
+        196,
+        196
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "auto-shop.service-run",
+      "rect": [
+        590,
+        551,
+        192,
+        582
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        2,
+        6
+      ]
+    },
+    {
+      "id": "auto-shop.lift-column",
+      "rect": [
+        862,
+        588,
+        196,
+        196
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "auto-shop.drain",
+      "rect": [
+        862,
+        862,
+        196,
+        196
+      ],
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ]
+    }
+  ]
+}
