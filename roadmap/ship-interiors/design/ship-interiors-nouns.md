@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — ship sickbays combine layered ward beds with a clinic that
-adapts its staffed bank to hatch approaches; rooms share the muted material family.
+Updated: 2026-10-11 — main stores uses layered shelving, grouped cargo and
+separate picking and pallet-handling aisles within the muted ship material family.
 
 Earlier 2026-09-01 â€” same-purpose facility rooms publish a stable fore-to-aft
 order so room screens can page every generated bay and keep their breadcrumb honest.
@@ -494,6 +494,17 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+Main stores separates parallel picking racks from a pallet handling lane.
+Cross-aisles join the ends of the shelf banks, while a tally desk and a
+packing/recovery bench face the clear end apron. Shelf beds, contents and
+retaining frames are separate visual layers of one physical assembly; a picked
+slot remains shelving rather than walkable floor. Stock is grouped by kind,
+and pallet loads use the same contents. Hatches keep complete approaches clear,
+omitting whole obstructed assemblies and moving the end workstations where
+space permits. Stowage, tallying and recovery happen from reachable standing
+positions. Small utility stores retain worked pallet storage. Displayed cargo
+does not assert campaign inventory or change the hull's cargo capacity.
 
 The ship armory separates its public issue apron from the staff workshop with
 a counter and a deliberate staff opening. Behind it, a repair bench sits

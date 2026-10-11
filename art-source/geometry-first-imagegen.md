@@ -55,6 +55,7 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Forest canopies | `TreeCanopy` and `TreeReskinTemplate`; overhead rounded crowns, full foliage obstruction across 3-6 cells | `templates/forest-canopies.png`, `tilesets/forest-canopies.*`, `forests/` | `forest-brush` |
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
+| Ship main stores | `MainStoresTemplate`; shelf beds, independent cargo, transparent retaining frames and pallet staging | `templates/main-stores.png`, `tilesets/main-stores.*` | `ship-materials` |
 | Ship armory | `ArmoryWorkshopTemplate`; issue counter, layered weapons racks and repair bench, separate cabinets | `templates/armory-workshop.png`, `tilesets/armory-workshop.*` | `ship-materials` |
 | Ship sickbay | `SickbayClinicTemplate`; layered medical beds, head monitors and an adaptable clinic bank | `templates/sickbay-clinic.png`, `tilesets/sickbay-clinic.*` | `ship-materials` |
 | Ship mess | `MessGalleyTemplate`; long tables, separate meals and stools, coordinated galley appliances | `templates/mess-galley.png`, `tilesets/mess-galley.*` | `ship-materials` |
