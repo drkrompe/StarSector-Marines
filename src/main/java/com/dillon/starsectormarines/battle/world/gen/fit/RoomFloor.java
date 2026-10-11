@@ -39,6 +39,8 @@ public final class RoomFloor {
     private final boolean[][] claimed;
     private final boolean[][] shut;
     private final List<int[]> closed = new ArrayList<>();
+    private final List<int[]> blockingFixtures = new ArrayList<>();
+    private final List<LayoutOp.Partition> partitions = new ArrayList<>();
     /**
      * Cells held for somebody to stand and work at.
      *
@@ -298,8 +300,8 @@ public final class RoomFloor {
     }
 
     /**
-     * Apply what {@link #closeOff} recorded. Called once the fill is known to
-     * be kept, and never for one that is discarded.
+     * Apply deferred closed deck, blocking assemblies and partitions once the
+     * fill is accepted. A discarded fill never changes navigation.
      */
     public void seal() {
         for (int[] cell : closed) {
@@ -310,6 +312,70 @@ public final class RoomFloor {
             ctx.grid.setEdgeCoverSuppressed(x, y, true);
             ctx.topology.setFixture(x, y, true);
         }
+        for (int[] cell : blockingFixtures) {
+            int x = left + cell[0], y = top + cell[1];
+            ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setSeeThrough(x, y, false);
+            ctx.topology.setFixture(x, y, true);
+        }
+        for (LayoutOp.Partition partition : partitions) {
+            int[] rect = toLocalRect(partition.x(), partition.y(), partition.spanX(), partition.spanY());
+            for (int dy = 0; dy < rect[3]; dy++) for (int dx = 0; dx < rect[2]; dx++) {
+                int x = left + rect[0] + dx, y = top + rect[1] + dy;
+                ctx.grid.setWalkable(x, y, false);
+                ctx.grid.setSeeThrough(x, y, false);
+                ctx.topology.setWall(x, y, true);
+                ctx.topology.setSurface(x, y, ctx.topology.surfaceIndex(partition.blockId()));
+            }
+        }
+    }
+
+    /** Canonical assembly coordinates; the base owns occupancy and all other layers are decoration. */
+    public boolean placeAssembly(int x, int y, String baseId, List<LayoutOp.Layer> layers) {
+        TileRegistry registry = TileRegistry.installed();
+        DoodadDef base = registry.doodad(baseId);
+        if (base == null) return false;
+        int[] rect = toLocalRect(x, y, base.footprintCellsX, base.footprintCellsY);
+        if (!isFree(rect[0], rect[1], rect[2], rect[3])) return false;
+        for (LayoutOp.Layer layer : layers) {
+            DoodadDef def = registry.doodad(layer.doodadId());
+            if (def == null) return false;
+            if (def.cover.level() != 0 || def.ballisticHalfHeight != 0
+                    || layer.x() < 0 || layer.y() < 0
+                    || layer.x() + def.footprintCellsX > base.footprintCellsX
+                    || layer.y() + def.footprintCellsY > base.footprintCellsY)
+                throw new IllegalArgumentException("Assembly layers must be nonblocking and contained by the base");
+        }
+        report(new LayoutOp.Assembly(x, y, baseId, layers));
+        for (int dy = 0; dy < rect[3]; dy++) for (int dx = 0; dx < rect[2]; dx++) {
+            free[rect[0] + dx][rect[1] + dy] = false;
+            blockingFixtures.add(new int[]{rect[0] + dx, rect[1] + dy});
+        }
+        assemblyLayer(x, y, base);
+        for (LayoutOp.Layer layer : layers) assemblyLayer(x + layer.x(), y + layer.y(), registry.doodad(layer.doodadId()));
+        placed++;
+        return true;
+    }
+
+    private void assemblyLayer(int x, int y, DoodadDef def) {
+        int[] rect = toLocalRect(x, y, def.footprintCellsX, def.footprintCellsY);
+        ctx.doodads.add(new Doodad(left + rect[0], top + rect[1], def, pose().quarterTurns(), pose().mirrored()));
+    }
+
+    /** Claim the complete wall run without mutating the world until {@link #seal()}. */
+    public boolean partition(int x, int y, int spanX, int spanY, String blockId) {
+        if (spanX < 1 || spanY < 1) throw new IllegalArgumentException("Partition must have positive spans");
+        int[] rect = toLocalRect(x, y, spanX, spanY);
+        if (!isFree(rect[0], rect[1], rect[2], rect[3])) return false;
+        var block = TileRegistry.installed().block(blockId);
+        if (block == null || block.layout == null || !block.layout.isWall())
+            throw new IllegalArgumentException("Partition requires a wall block: " + blockId);
+        LayoutOp.Partition partition = new LayoutOp.Partition(x, y, spanX, spanY, blockId);
+        report(partition);
+        partitions.add(partition);
+        for (int dy = 0; dy < rect[3]; dy++) for (int dx = 0; dx < rect[2]; dx++)
+            free[rect[0] + dx][rect[1] + dy] = false;
+        return true;
     }
 
     /** Every door into this room, in the room's own coordinates. */

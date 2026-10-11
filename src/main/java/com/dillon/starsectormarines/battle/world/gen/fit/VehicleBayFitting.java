@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
-import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -39,7 +39,9 @@ import java.util.List;
  * <p><b>A mech bay is the busiest compartment aboard, and its work is of
  * several kinds.</b> A berthed machine is serviced from five distinct positions rather
  * than one, because panels come off along both flanks and somebody is at its
- * head as well as under it. The gaps between bays are the bay's stores, worked
+ * head as well as under it. Shipboard stores use layered shelf runs at the
+ * shop end and short bulkhead partitions separate the bays. The ground-side
+ * fitting keeps its legacy gap stores, worked
  * down a single-file aisle: stowage at the stacks, and a tally taken at the
  * terminal where each run begins. The shop at the end makes and counts. And a
  * deterministic slice of the bay's own equipment — a gantry rail, the shop's
@@ -52,6 +54,15 @@ import java.util.List;
  * one for the same reason it services more machines.
  */
 public final class VehicleBayFitting implements RoomFitting {
+    private final boolean shipboard;
+
+    public VehicleBayFitting() { this(false); }
+
+    private VehicleBayFitting(boolean shipboard) { this.shipboard = shipboard; }
+
+    /** The ship's orderly stores and bulkhead partitions share the same bay and door geometry. */
+    public static VehicleBayFitting shipboard() { return new VehicleBayFitting(true); }
+
 
     /** Cells across one gantry bay: the machine plus a working column each side. */
     public static final int BAY_WIDTH = 5;
@@ -347,6 +358,11 @@ public final class VehicleBayFitting implements RoomFitting {
         reserve(floor, plan.vestibule(), plan.laneFrom(),
                 plan.bayLimit() - plan.vestibule(), plan.laneSpan());
 
+        if (shipboard) {
+            reserve(floor, plan.bayLimit(), plan.laneFrom(), plan.shopWidth(), plan.laneSpan());
+            stubStrandedDoors(floor, along, across,
+                    plan.laneFrom(), plan.laneSpan(), plan.vestibule());
+        }
         int cursor = plan.vestibule();
         int bay = 0;
         while (cursor + BAY_WIDTH <= plan.bayLimit()) {
@@ -354,15 +370,17 @@ public final class VehicleBayFitting implements RoomFitting {
             if (plan.facingRanks()) {
                 layBay(floor, cursor, across - plan.bayDepth(), plan.bayDepth(), false, bay++);
             }
-            layStores(floor, cursor + BAY_WIDTH, plan.bayLimit(), across,
+            if (shipboard) layPartitions(floor, cursor + BAY_WIDTH, plan);
+            else layStores(floor, cursor + BAY_WIDTH, plan.bayLimit(), across,
                     plan.bayDepth(), plan.facingRanks());
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
-        stubStrandedDoors(floor, along, across,
+        if (!shipboard) stubStrandedDoors(floor, along, across,
                 plan.laneFrom(), plan.laneSpan(), plan.vestibule());
         if (plan.shopWidth() > 0) {
-            layShop(floor, plan.bayLimit(), along, across);
+            if (shipboard) layRackStores(floor, plan);
+            else layShop(floor, plan.bayLimit(), along, across);
         }
     }
 
@@ -639,6 +657,58 @@ public final class VehicleBayFitting implements RoomFitting {
                     work = Affordance.REPAIR;
                 }
                 place(floor, offset, depth, SHOP[pick], work);
+            }
+        }
+    }
+
+    /** One short run beside each cross-aisle, ending before the bay's waist access. */
+    private void layPartitions(RoomFloor floor, int from, Plan plan) {
+        int width = Math.min(BAY_GAP, plan.bayLimit() - from);
+        if (width <= 0) return;
+        int aisle = gapAisle(from, plan.bayLimit());
+        if (aisle < 0) {
+            reserve(floor, from, 0, width, plan.across());
+            return;
+        }
+        reserve(floor, aisle, 0, 1, plan.across());
+        int length = Math.max(1, plan.bayDepth() / 2);
+        floor.partition(from, 0, 1, length, "ship.neutral-bulkhead");
+        if (plan.facingRanks())
+            floor.partition(from, plan.across() - length, 1, length, "ship.neutral-bulkhead");
+    }
+
+    private static final String RACK = "warehouse-racks-muted.";
+    private static final String[][] STOCK = {
+            {"cartons", "bins", "engine"}, {"pipes", null, "cases"},
+            {"cases", "engine", "cartons"}, {"bins", "picked-tray", "pipes"}
+    };
+
+    /** Parallel shelf runs with a two-cell handling aisle and breaks at the main service lane. */
+    private void layRackStores(RoomFloor floor, Plan plan) {
+        if (plan.shopWidth() < 4) return;
+        int from = plan.bayLimit();
+        reserve(floor, from + 2, 0, 2, plan.across());
+        reserve(floor, from, 0, plan.shopWidth(), 1);
+        reserve(floor, from, plan.across() - 1, plan.shopWidth(), 1);
+        int index = 0;
+        for (int column = from; column + 2 <= plan.along(); column += 4) {
+            for (int band = 0; band < 2; band++) {
+                int start = band == 0 ? 1 : plan.laneFrom() + plan.laneSpan();
+                int end = band == 0 ? plan.laneFrom() : plan.across() - 1;
+                for (int row = start; row + 6 <= end; row += 8) {
+                    List<LayoutOp.Layer> layers = new ArrayList<>();
+                    String[] contents = STOCK[index++ % STOCK.length];
+                    for (int slot = 0; slot < contents.length; slot++) {
+                        if (contents[slot] != null)
+                            layers.add(new LayoutOp.Layer(0, slot * 2, RACK + contents[slot]));
+                    }
+                    layers.add(new LayoutOp.Layer(0, 0, RACK + "frame"));
+                    if (!floor.placeAssembly(column, row, RACK + "base", layers)) continue;
+                    int stand = column == from ? column + 2 : column - 1;
+                    int fixture = column == from ? column + 1 : column;
+                    for (int slot = 0; slot < 3; slot++)
+                        task(floor, stand, row + slot * 2, Affordance.STOW, fixture, row + slot * 2);
+                }
             }
         }
     }
