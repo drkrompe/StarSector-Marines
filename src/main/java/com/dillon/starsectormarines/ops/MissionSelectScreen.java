@@ -322,7 +322,7 @@ public final class MissionSelectScreen implements Screen {
         if (SupplyRouteCampaign.owns(mission.id)) return List.of(
                 detailRow("force", "Company commitment", "2 squads recommended / at least 4 ready in each of two squads"),
                 detailRow("lift", "Company lift", "1–4 fitted boats / trips follow the selected named force"),
-                detailRow("opposition", "Opposition", "Finite local raiders / no fighter or mech support"),
+                detailRow("opposition", "Opposition", "Local raiders / no fighter or mech support"),
                 detailRow("payout", "Payment on victory", SupplyRouteCampaign.recovery(mission)
                         ? "4,000 + 500 per recovered person / maximum 10,000 cr"
                         : SupplyRouteCampaign.freight(mission) ? "6,000 + 4,000 per delivered carrier / maximum 18,000 cr"
@@ -332,13 +332,13 @@ public final class MissionSelectScreen implements Screen {
         long payout = (long) mission.payout * multiplier / 100L;
         boolean opening = OpeningOperationKind.fromMission(mission) != null;
         String lift = opening
-                ? Math.max(0, mission.requiredDrops - mission.employerShuttles) + " player / "
+                ? Math.max(0, mission.requiredDrops - mission.employerShuttles) + " company / "
                     + mission.employerShuttles + " employer sorties"
                 : mission.requiredDrops + (mission.requiredDrops == 1 ? " sortie" : " sorties");
         return List.of(
                 detailRow("tier", "Operation scale", mission.tier.displayName),
                 detailRow("presence", "Field presence", mission.fieldPresencePolicy.briefingText()),
-                detailRow("opposition", "Opposition", opening ? "Bandit militia / finite force" : MissionForceEnvelope.oppositionExpectation(mission.risk)),
+                detailRow("opposition", "Opposition", opening ? "Local bandit militia" : MissionForceEnvelope.oppositionExpectation(mission.risk)),
                 detailRow("lift", "Lift required", lift),
                 detailRow("payout", "Payout", NumberFormat.getIntegerInstance().format(payout) + " credits"));
     }

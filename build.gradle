@@ -180,6 +180,8 @@ test {
     // `mod/jars` and `mod/sounds` are outputs of shadowJar and deployMod, so
     // including them would make `:test` stale on every single build.
     inputs.dir('mod/data')
+    inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
+    inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
             .withPropertyName('shippedCatalogs')
             .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir('mod/graphics')

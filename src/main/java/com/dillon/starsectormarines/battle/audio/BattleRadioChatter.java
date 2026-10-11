@@ -65,7 +65,11 @@ public final class BattleRadioChatter {
 
     /** Samples squad transitions plus presentation-safe events exposed by the simulation. */
     public Emission advance(float dt, BattleSimulation sim) {
-        return advance(dt, sim.getSquads(), readEvents(sim, !enemyMechAnnounced));
+        return advance(dt, sim, true);
+    }
+
+    public Emission advance(float dt, BattleSimulation sim, boolean allowEmission) {
+        return advance(dt, sim.getSquads(), readEvents(sim, !enemyMechAnnounced), allowEmission);
     }
 
     /**
@@ -78,6 +82,11 @@ public final class BattleRadioChatter {
     }
 
     Emission advance(float dt, Iterable<Squad> squads, FrameEvents events) {
+        return advance(dt, squads, events, true);
+    }
+
+    /** Observe transitions while another speaker owns the channel. */
+    Emission advance(float dt, Iterable<Squad> squads, FrameEvents events, boolean allowEmission) {
         float elapsed = Math.max(0f, dt);
         voiceCooldown = Math.max(0f, voiceCooldown - elapsed);
         acknowledgementTimer = Math.max(0f, acknowledgementTimer - elapsed);
@@ -135,12 +144,18 @@ public final class BattleRadioChatter {
             acknowledgementTimer = nextAcknowledgementGap();
         }
 
-        if (pending == null || voiceCooldown > 0f) return null;
+        if (!allowEmission || pending == null || voiceCooldown > 0f) return null;
         Emission emission = new Emission(
                 pending.cue, pending.squadId, pending.cellX, pending.cellY);
         pending = null;
         voiceCooldown = VOICE_GAP_SECONDS;
         return emission;
+    }
+
+    public boolean voiceAvailable() { return voiceCooldown <= 0f; }
+
+    public void reserveVoice(float durationSeconds) {
+        voiceCooldown = Math.max(voiceCooldown, durationSeconds + VOICE_GAP_SECONDS);
     }
 
     private boolean queue(Cue cue, Squad squad) {

@@ -40,6 +40,11 @@ not a simulated change to vanilla market ownership, trade, or faction relations.
    Mara reports that dispatch can resume and refers the company to other
    Independent brokers. Her completed dossier preserves both chapter labels.
 
+Mission prose stays in-universe. Contacts address the captain, company, crews
+and dispatch office; transport requirements name company lift. Persistent
+casualties and deliveries are explained through manifests and remaining work,
+not player labels, retries, scripted events or campaign-finale terminology.
+
 Only the current uncompleted chapter is offered at Venn's accessible office.
 Other Independent brokers refer the company there until the final victory.
 Relief is visible before the first squad is founded; deployment owns personnel
@@ -422,11 +427,22 @@ mission identity chooses story-specific content, so a recurring job cannot
 replay Mara's historic chapter dialogue accidentally.
 
 The battle publishes facts without running presentation callbacks or consuming
-randomness. A future dialogue/voice adapter maps keys to content after simulation
-advance and handles queueing, expiry, subtitles and audio under the shared radio
-budget in `battle-radio-nouns.md`. Generated voice assets and their provider are
-content-production concerns; neither network access nor playback belongs in the
-simulation. Hooks alone do not enable spoken lines.
+randomness. The Wayline chapters map their public keys to Mara Venn's recorded
+dialogue after simulation advance, under the shared radio budget in
+`battle-radio-nouns.md`. Both chapter briefings play on entry with Replay and
+Stop controls; readable briefing text remains available. Battle lines cover
+start, actual landings, place proximity and the original Relief militia's
+losses. Hidden wave and defender-order facts remain silent. Completion cancels
+outstanding tactical instructions; settlement text owns the outcome message.
+Recurring jobs and the later Broken Supply Route campaign do not reuse these
+recordings.
+
+Mara's cast assignment is Mora - Gritty and Enigmatic, ElevenLabs voice
+`YHcCpa6SBWnKDaCPZJQR`, recorded with `eleven_v4`. The narration catalog retains
+clean subtitles, synthesis text, sound IDs, voice/model settings and duration;
+source takes and generation receipts remain authoring assets. Generation is
+an explicit authoring command, never a build or gameplay network operation.
+Credentials stay in the author's local environment, outside shipped content.
 
 ## Boundaries and acceptance
 

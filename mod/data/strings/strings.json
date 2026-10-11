@@ -384,7 +384,7 @@
 		"lootFenceFmt":           "Fence overflow: {0} units · Cr. {1} paid",
 		"lootConfirm":            "Confirm Salvage",
 		"lootNothingSelected":    "Nothing selected — confirming forfeits the recovery pool.",
-		"lootCargoUnavailable":   "Player cargo is unavailable; settlement cannot proceed.",
+		"lootCargoUnavailable":   "Company cargo is unavailable; settlement cannot proceed.",
 		"equipmentTemplateInvalidName": "Invalid Marine Equipment Template",
 		"equipmentTemplateNameFmt": "{0} Equipment Template",
 		"equipmentTemplateDesignType": "Marine Operations",

@@ -87,9 +87,25 @@ or named-captain nets) may vary content or treatment but must not weaken those
 laws.
 
 Authored opening operations also expose a retained story-beat history, as defined
-in `early-operation-nouns.md`. It is a future dialogue input, separate from the
-current transient combat cues. Player presentation consumes only the public
+in `early-operation-nouns.md`. It is a dialogue input, separate from transient combat cues. Player presentation consumes only the public
 projection; observer-only wave and defender-order events cannot become radio
-intelligence. Any future story voice adapter must share this voice budget and
-choose content by the enclosing chapter or recurring-job identity. Stable event
+intelligence. Story dialogue shares this voice budget and chooses content by the enclosing
+chapter identity. Stable event
 keys do not by themselves grant a speaker, a sound asset, or playback priority.
+
+The campaign battle host consumes the two Wayline chapters' public beats once
+per attempt. Mara's non-positional clips and marine chatter share one channel:
+active sound handles prevent overlap, and a story line reserves its recorded
+duration plus the normal radio gap. Squad transitions continue to be sampled
+while speech owns the channel. Queued story lines expire in real time; later
+facts supersede obsolete instructions (for example, a lost militia line cancels
+its earlier request for support). Story dialogue takes priority over a waiting
+squad cue but does not interrupt an already speaking squad.
+
+Story subtitles name Mara and remain readable for the recorded duration even
+when sound is muted or unavailable, in both strategic and direct-control views.
+Speech runs in real time while simulation speed changes; pause allows the
+current recording to finish but starts no new line. Completion cancels tactical
+speech and pending lines. Leaving a screen stops its owned audio. Resizing does
+not reset the battle cursor or replay briefings. The hybrid debug host has no
+campaign chapter identity and therefore does not play Mara's story dialogue.
