@@ -112,6 +112,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -428,7 +429,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         WaylineNarration narration = WaylineNarration.parse(new JSONObject(Files.readString(
                 context.modRoot().resolve(WaylineNarration.PATH))));
         Map<String, Object> narratedBriefing = BriefingViewModel.campaignPreviewProps(false);
-        narratedBriefing.put("narrationAvailable", true);
+        BriefingViewModel.putNarration(narratedBriefing, narration.find("story_opening_relief", "briefing"), true);
         narratedBriefing.put("missionTitle", "Hold Until Relieved");
         narratedBriefing.put("missionKicker", "ASSAULT  ·  LOW RISK  ·  First Contract");
         BriefingViewModel.putForceComparison(narratedBriefing, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 12, 12);
@@ -439,7 +440,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BriefingSurvey conquestSurvey = productionSurvey(context, "conquest-full-strength-west-v3.json", 1008);
         BriefingSurvey sabotageSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 12);
         BriefingSurvey understrengthSurvey = productionSurvey(context, "sabotage-site-groups-v2.json", 6);
+        Map<String, Object> stoppedBriefing = new HashMap<>(narratedBriefing);
+        BriefingViewModel.putNarration(stoppedBriefing, narration.find("story_opening_relief", "briefing"), false);
         return List.of(
+                new SnapshotArtifact("mission-briefing-narration-stopped-wide.png",
+                        renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                stoppedBriefing, 1f, false)),
                 new SnapshotArtifact("mission-briefing-narration-wide.png",
                         renderMissionBriefing(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 narratedBriefing, 1f, false)),

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -35,7 +36,7 @@ final class BriefingViewModel {
     static Map<String, Object> baseProps() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("screenHeader", "Mission Briefing");
-        props.put("narrationAvailable", false);
+        putNarration(props, null, false);
         props.put("replayNarrationAction", (Runnable) () -> { });
         props.put("stopNarrationAction", (Runnable) () -> { });
         putLeadership(props, false, false);
@@ -174,10 +175,34 @@ final class BriefingViewModel {
         props.put("debugToggleAction", available ? toggle : (Runnable) () -> { });
     }
 
+    /** Wayline's recorded briefings belong to Mara, independently of the deployed force's officers. */
+    static void putNarration(Map<String, Object> props, WaylineNarration.Line line, boolean playing) {
+        boolean available = line != null;
+        props.put("narrationAvailable", available);
+        props.put("narrationSpeaker", available ? OpeningBroker.NAME : "");
+        props.put("narrationPortrait", available ? OpeningBroker.PORTRAIT : "");
+        props.put("narrationSpeakerClasses", "briefing-speaker console-well" + (available && playing ? " speaking" : ""));
+        props.put("narrationStatus", narrationStatus(available && playing));
+    }
+
+    /** Mutate only the retained playback indicator; terrain refreshes and replay keep the portrait's identity. */
+    static void updateNarration(MarkupInstance markup, boolean playing) {
+        UiElement speaker = markup.requireElement("mission-briefing-speaker");
+        if (speaker.parent() == null) return;
+        speaker.classed("speaking", playing);
+        markup.requireElement("mission-narration-status").text(narrationStatus(playing));
+    }
+
+    private static String narrationStatus(boolean playing) {
+        return playing ? "PLAYING BRIEFING" : "BRIEFING RECORDING";
+    }
+
     /** Detach closed controls before layout so neither gaps nor keyboard targets remain. */
     static void applyVisibility(MarkupInstance markup, Map<String, Object> props) {
-        if (!Boolean.TRUE.equals(props.get("narrationAvailable"))) {
-            for (String id : List.of("mission-narration-replay", "mission-narration-stop")) {
+        boolean narrated = Boolean.TRUE.equals(props.get("narrationAvailable"));
+        markup.requireElement("mission-overview").classed("narrated", narrated);
+        if (!narrated) {
+            for (String id : List.of("mission-briefing-speaker", "mission-narration-replay", "mission-narration-stop")) {
                 UiElement control = markup.requireElement(id);
                 control.parent().remove(control);
             }

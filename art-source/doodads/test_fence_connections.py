@@ -26,6 +26,32 @@ class FenceConnectionsTest(unittest.TestCase):
                 x, y = item["col"] * 32, item["row"] * 32
                 cls.cells[item["id"][len(prefix):]] = atlas.crop((x, y, x + 32, y + 32))
 
+        cls.damage_cells = {}
+        manifest = json.loads((ROOT / "mod/data/tilesets/fence-damage.tileset.json").read_text(encoding="utf-8"))
+        with Image.open(ROOT / "mod" / manifest["sheet"]) as source:
+            atlas = source.convert("RGBA")
+        for item in manifest["doodads"]:
+            x, y = item["col"] * 32, item["row"] * 32
+            name = item["id"].removeprefix("doodad.industrial-fence-")
+            cls.damage_cells[name] = atlas.crop((x, y, x + 32, y + 32))
+
+    def test_damage_roots_join_intact_neighbors_and_destroyed_centers_stay_open(self):
+        self.assertEqual(12, len(self.damage_cells))
+        for name, cell in self.damage_cells.items():
+            state, shape = name.split("-", 1)
+            for side in CONNECTIONS[shape]:
+                pixel = {"N": lambda i: (i, 0), "E": lambda i: (31, i),
+                         "S": lambda i: (i, 31), "W": lambda i: (0, i)}[side]
+                root = {i for i in range(32) if cell.getpixel(pixel(i))[3] > 128}
+                with self.subTest(piece=name, side=side):
+                    # Every old fence endpoint has rails at 13 and 18.
+                    self.assertTrue({13, 18} <= root)
+                    self.assertTrue(root <= set(range(12, 20)))
+            if state == "destroyed":
+                for y in range(14, 18):
+                    for x in range(14, 18):
+                        self.assertLessEqual(cell.getpixel((x, y))[3], 16, f"{name} plugs the breach")
+
     def test_each_connected_edge_has_both_rails_at_the_shared_centerline(self):
         self.assertEqual(set(CONNECTIONS), set(self.cells))
         for name, cell in self.cells.items():

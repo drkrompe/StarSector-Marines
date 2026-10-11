@@ -389,8 +389,9 @@ public class BriefingScreen implements Screen {
         props.put("missionKicker", SupplyRouteCampaign.operationLabel(mission) + "  ·  "
                 + mission.risk.name() + " RISK  ·  " + mission.tier.displayName);
         props.put("missionTitle", mission.name);
-        if (briefingNarration() != null) {
-            props.put("narrationAvailable", true);
+        WaylineNarration.Line briefingLine = briefingNarration();
+        BriefingViewModel.putNarration(props, briefingLine, narration.busy());
+        if (briefingLine != null) {
             props.put("replayNarrationAction", (Runnable) () -> narration.start(briefingNarration()));
             props.put("stopNarrationAction", (Runnable) narration::stop);
         }
@@ -2272,6 +2273,7 @@ public class BriefingScreen implements Screen {
             narration.start(briefingNarration());
         }
         narration.advance(dt);
+        if (markupInstance != null) BriefingViewModel.updateNarration(markupInstance, narration.busy());
         if (!surveyComplete && (survey.peek() != null || survey.failure() != null)) {
             surveyComplete = true;
             if (survey.failure() != null) LOG.warn("Briefing terrain generation failed", survey.failure());
