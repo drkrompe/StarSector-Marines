@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
@@ -9,61 +9,59 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** One structure pool per crown, indexed by its actual cells; overlapping crowns retain obstruction. */
-public final class TreeDamage {
-    public static final int STARTING_HP = 200;
-    public enum Result { NOT_TREE, UNCHANGED, DAMAGED, DESTROYED }
+/** One structure pool per natural object; overlapping silhouettes retain obstruction. */
+public final class NaturalPropDamage {
+    public enum Result { NOT_NATURAL_PROP, UNCHANGED, DAMAGED, DESTROYED }
     @FunctionalInterface public interface ClearedCell { void accept(int x, int y); }
     private static final class Entry {
         final int index;
         final Doodad original;
         final DoodadDef damaged, destroyed;
         final int[] cells;
-        int hp = STARTING_HP;
+        int hp;
         long lastAttack = Long.MIN_VALUE;
-        Entry(int index, Doodad original, DoodadDef damaged, DoodadDef destroyed, int[] cells) {
+        Entry(int index, Doodad original, DoodadDef damaged, DoodadDef destroyed, int[] cells, int hp) {
             this.index = index; this.original = original; this.damaged = damaged;
             this.destroyed = destroyed; this.cells = cells;
+            this.hp = hp;
         }
     }
     private final NavigationGrid grid;
     private final List<Doodad> props;
     private final Map<Integer, List<Entry>> owners = new HashMap<>();
-    public TreeDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+    public NaturalPropDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
 
     public void register(int index, Doodad prop, TileRegistry registry) {
-        TreeCanopy canopy = null;
-        for (TreeCanopy candidate : TreeCanopy.values())
-            if (candidate.id.equals(prop.definitionId())) { canopy = candidate; break; }
-        if (canopy == null) return;
+        NaturalPropShape shape = NaturalPropShape.find(prop.definitionId());
+        if (shape == null) return;
         List<Integer> cells = new ArrayList<>();
         for (int y = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++) {
             // Rendering mirrors the source horizontally before rotating it.
             boolean oddTurn = (prop.quarterTurns & 1) != 0;
             int maskX = prop.mirrored && !oddTurn ? prop.footprintCellsX - 1 - x : x;
             int maskY = prop.mirrored && oddTurn ? prop.footprintCellsY - 1 - y : y;
-            if (!canopy.blocks(maskX, maskY, prop.quarterTurns)) continue;
+            if (!shape.blocks(maskX, maskY, prop.quarterTurns)) continue;
             int gx = prop.cellX + x, gy = prop.cellY + y;
-            // A visual-only catalog placement does not acquire forest collision.
+            // A visual-only catalog placement does not acquire natural obstruction.
             if (!grid.inBounds(gx, gy) || grid.isWalkable(gx, gy)
                     || !grid.hasTag(gx, gy, NavigationGrid.CellTag.NATURAL_SOLID)) return;
             cells.add(grid.index(gx, gy));
         }
-        DoodadDef damaged = registry.doodad(canopy.id + "-damaged");
-        DoodadDef destroyed = registry.doodad(canopy.id + "-destroyed");
+        DoodadDef damaged = registry.doodad(shape.id() + "-damaged");
+        DoodadDef destroyed = registry.doodad(shape.id() + "-destroyed");
         if (damaged == null || destroyed == null
-                || damaged.footprintCellsX != canopy.width || damaged.footprintCellsY != canopy.height
-                || destroyed.footprintCellsX != canopy.width || destroyed.footprintCellsY != canopy.height)
-            throw new IllegalStateException("Missing or mismatched tree damage pair for " + canopy.id);
-        Entry entry = new Entry(index, prop, damaged, destroyed, cells.stream().mapToInt(Integer::intValue).toArray());
+                || damaged.footprintCellsX != shape.width() || damaged.footprintCellsY != shape.height()
+                || destroyed.footprintCellsX != shape.width() || destroyed.footprintCellsY != shape.height())
+            throw new IllegalStateException("Missing or mismatched natural prop damage pair for " + shape.id());
+        Entry entry = new Entry(index, prop, damaged, destroyed, cells.stream().mapToInt(Integer::intValue).toArray(), shape.hitPoints());
         for (int cell : entry.cells) owners.computeIfAbsent(cell, unused -> new ArrayList<>()).add(entry);
     }
 
-    /** Attack identity deduplicates a blast visiting several cells of the same tree. */
+    /** Attack identity deduplicates a blast visiting several cells of the same object. */
     public Result damage(int x, int y, int amount, long attack, ClearedCell cleared) {
-        if (!grid.inBounds(x, y)) return Result.NOT_TREE;
+        if (!grid.inBounds(x, y)) return Result.NOT_NATURAL_PROP;
         List<Entry> at = owners.get(grid.index(x, y));
-        if (at == null) return Result.NOT_TREE;
+        if (at == null) return Result.NOT_NATURAL_PROP;
         Result result = Result.UNCHANGED;
         for (Entry entry : at) {
             if (amount <= 0 || entry.hp <= 0 || entry.lastAttack == attack) continue;

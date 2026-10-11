@@ -12,7 +12,7 @@ class TerrainCatalogTest {
         assertSame(plan,TerrainCatalog.forSurface(plan,SurfacePalette.VERDANT));
         for(var palette:List.of(SurfacePalette.ROCK,SurfacePalette.ARID,SurfacePalette.FROZEN)) {
             var adapted=TerrainCatalog.forSurface(plan,palette);
-            assertEquals(TerrainPlan.Finish.ROCK,adapted.finish());
+            assertEquals(palette==SurfacePalette.FROZEN?TerrainPlan.Finish.ICE:TerrainPlan.Finish.ROCK,adapted.finish());
             assertEquals(plan.strokes(),adapted.strokes());assertEquals(plan.seed(),adapted.seed());
             assertEquals(plan.ruggedness(),adapted.ruggedness());assertEquals(plan.faceDepth(),adapted.faceDepth());
             assertEquals(plan.width(),adapted.width());assertEquals(plan.height(),adapted.height());

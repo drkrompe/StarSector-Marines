@@ -1,0 +1,126 @@
+{
+  "blocks": [
+    {
+      "cells": [[
+        0,
+        0
+      ]],
+      "id": "terrain.ice.rock"
+    },
+    {
+      "cells": [[
+        1,
+        0
+      ]],
+      "id": "terrain.ice.talus"
+    },
+    {
+      "cells": [[
+        2,
+        0
+      ]],
+      "id": "terrain.ice.face.0"
+    },
+    {
+      "cells": [[
+        3,
+        0
+      ]],
+      "id": "terrain.ice.face.1"
+    },
+    {
+      "cells": [[
+        4,
+        0
+      ]],
+      "id": "terrain.ice.face.2"
+    },
+    {
+      "cells": [[
+        5,
+        0
+      ]],
+      "id": "terrain.ice.face.3"
+    },
+    {
+      "cells": [[
+        6,
+        0
+      ]],
+      "id": "terrain.ice.face.4"
+    },
+    {
+      "cells": [[
+        7,
+        0
+      ]],
+      "id": "terrain.ice.face.5"
+    },
+    {
+      "cells": [[
+        8,
+        0
+      ]],
+      "id": "terrain.ice.face.6"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.rock v1",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.talus v1",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.0 v1",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.1 v1",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.2 v1",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.3 v1",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.4 v1",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.5 v1",
+      "row": 0
+    },
+    {
+      "col": 8,
+      "description": "variant 1 of the pool",
+      "name": "terrain.ice.face.6 v1",
+      "row": 0
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/ice-terrain.png"
+}

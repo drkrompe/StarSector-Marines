@@ -26,7 +26,7 @@ public final class TerrainPreview {
     public static Prepared prepare(TerrainPlan plan,RoadPlan roads) {
         var grid=new NavigationGrid(plan.width(),plan.height());var topology=new CellTopology(plan.width(),plan.height());
         for(int y=0;y<plan.height();y++)for(int x=0;x<plan.width();x++) {
-            grid.setWalkableFloor(x,y);topology.setGroundKind(x,y,GroundKind.GRASS);
+            grid.setWalkableFloor(x,y);topology.setGroundKind(x,y,plan.finish()==TerrainPlan.Finish.ICE?GroundKind.SNOW:GroundKind.GRASS);
         }
         if(roads!=null)RoadRasterizer.stamp(roads,RoadRasterizer.rasterize(roads),grid,topology);
         TerrainField field=TerrainBrush.stamp(plan,grid,topology);

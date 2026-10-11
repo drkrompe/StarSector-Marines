@@ -14,11 +14,12 @@ public final class TerrainSurface {
     public Patch patch(int x,int y,int layer) { return patches[layer][y*width+x]; }
     public static TerrainSurface build(TerrainPlan plan,TerrainField field,CellTopology topology) {
         int w=plan.width(),h=plan.height();Patch[][] patches=new Patch[LAYERS][w*h];
-        int talus=topology.surfaceIndex("terrain.talus");
+        String material=plan.finish().materialPrefix();
+        int talus=topology.surfaceIndex(material+"talus");
         int[] rock=new int[7];
-        int cap=plan.finish()==TerrainPlan.Finish.GRASS_TOP?0:topology.surfaceIndex("terrain.rock");
+        int cap=plan.finish()==TerrainPlan.Finish.GRASS_TOP?0:topology.surfaceIndex(material+"rock");
         for(int i=0;i<7;i++) {
-            rock[i]=topology.surfaceIndex("terrain.face."+i);
+            rock[i]=topology.surfaceIndex(material+"face."+i);
         }
         double[] depths={-.65,0,plan.faceDepth()*.68,plan.faceDepth()};
         for(int y=0;y<h;y++)for(int x=0;x<w;x++) {

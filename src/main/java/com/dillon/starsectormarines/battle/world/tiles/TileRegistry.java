@@ -52,6 +52,8 @@ public final class TileRegistry {
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
+            "data/tilesets/ice-terrain.tileset.json",
+            "data/tilesets/planet-formations.tileset.json",
             "data/tilesets/forest-canopies.tileset.json",
             "data/tilesets/forest-damaged.tileset.json",
             "data/tilesets/rock-damage.tileset.json",
