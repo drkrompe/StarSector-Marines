@@ -1,0 +1,15 @@
+{
+  "requestId": "xrjDS0SnYkIPyUg3gZoD",
+  "characterCost": "7",
+  "voiceId": "EXAVITQu4vr4xnSDxMaL",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "0b3f79edc560a62643b892e440012407bd9f12a74ac6086bb1eedd9596becf7a",
+  "audioSha256": "f045c8b45a1d1f6c4ca4ceb756490ee951df63b6aee7f887fddbd5cb1b100b0d",
+  "durationSeconds": 2.4,
+  "payload": {
+    "text": "[shouting] [urgent, strained voice] Got you, Kestrel! Keep coming!",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": "ChvIVdQ5LhjfFm7Z4ABI",
+  "characterCost": "7",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "f93686b5895abb25b8dfab383691806778d84f155baa9c938c1db587bdc12b37",
+  "audioSha256": "10da651f64eb47e090e254a39d2f491d29a6799ac8eee4a98f93dbf5b4e473f3",
+  "durationSeconds": 2.48,
+  "payload": {
+    "text": "[firm, brisk voice] Take the freight yard. Hold it for the convoy.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}
