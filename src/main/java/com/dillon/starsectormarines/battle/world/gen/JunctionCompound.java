@@ -10,9 +10,10 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
-import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.AuthoredRoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -39,7 +40,7 @@ public final class JunctionCompound {
         new GenRecipe("Open the Junction", List.of(JunctionCompound::grounds,
                 JunctionCompound::buildings, JunctionCompound::perimeter, JunctionCompound::cargo,
                 finished -> RoadRasterizer.clearReplacedSurfaces(finished.topology, finished.width, finished.height),
-                new FinalizeStage())).run(c);
+                JunctionCompound::yardSurfaces, new FinalizeStage())).run(c);
         List<TacticalNode> sites = new ArrayList<>();
         sites.add(new TacticalNode(TacticalNode.Kind.BEACHHEAD, 21, 56,
                 10, 24, 34, 87, Faction.MARINE, 20, 0));
@@ -51,7 +52,7 @@ public final class JunctionCompound {
         }
         MapResult map = new MapResult(c.grid, c.topology, 21, 56, 148, 55,
                 c.pois, c.doodads, new TacticalMap(sites), c.get(BspKeys.BUILDINGS),
-                List.of(), roads(), c.landingPads);
+                List.of(), AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.JUNCTION), "western-boat-apron"), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Junction berth obstructed");
             requireRoute(map, pad.centerX, pad.centerY);
@@ -73,9 +74,12 @@ public final class JunctionCompound {
             default -> GroundKind.STONE;
         };
         pave(c, 0, 0, WIDTH - 1, HEIGHT - 1, wild);
-        pave(c, 56, 22, 164, 91, GroundKind.SIDEWALK);
-        pave(c, 58, 24, 162, 89, GroundKind.COURTYARD);
-        // Through-road, northern loading spur, then two distinct outbound roads.
+        // A rounded working apron, not a blue superblock pasted under the facilities.
+        for (int y = 22; y <= 91; y++) for (int x = 56; x <= 164; x++) {
+            if (roundedYard(x, y, 0)) c.topology.setGroundKind(x, y,
+                    roundedYard(x, y, 2) ? GroundKind.COURTYARD : GroundKind.SIDEWALK);
+        }
+        // Swept eastern fork and service access share one authored centerline source.
 
         var roads = RoadCatalog.plan(RoadCatalog.JUNCTION);
         RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
@@ -87,6 +91,22 @@ public final class JunctionCompound {
                     c.topology.setGroundKind(px, py, GroundKind.STRIPED);
         }
         for (int x = 96; x < 160; x += 8) pave(c, x, 25, x + 3, 29, GroundKind.STRIPED);
+    }
+    private static boolean roundedYard(int x, int y, int inset) {
+        int left=56+inset, right=164-inset, bottom=22+inset, top=91-inset;
+        if(x<left || x>right || y<bottom || y>top) return false;
+        int radius=9-inset;
+        int cx=Math.max(left+radius,Math.min(right-radius,x));
+        int cy=Math.max(bottom+radius,Math.min(top-radius,y));
+        return (x-cx)*(x-cx)+(y-cy)*(y-cy)<=radius*radius;
+    }
+    /** Apply after buildings and road cleanup so room floors and landing paint retain ownership. */
+    private static void yardSurfaces(GenContext c) {
+        int[] concrete = new int[3];
+        for(int age=0;age<3;age++) concrete[age]=c.topology.surfaceIndex(Material.CONCRETE.block(age));
+        for(int y=0;y<c.height;y++) for(int x=0;x<c.width;x++)
+            if(c.topology.getGroundKind(x,y)==GroundKind.COURTYARD && !c.topology.isWall(x,y))
+                c.topology.setSurface(x,y,concrete[RoadRasterizer.age(y>62 ? .35 : .55,5119,x,y)]);
     }
     private static void buildings(GenContext c) {
         shell(c, 61, 39, 77, 52, Frontage.BOTTOM); // Weigh station by the inbound gate.
@@ -122,23 +142,5 @@ public final class JunctionCompound {
             var prop = tiles.doodad("doodad.industrial-crate-stack");
             if (prop != null) c.doodads.add(new Doodad(x, 27, prop));
         }
-    }
-    private static RoadGraph roads() {
-        int[][] points = {{0,57},{85,57},{173,57},{173,0},{173,82},{191,82},{85,33},{173,33}};
-        int[][] joins = {{0,1},{1,2},{2,7},{7,3},{2,4},{4,5},{1,6},{6,7}};
-        List<RoadGraph.Node> nodes = new ArrayList<>();
-        List<RoadGraph.Edge> edges = new ArrayList<>();
-        for (int i = 0; i < points.length; i++) nodes.add(new RoadGraph.Node(i, points[i][0], points[i][1], i == 0 || i == 3 || i == 5));
-        for (int[] join : joins) {
-            var a = nodes.get(join[0]); var b = nodes.get(join[1]);
-            int length = Math.abs(b.cellX - a.cellX) + Math.abs(b.cellY - a.cellY) + 1;
-            int[] xs = new int[length], ys = new int[length];
-            for (int j = 0; j < length; j++) {
-                xs[j] = a.cellX + j * Integer.signum(b.cellX - a.cellX);
-                ys[j] = a.cellY + j * Integer.signum(b.cellY - a.cellY);
-            }
-            edges.add(new RoadGraph.Edge(edges.size(), a, b, xs, ys));
-        }
-        return new RoadGraph(nodes, edges);
     }
 }

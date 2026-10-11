@@ -293,13 +293,14 @@ public final class GroundRenderSystem implements RenderSystem {
         // building a shorter array for the mesh and then reading the stream off
         // it is how the control run for this lever silently drew no decoration
         // at all while reporting a perfectly plausible command count.
+        BaseTerrain base = new BaseTerrain(grid, topology);
         GroundMesh.CellResolver[] sublayers = {
-                new BaseTerrain(grid, topology),
+                base, base::resolveEdge,
                 new Scatter(topology),
                 new DoorDecals(grid, topology)};
-        int resident0 = residentDecoration ? sublayers.length : 1;
+        int resident0 = residentDecoration ? sublayers.length : 2;
         GroundMesh.CellResolver[] meshLayers = residentDecoration
-                ? sublayers : new GroundMesh.CellResolver[]{sublayers[0]};
+                ? sublayers : new GroundMesh.CellResolver[]{sublayers[0],sublayers[1]};
 
         if (resident && mesh.isServing(topology)
                 && mesh.sublayerCount() == resident0) {
@@ -307,9 +308,10 @@ public final class GroundRenderSystem implements RenderSystem {
                 if (mesh.sync(topology, meshLayers)) mesh.draw(cam, alpha, 0, 1);
             });
             emitResidentFills(view);
+            out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 1, 2));
             emitCrosswalks(grid, topology, view);
             if (residentDecoration) {
-                out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 1, resident0));
+                out.addCustom(RenderLayer.GROUND, () -> mesh.draw(cam, alpha, 2, resident0));
             } else {
                 emitScatterAndDoors(sublayers, view);
             }
@@ -326,6 +328,9 @@ public final class GroundRenderSystem implements RenderSystem {
                 commandSink.at(x, y);
                 terrain.resolve(x, y, commandSink);
             }
+        }
+        for (int y=view.minY();y<=view.maxY();y++) for(int x=view.minX();x<=view.maxX();x++) {
+            commandSink.at(x,y);base.resolveEdge(x,y,commandSink);
         }
         emitCrosswalks(grid, topology, view);
         emitScatterAndDoors(sublayers, view);
@@ -396,6 +401,7 @@ public final class GroundRenderSystem implements RenderSystem {
         private final GridBlockDef[] surfaceBlock;
         private final Color[] surfaceFill;
         private final int surfaces;
+        private final GridBlockDef[][] edgeBlocks;
 
         private final Color roadFill;
         private final String streetTileId;
@@ -443,12 +449,17 @@ public final class GroundRenderSystem implements RenderSystem {
             // a map probe in the inner loop of the densest pass on the deck.
             surfaceBlock = surfaces == 0 ? null : new GridBlockDef[surfaces + 1];
             surfaceFill = surfaces == 0 ? null : new Color[surfaces + 1];
+            edgeBlocks = new GridBlockDef[surfaces+1][16];
             for (int i = 1; i <= surfaces; i++) {
                 GridBlockDef block = tileReg == null ? null : tileReg.block(topology.surfaceId(i));
                 // An id the catalog does not have falls back to the deck's own wall
                 // rather than to nothing, so a stale document is a room that looks
                 // ordinary instead of a hole in the ship.
                 surfaceBlock[i] = block != null ? block : wallBlock;
+                if(block!=null && block.id.startsWith("pavement.")) for(int mask=1;mask<16;mask++) {
+                    GridBlockDef edge=tileReg.block(block.id+".edge-"+mask);
+                    if(edge!=null && sheetFor(edge.sheetPath)!=null) edgeBlocks[i][mask]=edge;
+                }
                 surfaceFill[i] = (surfaceBlock[i] != null && surfaceBlock[i].fillRgb != null)
                         ? new Color(surfaceBlock[i].fillRgb) : wallFill;
             }
@@ -457,7 +468,24 @@ public final class GroundRenderSystem implements RenderSystem {
         @Override
         public void resolve(int x, int y, GroundMesh.CellSink sink) {
             if (topology.isWall(x, y)) resolveWall(x, y, sink);
-            else resolveFloor(x, y, sink);
+            else {
+                int mask=edgeMask(x,y);
+                if(mask==0) resolveFloor(x,y,sink);
+                else resolveFloor(x+RoadEdgeBlend.dx(mask),y+RoadEdgeBlend.dy(mask),sink);
+            }
+        }
+
+        private int edgeMask(int x,int y) {
+            int surface=topology.getSurface(x,y);
+            if(surface<=0 || surface>surfaces) return 0;
+            int mask=RoadEdgeBlend.mask(topology,x,y);
+            return edgeBlocks[surface][mask]!=null ? mask : 0;
+        }
+        private void resolveEdge(int x,int y,GroundMesh.CellSink sink) {
+            int mask=edgeMask(x,y);
+            if(mask==0) return;
+            GridBlockDef block=edgeBlocks[topology.getSurface(x,y)][mask];
+            groundBlock(block,sheetFor(block.sheetPath),null,false,false,false,false,x,y,sink);
         }
 
         private void resolveWall(int x, int y, GroundMesh.CellSink sink) {
@@ -729,7 +757,7 @@ public final class GroundRenderSystem implements RenderSystem {
         for (int y = view.minY(); y <= view.maxY(); y++) {
             for (int x = view.minX(); x <= view.maxX(); x++) {
                 commandSink.at(x, y);
-                for (int layer = 1; layer < sublayers.length; layer++) {
+                for (int layer = 2; layer < sublayers.length; layer++) {
                     sublayers[layer].resolve(x, y, commandSink);
                 }
             }

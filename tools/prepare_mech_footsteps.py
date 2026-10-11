@@ -1,6 +1,6 @@
-"""Offline footfall mix: retain API originals, normalize layers, write three mono masters.
+"""Prepare separate impact and pneumatic one-shots; never bake a walking cycle.
 
-Requires ffmpeg. No network calls. The walk preview is written under build/audio-preview/.
+Requires ffmpeg. No network calls. Isolated and event-sequence previews are written under build/audio-preview/.
 """
 import hashlib
 import json
@@ -14,10 +14,11 @@ SOURCES = ROOT / "asset-pipeline/src/tool/resources/audio/mech-footsteps"
 RATE = 44100
 
 
-def load_layer(name):
+def load_layer(name, kind):
     raw = subprocess.check_output([
         "ffmpeg", "-v", "error", "-i", str(SOURCES / (name + ".mp3")),
-        "-af", "highpass=f=50,lowpass=f=7000", "-ar", str(RATE), "-ac", "1", "-f", "f32le", "-"])
+        "-af", ("highpass=f=28,lowpass=f=1100" if kind == "impact"
+                else "highpass=f=140,lowpass=f=3200"), "-ar", str(RATE), "-ac", "1", "-f", "f32le", "-"])
     samples = list(struct.unpack("<" + "f" * (len(raw) // 4), raw))
     peak = max(abs(x) for x in samples)
     if peak < 0.00001:
@@ -39,43 +40,53 @@ def save(path, samples):
 
 
 def main():
-    mechanism = load_layer("marines_mech_step_mechanism")
-    variants = []
+    catalog = json.loads((SOURCES / "generation.json").read_text(encoding="utf-8"))
+    masters = {}
     receipts = {}
-    for number in range(1, 4):
-        name = "marines_mech_step_0" + str(number)
-        impact = load_layer(name)
-        # Quiet mechanism begins 25ms after ground contact; one runtime voice per step.
-        offset = int(RATE * 0.025)
-        mix = [0.0] * int(RATE * 0.5)
-        for i, x in enumerate(impact[:len(mix)]):
-            mix[i] += x
-        for i, x in enumerate(mechanism[:len(mix) - offset]):
-            mix[i + offset] += x * 0.22
-        for i in range(len(mix)):
-            fade_in = min(1, i / (RATE * 0.001))
-            fade_out = min(1, (len(mix) - 1 - i) / (RATE * 0.05))
-            mix[i] *= fade_in * fade_out
-        gain = 10 ** (-6 / 20) / max(abs(x) for x in mix)
-        mix = [x * gain for x in mix]
+    for clip in catalog["clips"]:
+        name, kind = clip["id"], clip["kind"]
+        samples = load_layer(name, kind)
+        duration = 0.70 if kind == "impact" else 0.30
+        samples = samples[:int(RATE * duration)]
+        for i in range(len(samples)):
+            fade_in = min(1, i / (RATE * 0.002))
+            fade_out = min(1, (len(samples) - 1 - i) / (RATE * 0.06))
+            samples[i] *= fade_in * fade_out
+        gain = 10 ** ((-4.5 if kind == "impact" else -8) / 20) / max(abs(x) for x in samples)
+        samples = [x * gain for x in samples]
         target = SOURCES / (name + ".wav")
-        save(target, mix)
+        save(target, samples)
         receipts[name] = hashlib.sha256(target.read_bytes()).hexdigest()
-        variants.append(mix)
+        masters[name] = samples
     (SOURCES / "preparation.json").write_text(json.dumps({
-        "recipe": "prepare_mech_footsteps.py: mono 44.1kHz, 50Hz high-pass, 7kHz low-pass; onset trim; peak-normalized layers; mechanism at 22% +25ms; mix peak -6dBFS; 1ms/50ms fades",
-        "sourceSha256": {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-                         for p in sorted(SOURCES.glob("*.mp3"))},
+        "recipe": "prepare_mech_footsteps.py: separate mono 44.1kHz masters; onset trim; impact 28-1100Hz, up to 700ms, peak -4.5dBFS; pneumatic 140-3200Hz, up to 300ms, peak -8dBFS; 2ms/60ms fades; NO layer mixing",
+        "sourceSha256": {clip["id"] + ".mp3": hashlib.sha256(
+            (SOURCES / (clip["id"] + ".mp3")).read_bytes()).hexdigest()
+            for clip in catalog["clips"]},
         "masterSha256": receipts
     }, indent=2) + "\n", encoding="utf-8")
-    preview = [0.0] * (RATE * 8)
-    for index in range(14):
-        offset = int(RATE * (0.25 + index * 0.50))
-        for i, x in enumerate(variants[index % 3]):
-            preview[offset + i] += x
-    target = ROOT / "build/audio-preview/mech-walk.wav"
-    save(target, preview)
-    print("Prepared three footfalls; preview:", target)
+
+    def preview(name, events, seconds):
+        mix = [0.0] * int(RATE * seconds)
+        for time, sound, gain in events:
+            offset = int(RATE * time)
+            for i, value in enumerate(masters[sound]):
+                if offset + i < len(mix):
+                    mix[offset + i] += value * gain
+        save(ROOT / "build/audio-preview" / (name + ".wav"), mix)
+
+    preview("impacts", [(0.2 + i * 1.2, "marines_mech_land_0" + str(i + 1), 1)
+                        for i in range(3)], 4)
+    preview("pneumatics", [(0.2 + i * 0.8, "marines_mech_lift_0" + str(i + 1), 1)
+                           for i in range(2)], 2)
+    # Audition only. Runtime timing comes exclusively from actual per-foot gait transitions.
+    events = []
+    for i in range(10):
+        start = 0.2 + i * 0.43
+        events.append((start, "marines_mech_lift_0" + str(i % 2 + 1), 0.20))
+        events.append((start + 0.34, "marines_mech_land_0" + str(i % 3 + 1), 0.65))
+    preview("foot-events", events, 5.5)
+    print("Prepared independent one-shots and previews under build/audio-preview/")
 
 
 if __name__ == "__main__":
