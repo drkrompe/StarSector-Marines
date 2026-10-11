@@ -119,6 +119,34 @@ and requires an unchanged manifest. It preserves unrelated shipped props whose
 sources may have drifted (the current medical privacy screen is one such case).
 Use a full build when adding IDs or changing layout metadata.
 
+### Sandbag damage and spilled sand
+
+`SandbagDamageReskinTemplate` starts with the intact rounded courses, adds
+localized tears and spills, and clears explicit breach gaps for destroyed runs
+and elbows. The retained guide is `../templates/sandbag-damage.png`. Keep
+`sandbag-damage.prompt.txt`, `imagegen-raw/sandbag-damage.raw.png`, and
+`sandbag-damage-geometry.json` together: the reviewed full-cell cuts preserve
+the bag endpoints and empty interiors despite the generated canvas changing size.
+
+```powershell
+python art-source/doodads/derive_sandbag_damage_frames.py
+python -m unittest discover -s art-source/doodads -p 'test_*.py'
+./gradlew.bat createSnapshots -Psnapshot=sandbags
+```
+
+The derivation writes sixteen exact quarter-turn variants and metadata under
+`sandbag-damage-sources/`, then uses the ordinary packer to produce
+`mod/graphics/doodads/sandbag-damage.png` and its tileset. Full canvases,
+zero padding and unit scale preserve connections to intact pieces. Pixel tests
+check endpoints, clear breaches and localized sand instead of a ground carpet.
+The `sandbags` suite renders mixed damage states and combat-opened breaches.
+
+Blocking sandbags share the fence damage path: 100 structural HP unless the
+cell already has authored positive HP. Positive wall damage selects torn bags
+while retaining heavy cover and 0.3-cell ballistic half-height. Exhausted HP
+opens navigation and leaves zero-cover collapsed sacks and spilled sand over
+the original ground. Decorative walkable placements retain their original behavior.
+
 ## Connected industrial fences
 
 `FenceReskinTemplate` draws one connected overhead frame. Built-in ImageGen
