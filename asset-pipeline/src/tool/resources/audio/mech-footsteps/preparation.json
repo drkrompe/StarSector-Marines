@@ -1,0 +1,14 @@
+{
+  "recipe": "prepare_mech_footsteps.py: mono 44.1kHz, 50Hz high-pass, 7kHz low-pass; onset trim; peak-normalized layers; mechanism at 22% +25ms; mix peak -6dBFS; 1ms/50ms fades",
+  "sourceSha256": {
+    "marines_mech_step_01.mp3": "dffadd7871e0cad558c2ed227fe904783be830632e613e198eccf2a0af7764a2",
+    "marines_mech_step_02.mp3": "5bbb8cc413e5bacc9f1e3c0d73795932e1db81e458806c7b3be3757a9e992f4c",
+    "marines_mech_step_03.mp3": "46d3e02a55a90857302b00f4d51fd8278fdc00cf85028325e2b97cd53da0d86e",
+    "marines_mech_step_mechanism.mp3": "49ee4aa03871ff1865918f2bda774b5b0bfacf57c466dee495421d7acbf929a3"
+  },
+  "masterSha256": {
+    "marines_mech_step_01": "48262e7e01a6ae99f78a10ef05d0e9d7b5858babf1107ebce1dd065c118a26ae",
+    "marines_mech_step_02": "5068c546515505b628e4e180586be86848d6a3b62c8181c9b6051d3e084eb6ce",
+    "marines_mech_step_03": "18d9791fcec9e382b99c2c5b071b1e5ba463e0b40b8c9b3c071d3e4c54646a27"
+  }
+}

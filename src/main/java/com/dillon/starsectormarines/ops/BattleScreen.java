@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
+import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.fs.starfarer.api.SoundAPI;
@@ -276,6 +277,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             new BattleMusicPlaylist(List.of(BATTLE_MUSIC_POOL), audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
+    private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
     private SoundAPI radioSound;
@@ -292,6 +294,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (radioSound != null) radioSound.stop();
             radioSound = null;
             radioChatter.reset();
+            mechFootsteps.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.storyMissionId(ctx != null ? ctx.getSelectedMission() : null), line -> {
                         if (radioSound != null) radioSound.stop();
@@ -578,6 +581,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (sim != null) sim.getFogOfWar().advanceFade(dt);
         driveShuttleEngineLoops(sim);
         playCombatEventSounds(sim);
+        for (MechFootstepAudio.Cue cue : mechFootsteps.advance(
+                sim, camera.panCellX(), camera.panCellY())) {
+            Global.getSoundPlayer().playSound(cue.soundId(), cue.pitch(), cue.volume(),
+                    new Vector2f(cue.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
+                            cue.cellY() * AUDIO_WORLD_UNITS_PER_CELL), new Vector2f());
+        }
         advanceVoices(sim, dt);
     }
 
