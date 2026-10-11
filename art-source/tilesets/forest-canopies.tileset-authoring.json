@@ -1,0 +1,108 @@
+{
+  "sheetName": "forest-canopies",
+  "sheet": "art-source/tilesets/forest-canopies.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "alphaMin": 40,
+  "note": "Six true overhead crowns. TreeCanopy owns rounded lobe geometry and conservative intersected-cell collision, shared by TreeReskinTemplate and ForestBrush. Retained guide is 1536x1024 at 512px pitch; each full-frame cut is centered within its panel with a 480px longest edge and preserves the runtime footprint aspect ratio. The built-in ImageGen reskin retained this exact resolution. Preserve alpha and full-canvas registration; never trim/recenter. Cover is none because explicit natural-solid canopy cells own collision/sight, rather than the doodad's bounding rectangle. Prompt: forest-canopies.prompt.txt.",
+  "entries": [
+    {
+      "id": "forest.oak",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "rect": [
+        16,
+        16,
+        480,
+        480
+      ]
+    },
+    {
+      "id": "forest.oak-small",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        528,
+        16,
+        480,
+        480
+      ]
+    },
+    {
+      "id": "forest.birch",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "rect": [
+        1040,
+        64,
+        480,
+        384
+      ]
+    },
+    {
+      "id": "forest.pine",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "rect": [
+        16,
+        528,
+        480,
+        480
+      ]
+    },
+    {
+      "id": "forest.pine-large",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        528,
+        528,
+        480,
+        480
+      ]
+    },
+    {
+      "id": "forest.cedar",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        6
+      ],
+      "rect": [
+        1120,
+        528,
+        320,
+        480
+      ]
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "forest.oak",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "forest.oak-small",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "forest.birch",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "forest.pine",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "name": "forest.pine-large",
+      "row": 5
+    },
+    {
+      "col": 7,
+      "name": "forest.cedar",
+      "row": 5
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar",
+      "row": 5
+    }
+  ],
+  "sheet": "graphics/doodads/forest-canopies.png"
+}

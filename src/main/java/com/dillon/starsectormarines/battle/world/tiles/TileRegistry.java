@@ -50,6 +50,7 @@ public final class TileRegistry {
             "data/tilesets/parked-vehicles.tileset.json",
             "data/tilesets/pavement.tileset.json",
             "data/tilesets/natural-terrain.tileset.json",
+            "data/tilesets/forest-canopies.tileset.json",
             "data/tilesets/pavement-edges.tileset.json",
             "data/tilesets/colony-buildings.tileset.json",
             "data/tilesets/colony-walls.tileset.json",
