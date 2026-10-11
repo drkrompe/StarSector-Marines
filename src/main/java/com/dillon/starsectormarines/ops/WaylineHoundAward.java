@@ -18,6 +18,8 @@ public final class WaylineHoundAward {
         if (roster == null || !eligible(outcome) || roster.hasCompletedStory(outcome.missionId)) return false;
         var fit = WaylineHound.deployment();
         CampaignMech mech = CampaignMech.fromDeployment(WaylineHound.ID, fit);
-        return roster.mechBay().receiveRecoveredMech(mech);
+        if (!roster.mechBay().receiveRecoveredMech(mech)) return false;
+        roster.mechBay().beginLabLesson();
+        return true;
     }
 }

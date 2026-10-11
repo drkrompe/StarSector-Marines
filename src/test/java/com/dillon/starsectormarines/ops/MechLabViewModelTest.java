@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -24,6 +25,8 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import com.dillon.starsectormarines.ui.retained.UiKey;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -273,6 +276,40 @@ class MechLabViewModelTest {
         assertEquals(2, bay.activeSquad().mechs().size());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
         assertTrue(viewModel.feedbackText().get().contains("standard roll-out fit"));
+    }
+
+    @Test
+    void castleModalDoesNotShiftTheLabAndEscapeReturnsFittingInput() throws Exception {
+        Reactor reactor = new Reactor();
+        MechBay bay = new MechBay();
+        bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
+        bay.beginLabLesson();
+        MechLabViewModel model = new MechLabViewModel(reactor, bay);
+        model.guideLabLesson();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, "mech-lab", props(model))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            TutorialModal.bind(document, instance, model::labGuideVisible,
+                    "castle-lab-lesson", "mech-lab-root", model::dismissLabPrompt, () -> {});
+            document.layout(1920, 1080);
+            var stage = instance.requireElement("mech-doll-canvas");
+            float x = stage.box().borderBox().x(), y = stage.box().borderBox().y();
+            float width = stage.box().borderBox().width(), height = stage.box().borderBox().height();
+            assertTrue(model.labGuideVisible());
+            document.keyPressed(UiKey.ESCAPE, Set.of(), false);
+            instance.flush();
+            document.layout(1920, 1080);
+            assertFalse(model.labGuideVisible());
+            assertEquals(x, stage.box().borderBox().x(), EPSILON);
+            assertEquals(y, stage.box().borderBox().y(), EPSILON);
+            assertEquals(width, stage.box().borderBox().width(), EPSILON);
+            assertEquals(height, stage.box().borderBox().height(), EPSILON);
+            assertTrue(model.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER));
+            assertTrue(model.labGuideVisible());
+        }
     }
 
     @Test
@@ -567,6 +604,7 @@ class MechLabViewModelTest {
         props.put("bayNavigatorClasses", "bay-navigator hidden");
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
+        viewModel.putTutorialProps(props);
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

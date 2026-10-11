@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.IndustrialYardCoverFixture;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
@@ -54,6 +55,15 @@ public final class VisibleBlockerSnapshotSuite implements SnapshotSuite {
 
     /** Validate the claims against the same simulations that produce the pictures. */
     private static void verifyComparison(BattleSimulation crates, BattleSimulation tree) {
+        for (var sim : List.of(crates, tree)) {
+            for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+                for (int x = 0; x < sim.getGrid().getWidth(); x++) {
+                    if (sim.getTopology().getGroundKind(x, y) != GroundKind.GRASS
+                            || sim.getTopology().getSurface(x, y) != 0)
+                        throw new IllegalStateException("Comparison props must preserve the grass beneath them");
+                }
+            }
+        }
         int expectedCover = TileRegistry.installed().doodad("doodad.industrial-crate-stack").cover.level();
         if (crates.getRoster().liveCount() != 2 || tree.getRoster().liveCount() != 2)
             throw new IllegalStateException("Both comparison actors must remain alive");
