@@ -30,19 +30,14 @@ final class BattleDirectControlOverlay {
     static final String ACTIONS_COMPONENT_PATH = "data/ui/components/battle/" + ACTIONS_COMPONENT + ".mlx";
     static final float ACTIONS_WIDTH = 154f;
     static final float ACTIONS_HEIGHT = 26f;
-    static final float DOCUMENT_WIDTH = 440f;
-    static final float DOCUMENT_HEIGHT = 52f;
+    static final float DOCUMENT_WIDTH = 170f;
+    static final float DOCUMENT_HEIGHT = 26f;
     private static final float SELECTION_GAP = 4f;
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> label = reactor.signal("");
-    private final MutableSignal<String> hint = reactor.signal("");
     private final MutableSignal<Boolean> disabled = reactor.signal(true);
-    private final MutableSignal<String> pauseLabel = reactor.signal("");
-    private final MutableSignal<String> pauseClasses = reactor.signal("direct-pause direct-pause-hidden");
-    private final MutableSignal<Boolean> pauseDisabled = reactor.signal(true);
     private final Selection selection;
     private final Runnable toggle;
-    private final Runnable togglePause;
     private final BattleDirectControlHudModel actionModel;
     private PositionAPI position;
     private UiDocument document;
@@ -68,7 +63,6 @@ final class BattleDirectControlOverlay {
                               IntConsumer selectWeapon) {
         this.selection = selection;
         this.toggle = toggle;
-        this.togglePause = togglePause;
         actionModel = new BattleDirectControlHudModel(reactor, selectWeapon, toggle, togglePause);
     }
 
@@ -78,9 +72,7 @@ final class BattleDirectControlOverlay {
             MarkupLoader loader = new MarkupLoader(path -> Global.getSettings().loadText(path),
                     List.of(COMPONENT_PATH));
             markup = loader.reloadAndBuild(reactor, COMPONENT, Map.of(
-                    "label", label, "hint", hint, "disabled", disabled, "toggle", toggle,
-                    "pauseLabel", pauseLabel, "pauseClasses", pauseClasses,
-                    "pauseDisabled", pauseDisabled, "togglePause", togglePause));
+                    "label", label, "disabled", disabled, "toggle", toggle));
             document = document(markup);
             MarkupLoader actionLoader = new MarkupLoader(path -> Global.getSettings().loadText(path),
                     List.of(ACTION_COMPONENT_PATH));
@@ -94,7 +86,7 @@ final class BattleDirectControlOverlay {
         update(0f, sim, speedMultiplier);
     }
 
-    /** Reserve the taller selection plate even when another carrier is selected, avoiding button jumps. */
+    /** Default bounds for the taller mech detail panel. */
     static UiViewport viewport(PositionAPI position) {
         return viewport(position, false);
     }
@@ -115,14 +107,18 @@ final class BattleDirectControlOverlay {
                             : position.getY() + 12f,
                     width, ACTION_HEIGHT * scale, scale);
         }
-        UiViewport squad = BattleSquadOverlay.viewport(position);
-        UiViewport mech = BattleMechOverlay.viewport(position);
-        float selectionTop = Math.max(squad.screenY() + squad.height(),
-                mech.screenY() + mech.height());
-        return new UiViewport(position.getX() + 12f,
-                selectionTop + SELECTION_GAP * scale,
-                width,
-                DOCUMENT_HEIGHT * scale, scale);
+        return entryViewport(position, true);
+    }
+
+    /** The shortcut sits just above the selected unit's detail card, aligned to its right edge. */
+    static UiViewport entryViewport(PositionAPI position, boolean mech) {
+        UiViewport panel = mech ? BattleMechOverlay.viewport(position) : BattleSquadOverlay.viewport(position);
+        float scale = panel.documentScale();
+        float panelWidth = Math.min(BattleSquadOverlay.PANEL_WIDTH * scale, position.getWidth() - 24f);
+        float width = Math.min(DOCUMENT_WIDTH * scale, panelWidth);
+        return new UiViewport(panel.screenX() + panelWidth - width,
+                panel.screenY() + panel.height() + SELECTION_GAP * scale,
+                width, DOCUMENT_HEIGHT * scale, scale);
     }
 
     static UiViewport actionsViewport(PositionAPI position) {
@@ -144,24 +140,22 @@ final class BattleDirectControlOverlay {
         long selected = selection.hasVehicleSelection() ? selection.getSelectedVehicleId()
                 : selection.getSelectedUnitEntityId();
         boolean eligible = sim != null && sim.directControl().canEnter(selected);
-        visible = sim != null && !sim.isComplete();
+        boolean nextVisible = sim != null && !sim.isComplete() && (active || eligible);
+        if (visible && !nextVisible) deactivateDocuments();
+        visible = nextVisible;
         disabled.set(!active && !eligible);
-        label.set(Strings.get(active ? "battleDirectExit" : "battleDirectEnter"));
-        pauseLabel.set(Strings.get(speedMultiplier == 0f ? "battleSpeed1x" : "battleSpeedPause"));
-        pauseClasses.set(active ? "direct-pause" : "direct-pause direct-pause-hidden");
-        pauseDisabled.set(!active);
+        label.set(Strings.get("battleDirectEnter"));
         if (active) {
             actionModel.update(BattleDirectControlStatus.snapshot(sim),
                     sim.directControl().selectedWeapon(), speedMultiplier == 0f);
-        } else {
-            hint.set(Strings.get(eligible ? "battleDirectReady" : "battleDirectSelect"));
         }
         if (markup != null) markup.flush();
         if (actionMarkup != null) actionMarkup.flush();
         if (actionsMarkup != null) actionsMarkup.flush();
         UiDocument current = currentDocument();
         if (position != null && current != null) {
-            UiViewport next = viewport(position, active, dockTop);
+            UiViewport next = active ? viewport(position, true, dockTop)
+                    : entryViewport(position, eligible && sim.world().hasMechLoadout(selected));
             if (!next.equals(viewport) || input == null) {
                 deactivateDocuments();
                 viewport = next;

@@ -1,10 +1,6 @@
-<template props="label,hint,disabled,toggle,pauseLabel,pauseClasses,pauseDisabled,togglePause">
+<template props="label,disabled,toggle">
   <div id="battle-direct-control" class="direct-control">
-    <div id="battle-direct-control-actions" class="direct-actions">
-      <button id="battle-direct-control-toggle" class="direct-toggle console-action" disabled="{disabled}" onclick="{toggle}">{label}</button>
-      <button id="battle-direct-control-pause" class="{pauseClasses}" disabled="{pauseDisabled}" onclick="{togglePause}">{pauseLabel}</button>
-    </div>
-    <div id="battle-direct-control-hint" class="direct-hint">{hint}</div>
+    <button id="battle-direct-control-toggle" class="direct-toggle console-action" disabled="{disabled}" onclick="{toggle}">{label}</button>
   </div>
 </template>
 
@@ -13,33 +9,20 @@
     width: 100%;
     height: 100%;
     padding: 0px;
-    gap: 3px;
-    border-width: 0px;
-    border-color: #727b79;
-    background-color: #141e19f2;
+    background-color: transparent;
     overflow: hidden;
   }
-  .direct-actions { width: 100%; height: 28px; flex-direction: row; gap: 4px; }
-  .direct-toggle { flex-grow: 1; }
-  .direct-pause { width: 66px; }
-  .direct-toggle, .direct-pause {
-    height: 26px;
+  .direct-toggle {
+    width: 100%;
+    height: 24px;
+    padding: 0px 7px;
     font-family: heading;
     text-align: center;
-    color: #e4e7df;
-    background-color: #46524a;
+    color: #c9c8b9;
+    background-color: #252721ed;
     border-width: 1px;
-    border-color: #a7ccc4;
+    border-color: #6c6c5f;
   }
-  .direct-toggle:hover { background-color: #222b24; }
-  .direct-pause:hover { background-color: #222b24; }
-  .direct-toggle:disabled { color: #8b98a6; border-color: #65756b; background-color: #303a32; }
-  .direct-pause-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
-  .direct-hint {
-    height: 20px;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    color: #c1cbc3;
-  }
+  .direct-toggle:hover { color: #f0dfaa; background-color: #393a2f; border-color: #aaa077; }
+  .direct-toggle:disabled { color: #858779; border-color: #53574c; }
 </style>

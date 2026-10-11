@@ -77,15 +77,12 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         for (String scenario : List.of("clear", "corner", "closed-edge", "chrome-hidden", "carrier-muzzles")) {
             artifacts.add(new SnapshotArtifact("aim-lane-" + scenario + ".png", aimLane(scenario)));
         }
-        for (int state = 0; state < 2; state++) {
-            try (var markup = BattleDirectControlOverlayTest.fixture(
-                    context.modRoot(), false, state > 0, () -> {})) {
-                var document = BattleDirectControlOverlayTest.document(markup);
-                artifacts.add(new SnapshotArtifact(new String[]{"select", "ready"}[state]
-                        + ".png", renderer.render(document,
-                        (int) BattleDirectControlOverlay.DOCUMENT_WIDTH,
-                        (int) BattleDirectControlOverlay.DOCUMENT_HEIGHT)));
-            }
+        try (var markup = BattleDirectControlOverlayTest.fixture(
+                context.modRoot(), false, true, () -> {})) {
+            var document = BattleDirectControlOverlayTest.document(markup);
+            artifacts.add(new SnapshotArtifact("ready.png", renderer.render(document,
+                    (int) BattleDirectControlOverlay.DOCUMENT_WIDTH,
+                    (int) BattleDirectControlOverlay.DOCUMENT_HEIGHT)));
         }
         for (var carrier : List.of(BattleDirectControlStatus.Carrier.MARINE,
                 BattleDirectControlStatus.Carrier.MECH, BattleDirectControlStatus.Carrier.VEHICLE)) {
@@ -115,19 +112,12 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             artifacts.add(new SnapshotArtifact("action-controls.png", renderer.render(fixture.actionsDocument(),
                     (int) BattleDirectControlOverlay.ACTIONS_WIDTH, (int) BattleDirectControlOverlay.ACTIONS_HEIGHT)));
         }
-        artifacts.add(new SnapshotArtifact("selected-mech-1744x938-ui100.png",
-                composite(renderer, context.modRoot(), 1744, 938, 1f, true)));
-        artifacts.add(new SnapshotArtifact("selected-mech-1280x720-ui150.png",
-                composite(renderer, context.modRoot(), 1280, 720, 1.5f, true)));
-        artifacts.add(new SnapshotArtifact("selected-infantry-1366x768-ui125.png",
-                composite(renderer, context.modRoot(), 1366, 768, 1.25f, false)));
-        artifacts.add(new SnapshotArtifact("active-mech-1280x720-ui150.png",
-                activeComposite(renderer, context.modRoot(), 1280, 720, 1.5f, false)));
-        artifacts.add(new SnapshotArtifact("active-mech-paused-1744x938-ui100.png",
-                activeComposite(renderer, context.modRoot(), 1744, 938, 1f, true)));
-        artifacts.add(new SnapshotArtifact("active-marine-equipped-1280x720-ui150.png",
-                activeComposite(renderer, context.modRoot(), 1280, 720, 1.5f,
-                        BattleDirectControlHudTest.abilityPreview(1), false)));
+        artifacts.add(new SnapshotArtifact("selected-mech-1920x1080-ui100.png",
+                composite(renderer, context.modRoot(), 1920, 1080, 1f, true)));
+        artifacts.add(new SnapshotArtifact("selected-infantry-1920x1080-ui100.png",
+                composite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
+        artifacts.add(new SnapshotArtifact("active-mech-1920x1080-ui100.png",
+                activeComposite(renderer, context.modRoot(), 1920, 1080, 1f, false)));
         return artifacts;
     }
 
@@ -168,7 +158,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage composite(HeadlessUiRenderer renderer, Path modRoot,
                                             int width, int height, float uiScale,
                                             boolean mech) throws Exception {
-        var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale);
+        var layout = BattleDirectControlOverlayTest.layout(width, height, uiScale, mech);
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = image.createGraphics();
         try {
