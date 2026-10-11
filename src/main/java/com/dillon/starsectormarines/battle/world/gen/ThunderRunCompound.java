@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFa
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.OpeningOperationFacilityFiller.Frontage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadCatalog;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -89,15 +91,10 @@ public final class ThunderRunCompound {
         pave(c, 0, 0, WIDTH - 1, HEIGHT - 1, wild);
         // Reserve the fifteen-cell carriageway before buildings or dressing.
         pave(c, 0, 65, WIDTH - 1, 85, GroundKind.SIDEWALK);
-        pave(c, 0, 68, WIDTH - 1, 82, GroundKind.STREET);
         pave(c, 10, 12, 36, 132, GroundKind.STREET);
         pave(c, 57, 35, 111, 64, GroundKind.COURTYARD);
         pave(c, 143, 37, 195, 112, GroundKind.COURTYARD);
         pave(c, 235, 30, 316, 115, GroundKind.COURTYARD);
-        // Crossing and road ambush approaches remain vehicle-wide.
-        pave(c, 159, 0, 171, 143, GroundKind.STREET);
-        pave(c, 269, 0, 281, 143, GroundKind.STREET);
-        pave(c, 0, 68, WIDTH - 1, 82, GroundKind.STREET);
         for (int y : new int[]{22, 40, 58, 94, 112, 130}) {
             LandingPad pad = new LandingPad(21, y, 3, 3, LandingPad.Approach.WEST);
             c.landingPads.add(pad);
@@ -105,7 +102,8 @@ public final class ThunderRunCompound {
                 if (px == pad.left() || px == pad.right() || py == pad.bottom() || py == pad.top())
                     c.topology.setGroundKind(px, py, GroundKind.STRIPED);
         }
-        for (int x = 4; x < WIDTH; x += 10) pave(c, x, 75, x + 3, 75, GroundKind.STRIPED);
+        var roads = RoadCatalog.thunderRun();
+        RoadRasterizer.stamp(roads, RoadRasterizer.rasterize(roads), c.grid, c.topology);
     }
     private static void buildings(GenContext c) {
         // Each destination overlooks its own road beat; none sits in the carriageway.
@@ -226,7 +224,7 @@ public final class ThunderRunCompound {
         int dirt = c.topology.surfaceIndex("floors.dirt");
         for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {
             GroundKind kind = c.topology.getGroundKind(x, y);
-            if (kind == GroundKind.STREET || (kind == GroundKind.STRIPED && y == 75))
+            if (kind == GroundKind.STREET && c.topology.getSurface(x,y) == 0)
                 c.topology.setSurface(x, y, road);
             else if (kind == GroundKind.COURTYARD)
                 c.topology.setSurface(x, y, x < 235 ? dirt : gravel);
