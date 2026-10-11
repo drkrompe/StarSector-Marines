@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
+import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -49,7 +50,12 @@ final class StorySubtitleOverlay {
     }
 
     void update(WaylineNarration.Line line, CompanyOfficer.Line officer, float dt) {
-        Object next = line != null ? line : officer;
+        update(line, officer, null, dt);
+    }
+
+    void update(WaylineNarration.Line line, CompanyOfficer.Line officer,
+                OperationRadio.Transmission radio, float dt) {
+        Object next = line != null ? line : radio != null ? radio : officer;
         if (next != current) {
             if (markup != null) markup.close();
             markup = null;
@@ -59,7 +65,8 @@ final class StorySubtitleOverlay {
                 markup = line != null
                         ? loader.reloadAndBuild(reactor, COMPONENT, props(line.text()))
                         : loader.reloadAndBuild(reactor, "company-subtitle",
-                                Map.of("speaker", "COMPANY COMMAND", "subtitle", officer.text()));
+                                Map.of("speaker", radio != null ? radio.speaker() : "COMPANY COMMAND",
+                                        "subtitle", radio != null ? radio.line().text() : officer.text()));
                 document = new UiDocument(markup.root());
                 for (var style : markup.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());

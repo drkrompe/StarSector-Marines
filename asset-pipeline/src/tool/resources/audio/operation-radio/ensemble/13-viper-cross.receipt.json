@@ -1,0 +1,11 @@
+{
+  "requestId": "ToAvN4khkd5Dv8kVvAU7",
+  "characterCost": "14",
+  "voiceId": "1I6DkREjhKUTww20MdUm",
+  "inputSha256": "7a5f565285ebb6fb6717f9e1adb90e8198bb0f73c1c4e1b51509d012321c24e4",
+  "audioSha256": "e6a6c706a18e4eab2483ccd35501303f6e029847ad19110662e29af0c549c44c",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[shouting] [urgent, strained voice] Kestrel, Viper! Two at a time through that bloody doorway. I've got the crossing. Move!"
+  }
+}

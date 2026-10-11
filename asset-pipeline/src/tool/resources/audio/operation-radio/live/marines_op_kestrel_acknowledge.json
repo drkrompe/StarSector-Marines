@@ -1,0 +1,11 @@
+{
+  "requestId": "Sl289kFfeuPTLmDVDsEb",
+  "characterCost": "7",
+  "inputSha256": "6ed31e96f0963fb557cf35ad47669d29c1135c85f9a7b67e50b360ea23b61c53",
+  "audioSha256": "cda340ab23de6c95f16428ae686ef697acacc1ff02a6e5a80c57f57cb4d2491e",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "modelId": "eleven_v4",
+  "durationSeconds": 2.16,
+  "outputFormat": "mp3_44100_128",
+  "take": 1
+}

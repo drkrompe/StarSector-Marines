@@ -1,0 +1,11 @@
+{
+  "requestId": "ectX838DAO5gPOXC4EDs",
+  "characterCost": "5",
+  "voiceId": "gpYq8Tu9Py4uI902kHOw",
+  "inputSha256": "00092c118897f1c58f6e3d21f00ad2def97b94a664caec37292fdbf6a1899de3",
+  "audioSha256": "5e0e70705964f111add0715a066052e2f0fb897d6470b15bdcac57785be90bb8",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[urgent, clipped voice] Kestrel, last man clear?"
+  }
+}
