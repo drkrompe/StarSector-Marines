@@ -580,7 +580,13 @@ public final class GroundRenderSystem implements RenderSystem {
             // hazard striping — which is a fact about the picture and not about
             // the floor. Checked before the kind, because that is what "instead
             // of" means.
-            GridBlockDef floorBlock = surface<=0 || tileReg==null ? null : tileReg.block(topology.surfaceId(surface));
+            CellTopology.WallRemnant remnant = topology.isRubble(x, y) ? topology.getWallRemnant(x, y) : null;
+            GridBlockDef rubble = remnant == null ? null
+                    : RubbleTiles.skin(tileReg, remnant, wallBlock == null ? null : wallBlock.id);
+            if (rubble == null || sheetFor(rubble.sheetPath) == null) remnant = null;
+            GridBlockDef floorBlock = remnant != null
+                    ? tileReg.block(remnant.groundSurfaceId())
+                    : surface<=0 || tileReg==null ? null : tileReg.block(topology.surfaceId(surface));
             if (floorBlock != null) {
                 groundBlock(floorBlock, sheetFor(floorBlock.sheetPath),
                         floorBlock.fillRgb == null ? null : new Color(floorBlock.fillRgb),
@@ -588,10 +594,16 @@ public final class GroundRenderSystem implements RenderSystem {
                 return;
             }
 
+            if (remnant != null) kind = remnant.groundKind();
+            // A wall carved into unclassified solid ground still reveals a real floor.
+            if (remnant != null && (kind == CellTopology.GroundKind.VOID || kind == CellTopology.GroundKind.RUBBLE))
+                kind = CellTopology.GroundKind.INDOOR;
             int ord = kind.ordinal();
             switch (kind) {
                 case STREET:
-                    if (urbanTile3 != null) {
+                    if (remnant != null && urbanTile3 != null) {
+                        urbanTile3Frame(tileReg.tile(streetTileId), sink);
+                    } else if (urbanTile3 != null) {
                         if (tileReg == null) break;
                         if (GroundTileSelector.isSidewalkCell(grid, topology, x, y)) {
                             urbanTile3Frame(tileReg.tile(GroundTileSelector.urban3TileId(
@@ -614,7 +626,9 @@ public final class GroundRenderSystem implements RenderSystem {
                     }
                     break;
                 case SIDEWALK:
-                    if (tileReg != null) urbanTile3Frame(tileReg.tile(GroundTileSelector.urban3TileId(
+                    if (remnant != null && tileReg != null) {
+                        urbanTile3Frame(tileReg.tile(TileManifest.pickStreet3SidewalkFrame(false, false, false, false)), sink);
+                    } else if (tileReg != null) urbanTile3Frame(tileReg.tile(GroundTileSelector.urban3TileId(
                             grid, topology, streetTileId, x, y)), sink);
                     break;
                 case GRASS:
@@ -821,7 +835,7 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     /**
-     * The nature overlay a cell carries over whatever tile it already drew.
+     * Nature scatter or collapsed-wall debris over the cell's base ground.
      *
      * <p>A function of the topology and nothing else — the index is stamped at
      * generation and every later change to it is recorded in the cell change log
@@ -838,6 +852,16 @@ public final class GroundRenderSystem implements RenderSystem {
         @Override
         public void resolve(int x, int y, GroundMesh.CellSink sink) {
             if (tileReg == null || topology.isWall(x, y)) return;
+            if (topology.isRubble(x, y)) {
+                CellTopology.WallRemnant remnant = topology.getWallRemnant(x, y);
+                GridBlockDef skin = RubbleTiles.skin(tileReg, remnant, surfaceBlockId(SurfaceRole.WALL));
+                SpriteAPI sheet = skin == null ? null : sheetFor(skin.sheetPath);
+                if (sheet != null) {
+                    int[] cell = RubbleTiles.cell(skin, remnant);
+                    emitCellPx(sheet, skin.cellPx, cell[0], cell[1], 0, sink);
+                    return;
+                }
+            }
             int index = topology.getNatureOverlayIndex(x, y);
             if (index < 0) return;
             natureTile(tileReg.byIndex(index), sink);

@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.List;
 
 /**
@@ -232,6 +235,21 @@ public class CellTopology {
      * same wall share one.
      */
     private final byte[] surface;
+    /** Appearance retained only for cells whose walls actually collapsed. */
+    public record WallRemnant(String materialId, GroundKind groundKind, String groundSurfaceId, int exposedFaces) {}
+    private final Map<Integer, WallRemnant> wallRemnants = new HashMap<>();
+
+    public WallRemnant getWallRemnant(int x, int y) {
+        return inBounds(x, y) ? wallRemnants.get(y * width + x) : null;
+    }
+
+    public void setWallRemnant(int x, int y, WallRemnant remnant) {
+        if (!inBounds(x, y)) return;
+        WallRemnant old = remnant == null ? wallRemnants.remove(y * width + x)
+                : wallRemnants.put(y * width + x, remnant);
+        if (!Objects.equals(old, remnant)) markChanged(y * width + x);
+    }
+
     /**
      * Block ids the {@link #surface} indices name, index zero unused.
      *
@@ -303,7 +321,7 @@ public class CellTopology {
      *
      * <p>What counts as a change is what a consumer could <em>draw</em>
      * differently: ground kind, wall tag, crosswalk tags, wall-direction mask,
-     * nature overlay, authored surface, and — because the relief composite's
+     * nature overlay, authored surface, wall remnant, and — because the relief composite's
      * height field is resident too — a caved-in roof and a wall aperture. Not
      * building ids or room purposes, which nothing paints from.
      */

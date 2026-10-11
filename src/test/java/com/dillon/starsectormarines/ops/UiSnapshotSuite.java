@@ -768,10 +768,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            BufferedImage overlay = renderer.render(document, 640, 116);
+            UiViewport viewport = StorySubtitleOverlay.viewport(
+                    new UiViewport(0, 0, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT));
+            BufferedImage overlay = renderer.render(document,
+                    Math.round(viewport.documentWidth()), Math.round(viewport.documentHeight()));
             Graphics2D graphics = image.createGraphics();
-            graphics.drawImage(overlay, (FULL_SCREEN_WIDTH - 640) / 2,
-                    FULL_SCREEN_HEIGHT - 180 - 116, null);
+            graphics.drawImage(overlay, Math.round(viewport.screenX()),
+                    Math.round(FULL_SCREEN_HEIGHT - viewport.screenY() - viewport.height()), null);
             graphics.dispose();
             return image;
         }
@@ -2738,6 +2741,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("squadGalleryCards", viewModel.squadGalleryCards());
         props.put("organization", viewModel.organization());
         props.put("foundingCargoRows", viewModel.foundingCargoRows());
+        props.put("cargoStockRows", viewModel.cargoStockRows());
         props.put("foundingDisabled", viewModel.foundingDisabled());
         props.put("foundingFeedbackText", viewModel.foundingFeedbackText());
         props.put("foundingFeedbackClasses", viewModel.foundingFeedbackClasses());
@@ -2832,6 +2836,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
         props.put("deckSummary", viewModel.deckSummary());
+        props.put("materialStock", viewModel.materialStock());
         props.put("boatRows", viewModel.boatRows());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());

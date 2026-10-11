@@ -8,6 +8,7 @@
         0,
         0
       ],
+      "rubbleBlock": "colony.masonry-rubble",
       "windowBlock": "colony.masonry-window"
     },
     {
@@ -18,6 +19,7 @@
         4,
         0
       ],
+      "rubbleBlock": "colony.ceramic-rubble",
       "windowBlock": "colony.ceramic-window"
     },
     {
@@ -28,6 +30,7 @@
         8,
         0
       ],
+      "rubbleBlock": "colony.olive-rubble",
       "windowBlock": "colony.olive-window"
     }
   ],

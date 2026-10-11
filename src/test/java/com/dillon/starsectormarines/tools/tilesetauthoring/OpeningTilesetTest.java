@@ -39,6 +39,7 @@ class OpeningTilesetTest {
         var block = registry.block(spec.id);
         assertEquals(spec.windowBlockId, block.windowBlockId);
         assertEquals(spec.doorBlockId, block.doorBlockId);
+        assertEquals(spec.rubbleBlockId, block.rubbleBlockId);
         assertThrows(IllegalStateException.class, registry::validateReferences,
                 "a missing paired opening must fail catalog validation");
     }
