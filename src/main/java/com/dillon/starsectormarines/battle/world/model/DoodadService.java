@@ -21,14 +21,14 @@ import java.util.List;
  * publish directional edge cover onto adjacent standable cells. This keeps a
  * fixture from rolling both crossing and edge interception for the same shot.
  * Physical-cover storage is allocated lazily on the first covered addition.
- * Physical cover arrays are append-only. Cell-blocking fences instead publish
+ * Physical cover arrays are append-only. Destructible cell-blocking props instead publish
  * into grid facings; a breach rebakes those facings and restores surviving neighbors.
  */
 public final class DoodadService {
 
     private final NavigationGrid grid;
     private final List<Doodad> doodads = new ArrayList<>();
-    private final FenceDamage fences;
+    private final CoverPropDamage destructibleCover;
 
     /**
      * Per-cell, per-facing cover for doodads and walkable nature overlays.
@@ -75,7 +75,7 @@ public final class DoodadService {
 
     public DoodadService(NavigationGrid grid) {
         this.grid = grid;
-        this.fences = new FenceDamage(grid, doodads);
+        this.destructibleCover = new CoverPropDamage(grid, doodads);
     }
 
     public List<Doodad> getDoodads() { return doodads; }
@@ -87,7 +87,7 @@ public final class DoodadService {
      * grid facings instead.
      */
     public void addDoodad(Doodad d) {
-        fences.register(doodads.size(), d, TileRegistry.installed());
+        destructibleCover.register(doodads.size(), d, TileRegistry.installed());
         doodads.add(d);
         if (d.cover <= 0) return;
         ensureCoverStorage();
@@ -105,8 +105,8 @@ public final class DoodadService {
         }
     }
 
-    public FenceDamage.Result damageFence(int x, int y, int amount) {
-        return fences.damage(x, y, amount);
+    public CoverPropDamage.Result damageCoverProp(int x, int y, int amount) {
+        return destructibleCover.damage(x, y, amount);
     }
 
     /** Restore surviving prop/nature contributions after the grid rebakes a breached cell's neighbors. */
