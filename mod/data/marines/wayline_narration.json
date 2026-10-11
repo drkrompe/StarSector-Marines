@@ -805,6 +805,153 @@
       "priority": 50,
       "expiresSeconds": 45,
       "supersedes": []
+    },
+    {
+      "id": "marines_mara_hound_found",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.hound_found",
+      "text": "That's Wayward in the maintenance berth. Keep a team beside her and clear the raiders away. Five quiet seconds should get her moving.",
+      "synthesisText": "[focused] That's Wayward in the maintenance berth. Keep a team beside her and clear the raiders away. Five quiet seconds should get her moving.",
+      "durationSeconds": 7.6,
+      "priority": 30,
+      "expiresSeconds": 25,
+      "supersedes": [],
+      "speaker": "MARA VENN / WAYLINE",
+      "portrait": "graphics/portraits/mara-venn.png"
+    },
+    {
+      "id": "marines_castle_hound_ready",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.hound_ready",
+      "text": "Captain, Castle. Wayward's chaingun is live. You can take the command link yourself, or leave her with the crew. Keep the infantry close.",
+      "synthesisText": "[reassuring] Captain, Castle. Wayward's chaingun is live. You can take the command link yourself, or leave her with the crew. Keep the infantry close.",
+      "durationSeconds": 8.4,
+      "priority": 30,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "opening.counterattack.hound_found"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
+      "id": "marines_castle_hound_control",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.hound_control",
+      "text": "You're on Wayward's link, Captain. Keep the gun on their cover. I'll mind the company net; hand back whenever you're ready.",
+      "synthesisText": "[focused] You're on Wayward's link, Captain. Keep the gun on their cover. I'll mind the company net; hand back whenever you're ready.",
+      "durationSeconds": 6.56,
+      "priority": 30,
+      "expiresSeconds": 12,
+      "supersedes": [
+        "opening.counterattack.hound_ready"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
+      "id": "marines_castle_hound_return",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.hound_return",
+      "text": "Crew has Wayward again. You're back on the company net, Captain.",
+      "synthesisText": "[warm] Crew has Wayward again. You're back on the company net, Captain.",
+      "durationSeconds": 4.08,
+      "priority": 30,
+      "expiresSeconds": 12,
+      "supersedes": [
+        "opening.counterattack.hound_control"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
+      "id": "marines_castle_hound_disabled",
+      "missionId": "story_opening_counterattack",
+      "event": "opening.counterattack.hound_disabled",
+      "text": "Wayward's down. Keep the company moving. Secure the depot and I'll arrange recovery with Venn. We can mend a chassis.",
+      "synthesisText": "[firm] Wayward's down. Keep the company moving. Secure the depot and I'll arrange recovery with Venn. We can mend a chassis.",
+      "durationSeconds": 6.72,
+      "priority": 30,
+      "expiresSeconds": 25,
+      "supersedes": [
+        "opening.counterattack.hound_found",
+        "opening.counterattack.hound_ready",
+        "opening.counterattack.hound_control",
+        "opening.counterattack.hound_return"
+      ],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
+      "id": "marines_castle_salvage_request",
+      "missionId": "story_opening_counterattack",
+      "event": "debrief.hound.request",
+      "text": "Mara, one item before you close the docket. Wayward is still listed as scrap on your manifest. We'd like the chassis and its fitted chaingun.",
+      "synthesisText": "[businesslike] Mara, one item before you close the docket. Wayward is still listed as scrap on your manifest. We'd like the chassis and its fitted chaingun.",
+      "durationSeconds": 8.48,
+      "priority": 30,
+      "expiresSeconds": 120,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
+      "id": "marines_mara_salvage_terms",
+      "missionId": "story_opening_counterattack",
+      "event": "debrief.hound.terms",
+      "text": "That scrap used to guard my drivers, Castle. If I sign her over, your company takes on the maintenance. I'm trying to run a freight cooperative.",
+      "synthesisText": "[dryly amused] That scrap used to guard my drivers, Castle. If I sign her over, your company takes on the maintenance. I'm trying to run a freight cooperative.",
+      "durationSeconds": 9.28,
+      "priority": 30,
+      "expiresSeconds": 120,
+      "supersedes": [],
+      "speaker": "MARA VENN / WAYLINE",
+      "portrait": "graphics/portraits/mara-venn.png"
+    },
+    {
+      "id": "marines_castle_salvage_accept",
+      "missionId": "story_opening_counterattack",
+      "event": "debrief.hound.accept",
+      "text": "Fair. Wayline covers recovery and this repair; we take her upkeep from handover. Put that beside the contract fee, and I'll sign.",
+      "synthesisText": "[confident] Fair. Wayline covers recovery and this repair; we take her upkeep from handover. Put that beside the contract fee, and I'll sign.",
+      "durationSeconds": 8.24,
+      "priority": 30,
+      "expiresSeconds": 120,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0"
+    },
+    {
+      "id": "marines_mara_salvage_transfer",
+      "missionId": "story_opening_counterattack",
+      "event": "debrief.hound.transfer",
+      "text": "Agreed. Wayward is repaired and signed over, chaingun included. No missiles in those mounts. We'll provide heavy lift on the supply-route jobs. Give her a good home, Captain.",
+      "synthesisText": "[warm] Agreed. Wayward is repaired and signed over, chaingun included. No missiles in those mounts. We'll provide heavy lift on the supply-route jobs. Give her a good home, Captain.",
+      "durationSeconds": 12.24,
+      "priority": 30,
+      "expiresSeconds": 120,
+      "supersedes": [],
+      "speaker": "MARA VENN / WAYLINE",
+      "portrait": "graphics/portraits/mara-venn.png"
+    },
+    {
+      "id": "marines_mara_salvage_repaired",
+      "missionId": "story_opening_counterattack",
+      "event": "debrief.hound.repaired",
+      "text": "Agreed. We've recovered Wayward's wreck and repaired the chassis. She's yours, chaingun included. No missiles in those mounts. We'll provide heavy lift on the supply-route jobs. Give her a good home, Captain.",
+      "synthesisText": "[warm] Agreed. We've recovered Wayward's wreck and repaired the chassis. She's yours, chaingun included. No missiles in those mounts. We'll provide heavy lift on the supply-route jobs. Give her a good home, Captain.",
+      "durationSeconds": 13.92,
+      "priority": 30,
+      "expiresSeconds": 120,
+      "supersedes": [],
+      "speaker": "MARA VENN / WAYLINE",
+      "portrait": "graphics/portraits/mara-venn.png"
     }
   ]
 }

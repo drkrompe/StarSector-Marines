@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
@@ -40,6 +42,38 @@ public final class DoodadRenderSystem implements RenderSystem {
         collectPlacements(ctx.sim.getDoodads(), out, cam, view, ctx.alphaMult);
     }
 
+    /**
+     * Finish the fog layer with observed solid prop surfaces. This paints only the
+     * sprite's alpha, never its rectangular ground footprint, and changes no
+     * reveal cells. Ground and enemies behind the prop stay hidden.
+     * Flat debris keeps the ordinary ground-fog treatment.
+     */
+    void collectVisibleSurfaces(RenderContext ctx, DrawList out) {
+        FogOfWarService fog = ctx.sim.getFogOfWar();
+        if (!fog.isInitialized()) return;
+        NavigationGrid grid = ctx.sim.getGrid();
+        BattleCamera cam = ctx.camera;
+        VisibleCellRect view = cam.visibleCells(VisibleCellRect.GEOMETRY_MARGIN_CELLS,
+                grid.getWidth(), grid.getHeight());
+        for (Doodad d : ctx.sim.getDoodads()) {
+            if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)
+                    || !hasObservedSurface(d, grid, fog)) continue;
+            SpriteAPI sheet = sheetFor(d);
+            if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), ctx.alphaMult, RenderLayer.FOG);
+        }
+    }
+
+    static boolean hasObservedSurface(Doodad d, NavigationGrid grid, FogOfWarService fog) {
+        if (!d.hasFogSurface()) return false;
+        for (int y = 0; y < d.footprintCellsY; y++) for (int x = 0; x < d.footprintCellsX; x++) {
+            if (!d.hasFogSurfaceAt(x, y)) continue;
+            int gx = d.cellX + x, gy = d.cellY + y;
+            if (grid.inBounds(gx, gy) && grid.blocksStructuralLineOfSightAt(grid.index(gx, gy))
+                    && fog.isCellRevealed(gx, gy)) return true;
+        }
+        return false;
+    }
+
     void collectPlacements(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
                            VisibleCellRect view, float alphaMult) {
         boolean additionalSheet = false;
@@ -56,13 +90,7 @@ public final class DoodadRenderSystem implements RenderSystem {
         }
         for (Doodad d : placements) {
             if (!view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY)) continue;
-            SpriteAPI sheet = switch (d.sheetPath) {
-                case TileManifest.SHEET -> sprites.tileSheet();
-                case TileManifest.ROAD_SHEET -> sprites.roadSheet();
-                case TileManifest.DOODAD_SHEET -> sprites.doodadSheet();
-                case TileManifest.PARKED_VEHICLE_SHEET -> sprites.parkedVehicleSheet();
-                default -> sprites.extraTerrainSheet(d.sheetPath);
-            };
+            SpriteAPI sheet = sheetFor(d);
             if (sheet != null) emit(out, cam, sheet, d, cam.cellPxSize(), alphaMult);
         }
     }
@@ -70,6 +98,16 @@ public final class DoodadRenderSystem implements RenderSystem {
     private static boolean isLegacySheet(String path) {
         return path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                 || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET);
+    }
+
+    private SpriteAPI sheetFor(Doodad d) {
+        return switch (d.sheetPath) {
+            case TileManifest.SHEET -> sprites.tileSheet();
+            case TileManifest.ROAD_SHEET -> sprites.roadSheet();
+            case TileManifest.DOODAD_SHEET -> sprites.doodadSheet();
+            case TileManifest.PARKED_VEHICLE_SHEET -> sprites.parkedVehicleSheet();
+            default -> sprites.extraTerrainSheet(d.sheetPath);
+        };
     }
 
     private static void emitLegacySheet(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
@@ -84,6 +122,11 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
                              Doodad d, float cellPx, float alphaMult) {
+        emit(out, cam, sheet, d, cellPx, alphaMult, RenderLayer.DOODADS);
+    }
+
+    private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
+                             Doodad d, float cellPx, float alphaMult, RenderLayer layer) {
         // Source rectangle is read at the sheet's own cell size, not the
         // game's. A sheet drawn finer than the grid keeps its detail; one drawn
         // at the grid behaves exactly as before. The quad then stretches that
@@ -103,14 +146,14 @@ public final class DoodadRenderSystem implements RenderSystem {
             // A vertical flip through a half turn is a horizontal mirror, which
             // is what a prop drawn from one side needs to face the other way.
             // Rotating it instead lights it from underneath.
-            out.addSheetQuadFlippedV(RenderLayer.DOODADS, sheet,
+            out.addSheetQuadFlippedV(layer, sheet,
                     srcX, srcY, sourceWidth, sourceHeight,
                     cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                     d.quarterTurns * 90f + 180f,
                     1f, 1f, 1f, alphaMult);
             return;
         }
-        out.addSheetQuad(RenderLayer.DOODADS, sheet,
+        out.addSheetQuad(layer, sheet,
                 srcX, srcY, sourceWidth, sourceHeight,
                 cx, cy, cellPx * d.sourceCellsX, cellPx * d.sourceCellsY,
                 d.quarterTurns * 90f,

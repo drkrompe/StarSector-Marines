@@ -50,6 +50,10 @@ abstract class MissionFlowMlxScreen implements Screen {
     protected void onAttach() {
     }
 
+    protected void onAdvance(float dt) { }
+
+    protected void onDetach() { }
+
     protected abstract Map<String, Object> props();
 
     protected abstract List<String> requiredElementIds();
@@ -112,6 +116,7 @@ abstract class MissionFlowMlxScreen implements Screen {
 
     @Override
     public final void advance(float dt) {
+        onAdvance(dt);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }
@@ -132,6 +137,7 @@ abstract class MissionFlowMlxScreen implements Screen {
 
     @Override
     public final void detach() {
+        onDetach();
         if (document != null) document.deactivateInput();
         if (specSheets != null) specSheets.clear();
         input = null;
