@@ -4,10 +4,9 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-09-03 — an open compound's capture zone is the outdoors, so
-"already at the objective" is now a distance and not a shared room, and such a
-compound is never a distant target. Measured at exactly baseline on both
-fixtures, having deleted a walk that never arrived.
+Updated: 2026-10-11 — the force is spread across the three tracks, the zone cap
+and transit spacing are on by default, and the clumps were found on the approach
+rather than at the door. Marine losses on the west doubled for the same ground.
 
 Earlier 2026-09-02 — the lane chain is **on by default**. What was costing it
 a held compound was neither the front gate nor the shape of the lanes but a map
@@ -247,36 +246,69 @@ A squad refused by the bound and left with nothing else publishes its own
 assignment reason, because a far-track refusal and an empty map are otherwise
 the same sentence.
 
-**Dividing the front push across a strip's zones was built, measured, and is
-off.** `battle.conquest.zoneTargetCap=true`. The zone picker ranks every squad
-onto the nearest believed-defender zone and consults nothing about who is
-already going there, so a force larger than the front's five to nine useful
-slots queues in depth behind one target — 70% of the live force averaged over
-every command pulse on `full-strength-west`, and 91% at the pulses where it is
-worst. The cap gives each zone its own capture quota plus a stated overflow and
-sends the surplus to the next zone up the strip, falling back to the least
-crowded zone when the whole strip is full.
+**The force is divided across tracks first, then across a strip's zones, and
+then spaced on the way.** All three are on by default, each with a switch that
+restores the control: `battle.command.conquest.balancedHomeTracks=false`,
+`battle.conquest.zoneTargetCap=false` and `battle.squad.transitSpacing=false`.
 
-**It divides the force and loses the ground.** Averaged over every pulse the
-concentration falls from 70% to 43% on the west and 72% to 43% on the south, and
-marines actually standing inside a *walled* compound's capture zone at three
-thousand ticks rise from one to eight on the west. At full length that buys
-nothing and costs two held compounds: 8 captures and 5 held against 11 and 7 on
-`full-strength-west`, and 21 and 19 against 22 and 19 on `reinforced-south`.
-**Concentration was the wrong thing to measure.** A crowd on one zone is what a
-front that has run out of places to be looks like; spreading it puts squads onto
-zones that were not worth taking, and the west's real constraint is upstream —
-`STRIP_COUNT` is three and `stripFor` reads the landing lateral, so effectively
-the whole force prefers one track and the strip it is capped within has three
-zones in it.
+A squad's home track used to be the one it stood in when first seen, and the
+whole force lands in one place. On `full-strength-west` the three tracks held 0,
+30 and 0 home squads, so two thirds of the front had nobody whose business it
+was, and the neighbour-support rule then moved the entire force as one body to
+whichever track had a target: 27 of 30 squads on a single zone while the track
+they were homed on, with twenty-one known contacts, was answered by one squad.
+A new squad now takes the least-loaded track, its natural one winning a tie, so a
+landing that is already spread keeps its lanes. The count is rebuilt from live
+squads each pulse, and the choice is made once per squad.
 
-What the attempt did establish is that **a capped rule owes stickiness**. Its
-answer depends on who chose first, so a squad third in the queue one pulse and
-fourth in the next was retargeted for a reason that exists nowhere on the map —
-measured at triple the retargets on both fixtures. A squad already clearing a
-zone now keeps it while it is still worth clearing, and standing squads are
-counted before anybody fresh chooses; retargets came back to at or below the
-control. Any future division of the front push inherits that obligation.
+**The zone cap alone was the wrong lever, and it is the right one on top of
+that.** The zone picker ranks every squad onto the nearest believed-defender
+zone and consults nothing about who is already going there. The cap gives each
+zone its own capture quota plus a stated overflow and sends the surplus to the
+next zone up the strip, falling back to the least crowded when the strip is
+full. Measured by itself it divided the force and lost the ground — 8 captures
+and 5 held against 11 and 7 on `full-strength-west` — because the strip it is
+capped within held three zones for a force that all preferred one track.
+**Concentration on a zone was the wrong thing to measure on its own:** a crowd
+on one zone is also what a front that has run out of places to be looks like.
+With the home tracks balanced the strips hold forces worth dividing, and the
+three together hold the ground (below).
+
+**A capped rule owes stickiness.** Its answer depends on who chose first, so a
+squad third in the queue one pulse and fourth in the next was retargeted for a
+reason that exists nowhere on the map — measured at triple the retargets on both
+fixtures. A squad already clearing a zone keeps it while it is still worth
+clearing, and standing squads are counted before anybody fresh chooses. Any
+future division of the front push inherits that obligation.
+
+**Where the clumps form, and the spacing that answers it.** Squads that stood
+within six cells of another were mostly mid-walk: on `full-strength-west`, about
+three quarters of the clumped marine squad-samples were `EnterZone` more than
+eighteen cells from their room. A queue at the door was therefore built, measured
+and found never to fire. `TransitSpacing` instead holds a squad that has another
+transiting squad strictly ahead of it on the same approach within nine cells. It
+never applies to a squad in contact, none waits more than thirty seconds on one
+hop, and only a squad strictly ahead can hold another, so two squads cannot hold
+each other. Its answer is cached on the squad for a second, so the cost is one
+pass over the squad list per squad per second rather than a per-tick scan. A
+per-squad choice of door (`battle.squad.apertureSpread`) and of the cell to clear
+toward in a room (`battle.squad.roomCellSpread`) were also built and measured;
+neither added anything once the approach was spaced and both stay off.
+
+Measured at full length, marines on `full-strength-west`: squads standing within
+six cells of another 43% on average, 75% at worst, falling to 16% and 52%; the
+densest 8x8 block 30 bodies on average, 62 at worst, falling to 14 and 28; squads
+sharing one target 19 on average, 29 at worst, falling to 6 and 17. On
+`reinforced-south` the peaks fall (densest block 40 to 23, squads on one target
+14 to 9). Captures and compounds held are unchanged on the west (10 and 6) and
+one lower on the south (24 and 20 against 22 and 19), where marine losses fell
+from 199 to 124. **Marine losses on `full-strength-west` doubled, 211 to 433,
+for the same captures and about the same defender losses, and that was accepted:**
+the aim is a battle that reads as three fronts rather than one ball, and a win
+rate is not the measure. The cause has not been isolated; the likely suspects are
+thinner groups in the outer lanes and the longer crossing to reach them.
+`SquadDensityProbe` in `commanderEvidence` reports these readings per fixture as
+`density-<fixture>.md`.
 
 **Standing in the open is not standing in the compound.** A squad that has
 physically reached an objective commits to it before any distant allocation

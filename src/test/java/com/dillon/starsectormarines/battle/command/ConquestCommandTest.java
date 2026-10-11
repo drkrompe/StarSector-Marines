@@ -48,6 +48,25 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 public class ConquestCommandTest {
 
+    private boolean restoreBalancedTracks;
+
+    /**
+     * These fixtures place a few squads by hand and ask what the allocation
+     * rules do with them, so each squad keeps the track it stands in. Balanced
+     * home tracks would re-home them to spread the force, which is its own
+     * rule and has its own test.
+     */
+    @BeforeEach
+    void naturalHomeTracks() {
+        restoreBalancedTracks = ConquestCommand.BALANCED_HOME_TRACKS_ENABLED;
+        ConquestCommand.BALANCED_HOME_TRACKS_ENABLED = false;
+    }
+
+    @AfterEach
+    void balancedHomeTracksBack() {
+        ConquestCommand.BALANCED_HOME_TRACKS_ENABLED = restoreBalancedTracks;
+    }
+
     /** 30×10 — wide enough that 3 lateral strips have meaningful distinct ranges (10 cells each), short enough that "forward" is short for SOUTH_TO_NORTH. */
     private static final int W = 30;
     private static final int H = 10;

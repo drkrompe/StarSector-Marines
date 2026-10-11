@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 - command-ship officer coordinates deployed units over the radio net.
+Updated: 2026-10-11 - addressed operational exchanges and role casting are in authoring audition; runtime retains its current cue policy.
 
 Read `stories.md` for the open-work board.
 
@@ -139,10 +139,13 @@ warnings concern a confirmed incident among those units, without implying the
 player chose to cause it. Direct control can place the player behind a unit's
 actions, but does not change who a generic net-wide warning addresses.
 
-Write each line with a clear speaker and recipient. Use ground-team or company
-address for shared command recordings; specific callsigns, directions and
-requests for support require facts supplied by their trigger. A recorded order
-is radio presentation, not evidence that an AI action has been issued or obeyed.
+Write each line with a clear speaker and recipient. Prefer an actual squad,
+aircraft or individual identity over collective addresses such as "all" or
+"ground teams". Specific callsigns, destinations and requests for support require
+facts supplied by their trigger. The existing generic command bank remains in
+runtime until addressed replacements are approved and connected to those facts.
+A recorded order is radio presentation, not evidence that an AI action has been
+issued or obeyed.
 
 Command answers contact, fallback, check-fire, visible-mech and confirmed-kill
 reports admitted by the squad policy. It does not observe hidden simulation
@@ -168,3 +171,45 @@ cache key. Changing it rebuilds treated clips without regenerating speech or
 invalidating unrelated clean audio. Runtime playback needs no provider account,
 API access or DSP dependency. Transmit clicks or interference, if introduced,
 are separate channel effects rather than instructions in synthesis text.
+
+## Operational exchanges (authoring direction)
+
+Operation chatter makes deployed units and shipboard command legible as people
+coordinating an ongoing battle. It is optional to follow; objectives and critical
+state must remain understandable without listening. Quiet intervals are part
+of the mix, not empty slots to fill. Audition reels compress events for review
+and do not prescribe the in-game speaking rate.
+
+An **exchange** binds a speaker, an addressed recipient and a current operational
+fact across several turns. A new assignment can use callout, acknowledgement,
+instruction and readback; follow-up reports can use fewer turns. The instruction
+waits for the acknowledgement's audio to finish, but the simulation never waits
+for dialogue. Assignment traffic requires an accepted own-force directive;
+routine renewals of the same task must not repeat the conversation. Arrival,
+engagement, capture and hold are different facts, not interchangeable reports.
+
+Names belong to stable unit identities. Retain the same leader's voice for that
+unit, choose delivery to match observed pressure, and never randomly recast it
+between lines. Infantry leaders can project through exertion; a transport pilot
+has a cockpit delivery; shipboard command remains measured. The approved
+company officer and Kestrel combat delivery anchor the current auditions.
+Additional infantry and transport voices remain casting samples. The existing
+infantry speaker eligibility rule is unchanged; an aircraft role needs its own
+eligible physical aircraft and delivery evidence before it can enter playback.
+
+Calls and replies must share a valid context. Cancel unspoken turns when a unit
+is lost, an assignment changes, or a later fact makes the exchange obsolete.
+Only public or own-force facts may supply nouns; dialogue must not reveal hidden
+enemy state. A recorded covering maneuver or successful landing needs evidence
+of that action, not merely a plausible battlefield setting. Forced alignment
+and edits at phrase boundaries can assemble recorded callsigns and destinations;
+unsupported names need a truthful nameless variant or silence, never a wrong
+unit's call sign. No synthesis API is part of runtime.
+
+Future mixing may allow a quiet secondary monitored net behind one foreground
+exchange, with ducking around identities, instructions and urgent warnings.
+Foreground turn order remains protected, and one character cannot transmit
+twice at once. Mara's mission sentences retain their existing priority and
+completion guarantee. The current single-channel runtime does not yet implement
+these exchanges or secondary-net overlap; the retained authoring auditions are
+for casting, delivery and mix acceptance.

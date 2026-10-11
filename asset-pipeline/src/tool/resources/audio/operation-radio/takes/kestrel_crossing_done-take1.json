@@ -1,0 +1,15 @@
+{
+  "requestId": "urJhngCWsa2g27U7sT0y",
+  "characterCost": "7",
+  "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "5f6360068fd93c7ea1193f72264a226dea4657d46eb758a6fb5cde8fc96610ed",
+  "audioSha256": "eb23e730a2bf31c23f0af5621d0f4b76fca016188508b5b70844cce584d4dbee",
+  "durationSeconds": 2.48,
+  "payload": {
+    "text": "[breathless, relieved voice] We're through! Much appreciated!",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}
