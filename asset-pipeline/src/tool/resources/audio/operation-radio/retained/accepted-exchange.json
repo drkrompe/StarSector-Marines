@@ -1,0 +1,61 @@
+{
+  "modelId": "eleven_v4",
+  "officerVoiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "squadVoiceId": "TX3LPaxmHKxFdv7VOQHJ",
+  "commsFilter": "highpass=f=280:p=2,lowpass=f=3600:p=2,acompressor=threshold=0.125:ratio=3:attack=5:release=90:makeup=1.5,asoftclip=type=tanh:threshold=0.65:oversample=2,volume=2.5,alimiter=limit=0.89:level=false:latency=true",
+  "calloutSource": "Earlier approved callsign splice: Kestrel Two donor plus shared company officer sentence body, cut after Command.",
+  "calloutSourceEnd": 1.8750226757369617,
+  "turns": [
+    {
+      "speaker": "Company Officer",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "text": "Kestrel Two. This is Command.",
+      "file": "01-callout-comms.wav",
+      "startSeconds": 0.0,
+      "endSeconds": 1.875,
+      "gapAfterSeconds": 0.38,
+      "rmsDbFS": -18.73,
+      "peakDbFS": -4.08
+    },
+    {
+      "speaker": "Kestrel Two",
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "text": "Command! Kestrel Two, go ahead!",
+      "file": "02-acknowledgement-comms.wav",
+      "startSeconds": 2.255,
+      "endSeconds": 5.055,
+      "gapAfterSeconds": 0.3,
+      "rmsDbFS": -19.91,
+      "peakDbFS": -3.31
+    },
+    {
+      "speaker": "Company Officer",
+      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+      "text": "Fall back to the junction. Keep your people together.",
+      "file": "03-instruction-comms.wav",
+      "startSeconds": 5.355,
+      "endSeconds": 8.2,
+      "gapAfterSeconds": 0.4,
+      "rmsDbFS": -18.07,
+      "peakDbFS": -2.42
+    },
+    {
+      "speaker": "Kestrel Two",
+      "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+      "text": "Understood! Falling back!",
+      "file": "04-reply-comms.wav",
+      "startSeconds": 8.6,
+      "endSeconds": 10.76,
+      "gapAfterSeconds": 0.25,
+      "rmsDbFS": -20.18,
+      "peakDbFS": -4.43
+    }
+  ],
+  "acceptance": "User accepted the under-fire Kestrel exchange; older calm squad delivery rejected. Retained 2026-10-11.",
+  "cleanSourceHashes": {
+    "retained/01-callout-clean.wav": "cbf6b3e612782041a19a19f49a2c91f41ac11a1bf28980f1bfa073c09d071c1b",
+    "retained/02-acknowledgement-clean.wav": "85537d98891b929c0299d2c8b2e4127a95e572738c84163c3479288c454d4ee3",
+    "retained/03-instruction-clean.wav": "d85d457ae3138c355798a9554feab41ff76e3fc11e30a8e06d9ffae1e836b360",
+    "retained/04-reply-clean.wav": "64105d752f185937e84f6432313d3bdd2b483722be8140d3aa16653093098cc4"
+  }
+}

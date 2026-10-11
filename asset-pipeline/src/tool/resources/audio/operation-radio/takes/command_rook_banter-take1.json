@@ -1,0 +1,15 @@
+{
+  "requestId": "2PfLURXuy1tiakxjXD0b",
+  "characterCost": "4",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "4daeb15b5f35e7674b02c45759a6bcdf047825cd8e4378447c3db3838cda5b0e",
+  "audioSha256": "9a179b175d85f2bd3fc2bd00b9c1c4f94f206b5e20c55fed8c04f039bb20b5f1",
+  "durationSeconds": 1.76,
+  "payload": {
+    "text": "[warm, brisk voice] No promises, Rook.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

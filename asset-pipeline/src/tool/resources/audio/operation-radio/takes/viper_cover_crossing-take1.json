@@ -1,0 +1,15 @@
+{
+  "requestId": "X0d6nm1Of54Sb5W5DR4B",
+  "characterCost": "10",
+  "voiceId": "EXAVITQu4vr4xnSDxMaL",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "b267ba695f0c67dc82ebef61b3263cb3e15af365df549758260745a44a931349",
+  "audioSha256": "f44df10adb6cc4b5fed3cf69ca32439323e6ca63c740056b48e25f351edd1d34",
+  "durationSeconds": 4.56,
+  "payload": {
+    "text": "[shouting] [strained voice] Kestrel Two, Viper One! We're set. Bring your people across!",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": "1wQ4KRTq1115NrRnNIhM",
+  "characterCost": "6",
+  "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "1c50b029369359ff53342fa220d1b98b2a173f749e9c5b331746a1c9d6d7b530",
+  "audioSha256": "bea408da69633b68c58b8c51dcd647d7699055aa050c22c288a1d6041de02d6f",
+  "durationSeconds": 2.48,
+  "payload": {
+    "text": "[warm, firm voice] Good work, Kestrel. Hold there.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}

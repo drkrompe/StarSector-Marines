@@ -1,0 +1,15 @@
+{
+  "requestId": "VpMzdL3DigK7w6X86gJ9",
+  "characterCost": "8",
+  "voiceId": "IKne3meq5aSn9XLyUdCD",
+  "modelId": "eleven_v4",
+  "take": 1,
+  "inputSha256": "28ac4a62ddf73b86c4563fde94953bfb532c40f66c94ea68bbe39a6f5c338764",
+  "audioSha256": "0195aa552a6410e1443a9ed9080917319d44df2597fc4c0ea1117639ce1829fb",
+  "durationSeconds": 3.68,
+  "payload": {
+    "text": "[wry, conversational voice] On my way. Try to leave me a parking space.",
+    "model_id": "eleven_v4"
+  },
+  "outputFormat": "mp3_44100_128"
+}
