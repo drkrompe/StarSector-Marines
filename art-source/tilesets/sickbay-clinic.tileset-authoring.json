@@ -1,0 +1,173 @@
+{
+  "sheetName": "sickbay-clinic",
+  "sheet": "art-source/tilesets/sickbay-clinic.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "sickbay-clinic",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/sickbay-clinic.png",
+  "note": "Geometry-first ImageGen medical kit. Measured full canvases retain transparent linen registration and screen side voids; see sickbay-clinic.README.md.",
+  "entries": [
+    {
+      "id": "sickbay-clinic.bed",
+      "rect": [
+        164,
+        8,
+        152,
+        292
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.linen-high",
+      "rect": [
+        958,
+        36,
+        240,
+        374
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.linen-low",
+      "rect": [
+        430,
+        256,
+        240,
+        374
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.monitor",
+      "rect": [
+        741,
+        428,
+        134,
+        140
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.station",
+      "rect": [
+        166,
+        622,
+        310,
+        156
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.cabinet",
+      "rect": [
+        741,
+        622,
+        344,
+        156
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.sink",
+      "rect": [
+        168,
+        838,
+        140,
+        140
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.5,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.trolley",
+      "rect": [
+        746,
+        832,
+        181,
+        150
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.exam",
+      "rect": [
+        160,
+        1036,
+        354,
+        166
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "included": true
+    },
+    {
+      "id": "sickbay-clinic.screen",
+      "rect": [
+        738,
+        1014,
+        126,
+        210
+      ],
+      "footprintCells": [
+        1,
+        2
+      ],
+      "cover": "light",
+      "ballisticHalfHeight": 0.8,
+      "included": true
+    }
+  ]
+}
