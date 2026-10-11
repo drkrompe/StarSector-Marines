@@ -2284,6 +2284,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BufferedImage heavy = renderMechLab(context, renderer, 1920, 1080, 1f,
                 false, false, false, false, bulwark);
         return List.of(
+                new SnapshotArtifact("castle-lab-workspace.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-5")),
                 new SnapshotArtifact("castle-lab-introduction.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-1")),
                 new SnapshotArtifact("castle-lab-fit.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-2")),
                 new SnapshotArtifact("castle-lab-swap.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "lesson-3")),
@@ -2372,6 +2373,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 viewModel.dropCatalogWeapon(MechWeaponComponent.SRM_5, SocketId.LEFT_SHOULDER);
             }
         }
+        if ("lesson-5".equals(materialHint)) viewModel.dismissLabPrompt();
         if (selectHound) {
             viewModel.mechRows().get().stream()
                     .filter(row -> row.name().startsWith("Hound"))
@@ -2410,6 +2412,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (MarkupInstance instance = loader.build(
                 reactor, "mech-lab", props(viewModel, ship))) {
             UiDocument document = new UiDocument(instance.root());
+            TutorialModal.bind(document, instance, viewModel::labGuideVisible,
+                    "castle-lab-lesson", "mech-lab-root", viewModel::dismissLabPrompt, () -> { });
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             MechLabDollCanvas fittingCanvas = new MechLabDollCanvas(viewModel::gantryDeployments,
