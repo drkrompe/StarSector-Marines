@@ -4,8 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — cargo-consuming company surfaces keep relevant fleet stock
-visible beside their per-action cost previews.
+Updated: 2026-10-11 — transport berths share campaign squad identity by default; only explicit tactical areas split squads.
 
 ## Purpose
 
@@ -664,9 +663,10 @@ index, and the strength that selected squad is assembling toward. A later
 roster rename or transfer cannot rewrite the battle.
 
 At landing, tagged personnel group by **campaign squad and logical arrival
-area**. Legacy point landings use their exact landing cell as that area.
-Repeated lifts to the same area join one battle squad; a campaign squad split
-across areas deliberately becomes separate labelled fragments. The frozen NCO
+area**. Transports share one area by default, so different physical berths and
+repeated lifts join one battle squad without per-mission grouping setup.
+Only explicitly different tactical areas split a campaign squad into labelled
+fragments; touchdown coordinates never define organizational identity. The frozen NCO
 seeds the battle leader. Expected strength comes from the selected manifest,
 while landed strength grows as each member deboards, so morale can distinguish a
 squad still assembling from one already mauled.

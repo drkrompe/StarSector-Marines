@@ -112,8 +112,14 @@ public final class ShuttleMission {
     public final float lzX, lzY;
     /** Stable source-manifest position, or -1 when the spawning path has no manifest. */
     public int manifestOrdinal = -1;
-    /** Mission-authored landing-area identity, or -1 for a legacy point landing. */
-    public int landingAreaId = -1;
+    /**
+     * Tactical destination for tagged campaign squads. All transports share area
+     * zero by default, regardless of their physical berth or sortie number.
+     * A mission must explicitly assign different nonnegative areas to split a
+     * campaign squad between independent fronts. Pad coordinates never split it.
+     * Generated passengers still use their separate arrival-group/sortie policy.
+     */
+    public int landingAreaId = 0;
     /** Mission-authored multi-transport squad-delivery group, or -1 when ungrouped. */
     public int arrivalGroupId = -1;
     /** Ground strength this arrival group is assembling toward; 0 leaves legacy sizing in force. */
