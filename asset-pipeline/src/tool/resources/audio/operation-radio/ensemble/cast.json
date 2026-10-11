@@ -1,0 +1,48 @@
+{
+  "command": {
+    "voiceId": "cuwCdnt9CKAB9XrTA1j0",
+    "name": "Company Officer",
+    "status": "selected for first live operation-radio pass"
+  },
+  "kestrel": {
+    "voiceId": "TX3LPaxmHKxFdv7VOQHJ",
+    "name": "Kestrel Two",
+    "status": "selected for first live operation-radio pass"
+  },
+  "hammer": {
+    "voiceId": "HuAfwy9ycsANuERZQHLU",
+    "name": "Hammer Three - Military B Audition",
+    "generatedVoiceId": "HuAfwy9ycsANuERZQHLU",
+    "candidate": "B",
+    "status": "selected for first live operation-radio pass",
+    "description": "Native American English, a restrained upper-Midwestern dialect. Male, 45 to 50. Excellent clean recording quality. Persona: veteran infantry sergeant. Emotion: watchful, stubborn, protective. A worn medium-low baritone with a little throat rasp and compact, uneven conversational phrasing. He has spent twenty years getting other people through bad positions. He counts ammunition and notices exposed troops. His authority comes from certainty and economical speech, with audible physical effort when he projects over a fight. Short pauses to breathe, quick decisive commands, a small weary chuckle only after danger passes. React sharply when needed; let affection for his troops show beneath the impatience. Natural character dialogue at a brisk speaking pace.",
+    "receipt": {
+      "requestId": null,
+      "characterCost": null
+    }
+  },
+  "viper": {
+    "voiceId": "1I6DkREjhKUTww20MdUm",
+    "name": "Viper One - Military B Audition",
+    "generatedVoiceId": "1I6DkREjhKUTww20MdUm",
+    "candidate": "B",
+    "status": "selected for first live operation-radio pass",
+    "description": "Native British English, clearly northern English from Yorkshire. Female, 35 to 40. Excellent clean recording quality. Persona: battle-seasoned infantry corporal. Emotion: fierce, impatient, fiercely protective. A distinctly feminine middle-register voice, forward and wiry, with a lightly frayed edge when she raises it. Brisk, clipped phrases with animated rises and falls; she can turn from sharp command to a quick reassuring word in the same breath. Years of fighting have made her direct and observant. She hates seeing people freeze in doorways or bunch up in the open. Project hard during urgent commands and allow exertion into the breathing. Her practical warmth comes through in short encouragement once people start moving. Lively, rough-edged spoken character dialogue.",
+    "receipt": {
+      "requestId": null,
+      "characterCost": null
+    }
+  },
+  "rook": {
+    "voiceId": "gpYq8Tu9Py4uI902kHOw",
+    "name": "Rook One - Military B Audition",
+    "generatedVoiceId": "gpYq8Tu9Py4uI902kHOw",
+    "candidate": "B",
+    "status": "selected for future aircraft hooks; retained authoring content",
+    "description": "Native Australian English, a natural regional Australian dialect. Male, 40 to 45. Excellent clean recording quality. Persona: veteran combat transport pilot. Emotion: alert, irreverent, stubbornly dependable. A mid-pitched, slightly nasal and sun-worn voice with a scratch at the ends of words. Quick practical phrasing, clipped checks and a habit of grumbling after the dangerous part is done. He has flown too many rough extractions to waste breath sounding impressive. Under pressure the words tighten and rise in force; when his passengers are clear he releases the held breath and his crooked humor returns. Varied natural intonation and compact conversational pace, capable of warmth, irritation and sudden urgency.",
+    "receipt": {
+      "requestId": null,
+      "characterCost": null
+    }
+  }
+}

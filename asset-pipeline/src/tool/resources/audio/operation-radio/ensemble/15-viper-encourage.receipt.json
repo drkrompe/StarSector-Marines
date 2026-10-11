@@ -1,0 +1,11 @@
+{
+  "requestId": "qlUhlc7N4l2EnmOi9ROa",
+  "characterCost": "8",
+  "voiceId": "1I6DkREjhKUTww20MdUm",
+  "inputSha256": "10702ed250ebb55311fa480d4f476f7d1c25ebe9ffe02cbafec2b4de7d3725e5",
+  "audioSha256": "ac45e8615c36ee3fe9ae79d1607e85d6ab7072211b6ccef52f30d6160f9373e7",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[shouting] [encouraging, strained voice] That's it! Heads down. Keep coming!"
+  }
+}

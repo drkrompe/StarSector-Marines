@@ -1,15 +1,20 @@
-# Operation radio auditions
+# Operation radio
 
-These are authoring assets, not a runtime sound bank. Nothing in this folder is
-registered in `audio.json` or shipped under `mod/`. The five exchanges audition
-specific units coordinating an operation while the player oversees deployment
-aboard ship. They do not issue AI orders or establish new mission events.
+`live/` contains the Marine Operations runtime bank: assignment handshakes and
+combat reports with exchange-local casting. `mod/data/marines/operation_radio.json`
+owns the runtime transcripts, voice IDs, durations and selection mappings. The
+manifest applies the same offline comms recipe to every turn. Clean sources and
+receipts stay here; only processed Ogg files ship.
+
+The older five-scene catalog and `ensemble/` retain authoring auditions. Their
+bespoke destinations, covering maneuvers and transport reports are not enabled
+by the runtime bank. They do not issue AI orders or establish mission events.
 
 `catalog.json` owns stable line IDs, clean transcripts, synthesis directions,
 speaker/recipient identities, voice IDs, take numbers, exchange order and the
 facts each exchange would require. The freight yard, convoy and callsigns are
-concrete audition bindings, not universal mission facts. They must be bound to
-actual units and disclosed objectives before runtime playback.
+concrete audition bindings, not universal mission facts. Specific destinations and actions require disclosed operational evidence before
+runtime playback; callsigns are local to a self-contained exchange.
 
 ## Cast and delivery
 
@@ -17,14 +22,19 @@ actual units and disclosed objectives before runtime playback.
 | --- | --- | --- |
 | Company Officer | Company Officer B, `cuwCdnt9CKAB9XrTA1j0` | Approved original Voice Design; measured British command-ship authority. |
 | Kestrel Two | Liam, `TX3LPaxmHKxFdv7VOQHJ` | User accepted the strained, breathless combat audition. Young American infantry leader. |
-| Viper One | Sarah, `EXAVITQu4vr4xnSDxMaL` | Two-line audition; American female supporting squad leader, forceful under fire. |
-| Rook One | Charlie, `IKne3meq5aSn9XLyUdCD` | Two-line audition; Australian male transport pilot, brisk and alert with occasional levity. |
+| Hammer Three | Original military B, `HuAfwy9ycsANuERZQHLU` | Worn American baritone; compact, protective, firm. |
+| Viper One | Original military B, `1I6DkREjhKUTww20MdUm` | Yorkshire infantry leader; forceful and impatient under pressure. |
+| Rook One | Original military B, `gpYq8Tu9Py4uI902kHOw` | Australian transport pilot; weathered, brisk; retained for future aircraft hooks. |
 
-The three squad/pilot voices are ElevenLabs premade voices, verified against
-the account on 2026-10-11. They are casting choices for fictional roles; no game
-recording was uploaded or cloned. Callsigns identify units, not a rule that
-every unit of that role gets the same voice. Preserve a selected leader's voice
-throughout an operation rather than randomly recasting each transmission.
+The original company officer and three military B voices are Voice Design
+creations; Kestrel uses the premade Liam voice. No game recording was uploaded
+or cloned. `ensemble/cast.json` retains the selected voice IDs and source design
+direction. The earlier five-scene catalog retains its original Sarah/Charlie
+casting as historical audition provenance, not current runtime selection.
+
+Squads do not acquire stable radio identities. Cast rotates between exchanges,
+keeping one callsign and actor throughout each conversation. Maps with one to a
+hundred squads use the same bounded global traffic budget.
 
 `retained/` preserves the accepted four-turn Kestrel withdrawal exchange and its
 provenance, including clean WAV edits and original source MP3s where applicable.
@@ -35,7 +45,19 @@ The two other accepted turns remain available as withdrawal references.
 
 ## Generate and audition
 
-From the repository root:
+From the repository root, validate or generate the live bank:
+
+```powershell
+python tools/generate_wayline_narration.py --cast operation-radio
+python tools/generate_wayline_narration.py --cast operation-radio --generate
+.\gradlew.bat :asset-pipeline:processAudio
+```
+
+The live generator reuses unchanged input hashes and validates retained source
+hashes. Changed takes require explicit `--replace`; builds never call the API.
+Retained callouts/acknowledgements cannot be silently resynthesized by this path.
+
+For the older five-scene audition catalog:
 
 ```powershell
 python tools/operation_radio_audition.py
@@ -74,8 +96,8 @@ https://elevenlabs.io/docs/overview/capabilities/text-to-speech/best-practices
 ## Event and mix direction
 
 Read `battle-radio-nouns.md` for the standing presentation boundary. Assignment
-traffic should observe an accepted own-force directive with a stable squad and
-destination. An arbiter refresh is not a new assignment; reaching an objective
+traffic observes an accepted own-force directive. Squad IDs validate that
+context internally; they do not bind a voice or callsign to a roster entry. An arbiter refresh is not a new assignment; reaching an objective
 is not capturing it. A radio acknowledgement does not delay the real AI order.
 Two squads covering a crossing need evidence of that actual support relationship;
 today's generic combat cues do not supply it. A completed transport request does
@@ -95,5 +117,6 @@ recipient and instruction from competing foreground speech. At most one quiet
 secondary net may overlap; duck it for names, instructions and warnings. Mara's
 mission dialogue retains priority and must finish. Cancel obsolete queued turns
 when assignments change, a unit is lost, or a newer fact invalidates the report.
-Current runtime still uses its existing single-channel policy; this audition
-does not enable overlap or new aircraft speakers in that controller.
+Runtime uses a single foreground exchange, samples assignment changes into one
+pending slot, and admits combat reports through the shared cue policy. No
+secondary-net overlap or aircraft speakers are enabled yet.

@@ -1,0 +1,11 @@
+{
+  "requestId": "2nZKl9kQ4d4WpfspXnHA",
+  "characterCost": "5",
+  "voiceId": "HuAfwy9ycsANuERZQHLU",
+  "inputSha256": "f6f3611a9db6e5cbc9ecf358e05e19f81be99bc7e2ed16627d527bf3d1474d58",
+  "audioSha256": "e13bd3e0933c3e78546343426dbc91ea38ec43f58043570fd175729be51d612f",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[clipped, gravelly voice] Hammer. Send it."
+  }
+}

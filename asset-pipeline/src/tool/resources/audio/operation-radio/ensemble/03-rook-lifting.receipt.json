@@ -1,0 +1,11 @@
+{
+  "requestId": "vBrdXGKq4flN7hS4Is5L",
+  "characterCost": "11",
+  "voiceId": "gpYq8Tu9Py4uI902kHOw",
+  "inputSha256": "14abdbee64c374861ff460e54b3b4c717f40333f0f55d7452ad16e081efa3988",
+  "audioSha256": "dff4429f027e01a6683a6286c233b9d41a0042727c2e35987ef4c18087f7b46a",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[urgent voice] Heads down, I'm lifting! [focused, brisk voice] Command, Rook One. Your marines are down."
+  }
+}

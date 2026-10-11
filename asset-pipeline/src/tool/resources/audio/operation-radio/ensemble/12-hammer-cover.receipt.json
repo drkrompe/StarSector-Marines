@@ -1,0 +1,11 @@
+{
+  "requestId": "atdUqeT022awATZbU5AC",
+  "characterCost": "9",
+  "voiceId": "HuAfwy9ycsANuERZQHLU",
+  "inputSha256": "33c14a5eaca5ebb2ba7febae481a92280e46fe3045fe36ce0719213fc4446bf5",
+  "audioSha256": "c2dd643aaee20e24f2beea60bfee610e17e3a2adc23288b01b4f583d7d18afa3",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[shouting] [strained, gravelly voice] Kestrel, Hammer! I'll hold this end. Get across!"
+  }
+}

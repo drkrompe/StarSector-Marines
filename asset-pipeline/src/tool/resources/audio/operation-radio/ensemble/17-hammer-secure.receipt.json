@@ -1,0 +1,11 @@
+{
+  "requestId": "KId5P9eMIpZHmY17BK3Q",
+  "characterCost": "13",
+  "voiceId": "HuAfwy9ycsANuERZQHLU",
+  "inputSha256": "9f80db29eeee8f801ca5c695bf41c3ef9eff030c5d767def60c0cf802748ced9",
+  "audioSha256": "ba34659bb92b6613a6222fde5ed3e4d4a7c3119976cda18022e73a5621f87570",
+  "payload": {
+    "model_id": "eleven_v4",
+    "text": "[breathless, gravelly voice] Command, Hammer. Yard's ours. Two magazines each. [wry] Make the next job a short one."
+  }
+}
