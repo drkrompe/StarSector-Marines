@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -44,7 +45,7 @@ public final class TaskForce {
 
         public CommandGroupIdentity identity() {
             return officer != null ? new CommandGroupIdentity("officer:" + officer.id(),
-                    officer.id(), officer.name(), true)
+                    officer.id(), officer.name(), true, OfficerCommandProfile.capture(officer))
                     : CommandGroupIdentity.actingNco(squads.get(0).id(), squads.get(0).name());
         }
 
@@ -65,7 +66,7 @@ public final class TaskForce {
             if (!squad.id().equals(squadId)) continue;
             return element.officer != null
                     ? new CommandGroupIdentity("officer:" + element.officer.id(),
-                            element.officer.id(), element.officer.name(), true)
+                            element.officer.id(), element.officer.name(), true, OfficerCommandProfile.capture(element.officer))
                     : CommandGroupIdentity.actingNco(squad.id(), squad.name());
         }
         return null;

@@ -1,6 +1,6 @@
 # C13 — Complete the task force
 
-Status: PARTIAL — bulk home-command assignment implemented; officer outcomes and live acceptance remain
+Status: PARTIAL — bulk home-command assignment implemented; per-officer outcomes implemented; live acceptance remains
 Written: 2026-08-23
 Updated: 2026-10-06 — folded bulk organization semantics into the company and
 personnel noun docs; retained Armory acceptance remains open.
@@ -11,11 +11,11 @@ Read `company-view-nouns.md` before changing this story.
 
 ### 1. Resolve every participating officer
 
-`MissionOutcome` still carries one `captainId`, so only the operation commander
-earns experience, risks injury, and receives wipe-fate resolution. The frozen
-outcome must identify every officer who actually led selected squads, and
-mission resolution must apply the appropriate consequences to each without
-reconstructing the task force from a later roster state.
+Implemented in `officer-careers.md`: launch-frozen officer profiles and actual
+engaged named seats produce per-officer XP, promotions, injury/wipe fate and
+service entries. Results lists every officer. Per-attempt persisted receipts
+prevent repeated officer credit; held-back officers receive none. The live
+campaign and save/reload pass remains open.
 
 Coordinate the after-action presentation with `c6-after-action-by-fireteam.md`.
 

@@ -2,8 +2,8 @@ package com.dillon.starsectormarines.marine;
 
 /**
  * Captain trait — assigned by a recruitment/discovery source or by a durable narrative
- * system such as moral-outlook drift. Generic level-up acquisition is planned, not current
- * behavior. This enum defines stable save identities as each trait comes online.
+ * system such as moral-outlook drift. Promotion choices live in {@link OfficerSpecialty};
+ * this enum retains stable recruitment/narrative save identities as each trait comes online.
  */
 public enum Trait {
     /** Bonus vs fortified ground targets. */

@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.Status;
+
 import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
@@ -520,6 +524,14 @@ public final class BattleFixtureJson {
                     putNullable(group, "officerId", identity.officerId());
                     group.put("label", identity.label());
                     group.put("namedOfficer", identity.namedOfficer());
+                    if (identity.profile() != null) {
+                        OfficerCommandProfile p = identity.profile();
+                        JSONObject officerProfile = new JSONObject();
+                        officerProfile.put("rank", p.rank().name()); officerProfile.put("xp", p.xp());
+                        officerProfile.put("status", p.status().name()); officerProfile.put("naturalLeader", p.naturalLeader());
+                        officerProfile.put("cover", p.cover()); officerProfile.put("recovery", p.recovery()); officerProfile.put("salvage", p.salvage());
+                        group.put("profile", officerProfile);
+                    }
                     squad.put("commandGroup", group);
                 }
                 encoded.put("campaignSquad", squad);
@@ -527,6 +539,14 @@ public final class BattleFixtureJson {
             seats.put(encoded);
         }
         return seats;
+    }
+
+    private static OfficerCommandProfile officerProfileFromJson(JSONObject group) throws Exception {
+        JSONObject p = group.optJSONObject("profile");
+        return p == null ? null : new OfficerCommandProfile(group.getString("officerId"),
+                group.getString("label"), Rank.valueOf(p.getString("rank")), p.getInt("xp"),
+                Status.valueOf(p.getString("status")), p.getBoolean("naturalLeader"),
+                p.getInt("cover"), p.getInt("recovery"), p.getInt("salvage"));
     }
 
     private static List<MarineSeatCommitment> marineSeatsFromJson(
@@ -539,7 +559,7 @@ public final class BattleFixtureJson {
             CommandGroupIdentity identity = group != null
                     ? new CommandGroupIdentity(group.getString("groupId"),
                             nullableString(group, "officerId"), group.getString("label"),
-                            group.getBoolean("namedOfficer"))
+                            group.getBoolean("namedOfficer"), officerProfileFromJson(group))
                     : squad != null ? CommandGroupIdentity.actingNco(
                             squad.getString("squadId"), squad.getString("label")) : null;
             seats.add(new MarineSeatCommitment(

@@ -1247,6 +1247,13 @@ public class MarineRoster implements Serializable {
         refreshLeadership();
     }
 
+    /** Shortens an existing wounded timer without changing status, kit or billet. */
+    public void shortenWoundedRecovery(String soldierId, float untilDay) {
+        MarineSoldier soldier = soldierById(soldierId);
+        if (soldier != null && soldier.status() == MarineSoldierStatus.WIA && Float.isFinite(untilDay))
+            soldier.setUnavailableUntilDay(Math.min(soldier.unavailableUntilDay(), Math.max(0f, untilDay)));
+    }
+
     /** Returns WIA personnel to duty once their campaign recovery timer expires. */
     public void recoverWounded(float currentDay) {
         for (MarineSoldier soldier : soldiers) {

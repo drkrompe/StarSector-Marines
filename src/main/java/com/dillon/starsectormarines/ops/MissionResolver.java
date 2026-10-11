@@ -46,6 +46,8 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CasualtyFate;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
@@ -65,7 +67,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
@@ -88,8 +89,8 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
  *   <li>Victory: full payout, XP = payout/100 with a light malus when casualties
  *       are heavy (3+ marines lost). NATURAL_LEADER multiplies XP by 1.5x.
  *       FIELD_MEDIC reduces marines-lost by 25% (rounded down).</li>
- *   <li>Defeat with survivors: captain INJURED for {@value #INJURED_DAYS} in-game days.</li>
- *   <li>Defeat total wipe: 60% KIA, 40% INJURED for {@value #WIPE_INJURED_DAYS}
+ *   <li>Defeat with survivors: captain INJURED for 7 in-game days.</li>
+ *   <li>Defeat total wipe: 60% KIA, 40% INJURED for 45
  *       days (long recovery, "missing in action — extracted later"). Deterministic
  *       per (captain, mission). Captured branch deferred until CAPTURED status lands.</li>
  *   <li>XP crossing a rank threshold auto-promotes (cascades if a single mission
@@ -100,11 +101,8 @@ public final class MissionResolver {
 
     private static final Logger LOG = Global.getLogger(MissionResolver.class);
 
-    private static final float INJURED_DAYS = 7f;
     private static final float WIPE_INJURED_DAYS = 45f;
-    private static final float WIPE_KIA_CHANCE = 0.60f;
     private static final float FIELD_MEDIC_REDUCTION = 0.25f;
-    private static final float NATURAL_LEADER_MULT = 1.5f;
 
     /** Industry disruption durations applied on victory, by mission type. */
     private static final float DISRUPT_DAYS_SABOTAGE   = 60f;
@@ -341,38 +339,20 @@ public final class MissionResolver {
         float injuredUntilDay = 0f;
         Rank  promotedTo      = null;
 
-        if (captain != null) {
-            if (victory) {
-                xpGained = marinesLost <= 2
-                        ? payoutEarned / 100
-                        : payoutEarned / 150;
-                if (captain.traits().contains(Trait.NATURAL_LEADER)) {
-                    xpGained = (int) (xpGained * NATURAL_LEADER_MULT);
-                }
-                promotedTo = simulatePromotion(captain.rank(), captain.xp(), xpGained);
-            } else {
-                float currentDay = Global.getSector() != null
-                        ? CampaignClock.dayFloat()
-                        : 0f;
-                if (isTotalWipe(marinesEngaged, marinesLost)) {
-                    // FoB overrun — roll fate. Deterministic per (captain, mission) so
-                    // the result doesn't change if compute is called twice (e.g. preview).
-                    long seed = ((long) captain.id().hashCode() << 32) ^ mission.id.hashCode();
-                    Random r = new Random(seed);
-                    if (r.nextFloat() < WIPE_KIA_CHANCE) {
-                        newStatus = Status.KIA;
-                    } else {
-                        newStatus = Status.INJURED;
-                        injuredUntilDay = currentDay + WIPE_INJURED_DAYS;
-                    }
-                } else {
-                    newStatus = Status.INJURED;
-                    injuredUntilDay = currentDay + INJURED_DAYS;
-                }
-            }
+        List<OfficerMissionResult> officers = OfficerMissionResult.compute(sim.committedMarines(),
+                sim.operationOfficer() != null ? sim.operationOfficer() : OfficerCommandProfile.capture(captain),
+                survivingSoldierIds, fallenSoldierIds, victory, payoutEarned, mission.id,
+                currentDayInt(), marinesEngaged, marinesLost);
+        for (OfficerMissionResult officer : officers) {
+            if (captain == null || !captain.id().equals(officer.officer().id())) continue;
+            priorStatus = officer.officer().status(); newStatus = officer.status();
+            xpGained = officer.xpGained(); promotedTo = officer.promotedTo();
+            injuredUntilDay = officer.injuredUntilDay();
         }
+        int specialtyRecovery = OfficerMissionResult.salvageBonus(officers, victory, marinesEngaged);
 
         return MissionOutcome.builder()
+                .officers(sim.officerAttemptId(), officers)
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
@@ -393,7 +373,7 @@ public final class MissionResolver {
                 .evacuationReport(evacuationRepresentatives, representativesEvacuated)
                 .colonyArchiveOutcome(colonyArchiveOutcome)
                 .salvageEntitlement(salvageEntitlement)
-                .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct)
+                .salvageRecoveryBonusPct(recoveryModifier.recoveryBonusPct + specialtyRecovery)
                 .salvageHighValueChancePct(recoveryModifier.highValueChancePct)
                 .boatsLost(boatsLost)
                 .marinesLostAboard(marinesLostAboard)
@@ -493,7 +473,8 @@ public final class MissionResolver {
 
         recordStoryCompletion(roster, outcome);
 
-        if (outcome.captainId != null) {
+        OfficerMissionResult.apply(roster, outcome, currentDayInt());
+        if (outcome.officers.isEmpty() && outcome.captainId != null) {
             MarineRosterScript script = MarineRosterScript.getInstance();
             if (script != null) {
                 MarineCaptain captain = script.roster().byId(outcome.captainId);
@@ -626,6 +607,7 @@ public final class MissionResolver {
         roster.applySoldierOutcome(
                 resolvePersonnelOutcomes(outcome), currentDayInt(), wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
+        applyRecoverySpecialties(roster, outcome, currentDayInt(), wiaDays);
         if (outcome.victory) {
             Set<String> acquiredOrCarried =
                     EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
@@ -633,6 +615,16 @@ public final class MissionResolver {
                     acquiredOrCarried != null ? acquiredOrCarried : Set.of());
         }
         return roster;
+    }
+
+    static void applyRecoverySpecialties(MarineRoster roster, MissionOutcome outcome, float day, float wiaDays) {
+        for (OfficerMissionResult officer : outcome.officers) for (String id : officer.soldierIds()) {
+            MarineSoldier soldier = roster.soldierById(id);
+            if (soldier != null && soldier.status() == MarineSoldierStatus.WIA) {
+                roster.shortenWoundedRecovery(id, day + Math.max(1f,
+                        wiaDays * officer.officer().recoveryMultiplier()));
+            }
+        }
     }
 
     /** Deterministic fate roll: a battlefield casualty can be WIA or MIA, not only KIA. */
@@ -648,20 +640,6 @@ public final class MissionResolver {
             result.put(id, CasualtyFate.roll(seed, outcome.victory));
         }
         return result;
-    }
-
-    /**
-     * Simulates the rank a captain will end at after gaining {@code xpGained} on top
-     * of {@code currentXp}. Returns null when no promotion crosses a threshold.
-     */
-    private static Rank simulatePromotion(Rank startRank, int currentXp, int xpGained) {
-        Rank rank = startRank;
-        int xp = currentXp + xpGained;
-        while (!rank.isTerminal() && xp >= rank.xpToNext()) {
-            xp -= rank.xpToNext();
-            rank = rank.promote();
-        }
-        return rank != startRank ? rank : null;
     }
 
     private static void appendOutcomeCommendation(MarineCaptain captain, MissionOutcome outcome, int day) {

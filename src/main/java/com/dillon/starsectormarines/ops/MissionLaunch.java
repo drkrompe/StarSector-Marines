@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
@@ -366,6 +368,7 @@ public final class MissionLaunch {
                     det.powers, Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
+            sim.setOperationOfficer(OfficerCommandProfile.capture(ctx.getSelectedCaptain()));
             if (fixture != null) {
                 fixture = new BattleLaunchFixture(fixture, launch);
             }

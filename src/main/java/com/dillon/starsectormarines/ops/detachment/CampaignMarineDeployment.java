@@ -92,7 +92,9 @@ public final class CampaignMarineDeployment {
                     seat.equipmentGrade, seat.soldierProfile, seat.specialEquipmentId,
                     seat.secondaryAmmo, seat.campaignSoldierId, seat.armorFamily,
                     seat.armorCapacity, seat.armorRating, seat.armorMoveSpeedMult,
-                    seat.armorIncomingAccuracyMult, tag, seat.integralSystem));
+                    seat.armorIncomingAccuracyMult * (tag != null && tag.commandGroupIdentity != null
+                            && tag.commandGroupIdentity.profile() != null
+                            ? tag.commandGroupIdentity.profile().incomingAccuracyMultiplier() : 1f), tag, seat.integralSystem));
         }
         return new CampaignMarineDeployment(seats);
     }
@@ -214,6 +216,7 @@ public final class CampaignMarineDeployment {
 
     /** Authored route factories reserve nonnegative ordinals exclusively for company craft. */
     public void applyToAuthoredPlayerLift(BattleSimulation sim) {
+        sim.setCommittedMarines(commitments());
         List<ShuttleMission> missions = new ArrayList<>();
         for (long air : sim.getAirEntityIds()) {
             if (sim.world().airFaction(air) != Faction.MARINE) continue;
@@ -251,6 +254,7 @@ public final class CampaignMarineDeployment {
     public void applyTo(BattleSimulation sim, int shuttleMissionsToSkip,
                         FieldPresencePolicy fieldPresencePolicy) {
         if (sim == null || seats.isEmpty()) return;
+        sim.setCommittedMarines(commitments());
         BattleComponents components = sim.getBattleComponents();
         List<ShuttleMission> missions = new ArrayList<>();
         for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {

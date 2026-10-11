@@ -1,10 +1,14 @@
 package com.dillon.starsectormarines.battle.command;
 
 import java.util.Objects;
+import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 
 /** Immutable command membership, independent of campaign handles. */
 public record CommandGroupIdentity(String groupId, String officerId, String label,
-                                   boolean namedOfficer) {
+                                   boolean namedOfficer, OfficerCommandProfile profile) {
+    public CommandGroupIdentity(String groupId, String officerId, String label, boolean namedOfficer) {
+        this(groupId, officerId, label, namedOfficer, null);
+    }
     public CommandGroupIdentity {
         Objects.requireNonNull(groupId, "groupId");
         Objects.requireNonNull(label, "label");

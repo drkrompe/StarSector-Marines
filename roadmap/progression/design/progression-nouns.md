@@ -189,6 +189,24 @@ legibility.
   not the individual marine experience ladder; some are currently functional
   while others remain planned mechanics.
 
+## Officer career
+
+Officers have a separate XP/rank ladder and permanent specialty training.
+Appointment grants one choice; each higher rank grants another. Each specialty
+has two ranks, so five lifetime points cannot master all three paths. Existing
+saves receive rank-equivalent choice budgets without retroactive mission claims.
+The dossier shows exact effects, next ranks and affected home squads; deployed
+scope follows frozen command assignment, including borrowed squads.
+
+Tactical Cover improves incoming-accuracy protection by 5/10%; Recovery Planning
+shortens WIA time by 15/30%; Salvage Stewardship adds 10/20 recovery percentage
+points using the strongest participating officer only. These are independent
+of legacy recruitment traits and the one-shot moral outlook. Every officer
+who actually leads engaged marines receives their own mission XP and service
+entry; operation command is also credited. Per-attempt receipts prevent repeat
+credit while allowing repeatable jobs to teach on each fresh attempt.
+See `company-view-nouns.md` and `officer-careers.md` for settlement and UI scope.
+
 ## Current quality model
 
 ### Composed combat quality
@@ -208,8 +226,11 @@ become a bespoke carrier type.
 
 A second standing law governs legibility: **a squad's fighting quality is fully
 determined by what the player can see**. Two squads carrying the same loadout
-definition and the same armor pattern fight the same, and no hidden per-squad
-or per-marine modifier may separate them. Innate aptitude varies within a
+definition, armor pattern and visible officer specialty fight the same, and no
+hidden per-squad or per-marine modifier may separate them. Officer Tactical
+Cover is an explicit command modifier (5/10% lower incoming accuracy), shown
+in the officer dossier and frozen with deployment; it does not silently alter
+the issued quality band. Innate aptitude varies within a
 declared band and is readable on the marine; it is bounded expressly so it
 cannot overturn the band the player read. This is what makes threat assessment
 a skill rather than a guess, and it applies to defender formations as much as
