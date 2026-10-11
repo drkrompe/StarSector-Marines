@@ -209,6 +209,12 @@ remains reachable through doors with fixtures present, in all four orientations.
 Story maps may explicitly place the same plans, with larger freight variants
 reserved for authored facilities. They retain the same rotation, interior,
 window and material rules; they are not stretched versions of a small stamp.
+Open the Junction pairs a compact weigh-house and offset freight office with
+an L-shaped loading depot. Relay Nine pairs a switch-house service wing with
+an L-shaped gate depot and smaller maintenance annexes. These substitutions
+keep the original capture-site ordering and retain broad buildings where they
+screen a firing corridor, shelter a reserve or owe dedicated hall entrances.
+Their outdoor cuts remain connected to the surrounding yards and service roads.
 
 Building materials are paired wall, floor and accent surfaces, independent of
 the ground kind's tactical meaning. Warm masonry, ceramic civic surfaces and
