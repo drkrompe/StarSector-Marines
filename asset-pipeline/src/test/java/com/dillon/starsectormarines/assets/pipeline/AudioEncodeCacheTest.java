@@ -91,6 +91,10 @@ class AudioEncodeCacheTest {
         assertEquals(AudioEncodeCache.Result.UP_TO_DATE, cache.materialize(source, clean, original, this::encode));
         assertEquals(AudioEncodeCache.Result.UP_TO_DATE, cache.materialize(source, radio, comms, this::encode));
         assertEquals(2, encodes.get());
+        String dialogue = ProcessAudioTask.outputArguments(AudioManifest.Kind.UI, AudioManifest.Processing.DIALOGUE).toString();
+        assertTrue(dialogue.contains("loudnorm=I=-20:TP=-2:LRA=7"));
+        cache.materialize(source, directory.resolve("dialogue.ogg"), dialogue, this::encode);
+        assertEquals(3, encodes.get());
     }
 
     @Test

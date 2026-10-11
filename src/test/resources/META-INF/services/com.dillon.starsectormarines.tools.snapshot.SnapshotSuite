@@ -50,3 +50,4 @@ com.dillon.starsectormarines.tools.tilesetauthoring.RockDamageSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipLanceSceneSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.CrateDamageSnapshotSuite
 com.dillon.starsectormarines.tools.tilesetauthoring.BarrelDamageSnapshotSuite
+com.dillon.starsectormarines.ops.CastleStorySnapshotSuite

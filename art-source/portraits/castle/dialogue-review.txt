@@ -1,0 +1,39 @@
+marines_mara_hound_found
+MARA VENN / WAYLINE
+That's Wayward in the maintenance berth. Keep a team beside her and clear the raiders away. Five quiet seconds should get her moving.
+
+marines_castle_hound_ready
+CASTLE / COMPANY COMMAND
+Captain, Castle. Wayward's chaingun is live. You can take the command link yourself, or leave her with the crew. Keep the infantry close.
+
+marines_castle_hound_control
+CASTLE / COMPANY COMMAND
+You're on Wayward's link, Captain. Keep the gun on their cover. I'll mind the company net; hand back whenever you're ready.
+
+marines_castle_hound_return
+CASTLE / COMPANY COMMAND
+Crew has Wayward again. You're back on the company net, Captain.
+
+marines_castle_hound_disabled
+CASTLE / COMPANY COMMAND
+Wayward's down. Keep the company moving. Secure the depot and I'll arrange recovery with Venn. We can mend a chassis.
+
+marines_castle_salvage_request
+CASTLE / COMPANY COMMAND
+Mara, one item before you close the docket. Wayward is still listed as scrap on your manifest. We'd like the chassis and its fitted chaingun.
+
+marines_mara_salvage_terms
+MARA VENN / WAYLINE
+That scrap used to guard my drivers, Castle. If I sign her over, your company takes on the maintenance. I'm trying to run a freight cooperative.
+
+marines_castle_salvage_accept
+CASTLE / COMPANY COMMAND
+Fair. Wayline covers recovery and this repair; we take her upkeep from handover. Put that beside the contract fee, and I'll sign.
+
+marines_mara_salvage_transfer
+MARA VENN / WAYLINE
+Agreed. Wayward is repaired and signed over, chaingun included. No missiles in those mounts. We'll provide heavy lift on the supply-route jobs. Give her a good home, Captain.
+
+marines_mara_salvage_repaired
+MARA VENN / WAYLINE
+Agreed. We've recovered Wayward's wreck and repaired the chassis. She's yours, chaingun included. No missiles in those mounts. We'll provide heavy lift on the supply-route jobs. Give her a good home, Captain.
