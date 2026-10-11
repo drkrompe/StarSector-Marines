@@ -170,6 +170,7 @@ test {
     // seed is added or edited - which silently disarms the check that every raw
     // sheet arrives annotated. Declare them.
     inputs.dir('art-source/tilesets')
+    inputs.dir('art-source/roads')
             .withPropertyName('tilesetSeeds')
             .withPathSensitivity(PathSensitivity.RELATIVE)
     // The shipped catalogs and art are read off disk at runtime too, and by far
@@ -1100,4 +1101,15 @@ tasks.register('catalogSmokeLive', Exec) {
 
 clean {
     delete modJarsDir
+}
+
+// Deterministic procedural road materials; the recipe is the only art input.
+tasks.register('roadMaterials', JavaExec) {
+    group = 'asset pipeline'
+    description = 'Bake the independent pavement atlas and tile catalog from its recipe'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.roadauthoring.RoadMaterialBaker'
+    workingDir projectDir
+    args projectDir.absolutePath
 }

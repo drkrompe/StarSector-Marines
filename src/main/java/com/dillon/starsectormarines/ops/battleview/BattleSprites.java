@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import java.util.List;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -233,6 +235,29 @@ public class BattleSprites {
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
     public ShuttleSpriteCache droneSprite()        { return droneSprite; }
+    /** Fixed-grid catalog sheets beyond the legacy terrain set; shared by both render backends. */
+    public record GroundSheet(String path, SpriteAPI sprite, int width, int height) {}
+    private Map<String, GroundSheet> extraGround;
+    public Map<String, GroundSheet> additionalGroundSheets() {
+        if (extraGround == null) {
+            Map<String, GroundSheet> loaded = new LinkedHashMap<>();
+            for (String path : additionalGroundPaths()) {
+                SheetTexture texture = SheetTexture.grid(path); texture.ensureLoaded();
+                if (texture.sprite() != null) loaded.put(path,
+                        new GroundSheet(path, texture.sprite(), texture.pxW(), texture.pxH()));
+            }
+            extraGround = loaded;
+        }
+        return extraGround;
+    }
+    protected static List<String> additionalGroundPaths() {
+        TileRegistry registry = TileRegistry.installed();
+        if (registry == null) return List.of();
+        List<String> legacy = List.of(TileManifest.SHEET, TileManifest.ROAD_SHEET,
+                TileManifest.FLOORS_SHEET, TileManifest.WATER_SHEET, TileManifest.STREET3_SHEET, TileManifest.NATURE_SHEET);
+        return registry.blocks().stream().map(b -> b.sheetPath).filter(p -> !legacy.contains(p)).distinct().toList();
+    }
+
     public SpriteAPI tileSheet()                   { return tileTex.sprite(); }
     public int tileSheetPxW()                      { return tileTex.pxW(); }
     public int tileSheetPxH()                      { return tileTex.pxH(); }

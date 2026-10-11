@@ -47,7 +47,8 @@ public final class TileRegistry {
             "data/tilesets/Floors_Tiles.tileset.json",
             "data/tilesets/Water_tiles.tileset.json",
             "data/tilesets/doodads.tileset.json",
-            "data/tilesets/parked-vehicles.tileset.json");
+            "data/tilesets/parked-vehicles.tileset.json",
+            "data/tilesets/pavement.tileset.json");
 
     private static volatile TileRegistry installed;
 
