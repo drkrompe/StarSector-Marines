@@ -588,6 +588,8 @@ public final class Squad {
     public float centroidX = 0f;
     /** Tactical centroid Y, excluding the player-controlled body while squadmates remain. */
     public float centroidY = 0f;
+    /** Whether this squad is being held back from the room it was sent to. */
+    public final EntryGate entryGate = new EntryGate();
     /** Experimental local firing geometry and individual reservations; never mission authority. */
     public final SquadFiringPositions firingPositions;
     /**

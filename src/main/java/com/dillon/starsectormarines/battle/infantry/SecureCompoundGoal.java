@@ -129,7 +129,8 @@ public final class SecureCompoundGoal implements Goal {
             var previous = graph.zoneById(path.get(i - 1));
             steps.add(new SquadPlan.Step(finalHop
                     ? EnterZone.committedForZone(zone, previous, variant, graph, grid)
-                    : EnterZone.forZone(zone, previous, variant, graph, grid)));
+                    : EnterZone.forZone(zone, previous, variant, graph, grid)
+                            .spaced()));
             if (GarrisonArea.isGarrisonZone(zone, node.left, node.top, node.right, node.bottom, grid)) {
                 steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
             }

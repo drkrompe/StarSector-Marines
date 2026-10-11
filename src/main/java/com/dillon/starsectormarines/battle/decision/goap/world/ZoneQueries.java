@@ -187,7 +187,8 @@ public final class ZoneQueries {
             if (z == null) continue;
             List<Integer> portalIds = z.getPortalIds();
             int portalCount = portalIds.size();
-            int start = ApertureSpread.startIndex(variant, portalCount);
+            int start = ApertureSpread.startIndex(ApertureSpread.doorVariant(variant),
+                    portalCount);
             for (int k = 0; k < portalCount; k++) {
                 Portal p = graph.portalById(portalIds.get((start + k) % portalCount));
                 if (p == null) continue;
@@ -244,8 +245,9 @@ public final class ZoneQueries {
             if (i < path.size() - 1
                     && zone.getCellCount() == 1
                     && grid.isDoorwayAt(zone.getCellIndices()[0])) continue;
-            steps.add(new SquadPlan.Step(EnterZone.forZone(zone,
-                    graph.zoneById(path.get(i - 1)), variant, graph, grid)));
+            EnterZone hop = EnterZone.forZone(zone,
+                    graph.zoneById(path.get(i - 1)), variant, graph, grid);
+            steps.add(new SquadPlan.Step(hop.spaced()));
             steps.add(new SquadPlan.Step(new ClearZone(zoneId)));
         }
         return new SquadPlan(steps);
