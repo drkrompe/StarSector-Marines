@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -42,6 +43,8 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
             try(var scene=new ShipDeckBattleScene(map,0)) {
                 frames.add(new SnapshotArtifact("overview.png",renderer.renderHostPass(scene.pass(
                         ShipDeckBattleScene.DeckView.fitting(0,0,320,144,1920,1080)),1920,1080)));
+                frames.add(new SnapshotArtifact("apron.png",renderer.renderHostPass(scene.pass(
+                        ShipDeckBattleScene.DeckView.over(0,27,65,96,10)),1920,1080)));
                 frames.add(new SnapshotArtifact("staging.png",renderer.renderHostPass(scene.pass(
                         ShipDeckBattleScene.DeckView.over(0,18,160,108,10)),1920,1080)));
                 frames.add(new SnapshotArtifact("crossing.png",renderer.renderHostPass(scene.pass(
@@ -56,6 +59,12 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
     private static void verify(MapResult map) {
         var grid=map.grid;
         int w=grid.getWidth(),h=grid.getHeight();
+        if(map.landingPads.size()!=6)throw new IllegalStateException("Freight apron lost berths");
+        for(LandingPad pad:map.landingPads) {
+            if(pad.purpose!=LandingPad.Purpose.FREIGHT_APRON || pad.halfWidth!=8 || !pad.isClear(grid,map.topology))
+                throw new IllegalStateException("Freight stand is not clear and elongated");
+            if(pad.bottom()<=85 && pad.top()>=65)throw new IllegalStateException("Stand overlaps convoy road");
+        }
         TerrainField field=TerrainField.build(TerrainCatalog.plan(TerrainCatalog.THUNDER_RUN,SurfacePalette.VERDANT));
         if(map.topology.terrainSurface()==null)throw new IllegalStateException("Thunder Run has no terrain surface");
         boolean[] reached=new boolean[w*h];ArrayDeque<Integer> queue=new ArrayDeque<>();

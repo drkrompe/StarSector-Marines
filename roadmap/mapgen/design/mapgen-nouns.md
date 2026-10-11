@@ -1087,10 +1087,13 @@ post-building cleanup retaining ownership of interior floors and markings.
 
 A freight landing area is a connected terminal apron containing multiple
 `LandingPad` reservations, rather than one disconnected square per boat.
-Junction and Relay Nine group their existing berth capacity in staggered, elongated stands
+Junction, Relay Nine and Thunder Run group their existing berth capacity in staggered, elongated stands
 beside the western terminal, connected to the inbound road. `FREIGHT_APRON`
 selects restrained guidance paint without replacing their clear footprints or
-aircraft approach authority.
+aircraft approach authority. Thunder Run splits its six stands between two concrete
+aprons beside the staging road, connected by an inner service lane. The freight
+carriageway stays clear between the banks; aircraft approach from open western
+ground.
 
 ## Boundaries
 
