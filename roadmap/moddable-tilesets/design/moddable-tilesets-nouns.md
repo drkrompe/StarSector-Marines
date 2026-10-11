@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — fences and sandbags retain matching damage states; authored natural masses share smooth contours, permanent grid obstruction and production previews.
+Updated: 2026-10-11 — fences, sandbags and tree crowns retain matching damage states; permanent terrain remains independent of tree destruction.
 
 Read `stories.md` for open work.
 
@@ -211,6 +211,14 @@ opened cell and cover refresh, rather than inferring those from transparency.
 The retained sources and cuts reproduce separate damage atlases through the
 ordinary doodad packer. The `fences` and `sandbags` visual suites exercise the same damage
 entry point used by structural attacks.
+
+Tree crowns likewise retain intact, damaged and destroyed identities for each
+species, with identical multi-cell dimensions and placement pivots. Broken
+foliage remains inside the original canopy envelope; low stumps and fallen
+limbs leave the ground visible. Whole-tree combat state owns obstruction,
+including overlap with other crowns and hills, rather than the artwork's
+transparent holes. The `tree-damage` visual suite compares species, rotations,
+grove breaches and summit remnants through that same combat boundary.
 
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than
 enum order or hardcoded origins. Sliced definitions pin their frame explicitly;
