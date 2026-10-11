@@ -1,9 +1,12 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleMapRenderer;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
@@ -59,9 +62,32 @@ public final class SandbagSnapshotSuite implements SnapshotSuite {
             topology.setFixture(prop.cellX, prop.cellY, true);
         }
         MapResult map = new MapResult(grid, topology, 0, 0, 20, 12, List.of(), props);
-        return List.of(new SnapshotArtifact("sandbag-reskin-template.png", SandbagReskinTemplate.render()),
+        HeadlessBattleMapRenderer renderer = new HeadlessBattleMapRenderer(context.modRoot());
+        List<SnapshotArtifact> artifacts = new ArrayList<>(List.of(new SnapshotArtifact("sandbag-reskin-template.png", SandbagReskinTemplate.render()),
                 new SnapshotArtifact("sandbag-layouts.png",
-                        new HeadlessBattleMapRenderer(context.modRoot()).render(map, 42, 48)));
+                        renderer.render(map, 42, 48))));
+        DoodadService service = new DoodadService(grid);
+        for (Doodad prop : props) service.addDoodad(prop);
+        MapResult live = new MapResult(grid, topology, 0, 0, 20, 12, List.of(), service.getDoodads());
+        try (NavigationService navigation = new NavigationService(grid, topology, false)) {
+            MapEditor editor = new MapEditor(navigation);
+            editor.setDoodads(service);
+            for (Doodad prop : props) {
+                if ((prop.cellX + prop.cellY) % 2 == 0) editor.damageWall(prop.cellX, prop.cellY, 25);
+            }
+            artifacts.add(new SnapshotArtifact("sandbag-damaged.png", renderer.render(live, 42, 48)));
+            for (Doodad prop : props) {
+                if ((prop.cellX + prop.cellY) % 2 == 0) {
+                    if (!editor.damageWall(prop.cellX, prop.cellY, 100)) throw new AssertionError("Sandbags did not breach");
+                    if (!grid.isWalkable(prop.cellX, prop.cellY) || grid.isDoorway(prop.cellX, prop.cellY))
+                        throw new AssertionError("Destroyed bags left an obstruction or doorway");
+                }
+            }
+            artifacts.add(new SnapshotArtifact("sandbag-destroyed.png", renderer.render(live, 42, 48)));
+            artifacts.add(new SnapshotArtifact("sandbag-destroyed-game-scale.png", renderer.render(live, 42, 32)));
+        }
+        artifacts.add(new SnapshotArtifact("sandbag-damage-template.png", SandbagDamageReskinTemplate.render()));
+        return artifacts;
     }
 
     private static void add(List<Doodad> props, int x, int y, String suffix, int turns) {

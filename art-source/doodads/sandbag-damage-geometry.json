@@ -1,0 +1,8 @@
+{
+  "source": "imagegen-raw/sandbag-damage.raw.png",
+  "sourceSize": [1254, 1254],
+  "damaged-straight": [52, 55, 528, 548],
+  "damaged-corner": [680, 55, 534, 548],
+  "destroyed-straight": [52, 714, 528, 540],
+  "destroyed-corner": [680, 714, 534, 490]
+}
