@@ -68,7 +68,8 @@ public final class ReviewImpactFx {
     public void feed(BattleSimulation sim) {
         for (float[] dust : sim.getWallDustsThisFrame()) fx.spawnWallCollapse(dust[0], dust[1]);
         for (float[] impact : sim.getHeavyImpactsThisFrame()) {
-            fx.spawnHeavyImpact(impact[0], impact[1], impact[2]);
+            fx.spawnHeavyImpact(impact[0], impact[1], impact[2],
+                    impact.length >= 6 ? new Color(impact[3], impact[4], impact[5]) : null);
         }
         for (float[] puff : sim.getSmokePuffsThisFrame()) fx.spawnAmbientSmoke(puff[0], puff[1], puff[2]);
         for (float[] burst : sim.getFireBurstsThisFrame()) fx.spawnAmbientFire(burst[0], burst[1], burst[2]);
