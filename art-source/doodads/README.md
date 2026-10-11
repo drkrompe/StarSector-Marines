@@ -47,6 +47,8 @@ An asset can set:
 - `cover`: `none`, `light`, `med`, or `heavy`
 - `name` and `description`: labels for the tileset viewer
 - `order`: explicit numeric ordering before alphabetic fallback
+- `preserveCanvas`: keep the full source canvas instead of trimming alpha bounds;
+  use for geometry-authored pieces whose empty space and endpoints are meaningful
 - `padding`: transparent inset within the cell
 - `scale`: multiplier in `(0, 1]` after fitting
 - `offset`: final `[x, y]` pixel adjustment
@@ -83,3 +85,36 @@ standalone sheet to runtime still requires registering the generated tileset and
 loading its texture; the atlas coordinates themselves require no hand editing.
 Layouts may use `preferredWallSide` to select a matching cardinal variant; it
 does not force generic scatterers to wall-mount the prop.
+
+## Geometry-authored sandbags
+
+`SandbagReskinTemplate` draws two staggered courses of rounded bags: a north
+straight and a northwest elbow. Run `./gradlew.bat createSnapshots -Psnapshot=sandbags`
+to regenerate its guide and review closed rings, open bays and all four rotations
+through the production prop renderer. The retained guide is `../templates/sandbags.png`.
+
+The exact built-in ImageGen edit prompt is `sandbags.prompt.txt`; the untouched
+accepted output is `imagegen-raw/sandbags-geometry.raw.png`. ImageGen changed the
+canvas size, so `sandbags-geometry.json` records reviewed square cell cuts in
+that output's coordinates. These include the empty interior, not just visible
+bag bounds. `derive_sandbag_frames.py` cuts those cells and makes the other six
+facings with exact quarter rotations. No content recentering or per-piece scaling
+is allowed: all eight metadata entries use `preserveCanvas: true`, `padding: 0`.
+
+Rebuild in order:
+
+```powershell
+python art-source/doodads/derive_sandbag_frames.py
+python art-source/doodads/stitch_atlas.py --only-prefix doodad.sandbag-
+python -m unittest discover -s art-source/doodads -p 'test_*.py'
+```
+
+The old individually generated masters remain historical references. Current
+sandbags retain their eight registry IDs, atlas slots, heavy cover and 0.3-cell
+ballistic half-height. Their silhouettes control the art; collision and cover
+still use the existing authored cells.
+
+The prefix-limited rebuild replaces complete sandbag cells in the existing atlas
+and requires an unchanged manifest. It preserves unrelated shipped props whose
+sources may have drifted (the current medical privacy screen is one such case).
+Use a full build when adding IDs or changing layout metadata.
