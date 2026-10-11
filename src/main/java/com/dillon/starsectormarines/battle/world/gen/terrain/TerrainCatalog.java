@@ -11,7 +11,8 @@ import java.util.Map;
 public final class TerrainCatalog {
     public static final String JUNCTION = "data/world/terrain/junction.terrain.json";
     public static final String RELAY_NINE = "data/world/terrain/relay-nine.terrain.json";
-    public static final List<String> BUILTINS = List.of(JUNCTION, RELAY_NINE);
+    public static final String THUNDER_RUN = "data/world/terrain/thunder-run.terrain.json";
+    public static final List<String> BUILTINS = List.of(JUNCTION, RELAY_NINE, THUNDER_RUN);
     private static volatile Map<String, TerrainPlan> plans = Map.of();
     private TerrainCatalog() {}
     @FunctionalInterface public interface Source { JSONObject read(String path) throws Exception; }
@@ -32,6 +33,7 @@ public final class TerrainCatalog {
         switch (path) {
             case JUNCTION -> { width = 192; height = 112; }
             case RELAY_NINE -> { width = 208; height = 128; }
+            case THUNDER_RUN -> { width = 320; height = 144; }
             default -> throw new IllegalArgumentException("Unknown mission terrain plan: " + path);
         }
         if (plan.width() != width || plan.height() != height)
