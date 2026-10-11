@@ -1,0 +1,15 @@
+{
+  "cellPx": 64,
+  "variants": 8,
+  "seed": 513109,
+  "materials": [
+    {
+      "id": "asphalt",
+      "base": "#34383a"
+    },
+    {
+      "id": "concrete",
+      "base": "#888981"
+    }
+  ]
+}

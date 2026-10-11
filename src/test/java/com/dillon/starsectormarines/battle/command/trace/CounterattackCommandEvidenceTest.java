@@ -8,11 +8,15 @@ import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
@@ -32,10 +36,76 @@ import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Opt-in neutral observation of Counterattack's production factory, never a second scene builder. */
 @Tag("counterattack-command-evidence")
 class CounterattackCommandEvidenceTest {
+    /** Production campaign tags, not generated per-sortie squads: two boats carry one twelve-person squad. */
+    @Test void pairedCampaignBoatsJoinOneSquadAndReleaseFormUp() throws Exception {
+        Path output = Path.of(System.getProperty("counterattack.command.evidence.outputDir",
+                "build/reports/commander/counterattack"));
+        Files.createDirectories(output);
+        JSONArray results = new JSONArray();
+        for (OpeningOperationKind kind : OpeningOperationKind.values()) {
+            MarineRoster roster = new MarineRoster();
+            roster.ensureActiveSoldiers(12);
+            CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(roster, 12);
+            List<ShuttleAssignment> manifest = List.of(
+                    new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6),
+                    new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6),
+                    new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6));
+            try (BattleSimulation sim = BattleSetup.createOpeningOperation(8101, manifest, 1,
+                    kind, TargetProfile.NEUTRAL)) {
+                deployment.applyTo(sim, 1);
+                float forwardPadX = 0;
+                Set<String> playerPads = new HashSet<>();
+                for (long air : sim.getAirEntityIds()) {
+                    if (sim.world().airFaction(air) != Faction.MARINE) continue;
+                    var mission = sim.world().mission(air);
+                    forwardPadX = Math.max(forwardPadX, mission.lzX);
+                    playerPads.add(mission.lzX + "," + mission.lzY);
+                    assertEquals(1, mission.totalCycles, "No later drop is scheduled");
+                }
+                assertEquals(2, playerPads.size(), "The regression needs two distinct transport pads");
+                int assembledTick = -1, advancedTick = -1;
+                Squad company = null;
+                while (!sim.isComplete() && sim.getSimTickIndex() < 1800) {
+                    sim.advance(BattleSimulation.TICK_DT);
+                    List<Squad> squads = sim.getSquads().stream()
+                            .filter(squad -> squad.faction == Faction.MARINE).toList();
+                    if (squads.stream().mapToInt(squad -> squad.originalSize).sum() < 12) continue;
+                    assertEquals(1, squads.size(), kind + ": all twelve landed but split into incomplete squads");
+                    company = squads.get(0);
+                    assertEquals(12, company.expectedSize);
+                    assertEquals(12, company.originalSize);
+                    assertNotNull(company.campaignSquadId);
+                    assertFalse(SquadFormUpSystem.formingUp(company));
+                    assertNotNull(company.assignmentForExecution(), "The joint advance must be executable");
+                    if (assembledTick < 0) {
+                        assembledTick = sim.getSimTickIndex();
+                        assertTrue(company.formUpElapsed < SquadFormUpSystem.FORM_UP_TIMEOUT,
+                                "Assembly must release on arrival, not after the timeout");
+                    }
+                    if (company.centroidX > forwardPadX + 6) {
+                        advancedTick = sim.getSimTickIndex();
+                        break;
+                    }
+                }
+                assertTrue(assembledTick >= 0, kind + ": the committed squad never assembled");
+                assertTrue(advancedTick >= 0, kind + ": the assembled squad never left the landing apron");
+                results.put(new JSONObject().put("mission", kind.name())
+                        .put("companySquads", 1).put("delivered", company.originalSize)
+                        .put("expected", company.expectedSize).put("assembledTick", assembledTick)
+                        .put("advancedTick", advancedTick).put("centroidX", company.centroidX)
+                        .put("forwardPadX", forwardPadX));
+            }
+        }
+        Files.writeString(output.resolve("paired-campaign-arrival.json"), results.toString(2));
+    }
+
     @Test void reportsDepotAdvanceAndDefense() throws Exception {
         assertEquals(Integer.MAX_VALUE, UnitUpdateSystem.configuredMinimumParallelUnits());
         Path output = Path.of(System.getProperty("counterattack.command.evidence.outputDir", "build/reports/commander/counterattack"));
