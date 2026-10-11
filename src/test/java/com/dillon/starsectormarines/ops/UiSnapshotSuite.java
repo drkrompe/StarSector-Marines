@@ -446,6 +446,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("battle-story-subtitle-wide.png",
                         renderStorySubtitle(context, renderer, narration.find("story_opening_relief",
                                 "opening.relief.checkpoint_reached").text())),
+                new SnapshotArtifact("battle-company-subtitle-wide.png",
+                        renderVoiceSubtitle(context, renderer,
+                                "Breathe. Find cover and get yourselves together. I need you alive.", true)),
                 new SnapshotArtifact("battle-hud-command-groups-wide.png",
                         renderBattleHudCommandOverlay(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
@@ -759,12 +762,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     /** Full-screen evidence for the production MLX command rail over battle contrast. */
     private static BufferedImage renderStorySubtitle(SnapshotContext context,
             HeadlessUiRenderer renderer, String text) throws Exception {
+        return renderVoiceSubtitle(context, renderer, text, false);
+    }
+
+    private static BufferedImage renderVoiceSubtitle(SnapshotContext context,
+            HeadlessUiRenderer renderer, String text, boolean officer) throws Exception {
         BufferedImage image = renderBattleHudTaskForce(FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
-                List.of(StorySubtitleOverlay.COMPONENT_PATH));
+                List.of(StorySubtitleOverlay.COMPONENT_PATH, "data/ui/components/battle/company-subtitle.mlx"));
         loader.reload();
-        try (MarkupInstance instance = loader.build(new Reactor(), StorySubtitleOverlay.COMPONENT,
-                StorySubtitleOverlay.props(text))) {
+        try (MarkupInstance instance = loader.build(new Reactor(),
+                officer ? "company-subtitle" : StorySubtitleOverlay.COMPONENT,
+                officer ? Map.of("speaker", "COMPANY COMMAND", "subtitle", text) : StorySubtitleOverlay.props(text))) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());

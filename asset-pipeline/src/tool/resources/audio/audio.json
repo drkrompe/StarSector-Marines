@@ -14,6 +14,18 @@
 // Comments and trailing commas are tolerated. ffmpeg must be on PATH (or $FFMPEG set).
 {
   "clips": [
+    // Company command: original voice, clean masters with offline comms treatment.
+    {"id": "marines_officer_contact_01", "source": "company-officer/marines_officer_contact_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_contact_02", "source": "company-officer/marines_officer_contact_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_fallback_01", "source": "company-officer/marines_officer_fallback_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_fallback_02", "source": "company-officer/marines_officer_fallback_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_check_fire_01", "source": "company-officer/marines_officer_check_fire_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_check_fire_02", "source": "company-officer/marines_officer_check_fire_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_mech_spotted_01", "source": "company-officer/marines_officer_mech_spotted_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_mech_spotted_02", "source": "company-officer/marines_officer_mech_spotted_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_enemy_down_01", "source": "company-officer/marines_officer_enemy_down_01.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+    {"id": "marines_officer_enemy_down_02", "source": "company-officer/marines_officer_enemy_down_02.mp3", "kind": "ui", "out": "battle/company-officer", "processing": "comms"},
+
     {"id": "marines_mara_junction_briefing", "source": "wayline/marines_mara_junction_briefing.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_junction_started", "source": "wayline/marines_mara_junction_started.mp3", "kind": "ui", "out": "story/wayline"},
     {"id": "marines_mara_junction_player_landed", "source": "wayline/marines_mara_junction_player_landed.mp3", "kind": "ui", "out": "story/wayline"},

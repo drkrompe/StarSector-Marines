@@ -36,7 +36,7 @@ public final class ProcessAudioTask {
         for (AudioManifest.AudioClip clip : manifest.clips()) {
             Path source = inputDir.resolve(clip.source());
             Path output = outputDir.resolve(clip.out() == null ? "" : clip.out()).resolve(clip.id() + ".ogg");
-            List<String> options = outputArguments(clip.kind());
+            List<String> options = outputArguments(clip.kind(), clip.processing());
             String recipe = ffmpeg.version() + "\n" + String.join("\n", options);
             try {
                 AudioEncodeCache.Result result = cache.materialize(source, output, recipe, (input, temporary) -> {
@@ -71,13 +71,25 @@ public final class ProcessAudioTask {
     }
 
     static List<String> outputArguments(AudioManifest.Kind kind) {
+        return outputArguments(kind, null);
+    }
+
+    static List<String> outputArguments(AudioManifest.Kind kind, AudioManifest.Processing processing) {
         String channels = switch (kind) {
             case POSITIONAL -> "1";
             case UI, MUSIC -> "2";
         };
         // Strip artwork and metadata; Vorbis quality 5 matches the existing game mix.
-        return List.of("-vn", "-map_metadata", "-1", "-ac", channels,
-                "-ar", "44100", "-c:a", "libvorbis", "-q:a", "5");
+        List<String> options = new ArrayList<>(List.of("-vn", "-map_metadata", "-1", "-ac", channels,
+                "-ar", "44100", "-c:a", "libvorbis", "-q:a", "5"));
+        if (processing == AudioManifest.Processing.COMMS) {
+            // One reusable radio recipe, separate from clean source takes. No pitch/time changes.
+            options.addAll(List.of("-af", "highpass=f=280:p=2,lowpass=f=3600:p=2,"
+                    + "acompressor=threshold=0.125:ratio=3:attack=5:release=90:makeup=1.5,"
+                    + "asoftclip=type=tanh:threshold=0.65:oversample=2,volume=2.5,"
+                    + "alimiter=limit=0.89:level=false:latency=true"));
+        }
+        return List.copyOf(options);
     }
 
     private static Ffmpeg resolveFfmpeg() throws InterruptedException {

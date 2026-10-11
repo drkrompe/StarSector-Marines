@@ -183,6 +183,7 @@ test {
     inputs.dir('mod/data')
     inputs.file('asset-pipeline/src/tool/resources/audio/audio.json')
     inputs.dir('asset-pipeline/src/tool/resources/audio/wayline')
+    inputs.dir('asset-pipeline/src/tool/resources/audio/company-officer')
             .withPropertyName('shippedCatalogs')
             .withPathSensitivity(PathSensitivity.RELATIVE)
     inputs.dir('mod/graphics')

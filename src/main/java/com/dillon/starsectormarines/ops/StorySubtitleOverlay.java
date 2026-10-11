@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -18,11 +19,11 @@ final class StorySubtitleOverlay {
     static final String COMPONENT_PATH = "data/ui/components/battle/story-subtitle.mlx";
     private final Reactor reactor = new Reactor();
     private final MarkupLoader loader = new MarkupLoader(
-            path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
+            path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH, "data/ui/components/battle/company-subtitle.mlx"));
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markup;
-    private WaylineNarration.Line current;
+    private Object current;
 
     void attach(PositionAPI position) {
         viewport = viewport(MarineOpsUiViewport.from(position));
@@ -44,13 +45,21 @@ final class StorySubtitleOverlay {
     }
 
     void update(WaylineNarration.Line line, float dt) {
-        if (line != current) {
+        update(line, null, dt);
+    }
+
+    void update(WaylineNarration.Line line, CompanyOfficer.Line officer, float dt) {
+        Object next = line != null ? line : officer;
+        if (next != current) {
             if (markup != null) markup.close();
             markup = null;
             document = null;
-            current = line;
-            if (line != null) {
-                markup = loader.reloadAndBuild(reactor, COMPONENT, props(line.text()));
+            current = next;
+            if (next != null) {
+                markup = line != null
+                        ? loader.reloadAndBuild(reactor, COMPONENT, props(line.text()))
+                        : loader.reloadAndBuild(reactor, "company-subtitle",
+                                Map.of("speaker", "COMPANY COMMAND", "subtitle", officer.text()));
                 document = new UiDocument(markup.root());
                 for (var style : markup.styles()) document.addStyleSheet(style);
                 document.theme(MarineOpsThemes.standard());

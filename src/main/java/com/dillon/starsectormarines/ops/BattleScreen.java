@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
+import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.MechFootstepAudio;
 import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
@@ -281,6 +282,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final StorySubtitleOverlay storySubtitles = new StorySubtitleOverlay();
     private StoryNarrationPlayer storyNarration;
     private SoundAPI radioSound;
+    private final CompanyOfficer companyOfficer = new CompanyOfficer();
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -294,11 +296,13 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (radioSound != null) radioSound.stop();
             radioSound = null;
             radioChatter.reset();
+            companyOfficer.reset();
             mechFootsteps.reset();
             storyNarration = new StoryNarrationPlayer(WaylineNarration.builtins(),
                     WaylineNarration.storyMissionId(ctx != null ? ctx.getSelectedMission() : null), line -> {
                         if (radioSound != null) radioSound.stop();
                         radioSound = null;
+                        companyOfficer.stop();
                         radioChatter.reserveVoice(line.durationSeconds());
                     });
         }
@@ -592,6 +596,7 @@ public class BattleScreen implements Screen, BattleUiContext {
 
     @Override
     public void detach() {
+        companyOfficer.stop();
         if (storyNarration != null) storyNarration.stop();
         storySubtitles.detach();
         if (radioSound != null) radioSound.stop();
@@ -1181,9 +1186,13 @@ public class BattleScreen implements Screen, BattleUiContext {
         boolean channelBusy = storyNarration != null && storyNarration.busy()
                 || radioSound != null && radioSound.isPlaying();
         boolean running = speedMultiplier > 0f && !sim.isComplete();
+        if (sim.isComplete()) companyOfficer.discardPending();
+        CompanyOfficer.Line response = companyOfficer.advance(dt, running, channelBusy);
+        if (response != null) radioChatter.reserveVoice(response.durationSeconds());
         BattleRadioChatter.Emission emission = radioChatter.advance(running ? dt : 0f, sim,
-                running && !channelBusy);
+                running && !channelBusy && !companyOfficer.busy());
         if (emission != null) {
+            companyOfficer.heard(emission.cue());
             Vector2f loc = new Vector2f(
                     emission.cellX() * AUDIO_WORLD_UNITS_PER_CELL,
                     emission.cellY() * AUDIO_WORLD_UNITS_PER_CELL);
@@ -1195,7 +1204,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             radioSound.stop();
             radioSound = null;
         }
-        storySubtitles.update(storyNarration != null ? storyNarration.current() : null, dt);
+        storySubtitles.update(storyNarration != null ? storyNarration.current() : null,
+                companyOfficer.current(), dt);
     }
 
     private void retreatFromBattle() {

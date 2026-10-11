@@ -49,7 +49,10 @@ public record AudioManifest(List<AudioClip> clips) {
         MUSIC
     }
 
-    public record AudioClip(String id, String source, Kind kind, String out) {}
+    /** Optional offline treatment. Omitted means the original clean encoding recipe. */
+    public enum Processing { COMMS }
+
+    public record AudioClip(String id, String source, Kind kind, String out, Processing processing) {}
 
     public static AudioManifest load(Path manifestPath) throws IOException {
         JsonMapper mapper = JsonMapper.builder()
