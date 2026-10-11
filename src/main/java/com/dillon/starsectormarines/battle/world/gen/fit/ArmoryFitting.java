@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.fit.layout.LayoutOp;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -51,6 +52,14 @@ import java.util.List;
  * furnished either way, and never bare deck under a hopeful id.
  */
 public final class ArmoryFitting implements RoomFitting {
+    private final boolean shipboard;
+
+    public ArmoryFitting() { this(false); }
+    private ArmoryFitting(boolean shipboard) { this.shipboard = shipboard; }
+    public static ArmoryFitting shipboard() { return new ArmoryFitting(true); }
+
+    private static final String SHIP_KIT = "armory-workshop.";
+
 
     /** Cells of apron in front of the counter — where a queue actually stands. */
     private static final int PUBLIC_DEPTH = 2;
@@ -135,6 +144,10 @@ public final class ArmoryFitting implements RoomFitting {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
         if (along < MIN_ALONG || across < MIN_ACROSS) return;
+        if (shipboard && along >= 12 && across >= 8) {
+            fitShipWorkshop(floor, along, across);
+            return;
+        }
 
         int counterRow = PUBLIC_DEPTH;
         int staffAisleRow = counterRow + 1;
@@ -154,6 +167,38 @@ public final class ArmoryFitting implements RoomFitting {
         layIssuePoints(floor, counterCols, counterRow, staffAisleRow);
         layWorkshop(floor, along, workshopFrom, workshopDepth);
         layRacks(floor, along, rackRow);
+    }
+
+    /** Public issue apron, one staff gate, an organized repair bench and separate storage runs. */
+    private void fitShipWorkshop(RoomFloor floor, int along, int across) {
+        reserve(floor, 0, 0, along, PUBLIC_DEPTH);
+        reserve(floor, 0, 3, along, 1);
+        reserve(floor, 0, across - 2, along, 1);
+        int gate = along - 4;
+        reserve(floor, gate, 2, 2, across - 4);
+        stubDoors(floor, along, across);
+        List<Integer> counters = new ArrayList<>();
+        for (int x = 0; x + 2 <= along; x += 2) {
+            if (x < gate + 2 && x + 2 > gate) continue;
+            if (floor.placeAssembly(x, 2, SHIP_KIT + "counter", List.of())) counters.add(x);
+        }
+        layIssuePoints(floor, counters, 2, 3);
+        shipFixture(floor, 0, 4, "ready-locker", List.of(), Affordance.STOW, 1, 3);
+        shipFixture(floor, 4, 4, "bench", List.of(new LayoutOp.Layer(0, 0, SHIP_KIT + "bench-tools")),
+                Affordance.REPAIR, 5, 3);
+        shipFixture(floor, along - 2, 4, "ammo", List.of(), Affordance.STOW, along - 1, 3);
+        for (int x = 0; x + 3 <= along; x += 3) {
+            List<LayoutOp.Layer> layers = List.of(
+                    new LayoutOp.Layer(0, 0, SHIP_KIT + "rifles"),
+                    new LayoutOp.Layer(0, 0, SHIP_KIT + "rack-frame"));
+            shipFixture(floor, x, across - 1, "rack", layers, Affordance.STOW, x + 1, across - 2);
+        }
+    }
+
+    private void shipFixture(RoomFloor floor, int x, int y, String id, List<LayoutOp.Layer> layers,
+                             Affordance work, int standX, int standY) {
+        if (floor.placeAssembly(x, y, SHIP_KIT + id, layers))
+            task(floor, standX, standY, work, standX, y);
     }
 
     /**

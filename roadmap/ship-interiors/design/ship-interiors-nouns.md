@@ -5,8 +5,8 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — generated Mech Labs use layered shelf storage and short
-bay partitions; authored room materials remain authoritative. The six-berth hangar opens to space on its central aisle;
+Updated: 2026-10-11 — ship workshops use layered fixtures, with organized Mech Lab
+storage and a dedicated armory issue counter, repair bench and weapons run. The six-berth hangar opens to space on its central aisle;
 ship boats follow that aisle and aperture on departure and return; machine servicing
 resolves close standing positions against the parked body.
 
@@ -491,6 +491,15 @@ closing the side access to a machine. Stores do not spill into those gaps.
 The assembly turns with the room, and an obstructed footprint omits the whole
 shelf rather than leaving disconnected layers. Blocking shelf footprints and
 partitions become physical only when the room passes its circulation check.
+
+The ship armory separates its public issue apron from the staff workshop with
+a counter and a deliberate staff opening. Behind it, a repair bench sits
+between ready-use equipment lockers and separate ammunition storage; the rear
+weapons-storage run has its own accessible alley. Weapons and tools are visual
+layers on their furniture, while issue, repair and stowage belong to reachable
+standing positions. These displayed contents do not assert a campaign inventory.
+The complete assemblies follow the room pose and yield whole footprints to
+fallback door approaches.
 
 Crew routes are **derived from fixtures**, never hand-listed per deck. A route
 author reads a compartment's placed fixtures and their affordances and emits the

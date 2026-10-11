@@ -4,6 +4,14 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.fit.ArmoryFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.FurnishableRoom;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSizing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
@@ -19,6 +27,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /** Material acceptance in the review bay, cardinal openings and a generated company hull. */
 public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
@@ -49,6 +58,12 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
             DeckGraph.Compartment room = generator.getLastDeckGraph().compartments().stream()
                     .filter(c -> c.purpose() == purpose).findFirst().orElse(null);
             if (room == null) continue;
+            if (purpose == RoomPurpose.ARMORY) {
+                for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
+                        "ship-materials-armory-" + scale + "px.png",
+                        renderer.renderView(deck, 42, room.originX() + room.width() / 2f,
+                                room.originY() + room.depth() / 2f, room.width() + 4, room.depth() + 4, scale)));
+            }
             if (purpose == RoomPurpose.VEHICLE_BAY) {
                 images.add(new SnapshotArtifact("ship-materials-mech-lab-game-scale.png",
                         renderer.renderView(deck, 42, room.originX() + room.width() / 2f,
@@ -66,7 +81,43 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
                             room.originY() + room.depth() / 2f,
                             room.width() + 8, room.depth() + 8, 32)));
         }
+        for (int turn = 0; turn < 4; turn++) images.add(new SnapshotArtifact(
+                "ship-materials-armory-pose-" + turn + ".png", renderer.render(armoryPose(turn), 42, 40)));
         return images;
+    }
+
+    private record ArmoryRoom(RoomShape shape, int originX, int originY, RoomPose pose,
+                              RoomPurpose purpose, List<Doorway> doors) implements FurnishableRoom {}
+
+    /** Small posed fitting evidence; the generated hull above remains production-layout acceptance. */
+    private static MapResult armoryPose(int turn) {
+        RoomPose pose = new RoomPose(turn, false);
+        RoomShape shape = RoomShape.rectangle(12, 8).posed(pose);
+        int width = shape.width() + 4, height = shape.height() + 4;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        CellTopology topology = new CellTopology(width, height);
+        for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) {
+            grid.setWalkableFloor(x, y);
+            topology.setGroundKind(x, y, GroundKind.INDOOR);
+            topology.setSurface(x, y, topology.surfaceIndex("ship.passage-deck"));
+        }
+        for (int[] cell : shape.wall()) {
+            int x = cell[0] + 2, y = cell[1] + 2;
+            grid.setWalkable(x, y, false); topology.setWall(x, y, true);
+            topology.setSurface(x, y, topology.surfaceIndex("ship.neutral-bulkhead"));
+        }
+        int[] door = pose.map(3, -1, 12, 8);
+        int dx = door[0] + 2, dy = door[1] + 2;
+        grid.setWalkableFloor(dx, dy); grid.setDoorway(dx, dy, true); topology.setWall(dx, dy, false);
+        topology.setSurface(dx, dy, topology.surfaceIndex("ship.passage-deck"));
+        GenContext ctx = new GenContext(grid, topology, new Random(42), width, height, 42);
+        RoomFloor floor = new RoomFloor(ctx, new ArmoryRoom(shape, 2, 2, pose, RoomPurpose.ARMORY,
+                List.of(new Doorway(dx, dy))), RoomFit.STANDARD);
+        ArmoryFitting.shipboard().fit(floor);
+        if (!floor.circulationSurvives() || floor.dropUnreachableWork() != 0)
+            throw new IllegalStateException("Armory pose loses circulation or work: " + turn);
+        floor.seal(); WallMasks.stampUnclaimed(topology);
+        return new MapResult(grid, topology, dx, dy, dx, dy, List.of(), ctx.doodads);
     }
 
     private static MapResult openings() {
