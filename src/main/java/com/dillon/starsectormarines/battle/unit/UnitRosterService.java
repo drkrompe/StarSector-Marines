@@ -1313,33 +1313,17 @@ public final class UnitRosterService {
     }
 
     /**
-     * The battle squad a tagged campaign marine joins at this landing zone,
-     * minting one on the squad's first arrival there. This is what lets a
-     * twelve-marine squad cross in three lifts and still be one unit on the
-     * ground; see {@link CampaignSquadIndex} for why the zone is part of the
-     * key. Synchronized on the same monitor as {@link #mintSquad} because it
-     * mints through it.
+     * Mint-or-join by campaign squad and explicit tactical area, never by berth.
+     * The shared transport default keeps a squad together; only a mission that
+     * assigns different areas may split it. Synchronized with squad minting.
      */
     public int squadForCampaign(Faction faction, UnitType type,
-                                CampaignSquadTag tag, int lzX, int lzY) {
-        synchronized (squads) {
-            int existing = campaignSquads.landed(tag.squadId, lzX, lzY);
-            if (existing != Squad.NO_SQUAD) return existing;
-            int minted = mintSquad(faction, type);
-            campaignSquads.register(tag, lzX, lzY, minted);
-            return minted;
-        }
-    }
-
-    /** Area-keyed campaign grouping for two craft sharing one logical arrival. */
-    public int squadForCampaign(Faction faction, UnitType type,
                                 CampaignSquadTag tag, int landingAreaId) {
-        String landingKey = "area:" + landingAreaId;
         synchronized (squads) {
-            int existing = campaignSquads.landed(tag.squadId, landingKey);
+            int existing = campaignSquads.landed(tag.squadId, landingAreaId);
             if (existing != Squad.NO_SQUAD) return existing;
             int minted = mintSquad(faction, type);
-            campaignSquads.register(tag, landingKey, minted);
+            campaignSquads.register(tag, landingAreaId, minted);
             return minted;
         }
     }

@@ -1206,9 +1206,6 @@ public final class BattleSetup {
                     assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
-            // These pads are berths on one authored apron, not separate squad destinations.
-            // Campaign personnel carried by different boats must assemble into the same squad.
-            shuttleMission.landingAreaId = 0;
             if (localMilitia) {
                 if (reliefPost != null) shuttleMission.garrisonNode = reliefPost;
                 else shuttleMission.commandClaim = SquadCommandClaim.mission(
@@ -1300,8 +1297,6 @@ public final class BattleSetup {
             ShuttleMission mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles;
             mission.manifestOrdinal = i - 1;
-            // Separate berths on one apron must reunite tagged campaign squads.
-            mission.landingAreaId = 0;
             mission.commandClaim = SquadCommandClaim.mission(JunctionCommand.issuer(faction), "Junction committed lift");
             mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
@@ -1356,8 +1351,6 @@ public final class BattleSetup {
             ShuttleMission mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles;
             mission.manifestOrdinal = i < 2 ? -1 : i - 2;
-            // Separate berths on one apron must reunite tagged campaign squads.
-            mission.landingAreaId = 0;
             mission.commandClaim = SquadCommandClaim.mission(RelayNineCommand.issuer(faction), "RelayNine committed lift");
             mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
@@ -1410,8 +1403,6 @@ public final class BattleSetup {
             ShuttleMission mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles;
             mission.manifestOrdinal = i < 2 ? -1 : i - 2;
-            // Separate berths on one apron must reunite tagged campaign squads.
-            mission.landingAreaId = 0;
             mission.commandClaim = SquadCommandClaim.mission(ThunderRunCommand.issuer(faction), "ThunderRun committed lift");
             mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
@@ -1468,8 +1459,6 @@ public final class BattleSetup {
                     x, y, entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
             var mission = sim.world().mission(air);
             mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
-            // Separate berths on one apron must reunite tagged campaign squads.
-            mission.landingAreaId = 0;
             mission.commandClaim = SquadCommandClaim.mission("rescue-corridor", "Rill relief and escort");
             mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
             for (int cycle = 0; cycle < assignment.cycles; cycle++)

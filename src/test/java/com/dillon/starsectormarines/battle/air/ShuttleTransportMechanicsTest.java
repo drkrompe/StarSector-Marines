@@ -320,14 +320,14 @@ class ShuttleTransportMechanicsTest {
     }
 
     @Test
-    void arrivalMetadataDefaultsToLegacyNeutralValues() {
+    void campaignArrivalDefaultsToOneAreaWhileGeneratedArrivalGroupsRemainOptIn() {
         try (BattleSimulation sim = openSimulation()) {
             long shuttle = sim.spawnShuttle(ShuttleType.KITE, Faction.MARINE,
                     10.5f, 10.5f, -2f, 10.5f, 22f, 10.5f, 0f);
             ShuttleMission mission = sim.world().mission(shuttle);
 
             assertEquals(-1, mission.manifestOrdinal);
-            assertEquals(-1, mission.landingAreaId);
+            assertEquals(0, mission.landingAreaId);
             assertEquals(-1, mission.arrivalGroupId);
             assertEquals(0, mission.expectedArrivalStrength);
         }
