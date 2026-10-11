@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — geometry-guided wall caps retain all sixteen exposed-face combinations and share the existing authoring/export path.
+Updated: 2026-10-11 — geometry-guided wall caps retain all sixteen exposed-face combinations; procedural pavement has a retained recipe and independent catalog sheet; additional ground sheets share both render backends.
 
 Read `stories.md` for open work.
 
@@ -566,6 +566,25 @@ Raw sheets, masters, authoring documents and derivation scripts are pre-pack
 input and live outside `mod/`, which is synchronized wholesale into every
 install. They stay version-controlled: a sheet has to remain re-derivable and
 re-annotatable, and its annotation cannot be recovered by re-running anything.
+
+## Procedural pavement
+
+Pavement has its own retained procedural recipe: material colors, source cell
+size, variant count and source seed. One baker produces both its independent
+atlas and the catalog that addresses it. The recipe and baker are pre-pack art
+inputs; the image and id-addressed pools are the shipped result. Rebuilding does
+not edit another sheet or rely on old packed coordinates. These procedural
+materials are found as catalog surfaces; they are regenerated from their recipe,
+rather than re-cut from an annotated raw plate.
+
+Fresh, worn and cracked asphalt and concrete are distinct named variant pools.
+The road authoring layer selects between them; the renderer resolves the chosen
+pool by ordinary stable cell selection. A wear seed controls where age patches
+appear, while tile variants remain coordinate-stable within each pool.
+Additional fixed-grid block sheets load through the catalog in both the game
+and headless renderer. They retain registered per-sheet batches alongside the existing ground atlas;
+content on a new sheet must not
+silently render as an empty cell.
 
 ## Validation and fallback laws
 

@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — authored building stamps add concave plans, cardinal poses and distinct material families; prepared freight checkpoint preserves yard gates, firing aprons and the vehicle carriageway.
+Updated: 2026-10-11 — authored building stamps add concave plans and distinct materials; spline roads share topology and rendering with the workbench, with visual pavement wear.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -350,6 +350,34 @@ standing check measures with the vehicle's own footprint erosion and asserts the
 narrowest drivable width across the fortress — not merely that a path exists.
 It runs on both traversal axes, because the original defect was four times worse
 on one of them and a single-axis check would have hidden it.
+
+## Authored roads
+
+A **road plan** owns a map extent and an ordered collection of spline centerlines.
+Each road declares anchors, carriageway width, shoulder width, pavement material,
+wear and a wear-pattern seed. The shared rasterizer sweeps the spline onto the
+navigation cell lattice; authoring and generation consume that same result.
+The spline is spatial intent, not a vehicle steering path. Its raster footprint
+can be reserved before structure placement; stamping refuses occupied ground
+rather than carving through a building or fixture.
+
+Intersecting carriageways form one paved footprint. The first declared road
+owns material where carriageways overlap, and a shoulder never erases a road.
+Widths and map edges still obey grid quantization. A smooth centerline does not
+claim a smooth mesh edge or prove a chassis can negotiate a tight turn; mission
+acceptance continues to use the actual vehicle clearance and motion systems.
+
+**Wear is appearance, not terrain damage.** A fixed coordinate/seed field blends
+fresh, worn and cracked material pools in stable patches. Increasing wear only
+ages a patch; it neither rerolls the district nor changes road width, shoulder,
+walkability or movement cost. Cracks do not manufacture cover or impassable holes.
+
+Road documents are versioned and round-trip through the Roads authoring page.
+The preview uses production topology, tile selection and rendering. A mission
+chooses which document it consumes and retains its own spatial contract:
+Thunder Run permits pavement and wear changes while keeping its reserved freight
+and ambush corridors. Moving those roads also requires redesigning its facilities,
+vehicle stops and approach routes, rather than changing a spline file alone.
 
 ## City, station, and ship families
 
