@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import org.json.JSONObject;
@@ -12,6 +14,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,14 +49,55 @@ class BarracksTurnaroundTest {
         assertTrue(model.selected().contains(recipient.id()), "An equipment visit preserves selection");
     }
 
+    @Test void guideFollowsSuccessfulOrdersAndNeverRequiresWastefulActions() throws Exception {
+        CompanyManagementGuide.install(new JSONObject(Files.readString(Path.of("mod", CompanyManagementGuide.PATH))));
+        try {
+            var roster = new MarineRoster();
+            roster.bootstrapInitialComplement(12);
+            var recipient = roster.squads().stream().filter(s -> !s.reserve()).findFirst().orElseThrow();
+            for (String id : recipient.memberIds().subList(0, 4)) {
+                roster.applySoldierOutcome(Map.of(id, MarineSoldierStatus.KIA), 0f, 0f);
+            }
+            var donor = roster.createSquad();
+            roster.recruitToSquad(donor.id(), 2);
+            var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
+            model.toggle(recipient.id());
+            assertEquals("barracks-choose-donors", model.guideTargetId());
+            model.applyTransfers();
+            assertEquals("barracks-choose-donors", model.guideTargetId(), "An unreviewed order cannot advance the guide");
+            action(model, "chooseDonors");
+            model.toggle(donor.id());
+            assertEquals("barracks-review-transfers", model.guideTargetId());
+            model.reviewTransfers();
+            assertEquals("barracks-apply-transfers", model.guideTargetId());
+            model.applyTransfers();
+            assertEquals(10, roster.readyCount(recipient));
+            assertEquals("barracks-reinforce", model.guideTargetId());
+            model.reinforceSelected();
+            assertEquals("barracks-reinforce", model.guideTargetId(), "No available personnel means no false success");
+            roster.recruitToSquad(roster.reserveSquad().id(), 2);
+            model.reinforceSelected();
+            assertEquals(12, roster.readyCount(recipient));
+            assertEquals("barracks-issue", model.guideTargetId());
+            var profile = roster.armory().saveSquadProfile("Security", SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+            roster.assignSquadProfile(Set.of(recipient.id()), profile.id());
+            model.issueSelected();
+            assertEquals("page-nav-return", model.guideTargetId());
+            action(model, "guidePrevious");
+            action(model, "guideNext");
+            assertEquals(12, roster.readyCount(recipient), "Manual lesson navigation never performs orders");
+        } finally { CompanyManagementGuide.install(new JSONObject("{\"lines\":[]}")); }
+    }
+
     @Test void guideDismissalPersistsAndHelpReopensWithoutTouchingCompany() throws Exception {
         CompanyManagementGuide.install(new JSONObject(Files.readString(Path.of("mod", CompanyManagementGuide.PATH))));
         try {
             var roster = new MarineRoster();
             var model = new BarracksViewModel(new Reactor(), roster, () -> 0d).command();
-            assertNotEquals("guide-backdrop-hidden", value(model, "guideClasses"));
+            assertNotEquals("guide-callout hidden", value(model, "guideClasses"));
             action(model, "guideDismiss");
-            assertEquals("guide-backdrop-hidden", value(model, "guideClasses"));
+            assertEquals("guide-callout hidden", value(model, "guideClasses"));
             var bytes = new ByteArrayOutputStream();
             try (var output = new ObjectOutputStream(bytes)) { output.writeObject(roster); }
             MarineRoster loaded;
@@ -61,9 +106,9 @@ class BarracksTurnaroundTest {
             }
             assertTrue(loaded.managementGuideDismissed());
             var restored = new BarracksViewModel(new Reactor(), loaded, () -> 0d).command();
-            assertEquals("guide-backdrop-hidden", value(restored, "guideClasses"));
+            assertEquals("guide-callout hidden", value(restored, "guideClasses"));
             action(restored, "guideHelp");
-            assertNotEquals("guide-backdrop-hidden", value(restored, "guideClasses"));
+            assertNotEquals("guide-callout hidden", value(restored, "guideClasses"));
             action(restored, "guideNext");
             assertTrue(value(restored, "guideText").toString().contains("wounded"));
             assertEquals(0, loaded.lineReadySoldiers().size());
