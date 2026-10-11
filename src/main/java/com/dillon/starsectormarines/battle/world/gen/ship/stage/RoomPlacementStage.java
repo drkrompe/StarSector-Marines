@@ -208,7 +208,7 @@ public final class RoomPlacementStage implements GenStage {
     static BayAperture doorOnto(GenContext ctx, boolean[][] hull,
                                DeckGraph.Compartment room,
                                List<DeckGraph.Compartment> rooms) {
-        RoomFitting fitting = RoomFittings.forRoom(ctx, room.purpose(), room.shape());
+        RoomFitting fitting = RoomFittings.forShipRoom(room.purpose(), room.shape(), RoomFittings.levelOf(ctx));
         int[] authored = fitting == null ? null : fitting.outboard();
         int[] named = authored == null ? null
                 : room.pose().mapDirection(authored[0], authored[1]);

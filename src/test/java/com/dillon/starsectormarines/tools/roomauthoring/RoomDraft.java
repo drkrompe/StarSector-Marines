@@ -82,7 +82,7 @@ public final class RoomDraft {
     public int provides() {
         int count = 0;
         for (LayoutOp op : ops) {
-            if (op instanceof LayoutOp.Fixture) count++;
+            if (op instanceof LayoutOp.Fixture || op instanceof LayoutOp.Assembly) count++;
         }
         return count;
     }
@@ -281,6 +281,8 @@ public final class RoomDraft {
      */
     private static int[] cellOf(LayoutOp op) {
         if (op instanceof LayoutOp.Fixture fixture) return new int[]{ fixture.x(), fixture.y() };
+        if (op instanceof LayoutOp.Assembly assembly) return new int[]{ assembly.x(), assembly.y() };
+        if (op instanceof LayoutOp.Partition wall) return new int[]{ wall.x(), wall.y() };
         if (op instanceof LayoutOp.Paving paving) return new int[]{ paving.x(), paving.y() };
         if (op instanceof LayoutOp.Task task) return new int[]{ task.x(), task.y() };
         return null;
