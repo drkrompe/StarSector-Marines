@@ -58,7 +58,9 @@ public final class TileRegistry {
             "data/tilesets/colony-ground-damage.tileset.json",
             "data/tilesets/ship-bay.tileset.json",
             "data/tilesets/auto-shop.tileset.json",
-            "data/tilesets/warehouse-racks.tileset.json");
+            "data/tilesets/warehouse-racks.tileset.json",
+            "data/tilesets/warehouse-racks-muted.tileset.json",
+            "data/tilesets/ship-bulkheads.tileset.json");
 
     private static volatile TileRegistry installed;
 

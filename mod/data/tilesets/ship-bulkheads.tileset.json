@@ -1,0 +1,111 @@
+{
+  "blocks": [{
+    "id": "ship.neutral-bulkhead",
+    "layout": "wall-faces-4x4",
+    "origin": [
+      0,
+      0
+    ]
+  }],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "ship.neutral-bulkhead faces-0",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north",
+      "name": "ship.neutral-bulkhead faces-1",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east",
+      "name": "ship.neutral-bulkhead faces-2",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east",
+      "name": "ship.neutral-bulkhead faces-3",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south",
+      "name": "ship.neutral-bulkhead faces-4",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south",
+      "name": "ship.neutral-bulkhead faces-5",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south",
+      "name": "ship.neutral-bulkhead faces-6",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south",
+      "name": "ship.neutral-bulkhead faces-7",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on west",
+      "name": "ship.neutral-bulkhead faces-8",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and west",
+      "name": "ship.neutral-bulkhead faces-9",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and west",
+      "name": "ship.neutral-bulkhead faces-10",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and west",
+      "name": "ship.neutral-bulkhead faces-11",
+      "row": 2
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south and west",
+      "name": "ship.neutral-bulkhead faces-12",
+      "row": 3
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south and west",
+      "name": "ship.neutral-bulkhead faces-13",
+      "row": 3
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south and west",
+      "name": "ship.neutral-bulkhead faces-14",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "ship.neutral-bulkhead faces-15",
+      "row": 3
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/ship-bulkheads.png"
+}
