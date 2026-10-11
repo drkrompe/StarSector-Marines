@@ -57,13 +57,13 @@ public final class ControlledMechScene implements BehaviorScene {
             if (!wall) sim.getMechDoctrineService().requestLanceOrder(mech, MechLanceOrder.FREE_REIGN);
             if (wall) for (int y = 0; y < 36; y++) sim.getGrid().blockSharedEdge(7, y, Direction.E);
             MechWeaponMount arms = sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS);
-            arms.cooldown = 1f;
+            arms.cycleRemaining = 1f;
             boolean entered = sim.directControl().enter(mech);
             float startX = sim.world().x(mech), startY = sim.world().y(mech);
             float otherStartX = wall ? 0f : sim.world().x(other);
             float blockedX = startX, openedX = startX, releaseX = startX, progress = 0f;
             boolean legal = true, heldAtEdge = true, noAiRoute = true, noEntityTarget = true;
-            boolean pivotHeld = false, clockAdvanced = false, paused = false;
+            boolean initialMotion = false, clockAdvanced = false, paused = false;
             int shots = 0, roundsAtSuspend = 0;
             int ticks = wall ? 360 : 660;
             StringBuilder trace = new StringBuilder();
@@ -89,18 +89,18 @@ public final class ControlledMechScene implements BehaviorScene {
                     }
                 }
                 if (tick == 90) {
-                    float x = sim.world().x(mech), y = sim.world().y(mech), cooldown = arms.cooldown;
+                    float x = sim.world().x(mech), y = sim.world().y(mech), cooldown = arms.cycleRemaining;
                     int rounds = sim.telemetry().roundsFired(mech), ammo = arms.ammo;
                     sim.advance(0f);
                     paused = x == sim.world().x(mech) && y == sim.world().y(mech)
-                            && cooldown == arms.cooldown && ammo == arms.ammo
+                            && cooldown == arms.cycleRemaining && ammo == arms.ammo
                             && rounds == sim.telemetry().roundsFired(mech);
                 }
                 sim.advance(BattleSimulation.TICK_DT);
                 shots += (int) sim.getShotsThisFrame().stream().filter(shot -> shot.shooterId == mech).count();
                 if (tick == 0) {
-                    pivotHeld = sim.world().x(mech) == startX && sim.world().y(mech) == startY;
-                    clockAdvanced = arms.cooldown < 1f && arms.cooldown > 0f;
+                    initialMotion = sim.world().x(mech) != startX || sim.world().y(mech) != startY;
+                    clockAdvanced = arms.cycleRemaining < 1f && arms.cycleRemaining > 0f;
                 }
                 legal &= ManualTerrainMotion.canStand(sim.getGrid(), sim.world().x(mech),
                         sim.world().y(mech), sim.physicalRadius(mech));
@@ -112,7 +112,7 @@ public final class ControlledMechScene implements BehaviorScene {
                 trace.append(Float.floatToIntBits(sim.world().x(mech))).append(',')
                         .append(Float.floatToIntBits(sim.world().y(mech))).append(',')
                         .append(Float.floatToIntBits(sim.world().mechHipFacingDegrees(mech))).append(',')
-                        .append(Float.floatToIntBits(arms.cooldown)).append(',')
+                        .append(Float.floatToIntBits(arms.cycleRemaining)).append(',')
                         .append(sim.telemetry().roundsFired(mech)).append(',')
                         .append(sim.directControl().activeUnitId()).append(';');
                 if (!wall) trace.append(Float.floatToIntBits(sim.world().x(other))).append(',')
@@ -124,12 +124,12 @@ public final class ControlledMechScene implements BehaviorScene {
             verdicts.add(Verdict.of("whole-body-clear", legal, "every pose clears the actual 0.6-cell chassis radius"));
             verdicts.add(Verdict.of("manual-authority", noAiRoute && noEntityTarget,
                     "controlled chassis receives no autonomous route or entity fire target"));
-            verdicts.add(Verdict.of("live-clock", clockAdvanced, "mount cooldown advances during manual control"));
+            verdicts.add(Verdict.of("live-clock", clockAdvanced, "mechanical cycle advances during manual control"));
             verdicts.add(Verdict.of("pause", paused, "zero simulation time preserves pose, rounds, ammunition and mount clock"));
             verdicts.add(Verdict.of("mission-preserved", leader == squad.leaderId
                             && assignment.equals(squad.assignedObjective), "original leader and mission remain unchanged"));
             if (wall) {
-                verdicts.add(Verdict.of("pivot-before-drive", pivotHeld, "initial east input waits for hip alignment"));
+                verdicts.add(Verdict.of("drive-during-pivot", initialMotion, "manual input translates while hips traverse"));
                 verdicts.add(Verdict.of("closed-edge", heldAtEdge && blockedX > startX + 2f,
                         "full body advances from " + startX + " and stops at " + blockedX));
                 verdicts.add(Verdict.of("opened-edge", openedX > 9f,

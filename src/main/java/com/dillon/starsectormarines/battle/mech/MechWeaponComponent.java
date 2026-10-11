@@ -117,6 +117,54 @@ public enum MechWeaponComponent {
         this.appearanceSelector = appearanceSelector;
     }
 
+    /** Mechanical trigger-to-trigger time, independent of thermal headroom and pack supply. */
+    public float cycleSeconds() {
+        return switch (this) {
+            case NOSE_CHAINGUN -> .65f;
+            case DUAL_CHAINGUNS -> 1.05f;
+            case SRM_5 -> 1.8f;
+            case SRM_15 -> 2.6f;
+            case LRM_5, LRM_15 -> 9f;
+            case DUAL_LINEAR_CANNONS -> 2.8f;
+            case SINGLE_HEAVY_CANNON -> 2.5f;
+            case DUAL_PULSE_LASERS -> 2.1f;
+            case DUAL_BASTION_AUTOCANNONS -> 2.6f;
+            case DEMOLITION_CANNON -> 5.8f;
+            case DUAL_MUSTER_AUTOGUNS, NOSE_MUSTER_AUTOGUN -> 2.4f;
+            case QUARRY_BREAKER_CANNON -> 5.5f;
+            case SHOULDER_LASER_CANNON, PIONEER_ROCKET_CRADLE -> 7f;
+            case THERMAL_LANCE -> 4.8f;
+        };
+    }
+
+    /** Whole-packet thermal reservation: scheduled rounds cannot stall halfway through a salvo. */
+    public float heatPerTrigger() {
+        return switch (this) {
+            case NOSE_CHAINGUN -> 18f;
+            case DUAL_CHAINGUNS -> 30f;
+            case SRM_5 -> 28f;
+            case SRM_15 -> 42f;
+            case LRM_5 -> 22f;
+            case LRM_15 -> 40f;
+            case DUAL_LINEAR_CANNONS, DUAL_BASTION_AUTOCANNONS -> 24f;
+            case SINGLE_HEAVY_CANNON, DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
+            case DUAL_PULSE_LASERS -> 38f;
+            case DUAL_MUSTER_AUTOGUNS -> 22f;
+            case NOSE_MUSTER_AUTOGUN -> 14f;
+            case SHOULDER_LASER_CANNON -> 35f;
+            case THERMAL_LANCE -> 32f;
+            case PIONEER_ROCKET_CRADLE -> 24f;
+        };
+    }
+
+    public String cycleLabel() {
+        return switch (hardpointType) {
+            case BALLISTIC -> "Cycler";
+            case MISSILE -> "Loader";
+            case ENERGY -> "Capacitor";
+        };
+    }
+
     public WeaponDef weaponDef() { return WeaponRegistry.require(weaponId); }
 
     public static MechWeaponComponent findById(String id) {

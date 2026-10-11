@@ -1,6 +1,6 @@
 # Mech internal systems
 
-Status: Proposed — design only; no new live stats or recorded dialogue.
+Status: Heat and mechanical weapon cycles implemented; engine, armor and alternate subsystem fittings remain design-only. No new recorded dialogue.
 
 ## Player promise
 
@@ -42,11 +42,11 @@ and burst estimates in the lab's hover sheet. Engine/armor remain sealed and
 read-only until their mechanics exist. Castle introduces each real system as it
 ships; no narration production before the rules and tutorial text settle.
 
-## Next implementation slice
+## Next fitting slice
 
-Prototype heat on one Hound and its baseline weapons first. Compare sustained AI
-fire, held player fire, timed bursts and handback using deterministic firing
-fixtures. Then add one alternate cooling/loader choice and the fitting budget.
+The Hound baseline now has shared heat and independent cycler/loader clocks,
+with held-fire, paced-burst, AI and handback evidence in `hound-heat`. Next add
+one alternate cooling/loader choice and the fitting budget.
 Only afterwards expose engine and armor swaps. Wider patterns should arrive as
 explicit story/salvage/market rewards, not an automatic full-catalog unlock when
 the fitting lesson ends. Keep earlier owned gear intact.

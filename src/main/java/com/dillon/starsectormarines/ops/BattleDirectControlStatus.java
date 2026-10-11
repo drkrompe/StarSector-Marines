@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.MechHeat;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
@@ -36,7 +37,7 @@ final class BattleDirectControlStatus {
 
     record Snapshot(long entityId, String name, Carrier carrier, Durability durability,
                     List<WeaponStatus> weapons, List<AbilityStatus> abilities,
-                    MarineSprint.Status sprint) {
+                    MarineSprint.Status sprint, HeatStatus heat) {
         static final Snapshot EMPTY = new Snapshot(0L, "", Carrier.NONE,
                 new Durability(0f, 0f, 0f, 0f, 0f), List.of());
 
@@ -45,6 +46,11 @@ final class BattleDirectControlStatus {
             weapons = List.copyOf(weapons);
             abilities = List.copyOf(abilities);
             sprint = sprint == null ? MarineSprint.EMPTY : sprint;
+        }
+
+        Snapshot(long entityId, String name, Carrier carrier, Durability durability,
+                 List<WeaponStatus> weapons, List<AbilityStatus> abilities, MarineSprint.Status sprint) {
+            this(entityId, name, carrier, durability, weapons, abilities, sprint, null);
         }
 
         Snapshot(long entityId, String name, Carrier carrier, Durability durability,
@@ -57,6 +63,8 @@ final class BattleDirectControlStatus {
             this(entityId, name, carrier, durability, weapons, List.of());
         }
     }
+
+    record HeatStatus(float value, boolean venting) { }
 
     /** A broken screen is a durability fact; the suit's remaining boost is not shield uptime. */
     record AbilityStatus(DirectControlAbility ability, String name, boolean ready,
@@ -89,7 +97,14 @@ final class BattleDirectControlStatus {
 
     record WeaponStatus(int number, String slotKey, String name, Behavior behavior,
                         boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
-                        int burstRemaining, float burstSeconds, Ammo ammo) {
+                        int burstRemaining, float burstSeconds, Ammo ammo,
+                        boolean thermalBlocked, String mechanism) {
+        WeaponStatus(int number, String slotKey, String name, Behavior behavior,
+                     boolean directEligible, float cooldownSeconds, float cycleDurationSeconds,
+                     int burstRemaining, float burstSeconds, Ammo ammo) {
+            this(number, slotKey, name, behavior, directEligible, cooldownSeconds,
+                    cycleDurationSeconds, burstRemaining, burstSeconds, ammo, false, "");
+        }
         WeaponState state() {
             if (burstRemaining > 0) return WeaponState.BURST;
             if (ammo.unit() != AmmoUnit.UNTRACKED && !ammo.unlimited() && ammo.remaining() <= 0) {
@@ -121,7 +136,9 @@ final class BattleDirectControlStatus {
         }
         if (world.hasMechLoadout(id)) {
             return new Snapshot(id, name, Carrier.MECH, durability,
-                    mechWeapons(world.mechLoadout(id).mounts()));
+                    mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).heat), List.of(),
+                    MarineSprint.EMPTY, new HeatStatus(world.mechLoadout(id).heat.value(),
+                    world.mechLoadout(id).heat.venting()));
         }
         var combat = sim.combat();
         WeaponDef primary = combat.has(id) ? combat.primaryWeaponDef(id) : null;
@@ -185,16 +202,21 @@ final class BattleDirectControlStatus {
     }
 
     static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts) {
+        return mechWeapons(mounts, new MechHeat());
+    }
+
+    static List<WeaponStatus> mechWeapons(MechWeaponMount[] mounts, MechHeat heat) {
         List<WeaponStatus> weapons = new ArrayList<>();
         for (MechWeaponMount mount : mounts) {
             if (mount == null) continue;
             WeaponDef weapon = mount.weaponDef();
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
                     mount.component.displayName, behavior(weapon, mount.component.projectilesPerTrigger),
-                    HeavyWeapons.supportsPointFire(mount), mount.cooldown, weapon.cooldown,
+                    HeavyWeapons.supportsPointFire(mount), mount.cycleRemaining, mount.component.cycleSeconds(),
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
-                            mount.component.ammoCapacity < 0)));
+                            mount.component.ammoCapacity < 0),
+                    !heat.permits(mount.component.heatPerTrigger(), false), mount.component.cycleLabel()));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));
         return List.copyOf(weapons);

@@ -25,7 +25,7 @@ final class BattleDirectControlOverlay {
     static final String ACTION_COMPONENT = "battle-direct-control-hud";
     static final String ACTION_COMPONENT_PATH = "data/ui/components/battle/" + ACTION_COMPONENT + ".mlx";
     static final float ACTION_WIDTH = 640f;
-    static final float ACTION_HEIGHT = 52f;
+    static final float ACTION_HEIGHT = 70f;
     static final String ACTIONS_COMPONENT = "battle-direct-control-actions";
     static final String ACTIONS_COMPONENT_PATH = "data/ui/components/battle/" + ACTIONS_COMPONENT + ".mlx";
     static final float ACTIONS_WIDTH = 154f;
