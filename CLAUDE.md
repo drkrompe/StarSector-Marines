@@ -189,7 +189,8 @@ Do not run builds or leave generated task files there.
   settlement and story hooks. Frames are 1920x1080 at 100%; close views change
   camera framing only. Optional fixtures select `id`, `seed`, `absent`,
   `destroyCargo`, `retry`, `retreat` or `unarmedFinal` (diagnostic empty escort
-  magazines on the final leg). Reports include actual escort shots, damage, kills
+  magazines on the final leg), or `silentTankFinal` (only the heavy lead
+  loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
   and remaining durability. Default observation is 18000 ticks.
   Replays run **side by side by default**, on half the machine's processors —
   `-Pparallelism=N` sets that explicitly and `-Pparallelism=1` is the serial

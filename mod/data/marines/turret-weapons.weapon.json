@@ -1,6 +1,159 @@
 {
   "weapons": [
     {
+      "id": "weapon.tank-twin-cannon",
+      "mount": "turret-mount",
+      "catalog": {
+        "displayName": "Twin Breach Cannon",
+        "modelName": "Breach Cannon",
+        "designation": "TBC",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 36.0,
+        "damage": 60.0,
+        "accuracy": 0.65,
+        "cooldown": 4.8,
+        "penetration": 8.0,
+        "contact": {
+          "damage": 150.0,
+          "penetration": 28.0
+        },
+        "hitSpread": 0.14,
+        "aoeRadius": 1.8,
+        "wallDamage": 36,
+        "wallDamageRadius": 1.5,
+        "flightSec": 0.55,
+        "burstCount": 2,
+        "burstSpacing": 0.45
+      },
+      "render": {
+        "projectileSprite": "graphics/missiles/shell_hephag.png",
+        "projectileVisualCells": 0.48,
+        "tracerTailCells": 0.9,
+        "tracerColor": "FFC875"
+      },
+      "fx": {
+        "muzzle": [
+          {
+            "kind": "glow",
+            "radius": 0.96,
+            "lifetime": 0.12,
+            "color": "FFE080"
+          },
+          {
+            "kind": "fire",
+            "radius": 0.52,
+            "lifetime": 0.32
+          },
+          {
+            "kind": "smoke",
+            "radius": [
+              0.35,
+              0.5
+            ],
+            "lifetime": [
+              0.75,
+              1.1
+            ],
+            "count": 3,
+            "jitter": 0.3
+          }
+        ],
+        "impact": [
+          {
+            "kind": "glow",
+            "radius": 1.3,
+            "lifetime": 0.2,
+            "color": "FFE080"
+          },
+          {
+            "kind": "explosion",
+            "radius": 0.96,
+            "lifetime": 0.48
+          },
+          {
+            "kind": "ring",
+            "radius": 0.68,
+            "lifetime": 0.42
+          },
+          {
+            "kind": "fire",
+            "radius": 1.0,
+            "lifetime": 0.75
+          },
+          {
+            "kind": "smoke",
+            "radius": [
+              0.8,
+              1.3
+            ],
+            "lifetime": [
+              1.45,
+              2.15
+            ],
+            "count": [
+              6,
+              8
+            ],
+            "jitter": 0.9
+          },
+          {
+            "kind": "dust",
+            "radius": 1.15,
+            "lifetime": 0.55
+          }
+        ],
+        "aftermath": [
+          {
+            "kind": "fire",
+            "radius": [
+              0.32,
+              0.58
+            ],
+            "lifetime": [
+              0.4,
+              0.68
+            ],
+            "jitter": 0.48,
+            "delay": [
+              0.05,
+              0.12
+            ],
+            "emissionDuration": 0.8,
+            "emissionInterval": [
+              0.16,
+              0.24
+            ]
+          },
+          {
+            "kind": "smoke",
+            "radius": [
+              0.55,
+              1.05
+            ],
+            "lifetime": [
+              1.25,
+              2.0
+            ],
+            "jitter": 0.85,
+            "delay": [
+              0.42,
+              0.58
+            ],
+            "emissionDuration": 2.1,
+            "emissionInterval": [
+              0.24,
+              0.36
+            ]
+          }
+        ]
+      },
+      "audio": {
+        "fireSound": "hephaestus_fire"
+      }
+    },
+    {
       "id": "weapon.turret-vulcan",
       "mount": "turret-mount",
       "catalog": { "displayName": "Vulcan Cannon", "modelName": "Vulcan", "designation": "VUL", "designationTiered": false },

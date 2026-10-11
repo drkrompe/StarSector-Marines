@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-10 — freight corridor reserves the carriageway and three final ambush approaches.
+Updated: 2026-10-11 — exit gun pits remain outside the freight carriageway.
 a map result may carry a front depth.
 
 Earlier 2026-08-31 — an airbase lot publishes its own `AIRBASE` node alongside
@@ -235,7 +235,8 @@ Thunder Run owns a wider, elongated freight corridor with three roadside
 objectives and two staging stops. Its fifteen-cell carriageway is reserved
 before facilities, perimeter runs and dressing. Finished berths, interior
 anchors and all three ambush approaches remain connected; no furnishing may narrow
-the vehicle road. The fixed mission axis supports distinct release, crossing
+the vehicle road. Two fixed exit gun pits sit beyond its shoulders, giving
+heavy support a breach target without obstructing cargo motion. The fixed mission axis supports distinct release, crossing
 and exit beats without randomizing their causal order.
 
 ## Vehicle circulation

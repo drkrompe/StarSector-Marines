@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -85,6 +86,8 @@ final class HeadlessBattleSprites extends BattleSprites {
             new LinkedHashMap<>();
     private final EnumMap<VehicleType, UnitSpriteCache> vehicles = new EnumMap<>(VehicleType.class);
     private final Map<String, ShuttleSpriteCache> projectiles = new LinkedHashMap<>();
+    private final Map<String, ShuttleSpriteCache> turretBases = new LinkedHashMap<>();
+    private final Map<String, ShuttleSpriteCache> turretBarrels = new LinkedHashMap<>();
     private final UnitLayerLayouts layouts;
 
     private final SpriteAPI tile;
@@ -128,6 +131,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         loadInfantry();
         loadHulls();
         for (VehicleType type : VehicleType.values()) vehicles.put(type, new UnitSpriteCache(sprite(type.spritePath), slice(type.spritePath)));
+        for (var structure : TurretCatalogRegistry.installed().structures()) {
+            loadWholeSprite(turretBases, structure.id, structure.mount.spritePath);
+            loadWholeSprite(turretBarrels, structure.id, structure.mount.recoilSpritePath);
+        }
         loadEngineFx();
         loadDecals();
         mech = loadMech();
@@ -190,6 +197,18 @@ final class HeadlessBattleSprites extends BattleSprites {
             return null;
         }
     }
+
+    private void loadWholeSprite(Map<String, ShuttleSpriteCache> target, String id, String path) {
+        if (path == null) return;
+        SpriteAPI token = spriteOrNull(path);
+        if (token == null) return;
+        Asset asset = asset(token);
+        target.put(id, new ShuttleSpriteCache(token, asset.width() / (float) asset.height(),
+                asset.width(), asset.height()));
+    }
+
+    @Override public Map<String, ShuttleSpriteCache> turretSprites() { return turretBases; }
+    @Override public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretBarrels; }
 
     private void loadHull(Airframe airframe) {
         if (airframes.containsKey(airframe)) return;

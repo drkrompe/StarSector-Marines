@@ -32,6 +32,8 @@ public final class TurretCatalogRegistry {
     public static final String LOCUST_STRUCTURE_ID = "structure.turret-locust";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
 
+    public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
+
     private static volatile TurretCatalogRegistry installed;
 
     private final Map<String, TurretMountDef> mountsById = new LinkedHashMap<>();

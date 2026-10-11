@@ -200,23 +200,47 @@ class GroundVehicleTurretSystemTest {
         assertEquals(f.mount.mount.ammoCapacity - 1, f.turret.ammo);
     }
 
+    @Test
+    void tankPairUsesSeparateMuzzlesAndStopsWhenItsFiniteMagazineIsEmpty() {
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK);
+        f.grid.setWalkable(20, 45, false);
+        f.turret.ammo = 2;
+        PointFireAim aim = f.north();
+        for (int i = 0; i < 240; i++) f.tick(aim, true);
+        assertEquals(2, f.shots.getActiveShots().size());
+        assertEquals(0, f.turret.ammo);
+        assertEquals(0, f.turret.burstRemaining);
+        assertEquals(2, f.detonations.size(), "each shell has one shared blast, not a cosmetic duplicate");
+        var first = f.shots.getActiveShots().get(0);
+        var second = f.shots.getActiveShots().get(1);
+        assertEquals(2 * f.mount.mount.muzzleLateralOffsetCells, second.fromX - first.fromX, .001f);
+        assertEquals(f.mountY() + f.mount.mount.muzzleOffsetCells, first.fromY, .001f);
+        assertTrue(f.weapon.contactDamage > f.weapon.damage);
+        assertTrue(f.weapon.contactPenetration > f.weapon.penetration);
+    }
+
     private static final class Fixture {
         final NavigationGrid grid = new NavigationGrid(96, 96);
         final UnitSpatialIndex index = new UnitSpatialIndex(96, 96);
         final UnitRosterService roster = new UnitRosterService(index, null);
         final ShotService shots = new ShotService();
         final List<PendingDetonation> detonations = new ArrayList<>();
-        final StructureDef mount = VehicleType.HEAVY_APC.turretStructure();
-        final WeaponDef weapon = mount.mount.weapon;
+        final VehicleType type;
+        final StructureDef mount;
+        final WeaponDef weapon;
         final long id;
         final GroundTurret turret;
         final GroundBody body;
         final GroundVehicleTurretSystem system;
         final TurretFireSystem fire;
 
-        Fixture() {
+        Fixture() { this(VehicleType.HEAVY_APC); }
+        Fixture(VehicleType type) {
+            this.type = type;
+            mount = type.turretStructure();
+            weapon = mount.mount.weapon;
             for (int y = 0; y < 96; y++) for (int x = 0; x < 96; x++) grid.setWalkableFloor(x, y);
-            id = roster.convoy().spawn(VehicleType.HEAVY_APC, Faction.MARINE,
+            id = roster.convoy().spawn(type, Faction.MARINE,
                     VehicleMission.deployed(20.5f, 20.5f));
             body = roster.convoy().body(id);
             body.facingDegrees = 0f;
@@ -229,8 +253,8 @@ class GroundVehicleTurretSystemTest {
             system = new GroundVehicleTurretSystem(roster.convoy(), roster, null, grid, roster.world(), fire);
         }
 
-        float mountX() { return body.x + VehicleType.HEAVY_APC.turretMountX; }
-        float mountY() { return body.y + VehicleType.HEAVY_APC.turretMountY; }
+        float mountX() { return body.x + type.turretMountX; }
+        float mountY() { return body.y + type.turretMountY; }
         PointFireAim north() { return new PointFireAim(mountX(), 60f); }
         void tick(PointFireAim aim, boolean trigger) { system.tick(DT, id, aim, trigger); }
         long enemy(int x, int y) {

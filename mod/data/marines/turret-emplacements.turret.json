@@ -1,5 +1,8 @@
 {
   "mounts": [
+    { "id": "mount.tank-twin-cannon", "weapon": "weapon.tank-twin-cannon",
+      "sim": { "ammoCapacity": 48, "turnRateDegPerSec": 55.0 },
+      "render": { "visualCells": 4.5, "muzzleOffsetCells": 3.21, "muzzleLateralOffsetCells": 0.19 } },
     {
       "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",
       "sim": { "ammoCapacity": 120, "turnRateDegPerSec": 120.0 },
@@ -43,6 +46,7 @@
     { "id": "mount.pd-interceptor", "weapon": "weapon.pd-interceptor", "sim": { "ammoCapacity": 8, "turnRateDegPerSec": 300.0 }, "render": { "visualCells": 0.95, "muzzleOffsetCells": 0.34, "sprite": "graphics/weapons/burstpd_turret_base.png" } }
   ],
   "structures": [
+    { "id": "structure.tank-twin-cannon", "mount": "mount.tank-twin-cannon", "catalog": { "displayName": "Twin Breach Cannon" }, "durability": { "structure": 90.0, "armorCapacity": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 20.0 },
     { "id": "structure.turret-vulcan", "mount": "mount.turret-vulcan", "catalog": { "displayName": "Vulcan Emplacement" }, "durability": { "structure": 60.0, "armorCapacity": 80.0, "armorRating": 8.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 8.0 },
     { "id": "structure.turret-arbalest", "mount": "mount.turret-arbalest", "catalog": { "displayName": "Arbalest Emplacement" }, "durability": { "structure": 70.0, "armorCapacity": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
     { "id": "structure.turret-heavy-mortar", "mount": "mount.turret-heavy-mortar", "catalog": { "displayName": "Heavy Mortar Emplacement" }, "durability": { "structure": 80.0, "armorCapacity": 130.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 14.0 },

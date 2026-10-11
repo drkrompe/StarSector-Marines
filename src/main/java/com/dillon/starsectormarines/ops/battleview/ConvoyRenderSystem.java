@@ -117,6 +117,16 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 float drawCellX = body.x + mountWorldX - pivotWorldX;
                 float drawCellY = body.y + mountWorldY - pivotWorldY;
 
+                if (!wrecked && type.turretRecoilCells() > 0f) {
+                    float recoil = 0f;
+                    for (var shot : ctx.sim.getActiveShots()) if (shot.shooterId == id) {
+                        float age = shot.lifetimeMax - shot.lifetime;
+                        recoil = Math.max(recoil, type.turretRecoilCells() * Math.max(0f, 1f - age / .22f));
+                    }
+                    float bearing = (float) Math.toRadians(turretStateFacing);
+                    drawCellX += (float) Math.sin(bearing) * recoil;
+                    drawCellY -= (float) Math.cos(bearing) * recoil;
+                }
                 out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                         tf.x, tf.y, tf.w, tf.h,
                         cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),

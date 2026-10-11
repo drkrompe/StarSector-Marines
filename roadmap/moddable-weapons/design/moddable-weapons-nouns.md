@@ -4,8 +4,7 @@ Status: SHIPPED — weapon identity, behavior, and presentation are data-owned
 
 Written: 2026-08-23
 
-Updated: 2026-08-30 — projectile-bound tracer tails became an optional authored
-presentation for small traveling rounds.
+Updated: 2026-10-11 — carrier-owned mount art permits an explicit effects-only catalog preview.
 
 ## Purpose
 
@@ -207,7 +206,9 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 - Mount appearance is optional and carrier-overridable. Emplacements and
   shuttle mounts may composite base/barrel layers while a ground vehicle keeps
   equivalent art in its chassis sheet; absent appearance never changes weapon
-  behavior.
+  behavior. The catalog labels such a mount as an effects-only preview instead
+  of inventing a body or rejecting the weapon. Long muzzle geometry must still
+  leave forward flight space in the fixed storyboard.
 - Multi-turret composition references structure ids rather than copying turret
   kind values into a stamp. Layout bounds and occupied cells are explicit, and
   every turret placement must sit on an ordinary pad inside those bounds.
