@@ -158,6 +158,27 @@ are retained alongside the wall workflow. All facings are exported through the
 ordinary tileset pipeline; floor voids are checked spatially, and rendered
 building rotations are the visual acceptance.
 
+### Geometry-guided wall rubble
+
+A collapsed wall retains its material identity and original connected footprint.
+A material may pair with a rubble block using the same sixteen exposed-face
+combinations as its intact caps. Later neighbouring breaches do not reorient
+existing debris; already collapsed neighbours still belong to the original
+wall footprint. This is appearance history, separate from the now-open
+navigation cell and the ordinary rubble ground kind.
+
+The debris is a transparent overlay of low broken stubs and fragments. The
+former ground kind and an adjacent matching floor surface provide its backing,
+so a breach exposes the local floor rather than a new opaque rubble carpet.
+Unpaired materials and demolished non-wall structures keep their mapped rubble
+appearance. Ground's existing scatter layer owns the overlay in both command
+and resident-mesh rendering, and topology changes invalidate it normally.
+
+As with intact walls, code owns geometry, ImageGen supplies the material reskin,
+and the judged raw sheet, prompt and full-cell cuts remain art-source inputs
+to the ordinary exporter. The silhouette must retain open floor between pieces;
+its appearance does not add collision or change cover.
+
 ### Id-addressed visual catalog
 
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than

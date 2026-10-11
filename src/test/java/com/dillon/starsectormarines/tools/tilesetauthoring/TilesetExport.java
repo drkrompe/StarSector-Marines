@@ -250,7 +250,7 @@ public final class TilesetExport {
         public GridLayout layout;
         /** {@code 0xRRGGBB} painted for the layout's null case, or null when it has none. */
         public Integer fillRgb;
-        public String windowBlockId, doorBlockId;
+        public String windowBlockId, doorBlockId, rubbleBlockId;
 
         public BlockSpec(String id, GridLayout layout, Integer fillRgb) {
             this.id = id;
@@ -917,6 +917,7 @@ public final class TilesetExport {
             }
             if (spec.windowBlockId != null) o.put("windowBlock", spec.windowBlockId);
             if (spec.doorBlockId != null) o.put("doorBlock", spec.doorBlockId);
+            if (spec.rubbleBlockId != null) o.put("rubbleBlock", spec.rubbleBlockId);
             blockArray.put(o);
         }
 

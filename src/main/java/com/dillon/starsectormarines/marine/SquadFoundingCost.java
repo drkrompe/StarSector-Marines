@@ -4,13 +4,12 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.List;
 
-/** Cargo bill for mobilizing one complete line squad and its baseline field issue. */
+/** Cargo bill for mobilizing one complete line squad. */
 public record SquadFoundingCost(List<Line> lines) {
 
     public static final SquadFoundingCost STANDARD = new SquadFoundingCost(List.of(
             new Line(Commodities.MARINES, MarineSquad.CAPACITY),
-            new Line(Commodities.SUPPLIES, 24),
-            new Line(Commodities.HAND_WEAPONS, MarineSquad.CAPACITY),
+            new Line(Commodities.SUPPLIES, 36),
             new Line(Commodities.FOOD, 24)));
 
     public SquadFoundingCost {

@@ -827,19 +827,22 @@
       "id": "colony.masonry-wall",
       "layout": "wall-faces-4x4",
       "windowBlock": "colony.masonry-window",
-      "doorBlock": "colony.masonry-door"
+      "doorBlock": "colony.masonry-door",
+      "rubbleBlock": "colony.masonry-rubble"
     },
     {
       "id": "colony.ceramic-wall",
       "layout": "wall-faces-4x4",
       "windowBlock": "colony.ceramic-window",
-      "doorBlock": "colony.ceramic-door"
+      "doorBlock": "colony.ceramic-door",
+      "rubbleBlock": "colony.ceramic-rubble"
     },
     {
       "id": "colony.olive-wall",
       "layout": "wall-faces-4x4",
       "windowBlock": "colony.olive-window",
-      "doorBlock": "colony.olive-door"
+      "doorBlock": "colony.olive-door",
+      "rubbleBlock": "colony.olive-rubble"
     }
   ],
   "note": "Geometry-guided ImageGen reskin of art-source/templates/colony-walls.png. Three 4x4 panels, row-major N=1 E=2 S=4 W=8 exposed-face masks. Full-cell wall caps, no floor/apron pixels. Template: 3072x1024, pitch256, inset16, tile224. Raw:2172x724; judged cuts scale template coordinates uniformly. Source/prompt and generator are retained.",

@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
+import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +28,8 @@ import java.util.Locale;
  * <p>The Mech Lab's grammar over a different noun: an overview of everything in
  * the room, one selected asset, its slots, and a catalog scoped to the selected
  * slot. What differs is what a fitting <em>is</em> — installed work rather than
- * a spare — so there is no stock column, nothing comes back to stores, and the
- * only question a row has to answer is whether the fleet can pay for it.
+ * a spare — so nothing comes back to stores. A separate strip shows shared fleet
+ * material stock while each fitting row answers whether the fleet can pay for it.
  *
  * <p>It reads the deck and never reconciles it. Which hull the company is on is
  * the screen's question, asked once on attach through {@code ShipsBoatsAboard};
@@ -66,6 +67,7 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<String> fabricationPatternName;
     private final ComputedSignal<String> fabricationCopy;
     private final ComputedSignal<List<MaterialRow>> fabricationMaterials;
+    private final ComputedSignal<List<MaterialRow>> materialStock;
     private final ComputedSignal<String> fabricationActionClasses;
     private final ComputedSignal<Boolean> fabricationBlocked;
     private final ComputedSignal<String> fabricationReason;
@@ -142,6 +144,7 @@ public final class BoatDeckViewModel {
             return recipe == null ? List.of()
                     : materialRows("boat-fabrication", recipe.bill());
         });
+        materialStock = reactor.computed(this::buildMaterialStock);
         fabricationActionClasses = reactor.computed(() -> affordableToBuild()
                 ? "fabricate-action" : "fabricate-action blocked");
         fabricationBlocked = reactor.computed(() -> !affordableToBuild());
@@ -168,6 +171,7 @@ public final class BoatDeckViewModel {
     public Signal<String> fabricationPatternName() { return fabricationPatternName; }
     public Signal<String> fabricationCopy() { return fabricationCopy; }
     public Signal<List<MaterialRow>> fabricationMaterials() { return fabricationMaterials; }
+    public Signal<List<MaterialRow>> materialStock() { return materialStock; }
     public Signal<String> fabricationActionClasses() { return fabricationActionClasses; }
     public Signal<Boolean> fabricationBlocked() { return fabricationBlocked; }
     public Signal<String> fabricationReason() { return fabricationReason; }
@@ -360,6 +364,17 @@ public final class BoatDeckViewModel {
                             + " " + available + " / " + line.quantity()));
         }
         return List.copyOf(rows);
+    }
+
+    private List<MaterialRow> buildMaterialStock() {
+        revision.get();
+        return List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY,
+                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity -> {
+            String id = "boat-material-stock:" + commodity;
+            return new MaterialRow(id, id + ":icon", id + ":label", "material-stock",
+                    resources.commodityIcon(commodity),
+                    Integer.toString(resources.available(commodity)));
+        }).toList();
     }
 
     /**

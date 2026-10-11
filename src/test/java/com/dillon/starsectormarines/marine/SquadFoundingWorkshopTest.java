@@ -16,6 +16,7 @@ class SquadFoundingWorkshopTest {
     void foundingConsumesOneCompleteBillAndMobilizesTwelveNamedMarines() {
         MarineRoster roster = new MarineRoster();
         TestResources resources = TestResources.stocked(100);
+        resources.stock.put(Commodities.HAND_WEAPONS, 100);
 
         SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(
                 roster, resources).foundSquad();
@@ -23,8 +24,8 @@ class SquadFoundingWorkshopTest {
         assertTrue(result.succeeded());
         assertEquals(MarineSquad.CAPACITY, roster.manningCount(result.squad()));
         assertEquals(88, resources.available(Commodities.MARINES));
-        assertEquals(76, resources.available(Commodities.SUPPLIES));
-        assertEquals(88, resources.available(Commodities.HAND_WEAPONS));
+        assertEquals(64, resources.available(Commodities.SUPPLIES));
+        assertEquals(100, resources.available(Commodities.HAND_WEAPONS));
         assertEquals(76, resources.available(Commodities.FOOD));
     }
 

@@ -570,6 +570,7 @@ public final class TilesetOperations {
         for (TilesetExport.BlockSpec previous : blocks) if (previous.id.equals(blockId)) {
             replacement.windowBlockId = previous.windowBlockId;
             replacement.doorBlockId = previous.doorBlockId;
+            replacement.rubbleBlockId = previous.rubbleBlockId;
         }
         blocks.removeIf(spec -> spec.id.equals(blockId));
         blocks.add(replacement);

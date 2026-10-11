@@ -1,0 +1,842 @@
+{
+  "sheetName": "colony-rubble",
+  "sheet": "art-source/tilesets/colony-rubble.raw.png",
+  "cellPx": 64,
+  "gridCols": 12,
+  "gridRows": 4,
+  "idPrefix": "colony",
+  "alphaMin": 40,
+  "note": "Geometry-first wall-collapse overlays. RubbleReskinTemplate owns the 16 exposed-face masks for each material, in row-major 4x4 order. The accepted ImageGen output scaled the 3072x1024 guide to 2172x724; the retained cuts apply that scale to its 16px margin and 224px footprint on a 256px pitch. Preserve true source alpha and full-cell cuts; never trim/recenter fragments. Empty spaces reveal the retained floor beneath the collapsed wall. Built-in ImageGen prompt is colony-rubble.prompt.txt. Export only through the ordinary tileset authoring pipeline.",
+  "blocks": [
+    {
+      "id": "colony.masonry-rubble",
+      "layout": "wall-faces-4x4"
+    },
+    {
+      "id": "colony.ceramic-rubble",
+      "layout": "wall-faces-4x4"
+    },
+    {
+      "id": "colony.olive-rubble",
+      "layout": "wall-faces-4x4"
+    }
+  ],
+  "entries": [
+    {
+      "id": "colony.masonry-rubble.0",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.1",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.2",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.3",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.4",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.5",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.6",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.7",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.8",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.9",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.10",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.11",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.12",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        11,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.13",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        192,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.14",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        373,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.masonry-rubble.15",
+      "block": "colony.masonry-rubble",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        554,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.0",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.1",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.2",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.3",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.4",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.5",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.6",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.7",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.8",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.9",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.10",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.11",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.12",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        735,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.13",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        916,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.14",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1097,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.ceramic-rubble.15",
+      "block": "colony.ceramic-rubble",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1278,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.0",
+      "block": "colony.olive-rubble",
+      "slot": "faces-0",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.1",
+      "block": "colony.olive-rubble",
+      "slot": "faces-1",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.2",
+      "block": "colony.olive-rubble",
+      "slot": "faces-2",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.3",
+      "block": "colony.olive-rubble",
+      "slot": "faces-3",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        11,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.4",
+      "block": "colony.olive-rubble",
+      "slot": "faces-4",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.5",
+      "block": "colony.olive-rubble",
+      "slot": "faces-5",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.6",
+      "block": "colony.olive-rubble",
+      "slot": "faces-6",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.7",
+      "block": "colony.olive-rubble",
+      "slot": "faces-7",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        192,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.8",
+      "block": "colony.olive-rubble",
+      "slot": "faces-8",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.9",
+      "block": "colony.olive-rubble",
+      "slot": "faces-9",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.10",
+      "block": "colony.olive-rubble",
+      "slot": "faces-10",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.11",
+      "block": "colony.olive-rubble",
+      "slot": "faces-11",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        373,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.12",
+      "block": "colony.olive-rubble",
+      "slot": "faces-12",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1459,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.13",
+      "block": "colony.olive-rubble",
+      "slot": "faces-13",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1640,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.14",
+      "block": "colony.olive-rubble",
+      "slot": "faces-14",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1821,
+        554,
+        158,
+        158
+      ]
+    },
+    {
+      "id": "colony.olive-rubble.15",
+      "block": "colony.olive-rubble",
+      "slot": "faces-15",
+      "included": true,
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        2002,
+        554,
+        158,
+        158
+      ]
+    }
+  ]
+}
