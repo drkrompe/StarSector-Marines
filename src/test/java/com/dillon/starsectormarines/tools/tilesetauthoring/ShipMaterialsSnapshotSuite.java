@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.gen.fit.BoatBayFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.ShipLoadingBayFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.ShipBriefingRoomFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.ShipGymFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.ShipWashroomFitting;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.FurnishableRoom;
@@ -74,13 +75,13 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         images.add(new SnapshotArtifact("ship-materials-generated-deck.png", renderer.render(deck, 42, 8)));
         for (RoomPurpose purpose : List.of(RoomPurpose.BARRACKS, RoomPurpose.VEHICLE_BAY,
                 RoomPurpose.MESS_HALL, RoomPurpose.ARMORY, RoomPurpose.PATIENT_WARD, RoomPurpose.STOCKROOM, RoomPurpose.CREW_LOUNGE, RoomPurpose.BRIDGE,
-                RoomPurpose.ENGINE_ROOM, RoomPurpose.PRODUCTION_FLOOR, RoomPurpose.PARTS_CAGE, RoomPurpose.HANGAR, RoomPurpose.LOADING_BAY, RoomPurpose.CONFERENCE_ROOM, RoomPurpose.GYMNASIUM)) {
+                RoomPurpose.ENGINE_ROOM, RoomPurpose.PRODUCTION_FLOOR, RoomPurpose.PARTS_CAGE, RoomPurpose.HANGAR, RoomPurpose.LOADING_BAY, RoomPurpose.CONFERENCE_ROOM, RoomPurpose.GYMNASIUM, RoomPurpose.WASHROOM)) {
             DeckGraph.Compartment room = generator.getLastDeckGraph().compartments().stream()
                     .filter(c -> c.purpose() == purpose).findFirst().orElse(null);
             if (room == null) continue;
             if (purpose == RoomPurpose.ARMORY || purpose == RoomPurpose.BARRACKS || purpose == RoomPurpose.MESS_HALL
                     || purpose == RoomPurpose.PATIENT_WARD || purpose == RoomPurpose.STOCKROOM || purpose == RoomPurpose.CREW_LOUNGE || purpose == RoomPurpose.BRIDGE
-                    || purpose == RoomPurpose.ENGINE_ROOM || purpose == RoomPurpose.PRODUCTION_FLOOR || purpose == RoomPurpose.PARTS_CAGE || purpose == RoomPurpose.HANGAR || purpose == RoomPurpose.LOADING_BAY || purpose == RoomPurpose.CONFERENCE_ROOM || purpose == RoomPurpose.GYMNASIUM) {
+                    || purpose == RoomPurpose.ENGINE_ROOM || purpose == RoomPurpose.PRODUCTION_FLOOR || purpose == RoomPurpose.PARTS_CAGE || purpose == RoomPurpose.HANGAR || purpose == RoomPurpose.LOADING_BAY || purpose == RoomPurpose.CONFERENCE_ROOM || purpose == RoomPurpose.GYMNASIUM || purpose == RoomPurpose.WASHROOM) {
                 for (int scale : new int[]{24, 64}) images.add(new SnapshotArtifact(
                         "ship-materials-" + purpose.name().toLowerCase() + "-" + scale + "px.png",
                         renderer.renderView(deck, 42, room.originX() + room.width() / 2f,
@@ -131,7 +132,7 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
                 "ship-materials-lounge-pose-" + turn + ".png", renderer.render(roomPose(turn, RoomPurpose.CREW_LOUNGE), 42, 40)));
         for (int turn = 0; turn < 4; turn++) images.add(new SnapshotArtifact(
                 "ship-materials-bridge-pose-" + turn + ".png", renderer.render(roomPose(turn, RoomPurpose.BRIDGE), 42, 48)));
-        for (RoomPurpose purpose : List.of(RoomPurpose.ENGINE_ROOM, RoomPurpose.PRODUCTION_FLOOR, RoomPurpose.PARTS_CAGE, RoomPurpose.HANGAR, RoomPurpose.LOADING_BAY, RoomPurpose.CONFERENCE_ROOM, RoomPurpose.GYMNASIUM))
+        for (RoomPurpose purpose : List.of(RoomPurpose.ENGINE_ROOM, RoomPurpose.PRODUCTION_FLOOR, RoomPurpose.PARTS_CAGE, RoomPurpose.HANGAR, RoomPurpose.LOADING_BAY, RoomPurpose.CONFERENCE_ROOM, RoomPurpose.GYMNASIUM, RoomPurpose.WASHROOM))
             for (int turn = 0; turn < 4; turn++) images.add(new SnapshotArtifact(
                     "ship-materials-" + purpose.name().toLowerCase() + "-pose-" + turn + ".png",
                     renderer.render(roomPose(turn, purpose), 42, 32)));
@@ -150,6 +151,7 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
 
     private static MapResult roomPose(int turn, RoomPurpose purpose, boolean gig) {
         RoomPose pose = new RoomPose(turn, false);
+        boolean washroom = purpose == RoomPurpose.WASHROOM;
         boolean gym = purpose == RoomPurpose.GYMNASIUM;
         boolean briefing = purpose == RoomPurpose.CONFERENCE_ROOM;
         boolean loading = purpose == RoomPurpose.LOADING_BAY;
@@ -164,8 +166,8 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         boolean sickbay = purpose == RoomPurpose.PATIENT_WARD;
         boolean stores = purpose == RoomPurpose.STOCKROOM;
         boolean lounge = purpose == RoomPurpose.CREW_LOUNGE;
-        int along = gym ? 14 : briefing ? 14 : loading ? 18 : hangar ? (gig ? 16 : 24) : shop ? 14 : drive ? 24 : auxiliary ? 20 : bridge ? 13 : lounge ? 16 : stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
-        int across = gym ? 10 : briefing ? 10 : loading ? 12 : hangar ? (gig ? 10 : 30) : shop ? 10 : drive ? 22 : auxiliary ? 14 : bridge ? 11 : lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
+        int along = washroom ? 6 : gym ? 14 : briefing ? 14 : loading ? 18 : hangar ? (gig ? 16 : 24) : shop ? 14 : drive ? 24 : auxiliary ? 20 : bridge ? 13 : lounge ? 16 : stores ? 18 : sickbay ? 14 : mess ? 22 : berthing ? 8 : 12;
+        int across = washroom ? 5 : gym ? 10 : briefing ? 10 : loading ? 12 : hangar ? (gig ? 10 : 30) : shop ? 10 : drive ? 22 : auxiliary ? 14 : bridge ? 11 : lounge ? 12 : stores ? 12 : sickbay ? 10 : mess ? 12 : berthing ? 6 : 8;
         RoomShape shape = (bridge ? RoomRecipe.COMMAND.shape() : RoomShape.rectangle(along, across)).posed(pose);
         int width = shape.width() + 4, height = shape.height() + 4;
         NavigationGrid grid = new NavigationGrid(width, height);
@@ -188,7 +190,8 @@ public final class ShipMaterialsSnapshotSuite implements SnapshotSuite {
         GenContext ctx = new GenContext(grid, topology, new Random(42), width, height, 42);
         RoomFloor floor = new RoomFloor(ctx, new FittingRoom(shape, 2, 2, pose, purpose,
                 List.of(new Doorway(dx, dy))), RoomFit.STANDARD);
-        if (gym) new ShipGymFitting().fit(floor);
+        if (washroom) new ShipWashroomFitting().fit(floor);
+        else if (gym) new ShipGymFitting().fit(floor);
         else if (briefing) new ShipBriefingRoomFitting().fit(floor);
         else if (loading) new ShipLoadingBayFitting().fit(floor);
         else if (hangar) BoatBayFitting.shipboard().fit(floor);
