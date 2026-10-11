@@ -35,10 +35,12 @@ public final class TerrainCatalog {
                                 p.x() == source.width() - 1 ? width - 1 : p.x(),
                                 p.y() == source.height() - 1 ? height - 1 : p.y())).toList())).toList());
     }
-    /** Grass is a verdant-world finish; bare rock works on the other surface palettes. */
+    /** Adapt material without changing a mission's authored obstruction geometry. */
     static TerrainPlan forSurface(TerrainPlan plan, SurfacePalette surface) {
-        if (surface == SurfacePalette.VERDANT || plan.finish() == TerrainPlan.Finish.ROCK) return plan;
-        return new TerrainPlan(plan.width(), plan.height(), TerrainPlan.Finish.ROCK,
+        TerrainPlan.Finish finish=surface==SurfacePalette.FROZEN?TerrainPlan.Finish.ICE
+                :surface==SurfacePalette.VERDANT?plan.finish():TerrainPlan.Finish.ROCK;
+        if(plan.finish()==finish)return plan;
+        return new TerrainPlan(plan.width(), plan.height(), finish,
                 plan.faceDepth(), plan.ruggedness(), plan.seed(), plan.strokes());
     }
     public static void validate(String path, TerrainPlan plan) {

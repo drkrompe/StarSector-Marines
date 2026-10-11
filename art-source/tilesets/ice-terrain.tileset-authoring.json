@@ -1,0 +1,203 @@
+{
+  "alphaMin": 40,
+  "blocks": [
+    {
+      "id": "terrain.ice.rock",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.talus",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.0",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.1",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.2",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.3",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.4",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.5",
+      "layout": "variants"
+    },
+    {
+      "id": "terrain.ice.face.6",
+      "layout": "variants"
+    }
+  ],
+  "cellPx": 64,
+  "entries": [
+    {
+      "block": "terrain.ice.rock",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.rock.sample",
+      "included": true,
+      "rect": [
+        20,
+        20,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.talus",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.talus.sample",
+      "included": true,
+      "rect": [
+        438,
+        20,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.0",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.0.sample",
+      "included": true,
+      "rect": [
+        856,
+        20,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.1",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.1.sample",
+      "included": true,
+      "rect": [
+        20,
+        438,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.2",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.2.sample",
+      "included": true,
+      "rect": [
+        438,
+        438,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.3",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.3.sample",
+      "included": true,
+      "rect": [
+        856,
+        438,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.4",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.4.sample",
+      "included": true,
+      "rect": [
+        20,
+        856,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.5",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.5.sample",
+      "included": true,
+      "rect": [
+        438,
+        856,
+        379,
+        379
+      ],
+      "slot": "v1"
+    },
+    {
+      "block": "terrain.ice.face.6",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "terrain.ice.face.6.sample",
+      "included": true,
+      "rect": [
+        856,
+        856,
+        379,
+        379
+      ],
+      "slot": "v1"
+    }
+  ],
+  "gridCols": 3,
+  "gridRows": 3,
+  "idPrefix": "terrain.ice",
+  "note": "IceTerrainTemplate: summit, crushed-ice talus, then seven compressed ice face values dark to light. Inset material cuts; runtime contour owns all geometry. Accepted built-in ImageGen output 1254x1254; cuts scaled from inspected guide registration 1536x1536.",
+  "sheet": "art-source/tilesets/ice-terrain.raw.png",
+  "sheetName": "ice-terrain"
+}

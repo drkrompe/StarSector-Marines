@@ -57,6 +57,8 @@ Keep source inputs out of `mod/`; only exported art and its runtime catalog ship
 | Barrel damage | `BarrelDamageReskinTemplate`; matching drum groups, dented lids, open curved metal shells and separate scraps | `templates/barrel-*.png`, `tilesets/barrel-damage.*` | `barrel-damage` |
 | Rock damage | `RockDamageReskinTemplate`; intact silhouettes with crack guides and separated low fragments | `templates/rock-*.png`, `tilesets/rock-damage.*` | `rock-damage` |
 | Tree damage | `TreeDamageReskinTemplate`; broken crowns, low stumps and separated fallen limbs inside original footprints | `templates/tree-*.png`, `tilesets/forest-damaged.*`, `tilesets/forest-destroyed.*` | `tree-damage` |
+| Planet formations | `MineralFormation` and `PlanetFormationTemplate`; convex overhead rock/ice bodies, shared registration across intact/cracked/rubble states | `templates/planet-formations.png`, `tilesets/planet-formations.*` | `planet-landscapes` |
+| Glacial terrain | `IceTerrainTemplate`; nine quiet material swatches, runtime contours own ridge geometry | `templates/ice-terrain.png`, `tilesets/ice-terrain.*` | `planet-landscapes` |
 | Ship bay study | `ShipBayReskinTemplate`; deck plates, grates, narrow markings and connected recessed pipes | `templates/ship-bay.png`, `tilesets/ship-bay.*` | `ship-bay` |
 | Warehouse storage study | `WarehouseRackTemplate`; full rack bed, independent stock slots and transparent retaining frame | `templates/warehouse-racks.png`, `tilesets/warehouse-racks.*` | `warehouse-racks` |
 | Ship provisions bay | `LoadingBayTemplate`; manifest desk, open-fork tug, continuous roller conveyor, separate cargo layers and staging deck | `templates/loading-bay.png`, `tilesets/loading-bay.*` | `ship-materials` |
