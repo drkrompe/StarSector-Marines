@@ -89,7 +89,14 @@ public class NavigationGrid {
          */
         NO_EDGE_COVER,
         /** Natural obstruction: ordinary cell wall damage cannot clear it; tree ownership may release a whole crown. */
-        NATURAL_SOLID;
+        NATURAL_SOLID,
+        /**
+         * Knee-high non-walkable fixture, such as a sandbag line. Infantry and
+         * wheeled vehicles are stopped by it like any solid cell; a heavy legged
+         * mech strides over it. Meaningful only when {@link #WALKABLE} is clear.
+         * Pathfinding and routing still treat the cell as solid.
+         */
+        LOW_FIXTURE;
 
         public long mask() { return 1L << ordinal(); }
     }
