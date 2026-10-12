@@ -1,0 +1,45 @@
+{
+  "endpoint": "https://api.elevenlabs.io/v1/text-to-voice/design",
+  "request": {
+    "voice_description": "Native British English, a grounded Lancashire dialect from north-west England. Female, 42 to 50. Excellent clean recording quality. Persona: practical infantry veteran. Emotion: sharp, irreverent, determined. A low-middle feminine voice with a smoky grain and occasional creak at the ends of phrases. Brisk economical speech and dry descending inflections. She treats danger like difficult work she knows how to do, reserving her irritation for avoidable mistakes. Practical warmth emerges through blunt encouragement. Her warnings cut through with firm rasp-edged projection, then settle immediately back into conversational speech. Natural character dialogue, older and heavier in timbre with minimal habitual shouting.",
+    "text": "[dry, conversational voice] Command, Rivet. Ready. Let us get this done before something else breaks.\n\n[firm, projecting voice] Contact! Heads down. Use the cover.\n\n[angry, clipped voice] Those are friendly rounds. Sort your bloody aim out.\n\n[urgent, rough voice] Back, now. Bring your people. We are not dying here.\n\n[wry, tired voice] Still working, Command. You will hear when that changes.",
+    "model_id": "eleven_ttv_v3",
+    "seed": 101204,
+    "loudness": 0.2,
+    "guidance_scale": 5,
+    "auto_generate_text": false
+  },
+  "outputFormat": "mp3_44100_128",
+  "inputSha256": "5c00a1c1b986aa7a758513ba9e832ccbe997b1ee9ea87703673e8c69d4d34450",
+  "requestId": null,
+  "characterCost": null,
+  "previewText": "[dry, conversational voice] Command, Rivet. Ready. Let us get this done before something else breaks.\n\n[firm, projecting voice] Contact! Heads down. Use the cover.\n\n[angry, clipped voice] Those are friendly rounds. Sort your bloody aim out.\n\n[urgent, rough voice] Back, now. Bring your people. We are not dying here.\n\n[wry, tired voice] Still working, Command. You will hear when that changes.",
+  "candidates": [
+    {
+      "candidate": "A",
+      "file": "rivet-A.mp3",
+      "generatedVoiceId": "DbZDF87lEPgm1fUnjlTQ",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 24.111,
+      "audioSha256": "5cd8bc204d34b5a4a5c42a913aee1964a2f78362c906c54e40bc27ca16a75beb"
+    },
+    {
+      "candidate": "B",
+      "file": "rivet-B.mp3",
+      "generatedVoiceId": "fGdXUaoUKa9laV1tzoOT",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 23.484,
+      "audioSha256": "5c2035f12afd7a1da284aa967ae297a463e2eec23bd099bbaa7fbdaad4b688f5"
+    },
+    {
+      "candidate": "C",
+      "file": "rivet-C.mp3",
+      "generatedVoiceId": "oFOMJcu90ALrePrGx9rt",
+      "mediaType": "audio/mpeg",
+      "durationSeconds": 23.562,
+      "audioSha256": "54846b81815c291116149694863808efd54531f3684af2a8fa0ca59731ec5105"
+    }
+  ],
+  "selectedCandidate": null,
+  "savedVoiceId": null
+}

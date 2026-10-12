@@ -17,6 +17,11 @@ The older five-scene catalog and `ensemble/` retain authoring auditions. Their
 bespoke destinations, covering maneuvers and transport reports are not enabled
 by the runtime bank. They do not issue AI orders or establish mission events.
 
+`personality-auditions/` retains three original Voice Design candidates each for
+Warden, Jackal, Relay, Ox and Rivet, with scripts, requests and candidate IDs.
+These are unselected casting auditions; see that directory's README for the
+offline clean/radio comparison workflow.
+
 `catalog.json` owns stable line IDs, clean transcripts, synthesis directions,
 speaker/recipient identities, voice IDs, take numbers, exchange order and the
 facts each exchange would require. The freight yard, convoy and callsigns are
