@@ -36,7 +36,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/missions/mission-results.mlx");
 
-    private final NarrationSequence salvageNarration = new NarrationSequence();
+    private final NarrationSequence debriefNarration = new NarrationSequence();
     private MissionOutcome presentedOutcome;
     private MarkupInstance resultMarkup;
 
@@ -44,7 +44,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         MissionOutcome outcome = context.getLastOutcome();
         if (outcome != presentedOutcome) {
             presentedOutcome = outcome;
-            salvageNarration.start(HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins()));
+            debriefNarration.start(MissionDebriefConversation.lines(outcome, WaylineNarration.builtins()));
         }
     }
 
@@ -53,15 +53,15 @@ public class ResultsScreen extends MissionFlowMlxScreen {
     }
 
     @Override protected void onAdvance(float dt) {
-        salvageNarration.advance(dt);
+        debriefNarration.advance(dt);
         if (resultMarkup == null) return;
-        var current = salvageNarration.current();
+        var current = debriefNarration.current();
         resultMarkup.requireElement("salvage-conversation-status").text(current == null
-                ? "RECOVERY AGREEMENT / TRANSCRIPT" : "TRANSMITTING / " + current.speaker());
+                ? MissionDebriefConversation.title(presentedOutcome) : "TRANSMITTING / " + current.speaker());
     }
 
     @Override protected void onDetach() {
-        salvageNarration.stop();
+        debriefNarration.stop();
         resultMarkup = null;
     }
 
@@ -86,9 +86,9 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("preparationClasses", preparation ? "console-action" : "hidden");
         props.put("preparationLabel", manifest != null && !manifest.isEmpty() ? "SALVAGE / PREPARE COMPANY" : "PREPARE COMPANY");
         props.put("preparationAction", (Runnable) this::prepareCompany);
-        props.put("salvageReplay", (Runnable) () -> salvageNarration.start(
-                HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins())));
-        props.put("salvageStop", (Runnable) salvageNarration::stop);
+        props.put("salvageReplay", (Runnable) () -> debriefNarration.start(
+                MissionDebriefConversation.lines(outcome, WaylineNarration.builtins())));
+        props.put("salvageStop", (Runnable) debriefNarration::stop);
         props.put("personnelHeader", personnelHeader(outcome));
         List<PersonnelRow> personnel = personnelRows(outcome);
         props.put("squadRows", personnel);
@@ -164,7 +164,8 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("storyProgress", chapter == null ? "" : !outcome.victory ? "CONTRACT REMAINS OPEN"
                 : chapter == OpeningOperationKind.RELIEF ? "CHAPTER 1 COMPLETE / DEPOT JOB AVAILABLE" : "AN OPEN ROAD / ARC COMPLETE");
         props.put("storyMessage", WaylineArc.debrief(outcome));
-        putSalvageConversation(props, HoundSalvageDebrief.lines(outcome, WaylineNarration.builtins()));
+        putSalvageConversation(props, MissionDebriefConversation.lines(outcome, WaylineNarration.builtins()));
+        props.put("conversationTitle", MissionDebriefConversation.title(outcome));
         CorvusChapter corvus = outcome == null || outcome.missionSource != MissionSource.STORY
                 ? null : CorvusWaylineProgress.forMission(outcome.missionId);
         if (corvus != null) {

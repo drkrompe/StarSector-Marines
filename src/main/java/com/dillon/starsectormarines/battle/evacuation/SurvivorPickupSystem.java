@@ -48,7 +48,7 @@ public final class SurvivorPickupSystem {
     }
     public boolean complete(BattleView sim) {
         return requested && groundCount(sim, false) + groundCount(sim, true) == 0
-                && manifests.stream().noneMatch(m -> m.state() == PickupManifest.State.ABOARD);
+                && manifests.stream().noneMatch(PickupManifest::hasPassengersAboard);
     }
     public int[] rampFor(long unit, BattleView sim) {
         Carrier c = fleet.ramp(unit);

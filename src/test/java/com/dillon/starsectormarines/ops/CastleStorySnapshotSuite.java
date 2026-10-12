@@ -75,6 +75,26 @@ public final class CastleStorySnapshotSuite implements SnapshotSuite {
                         ? "kord-patrol-subtitle.png" : "castle-ready-subtitle.png", frame));
             }
         }
+        var cold = MissionOutcome.builder().missionId("wayline_corvus_v1_2_1")
+                .missionName("A COLD ACCOUNT").missionSource(MissionSource.STORY).victory(true)
+                .payoutEarned(42000).marinesEngaged(48).marinesLost(21).build();
+        var props = ResultsScreen.previewProps(true, false);
+        props.put("missionName", cold.missionName);
+        props.put("squadRows", List.of(new ResultsScreen.PersonnelRow("cold-company", "Company survivors",
+                "27R 0W 0M 21K", "label heading results-squad-summary tone-danger", "Illustrative personnel record")));
+        props.put("resultRows", ResultsScreen.resultRows(cold, LootManifest.EMPTY, ModStrings.fromDisk(context.modRoot())));
+        ResultsScreen.putStoryDebrief(props, cold);
+        ResultsScreen.putSalvageConversation(props, MissionDebriefConversation.lines(cold, catalog));
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), ResultsScreen.COMPONENT_PATHS);
+        loader.reload();
+        try (var markup = loader.build(new Reactor(), ResultsScreen.ROOT_COMPONENT, props)) {
+            var document = new UiDocument(markup.root());
+            for (var style : markup.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            artifacts.add(new SnapshotArtifact("cold-account-debrief.png",
+                    renderer.renderRelative(document, 1920, 1080, 1f,
+                            MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
+        }
         return artifacts;
     }
 }

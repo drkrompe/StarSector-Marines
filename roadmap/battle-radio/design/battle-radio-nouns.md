@@ -4,7 +4,7 @@ Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Six infantry personalities share complete combat variant pools and assignment exchanges.
+Updated: 2026-10-12 — Cold Account separates extraction completion from its replayable results conversation.
 
 Read `stories.md` for the open-work board.
 
@@ -133,9 +133,12 @@ explicitly survive completion and start on the completed battlefield, after any
 active sentence finishes; this exception never retains ordinary tactical
 instructions or delays mission settlement. Cold Account uses recorded Mara,
 Castle and Kord lines with speaker-specific voice assignments. Its final patrol
-report starts during the mission-owned departure; that departure and aftermath,
-rather than audio duration, defer victory. Valid Corvus retry identities resolve
-to the same chapter set.
+report starts during the mission-owned departure if it occurs before company
+extraction. The last survivor pickup's physical return owns victory; neither
+capital departure nor audio duration can postpone it. A separate replayable
+Castle/Mara conversation runs on the successful results screen, after settlement,
+with readable portrait-led turns and explicit Replay and Stop controls. Leaving
+results stops its audio. Valid Corvus retry identities resolve to the same chapter set.
 
 ## Company command
 
