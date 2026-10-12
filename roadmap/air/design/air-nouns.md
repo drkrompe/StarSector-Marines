@@ -1504,10 +1504,23 @@ blast and leaves the battle at once, and every gun with it; a battered hull is
 drawn darker. The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
 
+**A warship's stay and its magazine can both be bounded.** Station time is counted
+down only while the ship is on its station, not while it travels to it; when it
+is spent the ship stops firing and hovers away along the line from the map's
+centre through where it stands, at its own speed, and is removed once clear of the
+map (or after a fixed outer limit). Its point defence keeps working until it is
+gone, since it shoots ordnance and not ground. The ordnance budget is counted in
+rounds: every area-fire round landed and every lance sweep laid spends one, from a
+single pool shared by the ship's mounts, and a ship can instead (or as well) give
+each mount the magazine its own weapon carries, from the weapon table's `ammo`
+column, where a blank column is a gun that never runs out. Rounds already in
+flight when the pool empties still land; nothing new is fired, even mid-burst.
+Both budgets are unlimited unless a mission sets them, and both are readable
+(remaining seconds, remaining rounds, per-mount magazine) for a HUD.
+
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
-them is optional. The station time and ordnance budget are still to build.
-Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
+them is optional. Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
 rules remain future decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
 
