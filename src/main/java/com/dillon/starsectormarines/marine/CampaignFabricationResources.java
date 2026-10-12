@@ -1,17 +1,17 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CargoAPI;
+import com.dillon.starsectormarines.campaign.start.WorkshopStores;
 
-/** Live player-fleet cargo and vanilla commodity presentation for the workshops. */
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+/** Live player-fleet cargo plus any accessible prepaid depot and vanilla commodity presentation for the workshops. */
 public final class CampaignFabricationResources implements FabricationResources {
 
     @Override
     public int available(String commodityId) {
-        CargoAPI cargo = cargo();
-        return cargo == null ? 0 : Math.max(0,
-                (int) Math.floor(cargo.getCommodityQuantity(commodityId)));
+        return WorkshopStores.current().available(commodityId);
     }
 
     @Override
@@ -26,16 +26,9 @@ public final class CampaignFabricationResources implements FabricationResources 
 
     @Override
     public boolean spend(FabricationCost cost) {
-        CargoAPI cargo = cargo();
-        if (cargo == null || !canAfford(cost)) return false;
-        for (FabricationCost.Line line : cost.lines()) {
-            cargo.removeCommodity(line.commodityId(), line.quantity());
-        }
-        return true;
-    }
-
-    private static CargoAPI cargo() {
-        return Global.getSector() != null && Global.getSector().getPlayerFleet() != null
-                ? Global.getSector().getPlayerFleet().getCargo() : null;
+        Map<String, Integer> bill = new LinkedHashMap<>();
+        for (FabricationCost.Line line : cost.lines())
+            bill.merge(line.commodityId(), line.quantity(), Integer::sum);
+        return WorkshopStores.current().spend(bill);
     }
 }

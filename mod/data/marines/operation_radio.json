@@ -26,13 +26,41 @@
       "ack": "marines_op_kestrel_ack",
       "readback": "marines_op_kestrel_readback",
       "reports": {
-        "CONTACT": "marines_op_kestrel_contact",
-        "FALLBACK": "marines_op_kestrel_fallback",
-        "CHECK_FIRE": "marines_op_kestrel_check_fire",
-        "MECH_SPOTTED": "marines_op_kestrel_mech_spotted",
-        "ENEMY_DOWN": "marines_op_kestrel_enemy_down",
-        "ACKNOWLEDGE": "marines_op_kestrel_acknowledge",
-        "COMBAT": "marines_op_kestrel_combat"
+        "CONTACT": [
+          "marines_op_kestrel_contact",
+          "marines_op_kestrel_contact_02",
+          "marines_op_kestrel_contact_03"
+        ],
+        "FALLBACK": [
+          "marines_op_kestrel_fallback",
+          "marines_op_kestrel_fallback_02",
+          "marines_op_kestrel_fallback_03"
+        ],
+        "CHECK_FIRE": [
+          "marines_op_kestrel_check_fire",
+          "marines_op_kestrel_check_fire_02",
+          "marines_op_kestrel_check_fire_03"
+        ],
+        "MECH_SPOTTED": [
+          "marines_op_kestrel_mech_spotted",
+          "marines_op_kestrel_mech_spotted_02",
+          "marines_op_kestrel_mech_spotted_03"
+        ],
+        "ENEMY_DOWN": [
+          "marines_op_kestrel_enemy_down",
+          "marines_op_kestrel_enemy_down_02",
+          "marines_op_kestrel_enemy_down_03"
+        ],
+        "ACKNOWLEDGE": [
+          "marines_op_kestrel_acknowledge",
+          "marines_op_kestrel_acknowledge_02",
+          "marines_op_kestrel_acknowledge_03"
+        ],
+        "COMBAT": [
+          "marines_op_kestrel_combat",
+          "marines_op_kestrel_combat_02",
+          "marines_op_kestrel_combat_03"
+        ]
       }
     },
     {
@@ -42,13 +70,41 @@
       "ack": "marines_op_hammer_ack",
       "readback": "marines_op_hammer_readback",
       "reports": {
-        "CONTACT": "marines_op_hammer_contact",
-        "FALLBACK": "marines_op_hammer_fallback",
-        "CHECK_FIRE": "marines_op_hammer_check_fire",
-        "MECH_SPOTTED": "marines_op_hammer_mech_spotted",
-        "ENEMY_DOWN": "marines_op_hammer_enemy_down",
-        "ACKNOWLEDGE": "marines_op_hammer_acknowledge",
-        "COMBAT": "marines_op_hammer_combat"
+        "CONTACT": [
+          "marines_op_hammer_contact",
+          "marines_op_hammer_contact_02",
+          "marines_op_hammer_contact_03"
+        ],
+        "FALLBACK": [
+          "marines_op_hammer_fallback",
+          "marines_op_hammer_fallback_02",
+          "marines_op_hammer_fallback_03"
+        ],
+        "CHECK_FIRE": [
+          "marines_op_hammer_check_fire",
+          "marines_op_hammer_check_fire_02",
+          "marines_op_hammer_check_fire_03"
+        ],
+        "MECH_SPOTTED": [
+          "marines_op_hammer_mech_spotted",
+          "marines_op_hammer_mech_spotted_02",
+          "marines_op_hammer_mech_spotted_03"
+        ],
+        "ENEMY_DOWN": [
+          "marines_op_hammer_enemy_down",
+          "marines_op_hammer_enemy_down_02",
+          "marines_op_hammer_enemy_down_03"
+        ],
+        "ACKNOWLEDGE": [
+          "marines_op_hammer_acknowledge",
+          "marines_op_hammer_acknowledge_02",
+          "marines_op_hammer_acknowledge_03"
+        ],
+        "COMBAT": [
+          "marines_op_hammer_combat",
+          "marines_op_hammer_combat_02",
+          "marines_op_hammer_combat_03"
+        ]
       }
     },
     {
@@ -58,13 +114,41 @@
       "ack": "marines_op_viper_ack",
       "readback": "marines_op_viper_readback",
       "reports": {
-        "CONTACT": "marines_op_viper_contact",
-        "FALLBACK": "marines_op_viper_fallback",
-        "CHECK_FIRE": "marines_op_viper_check_fire",
-        "MECH_SPOTTED": "marines_op_viper_mech_spotted",
-        "ENEMY_DOWN": "marines_op_viper_enemy_down",
-        "ACKNOWLEDGE": "marines_op_viper_acknowledge",
-        "COMBAT": "marines_op_viper_combat"
+        "CONTACT": [
+          "marines_op_viper_contact",
+          "marines_op_viper_contact_02",
+          "marines_op_viper_contact_03"
+        ],
+        "FALLBACK": [
+          "marines_op_viper_fallback",
+          "marines_op_viper_fallback_02",
+          "marines_op_viper_fallback_03"
+        ],
+        "CHECK_FIRE": [
+          "marines_op_viper_check_fire",
+          "marines_op_viper_check_fire_02",
+          "marines_op_viper_check_fire_03"
+        ],
+        "MECH_SPOTTED": [
+          "marines_op_viper_mech_spotted",
+          "marines_op_viper_mech_spotted_02",
+          "marines_op_viper_mech_spotted_03"
+        ],
+        "ENEMY_DOWN": [
+          "marines_op_viper_enemy_down",
+          "marines_op_viper_enemy_down_02",
+          "marines_op_viper_enemy_down_03"
+        ],
+        "ACKNOWLEDGE": [
+          "marines_op_viper_acknowledge",
+          "marines_op_viper_acknowledge_02",
+          "marines_op_viper_acknowledge_03"
+        ],
+        "COMBAT": [
+          "marines_op_viper_combat",
+          "marines_op_viper_combat_02",
+          "marines_op_viper_combat_03"
+        ]
       }
     }
   ],
@@ -345,6 +429,300 @@
       "text": "Don't bunch up! Give each other room!",
       "synthesisText": "[shouting] [strained voice] Don't bunch up! Give each other room!",
       "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_kestrel_contact_02",
+      "speaker": "kestrel",
+      "text": "Kestrel Two! Enemy contact!",
+      "synthesisText": "[shouting] [strained, breathless voice] Kestrel Two! Enemy contact!",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_kestrel_contact_03",
+      "speaker": "kestrel",
+      "text": "Command, Kestrel! We're engaged!",
+      "synthesisText": "[shouting] [strained, breathless voice] Command, Kestrel! We're engaged!",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_kestrel_fallback_02",
+      "speaker": "kestrel",
+      "text": "We can't stay here! Fall back!",
+      "synthesisText": "[shouting] [strained, breathless voice] We can't stay here! Fall back!",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_kestrel_fallback_03",
+      "speaker": "kestrel",
+      "text": "Kestrel Two, we're breaking! Pull back!",
+      "synthesisText": "[shouting] [strained, breathless voice] Kestrel Two, we're breaking! Pull back!",
+      "durationSeconds": 3.04
+    },
+    {
+      "id": "marines_op_kestrel_check_fire_02",
+      "speaker": "kestrel",
+      "text": "Friendly fire! Check your targets!",
+      "synthesisText": "[shouting] [strained, breathless voice] Friendly fire! Check your targets!",
+      "durationSeconds": 3.04
+    },
+    {
+      "id": "marines_op_kestrel_check_fire_03",
+      "speaker": "kestrel",
+      "text": "Those rounds are ours! Watch your fire!",
+      "synthesisText": "[shouting] [strained, breathless voice] Those rounds are ours! Watch your fire!",
+      "durationSeconds": 3.2
+    },
+    {
+      "id": "marines_op_kestrel_mech_spotted_02",
+      "speaker": "kestrel",
+      "text": "Command, Kestrel! Visual on an enemy mech!",
+      "synthesisText": "[shouting] [strained, breathless voice] Command, Kestrel! Visual on an enemy mech!",
+      "durationSeconds": 3.36
+    },
+    {
+      "id": "marines_op_kestrel_mech_spotted_03",
+      "speaker": "kestrel",
+      "text": "Hostile mech! Watch yourselves!",
+      "synthesisText": "[shouting] [strained, breathless voice] Hostile mech! Watch yourselves!",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_kestrel_enemy_down_02",
+      "speaker": "kestrel",
+      "text": "Confirmed kill! Stay sharp!",
+      "synthesisText": "[shouting] [strained, breathless voice] Confirmed kill! Stay sharp!",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_kestrel_enemy_down_03",
+      "speaker": "kestrel",
+      "text": "One less hostile! Eyes up!",
+      "synthesisText": "[shouting] [strained, breathless voice] One less hostile! Eyes up!",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_kestrel_acknowledge_02",
+      "speaker": "kestrel",
+      "text": "Kestrel Two! Still engaged!",
+      "synthesisText": "[shouting] [strained, breathless voice] Kestrel Two! Still engaged!",
+      "durationSeconds": 2.48
+    },
+    {
+      "id": "marines_op_kestrel_acknowledge_03",
+      "speaker": "kestrel",
+      "text": "Command, Kestrel! We're still here!",
+      "synthesisText": "[shouting] [strained, breathless voice] Command, Kestrel! We're still here!",
+      "durationSeconds": 3.12
+    },
+    {
+      "id": "marines_op_kestrel_combat_02",
+      "speaker": "kestrel",
+      "text": "Easy! Aim before you squeeze!",
+      "synthesisText": "[shouting] [strained, breathless voice] Easy! Aim before you squeeze!",
+      "durationSeconds": 3.04
+    },
+    {
+      "id": "marines_op_kestrel_combat_03",
+      "speaker": "kestrel",
+      "text": "Stay sharp! Watch each other's lanes!",
+      "synthesisText": "[shouting] [strained, breathless voice] Stay sharp! Watch each other's lanes!",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_hammer_contact_02",
+      "speaker": "hammer",
+      "text": "Hammer Three. Enemy contact.",
+      "synthesisText": "[projecting, gravelly voice] Hammer Three. Enemy contact.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_hammer_contact_03",
+      "speaker": "hammer",
+      "text": "Command, Hammer. We're engaged.",
+      "synthesisText": "[projecting, gravelly voice] Command, Hammer. We're engaged.",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_hammer_fallback_02",
+      "speaker": "hammer",
+      "text": "This isn't holding. Fall back together.",
+      "synthesisText": "[projecting, gravelly voice] This isn't holding. Fall back together.",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_hammer_fallback_03",
+      "speaker": "hammer",
+      "text": "Hammer Three. We're breaking off.",
+      "synthesisText": "[projecting, gravelly voice] Hammer Three. We're breaking off.",
+      "durationSeconds": 2.32
+    },
+    {
+      "id": "marines_op_hammer_check_fire_02",
+      "speaker": "hammer",
+      "text": "Friendly rounds coming in. Check your targets!",
+      "synthesisText": "[projecting, gravelly voice] Friendly rounds coming in. Check your targets!",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_hammer_check_fire_03",
+      "speaker": "hammer",
+      "text": "You're hitting friendlies. Watch your lanes!",
+      "synthesisText": "[projecting, gravelly voice] You're hitting friendlies. Watch your lanes!",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_hammer_mech_spotted_02",
+      "speaker": "hammer",
+      "text": "Command, Hammer. Hostile mech in sight.",
+      "synthesisText": "[projecting, gravelly voice] Command, Hammer. Hostile mech in sight.",
+      "durationSeconds": 3.04
+    },
+    {
+      "id": "marines_op_hammer_mech_spotted_03",
+      "speaker": "hammer",
+      "text": "Enemy walker. Keep clear of its guns.",
+      "synthesisText": "[projecting, gravelly voice] Enemy walker. Keep clear of its guns.",
+      "durationSeconds": 2.64
+    },
+    {
+      "id": "marines_op_hammer_enemy_down_02",
+      "speaker": "hammer",
+      "text": "Confirmed. One hostile down.",
+      "synthesisText": "[projecting, gravelly voice] Confirmed. One hostile down.",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_hammer_enemy_down_03",
+      "speaker": "hammer",
+      "text": "Enemy down. Stay alert.",
+      "synthesisText": "[projecting, gravelly voice] Enemy down. Stay alert.",
+      "durationSeconds": 2.08
+    },
+    {
+      "id": "marines_op_hammer_acknowledge_02",
+      "speaker": "hammer",
+      "text": "Hammer Three. Still engaged.",
+      "synthesisText": "[projecting, gravelly voice] Hammer Three. Still engaged.",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_hammer_acknowledge_03",
+      "speaker": "hammer",
+      "text": "Command, Hammer. We're still here.",
+      "synthesisText": "[projecting, gravelly voice] Command, Hammer. We're still here.",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_hammer_combat_02",
+      "speaker": "hammer",
+      "text": "Steady, now. Aim your fire.",
+      "synthesisText": "[projecting, gravelly voice] Steady, now. Aim your fire.",
+      "durationSeconds": 2.4
+    },
+    {
+      "id": "marines_op_hammer_combat_03",
+      "speaker": "hammer",
+      "text": "Watch your spacing. Look after each other.",
+      "synthesisText": "[projecting, gravelly voice] Watch your spacing. Look after each other.",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_viper_contact_02",
+      "speaker": "viper",
+      "text": "Viper One! We've got company!",
+      "synthesisText": "[shouting] [strained voice] Viper One! We've got company!",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_viper_contact_03",
+      "speaker": "viper",
+      "text": "Command, Viper! Enemy contact!",
+      "synthesisText": "[shouting] [strained voice] Command, Viper! Enemy contact!",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_viper_fallback_02",
+      "speaker": "viper",
+      "text": "Can't hold this! Back, now!",
+      "synthesisText": "[shouting] [strained voice] Can't hold this! Back, now!",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_viper_fallback_03",
+      "speaker": "viper",
+      "text": "Viper One! We're breaking off!",
+      "synthesisText": "[shouting] [strained voice] Viper One! We're breaking off!",
+      "durationSeconds": 2.56
+    },
+    {
+      "id": "marines_op_viper_check_fire_02",
+      "speaker": "viper",
+      "text": "We're friendlies, damn it! Check fire!",
+      "synthesisText": "[shouting] [strained voice] We're friendlies, damn it! Check fire!",
+      "durationSeconds": 2.96
+    },
+    {
+      "id": "marines_op_viper_check_fire_03",
+      "speaker": "viper",
+      "text": "Your rounds are hitting us! Check your targets!",
+      "synthesisText": "[shouting] [strained voice] Your rounds are hitting us! Check your targets!",
+      "durationSeconds": 3.44
+    },
+    {
+      "id": "marines_op_viper_mech_spotted_02",
+      "speaker": "viper",
+      "text": "Command, Viper! Hostile mech in sight!",
+      "synthesisText": "[shouting] [strained voice] Command, Viper! Hostile mech in sight!",
+      "durationSeconds": 3.28
+    },
+    {
+      "id": "marines_op_viper_mech_spotted_03",
+      "speaker": "viper",
+      "text": "Enemy walker! Watch those guns!",
+      "synthesisText": "[shouting] [strained voice] Enemy walker! Watch those guns!",
+      "durationSeconds": 2.72
+    },
+    {
+      "id": "marines_op_viper_enemy_down_02",
+      "speaker": "viper",
+      "text": "One down! Don't get careless!",
+      "synthesisText": "[shouting] [strained voice] One down! Don't get careless!",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_viper_enemy_down_03",
+      "speaker": "viper",
+      "text": "Hostile down. Keep your eyes open!",
+      "synthesisText": "[shouting] [strained voice] Hostile down. Keep your eyes open!",
+      "durationSeconds": 2.88
+    },
+    {
+      "id": "marines_op_viper_acknowledge_02",
+      "speaker": "viper",
+      "text": "Viper One! Still engaged!",
+      "synthesisText": "[shouting] [strained voice] Viper One! Still engaged!",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_viper_acknowledge_03",
+      "speaker": "viper",
+      "text": "Command, Viper. We're not done yet.",
+      "synthesisText": "[shouting] [strained voice] Command, Viper. We're not done yet.",
+      "durationSeconds": 3.28
+    },
+    {
+      "id": "marines_op_viper_combat_02",
+      "speaker": "viper",
+      "text": "Pick your shots! Don't waste them!",
+      "synthesisText": "[shouting] [strained voice] Pick your shots! Don't waste them!",
+      "durationSeconds": 2.8
+    },
+    {
+      "id": "marines_op_viper_combat_03",
+      "speaker": "viper",
+      "text": "Keep your wits about you! Watch your lanes!",
+      "synthesisText": "[shouting] [strained voice] Keep your wits about you! Watch your lanes!",
+      "durationSeconds": 3.2
     }
   ]
 }

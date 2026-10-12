@@ -1487,6 +1487,26 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     *without* tunnelling is merely one no locker is worth tunnelling to, which
     says nothing about whether the ground can be reached at all.
 
+## Mercenary Company Conversion
+
+The permanent Cerberus yard conversion is an explicit spatial exception to frigate
+company eligibility. It remains a frigate and combat freighter: +18 maximum crew,
+-25 hold capacity, increased troop berthing, a smaller hold footprint and a compact
+16-by-10 Mech Lab with one full-depth machine gantry. The bridge, armory and existing
+single Hermes berth complete its founding-company facilities. Extra beds do not
+add boat berths, and installing the hullmod creates no company assets.
+
+`CompanyShip` carries conversion state read from the actual variant; both deck
+programs and cached layouts include it. Ordinary frigates retain their existing
+eligibility. Hull outlines are read through the native hull spec's ship-file path,
+which may differ from its hull ID (Cerberus uses `warhound.ship`). The Mech Lab
+projects the current room's physical gantry count and rechecks it before fabrication;
+smaller rooms never delete already-owned assets.
+
+`CompanyYard` owns installation eligibility and payment at an accessible populated
+planet with a functional spaceport. The start and finite prepaid depot belong to
+`company-view-nouns.md`; live acceptance remains in `cerberus-company-start.md`.
+
 ## Boundaries
 
 `mapgen-nouns.md` owns the generation request, recipe, context, stage, room

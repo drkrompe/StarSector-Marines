@@ -91,7 +91,7 @@ public final class ShipTransferViewModel {
 
         /** Whether a company could be based aboard her at all. */
         public boolean quarters() {
-            return ship.hullClass().quarters();
+            return ship.quarters();
         }
     }
 
