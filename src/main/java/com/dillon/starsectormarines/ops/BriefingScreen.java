@@ -953,6 +953,13 @@ public class BriefingScreen implements Screen {
             props.put("deploymentStatus", failed ? "Terrain survey failed" : "Preparing deployment area...");
             props.put("deployAction", (Runnable) this::retrySurvey);
         }
+        if (MissionLaunch.requiresOfficerInduction(mission)) {
+            props.put("deploymentStatus", "First command: complete Castle's officer lesson in Barracks");
+            props.put("deployLabel", "MEET CASTLE");
+            props.put("deployDisabled", false);
+            props.put("deployClasses", "briefing-deploy");
+            props.put("deployAction", (Runnable) ctx::openOfficerInduction);
+        }
     }
 
     private void reinforce(MarineRoster roster, int shortfall) {
@@ -1435,7 +1442,8 @@ public class BriefingScreen implements Screen {
                 || isTransportSufficient(m, lift());
         boolean personnelOk = debugPersonnel || m == null || readiness.ready();
         boolean commandOk = m == null || captainCommandReady(m);
-        boolean canAccept = transportOk && personnelOk && commandOk;
+        boolean inductionRequired = MissionLaunch.requiresOfficerInduction(m);
+        boolean canAccept = transportOk && personnelOk && commandOk && !inductionRequired;
         MarineRoster personnelRoster = liveRoster();
         int personnelShortfall = readiness != null ? readiness.companyShortfall() : 0;
         int reserveAvailable = personnelRoster != null
@@ -1462,7 +1470,7 @@ public class BriefingScreen implements Screen {
                         : "Assign Squads",
                 squadsX + 8f, btnY + BTN_H - 6f, HEADER_COLOR));
 
-        Runnable deployAction = canAccept ? this::onAccept
+        Runnable deployAction = inductionRequired ? ctx::openOfficerInduction : canAccept ? this::onAccept
                 : !transportOk || readiness == null ? null
                 : !commandOk ? null
                 : readiness.needsPersonnel()
@@ -1484,7 +1492,7 @@ public class BriefingScreen implements Screen {
             }
         }
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                canAccept ? Strings.get("briefingAccept")
+                inductionRequired ? "Meet Castle / Barracks" : canAccept ? Strings.get("briefingAccept")
                         : !transportOk ? Strings.get("briefingAcceptBlocked")
                         : !commandOk ? "Check Command Groups"
                         : readiness.needsPersonnel()
@@ -2167,6 +2175,7 @@ public class BriefingScreen implements Screen {
     private void onAccept() {
         Mission m = ctx.getSelectedMission();
         if (m == null) return;
+        if (MissionLaunch.requiresOfficerInduction(m)) { ctx.openOfficerInduction(); return; }
         prepareSurvey(m);
         if (survey.peek() == null) { installDocument(); return; }
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();

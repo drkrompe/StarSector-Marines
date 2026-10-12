@@ -46,6 +46,7 @@ import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.OfficerInduction;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
@@ -195,6 +196,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     private static void ensureMarineRoster() {
         SectorAPI sector = Global.getSector();
         MarineRosterScript script = MarineRosterScript.getInstance();
+        boolean newCompany = script == null;
         if (script == null) {
             script = new MarineRosterScript();
             sector.addScript(script);
@@ -205,12 +207,14 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             float currentDay = CampaignClock.dayFloat();
             MarineCaptain starter = new MarineCaptain(
                     "Mira Hale",
-                    "graphics/portraits/portrait_mercenary01.png",
+                    OfficerInduction.MIRA_PORTRAIT,
                     Rank.LIEUTENANT,
                     currentDay);
             roster.add(starter);
+            if (newCompany) roster.beginOfficerInduction(starter);
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
+        OfficerInduction.migrateMiraPortrait(roster);
         script.ensureStartingCompany();
     }
 
