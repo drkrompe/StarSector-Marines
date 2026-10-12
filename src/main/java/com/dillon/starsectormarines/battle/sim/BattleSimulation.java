@@ -1549,6 +1549,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         damageService.applyDamage(target, attackerId, damage, penetration, moraleImpact);
     }
 
+    /**
+     * An aimed hit by a shooter that can reach {@code target}, applied now through the shared armour and
+     * structure law: an airborne aircraft is a legal target here, which the ordinary damage route refuses.
+     * A target that is not a body carrier (a roster unit) takes the ordinary route. Serial phases only.
+     */
+    public void applyAimedDamage(long target, long attackerId, float damage, float penetration) {
+        BodyCarrier carrier = rosterService.bodies().carrierOf(target);
+        if (carrier == null) {
+            applyDamage(target, attackerId, damage, penetration, 1.0f);
+            return;
+        }
+        bodyDamageResolver.resolveAimed(carrier, target, attackerId, damage, penetration);
+    }
+
     /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */
     private void flushPendingDamage() {
         damageService.flushPendingDamage();

@@ -99,6 +99,8 @@ public final class WarshipInterceptScene implements BehaviorScene {
             ship.direct(8f, true, 3);
             ship.useDoctrine();
             ship.stance(loop.equals("landing-denial") ? MissionStance.DEFEND : MissionStance.HOLD);
+            // This scene measures the landing denial alone, for what cannot shoot the boat; `warship-vs-air` owns shooting it.
+            ship.airFire(AirFireOrder.OFF);
             sim.addWarship(ship);
         }
         Trace trace = new Trace(boat, friendly, ship);

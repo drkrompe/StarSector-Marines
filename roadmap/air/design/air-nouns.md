@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-11 — campaign squads share a tactical arrival area by default; physical berths never split identity.
+Updated: 2026-10-11 — warship weapons may fire at aircraft by the weapon rule (Overhead ships); campaign squads share a tactical arrival area by default; physical berths never split identity.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -211,6 +211,14 @@ air — it is the same derivation for any body a carrier ever calls airborne.
 When anti-air arrives it is the capability that grows, not a second candidate
 set. A weapon gains an authored elevation, `reachesAltitude` reads it, and every
 consumer of the relation inherits the change without being touched.
+
+A warship's weapons are the first aimed shooter to reach altitude, and they do
+it by the weapon rule under **Overhead ships**, not through that capability: the
+rule is the ship's own, and the aimed hit enters through a second door beside the
+ordinary damage route (`applyAimedDamage`), which admits a present airborne body
+and applies the same armour and structure law and the same shoot-down. The
+ordinary route is unchanged, so ground fire still cannot reach a machine in the
+air.
 
 The **berth** is the thing with identity, not the airframe. A hardstand is
 authored into the map and stays put; the aircraft on it comes and goes and may
@@ -1615,10 +1623,47 @@ and machines it carries per second to touchdown, and its landing zone becomes
 a held area aimed at open ground, not at a unit. Each barrel waits on the zone
 until a round fired now would land as the boat touches down, so the first rounds
 fall with the boat and keep falling until everyone is out of it; a zone with a
-friendly in the blast and margin is skipped unless danger-close. The ship does
-not shoot the boat: whether a detonation on a boat's pad hurts it is not
-modelled (the boat is untouched in the scene), and shooting a boat in flight
-waits on the weapon-by-weapon rule for ship fire against aircraft.
+friendly in the blast and margin is skipped unless danger-close. Denial is the
+fire for what cannot shoot the boat: whether a detonation on a boat's pad hurts
+it is not modelled (the boat is untouched in the scene). The ship also shoots a
+loaded boat in flight with the weapons the next paragraph allows, and a boat it
+brings down loses everyone aboard.
+
+**A warship's weapons may fire at aircraft, and the weapon decides which.** As
+in the base game, the gun and not the hull is what cannot track a fighter. A
+weapon's class is read from its table hints and the size of its slot: a mount is
+*flak-capable* when its weapon carries `ANTI_FTR` or `PD_ALSO`, or is a
+medium-or-smaller weapon that is not `STRIKE`; *point defence* when it carries
+`PD` alone; and *assault-only* when it carries `STRIKE`, or is large with
+neither an anti-fighter nor a point-defence hint. The air layer has two target
+classes: a fighter (any fighter hull, bombers included) and a transport (every
+other craft, a shuttle or a fitted boat, which is slow and large). Flak-capable
+mounts may engage either; point-defence mounts only fighters, because a
+transport is a ship and the game's point defence never fires at ships;
+assault-only mounts only a transport. A mount that may not engage a craft is
+silent against it however near it flies. The Onslaught's Mark IX, Reaper and
+built-in cannons are assault-only; its Devastators, Hellbore-class mediums,
+Annihilator pods and light guns are flak-capable; its flak and vulcans are point
+defence. The ship does not look up unless told: an explicit order (fire at any
+hostile aircraft), or a posture. Air superiority engages any hostile aircraft in
+reach, armed craft first; intercept engages loaded boats; every other posture,
+and a ship with no doctrine, fires at ground only as it always did.
+
+An engagement is the weapon's burst on the weapon's own cooldown, paid for in
+flux and ammunition like any other fire (a posture's flux limit governs it, so
+a ship conserving flux for the air fight cannot spend it on a heavy burst), and
+a mount with ordnance to shoot always shoots the ordnance first. A projectile
+flies as an ordinary shell to the point the craft is led to (its velocity times
+the flight time) and a beam pulses at once. Whether a round hits is a pure hash
+of who fired what at which craft, never the shared random stream, against the
+point-defence chance (an aircraft is fast ordnance crossing at its cross-range
+speed, worse at long reach and with a wide cone), times 0.6 for a fighter,
+which jinks; a miss passes wide. A hit lands its weapon's damage on the craft
+through the same armour and structure law every body takes, and a craft taken to
+nothing dies the one way an aircraft dies, with the passengers still aboard.
+That route is the only way a shot reaches an airborne body: the ordinary damage
+route still refuses one, so a blast or a bullet fired at the ground never
+touches a machine overhead.
 
 **A warship is overpowered on purpose, and flux governs its rhythm, not its
 balance.** Owner direction: these ships are not balanced inside the battle. In the
@@ -1733,10 +1778,12 @@ sticky posture (air superiority, support, intercept, bombard, withdraw) from a
 threat picture and the ship's stance on the objective, and set only the
 parameters of the machinery described here: the director's areas, an
 opportunity range, a flux ceiling, a station. It issues ordinary orders and
-changes no weapon's damage. Honest state today: a warship's weapons cannot
-target aircraft, aircraft cannot hurt a warship, and ground defences cannot hurt
-one either, so the air-superiority half waits on owner decisions about those
-rules; the objective-aware, friendly-aware fire half does not.
+changes no weapon's damage. Honest state today: a warship's weapons may fire at
+aircraft by the rule above, but aircraft cannot hurt a warship except through
+the ordnance that happens to land on it, and ground defences cannot hurt one at
+all, so the air-superiority posture still enters on a mission-declared threat,
+hostile ships or two armed craft and has no air threat to a ship that is more
+than incidental.
 
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
