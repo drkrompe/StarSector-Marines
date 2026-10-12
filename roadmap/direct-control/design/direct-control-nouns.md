@@ -1,12 +1,13 @@
 # Direct control nouns
 
-Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live acceptance remains open.
+Status: ACTIVE — Marine, Mech, deployed APC, and friendly Warship control are implemented; live acceptance remains open.
 
 Written: 2026-09-23
 
-Updated: 2026-10-11 — the takeover shortcut is a compact contextual action beside eligible selection details.
+Updated: 2026-10-12 — a friendly Warship is a fourth carrier: it lays areas for its batteries rather than aiming a barrel.
 
-Direct control lets the player temporarily inhabit one of their ground units in
+Direct control lets the player temporarily inhabit one of their ground units, or a
+friendly capital hovering over the battle, in
 the Marine Operations battle. It changes who supplies that body's movement and
 fire intent; it does not turn the player into a second mission commander.
 
@@ -165,7 +166,12 @@ Wheel zoom remains available, reaching twice the former close-up limit in
 strategic and action views. Action zoom preserves the body’s screen framing;
 strategic zoom retains its cursor anchor. Camera projection remains shared
 with point aiming and the crosshair. Right-click issues no world order while
-controlling.
+controlling. It is a second trigger for the carriers that have a second battery: a
+Warship's missiles (see Warship carrier), a Mech's secondary weapon group, and a
+Marine's secondary equipment (see Mouse buttons). A carrier with nothing to put on
+it, such as the APC turret, lets the press fall on the floor; the press never
+reaches the world, the camera, or the command layer, and releasing input clears it
+exactly as it clears the left button.
 
 The mode is a freely entered one-unit intervention. It consumes
 the player's attention and excludes simultaneous control of another body.
@@ -339,18 +345,47 @@ not a range limit: an unobstructed round travels to the weapon’s full modeled
 reach beyond it. Accuracy, falloff, spread, and smoke depth are calibrated at
 weapon range so placing the cursor nearer cannot improve distant accuracy.
 
-For a Mech, the held primary trigger requests either all installed ground-direct
-mounts or one selected hardpoint, subject to each mount's arc, alignment,
-cooldown, ammunition, and burst gates. The action HUD's buttons and keys 1–4
-select all direct mounts, arms, left shoulder, or right shoulder. Empty or
-indirect hardpoints cannot be selected; an installed direct mount remains
+### Mouse buttons and weapon groups
+
+Two held buttons, one model across carriers: the left button is the primary
+trigger and the right button the secondary, and both may be held together.
+
+A Mech's point-fire hardpoints split into two **groups by weapon role**. Guns,
+cannons and lasers are the primary group; missile and rocket racks are the
+secondary group. Indirect launchers (LRM) are in neither because the cursor cannot
+aim them. The Hound therefore fires its nose chaingun on the left button and its
+SRM pod on the right; a Bulwark fires its chainguns left and both SRM racks right.
+A chassis whose point-fire mounts are all one role keeps them all on the left
+button and leaves the right one inert (an all-rack chassis is not stranded without
+a primary). Each button's trigger still requests only its own group's mounts,
+subject to each mount's arc, alignment, cooldown, ammunition, heat and burst gates.
+
+Keys 1-4 keep their place but act on the left button only. Key 1 is the default
+(left = primary group); keys 2-4 re-point the left button at a single hardpoint
+(arms, left shoulder, right shoulder), including a rack. The right button always
+fires the secondary group. The strip marks every card with the button(s) that
+fire it: `L`, `R`, `LR`, or nothing (an indirect rack or an unfired hardpoint).
+Empty or indirect hardpoints cannot be selected; an installed direct mount remains
 selectable when its ammunition is exhausted. Selection belongs to the control
 session, survives pause, and resets on takeover or handback. Changing it cancels
 queued manual rounds and releases held fire while preserving movement, aim,
-ammunition, and clocks; a new press must trigger the new choice. Repeated input
-cannot replay a cancelled burst. Selection does not change the installed
-equipment, authored packet size, or AI firing policy. The authored single shot,
+ammunition, and clocks; a new press must trigger the new choice. A queued burst
+keeps firing after its button is released and is dropped only when its mount leaves
+both buttons' groups. Repeated input cannot replay a cancelled burst. Neither
+selection nor groups change the installed equipment, authored packet size, or AI
+firing policy. The authored single shot,
 timed burst, or simultaneous volley remains distinct from this player choice.
+
+A Marine's primary weapon stays on the left button. The right button is the
+Marine's secondary equipment, through the same one-shot request as the G and E
+keys: on the press it throws the carried smoke at the cursor and, for a Marine with
+no smoke, raises the integral shield toward it. It acts on the press and does not
+repeat while held, so a held button cannot spend a magazine of grenades; ammunition,
+cooldown and the committed throw are the equipment's own. No other secondary item
+has a manual contract (grenade launchers and satchels are autonomous), so a Marine
+carrying only those leaves the right button inert rather than inventing a new free
+action. E and G keep working.
+
 Indirect mounts stay untriggered. Every mount keeps one clock and resource stream under the ordinary
 heavy-weapon pass; manual control neither advances it twice nor applies an
 infantry training multiplier to Mech accuracy. The live cursor owns torso aim
@@ -386,6 +421,70 @@ indirect missiles, need their own ground-point targeting contract before they ca
 triggered manually. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
+
+## Warship carrier
+
+A friendly capital over the battle (see `air-nouns.md` and `warship-behaviours.md`) is a
+fourth carrier of the same session, not a second input mode. It is not a roster body and
+has no entity identity; the session holds the hull itself, and selection offers it the
+same compact enter/exit action. A click on the hull selects it only where no unit was
+under the cursor, since it hovers over the fight. Only a live hull on the player's side
+that is not departing may be entered. Entry is refused while any other carrier is held,
+and a hull destroyed, departing, or removed from the battle releases control at the next
+validation. A mission-bounded ship that runs out of station time departs and releases.
+
+Vocabulary. A **laid area** is a ground circle the pilot has put on one battery of the
+ship (`FireOnArea`, ten cells, bring guns to bear). The **gun battery** is every
+area-fire mount that is not a missile, lances included; the **missile battery** is the
+missile mounts. Point defence belongs to neither: it keeps shooting at the air under
+the ship's own rules. A laid area stands in for the ship's own held areas for its
+battery only; a battery with nothing laid keeps whatever the ship holds. A laid area
+saturates: with no hostile standing in it the battery works over open ground inside the
+circle, so laying fire on empty ground is never silent. A pilot's
+area is a hand order for its battery, so a posture's range and battery limits do not
+refuse it, but it is never exempt from the physical pipeline: flux, ordnance,
+traverse, arc, reach, shields, armour, point defence, spread, and friendly fire all
+stay the ship's. The telegraph ring turns red when a round aimed at hostiles inside it
+would reach a friendly.
+
+Input. WASD supplies travel demand in world axes; the mouse is the aim point. The left
+button, held, lays the gun area at the cursor and drags it with the cursor; the right
+button does the same for the missile area. Letting go leaves the area where it was
+laid, so the ship keeps firing until the pilot takes it back. Ground the player has not
+observed, or off the map, is not laid: the fog rule is the aim lane's, so shelling cannot
+scout. Number keys are commands rather than weapon choices: 1 holds fire (lays nothing,
+drops the director's ground, stops the director), 2 hands targeting to the ship's own
+director or takes it back, 3 steps the missile preset, 4 steps the ground-fire policy
+(all, heavy only, none). E raises or drops the shield, leaving its automatic mode, on a
+hull that has one. The policy was chosen over the flux toggle for key 4 because turning
+flux off would be free ammunition; the policy only withholds fire. Tab and Escape are
+unchanged, strategic chrome hides as for the other carriers, and pause, chrome and
+lost focus zero the drive demand without dropping ground already laid.
+
+Flight. The hull accelerates toward the demanded velocity at its own acceleration,
+brakes at its own deceleration when nothing is demanded, never exceeds its table
+speed, and is stopped by the map edge; it does not teleport. It points along its travel
+while the pilot asks for travel. Stopped with ground laid, it swings at its own turn
+rate to the heading that brings the most firepower onto that ground and holds it.
+
+Authority and handback. Entry stands down the ship's own targeting and station-keeping:
+its director, held ground, route or station, ground-fire policy and shield mode are
+remembered, the director is off, and its doctrine stops assessing until release. Handback
+restores exactly those, discards every laid area and any order the pilot gave, zeroes
+the drive demand, and flies the hull back to its station if it had one. A hull that was
+manually ordered keeps that order. The missile preset is a setting of the ship rather
+than an order and stays as the pilot left it. Switching the director on for a ship that
+was never on flux puts it on its hull's flux, as it would any directed ship.
+
+The equipment strip shows hull above armour, the flux gauge in the heat row, and
+read-only cards for the gun battery, lances, missile battery, point defence, shield and
+the automation (director, missile preset, ground-fire policy), each with its laid area
+or a no-area/auto note and a readiness fill. Armour is a rating in this model and is
+never spent down, so its line is shown whole. The camera frames the hull by its beam so
+the cursor can lead beyond the bow. The hull outline, the two laid rings and a
+crosshair are drawn in the world; there is no aim lane, since a ship fires on ground
+and not along a line. The F6-F11 debug keys of the debug mission still work outside
+control and are hidden during it.
 
 ## Boundaries
 

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.fs.starfarer.api.SoundAPI;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipSpotting;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -1318,9 +1319,12 @@ public class BattleScreen implements Screen, BattleUiContext {
             return;
         }
         BattleSimulation sim = getSim();
-        if (sim == null || sim.isComplete()
-                || !sim.directControl().enter(selection.hasVehicleSelection()
-                        ? selection.getSelectedVehicleId() : selection.getSelectedUnitEntityId())) return;
+        if (sim == null || sim.isComplete()) return;
+        boolean entered = selection.hasWarshipSelection()
+                ? sim.directControl().enterWarship(selection.getSelectedWarship())
+                : sim.directControl().enter(selection.hasVehicleSelection()
+                        ? selection.getSelectedVehicleId() : selection.getSelectedUnitEntityId());
+        if (!entered) return;
         directControlSimulation = sim;
         speedMultiplier = directControlInput.enter(speedMultiplier);
         cameraControls.release();
@@ -1423,9 +1427,23 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void followControlledUnit(float dt) {
         if (directControlSimulation == null || !directControlInput.active() || camera == null) return;
         long unit = directControlSimulation.directControl().activeUnitId();
-        if (unit == 0L) return;
+        Warship ship = directControlSimulation.directControl().controlledWarship();
+        if (unit == 0L && ship == null) return;
         float pointerX = directControlInput.pointerX();
         float pointerY = directControlInput.pointerY();
+        if (ship != null) {
+            // The hull is framed by its beam rather than its length, so the cursor can lead past the bow.
+            float shipRadius = .5f * Math.min(ship.widthCells, ship.lengthCells);
+            actionCamera.follow(camera, ship.x, ship.y, shipRadius, pointerX, pointerY,
+                    directControlInput.pointerKnown()
+                            && !battleChromeBlocksWorldPointer(pointerX, pointerY), dt,
+                    position != null ? BattleDirectControlOverlay.viewport(position, true).height() + 12f : 0f);
+            if (directControlOverlay != null) {
+                directControlOverlay.avoidControlledBody(camera.cellToScreenX(ship.x),
+                        camera.cellToScreenY(ship.y), shipRadius * camera.cellPxSize());
+            }
+            return;
+        }
         float radius = directControlSimulation.physicalRadius(unit);
         if (directControlSimulation.directControl().controlledVehicleId() != 0L) {
             var type = directControlSimulation.convoy().vehicleType(unit);

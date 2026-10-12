@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.fortress.FortressBuilding;
 import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressInterior;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Fortification;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBoundary;
@@ -56,8 +57,10 @@ public final class PrecinctWardStage implements GenStage {
         Map<String, Integer> shortFields = new LinkedHashMap<>();
         for (int i = 0; i < plan.precincts().size(); i++) {
             Precinct precinct = plan.precincts().get(i);
+            PrecinctFill.Masks masks = null;
+            FortressInterior.Result result = null;
             if (precinct.isProgrammed()) {
-                PrecinctFill.Masks masks =
+                masks =
                         PrecinctFill.masks(claim, road, i, ctx.width, ctx.height);
                 AirbaseLot.Facing facing = AirbaseLot.Facing.of(facing(precinct, ctx));
                 // Lots first, buildings second. A lot claimed after packing gets
@@ -70,7 +73,7 @@ public final class PrecinctWardStage implements GenStage {
                     shortFields.put(precinct.name(),
                             precinct.program().airfields() - fields.size());
                 }
-                FortressInterior.Result result =
+                result =
                         PrecinctFill.pack(ctx, precinct, masks, facing(precinct, ctx));
                 for (Reserved field : fields) {
                     build(ctx, field, facing);
@@ -96,6 +99,9 @@ public final class PrecinctWardStage implements GenStage {
             }
             if (precinct.boundary() == Precinct.Boundary.WALLED) {
                 stampWall(ctx, claim, road, i, precinct.fortification());
+            }
+            if (result != null) {
+                InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), result.placed());
             }
         }
         ctx.put(BspKeys.UNPLACED_PROGRAM, Map.copyOf(unbuilt));

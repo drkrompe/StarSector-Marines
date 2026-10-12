@@ -173,7 +173,7 @@ public final class DebugWarship {
     /** Takes targeting from any director and fires on the cell, bringing the guns to bear. */
     public static void fireAt(Warship ship, float cellX, float cellY) {
         ship.stopDirecting();
-        ship.order(new WarshipOrder.FireOnArea(cellX, cellY, AREA_RADIUS_CELLS, true));
+        ship.order(WarshipOrder.FireOnArea.saturating(cellX, cellY, AREA_RADIUS_CELLS, true));
     }
 
     /** Sends the ship to hover over the cell, leaving any route it was flying. */

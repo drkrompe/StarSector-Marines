@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.warship.Warship;
 
 /**
  * Mutable, shared selection state for the battle HUD. One instance lives on
@@ -33,6 +34,8 @@ public final class Selection {
     /** Selected convoy vehicle by world entity id; {@code 0L} == none. Id-keyed (not a list
      *  index) so it stays valid as the convoy list mutates — GONE vehicles are reaped. */
     private long selectedVehicleId = 0L;
+    /** Selected friendly warship; it has no entity id, so the hull itself is held. Exclusive with every other form. */
+    private Warship selectedWarship;
 
     public int getSelectedSquadId() {
         return selectedSquadId;
@@ -47,6 +50,7 @@ public final class Selection {
         this.selectedSquadId = squadId;
         this.selectedUnitEntityId = 0L;
         this.selectedVehicleId = 0L;
+        this.selectedWarship = null;
     }
 
     /** Selects a specific unit and its parent squad. Both ids must be in sync — pass the unit's own squadId, not a guessed one. {@code unitEntityId} is the world entity id ({@code 0L} = none). */
@@ -54,12 +58,14 @@ public final class Selection {
         this.selectedSquadId = squadId;
         this.selectedUnitEntityId = unitEntityId;
         this.selectedVehicleId = 0L;
+        this.selectedWarship = null;
     }
 
     public long getSelectedVehicleId() { return selectedVehicleId; }
 
     public void selectVehicle(long vehicleId) {
         this.selectedVehicleId = vehicleId;
+        this.selectedWarship = null;
         this.selectedSquadId = NONE;
         this.selectedUnitEntityId = 0L;
     }
@@ -68,6 +74,7 @@ public final class Selection {
         this.selectedSquadId = NONE;
         this.selectedUnitEntityId = 0L;
         this.selectedVehicleId = 0L;
+        this.selectedWarship = null;
     }
 
     public boolean hasSquadSelection() {
@@ -76,5 +83,18 @@ public final class Selection {
 
     public boolean hasVehicleSelection() {
         return selectedVehicleId != 0L;
+    }
+
+    /** The selected friendly warship, or {@code null}. */
+    public Warship getSelectedWarship() { return selectedWarship; }
+
+    public boolean hasWarshipSelection() { return selectedWarship != null; }
+
+    /** Selects a warship; like a vehicle, it is exclusive with every squad form. */
+    public void selectWarship(Warship ship) {
+        this.selectedWarship = ship;
+        this.selectedSquadId = NONE;
+        this.selectedUnitEntityId = 0L;
+        this.selectedVehicleId = 0L;
     }
 }

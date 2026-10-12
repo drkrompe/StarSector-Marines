@@ -43,7 +43,8 @@ public final class ShipDutyWatch {
         for (CrewRole role : List.of(CrewRole.MECH_TECH, CrewRole.MEDIC, CrewRole.COOK,
                 CrewRole.ARMOURER, CrewRole.MACHINIST, CrewRole.STOREKEEPER)) {
             boolean covered = false;
-            for (Compartment room : rooms) {
+            for (Compartment room : rooms.stream().sorted(Comparator.comparingInt(candidate ->
+                    ShipWorkRound.postingPriority(role, candidate.purpose()))).toList()) {
                 if (role == CrewRole.STOREKEEPER && room.purpose() != RoomPurpose.STOCKROOM
                         && room.purpose() != RoomPurpose.LOADING_BAY) continue;
                 if (!Shift.basedAt(role, room, tasks, berthed)) continue;
@@ -53,6 +54,7 @@ public final class ShipDutyWatch {
                         .filter(task -> task.affordance().duty()).toList();
                 AmbientTaskRoute route = Shift.of(role, List.of(room), duty, berthed,
                         AmbientThreatPolicy.HOSTILE_COMBATANT).member(0);
+                route = ShipWorkRound.expand(role, room, duty, berthed, route, 0, true);
                 if (route != null) {
                     Post post = new Post(room, role, route);
                     if (covered) additionalSupport.add(post);
@@ -74,6 +76,7 @@ public final class ShipDutyWatch {
                 room.purpose() == RoomPurpose.ENGINE_ROOM ? 0 : 1)).toList();
         for (Compartment room : byPriority) {
             if (purpose != null && room.purpose() != purpose) continue;
+            int machineryHand = 0;
             List<FixtureTask> work = JobBoard.live(tasks, room, berthed).stream()
                     .sorted(Comparator.comparingInt(task -> task.affordance() == Affordance.WATCH ? 0 : 1)).toList();
             for (FixtureTask task : work) {
@@ -86,9 +89,12 @@ public final class ShipDutyWatch {
                         task.cellY() + .5f, CrewRole.dwellFor(task.affordance()),
                         CrewRole.activityFor(task.affordance()), task.fixtureX() + .5f,
                         task.fixtureY() + .5f, group);
-                result.add(new Post(room, role, new AmbientTaskRoute("duty-" + group + "-" + result.size(),
+                AmbientTaskRoute route = new AmbientTaskRoute("duty-" + group + "-" + result.size(),
                         result.size() * 1.7f, .72f, 14f, AmbientThreatPolicy.HOSTILE_COMBATANT,
-                        List.of(stop))));
+                        List.of(stop));
+                if (role == CrewRole.ENGINE_WATCH && task.affordance() == Affordance.TEND)
+                    route = ShipWorkRound.expand(role, room, tasks, berthed, route, machineryHand++, true);
+                result.add(new Post(room, role, route));
             }
         }
         return result;

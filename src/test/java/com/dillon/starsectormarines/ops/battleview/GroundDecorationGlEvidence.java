@@ -17,10 +17,12 @@ import org.lwjgl.BufferUtils;
 import java.lang.reflect.Proxy;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.EnumSet;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
@@ -123,12 +125,18 @@ class GroundDecorationGlEvidence {
                     // Frame one builds the atlas, frame two bakes the mesh
                     // against it, frame three is the one the mesh is serving.
                     for (int warmup = 0; warmup < 3; warmup++) draw(target[0], renderer, camera, sim);
-                    assertEquals(3, mesh.sublayerCount(),
-                            "the base terrain, the scatter and the door decals");
+                    assertEquals(5, mesh.sublayerCount(),
+                            "base terrain, edge blends, ground damage, scatter and door decals");
                     int baked = mesh.residentQuads();
                     assertTrue(baked > CELLS_W * CELLS_H,
                             "there has to be decoration on top of the terrain to compare; "
                                     + baked + " quads over " + (CELLS_W * CELLS_H) + " cells");
+
+                    byte[] pristine = draw(target[0], renderer, camera, sim);
+                    topology.setTag(8, 6, CellTopology.Tag.GROUND_DAMAGED, true);
+                    byte[] scarred = draw(target[0], renderer, camera, sim);
+                    assertFalse(Arrays.equals(pristine, scarred),
+                            "a new terrain scar must change the pixels in the resident renderer");
 
                     // Now move the world under it. (3,3) carries both a scatter
                     // tile and a doorway decal, and loses both — the overlay
