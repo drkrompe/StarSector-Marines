@@ -362,7 +362,7 @@ public final class CompanyDeck {
      * nature stays outside the hull. Gym pool water uses a registered ship material
      * sheet loaded with the other custom room art.
      */
-    private void ensureSceneSprites() {
+    void ensureSceneSprites() {
         if (sprites == null) return;
         sprites.ensureTileSheet();
         sprites.ensureRoadSheet();
@@ -370,6 +370,7 @@ public final class CompanyDeck {
         sprites.ensureLayeredUnitSprites();
         sprites.ensureLayeredMechSprites();
         sprites.ensureMarineSecondarySprites();
+        sprites.ensureAirframeSprites();
     }
 
     /**
