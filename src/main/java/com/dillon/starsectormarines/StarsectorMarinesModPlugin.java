@@ -211,7 +211,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
                     Rank.LIEUTENANT,
                     currentDay);
             roster.add(starter);
-            if (newCompany) roster.beginOfficerInduction(starter);
+            if (newCompany) roster.beginCompanyPreparation(starter);
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
         OfficerInduction.migrateMiraPortrait(roster);

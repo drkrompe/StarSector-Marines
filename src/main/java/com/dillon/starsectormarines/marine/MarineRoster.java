@@ -64,6 +64,14 @@ public class MarineRoster implements Serializable {
     private OfficerInduction officerInduction;
 
     public OfficerInduction officerInduction() { return officerInduction; }
+    public void beginCompanyPreparation(MarineCaptain mira) {
+        if (officerInduction != null) return;
+        beginOfficerInduction(mira);
+        if (officerInduction != null) {
+            officerInduction.prepareCompany();
+            boatDeck.requireCommissioning();
+        }
+    }
     public boolean officerInductionRequired() { return officerInduction != null && !officerInduction.complete(); }
     public void beginOfficerInduction(MarineCaptain mira) {
         if (officerInduction == null && mira != null && byId(mira.id()) == mira)

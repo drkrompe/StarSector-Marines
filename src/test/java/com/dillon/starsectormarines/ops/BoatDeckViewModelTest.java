@@ -304,8 +304,8 @@ class BoatDeckViewModelTest {
                 new Reactor(), deck, TestResources.stocked(2_000), "Wolf");
 
         String summary = viewModel.deckSummary().get();
-        assertTrue(summary.startsWith("2 boats aboard"), summary);
-        assertTrue(summary.contains(ShuttleType.HERMES.displayName()), summary);
+        assertTrue(summary.startsWith("0 boats aboard"), summary);
+        assertTrue(summary.contains("2 berths empty"), summary);
         assertTrue(summary.contains("6 boats left with her last ship"), summary);
     }
 

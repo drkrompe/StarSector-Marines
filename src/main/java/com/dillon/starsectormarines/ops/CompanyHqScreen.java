@@ -47,6 +47,7 @@ public final class CompanyHqScreen implements Screen {
     private Runnable dismissDialog;
     private UiViewport viewport;
     private UiDocument document;
+    private PreparationGuide preparationGuide;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private int projectedCampaignHour = Integer.MIN_VALUE;
@@ -64,6 +65,7 @@ public final class CompanyHqScreen implements Screen {
         } else {
             document.layout(viewport.documentWidth(), viewport.documentHeight());
         }
+        if (preparationGuide != null) preparationGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -87,7 +89,7 @@ public final class CompanyHqScreen implements Screen {
         UiDocument built;
         try {
             requireWiredElements(candidate);
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onClose);
             intelTerminal.bind(built, candidate);
@@ -102,6 +104,7 @@ public final class CompanyHqScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         document = built;
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.headquarters(context), this::onClose);
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
@@ -191,11 +194,13 @@ public final class CompanyHqScreen implements Screen {
         if (document != null && currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
             installDocument();
+            if (preparationGuide != null) preparationGuide.update();
             input = new StarsectorUiInputAdapter(document, viewport);
         }
         intelTerminal.advance(dt);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
+        if (preparationGuide != null) preparationGuide.update();
     }
 
     private static int campaignHour() {

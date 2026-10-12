@@ -36,6 +36,10 @@ public final class BoatDeck implements Serializable {
 
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
+    private boolean commissioningRequired;
+
+    /** Only new companies opt out of the one-time legacy starting complement. */
+    void requireCommissioning() { commissioningRequired = true; }
 
     /**
      * What her bays hold, from the last reconcile. Persisted because
@@ -66,18 +70,13 @@ public final class BoatDeck implements Serializable {
     /**
      * Brings the deck into step with one hull, and reports what that cost.
      *
-     * <p><b>A move fills berths; staying put never does.</b> On the ship the
-     * company is already aboard, every berth keeps what is standing in it and
-     * an empty one stays empty — a boat that was shot down is gone, and a read
-     * that quietly replaced it would make the loss unobservable. Only a boat of
-     * a pattern her bays do not hold, or one past her berth count, is left
-     * behind, and neither can arise while the hull has not changed.
+     * <p>Staying aboard preserves berth positions and vacancies. Moving compacts
+     * compatible survivors into the new hull, leaving incompatible or surplus
+     * boats behind. Neither movement nor a read pays for a replacement.
      *
-     * <p>On a different hull — and a deck that has never been reconciled counts
-     * as one — the surviving boats compact into her berths in order and the
-     * vacancies fill with her own at standard fit, because the hull comes with
-     * her boats and a berth standing empty would be lift the player has to buy
-     * before they can leave.
+     * <p>New companies commission every boat. A legacy deck that has never been
+     * reconciled receives its historical starting complement once; existing
+     * saved boats survive unchanged. Later vacancies always require fabrication.
      *
      * @param shipId the hull the company is aboard, by fleet-member id
      * @param pattern what her bays hold ({@code ShipsBoats.carriedBy})
@@ -111,7 +110,8 @@ public final class BoatDeck implements Serializable {
                 if (boat.pattern() == pattern && kept.size() < wanted) kept.add(boat);
                 else left.add(boat.displayName());
             }
-            while (kept.size() < wanted) kept.add(build(pattern));
+            boolean legacyStart = this.shipId == null && !commissioningRequired;
+            while (kept.size() < wanted) kept.add(legacyStart ? build(pattern) : null);
         }
 
         this.berths = kept;

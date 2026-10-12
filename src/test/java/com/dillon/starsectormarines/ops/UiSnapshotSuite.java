@@ -1747,7 +1747,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             MarineRoster roster = new MarineRoster();
             MarineCaptain mira = new MarineCaptain("Mira Hale", "graphics/portraits/mira-hale.png", Rank.LIEUTENANT, 0f);
             roster.add(mira);
-            roster.beginOfficerInduction(mira);
+            roster.beginCompanyPreparation(mira);
+            frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
             BarracksViewModel model = new BarracksViewModel(reactor, roster, () -> 1d, snapshotEquipmentResources(),
                     () -> 12, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             var command = model.command();
@@ -1793,9 +1794,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 click.accept("officer-formations");
                 click.accept("barracks-raise-squad");
                 if (!armoryRequested[0]) throw new IllegalStateException("Raise Squad did not route to Armory");
-                // Armory owns its screen and founding transaction; return its authoritative result.
-                if (!new SquadFoundingWorkshop(roster, snapshotSquadFoundingResources()).foundSquad().succeeded())
-                    throw new IllegalStateException("Founding failed");
+                frames.addAll(renderPreparationArmory(context, renderer, roster, scale));
                 model.refresh(); instance.flush(); document.advance(0f); guide.update();
                 int clicks = 0;
                 while (roster.officerInduction().step(roster) != Step.READY && clicks < 10) {
@@ -1814,6 +1813,94 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
         }
         return frames;
+    }
+
+    private static List<SnapshotArtifact> renderPreparationRooms(SnapshotContext context,
+            HeadlessUiRenderer renderer, MarineRoster roster, float scale) throws Exception {
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        Reactor reactor = new Reactor();
+        var fleet = transferFleet(context);
+        var candidate = fleet.get(0);
+        var model = new ShipTransferViewModel(reactor, () -> fleet,
+                () -> new CompanyShipDesignation.Home(roster.companyShipId(), null, false, 0),
+                id -> roster.setCompanyShip(id, candidate.name(), candidate.cargo()), CompanyMeans.NONE);
+        model.preparation(roster, snapshotMechResources());
+        model.select(candidate.id());
+        model.candidateRows().get();
+        while (model.reading()) { model.advance(); Thread.onSpinWait(); }
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), SHIP_TRANSFER_COMPONENTS);
+        loader.reload();
+        var properties = props(model);
+        properties.put("transferAction", (Runnable) model::commit);
+        try (MarkupInstance instance = loader.build(reactor, "ship-transfer", properties)) {
+            UiDocument document = PreparationGuide.document(instance.root());
+            instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("transfer-plan"), new DeckPlanCanvas(model::selectedPlan));
+            var guide = preparationGuide(context, document, () -> roster.companyShipId() == null
+                    ? CompanyPreparationGuide.ship(roster, model, null) : null);
+            frames.add(preparationFrame("01-ship", renderer, document, guide, scale));
+            clickBarracksFlow(document, instance, "transfer-commit");
+            if (roster.companyShipId() == null) throw new IllegalStateException("Preparation ship confirmation failed");
+        }
+        BoatDeck deck = roster.boatDeck();
+        deck.reconcile(candidate.id(), ShipsBoats.carriedBy(candidate.ship().role()), ShipsBoats.aboard(candidate.ship()).size());
+        CompanyDeck ship = new CompanyDeck(candidate.ship(), SHIP_SEED, null, List::of, List::of, () -> heldBerths(deck));
+        readied(ship);
+        var bay = ship.rooms(RoomPurpose.HANGAR).get(0);
+        var boats = new BoatDeckViewModel(reactor, deck, snapshotMechResources(), candidate.name());
+        loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), BOAT_DECK_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(reactor, "boat-deck", props(boats, ship, bay, 1))) {
+            UiDocument document = PreparationGuide.document(instance.root());
+            instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("boat-deck-canvas"), new BoatDeckCanvas(ship, () -> bay,
+                    boats::selectedBerthIndex, () -> 0, berth -> deck.boats().get(berth) != null));
+            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.boats(roster, boats, () -> { }));
+            frames.add(preparationFrame("02-berth", renderer, document, guide, scale));
+            clickBarracksFlow(document, instance, "boat:0"); guide.update();
+            frames.add(preparationFrame("03-commission", renderer, document, guide, scale));
+            clickBarracksFlow(document, instance, "boat-fabricate"); guide.update();
+            if (deck.airworthy().size() != 1) throw new IllegalStateException("Click-through commissioning failed");
+            // The production host rebuilds its deck scene after the berth changes. This frame checks the order and handoff.
+            frames.add(preparationFrame("04-lift-ready", renderer, document, guide, scale));
+        }
+        return frames;
+    }
+
+    private static List<SnapshotArtifact> renderPreparationArmory(SnapshotContext context,
+            HeadlessUiRenderer renderer, MarineRoster roster, float scale) throws Exception {
+        Reactor reactor = new Reactor();
+        var model = new FleetArmoryViewModel(reactor, roster, () -> { }, () -> 1d,
+                snapshotEquipmentResources(), snapshotSquadFoundingResources());
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
+        loader.reload();
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        try (MarkupInstance instance = loader.build(reactor, "fleet-armory", props(model))) {
+            UiDocument document = PreparationGuide.document(instance.root());
+            instance.styles().forEach(document::addStyleSheet); document.theme(MarineOpsThemes.standard());
+            FleetArmoryScreen.bindGalleryCanvases(document, instance, model);
+            var guide = preparationGuide(context, document, () -> CompanyPreparationGuide.armory(roster, () -> { }));
+            frames.add(preparationFrame("05-found-squad", renderer, document, guide, scale));
+            clickBarracksFlow(document, instance, "found-squad"); guide.update();
+            if (roster.officerInduction().step(roster) != Step.ASSIGNMENT)
+                throw new IllegalStateException("Click-through squad founding failed");
+            frames.add(preparationFrame("06-return-to-mira", renderer, document, guide, scale));
+        }
+        return frames;
+    }
+
+    private static PreparationGuide preparationGuide(SnapshotContext context, UiDocument document,
+            Supplier<PreparationGuide.Lesson> lesson) {
+        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                List.of("data/ui/components/company/preparation-guide.mlx"));
+        return new PreparationGuide(document, lesson, () -> { }, loader);
+    }
+
+    private static SnapshotArtifact preparationFrame(String name, HeadlessUiRenderer renderer,
+            UiDocument document, PreparationGuide guide, float scale) {
+        renderRelative(renderer, document, 1920, 1080, scale); guide.update();
+        return new SnapshotArtifact("preparation-" + name + "-" + (int)(scale * 100) + "pct.png",
+                renderRelative(renderer, document, 1920, 1080, scale));
     }
 
     /** One company, real pointer actions and personnel/cargo transactions at every frame. */
