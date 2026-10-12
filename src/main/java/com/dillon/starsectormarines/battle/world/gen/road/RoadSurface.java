@@ -34,6 +34,9 @@ public final class RoadSurface {
         // Expose the underlay in the corners cut off by a round end too. Cells
         // outside every sweep's bounds retain their original hard paving.
         for(var route:routes) {
+            // Only straight runs own the whole bounding rectangle. A turn's
+            // bounds can also contain a separate road that must keep its paint.
+            if(route.points().size()!=2)continue;
             var samples=RoadRasterizer.sample(route);
             double radius=route.width()/2;
             double x0=Double.POSITIVE_INFINITY,y0=x0,x1=Double.NEGATIVE_INFINITY,y1=x1;

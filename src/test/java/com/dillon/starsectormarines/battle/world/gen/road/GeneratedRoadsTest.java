@@ -2,11 +2,25 @@ package com.dillon.starsectormarines.battle.world.gen.road;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Point;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Route;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import org.junit.jupiter.api.Test;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GeneratedRoadsTest {
+    @Test void curveBoundsCannotEraseSeparatePavingOutsideTheActualSweep() {
+        var turn = new Route("turn", List.of(new Point(5, 5), new Point(15, 5), new Point(15, 15)),
+                5, 0, .4, 12, Material.ASPHALT);
+        var allowed = new RoadSurface.Underlay[24][24];
+        allowed[5][15] = new RoadSurface.Underlay(GroundKind.STREET, 77, false, false);
+        var surface = RoadSurface.generated(List.of(turn), new CellTopology(24, 24), allowed);
+        assertNull(surface.patch(5, 15, 0));
+        assertNull(surface.underlay(5, 15), "an unrelated road keeps its original surface");
+    }
+
     @Test void teeHasCurvedTurnsOnlyOnItsExistingArms() {
         boolean[][] road = new boolean[32][32];
         fill(road, 2, 8, 29, 12);
