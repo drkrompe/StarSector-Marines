@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStag
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.SpineStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipMaterialStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.ShipWearStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.RoomPlacementStage;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -70,6 +71,7 @@ public final class ShipDeckGenerator {
                 new FinalizeStage(),                    // wall HP / cover / wall tags / buildings
                 new BayApertureStage(),                  // sight-clear vacuum beyond pressure openings
                 new ShipMaterialStage(),                // ship material defaults over the finalized shell
+                new ShipWearStage(boatBay),              // cosmetic history survives room repairs
                 ctx -> WorkshopConditionStage.restrictAccess(ctx, workshop))); // pressure exclusion, never wall geometry
     }
 

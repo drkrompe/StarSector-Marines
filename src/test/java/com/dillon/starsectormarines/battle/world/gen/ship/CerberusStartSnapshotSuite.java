@@ -85,6 +85,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                         var restoredMap = other.generateDeck(restored.deckPlan(), seed, restored.outline());
                         var after = other.getLastDeckGraph();
                         if (!layout(graph).equals(layout(after))) throw new AssertionError("Repair moved a compartment");
+                        if (!wear(map).equals(wear(restoredMap))) throw new AssertionError("Bay repair changed lasting scars");
                         if (ship.deckPlan().frames() != restored.deckPlan().frames()
                                 || ship.deckPlan().height() != restored.deckPlan().height())
                             throw new AssertionError("Repair resized the hull");
@@ -149,6 +150,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> frames = new ArrayList<>();
         for (long seed : new long[]{42, 81, 2026}) {
             List<String> baseline = null;
+            List<String> lastingWear = null;
             for (WorkshopState state : List.of(WorkshopState.BURIED, WorkshopState.CLEARED,
                     WorkshopState.REPAIRED, WorkshopState.EQUIPPED)) {
                 CompanyShip ship = hull.withWorkshop(state);
@@ -158,6 +160,8 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                     deck.advance(1f / 30f);
                     var graph = deck.rooms();
                     assertPreparationAccess(deck.map(), graph);
+                    if (lastingWear == null) lastingWear = wear(deck.map());
+                    else if (!lastingWear.equals(wear(deck.map()))) throw new AssertionError("Workshop repair changed lasting scars");
                     if (baseline == null) baseline = layout(graph);
                     else if (!baseline.equals(layout(graph))) throw new AssertionError("Workshop stage moved rooms");
                     var room = deck.room(RoomPurpose.PARTS_CAGE);
@@ -189,6 +193,15 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                         for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact(
                                 "workshop-" + state.name().toLowerCase() + "-" + scale + ".png",
                                 UiSnapshotSuite.renderWorkshopRestoration(context, deck, row, scale)));
+                        if (state == WorkshopState.BURIED) {
+                            // One complete local lighting cycle, sampled through the production deck clock.
+                            for (int frame = 0; frame < 44; frame++) {
+                                deck.scene().advanceTo(.25f * frame + .1f);
+                                frames.add(new SnapshotArtifact("lighting-" + String.format("%02d", frame) + ".png",
+                                        UiSnapshotSuite.renderWorkshopRestoration(context, deck,
+                                                WorkshopRestorationModel.Row.hidden(), 1f, true)));
+                            }
+                        }
                     }
                 } finally { deck.dismiss(); }
             }
@@ -217,6 +230,11 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
             if (room.doors().stream().noneMatch(d -> reached[d.x()][d.y()]))
                 throw new AssertionError("Restoration isolated preparation room " + room.id() + " " + room.purpose());
         }
+    }
+
+    private static List<String> wear(MapResult map) {
+        return map.doodads.stream().filter(d -> d.definitionId() != null && d.definitionId().startsWith("ship-wear."))
+                .map(d -> d.definitionId() + ":" + d.cellX + ":" + d.cellY + ":" + d.quarterTurns + ":" + d.mirrored).toList();
     }
 
     private static List<String> layout(DeckGraph graph) {

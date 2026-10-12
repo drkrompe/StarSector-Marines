@@ -116,7 +116,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     public static final EnumSet<RenderLayer> DECK_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.VEHICLES,
-            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES);
+            RenderLayer.DOODADS, RenderLayer.UNITS, RenderLayer.SHUTTLES, RenderLayer.DECK_LIGHTING);
 
     /**
      * Most a single {@link #advanceTo} will actually run, however far the clock
@@ -166,6 +166,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private final Map<String, Shift> watchBills = new HashMap<>();
     private final DeckGraph rooms;
+    private final ShipDeckLighting lighting;
     /**
      * Which boat berths still have a boat, by the Boat Deck's own numbering, or
      * null when nobody has said and every berth is therefore held. Copied on
@@ -239,6 +240,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                                BattleSprites sprites, boolean[] boatsHeld, boolean[] boatWrecks) {
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
+        lighting = new ShipDeckLighting(deck.topology, rooms, seed);
         this.boatsHeld = boatsHeld == null ? null : boatsHeld.clone();
         this.boatWrecks = boatWrecks == null ? null : boatWrecks.clone();
         gantries = deck.gantries;
@@ -999,6 +1001,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     public BattleSceneHostPass pass(RoomView view, EnumSet<RenderLayer> layers) {
         if (view == null) throw new IllegalArgumentException("a room framing is required");
         EnumSet<RenderLayer> selected = EnumSet.copyOf(layers);
+        if (selected.contains(RenderLayer.GROUND)) selected.add(RenderLayer.DECK_LIGHTING);
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
@@ -1039,6 +1042,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     public BattleSceneHostPass pass(DeckView view, EnumSet<RenderLayer> layers) {
         if (view == null) throw new IllegalArgumentException("a camera framing is required");
         EnumSet<RenderLayer> selected = EnumSet.copyOf(layers);
+        if (selected.contains(RenderLayer.GROUND)) selected.add(RenderLayer.DECK_LIGHTING);
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
@@ -1065,7 +1069,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting);
         return new BattleSceneFrame(context, layers);
     }
 
@@ -1081,7 +1085,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds);
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting);
         return new BattleSceneFrame(context, layers);
     }
 
