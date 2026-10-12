@@ -1010,7 +1010,7 @@ public final class BattleSetup {
         MapScale scale = MapScale.forTier(tier);
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
         MapResult map = coldAccount
-                ? MaintenanceOutpost.generate(scale.width, scale.height, seed, profile,
+                ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
                         precincts.objective().fortification())
                 : MAP_GEN.generate(scale.width, scale.height, seed, null, profile, precincts);
         Random rng = new Random(seed);

@@ -24,6 +24,34 @@ class NatureZoneFillerTacticalTest {
     private static final int HEIGHT = 28;
     private static final BlockLeaf BEACH = new BlockLeaf(1, 1, 34, 26, true);
 
+    @Test void maskedCountryPreservesReservedGroundNavigationAndLayoutRandomness() {
+        var grid = new NavigationGrid(WIDTH, HEIGHT);
+        var topology = new CellTopology(WIDTH, HEIGHT);
+        var rng = new Random(42);
+        var ctx = new GenContext(grid, topology, rng, WIDTH, HEIGHT, 42);
+        var open = new boolean[WIDTH * HEIGHT];
+        for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {
+            grid.setWalkableFloor(x, y);
+            topology.setGroundKind(x, y, CellTopology.GroundKind.COURTYARD);
+            open[y * WIDTH + x] = x < WIDTH / 2;
+        }
+        NatureZoneFiller.dressOpenGround(ctx, open);
+        int overlays = 0;
+        for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) {
+            assertTrue(grid.isWalkable(x, y), "fine scatter must not obstruct routes");
+            if (x >= WIDTH / 2) {
+                assertEquals(CellTopology.GroundKind.COURTYARD, topology.getGroundKind(x, y));
+                assertEquals(-1, topology.getNatureOverlayIndex(x, y));
+            } else {
+                assertFalse(topology.getGroundKind(x, y) == CellTopology.GroundKind.GRASS,
+                        "barren world must not inherit the grassland filler fallback");
+                if (topology.getNatureOverlayIndex(x, y) >= 0) overlays++;
+            }
+        }
+        assertTrue(overlays > 0);
+        assertEquals(new Random(42).nextLong(), rng.nextLong(), "field dressing has its own random stream");
+    }
+
     @Test
     void beachRocksApplyAuthoredCoverAndWindowLikeNavigation() {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);

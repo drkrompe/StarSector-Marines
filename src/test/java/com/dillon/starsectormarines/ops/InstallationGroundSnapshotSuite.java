@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.List;
 import java.util.EnumMap;
 import java.util.Locale;
@@ -49,13 +50,13 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
             try (var sim = fixture.build()) {
                 var grid = sim.getGrid();
                 var topology = sim.getTopology();
-                var site = MaintenanceOutpost.layout(true).at(7, (grid.getHeight() - 58) / 2, 0);
+                var site = MaintenanceOutpost.placement(grid.getHeight());
                 var clearance = VehicleClearance.erode(grid, 1);
                 var vehicleGrid = new NavigationGrid(grid.getWidth(), grid.getHeight());
                 for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++)
                     if (clearance.isPassable(x, y)) vehicleGrid.setWalkableFloor(x, y);
-                int[] approach = site.cell(73, 29);
-                for (int[] local : new int[][]{{3, 31}, {25, 31}, {39, 46}}) {
+                int[] approach = site.cell(85, 35);
+                for (int[] local : new int[][]{{3, 37}, {31, 37}, {45, 52}}) {
                     int[] target = site.cell(local[0], local[1]);
                     assertTrue(GridPathfinder.findPath(vehicleGrid, approach[0], approach[1], target[0], target[1]).length > 0,
                             "finished gate, service yard and bay approach must carry a three-cell vehicle");
@@ -65,14 +66,33 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     assertTrue(GridPathfinder.findPath(grid, approach[0], approach[1], door.x(), door.y()).length > 0,
                             "furnishing/defenses must preserve every facility entrance");
                 }
+                var reached = new boolean[grid.getWidth() * grid.getHeight()];
+                var queue = new ArrayDeque<Integer>();
+                queue.add(approach[1] * grid.getWidth() + approach[0]);
+                reached[queue.peek()] = true;
+                while (!queue.isEmpty()) {
+                    int at = queue.removeFirst(), x = at % grid.getWidth(), y = at / grid.getWidth();
+                    for (int[] step : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                        int nx = x + step[0], ny = y + step[1];
+                        if (!grid.inBounds(nx, ny) || !grid.canTraverseCellStep(x, y, nx, ny)) continue;
+                        int next = ny * grid.getWidth() + nx;
+                        if (!reached[next]) { reached[next] = true; queue.add(next); }
+                    }
+                }
+                for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++)
+                    if (!site.contains(x, y) && grid.isWalkable(x, y))
+                        assertTrue(reached[y * grid.getWidth() + x], "mountains must not strand outdoor ground at " + x + "," + y);
                 var evidence = sim.getColdAccount().layout();
                 assertTrue(topology.getRoomPurpose(evidence.evidenceX(), evidence.evidenceY()) == RoomPurpose.CIVIC_OFFICE,
                         "pirate records belong in dispatch, not a random gatehouse");
                 long geometry = 1;
-                int curvedCells = 0;
+                int curvedCells = 0, fieldRocks = 0, mountainCells = 0;
+                assertTrue(grid.getWidth() == 288 && grid.getHeight() == 160, "full mountain-basin extent");
                 var walls = new TreeMap<String, Integer>();
                 var ground = new EnumMap<GroundKind, Integer>(GroundKind.class);
                 for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++) {
+                    if (!site.contains(x, y) && topology.getNatureOverlayIndex(x, y) >= 0) fieldRocks++;
+                    if (grid.hasTag(x, y, CellTag.NATURAL_SOLID)) mountainCells++;
                     geometry = 31 * geometry + (grid.isWalkable(x, y) ? 1 : 0);
                     geometry = 31 * geometry + (grid.isSeeThrough(x, y) ? 1 : 0);
                     geometry = 31 * geometry + grid.getWallHp(x, y);
@@ -96,9 +116,12 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                                 && topology.getSurface(x, y) == 0 && !topology.isWall(x, y),
                                 "Unplanted installation grass on " + surface + " at " + x + "," + y);
                 }
+                assertTrue(fieldRocks > 200, "open country must retain planet-aware small scatter");
+                assertTrue(mountainCells > 2500, "mountain basin must have substantial relief");
                 assertTrue(curvedCells > 0, "generated road curves must reach the production renderer");
                 report.append(surface).append(" geometry=").append(geometry)
                         .append(" vehicleRoutes=3 facilityDoors=reachable records=dispatch")
+                        .append(" fieldOverlays=").append(fieldRocks).append(" naturalSolidCells=").append(mountainCells)
                         .append(" doodads=").append(sim.getDoodads().size()).append(" curvedRoadCells=").append(curvedCells)
                         .append(" walls=").append(walls).append(" ground=").append(ground).append('\n');
                 frames.add(new SnapshotArtifact(surface.name().toLowerCase(Locale.ROOT) + ".png",
@@ -110,9 +133,13 @@ public final class InstallationGroundSnapshotSuite implements SnapshotSuite {
                     int[][] anchors = {{17, 49}, {10, 22}, {26, 21}, {9, 7}, {22, 8}, {35, 8},
                             {52, 14}, {52, 39}, {70, 29}};
                     for (int i = 0; i < names.length; i++) {
-                        int[] at = site.cell(anchors[i][0], anchors[i][1]);
+                        int[] at = site.cell(anchors[i][0] + 6, anchors[i][1] + 6);
                         labels.label(at[0], at[1], names[i], ReviewStyle.NOTE);
                     }
+                    var close = new BattleReviewFrameRenderer(context.modRoot(), 1920, 1080,
+                            site.x() + 40, site.y() + 35, 145);
+                    frames.add(new SnapshotArtifact("frozen-compound.png",
+                            close.render(sim, "Mountain outpost / perimeter and facility detail", labels.build())));
                     frames.add(new SnapshotArtifact("frozen-layout.png",
                             renderer.render(sim, "Maintenance outpost / layout review", labels.build())));
                     // Diagnostic cuts through the ordinary combat wall path, not a mission replay.

@@ -55,7 +55,7 @@ public final class PrecinctWardStage implements GenStage {
         var masks = PrecinctFill.masks(claim, road, who, ctx.width, ctx.height);
         emitTacticalNodes(ctx, rooms);
         emitPointsOfInterest(ctx, rooms);
-        stampWall(ctx, claim, road, who, precinct.fortification());
+        stampWall(ctx, claim, road, who, precinct.fortification(), true);
         InstallationGround.dress(ctx, masks.buildable(), masks.circulation(), rooms.placed());
     }
 
@@ -449,10 +449,16 @@ public final class PrecinctWardStage implements GenStage {
      */
     private static void stampWall(GenContext ctx, int[][] claim, int[][] road, int who,
                                   Fortification fortification) {
+        stampWall(ctx, claim, road, who, fortification, false);
+    }
+
+    private static void stampWall(GenContext ctx, int[][] claim, int[][] road, int who,
+                                  Fortification fortification, boolean joined) {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         boolean[][] wall = PrecinctBoundary.wall(claim, road, who, ctx.width, ctx.height,
                 fortification.gates());
+        if (joined) PrecinctBoundary.joinDiagonalSteps(wall, claim, who, ctx.get(BspKeys.ROAD_RESERVATION));
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
                 if (!wall[x][y]) continue;
@@ -470,6 +476,12 @@ public final class PrecinctWardStage implements GenStage {
                 if (exterior(claim, who, x, y - 1, ctx)) mask |= CellTopology.WALL_DIR_S;
                 if (exterior(claim, who, x + 1, y, ctx)) mask |= CellTopology.WALL_DIR_E;
                 if (exterior(claim, who, x - 1, y, ctx)) mask |= CellTopology.WALL_DIR_W;
+                if (joined) {
+                    if (y + 1 >= ctx.height || !wall[x][y + 1]) mask |= CellTopology.WALL_DIR_N;
+                    if (y == 0 || !wall[x][y - 1]) mask |= CellTopology.WALL_DIR_S;
+                    if (x + 1 >= ctx.width || !wall[x + 1][y]) mask |= CellTopology.WALL_DIR_E;
+                    if (x == 0 || !wall[x - 1][y]) mask |= CellTopology.WALL_DIR_W;
+                }
                 topology.setWallDirMask(x, y, mask);
             }
         }
