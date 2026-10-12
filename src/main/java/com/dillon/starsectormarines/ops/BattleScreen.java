@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
@@ -40,6 +41,7 @@ import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TurretAuthorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TaskForceStatusPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
+import com.dillon.starsectormarines.battle.ui.panel.WarshipDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.OrderIntentCursorPanel;
 import com.dillon.starsectormarines.battle.ui.panel.SquadDefendTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
@@ -676,6 +678,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Per-squad GOAP plan readout. It has no all-squad overview: the
         // diagnostic opens only while WorldPicker has a squad in Selection.
         hud.addPanel(new SquadPlanDebugPanel(this));
+        // WARSHIP DEBUG readout + F6/F7 orders; invisible unless a debug ship is over the battle.
+        if (DevConfig.DEBUG_WARSHIP_PICKER) hud.addPanel(new WarshipDebugPanel(this));
         // Per-phase tick wall-time profile (top-center, beside DEBUG).
         // DevConfig-gated; informs
         // the upcoming DoD / ECS refactor by showing which tick phases are
