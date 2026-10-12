@@ -27,6 +27,12 @@ public interface ExtractionPayloadObjective extends Objective {
 
     Kind payloadKind();
 
+    /** Authored player-facing place names; shared across survey, objective rail and map. */
+    default String sourceName() { return payloadName() + " source"; }
+    default String egressName() { return "Extraction pickup"; }
+    default int sourceMarkerX() { return sourceCellX(); }
+    default int sourceMarkerY() { return sourceCellY(); }
+
     int sourceCellX();
 
     int sourceCellY();
