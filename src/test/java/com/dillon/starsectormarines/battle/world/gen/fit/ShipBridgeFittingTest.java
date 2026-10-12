@@ -23,12 +23,12 @@ class ShipBridgeFittingTest {
         RoomShape shape=RoomRecipe.COMMAND.shape().posed(pose);
         int w=shape.width()+8,h=shape.height()+8;
         NavigationGrid grid=new NavigationGrid(w,h);
-        // Restrict navigation to this diamond and its actual doors; no escape through corners.
+        // Restrict navigation to this CIC and its actual doors; no escape through corners.
         for(int y=0;y<shape.height();y++) for(int x=0;x<shape.width();x++)
             if(shape.contains(x,y)) grid.setWalkableFloor(x+4,y+4);
         List<Doorway> localDoors=new ArrayList<>();
         for(int[] d:doors) {
-            int[] cell=pose.map(d[0],d[1],13,11);
+            int[] cell=pose.map(d[0],d[1],17,13);
             localDoors.add(new Doorway(cell[0]+4,cell[1]+4));
             grid.setWalkableFloor(cell[0]+4,cell[1]+4);
         }
@@ -39,23 +39,23 @@ class ShipBridgeFittingTest {
         return new Fixture(ctx,floor,ops);
     }
 
-    @Test void everyPoseKeepsThePlotFourBanksAndNineExclusiveWatchPositions() {
+    @Test void everyPoseKeepsThePlotFourBanksAndNineWatchPositionsAndOneSentry() {
         for(RoomPose pose:RoomPose.all()) {
-            Fixture f=fit(pose,List.of(new int[]{6,-1}));
-            assertBanks(f);assertEquals(9,f.ctx.fixtureTasks.size());verify(f);
-            for(int y=3;y<=7;y++) for(int x=4;x<=8;x++)
-                if(x==4 || x==8 || y==3 || y==7) walkable(f,x,y);
+            Fixture f=fit(pose,List.of(new int[]{8,-1}));
+            assertBanks(f);assertEquals(10,f.ctx.fixtureTasks.size());verify(f);
+            for(int y=4;y<=8;y++) for(int x=6;x<=10;x++)
+                if(x==6 || x==10 || y==4 || y==8) walkable(f,x,y);
         }
     }
 
-    @Test void everyDiamondHatchAndOppositeHatchesPreserveCirculationAndWatch() {
+    @Test void everyCicHatchAndOppositeHatchesPreserveCirculationAndWatch() {
         for(RoomPose pose:RoomPose.all()) {
             for(int[] door:RoomRecipe.COMMAND.shape().doorways()) {
                 Fixture f=fit(pose,List.of(door));
-                assertBanks(f);assertEquals(9,f.ctx.fixtureTasks.size());verify(f);
+                assertBanks(f);assertEquals(10,f.ctx.fixtureTasks.size());verify(f);
             }
-            Fixture f=fit(pose,List.of(new int[]{6,-1},new int[]{6,11},new int[]{-1,5},new int[]{13,5}));
-            assertBanks(f);assertEquals(9,f.ctx.fixtureTasks.size());verify(f);
+            Fixture f=fit(pose,List.of(new int[]{8,-1},new int[]{8,13},new int[]{-1,6},new int[]{17,6}));
+            assertBanks(f);assertEquals(10,f.ctx.fixtureTasks.size());verify(f);
         }
     }
 
@@ -73,10 +73,20 @@ class ShipBridgeFittingTest {
     private static void verify(Fixture f) {
         assertTrue(f.floor.circulationSurvives());assertEquals(0,f.floor.dropUnreachableWork());
         f.floor.seal();HashSet<String> stands=new HashSet<>();
+        assertEquals(1, f.ctx.fixtureTasks.stream().filter(task -> task.affordance() == Affordance.GUARD).count());
         for(var task:f.ctx.fixtureTasks) {
-            assertEquals(Affordance.WATCH,task.affordance());
             assertTrue(stands.add(task.cellX()+","+task.cellY()));
             assertTrue(f.ctx.grid.isWalkable(task.cellX(),task.cellY()));
+            if (task.affordance() == Affordance.GUARD) {
+                assertTrue(f.floor.room().doors().stream().anyMatch(door ->
+                        door.x() == task.fixtureX() && door.y() == task.fixtureY()));
+                assertEquals(1, Math.abs(task.cellX() - task.fixtureX()));
+                assertEquals(1, Math.abs(task.cellY() - task.fixtureY()));
+                for (Doorway door : f.floor.room().doors())
+                    assertTrue(Math.abs(task.cellX() - door.x()) + Math.abs(task.cellY() - door.y()) > 1);
+                continue;
+            }
+            assertEquals(Affordance.WATCH, task.affordance());
             assertTrue(f.ctx.topology.isFixture(task.fixtureX(),task.fixtureY()));
             assertEquals(1,Math.abs(task.cellX()-task.fixtureX())+Math.abs(task.cellY()-task.fixtureY()));
         }

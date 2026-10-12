@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSizing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 import com.dillon.starsectormarines.battle.world.gen.ship.VanillaHullSilhouettes;
@@ -27,6 +28,24 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
+        // The larger recipe must still be packed and fitted at both ends of the hull range.
+        for (String hullId : List.of("wolf", "conquest")) {
+            var checkHull = new VanillaHullSilhouettes(context.starsectorCore()).read(hullId);
+            if (checkHull == null) throw new IllegalStateException(hullId + " source hull required");
+            var checkGenerator = new ShipDeckGenerator();
+            var checkDeck = checkGenerator.generateDeck(DeckSizing.planFor(checkHull.hullClass(), checkHull.role(),
+                    checkHull.minCrew(), checkHull.maxCrew(), checkHull.cargo(), checkHull.silhouette().aspect()),
+                    42, checkHull.silhouette());
+            var command = checkGenerator.getLastDeckGraph().compartments().stream()
+                    .filter(room -> room.purpose() == RoomPurpose.BRIDGE).findFirst().orElseThrow();
+            long consoles = checkDeck.fixtureTasks.stream().filter(task -> task.affordance() == Affordance.WATCH
+                    && command.contains(task.cellX(), task.cellY())).count();
+            long guards = checkDeck.fixtureTasks.stream().filter(task -> task.affordance() == Affordance.GUARD
+                    && command.contains(task.cellX(), task.cellY())).count();
+            if (consoles != 9 || guards != 1)
+                throw new IllegalStateException(hullId + " CIC lost its watch or entrance: " + consoles + "/" + guards);
+            System.out.println("ship-duty: " + hullId + " packs CIC with nine consoles and one guard post");
+        }
         var hull = new VanillaHullSilhouettes(context.starsectorCore()).read("valkyrie");
         if (hull == null) throw new IllegalStateException("Valkyrie source hull required");
         var generator = new ShipDeckGenerator();
@@ -48,6 +67,10 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
             long[] hired = scene.manDeck(Integer.MAX_VALUE, hull.minCrew());
             if (scene.manDeck(Integer.MAX_VALUE, hull.minCrew()).length != 0)
                 throw new IllegalStateException("Repeated manning duplicated population");
+            if (scene.dutyCrew().values().stream().filter(post -> post.role() == CrewRole.SECURITY).count() != 1)
+                throw new IllegalStateException("Command entrance has no occupied guard post");
+            if (scene.dutyCrew().size() > hull.minCrew())
+                throw new IllegalStateException("Guard exceeded duty complement");
             var sim = scene.simulation();
             if (named.length != 2 || named[0] == 0 || named[1] == 0
                     || !sim.identity().name(named[0]).equals("Morgan Vale"))
@@ -61,8 +84,15 @@ public final class ShipDutySnapshotSuite implements SnapshotSuite {
                 // Station guarantees hold past several dwell renewals, not just at spawn.
                 if (tick % 30 == 0) for (var entry : scene.dutyCrew().entrySet()) {
                     var post = entry.getValue();
-                    if (post.role() != CrewRole.BRIDGE_WATCH && post.role() != CrewRole.ENGINE_WATCH) continue;
+                    if (post.role() != CrewRole.BRIDGE_WATCH && post.role() != CrewRole.ENGINE_WATCH
+                            && post.role() != CrewRole.SECURITY) continue;
                     long actor = entry.getKey();
+                    if (post.role() == CrewRole.SECURITY) {
+                        var stand = post.route().stops().get(0);
+                        if (sim.world().cellX(actor) != (int) stand.worldX()
+                                || sim.world().cellY(actor) != (int) stand.worldY())
+                            throw new IllegalStateException("Entrance guard left post at tick " + tick);
+                    }
                     if (!post.room().contains(sim.world().cellX(actor), sim.world().cellY(actor))
                             || sim.ambientTasks().jobInHand(actor) == null)
                         throw new IllegalStateException("Unattended essential station at tick " + tick + ": " + post.route().id());

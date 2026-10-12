@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — required watches retain claimed work while ordinary shifts continue their rotations.
+Updated: 2026-10-12 — required watches retain console and entrance-sentry claims while ordinary shifts continue their rotations.
 
 Earlier 2026-09-02 — the simulation has a third side that fights: an allied
 faction, friendly to the player and hostile to the defender, with its own
@@ -726,9 +726,11 @@ population, and a complement pass must not top the room up with hands who are on
 no muster roll.
 
 A **required watch** is a host-selected part of that complement whose assignment
-remains at work. A continuously attended console uses a one-stop claimed route;
-support work can retain a local rotation among the workplace's duty jobs. Both
-use the ordinary task claims, arrival, facing, interruption and resumption laws.
+remains at work. A continuously attended console or entrance sentry uses a
+one-stop claimed route; support work can retain a local rotation among the
+workplace's duty jobs. Guard duty names a fixed post facing an entrance; rounds
+remain a circuit through compartments, and console watch remains separate work.
+Both use the ordinary task claims, arrival, facing, interruption and resumption laws.
 They do not join the leisure rotation merely because a dwell expires. The host
 owns which postings require this coverage and how many of its existing people
 can supply it; this is not a new population source or a change to ordinary

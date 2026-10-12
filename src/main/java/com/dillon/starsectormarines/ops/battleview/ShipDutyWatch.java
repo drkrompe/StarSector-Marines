@@ -33,6 +33,8 @@ public final class ShipDutyWatch {
             if (i < bridge.size()) ordered.add(bridge.get(i));
             if (i < 2 && i < plant.size()) ordered.add(plant.get(i));
         }
+        // Secure the command entrance after conn and plant, before support work.
+        ordered.addAll(fixed(rooms, tasks, berthed, CrewRole.SECURITY, RoomPurpose.BRIDGE));
         List<Post> additionalSupport = new ArrayList<>();
         for (CrewRole role : List.of(CrewRole.MECH_TECH, CrewRole.MEDIC, CrewRole.COOK,
                 CrewRole.ARMOURER, CrewRole.MACHINIST, CrewRole.STOREKEEPER)) {
@@ -92,6 +94,7 @@ public final class ShipDutyWatch {
     public static LayeredArmorFamily uniform(CrewRole role, RoomPurpose purpose) {
         return switch (role) {
             case MARINE -> null;
+            case SECURITY -> LayeredArmorFamily.CHARCOAL;
             case BRIDGE_WATCH -> purpose == RoomPurpose.BRIDGE
                     ? LayeredArmorFamily.SHIP_COMMAND : LayeredArmorFamily.SHIP_ENGINEERING;
             case ENGINE_WATCH, MECH_TECH, MACHINIST -> LayeredArmorFamily.SHIP_ENGINEERING;
