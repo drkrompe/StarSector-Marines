@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
@@ -332,11 +333,11 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private boolean customSource() {
         String id = sourceId.get();
-        return id != null && SquadEquipmentDoctrines.weaponById(id) == null;
+        return id != null && !FirstRefit.isWeaponPlan(id) && SquadEquipmentDoctrines.weaponById(id) == null;
     }
 
     private boolean customId(String id) {
-        return SquadEquipmentDoctrines.weaponById(id) == null;
+        return !FirstRefit.isWeaponPlan(id) && SquadEquipmentDoctrines.weaponById(id) == null;
     }
 
     private boolean assignedSource() {

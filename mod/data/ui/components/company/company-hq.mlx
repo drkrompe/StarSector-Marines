@@ -1,4 +1,4 @@
-<template props="wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
+<template props="firstRefitClasses,wingsClasses,debugAction,debugClasses,openingGuide,newsDesk,purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,shipAction,shipLabel,shipViewAction,shipView">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{purpose}" />
 
@@ -15,6 +15,7 @@
       <button id="company-hq-debug" class="{debugClasses}" onclick="{debugAction}">DEBUG MISSIONS</button>
     </div>
 
+    <button id="company-hq-first-refit" class="{firstRefitClasses}" onclick="{armoryAction}">A PROPER ISSUE / Wayline equipment patterns received. Meet Castle in the Armory.</button>
     <button id="company-hq-wings" class="{wingsClasses}" onclick="{boatsAction}">SECONDHAND WINGS / Castle has a lead on two surplus Aeroshuttles. Review on the Boat Deck.</button>
 
     <div id="company-hq-main" class="company-hq-main">

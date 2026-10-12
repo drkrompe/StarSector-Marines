@@ -1,4 +1,4 @@
-<template props="companySummary,squadGalleryCards,cargoStockRows,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
+<template props="firstRefitClasses,openFirstRefit,companySummary,squadGalleryCards,cargoStockRows,organization,back,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="FLAGSHIP / ARMORY / FLEET MARINE COMPANY" />
 
@@ -15,6 +15,8 @@
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
       <div id="squad-overview-copy" class="label tone-muted">{organization.galleryCopy}</div>
     </div>
+
+    <button id="armory-first-refit" class="{firstRefitClasses}" onclick="{openFirstRefit}">A PROPER ISSUE / Resume Castle's two-path equipment lesson</button>
 
     <div id="armory-cargo-stock" class="cargo-stock-strip panel">
       <div id="armory-cargo-stock-title" class="label heading tone-muted">AVAILABLE STORES</div>

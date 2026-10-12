@@ -185,6 +185,7 @@ public final class MarineArmory implements Serializable {
     }
 
     public boolean renameWeaponDoctrine(String id, String displayName) {
+        if (FirstRefit.isWeaponPlan(id)) return false;
         int index = customWeaponDoctrineIndex(id);
         if (index < 0 || displayName == null || displayName.isBlank()) return false;
         SquadWeaponDoctrine existing = customWeaponDoctrines.get(index);
@@ -194,6 +195,7 @@ public final class MarineArmory implements Serializable {
     }
 
     boolean deleteWeaponDoctrine(String id) {
+        if (FirstRefit.isWeaponPlan(id)) return false;
         if (squadProfiles().stream().anyMatch(p -> p.weaponDoctrineId().equals(id))) return false;
         int index = customWeaponDoctrineIndex(id);
         if (index < 0) return false;

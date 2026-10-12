@@ -72,7 +72,7 @@ public final class WaylineArc {
         } else {
             report = kind == OpeningOperationKind.RELIEF
                     ? "The assault is broken. Recovered traffic logs point to our occupied depot. "
-                        + "Your payment is cleared. For the first time since we lost the depot, I can plan something beyond the next alarm. Come back when your company is ready."
+                        + "Your payment is cleared. I have sent Castle a consignment of weapon and scout-suit patterns. Meet her in the Armory before the depot job; she will walk you through an issue for your squad. For the first time since we lost the depot, I can plan something beyond the next alarm. Come back when your company is ready."
                     : "The depot is ours again. Dispatch can start moving freight. Your payment is cleared, "
                         + "and Independent brokers now have your name. We have a place to load, keep records and organize work again. You gave Wayline an open road. Take time to put your own company in order; you have earned more than another emergency call.";
         }

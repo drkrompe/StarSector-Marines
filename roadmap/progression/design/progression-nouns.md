@@ -4,8 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-09-01 — ordinary mission briefings now compare visible issued
-experience with coarse opposition quality separately from recommended force size.
+Updated: 2026-10-12 — Wayline relief introduces Castle's optional two-path squad equipment lesson.
 
 ## Purpose
 
@@ -363,6 +362,16 @@ risk. Player and defender quality therefore read on the same scale, which is
 what lets a player learn to judge a hostile formation on sight.
 
 ### Kit and armory
+
+Wayline's first story relief victory makes one explicit, permanent equipment
+consignment available through **A Proper Issue** in the Armory. Its two curated
+paths teach weapon-and-armor issue before the depot operation. The authored
+reward grants Milspec Stalwart and Lancer templates and the Janus scout pattern
+when accepted; it is a story-specific acquisition route, independent of ordinary
+market and MRB gates. It grants no cargo and never equips marines automatically.
+The same template ownership, role-based armor resolution and material transaction
+apply thereafter. `company-view-nouns.md` owns the guided two-choice presentation.
+
 
 The armory has three deliberately separate layers. Equipment template cards are
 permanent collected capability. A **weapon definition** is reusable twelve-billet

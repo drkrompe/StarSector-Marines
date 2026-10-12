@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 - Hermes repairs retain a fixed fit; Aeroshuttles own the upgrade progression.
+Updated: 2026-10-12 — Wayline relief introduces Castle's optional two-path squad equipment lesson.
 
 ## Purpose
 
@@ -244,6 +244,31 @@ uses the same deliberate transaction and restores the ordinary deployment
 fallback without choosing an operation commander in advance.
 
 ## Squad equipment doctrines
+
+**A Proper Issue** is Castle's optional first squad-refit lesson after the story
+victory in Hold Until Relieved. The debrief and HQ point to the Armory; its
+opening conversation and gallery resume action keep the offer discoverable.
+Accepting Wayline's consignment permanently learns Milspec Stalwart and Lancer
+patterns and the Janus scout suit, plus two reusable weapon plans. Acceptance
+never changes a soldier's kit or creates cargo. Existing collections are retained.
+
+The lesson presents exactly two complete equipment paths: **Steady Line** pairs
+three Milspec automatics with a line-holding armor plan; **Forward Screen** pairs
+six Milspec pulse rifles with a reconnaissance armor plan. Remaining riflemen
+carry Service Rooks. Both omit carried specials, disclosed in the review.
+Armor still resolves from the company's owned patterns through the ordinary role
+and tradition rules. These are a bounded introduction to the existing catalog,
+not a separate equipment economy or a restriction on later Armory authorship.
+
+The player accepts the patterns, selects an actual line squad, chooses one path,
+and reviews all twelve current and proposed kits alongside Cost, Available and
+Short by. Only explicit Issue commits the ordinary cargo-backed transaction.
+Wounds, vacancies, stationing and material shortages remain real blockers with
+directions to preparation or resupply. Successful issue completes the saved
+lesson once and offers inspection of the squad's three fire teams. Leaving and
+returning preserves reward and completion; older saves may claim the uncollected
+reward without losing existing gear. The lesson never gates the next mission.
+
 
 Routine Armory authorship sits at squad scale. `MarineSquad` persists one weapon
 doctrine id and one armor doctrine id. Each reusable definition describes twelve

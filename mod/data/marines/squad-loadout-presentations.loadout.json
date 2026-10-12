@@ -1,6 +1,24 @@
 {
   "loadouts": [
     {
+      "id": "wayline:steady-line",
+      "kind": "WEAPON",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "Wayline cooperative",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "A quartermaster's thank-you after the checkpoint relief. Three carefully maintained Stalwart automatics give each fire team an anchor; nine familiar Rooks keep ammunition and replacement parts manageable for a small company. Castle teaches the first issue against a line-holding armor plan."
+    },
+    {
+      "id": "wayline:forward-screen",
+      "kind": "WEAPON",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "Wayline cooperative",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "lore": "Wayline's convoy scouts learned to value a clear approach over another layer of plate. Six Milspec Lancers and six dependable Rooks equip a company that wants to see trouble early. Castle pairs the first issue with a scout-heavy armor plan; the weapon definition remains reusable with other plans."
+    },
+    {
       "id": "weapons:field-security",
       "kind": "WEAPON",
       "tier": 1,
