@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.gen.nature.FormationBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainBrush;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainPlan;
+import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,11 @@ public final class OutdoorLandscapeStage implements GenStage {
         if (c.topology.terrainSurface() == null) hills(c, surface, reserved, random);
         if (surface == SurfacePalette.VERDANT) trees(c, reserved);
         else FormationBrush.scatter(c,surface,reserved);
+        // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
+        // published, so refresh the artifact: "non-walkable => regionId -1" must hold.
+        if (c.get(BspKeys.TACTICAL_REGIONS) != null) {
+            c.put(BspKeys.TACTICAL_REGIONS, TacticalRegionMap.build(c.grid, c.topology, c.get(BspKeys.AXIS)));
+        }
     }
 
     private boolean[] reservations(GenContext c) {

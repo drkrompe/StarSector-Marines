@@ -206,7 +206,7 @@ class ProjectTilesetToolsTest {
     @Test
     void reSlicingACutPlateIsRefusedRatherThanDiscardingItsCells(@TempDir Path root)
             throws Exception {
-        String name = aSheetDeclaringBlocks();
+        String name = aCutPlateDeclaringBlocks();
         seedFromCheckout(root, name);
         Path path = TilesetDocument.pathFor(root, name);
         String before = Files.readString(path);
@@ -351,6 +351,22 @@ class ProjectTilesetToolsTest {
             if (sheet.rawSheet() != null && sheet.isAnnotated()) found.add(sheet);
         }
         return found;
+    }
+
+    /**
+     * A sheet cut into a grid of plates, as opposed to a single-plate study.
+     *
+     * <p>A one-cell sheet's pieces are found again by alpha, so a forced re-slice carries
+     * its annotations back onto them and discards nothing; only a grid cut loses its cells.
+     */
+    private static String aCutPlateDeclaringBlocks() throws Exception {
+        for (TilesetLibrary.Sheet sheet : annotatedProjectSheets()) {
+            TilesetDocument document = TilesetDocument.read(sheet.document());
+            if (!document.blocks.isEmpty() && document.gridCols * document.gridRows > 1) {
+                return sheet.name();
+            }
+        }
+        return fail("no checked-in sheet is a cut plate declaring autotile blocks");
     }
 
     private static String aSheetDeclaringBlocks() throws Exception {

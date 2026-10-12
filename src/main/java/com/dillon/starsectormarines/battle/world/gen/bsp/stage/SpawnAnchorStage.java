@@ -38,7 +38,7 @@ public final class SpawnAnchorStage implements GenStage {
             // high-X fallback below is arbitrary against wherever the objective
             // actually grew - on a map whose garrison is in the west it puts
             // the attacker on top of it. The plan already says both things.
-            marine = pickPlacementSpawn(grid, ctx, plan, rng);
+            marine = outOfDoors(grid, ctx.topology, pickPlacementSpawn(grid, ctx, plan, rng));
             defender = pickObjectiveSpawn(grid, ctx, plan, rng);
         } else if (axis != null) {
             marine   = pickBiomeSpawn(grid, ctx.topology, biomeMap, BiomeKind.BEACH,
@@ -62,6 +62,38 @@ public final class SpawnAnchorStage implements GenStage {
         }
         ctx.put(BspKeys.MARINE_SPAWN, marine);
         ctx.put(BspKeys.DEFENDER_SPAWN, defender);
+    }
+
+    /**
+     * Brings an attacker's spawn out of any building it was drawn inside.
+     *
+     * <p>The pick is a random walkable cell in a region, and a region holds
+     * buildings. A shell whose doorway happens to open onto a map border or a
+     * neighbour's wall is a sealed room, and a force spawned in one has no route
+     * to anything. The nearest open-ground cell is taken instead by a fixed ring
+     * scan, so no random draw is spent and a spawn already outdoors is untouched.
+     */
+    private static int[] outOfDoors(NavigationGrid grid, CellTopology topology, int[] spawn) {
+        if (!inBuilding(grid, topology, spawn[0], spawn[1])) return spawn;
+        int limit = Math.max(grid.getWidth(), grid.getHeight());
+        for (int r = 1; r < limit; r++) {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != r) continue;
+                    int x = spawn[0] + dx;
+                    int y = spawn[1] + dy;
+                    if (grid.inBounds(x, y) && grid.isWalkable(x, y)
+                            && !inBuilding(grid, topology, x, y)) {
+                        return new int[]{x, y};
+                    }
+                }
+            }
+        }
+        return spawn;
+    }
+
+    private static boolean inBuilding(NavigationGrid grid, CellTopology topology, int x, int y) {
+        return topology.hasBuildingKindHint(x, y) || grid.isDoorway(x, y);
     }
 
     /**

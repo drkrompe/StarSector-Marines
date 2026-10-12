@@ -17,6 +17,7 @@ class CommittedGroundArrivalTest {
                     case "pendingGroundArrivals" -> args[0] == Faction.DEFENDER ? pending.get() : 0;
                     case "getAirEntityIds" -> new long[0];
                     case "world" -> null; // No aircraft to inspect.
+                    case "survivorPickup" -> null; // No Cold Account pickup configured.
                     default -> throw new AssertionError("Unexpected read: " + method.getName());
                 });
         EliminateFactionObjective attack = new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER);
