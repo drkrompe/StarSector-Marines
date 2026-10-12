@@ -148,6 +148,8 @@ public final class DecalAccumulator {
     private int fboColor;
     private int fboPxW;
     private int fboPxH;
+    /** Px/cell the FBO was actually allocated at -- {@link #fboPxPerCell} after {@link #resolvePxPerCell} clamping. Stamping must use this, not the request. */
+    private int resolvedPxPerCell;
     private int gridCellsW;
     private int gridCellsH;
 
@@ -282,9 +284,9 @@ public final class DecalAccumulator {
             SpriteSheetFrames.Frame f = frames.frames[d.decalIndex];
 
             // Decal position in FBO pixel space — world-cell coords scaled by px/cell.
-            float cx = d.x * fboPxPerCell;
-            float cy = d.y * fboPxPerCell;
-            float longPx  = d.scaleCells * fboPxPerCell;
+            float cx = d.x * resolvedPxPerCell;
+            float cy = d.y * resolvedPxPerCell;
+            float longPx  = d.scaleCells * resolvedPxPerCell;
             float shortPx = (f.w > 0) ? longPx * ((float) f.h / (float) f.w) : longPx;
 
             decalBatch.appendRotated(
@@ -430,6 +432,7 @@ public final class DecalAccumulator {
 
         gridCellsW = gridW;
         gridCellsH = gridH;
+        resolvedPxPerCell = perCell;
         fboPxW = gridW * perCell;
         fboPxH = gridH * perCell;
 
