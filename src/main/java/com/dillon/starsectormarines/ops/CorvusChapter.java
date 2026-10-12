@@ -21,9 +21,9 @@ public enum CorvusChapter {
             SurfacePalette.ARID, EconomicFunction.COMMERCE,
             "The Sable Wake crew buys departure times from a broker on Asharu. Their inland counting house holds the dispatch archive. Seize the marked high-value target and return to the extraction point with the records. We need their buyers, not a fight with Asharu's authorities.",
             "The archive names a listening post on Warion. Sable Wake has been matching our manifests to intercepted departure calls. We can take that link away."),
-    BLIND_WATCH("corvus_IIIb", "Warion", "Blind Watch", MissionType.SABOTAGE, RiskLevel.MEDIUM, 3, 30000,
+    BLIND_WATCH("corvus_IIIb", "Warion", "Blind Watch", MissionType.SABOTAGE, RiskLevel.LOW, 3, 30000,
             SurfacePalette.ROCK, EconomicFunction.MILITARY,
-            "The Asharu records led us to Sable Wake's listening post on Warion. Plant charges at all three marked installations to disable its interception network. Your squads must cover the planters while the site's security force responds. This is a temporary raider outpost on barren ground, far from any colony.",
+            "The Asharu records led us to Sable Wake's listening post on Warion. Plant charges at all three marked installations to disable its interception network. Your squads must cover the planters while the site's security force responds. This is a temporary raider outpost on barren ground, far from any colony. Expect a light local garrison; our route watch has ruled out outside reinforcements.",
             "Their listening post is silent. The archive and captured routing tables point to a dispatch compound on Garnir. That is where Sable Wake sells the cargo and sends the next crews out."),
     COLD_ACCOUNT("corvus_IIIa", "Garnir", "A Cold Account", MissionType.ASSAULT, RiskLevel.HIGH, 4, 42000,
             SurfacePalette.FROZEN, EconomicFunction.HEAVY_INDUSTRY,
@@ -49,7 +49,7 @@ public enum CorvusChapter {
     public TargetProfile profile(SurfacePalette ground) {
         // Scale three describes this small inhabited compound, not a new vanilla
         // colony. Zero selects the legacy unprofiled city recipe.
-        return new TargetProfile(3, 5, this == DUST_LEDGER ? 1 : 2, 0, "pirates", Set.of(function),
+        return new TargetProfile(3, 5, this == COLD_ACCOUNT ? 2 : 1, 0, "pirates", Set.of(function),
                 ground, SettlementLink.ROAD);
     }
 
@@ -59,7 +59,7 @@ public enum CorvusChapter {
             case DUST_LEDGER -> RaidBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE);
             case BLIND_WATCH -> SabotageBattleFixture.fromFactoryInputs(seed, manifest, false,
-                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
+                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, false);
             case COLD_ACCOUNT -> AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE);
         };

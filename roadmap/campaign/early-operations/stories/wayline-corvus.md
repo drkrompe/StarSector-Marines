@@ -17,7 +17,7 @@ Neither Asharu's government, Garnir's orbital depot nor the abandoned
 terraforming platform becomes an enemy asset or a campaign conquest.
 
 The chapters recommend two, three and four squads, with ordinary Established
-factories at Low, Medium and High risk. Sabotage's smaller force covers three
+factories at Low, Low and High risk. Sabotage's smaller force covers three
 separate sites; increasing difficulty is not a promise of monotonically increasing
 headcount. The company owns its personnel, boats and mech lance. There are no
 free replacement troops or chassis.
@@ -47,14 +47,21 @@ free replacement troops or chassis.
   routes to outdoor search waypoints did not prove access inside the base.
 - [ ] Tune A Cold Account: the unchanged High-risk force defeats all 48 infantry
   and the Hound at 9,202 ticks (5:07). Resolution is fixed; balance is not accepted.
-- [ ] Revisit Blind Watch's exposure and arrival pacing. All three charges
-  complete at 2:27, but 31/36 infantry and the Hound are lost. First fire is
-  at 8 seconds; the last marine arrives at 75 seconds. The four-boat control
-  brings the last marine in at 68 seconds but times out with only one charge
-  planted, 25/36 infantry lost and the Hound destroyed. More lift alone does
-  not establish a safe baseline; this changes delivery composition as well as timing.
-- [ ] After execution fixes, repeat the difficulty pass and verify with player
-  intervention in a live battle before accepting the progression.
+- [x] Blind Watch uses its authored remote layout, a finite light garrison and
+  Low risk. Both charge handoff and active-kit selection are repaired. With
+  two boats it wins at 4,230 ticks (2:21), losing 12/36 infantry with the Hound
+  surviving, compared with 31/36 and the Hound previously. Four boats now win
+  at 4,333 ticks (2:24), losing 15/36 with the Hound surviving. More lift changes
+  delivery composition as well as timing and is not automatically safer.
+- [ ] Blind Watch still needs a player-controlled acceptance pass: autonomous
+  losses of one-third to two-fifths of the company are costly. Do not describe
+  this headless baseline as final balance acceptance.
+- [x] Repeat all three recommended-force playbacks after the execution fixes.
+- [ ] Verify with player intervention in a live battle before accepting the progression.
+- [ ] Broader map access: the existing `aPrecinctMapIsNeverSealed` check fails
+  for Assault/Established seed 141418, including with the pre-change gate
+  stage restored. The Corvus gate repair does not resolve every generated
+  map's access defect; investigate that separate case before general acceptance.
 
 Reproduce with `commanderEvidence -Pmission=corvus -PmaxTicks=18000`.
 The baseline uses Frontier Security Equipment and Frontier Patchwork Protection
@@ -70,7 +77,7 @@ unresolved, not a defeat, and the evidence task succeeding does not certify bala
 
 The user proposed a Hegemony capital ship intervention once the installation is
 proven pirate. The shipped Onslaught station/hold-fire/area-fire/budget seams
-in `roadmap/air/stories/warship-on-station.md` support this direction. A Cold
+in `warship-on-station.md` support this direction. A Cold
 Account is the natural culmination: earlier chapters supply evidence, ground
 forces confirm the target, and the ship receives explicit authority after the
 company clears the bombardment area. Arrival, identification, warning, safe

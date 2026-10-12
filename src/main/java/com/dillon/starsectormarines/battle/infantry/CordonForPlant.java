@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
-import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.nav.zone.Portal;
@@ -17,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Story J — Sabotage cordon. Fires once a marine squad has entered the same
+ * Story J — Sabotage cordon. Fires once a participating marine has entered the same
  * zone as its planter's {@link ChargeSiteObjective}: the combatant members
  * deploy to the room's doorways while the planter is assigned the
  * {@link HoldPortalCordon#PLANTER_SLOT} slot in the same squad-plan step
@@ -27,9 +26,9 @@ import java.util.List;
  *
  * <p>{@link Priority#MISSION} bucket — sits alongside
  * {@link SecureObjectiveZone}, but the two are mutually exclusive by
- * relevance: SecureObjectiveZone requires the squad be in a <em>different</em>
- * zone than the objective, CordonForPlant requires the squad be in the
- * <em>same</em> zone. The room-clear sweep ends naturally as the squad enters
+ * relevance: SecureObjectiveZone requires that no participating member has
+ * reached the objective zone, while CordonForPlant takes over at first entry.
+ * The room-clear sweep ends naturally as the squad enters
  * the target zone, and the cordon takes over on the next replan.
  *
  * <p>Custom-plan goal: synthesizes one {@link HoldPortalCordon} step carrying
@@ -53,11 +52,22 @@ public final class CordonForPlant implements Goal {
     public float relevance(WorldState state, Squad squad, BattleView sim) {
         int planterZone = findPlanterZone(squad, sim);
         if (planterZone < 0) return 0f;
-        int squadZone = ZoneQueries.squadCurrentZone(squad, sim);
-        if (squadZone != planterZone) return 0f;
+        if (!hasEnteredZone(squad, planterZone, sim)) return 0f;
         NavigationZone zone = sim.getZoneGraph().zoneById(planterZone);
         if (zone == null || zone.getPortalIds().isEmpty()) return 0f;
         return 1.0f;
+    }
+
+    /** Match zone entry's first-member handoff, even while the leader is outside. */
+    static boolean hasEnteredZone(Squad squad, int zoneId, BattleView sim) {
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long member = sim.liveUnitAt(i);
+            if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id
+                    || !squad.participatesInPlan(member)) continue;
+            if (sim.getZoneGraph().zoneIdAt(sim.world().cellX(member),
+                    sim.world().cellY(member)) == zoneId) return true;
+        }
+        return false;
     }
 
     @Override

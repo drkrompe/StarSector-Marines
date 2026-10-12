@@ -16,6 +16,12 @@ missions construct exactly three stable reachable **named sites**. Identity is
 preserved through construction, frames, directives, snapshots, diagnostics,
 traces, and fixture replay; it is never inferred from list order or label.
 
+Authored sabotage construction may state installation sprawl and whether the
+defender has a continuing reinforcement layer. Those are separate inputs,
+frozen into the replay fixture. Unstated inputs retain the legacy settlement
+map and ordinary reinforcement behavior; a finite garrison does not refill
+through generated workshops, based aircraft or off-map deliveries.
+
 ## Marine command
 
 A **site task group** combines the site's individual planter or kit-retriever
@@ -23,6 +29,12 @@ duty with squad-level security. A planter/retriever squad receives an
 assignmentless mission-command ownership claim so command records provenance
 without competing with the individual task. Equipment recovery chooses the
 retriever and promotes a successful carrier back to planter.
+
+The first participating squad member entering the site's zone hands the approach
+to the planting cordon, matching zone entry's arrival rule. A leader still
+outside does not restart a finished entry/clear loop. The planting slot belongs
+to a carrier of that exact unfinished site's kit; a finished or different-site
+planter in the same campaign squad cannot take it.
 
 Security spreads across reachable unfinished sites before concentrating.
 Affinity survives ordinary pulses and may break on completion, loss,

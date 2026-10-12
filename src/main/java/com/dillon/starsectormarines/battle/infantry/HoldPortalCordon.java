@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -99,8 +100,8 @@ public final class HoldPortalCordon implements Action {
 
     /**
      * Planter slot first, then one portal slot per doorway. The planter slot
-     * scores PLANTER-role members at {@link #PLANTER_SCORE} and everyone else
-     * at 0 — RoleAssigner's mean-score-first ordering then picks the planter
+     * scores the active site's PLANTER-role carriers at {@link #PLANTER_SCORE}
+     * and everyone else at 0 — RoleAssigner's mean-score-first ordering then picks the planter
      * for that slot before portals draw candidates, so the assignment is
      * stable as long as the squad has an alive planter.
      *
@@ -114,7 +115,10 @@ public final class HoldPortalCordon implements Action {
         slots.add(new RoleAssigner.Slot<>(
                 PLANTER_SLOT,
                 1,
-                c -> sim.role().role(c) == UnitRole.PLANTER ? PLANTER_SCORE : 0f));
+                c -> sim.role().role(c) == UnitRole.PLANTER
+                        && sim.task().assignedObjective(c) instanceof ChargeSiteObjective charge
+                        && !charge.isComplete() && charge.cellX() == chargeCellX
+                        && charge.cellY() == chargeCellY ? PLANTER_SCORE : 0f));
         for (GuardPost post : posts) {
             slots.add(new RoleAssigner.Slot<>(
                     post.slotName(),
