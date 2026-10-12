@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.marine.BarracksEquipmentIssue;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
+import com.dillon.starsectormarines.marine.OfficerInduction;
+import com.dillon.starsectormarines.marine.OfficerInduction.Step;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -70,6 +72,7 @@ public final class BarracksCommandModel {
     private Runnable missions = () -> { };
     private Consumer<String> editEquipment = id -> { };
     private boolean localMissions;
+    private boolean returnToBriefing;
     private String search = "";
     private String draftName = "Line infantry";
     private int weaponIndex;
@@ -81,7 +84,7 @@ public final class BarracksCommandModel {
                                 IntSupplier cargoMarines, Function<String, PersonnelDrawResult> reinforce,
                                 Consumer<String> inspect, Runnable changed, DoubleSupplier currentDay) {
         this.roster = roster;
-        guideOpen = !roster.managementGuideDismissed();
+        guideOpen = inductionRequired() || !roster.managementGuideDismissed();
         this.resources = resources;
         this.equipment = new BarracksEquipmentIssue(roster, resources);
         this.cargoMarines = cargoMarines;
@@ -93,6 +96,7 @@ public final class BarracksCommandModel {
         props.put("raiseSquad", (Runnable) () -> raiseSquad.run());
         props.put("missions", (Runnable) () -> missions.run());
         props.put("editEquipment", (Runnable) () -> { if (inspectedId != null) editEquipment.accept(inspectedId); });
+        bind(reactor, "missionLabel", () -> returnToBriefing ? "RETURN TO BRIEFING" : "MISSIONS");
         bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier ? "hidden" : "formation-board panel console-section");
@@ -116,6 +120,7 @@ public final class BarracksCommandModel {
                 + " TRAINING POINTS / one on appointment, one per promotion / choices are permanent");
         bind(reactor, "officerSpecialties", this::officerSpecialties);
         bind(reactor, "officerTraits", this::officerTraits);
+        bind(reactor, "officerBiography", this::officerBiography);
         bind(reactor, "officerHistory", this::officerHistory);
         bind(reactor, "officerHistoryStyle", () -> "height: " + (officerHistory().size() * 52) + "px;");
         cards = reactor.computed(() -> { revision.get(); return squads(); });
@@ -148,17 +153,31 @@ public final class BarracksCommandModel {
         props.put("applyTransfers", (Runnable) this::applyTransfers);
         props.put("cancelTransfers", (Runnable) () -> { donors.clear(); choosingDonors = false; reviewedTransfers = null; refresh(); });
         bind(reactor, "guideClasses", () -> guideVisible() ? "guide-callout console-readout" : "guide-callout hidden");
-        bind(reactor, "guideTitle", () -> CompanyManagementGuide.speaker().toUpperCase(Locale.ROOT) + " / " + (guideStep + 1) + " / " + CompanyManagementGuide.lines().size() + " / " + guideLine().title());
+        bind(reactor, "guideTitle", () -> CompanyManagementGuide.speaker().toUpperCase(Locale.ROOT) + " / " + (inductionRequired() ? "FIRST COMMAND / " : (guideStep + 1) + " / " + CompanyManagementGuide.lines().size() + " / ") + guideLine().title());
         bind(reactor, "guidePortrait", CompanyManagementGuide::portrait);
         bind(reactor, "guideText", () -> guideLine().text());
         bind(reactor, "guideStatus", this::guideHint);
         bind(reactor, "guideDismissDisabled", () -> !guideVisible());
-        bind(reactor, "guideHelpDisabled", () -> CompanyManagementGuide.lines().isEmpty());
-        bind(reactor, "guidePreviousDisabled", () -> !guideVisible() || guideStep == 0);
-        bind(reactor, "guideNextDisabled", () -> !guideVisible() || guideStep + 1 >= CompanyManagementGuide.lines().size());
-        props.put("guideHelp", (Runnable) () -> { dossier = false; guideOpen = true; refresh(); });
-        props.put("guidePrevious", (Runnable) () -> { guideStep = Math.max(0, guideStep - 1); refresh(); });
-        props.put("guideNext", (Runnable) () -> { guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
+        bind(reactor, "guideHelpDisabled", () -> !inductionRequired() && CompanyManagementGuide.lines().isEmpty());
+        bind(reactor, "guidePreviousDisabled", () -> !guideVisible() || inductionRequired() || guideStep == 0);
+        bind(reactor, "guideNextDisabled", () -> !guideVisible() || (inductionRequired() ? inductionStep() != Step.READY : guideStep + 1 >= CompanyManagementGuide.lines().size()));
+        bind(reactor, "guideHelpLabel", () -> inductionRequired() ? "CASTLE'S LESSON" : "COMPANY GUIDE");
+        bind(reactor, "guidePreviousClasses", () -> inductionRequired() ? "hidden" : "tool-button console-action");
+        bind(reactor, "guideProgressClasses", () -> inductionRequired() ? "guide-progress" : "hidden");
+        bind(reactor, "guideProgressImage", () -> "graphics/ui/officers/induction-step-"
+                + (inductionRequired() ? Math.min(4, inductionStep().ordinal()) : 0) + ".svg");
+        bind(reactor, "guideNextLabel", () -> inductionRequired() ? "READY" : "NEXT");
+        bind(reactor, "guideDismissLabel", () -> inductionRequired() ? "LATER" : "DISMISS");
+        props.put("guideHelp", (Runnable) this::resumeGuide);
+        props.put("guidePrevious", (Runnable) () -> { if (inductionRequired()) return; guideStep = Math.max(0, guideStep - 1); refresh(); });
+        props.put("guideNext", (Runnable) () -> {
+            if (inductionRequired()) {
+                if (roster.officerInduction().finish(roster)) {
+                    guideOpen = false; changed.run();
+                }
+                refresh(); return;
+            }
+            guideStep = Math.min(Math.max(0, CompanyManagementGuide.lines().size() - 1), guideStep + 1); refresh(); });
         props.put("guideDismiss", (Runnable) this::dismissGuide);
         bind(reactor, "editorClasses", () -> editing ? "order-body" : "order-body hidden");
         bind(reactor, "title", this::title);
@@ -247,7 +266,12 @@ public final class BarracksCommandModel {
     public void leave() { reviewedTransfers = null; editing = false; targetChosen = false; refresh(); }
     public void showOverview() { detail = false; dossier = false; refresh(); }
     public void inspect(String id) { inspectedId = id; inspect.accept(id); detail = true; refresh(); }
-    public void selectCommand(String id) { command = id; dossier = selectedOfficer() != null; resetSelection(); }
+    public void selectCommand(String id) {
+        command = id; dossier = selectedOfficer() != null;
+        if (inductionRequired() && selectedOfficer() == inductionOfficer())
+            roster.officerInduction().introduce(selectedOfficer());
+        resetSelection();
+    }
     public void selectProfile(String id) { profileId = id; refresh(); }
     public void toggle(String id) {
         MarineSquad squad = roster.squadById(id);
@@ -316,11 +340,16 @@ public final class BarracksCommandModel {
             int level = officer.career().level(specialty);
             String id = "officer-specialty-" + specialty.name();
             rows.add(row("id", id, "titleId", id + "-title", "effectId", id + "-effect",
+                    "headerId", id + "-header", "iconId", id + "-icon", "footerId", id + "-footer",
+                    "progressId", id + "-progress", "levelId", id + "-level", "costId", id + "-cost",
+                    "icon", "graphics/ui/officers/" + specialty.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg",
+                    "progress", "graphics/ui/officers/specialty-rank-" + level + ".svg",
+                    "level", level + " / 2 RANKS", "cost", level == 2 ? "" : "1 POINT",
                     "nextId", id + "-next", "trainId", id + "-train",
-                    "title", specialty.label() + " / " + level + " of 2",
+                    "title", specialty.label(),
                     "effect", level == 0 ? "Not trained" : specialty.effect(level),
                     "next", level == 2 ? "Mastered" : "Next: " + specialty.effect(level + 1),
-                    "button", level == 2 ? "MASTERED" : "TRAIN " + (level + 1) + " / 1 POINT",
+                    "button", level == 2 ? "MASTERED" : "TRAIN",
                     "disabled", officer.status() == Status.KIA || level == 2 || officer.career().availablePoints(officer.rank()) == 0,
                     "train", (Runnable) () -> {
                         if (officer.train(specialty)) {
@@ -554,9 +583,79 @@ public final class BarracksCommandModel {
                 : "Issue blocked. Check personnel readiness, known equipment and the combined cargo bill.";
         changed.run();
     }
-    public boolean guideVisible() { return guideOpen && !dossier && !CompanyManagementGuide.lines().isEmpty(); }
-    public void dismissGuide() { guideOpen = false; roster.dismissManagementGuide(); refresh(); }
+    public boolean guideVisible() {
+        return guideOpen && (inductionRequired() || !dossier && !CompanyManagementGuide.lines().isEmpty());
+    }
+    public void dismissGuide() {
+        guideOpen = false;
+        if (!inductionRequired()) roster.dismissManagementGuide();
+        refresh();
+    }
+    public void resumeGuide() {
+        if (!inductionRequired()) { dossier = false; guideOpen = true; refresh(); return; }
+        dossier = false; detail = false; editing = false; organizing = false;
+        command = "all"; search = ""; profileFilter = null; attention = false;
+        guideOpen = true; resetSelection();
+    }
+    public boolean inductionRequired() { return roster.officerInductionRequired(); }
+    private Step inductionStep() { return roster.officerInduction().step(roster); }
+    private MarineCaptain inductionOfficer() { return roster.officerInduction().officer(roster); }
+    private String inductionOfficerTarget() {
+        MarineCaptain officer = inductionOfficer();
+        return officer == null ? "barracks-command-list" : "command:" + officer.id();
+    }
+    private String officerBiography() {
+        OfficerInduction induction = roster.officerInduction();
+        return selectedOfficer() != null && induction != null && induction.miraId().equals(selectedOfficer().id())
+                ? "Mira Hale / Founding field commander. A former convoy escort, she values clear orders and a counted muster. Castle trusts her with the company's first formation. Her specialty, promotions and service record grow through your decisions."
+                : "";
+    }
+    private String inductionTarget() {
+        if (detail) return "barracks-back-command";
+        Step step = inductionStep();
+        if (step == Step.INTRODUCTION) return inductionOfficerTarget();
+        if (step == Step.SPECIALTY)
+            return !dossier || selectedOfficer() != inductionOfficer() ? inductionOfficerTarget()
+                    : "officer-specialty-TACTICAL_COVER-train";
+        if (step == Step.READY) return inductionOfficerTarget();
+        if (dossier) return "officer-formations";
+        if (step == Step.FORMATION) return "barracks-raise-squad";
+        if (!"all".equals(command)) return "command:all";
+        if (selected.isEmpty()) return "barracks-select-all";
+        if (!organizing || editing) return "barracks-organization";
+        if (!targetChosen || inductionOfficer() == null || !inductionOfficer().id().equals(targetCaptain))
+            return "barracks-target-next";
+        return "barracks-assign-command";
+    }
+    private List<List<String>> inductionRegions() {
+        String target = inductionTarget();
+        if (target.startsWith("officer-specialty-"))
+            return List.of(List.of("officer-training", "officer-specialty-list"));
+        if ("barracks-select-all".equals(target) || "barracks-organization".equals(target)
+                || "barracks-target-next".equals(target) || "barracks-assign-command".equals(target))
+            return List.of(List.of("barracks-selection-tools", "barracks-formation-list", "barracks-page-tools"),
+                    List.of("barracks-organization", "barracks-order-caption", "barracks-selector",
+                            "barracks-assignment-reason", "barracks-assign-command"));
+        return List.of(List.of(target));
+    }
+    private String inductionHint() {
+        if (inductionStep() == Step.READY) return "Choose Ready to complete induction, then return to briefing to assign your deployment.";
+        return switch (inductionTarget()) {
+            case "barracks-back-command" -> "Return to the command board to continue.";
+            case "officer-formations" -> "Choose View Formations to return to the squad board.";
+            case "barracks-raise-squad" -> "Raise Squad opens Armory. Found a squad there, then return to Barracks. Later lets you resupply.";
+            case "command:all" -> "Choose All Formations so the unassigned squad is visible.";
+            case "barracks-select-all" -> "Mark the squad you want her to lead. You can deselect extra squads if they exceed her capacity.";
+            case "barracks-organization" -> "Open Organization beside Preparation.";
+            case "barracks-target-next" -> "Use the command arrows to choose " + (inductionOfficer() == null ? "an officer" : inductionOfficer().name()) + ".";
+            case "barracks-assign-command" -> "Check the capacity preview, then Assign Command. An unsuccessful order does not advance this lesson.";
+            case "barracks-command-list" -> "Recruit an available officer to continue. Later leaves the lesson pending.";
+            case "officer-specialty-TACTICAL_COVER-train" -> "Scroll to compare all three specialties. Use any Train button; this spends the appointment point.";
+            default -> "Open the highlighted officer portrait. Later pauses the lesson; it does not unlock deployment.";
+        };
+    }
     public String guideTargetId() {
+        if (inductionRequired()) return inductionTarget();
         if (detail) return "barracks-back-command";
         if (lineSquads().isEmpty()) return "barracks-raise-squad";
         if (guideStep == 5) return localMissions ? "barracks-missions" : "page-nav-return";
@@ -572,6 +671,7 @@ public final class BarracksCommandModel {
 
     /** Each group becomes one opening; its actual controls are the only input targets. */
     public List<List<String>> guideRegions() {
+        if (inductionRequired()) return inductionRegions();
         if (detail || lineSquads().isEmpty() || guideStep == 5 || organizing || editing)
             return List.of(List.of(guideTargetId()));
         var regions = new ArrayList<List<String>>();
@@ -602,6 +702,7 @@ public final class BarracksCommandModel {
     }
 
     private String guideHint() {
+        if (inductionRequired()) return inductionHint();
         if (detail) return "Use Back to Company to resume preparation. You can still inspect people here.";
         if (lineSquads().isEmpty()) return "Start with Raise Squad / Armory. Come back here once the company has a formation.";
         if (guideStep == 5) return localMissions ? "Use Missions when you are ready for another job." : "Use Return when you are ready to leave Barracks.";
@@ -617,9 +718,12 @@ public final class BarracksCommandModel {
     }
 
     private CompanyManagementGuide.Line guideLine() {
+        if (inductionRequired()) return OfficerInductionGuide.line(inductionStep(),
+                inductionOfficer() == null ? "your field commander" : inductionOfficer().name());
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", "Guide unavailable", "") : lines.get(Math.min(guideStep, lines.size() - 1));
     }
+    public void returnToBriefing(boolean value) { returnToBriefing = value; refresh(); }
     public void navigation(Runnable raiseSquad, Consumer<String> editEquipment, Runnable missions, boolean localMissions) {
         this.raiseSquad = raiseSquad; this.editEquipment = editEquipment; this.missions = missions;
         this.localMissions = localMissions; refresh();

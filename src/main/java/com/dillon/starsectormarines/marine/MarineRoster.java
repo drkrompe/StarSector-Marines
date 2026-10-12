@@ -60,6 +60,15 @@ public class MarineRoster implements Serializable {
     private boolean initialComplementIssued;
     /** Optional company-management introduction; absent legacy values mean not yet dismissed. */
     private boolean managementGuideDismissed;
+    /** Only new companies opt in; absent legacy state must not lock deployment. */
+    private OfficerInduction officerInduction;
+
+    public OfficerInduction officerInduction() { return officerInduction; }
+    public boolean officerInductionRequired() { return officerInduction != null && !officerInduction.complete(); }
+    public void beginOfficerInduction(MarineCaptain mira) {
+        if (officerInduction == null && mira != null && byId(mira.id()) == mira)
+            officerInduction = new OfficerInduction(mira.id());
+    }
 
     public boolean managementGuideDismissed() { return managementGuideDismissed; }
     public void dismissManagementGuide() { managementGuideDismissed = true; }
