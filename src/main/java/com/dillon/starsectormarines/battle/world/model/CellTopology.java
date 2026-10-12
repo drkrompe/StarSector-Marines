@@ -233,8 +233,8 @@ public class CellTopology {
      * implicit default — means the cell draws the way its kind says: a wall as
      * {@link SurfaceRole#WALL}, a floor as its {@code GroundKind}'s block.
      *
-     * <p>One array for walls and floors both, because a cell is one or the
-     * other and never both. Which pass reads it decides what it means, so a
+     * <p>One array for the visible wall or floor. A wall can separately retain
+     * its buried floor finish for a later breach. Which pass reads this decides what it means, so a
      * room asking for a vent floor and a room asking for a heavier bulkhead
      * spend the same byte.
      *
@@ -244,6 +244,19 @@ public class CellTopology {
      * same wall share one.
      */
     private final byte[] surface;
+    /** Explicit floor finish beneath a structural wall; distinct from its visible wall material. */
+    private final Map<Integer, String> wallGroundSurfaces = new HashMap<>();
+
+    public String getWallGroundSurfaceId(int x, int y) {
+        return inBounds(x, y) ? wallGroundSurfaces.get(y * width + x) : null;
+    }
+
+    public void setWallGroundSurface(int x, int y, String blockId) {
+        if (!inBounds(x, y)) return;
+        if (blockId == null) wallGroundSurfaces.remove(y * width + x);
+        else wallGroundSurfaces.put(y * width + x, blockId);
+    }
+
     /** Appearance retained only for cells whose walls actually collapsed. */
     public record WallRemnant(String materialId, GroundKind groundKind, String groundSurfaceId, int exposedFaces) {}
     private final Map<Integer, WallRemnant> wallRemnants = new HashMap<>();

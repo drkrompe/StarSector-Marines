@@ -1,0 +1,60 @@
+{
+  "blocks": [
+    {
+      "damageBlock": "colony.concrete-damage",
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.concrete-floor",
+      "layout": "single",
+      "origin": [
+        0,
+        0
+      ],
+      "windowBlock": "installation.light-concrete-window"
+    },
+    {
+      "damageBlock": "colony.concrete-damage",
+      "doorBlock": "installation.light-concrete-door",
+      "id": "installation.command-floor",
+      "layout": "single",
+      "origin": [
+        1,
+        0
+      ],
+      "windowBlock": "installation.light-concrete-window"
+    },
+    {
+      "damageBlock": "colony.concrete-damage",
+      "doorBlock": "colony.masonry-door",
+      "id": "installation.accommodation-floor",
+      "layout": "single",
+      "origin": [
+        2,
+        0
+      ],
+      "windowBlock": "colony.masonry-window"
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "the block's only cell",
+      "name": "installation.concrete-floor only",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "the block's only cell",
+      "name": "installation.command-floor only",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "the block's only cell",
+      "name": "installation.accommodation-floor only",
+      "row": 0
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/installation-floors.png"
+}

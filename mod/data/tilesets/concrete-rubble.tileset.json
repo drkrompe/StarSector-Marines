@@ -1,0 +1,217 @@
+{
+  "blocks": [
+    {
+      "id": "installation.dark-concrete-rubble",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "installation.light-concrete-rubble",
+      "layout": "wall-faces-4x4",
+      "origin": [
+        4,
+        0
+      ]
+    }
+  ],
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.dark-concrete-rubble faces-0",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north",
+      "name": "installation.dark-concrete-rubble faces-1",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east",
+      "name": "installation.dark-concrete-rubble faces-2",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.dark-concrete-rubble faces-3",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south",
+      "name": "installation.dark-concrete-rubble faces-4",
+      "row": 1
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.dark-concrete-rubble faces-5",
+      "row": 1
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.dark-concrete-rubble faces-6",
+      "row": 1
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.dark-concrete-rubble faces-7",
+      "row": 1
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on west",
+      "name": "installation.dark-concrete-rubble faces-8",
+      "row": 2
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.dark-concrete-rubble faces-9",
+      "row": 2
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.dark-concrete-rubble faces-10",
+      "row": 2
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.dark-concrete-rubble faces-11",
+      "row": 2
+    },
+    {
+      "col": 0,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.dark-concrete-rubble faces-12",
+      "row": 3
+    },
+    {
+      "col": 1,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.dark-concrete-rubble faces-13",
+      "row": 3
+    },
+    {
+      "col": 2,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.dark-concrete-rubble faces-14",
+      "row": 3
+    },
+    {
+      "col": 3,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.dark-concrete-rubble faces-15",
+      "row": 3
+    },
+    {
+      "col": 4,
+      "description": "solid cap \u2014 no exposed faces",
+      "name": "installation.light-concrete-rubble faces-0",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north",
+      "name": "installation.light-concrete-rubble faces-1",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east",
+      "name": "installation.light-concrete-rubble faces-2",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east",
+      "name": "installation.light-concrete-rubble faces-3",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on south",
+      "name": "installation.light-concrete-rubble faces-4",
+      "row": 1
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and south",
+      "name": "installation.light-concrete-rubble faces-5",
+      "row": 1
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and south",
+      "name": "installation.light-concrete-rubble faces-6",
+      "row": 1
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and south",
+      "name": "installation.light-concrete-rubble faces-7",
+      "row": 1
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on west",
+      "name": "installation.light-concrete-rubble faces-8",
+      "row": 2
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and west",
+      "name": "installation.light-concrete-rubble faces-9",
+      "row": 2
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and west",
+      "name": "installation.light-concrete-rubble faces-10",
+      "row": 2
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and west",
+      "name": "installation.light-concrete-rubble faces-11",
+      "row": 2
+    },
+    {
+      "col": 4,
+      "description": "wall cap exposed on south and west",
+      "name": "installation.light-concrete-rubble faces-12",
+      "row": 3
+    },
+    {
+      "col": 5,
+      "description": "wall cap exposed on north and south and west",
+      "name": "installation.light-concrete-rubble faces-13",
+      "row": 3
+    },
+    {
+      "col": 6,
+      "description": "wall cap exposed on east and south and west",
+      "name": "installation.light-concrete-rubble faces-14",
+      "row": 3
+    },
+    {
+      "col": 7,
+      "description": "wall cap exposed on north and east and south and west",
+      "name": "installation.light-concrete-rubble faces-15",
+      "row": 3
+    }
+  ],
+  "doodads": [],
+  "sheet": "graphics/tilesets/concrete-rubble.png"
+}
