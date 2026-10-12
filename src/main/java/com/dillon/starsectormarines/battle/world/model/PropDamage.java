@@ -7,10 +7,26 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
-/** One damage pool per drum group; stock overlays never own their underlying rack's obstruction. */
-public final class BarrelDamage {
-    public static final Set<String> IDS = Set.of("doodad.industrial-drum-cluster", "main-stores.drums");
+/** One damage pool per placed prop, shared by every cell in its rotated footprint. */
+public final class PropDamage {
+    public static final Set<String> BARRELS = Set.of("doodad.industrial-drum-cluster", "main-stores.drums");
+    /** Presentation only: these cues do not cause secondary damage or smoke concealment. */
+    public enum Effect { NONE, DUST, SMOKE, FIRE }
+    public record Profile(Effect damaged, Effect destroyed) {}
+    /** Adding a family requires matching full-footprint damaged/destroyed catalog entries. */
+    public static final Map<String, Profile> EQUIPMENT = Map.of(
+            "doodad.industrial-generator", new Profile(Effect.SMOKE, Effect.FIRE),
+            "doodad.military-radar-dish", new Profile(Effect.NONE, Effect.DUST),
+            "doodad.industrial-machine-tool", new Profile(Effect.SMOKE, Effect.DUST),
+            "doodad.industrial-fluid-tank", new Profile(Effect.SMOKE, Effect.SMOKE),
+            "doodad.industrial-control-console", new Profile(Effect.SMOKE, Effect.FIRE),
+            "doodad.military-command-console", new Profile(Effect.SMOKE, Effect.FIRE),
+            "doodad.military-tactical-table", new Profile(Effect.SMOKE, Effect.DUST),
+            "doodad.office-workstation-bank", new Profile(Effect.SMOKE, Effect.FIRE));
+    private static final Profile SILENT = new Profile(Effect.NONE, Effect.NONE);
+    @FunctionalInterface public interface EffectSink { void accept(float x, float y, Effect effect, float footprintSize); }
     public static final int STARTING_HP = 100;
     @FunctionalInterface public interface ClearedCell { void accept(int x, int y); }
     private static final class Entry {
@@ -21,6 +37,7 @@ public final class BarrelDamage {
         final boolean[] physical, blocking;
         int hp = STARTING_HP;
         long lastAttack = Long.MIN_VALUE;
+        boolean hasDamage;
         Entry(int index, Doodad original, DoodadDef damaged, DoodadDef destroyed, int count) {
             this.index = index; this.original = original; this.damaged = damaged; this.destroyed = destroyed;
             cells = new int[count]; physical = new boolean[count]; blocking = new boolean[count];
@@ -33,20 +50,26 @@ public final class BarrelDamage {
     private final NavigationGrid grid;
     private final List<Doodad> props;
     private final Int2ObjectOpenHashMap<List<Entry>> owners = new Int2ObjectOpenHashMap<>();
-    public BarrelDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+    private EffectSink effectSink = (x, y, effect, size) -> {};
+    public PropDamage(NavigationGrid grid, List<Doodad> props) { this.grid = grid; this.props = props; }
+
+    public void setEffectSink(EffectSink sink) { effectSink = sink; }
 
     public boolean register(int index, Doodad prop, TileRegistry registry) {
-        if (prop.definitionId() == null || !IDS.contains(prop.definitionId())) return false;
+        if (prop.definitionId() == null || (!BARRELS.contains(prop.definitionId())
+                && !EQUIPMENT.containsKey(prop.definitionId()))) return false;
         DoodadDef damaged = registry == null ? null : registry.doodad(prop.definitionId() + "-damaged");
         DoodadDef destroyed = registry == null ? null : registry.doodad(prop.definitionId() + "-destroyed");
         if (damaged == null || destroyed == null
                 || damaged.footprintCellsX != prop.sourceCellsX || damaged.footprintCellsY != prop.sourceCellsY
                 || destroyed.footprintCellsX != prop.sourceCellsX || destroyed.footprintCellsY != prop.sourceCellsY)
-            throw new IllegalStateException("Missing or mismatched barrel damage pair for " + prop.definitionId());
+            throw new IllegalStateException("Missing or mismatched prop damage pair for " + prop.definitionId());
+        if (destroyed.cover.level() != 0 || destroyed.ballisticHalfHeight != 0f)
+            throw new IllegalStateException("Prop debris must release cover: " + prop.definitionId());
         Entry entry = new Entry(index, prop, damaged, destroyed, prop.footprintCellsX * prop.footprintCellsY);
         for (int y = 0, i = 0; y < prop.footprintCellsY; y++) for (int x = 0; x < prop.footprintCellsX; x++, i++) {
             int gx = prop.cellX + x, gy = prop.cellY + y;
-            if (!grid.inBounds(gx, gy)) throw new IllegalArgumentException("Barrel footprint outside map");
+            if (!grid.inBounds(gx, gy)) throw new IllegalArgumentException("Prop footprint outside map");
             entry.cells[i] = grid.index(gx, gy);
             entry.physical[i] = grid.isWalkable(gx, gy);
             entry.blocking[i] = !entry.physical[i] && prop.cover > 0
@@ -85,6 +108,15 @@ public final class BarrelDamage {
             Doodad p = entry.original;
             props.set(entry.index, new Doodad(p.cellX, p.cellY, entry.hp == 0 ? entry.destroyed : entry.damaged,
                     p.quarterTurns, p.mirrored));
+            if (!entry.hasDamage || entry.hp == 0) {
+                Profile profile = EQUIPMENT.getOrDefault(p.definitionId(), SILENT);
+                Effect effect = entry.hp == 0 ? profile.destroyed() : profile.damaged();
+                if (effect != Effect.NONE)
+                    effectSink.accept(p.cellX + p.footprintCellsX * .5f,
+                            p.cellY + p.footprintCellsY * .5f, effect,
+                            Math.min(p.footprintCellsX, p.footprintCellsY));
+                entry.hasDamage = true;
+            }
             if (entry.hp > 0) {
                 if (result != CoverPropDamage.Result.DESTROYED) result = CoverPropDamage.Result.DAMAGED;
                 continue;
@@ -95,6 +127,11 @@ public final class BarrelDamage {
                 int cell = entry.cells[i];
                 boolean occupied = false;
                 for (Entry other : owners.get(cell)) if (other.hp > 0 && other.blocks(cell)) { occupied = true; break; }
+                // A layered, unregistered rack or fixture keeps its own obstruction.
+                if (!occupied) for (Doodad other : props)
+                    if (other.cover > 0 && other.occupiesCell(cell % grid.getWidth(), cell / grid.getWidth())) {
+                        occupied = true; break;
+                    }
                 if (!occupied) cleared.accept(cell % grid.getWidth(), cell / grid.getWidth());
             }
         }

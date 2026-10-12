@@ -515,7 +515,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // Wall-collapse dust. Queued by whatever brought the wall down and
         // drained once here, so a collapse looks the same however it happened.
         for (float[] dust : sim.getWallDustsThisFrame()) {
-            renderer.getImpactFx().spawnWallCollapse(dust[0], dust[1]);
+            renderer.getImpactFx().spawnWallCollapse(dust[0], dust[1], dust.length > 2 ? dust[2] : 1f);
         }
         // Impact FX: spawn at the moment the shot's visual reaches its endpoint
         // (instant for marine line tracers, on lifetime expiry for projectile

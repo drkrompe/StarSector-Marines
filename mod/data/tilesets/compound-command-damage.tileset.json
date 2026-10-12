@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "doodad.industrial-control-console-damaged",
+      "row": 0
+    },
+    {
+      "col": 1,
+      "name": "doodad.military-command-console-damaged",
+      "row": 0
+    },
+    {
+      "col": 2,
+      "name": "doodad.military-tactical-table-damaged",
+      "row": 0
+    },
+    {
+      "col": 3,
+      "name": "doodad.office-workstation-bank-damaged",
+      "row": 0
+    },
+    {
+      "col": 4,
+      "name": "doodad.industrial-control-console-destroyed",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "doodad.military-command-console-destroyed",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "doodad.military-tactical-table-destroyed",
+      "row": 0
+    },
+    {
+      "col": 7,
+      "name": "doodad.office-workstation-bank-destroyed",
+      "row": 0
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 0,
+      "cover": "med",
+      "id": "doodad.industrial-control-console-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.55,
+      "col": 1,
+      "cover": "med",
+      "id": "doodad.military-command-console-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.38,
+      "col": 2,
+      "cover": "med",
+      "id": "doodad.military-tactical-table-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.45,
+      "col": 3,
+      "cover": "med",
+      "id": "doodad.office-workstation-bank-damaged",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "id": "doodad.industrial-control-console-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "id": "doodad.military-command-console-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "id": "doodad.military-tactical-table-destroyed",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "id": "doodad.office-workstation-bank-destroyed",
+      "row": 0
+    }
+  ],
+  "sheet": "graphics/doodads/compound-command-damage.png"
+}
