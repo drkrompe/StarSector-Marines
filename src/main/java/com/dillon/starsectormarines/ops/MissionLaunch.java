@@ -26,6 +26,9 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
+import com.dillon.starsectormarines.DevConfig;
+import com.fs.starfarer.api.Global;
+import com.dillon.starsectormarines.battle.warship.DebugWarship;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
@@ -38,6 +41,7 @@ import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.Global;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,6 +63,21 @@ import java.util.function.Supplier;
 public final class MissionLaunch {
 
     private MissionLaunch() {}
+
+    static boolean requiresOfficerInduction(MarineRoster roster, MissionSource source) {
+        return source != null && !source.isDebug() && roster != null && roster.officerInductionRequired();
+    }
+
+    static boolean requiresOfficerInduction(Mission mission) {
+        if (mission == null || mission.source.isDebug() || Global.getSector() == null) return false;
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return requiresOfficerInduction(script == null ? null : script.roster(), mission.source);
+    }
+
+    static void requireOfficerInductionComplete(MarineRoster roster, MissionSource source) {
+        if (requiresOfficerInduction(roster, source))
+            throw new IllegalStateException("Complete Castle's First Command lesson in Barracks before deployment.");
+    }
 
     /**
      * Build the battle for {@code m} from the player's committed support and
@@ -326,16 +345,24 @@ public final class MissionLaunch {
     /** Applies campaign state only after the player explicitly accepts deployment. */
     static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
                                           ScenarioPlan plan, BattleSimulation sim) {
+        return finishSimulation(ctx, m, debugWings, DebugWarship.Spec.OFF, plan, sim);
+    }
+
+    /** As above, plus the briefing's WARSHIP DEBUG choice, installed after the launch overlay. */
+    static PreparedBattle finishSimulation(MarineOpsContext ctx, Mission m, FlybyRoster debugWings,
+                                          DebugWarship.Spec debugWarship,
+                                          ScenarioPlan plan, BattleSimulation sim) {
         Detachment det = plan.detachment();
         int firstPlayerShuttle = plan.firstPlayerShuttle();
         BattleFixture fixture = plan.fixture();
         try {
+            MarineRosterScript personnel = MarineRosterScript.getInstance();
+            requireOfficerInductionComplete(personnel == null ? null : personnel.roster(), m.source);
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.
             int playerSeats = CampaignMarineDeployment.requiredSeats(
                     det.shuttleManifest, firstPlayerShuttle);
             ctx.setMarineDeploymentCapacity(playerSeats);
-            MarineRosterScript personnel = MarineRosterScript.getInstance();
             CampaignMarineDeployment deployment = CampaignMarineDeployment.EMPTY;
             // One deployment shape for both sources: a debug mission fields a
             // detached MarineRoster built by DebugCompany, so it earns the same
@@ -368,6 +395,7 @@ public final class MissionLaunch {
                     det.powers, Math.max(0, liveResources.availableSupplies()),
                     m.fieldPresencePolicy);
             launch.applyTo(sim, liveResources);
+            installDebugWarship(m, debugWarship, sim);
             sim.setOperationOfficer(OfficerCommandProfile.capture(ctx.getSelectedCaptain()));
             if (fixture != null) {
                 fixture = new BattleLaunchFixture(fixture, launch);
@@ -378,6 +406,16 @@ public final class MissionLaunch {
         } catch (RuntimeException | Error failure) {
             sim.close();
             throw failure;
+        }
+    }
+
+    /** Debug missions only; a failure to fit the ship costs the ship, never the battle. */
+    private static void installDebugWarship(Mission m, DebugWarship.Spec spec, BattleSimulation sim) {
+        if (!DevConfig.DEBUG_WARSHIP_PICKER || !m.source.isDebug() || spec == null || !spec.active()) return;
+        try {
+            DebugWarship.install(sim, spec);
+        } catch (Exception e) {
+            Global.getLogger(MissionLaunch.class).warn("MarineOps: debug warship " + spec.hull() + " could not be fitted", e);
         }
     }
 

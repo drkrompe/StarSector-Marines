@@ -794,7 +794,10 @@ second and a beam nearly twice that; a clip per round is not a louder gun, it is
 wall of overlapping voices in which nothing else in the battle can be heard.
 Fire cues are thinned to a cadence that reads as a burst, and the beam — which
 is one continuous sound rather than a series of events — is a held loop left to
-lapse when the firing stops.
+lapse when the firing stops. A warship's lance follows the same rule: its
+`fireSoundOne` sounds once as the sweep lights, and its `fireSoundTwo` is
+re-requested at the beam's tip on every tick the sweep burns (a weapon naming
+only the second has no separate loop and keeps its single report).
 
 Every clip is one of the base game's own mono weapon files, registered under our
 own id against the read-only install rather than copied, the same way the
@@ -1409,7 +1412,9 @@ do not check colours. The cost of calling one in over your own marines is the
 point.
 
 **Its guns are the game's, placed by the hull's own data.** A warship is fitted
-from a vanilla variant: the hull spec says where each slot is, which way it
+from a vanilla variant, or from a campaign fleet member's own fitted variant
+(both reach the same fitting through one loadout seam: a hull and a weapon per
+slot): the hull spec says where each slot is, which way it
 faces and how far it traverses; the variant says what sits in it; the weapon,
 projectile and weapon-table data say what a round does, how far and fast it
 goes and what it looks like. The mod authors none of those numbers or sprites.
@@ -1460,6 +1465,13 @@ landing carries the round's explosion colour to the presentation, which tints th
 fire, the flash and the ground light with it and sizes the burst to the blast's
 radius, so a capital's heavier shell reads larger than a cannon's.
 
+**A scripted flyby is a route the ship passes through without stopping.** Given
+waypoints (and optionally told to loop), the hull flies each leg at speed,
+counting a waypoint as passed within a few cells and braking only onto a last
+one that does not loop. With no instruction to bring guns to bear it points
+along its travel; whatever ground it is ordered or directed to fire on, it keeps
+firing while it moves, so a cinematic can be authored as a path.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount
@@ -1504,10 +1516,23 @@ blast and leaves the battle at once, and every gun with it; a battered hull is
 drawn darker. The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
 
+**A warship's stay and its magazine can both be bounded.** Station time is counted
+down only while the ship is on its station, not while it travels to it; when it
+is spent the ship stops firing and hovers away along the line from the map's
+centre through where it stands, at its own speed, and is removed once clear of the
+map (or after a fixed outer limit). Its point defence keeps working until it is
+gone, since it shoots ordnance and not ground. The ordnance budget is counted in
+rounds: every area-fire round landed and every lance sweep laid spends one, from a
+single pool shared by the ship's mounts, and a ship can instead (or as well) give
+each mount the magazine its own weapon carries, from the weapon table's `ammo`
+column, where a blank column is a gun that never runs out. Rounds already in
+flight when the pool empties still land; nothing new is fired, even mid-burst.
+Both budgets are unlimited unless a mission sets them, and both are readable
+(remaining seconds, remaining rounds, per-mount magazine) for a HUD.
+
 It must be answerable. The hull and armour pool above, a bounded time on station
 or ordnance budget, and telegraphed sweeps and falls are the counterplay; none of
-them is optional. The station time and ordnance budget are still to build.
-Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
+them is optional. Modules, cumulative ship damage beyond the hull pool and ground-weapon ceiling
 rules remain future decisions. Altitude is ultimately a shared camera-space axis, never a fake
 shrink that changes a hull's physical scale.
 

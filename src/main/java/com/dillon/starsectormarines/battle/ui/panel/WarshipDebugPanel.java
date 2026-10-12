@@ -1,0 +1,134 @@
+package com.dillon.starsectormarines.battle.ui.panel;
+
+import com.dillon.starsectormarines.DebugOnly;
+import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.BattleUiContext;
+import com.dillon.starsectormarines.battle.ui.HudPanel;
+import com.dillon.starsectormarines.battle.warship.DebugWarship;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.ops.BattleLayout;
+import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.Fonts;
+import com.fs.starfarer.api.input.InputEventAPI;
+import org.lwjgl.input.Keyboard;
+
+import java.awt.Color;
+import java.util.List;
+
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
+import static org.lwjgl.opengl.GL11.glBegin;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glColor4f;
+import static org.lwjgl.opengl.GL11.glDisable;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL11.glEnd;
+import static org.lwjgl.opengl.GL11.glVertex2f;
+
+/**
+ * Debug control and readout for the briefing's WARSHIP DEBUG ship. Visible only
+ * while a warship is over the battle and {@link DevConfig#DEBUG_WARSHIP_PICKER}
+ * is on. {@link #FIRE_KEY} orders it to fire on the cell under the cursor,
+ * {@link #HOLD_KEY} holds fire; a status line reports hull, order, heading and
+ * rounds fired so damage and area of effect can be judged.
+ */
+@DebugOnly
+public final class WarshipDebugPanel implements HudPanel {
+
+    /** Fire on the world cell under the mouse cursor, radius {@link DebugWarship#AREA_RADIUS_CELLS}. */
+    public static final int FIRE_KEY = Keyboard.KEY_F6;
+    /** Hold fire. */
+    public static final int HOLD_KEY = Keyboard.KEY_F7;
+
+    private static final float PAD = 6f;
+    private static final Color TEXT = new Color(0xFF, 0xE0, 0x90);
+    private static final Color HINT = new Color(0xA8, 0xB8, 0xC8);
+
+    private final BattleUiContext ctx;
+    private final BitmapFont font = Fonts.INSIGNIA_15_AA;
+    private float mouseX = Float.NaN;
+    private float mouseY = Float.NaN;
+
+    public WarshipDebugPanel(BattleUiContext ctx) {
+        this.ctx = ctx;
+    }
+
+    private Warship ship() {
+        BattleSimulation sim = ctx.getSim();
+        if (sim == null || sim.warships().ships().isEmpty()) return null;
+        return sim.warships().ships().get(0);
+    }
+
+    @Override public void update(float dt) { }
+
+    @Override
+    public boolean isVisible() {
+        return DevConfig.DEBUG_WARSHIP_PICKER && ship() != null && ctx.getLayout() != null;
+    }
+
+    @Override
+    public void handleInput(List<InputEventAPI> events) {
+        if (events == null) return;
+        Warship ship = ship();
+        for (InputEventAPI e : events) {
+            if (e.isMouseEvent()) {
+                mouseX = e.getX();
+                mouseY = e.getY();
+            }
+            if (ship == null || e.isConsumed() || !e.isKeyDownEvent()) continue;
+            if (e.getEventValue() == FIRE_KEY) {
+                fireAtCursor(ship);
+                e.consume();
+            } else if (e.getEventValue() == HOLD_KEY) {
+                DebugWarship.holdFire(ship);
+                e.consume();
+            }
+        }
+    }
+
+    private void fireAtCursor(Warship ship) {
+        BattleCamera camera = ctx.getCamera();
+        if (camera == null || Float.isNaN(mouseX) || !camera.containsScreen(mouseX, mouseY)) return;
+        DebugWarship.fireAt(ship, camera.screenToCellX(mouseX), camera.screenToCellY(mouseY));
+    }
+
+    @Override
+    public void render(float alphaMult) {
+        Warship ship = ship();
+        BattleLayout layout = ctx.getLayout();
+        if (ship == null || layout == null) return;
+        font.ensureLoaded();
+        String line = DebugWarship.statusLine(ship);
+        String hint = "F6 fire at cursor   F7 hold fire";
+        float w = Math.max(font.measureWidth(line), font.measureWidth(hint)) + 2f * PAD;
+        float lineH = font.getLineHeight();
+        float h = 2f * lineH + 2f * PAD;
+        float x = layout.gridX + BattleLayout.PAD;
+        float top = layout.gridY + layout.gridH - BattleLayout.PAD;
+        float y = top - h;
+
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(0.08f, 0.10f, 0.14f, 0.85f * alphaMult);
+        glBegin(GL_QUADS);
+        glVertex2f(x, y);
+        glVertex2f(x + w, y);
+        glVertex2f(x + w, y + h);
+        glVertex2f(x, y + h);
+        glEnd();
+
+        font.drawString(line, x + PAD, top - PAD, TEXT, alphaMult);
+        font.drawString(hint, x + PAD, top - PAD - lineH, HINT, alphaMult);
+    }
+
+    @Override
+    public boolean blocksWorldPointer(float px, float py) {
+        return false;
+    }
+}

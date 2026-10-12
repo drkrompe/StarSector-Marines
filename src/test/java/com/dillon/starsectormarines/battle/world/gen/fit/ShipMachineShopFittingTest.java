@@ -58,11 +58,12 @@ class ShipMachineShopFittingTest {
         }
     }
 
-    @Test void groundCagesAndSmallUtilityCagesKeepTheirStorageFitting() {
+    @Test void groundCagesStaySeparateAndSmallShipCagesUseTheUtilityKit() {
         assertInstanceOf(PartsCageFitting.class,RoomFittings.forPurpose(RoomPurpose.PARTS_CAGE));
         Fixture f = fit(RoomShape.rectangle(6,4),new RoomPose(0,false),List.of(new int[]{-1,2}));
         assertTrue(f.ctx.doodads.stream().noneMatch(d -> d.definitionId().startsWith("machine-shop.")));
         assertFalse(f.ctx.doodads.isEmpty());
+        assertTrue(f.ctx.doodads.stream().allMatch(d -> d.definitionId().startsWith("ship-utility.")));
         assertTrue(f.floor.circulationSurvives());
     }
 

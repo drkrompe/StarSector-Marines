@@ -1,0 +1,157 @@
+{
+  "sheetName": "ship-utility",
+  "sheet": "art-source/tilesets/ship-utility.raw.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 3,
+  "idPrefix": "ship-utility",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/ship-utility.png",
+  "note": "Geometry-first compact utility modules. Shelf, parts overlay and retaining frame share the 2x1 footprint; parts cut retains the complete inset placement canvas and frame holes remain transparent.",
+  "entries": [
+    {
+      "id": "ship-utility.server",
+      "rect": [
+        51,
+        52,
+        340,
+        330
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.2,
+      "included": true
+    },
+    {
+      "id": "ship-utility.console",
+      "rect": [
+        469,
+        52,
+        316,
+        330
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-utility.electrical",
+      "rect": [
+        863,
+        51,
+        341,
+        331
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "ship-utility.shelf",
+      "rect": [
+        26,
+        519,
+        384,
+        193
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "ship-utility.parts",
+      "rect": [
+        434,
+        519,
+        384,
+        193
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-utility.frame",
+      "rect": [
+        842,
+        519,
+        387,
+        193
+      ],
+      "footprintCells": [
+        2,
+        1
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "ship-utility.pump",
+      "rect": [
+        51,
+        835,
+        340,
+        328
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "ship-utility.supply-locker",
+      "rect": [
+        469,
+        834,
+        316,
+        329
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "heavy",
+      "ballisticHalfHeight": 1.1,
+      "included": true
+    },
+    {
+      "id": "ship-utility.counter",
+      "rect": [
+        863,
+        834,
+        341,
+        328
+      ],
+      "footprintCells": [
+        1,
+        1
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "included": true
+    }
+  ]
+}

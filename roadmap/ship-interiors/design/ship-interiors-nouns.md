@@ -5,7 +5,7 @@ facility layout and circulation continue to evolve.
 
 Written: 2026-08-26
 
-Updated: 2026-10-11 — ship ranges align clear live-fire lanes with solid backstops and an organized preparation/storage area.
+Updated: 2026-10-11 — compact server rooms, parts cages and utility closets use coordinated ship fixtures around clear service aisles.
 
 Earlier 2026-10-11 — briefing rooms gather eight seats around one tactical
 table, with a presentation bank and clear circulation in the muted ship materials.
@@ -566,8 +566,21 @@ above them. The shelf bed owns the complete physical footprint, and its layers
 follow the same room pose. A central cross-aisle joins the workstations to the
 picking aisle and perimeter hatch route. Fabrication belongs to the machines,
 repair to the assembly bench, readings to inspection and stowage to the rack;
-each position is exclusive and reachable. Small utility parts cages retain
-secured storage. Displayed parts do not assert campaign stock or crafting rules.
+each position is exclusive and reachable. Displayed parts do not assert
+campaign stock or crafting rules.
+
+The small utility compartments use equipment sized for their own pockets.
+Server cabinets form shallow banks around a service aisle, with one readout
+console and contained power and cooling equipment. Compact parts cages pair
+layered shelf runs with a repair/issue counter and inventory console; a hatch
+that interrupts a shelf can leave space for a closed supply locker. These rooms
+retain readings, repair and stowage as reachable, exclusive positions. Generic
+utility closets hold pump, electrical and cleaning equipment as scenery, with
+no new watch posting beyond the ordinary rounds visit. Pipe circuits stay
+inside their skids. Full hatch approaches take precedence over equipment:
+multiple entrances may reduce fixture capacity without sealing the room.
+The utility recipes keep their existing footprints and packing roles; the
+large machine shop and ground facilities retain their separate arrangements.
 
 Ship engineering distinguishes the main drive from auxiliary plant. The drive
 room carries one connected reactor/turbine/heat-exchanger assembly, separate
