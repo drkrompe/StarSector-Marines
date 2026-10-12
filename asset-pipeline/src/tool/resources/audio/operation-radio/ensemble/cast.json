@@ -44,5 +44,32 @@
       "requestId": null,
       "characterCost": null
     }
+  },
+  "jackal": {
+    "voiceId": "YHOEWmZLDoCD6QyvyJKr",
+    "name": "Jackal",
+    "generatedVoiceId": "YHOEWmZLDoCD6QyvyJKr",
+    "candidate": "A",
+    "status": "selected by user; production-model audition pending",
+    "description": "Native Irish English, a natural western Irish dialect. Male, 30 to 38. Excellent clean recording quality. Persona: dry-humoured infantry professional. Emotion: alert, wry, dependable. A medium-register masculine voice with a light sandpaper edge and easy conversational rhythm. Understatement and small changes in pitch carry the humour; the smile is audible without turning into a laugh. The instant someone is in danger, he becomes quick, clipped and forceful. Human uneven phrasing and brief breaths, casual confidence earned through experience. Lively spoken character dialogue at a brisk natural pace.",
+    "source": "personality-auditions/jackal-A.mp3"
+  },
+  "ox": {
+    "voiceId": "YUvgK8Ap5BSxIwdo4Uvr",
+    "name": "Ox",
+    "generatedVoiceId": "YUvgK8Ap5BSxIwdo4Uvr",
+    "candidate": "B",
+    "status": "selected by user; production-model audition pending",
+    "description": "Native New Zealand English, an unmistakably natural New Zealand dialect. Male, 50 to 60. Excellent clean recording quality. Persona: reassuring veteran infantry leader. Emotion: patient, grounded, stubbornly hopeful. A deep warm masculine bass with rounded resonance and a soft worn grain. Unhurried compact conversational phrasing, gentle downward inflection and an occasional smile in the voice. He speaks to his soldiers like people he knows and intends to bring home. Danger brings firm chest-supported projection and shorter phrases; anger carries disappointed gravity rather than a bark. Natural, expressive character dialogue with warmth still audible under exertion.",
+    "source": "personality-auditions/ox-B.mp3"
+  },
+  "rivet": {
+    "voiceId": "fGdXUaoUKa9laV1tzoOT",
+    "name": "Rivet",
+    "generatedVoiceId": "fGdXUaoUKa9laV1tzoOT",
+    "candidate": "B",
+    "status": "selected by user; production-model audition pending",
+    "description": "Native British English, a grounded Lancashire dialect from north-west England. Female, 42 to 50. Excellent clean recording quality. Persona: practical infantry veteran. Emotion: sharp, irreverent, determined. A low-middle feminine voice with a smoky grain and occasional creak at the ends of phrases. Brisk economical speech and dry descending inflections. She treats danger like difficult work she knows how to do, reserving her irritation for avoidable mistakes. Practical warmth emerges through blunt encouragement. Her warnings cut through with firm rasp-edged projection, then settle immediately back into conversational speech. Natural character dialogue, older and heavier in timbre with minimal habitual shouting.",
+    "source": "personality-auditions/rivet-B.mp3"
   }
 }

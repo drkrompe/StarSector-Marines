@@ -21,7 +21,8 @@
       "generatedVoiceId": "triQgLSf2h7z3hylgWi9",
       "mediaType": "audio/mpeg",
       "durationSeconds": 22.361,
-      "audioSha256": "2263c56cfe1039c35f77f81c6e4634451eb3649918674d06a42bca9220253ee2"
+      "audioSha256": "2263c56cfe1039c35f77f81c6e4634451eb3649918674d06a42bca9220253ee2",
+      "status": "rejected"
     },
     {
       "candidate": "B",
@@ -29,7 +30,8 @@
       "generatedVoiceId": "YUvgK8Ap5BSxIwdo4Uvr",
       "mediaType": "audio/mpeg",
       "durationSeconds": 22.517,
-      "audioSha256": "1cf85a3f75689d85e2b39532d5a337ea98ade5184d7606787b1cf8eb926ff415"
+      "audioSha256": "1cf85a3f75689d85e2b39532d5a337ea98ade5184d7606787b1cf8eb926ff415",
+      "status": "selected"
     },
     {
       "candidate": "C",
@@ -37,9 +39,18 @@
       "generatedVoiceId": "GCugvymedyFwiX4oQvJb",
       "mediaType": "audio/mpeg",
       "durationSeconds": 18.599,
-      "audioSha256": "6513a3c6d20993ce00b883aaaf2aa26aa81df81a46d34e6adb3cd349663871f1"
+      "audioSha256": "6513a3c6d20993ce00b883aaaf2aa26aa81df81a46d34e6adb3cd349663871f1",
+      "status": "rejected"
     }
   ],
-  "selectedCandidate": null,
-  "savedVoiceId": null
+  "selectedCandidate": "B",
+  "savedVoiceId": "YUvgK8Ap5BSxIwdo4Uvr",
+  "status": "selected",
+  "savedVoiceName": "Ox - Infantry",
+  "saveRequest": {
+    "voice_name": "Ox - Infantry",
+    "voice_description": "Native New Zealand English, an unmistakably natural New Zealand dialect. Male, 50 to 60. Excellent clean recording quality. Persona: reassuring veteran infantry leader. Emotion: patient, grounded, stubbornly hopeful. A deep warm masculine bass with rounded resonance and a soft worn grain. Unhurried compact conversational phrasing, gentle downward inflection and an occasional smile in the voice. He speaks to his soldiers like people he knows and intends to bring home. Danger brings firm chest-supported projection and shorter phrases; anger carries disappointed gravity rather than a bark. Natural, expressive character dialogue with warmth still audible under exertion.",
+    "generated_voice_id": "YUvgK8Ap5BSxIwdo4Uvr"
+  },
+  "saveRequestId": null
 }
