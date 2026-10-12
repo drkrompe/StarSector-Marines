@@ -12,6 +12,9 @@ public final class OnslaughtBarrageSceneSnapshotSuite extends BehaviorSceneSnaps
         super(new OnslaughtBarrageScene(), WIDTH, HEIGHT);
     }
 
+    /** The hull hovers well above the ground, and its shadow lying clear of it is what says so. */
+    @Override protected boolean showUnitShadows() { return true; }
+
     /** The barrage is its landings, so the frames carry the game's own impact particles. */
     @Override protected boolean showImpactEffects() { return true; }
 

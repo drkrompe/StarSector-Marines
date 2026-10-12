@@ -1477,6 +1477,18 @@ the places its rounds and lance tips land are projected into fog as temporary
 observation sources, so the player sees what it destroys; a hostile ship reveals
 nothing to the player. This is presentation only and changes nothing it can fire at.
 
+**A warship burns the engines its hull lists and casts a shadow from high up.**
+Each nozzle the hull spec places (position, flame direction, length, width and
+engine style, in the same hull frame as its gun slots) burns in the game's own
+engine colour for that style, and how hard it burns is read back off the motion
+the simulation gave the ship: a low glow hovering, long and bright while it
+accelerates (aft nozzles hardest when pushed ahead, side nozzles when pushed
+across), steady at cruise, dimmed while braking onto a station. Nothing about
+this feeds the simulation. The ship's shadow is its own hull sprite laid on the
+ground down-sun by the sun's reach at a presentational hover height, higher than
+an aircraft's, through the same shadow layer, sun and tint every craft uses. Like
+an aircraft's, that height is a drawing choice and not a physical altitude.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount

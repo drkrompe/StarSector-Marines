@@ -60,6 +60,7 @@ public final class BattleReviewFrameRenderer {
     private final int height;
     private float focusX = Float.NaN, focusY, focusWidth;
     private boolean impactEffects;
+    private boolean unitShadows;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
         Path root = modRoot.toAbsolutePath().normalize();
@@ -87,6 +88,19 @@ public final class BattleReviewFrameRenderer {
      */
     public BattleReviewFrameRenderer withImpactEffects() {
         this.impactEffects = true;
+        return this;
+    }
+
+    /**
+     * Opts this renderer into the sun's body shadows (marines, aircraft and
+     * hovering warships). Off by default for the same reason impacts are: most
+     * reviews are about where bodies stand, and a shadow laid across the ground
+     * beside each of them is noise to a reader counting them. A review whose
+     * subject is a high-hovering hull asks for it, since the shadow is what shows
+     * the hull is off the ground.
+     */
+    public BattleReviewFrameRenderer withUnitShadows() {
+        this.unitShadows = true;
         return this;
     }
 
@@ -266,6 +280,7 @@ public final class BattleReviewFrameRenderer {
                         BattleRenderHostProfile.EMBEDDED_SCENE);
                 EnumSet<RenderLayer> layers = EnumSet.copyOf(REVIEW_LAYERS);
                 if (impactEffects || Float.isFinite(focusX)) { layers.add(RenderLayer.SHOTS); layers.add(RenderLayer.IMPACT_FX); }
+                if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
                 return new BattleSceneFrame(context, layers);
             }
 

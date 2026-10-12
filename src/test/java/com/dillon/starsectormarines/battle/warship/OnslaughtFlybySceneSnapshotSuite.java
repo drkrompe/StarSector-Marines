@@ -11,4 +11,7 @@ public final class OnslaughtFlybySceneSnapshotSuite extends BehaviorSceneSnapsho
     public OnslaughtFlybySceneSnapshotSuite() {
         super(new OnslaughtFlybyScene(), WIDTH, HEIGHT);
     }
+
+    /** The hull hovers well above the ground, and its shadow lying clear of it is what says so. */
+    @Override protected boolean showUnitShadows() { return true; }
 }
