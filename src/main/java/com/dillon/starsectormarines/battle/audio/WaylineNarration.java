@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.audio;
 
+import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
@@ -94,7 +95,9 @@ public final class WaylineNarration {
 
     /** Scenario hooks are shared with recurring jobs, but Mara's chapter recordings are not. */
     public static String storyMissionId(Mission mission) {
-        if (mission == null || mission.source != MissionSource.STORY) return null;
+        if (mission == null) return null;
+        if (mission.source == MissionSource.DEBUG) return debugStoryMissionId(DebugMissionCatalog.scenario(mission));
+        if (mission.source != MissionSource.STORY) return null;
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
@@ -105,6 +108,21 @@ public final class WaylineNarration {
         Matcher attempt = SUPPLY_STORY_ID.matcher(mission.id);
         if (attempt.matches()) return SUPPLY_CHAPTERS.get(Integer.parseInt(attempt.group(1)));
         return null;
+    }
+
+    /** A debug scenario replays a story chapter, so it hears that chapter's recordings; repeatable and event scenarios have none. */
+    private static String debugStoryMissionId(DebugMissionCatalog.Scenario scenario) {
+        if (scenario == null) return null;
+        return switch (scenario) {
+            case RELIEF -> OpeningOperationKind.RELIEF.missionId;
+            case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;
+            case JUNCTION -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.JUNCTION);
+            case LAST_LIFT -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.LIFT);
+            case RELAY_NINE -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
+            case THUNDER_RUN -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.THUNDER);
+            case COLD_ACCOUNT -> "story_corvus_cold_account";
+            default -> null;
+        };
     }
 
     public Line find(String missionId, String event) { return lines.get(missionId + "/" + event); }
