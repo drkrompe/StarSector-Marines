@@ -48,6 +48,7 @@ public final class ShipTransferScreen implements Screen {
     private ShipTransferViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
+    private PreparationGuide preparationGuide;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private DeckPlanCanvas plan;
@@ -65,6 +66,7 @@ public final class ShipTransferScreen implements Screen {
         }
         if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
+        if (preparationGuide != null) preparationGuide.update();
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -73,7 +75,7 @@ public final class ShipTransferScreen implements Screen {
         UiDocument built;
         try {
             requireWiredElements(candidate);
-            built = new UiDocument(candidate.root());
+            built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             plan = new DeckPlanCanvas(viewModel::selectedPlan);
@@ -91,6 +93,7 @@ public final class ShipTransferScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         document = built;
+        preparationGuide = PreparationGuide.install(built, () -> CompanyPreparationGuide.ship(viewModel, context), this::close);
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
@@ -176,6 +179,7 @@ public final class ShipTransferScreen implements Screen {
         if (viewModel != null) viewModel.advance();
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
+        if (preparationGuide != null) preparationGuide.update();
     }
 
     @Override

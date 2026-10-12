@@ -23,8 +23,7 @@ import java.util.List;
  * what a fitting is rather than a shortcut past inventory.
  *
  * @param bill what the yard consumes out of the fleet's hold, or {@code null}
- *     for the standard fitting every boat is built with — a boat is never a
- *     thing the company has to buy before it can leave the ship
+ *     for the standard fitting included in the boat's fabrication bill
  * @param provenance where the thing comes from, for the player reading the
  *     catalog row
  */
