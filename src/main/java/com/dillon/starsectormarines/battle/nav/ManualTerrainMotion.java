@@ -25,15 +25,9 @@ public final class ManualTerrainMotion {
 
     /** Whether an existing body clears current terrain without any placement correction. */
     public static boolean canStand(NavigationGrid grid, float x, float y, float radius) {
-        return canStand(grid, x, y, radius, false);
-    }
-
-    /** As {@link #canStand(NavigationGrid, float, float, float)}; a stepping-over body treats low fixtures as floor. */
-    public static boolean canStand(NavigationGrid grid, float x, float y, float radius,
-                                   boolean stepsOverLowFixtures) {
         return Float.isFinite(x) && Float.isFinite(y)
                 && Float.isFinite(radius) && radius > 0f
-                && clear(grid, x, y, radius, stepsOverLowFixtures);
+                && clear(grid, x, y, radius);
     }
 
     /**
@@ -47,27 +41,17 @@ public final class ManualTerrainMotion {
                 || !canStand(grid, x, y, radius)
                 || !canStand(grid, x + dx, y + dy, radius)) return false;
         if (dx == 0f && dy == 0f) return true;
-        return sweep(grid, x, y, dx, dy, radius, false).time > 1d;
+        return sweep(grid, x, y, dx, dy, radius).time > 1d;
     }
 
     public static Result move(NavigationGrid grid, float x, float y,
                               float dx, float dy, float radius) {
-        return move(grid, x, y, dx, dy, radius, false);
-    }
-
-    /**
-     * As {@link #move(NavigationGrid, float, float, float, float, float)} for a
-     * body tall enough to stride over {@link NavigationGrid.CellTag#LOW_FIXTURE}
-     * cells such as sandbag lines. Every other obstacle still stops it.
-     */
-    public static Result move(NavigationGrid grid, float x, float y,
-                              float dx, float dy, float radius, boolean stepsOverLowFixtures) {
         if (!Float.isFinite(x) || !Float.isFinite(y)
                 || !Float.isFinite(dx) || !Float.isFinite(dy)
                 || !Float.isFinite(radius) || radius <= 0f) {
             throw new IllegalArgumentException("Finite motion and a positive radius are required");
         }
-        if (!clear(grid, x, y, radius, stepsOverLowFixtures)) return new Result(x, y, 0f, 0f);
+        if (!clear(grid, x, y, radius)) return new Result(x, y, 0f, 0f);
         double px = x;
         double py = y;
         double rx = dx;
@@ -75,7 +59,7 @@ public final class ManualTerrainMotion {
         for (int contact = 0; contact < MAX_CONTACTS; contact++) {
             double length = Math.hypot(rx, ry);
             if (length <= EPSILON) break;
-            Hit hit = sweep(grid, px, py, rx, ry, radius, stepsOverLowFixtures);
+            Hit hit = sweep(grid, px, py, rx, ry, radius);
             if (hit.time > 1d) {
                 px += rx;
                 py += ry;
@@ -97,7 +81,7 @@ public final class ManualTerrainMotion {
     }
 
     private static Hit sweep(NavigationGrid grid, double x, double y,
-                             double dx, double dy, double radius, boolean stepsOver) {
+                             double dx, double dy, double radius) {
         Hit hit = new Hit();
         if (dx < 0d) hit.offer(planeTime(x, dx, radius), 1d, 0d, dx, dy);
         if (dx > 0d) hit.offer(planeTime(grid.getWidth() - x, -dx, radius), -1d, 0d, dx, dy);
@@ -109,18 +93,18 @@ public final class ManualTerrainMotion {
         int maxY = Math.min(grid.getHeight() - 1, (int) Math.floor(Math.max(y, y + dy) + radius));
         for (int cy = minY; cy <= maxY; cy++) {
             for (int cx = minX; cx <= maxX; cx++) {
-                if (solid(grid, cx, cy, stepsOver)) {
+                if (!grid.isWalkable(cx, cy)) {
                     segment(hit, x, y, dx, dy, radius, cx, cy, cx + 1d, cy);
                     segment(hit, x, y, dx, dy, radius, cx, cy + 1d, cx + 1d, cy + 1d);
                     segment(hit, x, y, dx, dy, radius, cx, cy, cx, cy + 1d);
                     segment(hit, x, y, dx, dy, radius, cx + 1d, cy, cx + 1d, cy + 1d);
                 }
                 if (cx + 1 < grid.getWidth()
-                        && !stepOpen(grid, cx, cy, Direction.E, stepsOver)) {
+                        && !grid.canTraverseCellStep(cx, cy, Direction.E)) {
                     segment(hit, x, y, dx, dy, radius, cx + 1d, cy, cx + 1d, cy + 1d);
                 }
                 if (cy + 1 < grid.getHeight()
-                        && !stepOpen(grid, cx, cy, Direction.N, stepsOver)) {
+                        && !grid.canTraverseCellStep(cx, cy, Direction.N)) {
                     segment(hit, x, y, dx, dy, radius, cx, cy + 1d, cx + 1d, cy + 1d);
                 }
             }
@@ -128,13 +112,12 @@ public final class ManualTerrainMotion {
         // Cardinal segment geometry handles ordinary corners. A cell may also
         // explicitly close its diagonal bit while leaving both cardinals open.
         // Check exact vertex crossings through the same rule A* consumes.
-        diagonalCrossings(grid, hit, x, y, dx, dy, stepsOver);
+        diagonalCrossings(grid, hit, x, y, dx, dy);
         return hit;
     }
 
     private static void diagonalCrossings(NavigationGrid grid, Hit hit,
-                                           double x, double y, double dx, double dy,
-                                           boolean stepsOver) {
+                                           double x, double y, double dx, double dy) {
         if (dx == 0d || dy == 0d) return;
         int stepX = dx > 0d ? 1 : -1;
         int stepY = dy > 0d ? 1 : -1;
@@ -148,7 +131,7 @@ public final class ManualTerrainMotion {
             if (Math.abs(crossingY - vertexY) > EPSILON) continue;
             int fromX = stepX > 0 ? boundary - 1 : boundary;
             int fromY = stepY > 0 ? (int) vertexY - 1 : (int) vertexY;
-            if (!diagonalOpen(grid, fromX, fromY, fromX + stepX, fromY + stepY, stepsOver)) {
+            if (!grid.canTraverseCellStep(fromX, fromY, fromX + stepX, fromY + stepY)) {
                 double length = Math.hypot(dx, dy);
                 hit.offer(time, -dx / length, -dy / length, dx, dy);
             }
@@ -205,39 +188,8 @@ public final class ManualTerrainMotion {
         if (length > EPSILON) hit.offer(time, nx / length, ny / length, dx, dy);
     }
 
-    /** A cell that stops this body: not walkable, unless it is a low fixture the body strides over. */
-    private static boolean solid(NavigationGrid grid, int cx, int cy, boolean stepsOver) {
-        return !grid.isWalkable(cx, cy)
-                && !(stepsOver && grid.hasTag(cx, cy, NavigationGrid.CellTag.LOW_FIXTURE));
-    }
-
-    /**
-     * Whether the shared cardinal edge is open to this body. A stepping-over
-     * body reads only the edge itself: the walkability half of
-     * {@code canTraverseCellStep} would shut every side of a low fixture, and a
-     * truly solid cell is already an obstacle square of its own.
-     */
-    private static boolean stepOpen(NavigationGrid grid, int cx, int cy, Direction dir,
-                                    boolean stepsOver) {
-        return stepsOver ? grid.isSharedEdgePassable(cx, cy, dir)
-                : grid.canTraverseCellStep(cx, cy, dir);
-    }
-
-    /** A diagonal step; one involving a low fixture is judged by its solid squares, not its closed corner bit. */
-    private static boolean diagonalOpen(NavigationGrid grid, int fx, int fy, int tx, int ty,
-                                        boolean stepsOver) {
-        if (grid.canTraverseCellStep(fx, fy, tx, ty)) return true;
-        if (!stepsOver) return false;
-        return isLow(grid, fx, fy) || isLow(grid, tx, ty) || isLow(grid, fx, ty) || isLow(grid, tx, fy);
-    }
-
-    private static boolean isLow(NavigationGrid grid, int x, int y) {
-        return grid.hasTag(x, y, NavigationGrid.CellTag.LOW_FIXTURE);
-    }
-
-    private static boolean clear(NavigationGrid grid, double x, double y, double radius,
-                                 boolean stepsOver) {
-        if (solid(grid, (int) Math.floor(x), (int) Math.floor(y), stepsOver)) return false;
+    private static boolean clear(NavigationGrid grid, double x, double y, double radius) {
+        if (!grid.isWalkable((int) Math.floor(x), (int) Math.floor(y))) return false;
         // A legal float position at a tangent may be a few ulps inside when
         // promoted to double. Accept that contact tolerance; the sweep treats
         // an inward hit within the same skin as an immediate contact.
@@ -249,11 +201,11 @@ public final class ManualTerrainMotion {
              cy <= Math.min(grid.getHeight() - 1, (int) Math.floor(y + radius)); cy++) {
             for (int cx = Math.max(0, (int) Math.floor(x - radius));
                  cx <= Math.min(grid.getWidth() - 1, (int) Math.floor(x + radius)); cx++) {
-                if (solid(grid, cx, cy, stepsOver)
+                if (!grid.isWalkable(cx, cy)
                         && distanceSquared(x, y, cx, cy, cx + 1d, cy + 1d) < minimumDistanceSquared) return false;
-                if (cx + 1 < grid.getWidth() && !stepOpen(grid, cx, cy, Direction.E, stepsOver)
+                if (cx + 1 < grid.getWidth() && !grid.canTraverseCellStep(cx, cy, Direction.E)
                         && distanceSquared(x, y, cx + 1d, cy, cx + 1d, cy + 1d) < minimumDistanceSquared) return false;
-                if (cy + 1 < grid.getHeight() && !stepOpen(grid, cx, cy, Direction.N, stepsOver)
+                if (cy + 1 < grid.getHeight() && !grid.canTraverseCellStep(cx, cy, Direction.N)
                         && distanceSquared(x, y, cx, cy + 1d, cx + 1d, cy + 1d) < minimumDistanceSquared) return false;
             }
         }
