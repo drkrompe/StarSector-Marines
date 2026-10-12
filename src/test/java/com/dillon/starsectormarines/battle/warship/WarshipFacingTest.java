@@ -13,6 +13,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WarshipFacingTest {
+    @Test void triggerHoldPreservesTrainingAndCancelsUnlaunchedRounds() throws Exception {
+        Warship ship = ship(0f);
+        var area = new WarshipOrder.FireOnArea(0, 20, 10, true, true);
+        ship.order(area);
+        var mount = ship.mounts().get(0);
+        mount.aimed = true; mount.aimX = 0; mount.aimY = 20; mount.burstRemaining = 3;
+        ship.groundFire(Warship.GroundFire.HOLD);
+        assertEquals(area, ship.order());
+        assertTrue(mount.aimed);
+        assertEquals(0, mount.burstRemaining);
+        assertTrue(!ship.groundFireAllowed(mount));
+        ship.groundFire(Warship.GroundFire.HEAVY);
+        assertTrue(ship.groundFireAllowed(mount));
+    }
 
     private static final String HULL = """
             {"hullId":"test","spriteName":"graphics/ships/test.png",

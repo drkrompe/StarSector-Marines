@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
+import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
+import com.dillon.starsectormarines.ops.CorvusChapter;
 import com.fs.starfarer.api.Global;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,7 +33,14 @@ public final class WaylineNarration {
 
     public record Line(String id, String missionId, String event, String text,
                        float durationSeconds, int priority, float expiresSeconds,
-                       List<String> supersedes, String speaker, String portrait) {
+                       List<String> supersedes, String speaker, String portrait,
+                       boolean voiced, boolean terminal) {
+        public Line(String id, String missionId, String event, String text,
+                    float durationSeconds, int priority, float expiresSeconds, List<String> supersedes,
+                    String speaker, String portrait) {
+            this(id, missionId, event, text, durationSeconds, priority, expiresSeconds, supersedes,
+                    speaker, portrait, true, false);
+        }
         public Line(String id, String missionId, String event, String text,
                     float durationSeconds, int priority, float expiresSeconds, List<String> supersedes) {
             this(id, missionId, event, text, durationSeconds, priority, expiresSeconds, supersedes,
@@ -77,7 +86,8 @@ public final class WaylineNarration {
                     (float) entry.getDouble("durationSeconds"), entry.optInt("priority", 10),
                     (float) entry.optDouble("expiresSeconds", 15), supersedes,
                     entry.optString("speaker", "MARA VENN / WAYLINE"),
-                    entry.optString("portrait", "graphics/portraits/mara-venn.png")));
+                    entry.optString("portrait", "graphics/portraits/mara-venn.png"),
+                    entry.optBoolean("voiced", true), entry.optBoolean("terminal", false)));
         }
         return new WaylineNarration(result);
     }
@@ -88,6 +98,8 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
+        if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
+            return "story_corvus_cold_account";
         // Retry IDs vary; the historical chapter does not. Job zero excludes recurring work
         // even if a caller accidentally labels it STORY. Choice dossiers are not battle briefings.
         Matcher attempt = SUPPLY_STORY_ID.matcher(mission.id);

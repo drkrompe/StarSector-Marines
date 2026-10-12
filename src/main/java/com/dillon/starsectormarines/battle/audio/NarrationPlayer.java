@@ -31,7 +31,7 @@ public final class NarrationPlayer {
         if (line == null) return;
         current = line;
         remaining = line.durationSeconds() + 0.4f;
-        sound = play.apply(line);
+        sound = line.voiced() ? play.apply(line) : null;
     }
 
     /** Audio is real-time even when the simulation is paused or accelerated. */

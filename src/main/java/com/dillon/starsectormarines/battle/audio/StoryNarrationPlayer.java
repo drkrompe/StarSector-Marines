@@ -16,7 +16,7 @@ public final class StoryNarrationPlayer {
         this(catalog, missionId, new NarrationPlayer(), beforeStart);
     }
 
-    StoryNarrationPlayer(WaylineNarration catalog, String missionId,
+    public StoryNarrationPlayer(WaylineNarration catalog, String missionId,
                          NarrationPlayer player, Consumer<Line> beforeStart) {
         queue = new StoryNarrationQueue(catalog, missionId);
         this.player = player;
@@ -31,7 +31,7 @@ public final class StoryNarrationPlayer {
         player.advance(realSeconds);
         queue.advance(realSeconds, events, complete);
         // Supersession and completion affect only unspoken instructions. Never stop a sentence here.
-        if (paused || complete || player.busy()) return;
+        if (paused && !complete || player.busy()) return;
         Line next = queue.poll();
         if (next == null) return;
         beforeStart.accept(next);

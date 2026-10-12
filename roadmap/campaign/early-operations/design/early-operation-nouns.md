@@ -215,6 +215,13 @@ outside the installation's eastern footprint. It fires inward as soon as every
 surviving ground unit clears the marked bombardment exclusion area and inbound
 deployments resolve. There is no grace period and it does not wait for boarding.
 Re-entry cancels further launches; already launched rounds remain dangerous.
+Its short eastern entry leaves time to settle and train the batteries during
+withdrawal. Once firing begins the hull keeps that bearing. Heavy batteries open
+with a two-second salvo window, followed by a four-sector sweep from the eastern
+half to the western half. Each sector advances only after at least three quarters
+of its original wall cells have actually fallen; blast overlap is real damage,
+not a scripted deletion. The mission's overall destruction threshold remains the
+completion authority.
 The actual deployment boats return for serial survivor pickups, with a heavy
 lift for a surviving mech. Troops walk to a landed ramp, board to capacity, and
 leave through ordinary flight. Campaign identity and combat records travel with
@@ -230,6 +237,13 @@ its pickup craft. Remaining pirates need not be hunted down. Losing the ship
 or exhausting its intervention without destroying the target fails the operation.
 This local support does not transfer a campaign capital to the company or alter
 Garnir's market, orbital depot or ownership.
+
+Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
+Her public, text-only dialogue follows authenticated evidence, battery preparation,
+friendly clearance, the demolition sweep and confirmed neutralization. The cold
+procedural delivery treats the destruction as routine enforcement. There is no
+dialogue countdown or gameplay wait for a sentence. Only the confirmed terminal
+line survives completion; obsolete withdrawal and firing instructions do not.
 
 All three support exact selected named personnel with at least two squads of
 four ready marines each and up to four fitted boats making repeated trips.

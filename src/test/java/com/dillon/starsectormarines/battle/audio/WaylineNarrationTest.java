@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WaylineNarrationTest {
     @Test
-    void everyPackagedLineHasARecordedTakeAndSoundRegistration() throws Exception {
+    void everyVoicedLineHasARecordedTakeAndSoundRegistration() throws Exception {
         JSONObject root = new JSONObject(Files.readString(Path.of("mod", WaylineNarration.PATH)));
         WaylineNarration catalog = WaylineNarration.parse(root);
         JSONObject sounds = new JSONObject(Files.readString(Path.of("mod/data/config/sounds.json")).replaceAll("(?m)#.*$", ""));
@@ -32,6 +32,10 @@ class WaylineNarrationTest {
         var ids = new HashSet<String>();
         for (var line : catalog.lines()) {
             assertTrue(ids.add(line.id()));
+            if (!line.voiced()) {
+                assertFalse(sounds.has(line.id()), "Text-only lines must not masquerade as recorded audio");
+                continue;
+            }
             assertEquals("sounds/story/wayline/" + line.id() + ".ogg",
                     sounds.getJSONArray(line.id()).getJSONObject(0).getString("file"));
             JSONObject receipt = new JSONObject(Files.readString(sources.resolve("wayline/" + line.id() + ".json")));
@@ -55,7 +59,21 @@ class WaylineNarrationTest {
             assertEquals(1, matching);
             for (String prior : line.supersedes()) assertNotNull(catalog.find(line.missionId(), prior));
         }
-        assertEquals(76, ids.size());
+        assertEquals(76, catalog.lines().stream().filter(WaylineNarration.Line::voiced).count());
+        assertEquals(81, ids.size());
+    }
+
+    @Test void coldAccountRetriesShareKordsPublicDialogue() throws Exception {
+        for (int attempt : new int[]{1, 12}) {
+            String id = "wayline_corvus_v1_2_" + attempt;
+            assertEquals("story_corvus_cold_account", WaylineNarration.storyMissionId(
+                    Mission.builder().id(id).source(MissionSource.STORY).build()));
+            assertNull(WaylineNarration.storyMissionId(Mission.builder().id(id).source(MissionSource.RECURRING).build()));
+        }
+        var line = catalog().find("story_corvus_cold_account", "corvus.cold_account.stronghold_destroyed");
+        assertTrue(line.terminal());
+        assertFalse(line.voiced());
+        assertTrue(line.speaker().contains("KORD"));
     }
 
     @Test

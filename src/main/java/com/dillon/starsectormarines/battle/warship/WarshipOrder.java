@@ -27,7 +27,10 @@ public sealed interface WarshipOrder {
      *        stays silent
      */
     record FireOnArea(float x, float y, float radius, boolean bringGunsToBear,
-                      boolean bombardStructures) implements WarshipOrder {
+                      boolean bombardStructures, Bounds bounds) implements WarshipOrder {
+        public FireOnArea(float x, float y, float radius, boolean bringGunsToBear, boolean bombardStructures) {
+            this(x, y, radius, bringGunsToBear, bombardStructures, null);
+        }
         public FireOnArea(float x, float y, float radius, boolean bringGunsToBear) {
             this(x, y, radius, bringGunsToBear, false);
         }
@@ -38,7 +41,17 @@ public sealed interface WarshipOrder {
         public boolean contains(float px, float py) {
             float dx = px - x;
             float dy = py - y;
-            return dx * dx + dy * dy <= radius * radius;
+            return dx * dx + dy * dy <= radius * radius && (bounds == null || bounds.contains(px, py));
+        }
+    }
+
+    /** Optional half-open sector inside the circular fire envelope. */
+    record Bounds(float minX, float minY, float maxX, float maxY) {
+        public Bounds {
+            if (!(maxX > minX && maxY > minY)) throw new IllegalArgumentException("Empty firing sector");
+        }
+        public boolean contains(float x, float y) {
+            return x >= minX && x < maxX && y >= minY && y < maxY;
         }
     }
 }

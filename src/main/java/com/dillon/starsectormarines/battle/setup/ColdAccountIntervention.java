@@ -28,6 +28,11 @@ public final class ColdAccountIntervention implements Objective {
     private int remainingWalls, outsideWithdrawal;
     private final int installationRight;
     private boolean pendingArrivals;
+    private final StructuralDemolitionPlan demolition;
+    private boolean batteriesPrepared;
+    private float firingHeading = Float.NaN;
+    private int preparedTick = -1, groundClearTick = -1;
+    private static final int OPENING_SALVO_TICKS = 60;
 
     public ColdAccountIntervention(BattleSimulation sim, ColdAccountLayout layout, StoryBeatLog beats) {
         this.layout = layout; this.beats = beats;
@@ -40,6 +45,7 @@ public final class ColdAccountIntervention implements Objective {
         if (walls.isEmpty()) throw new IllegalStateException("Cold Account requires a destructible stronghold");
         remainingWalls = walls.size();
         installationRight = walls.stream().mapToInt(c -> c[0]).max().orElseThrow();
+        demolition = new StructuralDemolitionPlan(strike, walls);
         sim.addObjective(evidence);
         sim.survivorPickup().configure(Faction.MARINE, layout.withdrawalX(), layout.withdrawalY());
     }
@@ -53,6 +59,10 @@ public final class ColdAccountIntervention implements Objective {
     public int remainingWalls() { return remainingWalls; }
     public int outsideWithdrawal() { return outsideWithdrawal; }
     public boolean pendingArrivals() { return pendingArrivals; }
+    public float firingHeading() { return firingHeading; }
+    public int demolitionSector() { return demolition.sectorNumber(); }
+    public int preparedTick() { return preparedTick; }
+    public int groundClearTick() { return groundClearTick; }
     public int shotsFired() { return ship == null ? 0 : ship.mounts().stream().filter(m -> !m.pointDefence()).mapToInt(m -> m.shotsFired).sum(); }
     private void beat(BattleSimulation sim, String key) {
         beats.emitOnce(sim.getSimTickIndex(), "corvus.cold_account." + key, StoryBeatLog.Audience.PLAYER);
@@ -69,6 +79,8 @@ public final class ColdAccountIntervention implements Objective {
             ship = fitShip(sim.getGrid().getWidth() + 30f, stationY);
             float stationX = installationRight + 1f
                     + (float) Math.hypot(ship.lengthCells, ship.widthCells) / 2f + 8f;
+            // A short eastern entry leaves time to lay the batteries while the company withdraws.
+            ship.x = Math.min(ship.x, stationX + 24f);
             ship.stationTo(stationX, stationY);
             ship.limitOrdnance(1500);
             ship.stayFor(300f);
@@ -96,11 +108,23 @@ public final class ColdAccountIntervention implements Objective {
                     <= layout.strikeRadius() + ColdAccountLayout.BLAST_MARGIN) outsideWithdrawal++;
         }
         pendingArrivals = hasPendingArrivals(sim);
+        if (groundClearTick < 0 && survivors + sim.survivorPickup().survivingCount(Faction.MARINE) > 0
+                && outsideWithdrawal == 0 && !pendingArrivals) groundClearTick = tick;
+        // Arrive nose-first, then train during the company's withdrawal. Triggers stay closed.
+        if (!ship.isMoving() && !batteriesPrepared) {
+            ship.groundFire(Warship.GroundFire.HOLD);
+            ship.order(strike);
+            batteriesPrepared = true;
+            beat(sim, "batteries_preparing");
+        }
+        if (preparedTick < 0 && batteriesPrepared && ship.headingSettled() && ship.readyHeavyMounts() >= 2)
+            preparedTick = tick;
         boolean authorized = clearance.authorize(tick, evidence.targetSecured(),
                 survivors + sim.survivorPickup().survivingCount(Faction.MARINE), outsideWithdrawal,
-                pendingArrivals, !ship.isMoving());
+                pendingArrivals, batteriesPrepared && !ship.isMoving() && ship.headingSettled()
+                        && (bombardTick >= 0 || ship.readyHeavyMounts() >= 2));
         if (clearance.warningTick() < 0) {
-            ship.order(WarshipOrder.HoldFire.INSTANCE);
+            ship.groundFire(Warship.GroundFire.HOLD);
             phase = Phase.WITHDRAW; return;
         }
         if (remainingWalls <= walls.size() / 4 && shotsFired() > 0) {
@@ -115,8 +139,21 @@ public final class ColdAccountIntervention implements Objective {
             phase = Phase.WARNING; beat(sim, "company_clear_open_fire");
         }
         if (phase == Phase.WARNING && authorized) {
-            if (bombardTick < 0) bombardTick = tick;
-            phase = Phase.BOMBARD; beat(sim, "bombardment_authorized"); ship.order(strike);
+            if (bombardTick < 0) {
+                bombardTick = tick;
+                firingHeading = ship.facingDegrees;
+            }
+            phase = Phase.BOMBARD; beat(sim, "bombardment_authorized");
+            ship.order(new WarshipOrder.FireOnArea(strike.x(), strike.y(), strike.radius(), false, true));
+        }
+        if (phase == Phase.BOMBARD) {
+            ship.groundFire(tick - bombardTick < OPENING_SALVO_TICKS
+                    ? Warship.GroundFire.HEAVY : Warship.GroundFire.ALL);
+            if (tick - bombardTick >= OPENING_SALVO_TICKS) {
+                var sector = demolition.advance(sim.getTopology()::isWall);
+                if (sector != null && !sector.equals(ship.order())) ship.order(sector);
+                beat(sim, "demolition_sweep");
+            }
         }
     }
     private static Warship fitShip(float x, float y) {
@@ -144,7 +181,8 @@ public final class ColdAccountIntervention implements Objective {
             case WITHDRAW -> "Withdraw to the shuttle pickup; Onslaught holding fire (" + outsideWithdrawal
                     + " in firing area" + (pendingArrivals ? "; lift inbound" : "") + ")";
             case WARNING -> "Company clear of firing line: batteries engaging";
-            case BOMBARD -> "Shuttle pickup / bombardment: stronghold walls " + remainingWalls + "/" + walls.size();
+            case BOMBARD -> "Demolition sector " + demolition.sectorNumber() + "/" + demolition.sectorCount()
+                    + "; shuttle pickup / stronghold walls " + remainingWalls + "/" + walls.size();
             case COMPLETE -> "Pirate evidence secured; company withdrawn; stronghold destroyed";
             case FAILED -> "Hegemony intervention failed to destroy the stronghold";
         };
