@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.audio.StoryNarrationPlayer;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.fs.starfarer.api.SoundAPI;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.warship.WarshipSpotting;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
@@ -495,6 +496,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (com.dillon.starsectormarines.battle.power.CommandPowerService.ActivePing p
                 : sim.getCommandPowerService().getActivePings()) {
             vis.addEphemeralSource(p.cellX, p.cellY, p.radius, 0f);
+        }
+        // A friendly warship is a spotter: its hull, the ground it is ordered onto and
+        // where its rounds fall are observed, so the player can see what it does.
+        for (WarshipSpotting.Source s : WarshipSpotting.sources(sim)) {
+            vis.addEphemeralSource(s.cellX(), s.cellY(), s.range(), s.wallClearance());
         }
         // Always tick — dt=0 makes the sim a no-op but still clears the per-frame event lists,
         // so a paused caller doesn't keep replaying the previous frame's shot/death sounds.

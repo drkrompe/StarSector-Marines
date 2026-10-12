@@ -150,7 +150,9 @@ fade state must likewise transfer or clear with roster compaction and release.
 `stories.md` owns the two bounded compatibility corrections where the existing
 cache and lifecycle do not yet satisfy those laws.
 
-Friendly visible shuttles, friendly flyby fighters, active recon pings, and a
+Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
+the ground it is ordered onto and where its rounds and lance tips fall; a hostile
+ship gives the player nothing), active recon pings, and a
 marine running a carried sensor sweep can all provide temporary vision. Their
 footprints may therefore open a roof briefly when they see an interior; that is
 intentional.

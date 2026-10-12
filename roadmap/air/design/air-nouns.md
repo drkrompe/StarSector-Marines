@@ -1472,6 +1472,11 @@ one that does not loop. With no instruction to bring guns to bear it points
 along its travel; whatever ground it is ordered or directed to fire on, it keeps
 firing while it moves, so a cinematic can be authored as a path.
 
+**A friendly warship is a spotter.** Its hull, the ground it is ordered onto and
+the places its rounds and lance tips land are projected into fog as temporary
+observation sources, so the player sees what it destroys; a hostile ship reveals
+nothing to the player. This is presentation only and changes nothing it can fire at.
+
 **A lance is a beam weapon strong enough to cut ground, and under an area order
 it sweeps.** A beam mount of at least 500 damage per second, such as a Paragon's
 Tachyon Lance, lays one committed sweep across the ordered area as that mount
