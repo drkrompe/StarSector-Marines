@@ -98,7 +98,7 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
         }
         if (sim.getColdAccount() != null) {
             var intervention = sim.getColdAccount();
-            for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout()))
+            for (var marker : ColdAccountMarkers.forPhase(intervention.phase(), intervention.layout(), intervention.companyRecovered()))
                 markers.add(new Marker(marker.label(), (int) marker.x(), (int) marker.y(), false));
             objectives.add(intervention.displayName());
         }

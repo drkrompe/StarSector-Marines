@@ -56,20 +56,24 @@ public final class CastleStorySnapshotSuite implements SnapshotSuite {
                                 MarineOpsUiViewport.REFERENCE_WIDTH, MarineOpsUiViewport.REFERENCE_HEIGHT)));
             }
         }
-        var line = catalog.find(OpeningOperationKind.COUNTERATTACK.missionId, WaylineHoundRecovery.READY);
-        var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(StorySubtitleOverlay.COMPONENT_PATH));
-        loader.reload();
-        try (var markup = loader.build(new Reactor(), StorySubtitleOverlay.COMPONENT,
-                Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text()))) {
-            var document = new UiDocument(markup.root());
-            for (var style : markup.styles()) document.addStyleSheet(style);
-            document.theme(MarineOpsThemes.standard());
-            BufferedImage frame = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
-            var graphics = frame.createGraphics();
-            graphics.setColor(new Color(21, 28, 26)); graphics.fillRect(0, 0, 1920, 1080);
-            graphics.drawImage(renderer.render(document, 640, 116), 12, 12, null);
-            graphics.dispose();
-            artifacts.add(new SnapshotArtifact("castle-ready-subtitle.png", frame));
+        for (var line : List.of(
+                catalog.find(OpeningOperationKind.COUNTERATTACK.missionId, WaylineHoundRecovery.READY),
+                catalog.find("story_corvus_cold_account", "corvus.cold_account.patrol_requires_proof"))) {
+            var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(StorySubtitleOverlay.COMPONENT_PATH));
+            loader.reload();
+            try (var markup = loader.build(new Reactor(), StorySubtitleOverlay.COMPONENT,
+                    Map.of("speaker", line.speaker(), "portrait", line.portrait(), "subtitle", line.text()))) {
+                var document = new UiDocument(markup.root());
+                for (var style : markup.styles()) document.addStyleSheet(style);
+                document.theme(MarineOpsThemes.standard());
+                BufferedImage frame = new BufferedImage(1920, 1080, BufferedImage.TYPE_INT_RGB);
+                var graphics = frame.createGraphics();
+                graphics.setColor(new Color(21, 28, 26)); graphics.fillRect(0, 0, 1920, 1080);
+                graphics.drawImage(renderer.render(document, 640, 116), 12, 12, null);
+                graphics.dispose();
+                artifacts.add(new SnapshotArtifact(line.speaker().contains("KORD")
+                        ? "kord-patrol-subtitle.png" : "castle-ready-subtitle.png", frame));
+            }
         }
         return artifacts;
     }

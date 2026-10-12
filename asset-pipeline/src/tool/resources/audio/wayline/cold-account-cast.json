@@ -19,6 +19,6 @@
       "direction": "Older experienced naval commander, natural cadence and firm authority. Her indifference is in the circumstances, not a synthetic monotone."
     }
   },
-  "takes": "Per-line MP3 masters and JSON receipts; synthesis directions in wayline_narration.json. Kord uses take 2 with the user-selected original voice; Castle and Mara retain take 1.",
+  "takes": "Per-line MP3 masters and JSON receipts; synthesis directions in wayline_narration.json. Kord's intervention lines use take 2 with the user-selected original voice; her opening patrol lines use take 1 of that same voice. Castle and Mara retain take 1.",
   "qa": "Decoded and duration-checked. Performance requires listening review; automated checks do not establish acting quality."
 }

@@ -1,0 +1,12 @@
+Generation mode: built-in imagegen
+Master: irena-kord.master.png
+Runtime: mod/graphics/portraits/irena-kord.png
+Packing: pack.ps1 -Name irena-kord; full square downsample to 256x256.
+
+Exact generation prompt:
+Use case: stylized-concept
+Asset type: Square in-game mission-radio portrait for Captain Irena Kord, commanding officer of the Hegemony Onslaught HSS Resolute in Starsector Marines.
+Primary request: An original older woman naval captain, about sixty-two, authoritative and thoroughly professional. Weathered fair olive skin, mature facial planes and lines, level grey eyes, firm closed mouth, short iron-grey hair neatly combed back. No smile, no theatrical scowl. Disciplined charcoal-grey high-collared naval tunic with restrained dull brass rank bars and muted ochre piping, practical small communications earpiece. Human and experienced, accustomed to commanding a capital ship and treating mercenary requests as routine paperwork.
+Style/medium: Hand-painted dark science-fiction strategy-game character portrait, natural human proportions, visible brush texture, strong readable facial planes, restrained painterly realism. Match a worn low-tech space opera; not photographic, not polished 3D, not anime.
+Composition/framing: Single character, close head-and-shoulders bust, slight three-quarter turn with eyes toward viewer, large dominant face, whole head comfortably inside square, shoulders cropped at bottom. Opaque very dark charcoal bridge background without distinct objects. Warm neutral key light, muted slate, umber, grey and brass. Readable at 88x88 pixels.
+Constraints: Original face, no resemblance to existing characters or actors. No captions, text, border, watermarks, logos, ornate medals, helmets, weapons, glowing eyes, holograms or neon. No additional people.
