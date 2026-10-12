@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
+import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
@@ -35,6 +37,7 @@ final class BattleHudOverlay {
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
     private final BattleHudOverlayModel model;
+    private final BattleCamera camera;
 
     private PositionAPI position;
     private UiViewport viewport;
@@ -46,7 +49,8 @@ final class BattleHudOverlay {
     private BattleHudOverlayModel.Presentation presentation =
             new BattleHudOverlayModel.Presentation(false, false);
 
-    BattleHudOverlay(Consumer<Float> speedSetter) {
+    BattleHudOverlay(Consumer<Float> speedSetter, BattleCamera camera) {
+        this.camera = camera;
         model = new BattleHudOverlayModel(reactor, speedSetter,
                 Strings.get("battleSpeedPause"), Strings.get("battleSpeed1x"),
                 Strings.get("battleSpeed2x"), Strings.get("battleSpeed4x"));
@@ -214,6 +218,18 @@ final class BattleHudOverlay {
             var intervention = sim.getColdAccount();
             return model.updateIntervention(intervention.phase().name(), intervention.displayName(),
                     intervention.remainingWalls(), intervention.initialWalls());
+        }
+        if (sim != null) {
+            for (var objective : sim.getObjectives()) {
+                if (objective instanceof RaidObjective raid) {
+                    return model.updateRaid(raid.targetName(), raid.phase(),
+                            raid.serviceProgress(), raid.serviceDuration(), () -> {
+                                boolean returning = raid.targetSecured();
+                                camera.centerOn((returning ? raid.egressCellX() : raid.targetCellX()) + .5f,
+                                        (returning ? raid.egressCellY() : raid.targetCellY()) + .5f);
+                            });
+                }
+            }
         }
         return result;
     }

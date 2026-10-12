@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 — Cold Account uses a closer clearance boundary and an older, naturally authoritative Kord voice.
+Updated: 2026-10-12 — Dust Ledger identifies its indoor archive and return objectives; freight defense uses separated screens, prepared gun bays and pressure through convoy travel.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -201,7 +201,17 @@ than moving it elsewhere. HQ plots a course; the local Marine operations board
 offers the job through Mara's Independent contact. No chapter changes vanilla
 market ownership, industry disruption, diplomatic standing or orbital assets.
 Its target profile describes the isolated crew compound, with the actual
-planet's ground palette captured at launch rather than the colony's full defences. Blind
+planet's ground palette captured at launch rather than the colony's full defences.
+The Dust Ledger requires a reachable administrative interior for its
+**Dispatch archive**; an outdoor fallback or unrelated depot cannot become the
+counting-house prize. The briefing
+survey and battlefield use the same numbered objectives: **1 / Seize**, at the
+archive, and **2 / Return**, at the landing zone. The persistent mission checklist
+explains the six-second uncontested seizure, shows its current progress, and
+promotes return only after the archive is secured. Locate centers the camera on
+the current objective without issuing squad orders. The records remain an
+abstract recovered package under the Raid objective's survivor-egress law.
+Blind
 Watch uses an explicitly remote installation map and a finite light garrison:
 there is no off-map replacement force or continuing vehicle/air production.
 Map density and reinforcement eligibility are independent authored choices;
@@ -576,14 +586,21 @@ replacing that persistent order to resume the advance. The HUD names the post
 and remaining dispatch time. The tutorial never locks the player into a hold.
 
 Two employer militia sections anchor the first and second secured road posts.
+Their gun bays sit off the carriageway, inside open-backed sandbag emplacements
+with protected crew approaches. Dispatch's gun faces east along the verge;
+Crossing's gun covers its western intersection approach. Stable company sections
+cover separate roadside sectors on both sides of the road, rather than sharing
+the militia's gun coordinates. The militia share the first gain from distinct
+positions until their second post is secured. After the last capture the company
+screens the final crossing instead of packing into the captured building.
 A living militia member spending eight continuous seconds at a secured prepared
 mount assembles its one ordinary machine gun, with a finite belt. Interrupted
 work restarts; a destroyed gun is not rebuilt. These are employer field supplies,
 not player inventory grants or missile-defense pods converted into anti-infantry
 weapons. Both mounts must have walkable connected approach cells.
 
-The first load moves to the Dispatch stop, and two move to the East stop. The
-remaining freight waits west. Armor moves to the next road stop after each
+The first load moves to the Dispatch stop; all remaining loads join it at the
+East stop, keeping separation behind the leader. Armor moves to the next road stop after each
 defensive window, closing behind the company before Outbound Gate capture
 releases its final breakthrough. The tank takes the forward center position,
 using slower paired high-explosive cannon fire against the exit gun line. It
@@ -592,18 +609,23 @@ pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
 advance along the road flanks and hold the crossing; freight follows after a
-14-second lead interval, with subsequent loads released 45 seconds apart. The escorts leave only after the last surviving load passes
+14-second lead interval, with subsequent loads released 22 seconds apart. The escorts leave only after the last surviving load passes
 the crossing. Physical chassis steering, terrain, shared damage, turret fire
 and wrecks remain authoritative. A hull must leave the map through the freight exit to
 count as delivered; capture, release, apparent proximity and a missing sprite
 cannot grant delivery. Each active carrier must be accounted for before victory.
 Fourteen low-tech raiders guard the roadside buildings. Six more already man
-two rifle bays at the exit checkpoint. A finite forty-four-person pressure pool
-arrives in eleven four-person batches: one already attacking the earlier load,
-three during Dispatch defense, four during East Crossing defense, and three
-at the final crossing. Later batches enter through the north/south road mouths
-and interdict the road using ordinary squad combat. Repeated capture cannot
-create another batch, and unseen arrival events remain observer-only. Two fixed machine-gun pits flank the eastern exit, surrounded by
+two rifle bays at the exit checkpoint. A finite sixty-eight-person pressure pool
+arrives in seventeen four-person batches: one already attacking the earlier load,
+five across Dispatch defense and departure, seven across East Crossing defense and
+the outbound approach, and four during the final run. Some later Crossing attacks use
+the outbound side roads to block the company's next advance, rather than all
+chasing its rear. The timetable retains each phase's first release clock through
+later progress, so an early capture cannot cancel a trailing attack. A minimum
+interval between arrivals prevents overdue batches appearing together.
+Later batches enter through the north/south road mouths and interdict the road
+using ordinary squad combat. Repeated capture cannot create another batch, and
+unseen arrival events remain observer-only. Two fixed machine-gun pits flank the eastern exit, surrounded by
 open-backed sandbags, fenced inspection yards, support buildings and concrete
 gate abutments. Gates connect the yards to the flanks and gun positions; none
 narrows the reserved road. This prepared line gives the heavy lead a distinct

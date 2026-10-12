@@ -796,7 +796,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Installs or relayouts the retained overlay without rebuilding its reactive tree. */
     private void ensureRetainedOverlay(BattleSimulation sim) {
         if (retainedOverlay == null) {
-            retainedOverlay = new BattleHudOverlay(this::setBattleSpeed);
+            retainedOverlay = new BattleHudOverlay(this::setBattleSpeed, camera);
         }
         retainedOverlay.attach(position, sim, speedMultiplier);
         if (retainedSquadOverlay == null) {

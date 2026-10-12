@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
 import java.util.Set;
 import java.util.List;
@@ -58,7 +59,8 @@ public enum CorvusChapter {
     public BattleFixture fixture(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
         return switch (this) {
             case DUST_LEDGER -> RaidBattleFixture.fromFactoryInputs(seed, manifest, false,
-                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE);
+                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE)
+                    .withTarget("Dispatch archive", PointOfInterest.Kind.ADMINISTRATIVE);
             case BLIND_WATCH -> SabotageBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, false);
             case COLD_ACCOUNT -> new ColdAccountBattleFixture(AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,

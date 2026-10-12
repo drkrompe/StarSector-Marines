@@ -4,7 +4,7 @@ Status: ACTIVE — Raid has an authoritative primary-target strike-and-egress ob
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — shipped the first primary-target contract, paired command duel, diagnostics, fixture, and argument-selected evidence adapter.
+Updated: 2026-10-12 — public objective markers and checklist distinguish seizure from return; indoor target selection excludes exterior fallback anchors.
 
 Read `mission-command-nouns.md` for the shared architecture.
 
@@ -16,7 +16,7 @@ seizure, then preserve enough force and payload to withdraw. Defenders protect
 the network, respond to legal alarms or beliefs, and threaten the return path.
 
 The first production network contains one primary target. Construction selects
-a stable, reachable, non-residential high-value point in the defender half and
+a stable, reachable, non-residential high-value building interior on the defender's side and
 uses the first authored landing pad as egress. A settled Marine combatant must
 hold the target's five-cell-diameter interaction pocket uncontested for six
 continuous simulated seconds; interruption resets service progress. Completion
@@ -29,6 +29,17 @@ Marine victory rather than becoming battle-time objective input.
 The abstract package deliberately has no individual carrier. Carrier identity,
 transfer, and death would create a second hidden objective contract; a later
 story may add that only with explicit presentation and recovery law.
+
+The service site and return pocket are public mission geometry from the start.
+They have matching numbered markers in the briefing and battlefield and a
+persistent two-step mission checklist. Seizure progress reads the objective
+directly, including reset on interruption; the return step activates only after
+seizure. Locate changes camera framing without changing orders. These player
+surfaces do not depend on debug overlays or a selected squad and disclose no
+hostile positions. Authored chapters may name the seized target independently
+of its generated building category and require a particular category; both
+survive construction-fixture replay. An exterior fallback anchor, doorway or
+unroofed courtyard does not qualify as an indoor service site.
 
 ## Intended attacker picture
 
