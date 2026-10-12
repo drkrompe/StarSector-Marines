@@ -1192,9 +1192,21 @@ public final class Warship {
      * so it asks the hull to point at the target.
      */
     static boolean bears(Mount m, float shipFacing, float mx, float my, float tx, float ty) {
+        return bears(m, shipFacing, mx, my, tx, ty, 1f);
+    }
+
+    /** Standoff bombardment is an explicit stationary-structure envelope. */
+    public static final float STRUCTURAL_RANGE_MULTIPLIER = 3f;
+
+    float groundRangeMultiplier(float tx, float ty) {
+        return areas().stream().anyMatch(a -> a.bombardStructures() && a.contains(tx, ty))
+                ? STRUCTURAL_RANGE_MULTIPLIER : 1f;
+    }
+
+    static boolean bears(Mount m, float shipFacing, float mx, float my, float tx, float ty, float rangeMultiplier) {
         float dx = tx - mx;
         float dy = ty - my;
-        float range = WarshipScale.cells(m.weapon.rangePx());
+        float range = WarshipScale.cells(m.weapon.rangePx()) * rangeMultiplier;
         if (dx * dx + dy * dy > range * range) return false;
         float bearing = WarshipFacing.bearing(mx, my, tx, ty);
         float diff = Math.abs(WarshipFacing.wrap(bearing - (shipFacing + m.slot.angleDegrees())));

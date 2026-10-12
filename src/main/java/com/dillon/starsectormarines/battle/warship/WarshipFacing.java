@@ -62,7 +62,7 @@ public final class WarshipFacing {
         for (Warship.Mount m : ship.mounts()) {
             float mx = Warship.mountX(ship.x, m.slot, heading);
             float my = Warship.mountY(ship.y, m.slot, heading);
-            if (Warship.bears(m, heading, mx, my, tx, ty)) total += firepower(m.weapon);
+            if (Warship.bears(m, heading, mx, my, tx, ty, ship.groundRangeMultiplier(tx, ty))) total += firepower(m.weapon);
         }
         return total;
     }

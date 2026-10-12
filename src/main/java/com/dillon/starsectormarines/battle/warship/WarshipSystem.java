@@ -714,8 +714,8 @@ public final class WarshipSystem {
         // A choice is kept until the mount has fired on it, so a turret can finish
         // swinging; it is dropped if its area was dropped or the hull has turned it out of arc.
         if (m.aimed && (!ship.holdsGround(m.aimX, m.aimY) || !Warship.bears(
-                m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY)
-                || beyondOpportunity(ship, m))) {
+                m, ship.facingDegrees, ship.mountX(m), ship.mountY(m), m.aimX, m.aimY,
+                ship.groundRangeMultiplier(m.aimX, m.aimY)) || beyondOpportunity(ship, m))) {
             m.aimed = false;
         }
         if (!m.aimed && !ship.areas().isEmpty()) m.aimed = pickTarget(sim, ship, m) != null;
@@ -926,7 +926,7 @@ public final class WarshipSystem {
             int bottom = Math.min(sim.getGrid().getHeight() - 1, (int) Math.ceil(area.y() + area.radius()));
             for (int y = top; y <= bottom; y++) for (int x = left; x <= right; x++) {
                 if (!sim.getTopology().isWall(x, y) || !area.contains(x + .5f, y + .5f)
-                        || !Warship.bears(m, ship.facingDegrees, mx, my, x + .5f, y + .5f)
+                        || !Warship.bears(m, ship.facingDegrees, mx, my, x + .5f, y + .5f, Warship.STRUCTURAL_RANGE_MULTIPLIER)
                         || Math.hypot(x + .5f - mx, y + .5f - my) > opportunity) continue;
                 if (random.nextInt(++seen) == 0) { m.aimX = x + .5f; m.aimY = y + .5f; }
             }
