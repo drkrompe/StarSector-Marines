@@ -1,10 +1,10 @@
 # Warship behaviours — postures for normal fights and missions
 
-Status: DRAFT
+Status: ACTIVE
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — first design pass; nothing here is implemented. Slices 1 and 2 are `warship-posture-readout.md` and `warship-objective-fire.md`.
+Updated: 2026-10-11 — owner decisions recorded; slices 1 (posture and readout) and 2 (objective-aware, friendly-aware fire and landing-denial intercept) built.
 
 Read `air-nouns.md` (**Overhead ships**) first. Vocabulary (warship, mount, area order, director, point defence, flux) is that doc's. `warship-missiles.md` owns what a missile round does; `warship-on-station.md` owns the body, orders and acceptance scenes. This doc adds the layer that decides **what the ship is trying to do**, so that a capital in an ordinary fight or mission behaves like a ship with a job and not like a density-seeking turret.
 
@@ -179,10 +179,10 @@ Recommended order: **G0 and the threat picture (slice 1)**, then **G1 (slice 2)*
 
 Each lands as a `BehaviorScene` next to the existing warship scenes (`onslaught-flux`, `warship-point-defence`, `onslaught-district`), with a control loop that has no doctrine, and verdicts that fail rather than a GIF that cannot.
 
-- `warship-posture` (slice 1): the same Onslaught over the same block of defenders with (a) no doctrine, (b) a declared air threat raised and later cleared, (c) the same threat with a hostile warship present. Verdicts: posture transitions at the right moments, **no flapping** (transition count bound), flux ceiling lower under AIR_SUPERIORITY, ground rounds fewer and shorter-range, and BOMBARD recovered with its original rate after the threat clears.
-- `warship-objective-fire` (slice 2): two hostile clusters, one by the objective; marines near the farther one. Verdicts: attacker picks the objective-side cluster, avoids the cluster with friendlies inside it, accepts it only when danger-close is authorised, and the control (BOMBARD) picks the densest regardless.
-- `warship-intercept` (slice 3): a defender ship against a marine drop, three loops: no ship, ship with density director, ship with LZ denial. Verdicts: marines landed alive, first LZ round before touchdown, no round on a friendly shuttle.
-- `warship-withdraw` (slice 4): a ship driven below the entry hull fraction and again by an overload with a threat; it leaves, returns on the exit condition, and does not flap.
+- `warship-posture` (built): the same Onslaught over the same block of defenders with (a) no doctrine, (b) a declared threat raised and later cleared, (c) a hostile warship present then destroyed, (d) a declared capital hazard over the station, (e) the hull knocked under the limit. Verdicts: posture changes within a pass of the cause, returns after the quiet dwell, two transitions and no more, flux held below the control, flux of area fire clearly lower, every round inside the opportunity range, the rate recovered, standoff kept and the station regained, withdraw departs and stops firing, and a second play changes posture on the same ticks.
+- `warship-support-fire` (built): an objective knot, a denser decoy and a densest knot with the company's own people in it. Verdicts: the control takes the densest and kills its own; the attacker takes the objective first, kills no friendly, leaves the dirty knot alone, holds fire and says why; danger-close fires into the dirty knot (the flag the only difference); a stance flip from ATTACK to DEFEND moves the fire from the objective to the defended ground.
+- `warship-intercept` (built): a defender ship against a marine drop, no ship / density director / landing denial, plus the defenders' own boat landing within reach. Verdicts: the boat lands, the first zone round lands with it (fired before touchdown), far fewer marines survive five seconds after touchdown, the touchdown estimate holds within a second, no round near the defenders' own boat. Whether a detonation hurts a boat on its pad was observed, not asserted: the boat's hit points were untouched.
+- Open: a withdraw that returns is ruled out by decision 10; ship class bias, ship weapons against aircraft and ships as targets remain unbuilt.
 - Each is also a `sceneEvidence` row, so a regression fails the run; the snapshot suite plays the same run for the picture.
 
 ## Risks and rejected alternatives
@@ -197,18 +197,32 @@ Each lands as a `BehaviorScene` next to the existing warship scenes (`onslaught-
 - **Risk: INTERCEPT as ground-fire-on-an-LZ may read as "the ship shoots shuttles".** It only works where the shell and the shuttle meet; whether an aircraft on its pad is hurt by a detonation is not established (`warship-missiles.md` question 5). Verify before promising the owner's intercept.
 - **Risk: friendly-fire avoidance silently starving the ship** in a crowded close fight. The scene verdict counts rounds held for friendlies, and danger-close exists for missions that want the mess.
 
-## Questions for the owner
+## Decisions
 
-Decisions the code cannot answer.
+Owner direction of 2026-10-11 on the questions this doc was drafted around. These are standing direction; the rest of the doc is written to them.
 
-1. **Should a warship's weapons ever target aircraft?** Flak, vulcans and PD lasers on fighters; `ANTI_FTR` missiles; the main guns never? And the converse: should aircraft ever hurt a capital (bomb and strafe runs aimed at a hull)? Without both, the owner's air-superiority branch has nothing to react to beyond declared threats and hostile ships.
-2. **Do ground defences threaten a warship?** If a defence post can drain a hull like it drains a shuttle, "stay out of their range" is real and capital ships need a counter story. If not, a standoff from ground is flavour only. Which ground weapons, if any, are anti-capital?
-3. **Is attacker/defender the faction's side, or the mission's stance?** Relief and counterattack missions flip it. Proposal: side by default, mission override. Is that right, or should a stance be derived from objective ownership?
-4. **How hard should friendly-fire avoidance be?** Penalty, hard refusal, or refusal with a danger-close override a mission can grant. Does a ship ever deliberately fire into its own marines to save an objective?
-5. **Do ships fight ships in a ground battle?** An enemy capital over the target is the cleanest air-superiority story and needs hulls as targets (G4). Is that wanted, or are hostile capitals only ever ground-fire platforms?
-6. **Intercept: deny the landing, or shoot the shuttle?** Passengers are lost when a shuttle goes down. Is that an acceptable result for a defender's ship against the player's drop, and are the player's own shuttles ever at risk from a hostile capital's flak?
-7. **What may a defending ship know?** Should it prioritise a drop carrying named campaign soldiers, or only what an observer would see (payload size, hull)?
-8. **Carriers:** wings arrive on a corridor today. Should a carrier on station eventually launch from its deck on the map, or is the corridor the permanent origin? Is the carrier a first-wave fleet ship, or does it wait for general ship support?
-9. **Who sets posture?** Fully automatic with a readout (this doc's assumption), or a mission/campaign pin only, or a future player command? Direction so far is no command power until ship support exists.
-10. **Withdrawal:** does a withdrawing ship leave for good, or reposition and return? Does a ship leaving cost the mission anything (story beat, objective, fee)?
-11. **Faction doctrine:** should different factions' ships have different default weights (a Hegemony battleship versus a pirate hull), in the way target-faction command doctrine exists for ground commanders, or is class enough?
+1. **Ship weapons against aircraft are decided by the weapon, not the ship (later slice, not built).** As in the base game, large assault and strike weapons do not fire at fighters ("too fast"); anti-fighter, point-defence and medium weapons do; a transport shuttle is slow and large, so any non-PD weapon may fire on it. The rule is derived from the weapon table's `hints`: a mount is **flak-capable** when its weapon carries `ANTI_FTR` or `PD`, or is a medium-or-smaller non-`STRIKE` ballistic, energy or missile mount; it is **assault-only** when it carries `STRIKE`, or is large and carries neither `ANTI_FTR` nor `PD`. Flak-capable mounts may engage any hostile air entity; assault-only mounts may engage only a craft that is slow and large (a transport shuttle). Nothing about this exists yet. It is gap G2 and arrives as its own slice (ship-vs-air rules) behind this rule.
+2. **Ground defence turrets do not threaten a capital.** Only large planetary defences, which are not modelled, will. Until then the standoff behaviour has exactly one input: a **declared capital hazard** (`WarshipSystem.declareCapitalHazard`, a mission-declared zone owned by a faction). It does no damage; it is a declared input to a posture that keeps its distance, and nothing else feeds standoff.
+3. **Attacker or defender is the mission's stance, and it can change mid-mission.** The target of this engine is ordinary RTS campaign missions: take the objective, then defend it from attack waves. A ship carries a `MissionStance` (ATTACK, DEFEND, HOLD), settable at any time by a mission, a script or a test; its doctrine reads it at every pass. It is never derived from faction side. HOLD (the default) is "no objective job": the ship stays BOMBARD.
+4. **Friendly fire is avoided, and the weapons stay devastating.** The ship is not nerfed and the player and allies do not survive the equivalent of a MOAB on their own position. A weighted director rejects any area whose blast (the weapon's damage radius plus a safety margin) would reach a friendly body or declared protected ground, scoring areas by hostiles minus a heavy weight on friendlies in the blast. Where every candidate is dirty the ship holds fire and says so, unless the mission sets **danger-close**, in which case it fires but still prefers fewer friendlies. A manual order (debug F6, a script) is never refused.
+5. **Ships fighting ships in a ground battle is out of scope for now.** A later extension (needs hulls as targets, gap G4).
+6. **Intercept denies the landing zone first.** It fires timed area fire at the zone of an inbound hostile drop so the round lands at touchdown; it shoots shuttles in flight only where the weapon rules of decision 1 allow, later. Passengers are lost if a shuttle goes down.
+7. **No favouring of named-campaign-soldier drops.** The ship ranks drops by what an observer sees (seated people, a machine payload, time to touchdown).
+8. **Carriers launch from the hull on the map later.** Today they use the existing corridor.
+9. **Posture is automatic from the snapshot; a mission can pin it; a player command is a later extension.**
+10. **Withdraw is for the rest of the battle.** The ship leaves through the existing departure behaviour (`stayFor(0)`, `Warship.depart`). Campaign consequences of a ship leaving are deferred.
+11. **Faction default-posture tuning comes later, not now.**
+
+## What shipped, and the calls made building it
+
+Slice 1 (posture and readout) and slice 2 (objective-aware, friendly-aware fire, stance, intercept by landing denial) are built. What the code does, beyond the design above:
+
+- **Stance changes bypass the dwell.** A stance is an order, not sensing noise, so a flip ATTACK to DEFEND takes effect at the next pass. The dwell and 2:1 thresholds guard only the air fight, which is the sensed input.
+- **Air score.** Declared strength, plus each hostile warship at 1.0 scaled from half to full by its hull, plus 0.5 per hostile armed strike craft in the air (capped at 2). Enter at 1.0, leave under 0.5 held for 8 s. Armed craft are the air layer's strike sorties; flyby wings are not entities and are not seen.
+- **Withdraw entry.** Hull under 35% (25% while the ship's own aircraft are in the air), or hull under 60% while threatened and overloaded or shield-down. The narrower overload rule is a judgement call: an overload lasts seconds, so it alone must not end a capital's battle.
+- **AIR_SUPERIORITY conserves by choosing, not by weakening.** The flux soft pair drops to 50/30, the director holds one half-size area, never swings the heading, fires only inside 40% of the longest reach, and only from mounts whose burst costs under 8% of the pool (the secondary battery; lances are silent). A mount whose aim has drifted past that range because the hull moved abandons its burst.
+- **Standoff** holds for the air-superiority posture only: the station moves to just outside any declared hazard hostile to the ship and returns to the mission's station when the posture ends.
+- **Weighted director.** Score is `hostiles * (1 + 2 * proximity) - 8 * friendly weight`, proximity being closeness (0 to 1, fading over 40 cells) to the nearest objective point. Objective points come from friendly squads' assignments (the same `ObjectiveAssignment` commanders and the player write), then the tactical map's hostile-held objective and command-post nodes for an attacker, or friendly `mustHold` nodes for a defender, plus any ground the mission declares on the ship. Shells already in flight from friendly ships are not counted as hazard; this is not built.
+- **Intercept by landing denial.** An inbound hostile loaded boat (INCOMING, PAD_DESCENT or LANDED with people aboard) is ranked by seated people (a machine payload counts as six) per second to touchdown. Its zone becomes a held area, aimed at open ground rather than at a unit, from the moment a round fired now would land at touchdown until everyone is out of the boat. A zone with friendlies in the blast and margin is skipped unless danger-close.
+
+- **Intercept timing is per gun.** The zone is taken up to ten seconds before the slowest gun's first round could land at touchdown, so the hull can swing and the turrets traverse; each barrel then waits on the zone until a round fired now would land as the boat touches down. The touchdown estimate is the boat's remaining run plus half a second, or 0.9 s in its settle; both are measured, not derived, and the scene asserts the estimate holds within a second. A boat that is not visible until it is inbound cannot be pre-aimed on earlier than that, so a ship that must swing a long way is late. The scene starts the defender already lying on a bearing heading.

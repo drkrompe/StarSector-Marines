@@ -67,6 +67,8 @@ final class WarshipFlux {
     private boolean enabled;
     private float scale = 1f;
     private boolean softLimit = true;
+    private float softShare = SOFT_LIMIT;
+    private float resumeShare = RESUME_LEVEL;
     private float flux;
     private State state = State.FIRING;
     private float overloadSecondsRemaining;
@@ -108,6 +110,28 @@ final class WarshipFlux {
 
     boolean softLimit() {
         return softLimit;
+    }
+
+    /**
+     * Moves the stop-starting and start-again levels, as shares of capacity; the
+     * shipped pair is {@link #SOFT_LIMIT} and {@link #RESUME_LEVEL}. A posture
+     * that wants the pool mostly empty for a fight lowers them. A ship already
+     * above the new soft level starts venting at its next update.
+     */
+    void thresholds(float soft, float resume) {
+        if (!(soft > 0f && soft <= 1f && resume > 0f && resume < soft)) {
+            throw new IllegalArgumentException("flux thresholds need 0 < resume < soft <= 1: " + resume + ", " + soft);
+        }
+        this.softShare = soft;
+        this.resumeShare = resume;
+    }
+
+    float softShare() {
+        return softShare;
+    }
+
+    float resumeShare() {
+        return resumeShare;
     }
 
     float capacity() {
@@ -189,9 +213,9 @@ final class WarshipFlux {
             return;
         }
         float capacity = capacity();
-        if (state == State.FIRING && softLimit && flux >= SOFT_LIMIT * capacity) {
+        if (state == State.FIRING && softLimit && flux >= softShare * capacity) {
             state = State.VENTING;
-        } else if (state == State.VENTING && flux <= RESUME_LEVEL * capacity) {
+        } else if (state == State.VENTING && flux <= resumeShare * capacity) {
             state = State.FIRING;
         }
     }
