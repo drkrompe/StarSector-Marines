@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
+
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -132,6 +134,8 @@ public final class BattleFixtureJson {
             root.put("enemyFighterSupport",
                     wingsToJson(raid.enemyFighterSupport()));
             putSprawl(root, raid.sprawl());
+            if (raid.targetName() != null) root.put("targetName", raid.targetName());
+            if (raid.targetKind() != null) root.put("targetKind", raid.targetKind().name());
             return root;
         }
         if (fixture instanceof ExtractionBattleFixture extraction) {
@@ -315,7 +319,9 @@ public final class BattleFixtureJson {
                 targetProfileFromJson(root.getJSONObject("targetProfile")),
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
-                sprawlFromJson(root));
+                sprawlFromJson(root), root.optString("targetName", null),
+                root.has("targetKind") ? enumValue(PointOfInterest.Kind.class,
+                        root.getString("targetKind"), "targetKind") : null);
     }
 
     private static ExtractionBattleFixture decodeExtraction(JSONObject root)

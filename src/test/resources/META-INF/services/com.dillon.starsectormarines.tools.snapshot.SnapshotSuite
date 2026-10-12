@@ -85,3 +85,4 @@ com.dillon.starsectormarines.ops.InstallationGroundSnapshotSuite
 com.dillon.starsectormarines.battle.warship.WarshipPilotSceneSnapshotSuite
 
 com.dillon.starsectormarines.tools.tilesetauthoring.BerthingBedDamageSnapshotSuite
+com.dillon.starsectormarines.ops.RaidObjectiveSnapshotSuite

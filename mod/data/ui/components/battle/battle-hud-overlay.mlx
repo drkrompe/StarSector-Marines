@@ -1,4 +1,4 @@
-<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveTitle,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,commandPanelClasses,commandPhase,commandForce,commandTitle,conquestLanes,conquestLaneClasses,conquestGroupClasses,conquestGroups">
+<template props="timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveTitle,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,objectiveLocateClasses,objectiveLocateDisabled,objectiveLocateAction,commandPanelClasses,commandPhase,commandForce,commandTitle,conquestLanes,conquestLaneClasses,conquestGroupClasses,conquestGroups">
   <div id="battle-hud-overlay" class="battle-hud-overlay" style="background-color: transparent">
     <div id="battle-conquest-command" class="{commandPanelClasses}">
       <div id="battle-conquest-command-header" class="conquest-command-header">
@@ -44,6 +44,7 @@
       <div id="battle-objectives" class="{objectivePanelClasses}">
         <div id="battle-objective-header" class="objective-header">
           <div id="battle-objective-title" class="label heading objective-title">{objectiveTitle}</div>
+          <button id="battle-objective-locate" class="{objectiveLocateClasses}" disabled="{objectiveLocateDisabled}" onclick="{objectiveLocateAction}">LOCATE</button>
           <div id="battle-objective-score" class="label heading objective-score">{objectiveScore}</div>
         </div>
         <div id="battle-objective-chips" class="objective-chips">
@@ -169,6 +170,10 @@
   }
 
   .objective-cargo { width: 92px; }
+  .objective-raid { width: 166px; }
+  .objective-pending { border-color: #56675c; color: #a8b6c6; }
+  .objective-locate { width: 60px; height: 17px; font-family: heading; text-align: center; color: #ffd464; background-color: #3a3018; }
+  .objective-locate-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
 
   .objective-hostile { background-color: #351d22; border-color: #e98b83; color: #e98b83; }
   .objective-contested { background-color: #3a3018; border-color: #ffd464; color: #ffd464; }

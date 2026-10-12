@@ -1,0 +1,109 @@
+{
+  "sheetName": "workshop-damage",
+  "sheet": "art-source/tilesets/workshop-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 1,
+  "gridRows": 1,
+  "idPrefix": "workshop-damage",
+  "alphaMin": 40,
+  "outputSheet": "graphics/tilesets/workshop-damage.png",
+  "note": "Six measured full-frame cuts of the registered guide reskin. Opaque space in breach; original alpha preserved outside fragments. Machines retain original 4x2 footprints. Room condition owns traversal, not these overlays.",
+  "entries": [
+    {
+      "id": "workshop-damage.breach",
+      "rect": [
+        0,
+        80,
+        512,
+        352
+      ],
+      "footprintCells": [
+        6,
+        4
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "workshop-damage.collapse",
+      "rect": [
+        512,
+        112,
+        512,
+        320
+      ],
+      "footprintCells": [
+        5,
+        3
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "workshop-damage.lathe",
+      "rect": [
+        1024,
+        160,
+        512,
+        256
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "workshop-damage.mill",
+      "rect": [
+        0,
+        608,
+        512,
+        300
+      ],
+      "footprintCells": [
+        4,
+        2
+      ],
+      "cover": "med",
+      "ballisticHalfHeight": 0.65,
+      "included": true
+    },
+    {
+      "id": "workshop-damage.scorch",
+      "rect": [
+        512,
+        528,
+        512,
+        464
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    },
+    {
+      "id": "workshop-damage.patch",
+      "rect": [
+        1024,
+        592,
+        512,
+        352
+      ],
+      "footprintCells": [
+        6,
+        4
+      ],
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "included": true
+    }
+  ]
+}

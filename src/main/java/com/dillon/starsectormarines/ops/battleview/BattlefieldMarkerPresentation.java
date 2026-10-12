@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 
 import java.awt.Color;
@@ -80,6 +81,21 @@ public final class BattlefieldMarkerPresentation {
                 ? "COMMAND POWER" : displayName.toUpperCase(Locale.ROOT);
         return new TargetMarker(label, valid ? "VALID" : "BLOCKED",
                 valid ? VALID : INVALID, Math.max(0f, radiusCells), valid);
+    }
+
+    /** Numbering matches the briefing and the persistent mission checklist. */
+    public static ObjectiveMarker raid(boolean extraction, RaidObjective.Phase phase,
+                                       float progress) {
+        boolean secured = phase == RaidObjective.Phase.EGRESS || phase == RaidObjective.Phase.COMPLETE;
+        if (extraction) {
+            return new ObjectiveMarker("2", phase == RaidObjective.Phase.COMPLETE ? "COMPLETE"
+                    : secured ? "RETURN HERE" : "AFTER SEIZURE",
+                    secured ? PROGRESS : SECURED, secured ? 1f : .65f, 0f, secured);
+        }
+        return new ObjectiveMarker("1", secured ? "SECURED"
+                : phase == RaidObjective.Phase.SERVICE ? "SEIZING / " + percent(clamp01(progress)) : "SEIZE",
+                secured ? VALID : PROGRESS, secured ? .65f : 1f,
+                secured ? 1f : clamp01(progress), !secured);
     }
 
     public static float objectiveRadius(float cellPx) {
