@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -131,5 +133,23 @@ class DebugWarshipTest {
 
         DebugWarship.holdFire(ship);
         assertTrue(DebugWarship.statusLine(ship).contains("HoldFire"));
+    }
+
+    @Test
+    void aSinglePointIsAStationAndSeveralAreALoopedPatrol() throws Exception {
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        Warship ship = Warship.fit("onslaught", "onslaught_Standard", Faction.MARINE, 20f, 80f, -90f);
+
+        DebugWarship.patrol(ship, List.of(new float[] {60f, 40f}));
+        assertEquals(-1, ship.routeIndex());
+        assertFalse(ship.isPassingThrough());
+
+        DebugWarship.patrol(ship, List.of(new float[] {60f, 40f}, new float[] {90f, 40f}, new float[] {90f, 70f}));
+        assertEquals(0, ship.routeIndex());
+        assertTrue(ship.isPassingThrough());
+
+        DebugWarship.goTo(ship, 30f, 30f);
+        assertEquals(-1, ship.routeIndex());
     }
 }
