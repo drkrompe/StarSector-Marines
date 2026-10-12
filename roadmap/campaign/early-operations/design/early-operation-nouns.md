@@ -305,11 +305,25 @@ report, with explicit Replay and Stop. Screen exit stops owned playback;
 revisiting the same outcome does not automatically replay or grant anything.
 Defeat, repeatable work and legacy outcomes without a recovery report omit it.
 
-Employer troops advance under separate allied mission authority alongside the
-company. Each attacking squad progresses through the three places from its own
-reported position, using attack-move duties that retain the destination through
-contact. Player-owned orders remain outside the commander's pool. Neither side
-receives an enemy position or a hidden capture state from the scenario.
+Employer troops remain under separate allied mission authority, but Counterattack's
+militia support the company's actual progress rather than independently advancing
+through the route. Before company infantry finish assembling, they defend their
+landing position. Each militia section then keeps a stable company partner and
+screens its reported position with a bounded five-cell defense area, including
+stops and detours to recover the Hound. The screen moves after six cells of company
+travel, so small position changes do not continually replace tactical plans.
+Infantry lead while any survive; a surviving Hound can lead after the infantry
+are gone. Without an eligible partner, militia retain their last screen instead
+of launching a solo assault. They switch to holding dispatch after its public
+capture and stay there even if the company moves away.
+
+The allied command frame receives only frozen friendly squad identities, current
+anchor cells, infantry/heavy classification and assembly readiness. It receives no
+company orders or contacts; defenders receive none of these friendly radio reports.
+Company assault squads still progress through the three places from their own
+reported positions using attack-move duties that retain the destination through
+contact. Player-owned orders remain outside the commander's pool. No side receives
+an enemy position or a hidden capture state from the scenario.
 
 Both opening operations have one logical company landing area, even when boats
 use different physical pads on the apron. Personnel from one campaign squad

@@ -35,7 +35,11 @@ unique story defense. `commanderEvidence -Pmission=counterattack --tests
 '*DepotHoldEvidenceTest'` exercises the story setup with twelve named company
 marines, six employer militia, actual boat arrivals, and a Hound detour versus
 ordinary advance. It records physical capture, both road attacks, casualties,
-Hound fire, and terminal outcome. Whole-map images are neutral observer views;
+Hound and militia fire, friendly command reasons and positions, physical warehouse
+presence, and terminal outcome. A 60-second delayed company boat and a 600-second
+delay observed for 120 seconds check that militia wait without a ready company
+and begin screening once the company assembles. These are controlled arrival
+delays, not slow-airframe acceptance. Whole-map images are neutral observer views;
 they do not validate live fog or GL HUD rendering.
 The 300s absent-player observation does not establish a new failure rule.
 
@@ -62,6 +66,11 @@ The 300s absent-player observation does not establish a new failure rule.
   reserve; contact and own casualties drive commitment and fallback. Confirm
   these beats with actual campaign fittings and mixed equipment, including a
   slow boat and two boats sharing the apron.
+- Counterattack militia wait for the company's complete landing, screen its
+  actual advance and Hound recovery detour, then join the warehouse defense.
+  A delayed company must not leave militia assaulting the gate alone; loss of
+  the company infantry can hand support to a surviving Hound. Accepted external
+  orders retain ownership. Militia still take ordinary combat losses while holding.
 - The story briefing explains eight seconds inside dispatch, two finite road
   attacks, and a final secured warehouse. A persistent recovery beacon stays
   after Castle's notice expires and points toward the berth when off camera.
