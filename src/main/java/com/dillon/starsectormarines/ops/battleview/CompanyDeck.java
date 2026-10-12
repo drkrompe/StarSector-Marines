@@ -326,7 +326,7 @@ public final class CompanyDeck {
         // filled by marines who are on the roster rather than topped up with
         // hands who are not.
         musterCompany(manned, roll);
-        manned.manDeck();
+        manned.manDeck(Integer.MAX_VALUE, ship.minCrew());
         return manned;
     }
 

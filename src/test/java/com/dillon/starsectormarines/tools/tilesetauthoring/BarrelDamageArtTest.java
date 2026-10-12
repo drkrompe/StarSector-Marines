@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
-import com.dillon.starsectormarines.battle.world.model.BarrelDamage;
+import com.dillon.starsectormarines.battle.world.model.PropDamage;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 import javax.imageio.ImageIO;
@@ -12,7 +12,7 @@ class BarrelDamageArtTest {
     @Test void fullFramesRetainTheirProfilesAndDebrisHasOpenShellsAndSeparatedScraps() throws Exception {
         var registry = TileRegistry.installed();
         var atlas = ImageIO.read(Path.of("mod/graphics/doodads/barrel-damage.png").toFile());
-        for (String id : BarrelDamage.IDS) for (String state : new String[]{"damaged", "destroyed"}) {
+        for (String id : PropDamage.BARRELS) for (String state : new String[]{"damaged", "destroyed"}) {
             var original = registry.doodad(id);
             var def = registry.doodad(id + "-" + state);
             assertNotNull(def);

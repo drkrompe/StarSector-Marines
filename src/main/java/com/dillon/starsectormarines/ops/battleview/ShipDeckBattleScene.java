@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -195,6 +196,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * afterwards cannot berth somebody in a rack the roster is already in.
      */
     private final Map<RoomPurpose, Integer> hired = new EnumMap<>(RoomPurpose.class);
+    private final Map<Long, ShipDutyWatch.Post> dutyCrew = new LinkedHashMap<>();
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
     /** How far the deck has been run; see {@link #advanceTo}. */
@@ -568,7 +570,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // the edges of it forever.
         long[] hands = hire(compartment, role, watch,
                 (billet, shift, cellX, cellY) -> new EntitySpec(
-                        shift.id(), Faction.MARINE, role.unit(), cellX, cellY));
+                        shift.id(), Faction.MARINE, role.unit(), cellX, cellY)
+                        .layeredArmorFamily(ShipDutyWatch.uniform(role, compartment.purpose())));
         readyHands();
         return hands;
     }
@@ -625,6 +628,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      */
     private long[] hire(DeckGraph.Compartment compartment, CrewRole role,
                         int watch, Hand hand) {
+        return hire(compartment, role, watch, hand, null);
+    }
+
+    private long[] hire(DeckGraph.Compartment compartment, CrewRole role,
+                        int watch, Hand hand, AmbientTaskRoute dutyRoute) {
         if (watch <= 0) return new long[0];
         String billet = billet(compartment, role);
         int filled = billets.getOrDefault(billet, 0);
@@ -632,7 +640,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         int hands = Math.max(0, Math.min(watch, watchBill.capacity() - filled));
         List<Long> hired = new ArrayList<>(hands);
         for (int index = 0; index < hands; index++) {
-            AmbientTaskRoute shift = watchBill.member(filled + index);
+            AmbientTaskRoute shift = dutyRoute != null ? dutyRoute : watchBill.member(filled + index);
             if (shift == null) break;
             AmbientTaskRoute.Stop start = AmbientTaskService.standingPlace(shift, 0f);
             long actor = simulation.spawn(hand.reportingFor(index, shift,
@@ -696,50 +704,42 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         return spec;
     }
 
-    /**
-     * Crew the ship: every compartment that has work for a role gets a watch of
-     * it, whether or not anybody is looking at that compartment.
-     *
-     * <p>A deck is manned or it is not. Staffing only the room a screen frames
-     * would make the ship's population a fact about the camera — walk from the
-     * bay to the berthing and the technicians you left behind would stop
-     * existing, and the marines you arrive to find would have been conjured on
-     * the way. It also gets the traffic wrong in the one place it shows: the
-     * passage between two compartments is busy because both ends of it are
-     * working, and a deck that mans one room has an empty corridor.
-     *
-     * <p>Posting is per compartment and per role because that is what a shift
-     * is posted to, and only where that role is actually based — see
-     * {@link Shift#basedAt}. What each watch then <em>reaches</em> is the
-     * shift's business: a barracks watch walks to the mess and the range on its
-     * own, and manning the mess does not mean stationing anybody there. Crewing
-     * every room that merely offers a role something to do is how a ship ends
-     * up with a watch of marines quartered in the galley.
-     *
-     * @param watch most of each role to post to any one compartment; each
-     *     posting is still capped by what that compartment can keep busy
-     * @return every hand now aboard
-     */
-    /**
-     * Crew the ship to her complement: every posting filled to what it can
-     * actually sustain.
-     *
-     * <p>The honest default. A cap on the watch is a throttle on how much ship
-     * exists, and there is nothing to throttle for — the compartments already
-     * bound themselves by the work they hold, so a barracks takes the marines
-     * its racks can sleep and a bay takes the technicians its jobs can occupy.
-     * Asking for fewer than that produces a half-empty ship for no reason
-     * anybody could see in the fiction.
-     */
+    /** Crew all rooms once, prioritizing duty before the remaining roaming shifts. */
     public long[] manDeck() {
         return manDeck(Integer.MAX_VALUE);
     }
 
+    /** @param watch maximum billets of each role in one room, across duty and roaming hands */
     public long[] manDeck(int watch) {
+        return manDeck(watch, rooms == null ? 0 : bunksIn(RoomPurpose.CREW_QUARTERS));
+    }
+
+    /**
+     * Required watch consumes the existing complement before ordinary roaming shifts.
+     * @param requiredCrew maximum crew kept on duty; never exceeds actual crew racks
+     * @return newly mustered actors only; repeated manning does not duplicate bodies
+     */
+    public long[] manDeck(int watch, int requiredCrew) {
         if (rooms == null) {
             throw new IllegalStateException("this deck scene carries no room graph");
         }
         if (watch <= 0) return new long[0];
+        List<Long> aboard = new ArrayList<>();
+        int racks = bunksIn(RoomPurpose.CREW_QUARTERS);
+        int dutyBudget = Math.min(Math.max(0, requiredCrew), racks);
+        for (ShipDutyWatch.Post post : ShipDutyWatch.plan(rooms.compartments(), fixtureTasks,
+                occupiedBerths, dutyBudget)) {
+            if (dutyCrew.values().stream().anyMatch(existing -> existing.route().id().equals(post.route().id()))) continue;
+            if (hired.getOrDefault(RoomPurpose.CREW_QUARTERS, 0) >= racks) break;
+            if (billets.getOrDefault(billet(post.room(), post.role()), 0) >= watch) continue;
+            long[] hand = hire(post.room(), post.role(), 1,
+                    (index, route, x, y) -> new EntitySpec(route.id(), Faction.MARINE, post.role().unit(), x, y)
+                            .layeredArmorFamily(ShipDutyWatch.uniform(post.role(), post.room().purpose())), post.route());
+            if (hand.length > 0) {
+                aboard.add(hand[0]);
+                dutyCrew.put(hand[0], post);
+            }
+        }
         List<Posting> postings = new ArrayList<>();
         for (DeckGraph.Compartment room : rooms.compartments()) {
             for (CrewRole role : CrewRole.values()) {
@@ -751,18 +751,19 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         // the bunks do. Filling each posting to its own capacity in turn would
         // let the first rooms in the list take the whole complement, and the
         // ship would come out fully crewed forward and deserted aft.
-        List<Long> aboard = new ArrayList<>();
         Map<RoomPurpose, Integer> berths = new EnumMap<>(RoomPurpose.class);
         boolean progressed = true;
         while (progressed) {
             progressed = false;
             for (Posting posting : postings) {
+                if (billets.getOrDefault(billet(posting.room(), posting.role()), 0) >= watch) continue;
                 int budget = berths.computeIfAbsent(posting.role().quarters(),
                         this::bunksIn) - hired.getOrDefault(posting.role().quarters(), 0);
                 if (budget <= 0) continue;
                 long[] hand = hire(posting.room(), posting.role(), 1,
                         (billet, shift, cellX, cellY) -> new EntitySpec(shift.id(),
-                                Faction.MARINE, posting.role().unit(), cellX, cellY));
+                                Faction.MARINE, posting.role().unit(), cellX, cellY)
+                                .layeredArmorFamily(ShipDutyWatch.uniform(posting.role(), posting.room().purpose())));
                 if (hand.length == 0) continue;
                 aboard.add(hand[0]);
                 progressed = true;
@@ -773,6 +774,9 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         for (int index = 0; index < crew.length; index++) crew[index] = aboard.get(index);
         return crew;
     }
+
+    /** Assigned on-duty bodies, for ship inspection and bounded simulation evidence. */
+    public Map<Long, ShipDutyWatch.Post> dutyCrew() { return Map.copyOf(dutyCrew); }
 
     /** One role's station in one compartment. */
     private record Posting(DeckGraph.Compartment room, CrewRole role) { }

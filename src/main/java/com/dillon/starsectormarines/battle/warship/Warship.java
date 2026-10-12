@@ -38,6 +38,9 @@ public final class Warship {
         float burstTimer;
         float aimX;
         float aimY;
+        /** The velocity, in cells per second, of the unit {@code aimX/aimY} was taken from; zero for open ground. */
+        float aimVx;
+        float aimVy;
         /** Whether {@code aimX/aimY} is a live choice the barrel is swinging to. */
         boolean aimed;
         /** The sweep this beam mount has committed, while it lasts. */
@@ -703,6 +706,18 @@ public final class Warship {
         if (departing || stationSecondsRemaining == Float.POSITIVE_INFINITY) return false;
         if (!isMoving()) stationSecondsRemaining = Math.max(0f, stationSecondsRemaining - dt);
         return stationSecondsRemaining <= 0f;
+    }
+
+    /** Resumes flight nose-first on the current bearing, using ordinary departure and propulsion. */
+    public void departForward(float mapWidth, float mapHeight) {
+        if (departing || departed || destroyed()) return;
+        beginDeparture();
+        desiredHeading = facingDegrees;
+        double nose = Math.toRadians(facingDegrees + 90f);
+        float reach = (float) Math.hypot(mapWidth, mapHeight) + lengthCells;
+        // Two collinear points keep this a through-flight until the entire hull is off map.
+        float dx = (float) Math.cos(nose) * reach, dy = (float) Math.sin(nose) * reach;
+        flyRoute(new float[][]{{x + dx, y + dy}, {x + 2f * dx, y + 2f * dy}}, false);
     }
 
     /** Begins leaving: no order, no director, and every burst in progress is abandoned. */

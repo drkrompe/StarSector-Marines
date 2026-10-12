@@ -1,0 +1,140 @@
+{
+  "sheetName": "compound-command-damage",
+  "sheet": "art-source/tilesets/compound-command-damage.raw.png",
+  "cellPx": 64,
+  "gridCols": 4,
+  "gridRows": 2,
+  "idPrefix": "doodad",
+  "alphaMin": 40,
+  "note": "Geometry-first built-in ImageGen reskin. Four full-frame columns retain original pivots. Damaged equipment above matching low remnants. Transparent gutters and debris gaps reviewed; no trim/recenter. Prompt and guide retained.",
+  "entries": [
+    {
+      "id": "doodad.industrial-control-console-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.military-command-console-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.55,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        443,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.military-tactical-table-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.38,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        887,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.office-workstation-bank-damaged",
+      "included": true,
+      "cover": "med",
+      "ballisticHalfHeight": 0.45,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1330,
+        0,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.industrial-control-console-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        0,
+        443,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.military-command-console-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        443,
+        443,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.military-tactical-table-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        887,
+        443,
+        443,
+        443
+      ]
+    },
+    {
+      "id": "doodad.office-workstation-bank-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "rect": [
+        1330,
+        443,
+        443,
+        443
+      ]
+    }
+  ]
+}
