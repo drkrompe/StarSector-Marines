@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import org.lwjgl.input.Keyboard;
 
@@ -51,8 +52,6 @@ public final class WarshipDebugPanel implements HudPanel {
 
     private final BattleUiContext ctx;
     private final BitmapFont font = Fonts.INSIGNIA_15_AA;
-    private float mouseX = Float.NaN;
-    private float mouseY = Float.NaN;
 
     public WarshipDebugPanel(BattleUiContext ctx) {
         this.ctx = ctx;
@@ -76,10 +75,6 @@ public final class WarshipDebugPanel implements HudPanel {
         if (events == null) return;
         Warship ship = ship();
         for (InputEventAPI e : events) {
-            if (e.isMouseEvent()) {
-                mouseX = e.getX();
-                mouseY = e.getY();
-            }
             if (ship == null || e.isConsumed() || !e.isKeyDownEvent()) continue;
             if (e.getEventValue() == FIRE_KEY) {
                 fireAtCursor(ship);
@@ -93,7 +88,12 @@ public final class WarshipDebugPanel implements HudPanel {
 
     private void fireAtCursor(Warship ship) {
         BattleCamera camera = ctx.getCamera();
-        if (camera == null || Float.isNaN(mouseX) || !camera.containsScreen(mouseX, mouseY)) return;
+        // The position is asked for when the key goes down, not remembered from mouse
+        // events: another handler may have consumed those, and a consumed event
+        // throws if its data is read.
+        float mouseX = Global.getSettings().getMouseX();
+        float mouseY = Global.getSettings().getMouseY();
+        if (camera == null || !camera.containsScreen(mouseX, mouseY)) return;
         DebugWarship.fireAt(ship, camera.screenToCellX(mouseX), camera.screenToCellY(mouseY));
     }
 
