@@ -1086,7 +1086,14 @@ and career presentation remains coordinated with `progression-nouns.md`.
 The developer mission launcher is a separate catalog reached from HQ or the
 DEBUG client. It exposes authored story chapters, both branch outcomes,
 repeatable work, standard operation tiers, and diagnostic scenarios without
-campaign prerequisites or travel. Choosing a mission starts a fresh default
+campaign prerequisites or travel. Location filters group missions by their
+canonical planet; variable-location work stays explicitly unfixed. Story numbers
+are relative to the planet: Jangala runs 01 through 05, with 04A evacuation and
+04B freight as alternatives. Repeatable work uses R labels outside that sequence.
+Corvus chapters retain their interplanetary predecessor hints. These labels are
+navigation aids, not campaign mission identities.
+
+Choosing a mission starts a fresh default
 company, boat manifest, and support selection; returning to the same mission
 resets prior overrides. Story presets use starter infantry equipment and the
 recovered chaingun Hound where the chapter expects it. Counterattack retains

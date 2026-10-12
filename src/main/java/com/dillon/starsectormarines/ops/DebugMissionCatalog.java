@@ -57,12 +57,50 @@ public final class DebugMissionCatalog {
             };
         }
         boolean opening() { return this == RELIEF || this == COUNTERATTACK || this == MILITIA_RELIEF || this == DEPOT_CLEARANCE; }
+        /** Local story order; parallel branches share a number, repeatables stay distinct. */
+        public String sequence() {
+            return switch (this) {
+                case RELIEF -> "01";
+                case COUNTERATTACK -> "02";
+                case JUNCTION -> "03";
+                case LAST_LIFT -> "04A";
+                case RELAY_NINE -> "04B";
+                case THUNDER_RUN -> "05";
+                case DUST_LEDGER, BLIND_WATCH, COLD_ACCOUNT -> "01";
+                case MILITIA_RELIEF -> "R1";
+                case DEPOT_CLEARANCE -> "R2";
+                case CREW_RECOVERY -> "R3";
+                case ROUTE_SECURITY -> "R4";
+                case VETERANS_JOB -> "S1";
+                case SILENT_COLONY -> "E1";
+            };
+        }
+        public String location() {
+            if (corvus() != null) return corvus().planetName;
+            return this == VETERANS_JOB || this == SILENT_COLONY ? "Unfixed site" : "Jangala";
+        }
+        public String sequenceHint() {
+            return switch (this) {
+                case RELIEF -> "Wayline introduction";
+                case COUNTERATTACK -> "After Jangala 01 / Relief";
+                case JUNCTION -> "After Jangala 02 / Counterattack";
+                case LAST_LIFT -> "After 03 / Evacuation branch, alternative to 04B";
+                case RELAY_NINE -> "After 03 / Freight branch, alternative to 04A";
+                case THUNDER_RUN -> "After 04B / Freight branch finale";
+                case DUST_LEDGER -> "Corvus Account 1 of 3 / Begins after Broken Supply Route";
+                case BLIND_WATCH -> "Corvus Account 2 of 3 / After Asharu 01";
+                case COLD_ACCOUNT -> "Corvus Account 3 of 3 / After Warion 01";
+                case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY -> "Repeatable work / Outside the numbered story sequence";
+                case VETERANS_JOB -> "Standalone story / Location varies in campaign";
+                case SILENT_COLONY -> "Campaign event / Location varies in campaign";
+            };
+        }
         public Mission mission() {
             CorvusChapter chapter = corvus();
             Mission.Builder builder = chapter == null ? Mission.builder().type(this == LAST_LIFT || this == CREW_RECOVERY || this == SILENT_COLONY
                     ? MissionType.EXTRACTION : this == VETERANS_JOB ? MissionType.RAID : MissionType.ASSAULT)
                     .tier(this == VETERANS_JOB ? OperationTier.ESTABLISHED : OperationTier.FIRST_CONTRACT)
-                    .risk(this == VETERANS_JOB || this == SILENT_COLONY ? RiskLevel.MEDIUM : RiskLevel.LOW).targetPlanetName("Jangala").flavor(description)
+                    .risk(this == VETERANS_JOB || this == SILENT_COLONY ? RiskLevel.MEDIUM : RiskLevel.LOW).targetPlanetName(location()).flavor(description)
                     : Mission.builder(chapter.mission("unused", chapter.planetName, ""));
             return builder.id(PREFIX + name()).name(title).source(MissionSource.DEBUG).payout(0)
                     .requiredDrops(squads * 2).employerShuttles(0)
