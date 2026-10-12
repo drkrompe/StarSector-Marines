@@ -66,6 +66,18 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
    able to reach a hull at all, rather than only scripted or heavy ordnance, is a
    balance question for the mission that fields a counter.
 
+## Fitting from a fleet member (shipped) and the flagship hand-off
+
+Warship.fit(FleetMemberAPI, ...) arms a ship from the member's own fitted
+variant through the WarshipLoadout seam (stock variant file or variant API
+adapter; hull is the base hull, built-ins fill unnamed slots). The campaign
+supplies a flagship at the **mission launch seam**: when the player's fleet is
+committed to a ground battle, the launch code that builds the battle world picks
+the player's flagship member (FleetDataAPI.getFlagship / the member a command
+power names) and hands it to Warship.fit. That choice, the command-power
+charge and the commitment cost stay out of scope here; nothing calls the member
+overload from the campaign yet.
+
 ## Acceptance
 
 - A `BehaviorScene` with an Onslaught over a generated compound: its barrage

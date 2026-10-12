@@ -64,6 +64,7 @@ class WaylineHoundEvidenceTest {
             long raider = sim.spawn(new EntitySpec("raider", Faction.DEFENDER, UnitType.MILITIA, 25, 20));
             tick(recovery, sim, 180);
             assertTrue(recovery.found());
+            assertTrue(recovery.objectiveVisible(sim), "recovery marker survives the comms notice timeout");
             assertEquals(0, recovery.mechId(), "contested equipment cannot be commissioned");
             sim.takeOffTheField(raider);
             tick(recovery, sim, 100);
@@ -76,6 +77,7 @@ class WaylineHoundEvidenceTest {
             tick(recovery, sim, 51);
             long mech = recovery.mechId();
             assertNotEquals(0, mech);
+            assertFalse(recovery.objectiveVisible(sim), "completed recovery clears the objective");
             assertEquals(123f, sim.world().armor(mech), "activation cannot repair combat damage");
             assertFalse(sim.world().isAlive(recovery.frameId()));
             assertEquals(MechVariant.HOUND, sim.identity().mechVariant(mech));

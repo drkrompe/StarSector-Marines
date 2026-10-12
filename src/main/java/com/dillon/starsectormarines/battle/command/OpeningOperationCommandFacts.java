@@ -12,8 +12,15 @@ public record OpeningOperationCommandFacts(
         String placeName,
         int cellX,
         int cellY,
-        List<Place> depotStages) {
+        List<Place> depotStages, boolean warehouseCaptured) {
 
+    public OpeningOperationCommandFacts(OpeningOperationKind kind, String placeId, String placeName,
+                                        int cellX, int cellY, List<Place> depotStages) {
+        this(kind, placeId, placeName, cellX, cellY, depotStages, false);
+    }
+    public OpeningOperationCommandFacts withWarehouseCaptured(boolean captured) {
+        return new OpeningOperationCommandFacts(kind, placeId, placeName, cellX, cellY, depotStages, captured);
+    }
     public record Place(String name, int x, int y) {}
 
     public OpeningOperationCommandFacts(OpeningOperationKind kind, String placeId,
