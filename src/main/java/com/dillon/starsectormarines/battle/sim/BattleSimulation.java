@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.unit.DeadBodySystem;
 import com.dillon.starsectormarines.battle.warship.LanceSweep;
 import com.dillon.starsectormarines.battle.warship.LanceSweepSystem;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.tender.TenderSystem;
 import com.dillon.starsectormarines.battle.warship.WarshipSystem;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
@@ -539,6 +540,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final LanceSweepSystem lanceSweeps = new LanceSweepSystem();
     /** Capital ships hanging over the battle; each mount lays its weapon's rounds as ordinary detonations. */
     private final WarshipSystem warships = new WarshipSystem();
+    private final TenderSystem tenders = new TenderSystem();
     private final AirStrikeSystem airStrikeSystem =
             new AirStrikeSystem(Faction.DEFENDER);
     /** Flies the committed fighter wings as off-map sorties. Self-gating: an empty roster dispatches nothing. */
@@ -1624,6 +1626,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return warships;
     }
 
+    /** Drone tenders over the battle; their hulls are also among {@link #warships()}. */
+    public TenderSystem tenders() {
+        return tenders;
+    }
+
     /** Lance sweeps in progress, for presentation and evidence. */
     public LanceSweepSystem lanceSweeps() {
         return lanceSweeps;
@@ -2277,6 +2284,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // this pass depends on the ordering: a screen changes only cover,
         // which every reader samples live at the moment a round resolves.
         deployedCover.tick(TICK_DT, this);
+        // Tenders launch and recover their drones, fly to a site and stand its structure up.
+        tenders.tick(TICK_DT, this);
         closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);
