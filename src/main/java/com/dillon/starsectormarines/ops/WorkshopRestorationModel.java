@@ -73,13 +73,13 @@ public final class WorkshopRestorationModel {
                 };
                 case "progress" -> "graphics/ui/company/workshop-stage-" + Math.max(0, state.ordinal() - 1) + ".svg";
                 case "copy" -> switch (state) {
-                    case BURIED -> "There is a good shop under that wreckage. Clear it first; we can recover some metal and see what needs mending.";
-                    case CLEARED -> "The floor is ours again. Now we can restore the machines and turn spare machinery into useful metal.";
+                    case BURIED -> "That hatch stays shut. The yard can clear the fallen ribs and plate the breach. Then we can see what the machines need.";
+                    case CLEARED -> "The patch is holding and the floor is ours again. Now we can mend those broken machines and put this room back to work.";
                     case REPAIRED -> "She works. Give the hands proper tooling and they will waste fewer supplies keeping our boats and machines ready.";
                     default -> "A proper shop, built back by our own company. The tools stay here. Our boat and Mech Lab jobs now need fewer supplies.";
                 };
                 case "benefit" -> switch (state) {
-                    case BURIED -> "NEXT: Clear workspace. Recover 10 metals once; open the workshop hatch.";
+                    case BURIED -> "NEXT: Clear wreckage and seal the breach. Recover 10 metals once; reopen the workshop safely.";
                     case CLEARED -> "NEXT: Restore machinery. Unlock reclamation: 1 heavy machinery becomes 4 metals.";
                     case REPAIRED -> "NEXT: Install tooling. Boat and Mech Lab fabrication/fittings use 20% fewer supplies, rounded up.";
                     default -> "ACTIVE: Reclamation and 20% fewer supplies for boat and Mech Lab jobs. Other materials and pattern requirements stay the same.";

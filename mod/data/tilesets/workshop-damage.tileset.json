@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "workshop-damage.breach",
+      "row": 0
+    },
+    {
+      "col": 6,
+      "name": "workshop-damage.collapse",
+      "row": 0
+    },
+    {
+      "col": 11,
+      "name": "workshop-damage.lathe",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "workshop-damage.mill",
+      "row": 4
+    },
+    {
+      "col": 4,
+      "name": "workshop-damage.scorch",
+      "row": 4
+    },
+    {
+      "col": 9,
+      "name": "workshop-damage.patch",
+      "row": 4
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "workshop-damage.breach",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 6,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        3
+      ],
+      "id": "workshop-damage.collapse",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 11,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "workshop-damage.lathe",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0.65,
+      "col": 0,
+      "cover": "med",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "workshop-damage.mill",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 4,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "workshop-damage.scorch",
+      "row": 4
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        6,
+        4
+      ],
+      "id": "workshop-damage.patch",
+      "row": 4
+    }
+  ],
+  "sheet": "graphics/tilesets/workshop-damage.png"
+}

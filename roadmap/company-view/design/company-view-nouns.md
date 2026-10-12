@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-10-12 - machine-shop restoration and installed-tool fabrication benefits.
+Updated: 2026-10-12 - workshop clearance seals the breach before reopening the compartment.
 
 ## Purpose
 
@@ -1120,7 +1120,8 @@ Repair opens an empty berth; the second Hermes still requires its ordinary fabri
 bill. This spending is optional and does not gate subsequent missions.
 
 The same hull's machine shop has a three-step restoration chain after Relief.
-Clearance costs 750 credits and recovers 10 metals once; machinery repair costs
+Clearance costs 750 credits, includes a pressure patch before the hatch reopens,
+and recovers 10 metals once; machinery repair costs
 3,000 and enables reclamation of one fleet-cargo heavy machinery into four
 metals; installed tooling costs 4,500 and reduces supplies inputs for Boat Deck
 and Mech Lab fabrication/fitting by 20%, rounded up with a minimum of one per
