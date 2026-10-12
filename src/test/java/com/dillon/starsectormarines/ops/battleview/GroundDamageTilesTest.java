@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.tools.tilesetauthoring.GroundDamageReskinTemplate;
 import org.json.JSONObject;
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import javax.imageio.ImageIO;
 import java.nio.file.Path;
@@ -13,6 +15,7 @@ class GroundDamageTilesTest {
     @Test void materialPairsResolveOnlyOnDamagedFloorsAndPreserveThePerimeter() throws Exception {
         TileRegistry registry = TileRegistry.installed();
         CellTopology topology = new CellTopology(2, 2);
+        topology.setGroundKind(0,0,CellTopology.GroundKind.INDOOR);
         var atlas = ImageIO.read(Path.of("mod/graphics/tilesets/colony-ground-damage.png").toFile());
         for (String material : GroundDamageReskinTemplate.MATERIALS) {
             topology.setSurface(0, 0, topology.surfaceIndex("colony." + material));
@@ -40,7 +43,53 @@ class GroundDamageTilesTest {
         assertNull(GroundDamageTiles.skin(registry, topology, 0, 0));
         topology.setGroundKind(0, 0, CellTopology.GroundKind.INDOOR);
         topology.setSurface(0, 0, topology.surfaceIndex("urban.floor"));
-        assertNull(GroundDamageTiles.skin(registry, topology, 0, 0), "unpaired art keeps its old rendering");
+        assertEquals("terrain.blast-metal",GroundDamageTiles.skin(registry, topology, 0, 0).id);
+    }
+
+    @Test void ordinaryGroundHasAftermathAndExplicitMaterialPairsWin() {
+        TileRegistry registry = TileRegistry.installed();
+        CellTopology topology = new CellTopology(1,1);
+        topology.setTag(0,0,CellTopology.Tag.GROUND_DAMAGED,true);
+        for (var kind : CellTopology.GroundKind.values()) {
+            topology.setGroundKind(0,0,kind);
+            var skin = GroundDamageTiles.skin(registry,topology,0,0);
+            if (kind == CellTopology.GroundKind.VOID || kind == CellTopology.GroundKind.WATER
+                    || kind == CellTopology.GroundKind.RUBBLE) assertNull(skin,kind.name());
+            else assertNotNull(skin,kind.name());
+        }
+        topology.setGroundKind(0,0,CellTopology.GroundKind.INDOOR);
+        topology.setSurface(0,0,topology.surfaceIndex("road.vent"));
+        assertEquals("terrain.blast-metal",GroundDamageTiles.skin(registry,topology,0,0).id);
+        topology.setSurface(0,0,topology.surfaceIndex("colony.timber"));
+        assertEquals("colony.timber-damage",GroundDamageTiles.skin(registry,topology,0,0).id);
+    }
+
+    @Test void defaultDamageMappingRejectsCollisionsMissingAssetsAndConnectedLayouts() throws Exception {
+        GenMappingRegistry mapping = new GenMappingRegistry();
+        mapping.ingest(new JSONObject("{groundDamage:{GRASS:'terrain.blast-earth'}}"));
+        mapping.validateReferences();
+        assertThrows(JSONException.class,
+                () -> mapping.ingest(new JSONObject("{groundDamage:{GRASS:'terrain.blast-paving'}}")));
+        for (String id : new String[]{"missing.damage","urban.wall"}) {
+            GenMappingRegistry broken = new GenMappingRegistry();
+            broken.ingest(new JSONObject("{groundDamage:{GRASS:'"+id+"'}}"));
+            assertThrows(IllegalStateException.class,broken::validateReferences);
+        }
+    }
+
+    @Test void blastVariantsLeaveCellBoundariesAndCornersTransparent() throws Exception {
+        var atlas = ImageIO.read(Path.of("mod/graphics/tilesets/terrain-blast.png").toFile());
+        for (String family : new String[]{"earth","paving","metal"}) {
+            var block = TileRegistry.installed().block("terrain.blast-"+family);
+            assertEquals(4,block.cells.length);
+            for (int[] cell : block.cells) {
+                for (int y=0;y<64;y++) for(int x=0;x<64;x++) {
+                    if (x<3 || y<3 || x>=61 || y>=61)
+                        assertTrue((atlas.getRGB(cell[0]*64+x,cell[1]*64+y)>>>24)<=4,
+                                family+" scar must not create a square tile boundary");
+                }
+            }
+        }
     }
 
     @Test void damagePairRejectsMissingAndTopologyDependentBlocks() throws Exception {

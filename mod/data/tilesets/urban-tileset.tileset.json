@@ -10,6 +10,7 @@
       ]
     },
     {
+      "damageBlock": "terrain.blast-metal",
       "id": "urban.floor",
       "layout": "floor-3x3",
       "origin": [
