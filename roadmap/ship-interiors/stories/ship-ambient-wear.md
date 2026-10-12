@@ -2,14 +2,15 @@
 
 Status: IMPLEMENTED -- construction evidence ready; live visual acceptance open.
 Written: 2026-10-12
-Updated: 2026-10-12 -- persistent wear and condition-driven deck lighting.
+Updated: 2026-10-12 -- emergency lighting has shorter amber pools and deeper gaps; repaired circuits restore broader coverage.
 
 ## Scope
 
 Make Second Wind read as a used vessel under restoration. Sparse scuffs, old
 welded plates, paint loss and scorch scars persist across room repairs. Working
 compartments carry steady lights; damaged workshop/bay rooms use amber emergency
-fixtures with occasional local dips. Repairs return those fixtures to steady
+fixtures with occasional local dips, short warm pools and deep readable shadows.
+Repairs return those fixtures to broader, steady
 light without moving rooms or erasing the hull's history.
 
 The model belongs to `ship-interiors-nouns.md`. Existing restoration orders own
