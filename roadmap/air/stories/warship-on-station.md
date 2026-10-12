@@ -4,7 +4,7 @@ Status: PLANNED
 
 Written: 2026-10-11
 
-Updated: 2026-10-11 — Onslaught first (Hegemony, shells and rockets); Paragon and the lance sweep follow.
+Updated: 2026-10-11 — flux shipped as the fire-rate governor; readiness and shields recorded as deliberately open.
 
 Read `air-nouns.md` (**Overhead ships**), `ballistics-nouns.md`,
 `combat-durability-nouns.md`, `command-powers-nouns.md` and
@@ -66,6 +66,30 @@ and 004) are the *sweep*: slow, enormous, and not survivable by standing still.
    acceptance is the `warship-budget` scene. Whether stock ground weapons should be
    able to reach a hull at all, rather than only scripted or heavy ordnance, is a
    balance question for the mission that fields a counter.
+
+10. **Flux (shipped).** Hull `max flux` / `flux dissipation` and weapon
+    `energy/shot` / `energy/second` drive one pool per ship: soft threshold
+    (stop starting fire at 85%, resume at 55%), overload (4-10 s total silence),
+    point defence on the same pool, `fluxScale`, off by default, debug toggle
+    (briefing row and F8) with a status-line readout. Acceptance is the
+    `onslaught-flux` scene. Standing rule lives in `air-nouns.md`.
+
+## Owner direction: overpowered by design
+
+These ships are not balanced in battle. They are gated in the world by
+role-play context (diplomacy with the local government, the fleet being busy with
+hostile fleets) and later by the player choosing compatible fleet ships for
+compatible missions. In-battle limits are rhythm and legibility, never a damage
+nerf, and a command-power commitment is not wanted until general ship support
+exists.
+
+## Open
+
+- **Readiness (combat readiness).** Deferred until fleet ship support exists:
+  without a fleet to draw from, a readiness cost has nothing to be spent from, and
+  the world-level gating above already does that job.
+- **Shields.** Deferred for the same reason; a shield would be a second pool beside
+  flux and has no counterplay story until ship-to-ship combat exists.
 
 ## Fitting from a fleet member (shipped) and the flagship hand-off
 
