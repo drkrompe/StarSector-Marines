@@ -1,4 +1,4 @@
-<template props="later,resume,continueAction">
+<template props="continueAction">
   <div id="preparation-overlay" class="preparation-overlay">
     <div id="preparation-shade" class="preparation-shade"></div>
     <div id="preparation-callout" class="preparation-callout">
@@ -12,11 +12,9 @@
       </div>
       <div id="preparation-copy" class="preparation-copy"></div>
       <div id="preparation-actions" class="preparation-actions">
-        <button id="preparation-later" class="preparation-button" onclick="{later}">LATER</button>
         <button id="preparation-continue" class="preparation-button" onclick="{continueAction}">CONTINUE</button>
       </div>
     </div>
-    <button id="preparation-resume" class="preparation-resume" onclick="{resume}">CASTLE'S LESSON</button>
   </div>
 </template>
 <style>
@@ -31,6 +29,5 @@
   .preparation-copy { height: 0px; flex-grow: 1; white-space: normal; overflow: scroll; }
   .preparation-actions { flex-direction: row; height: 32px; gap: 10px; }
   .preparation-button { width: 140px; height: 30px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
-  .preparation-resume { position: absolute; left: 20px; top: 70px; width: 176px; height: 32px; border-width: 1px; border-color: #dfc588; background-color: #202d28; pointer-events: auto; }
   .preparation-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; gap: 0px; overflow: hidden; opacity: 0; pointer-events: none; }
 </style>
