@@ -39,8 +39,8 @@ Run from a real campaign at 1920x1080 and 100% UI scale:
   retaining prior payments and site. Load an already active Relay battle: its old
   attempt settles once, then either outcome advances to Thunder Run. Existing
   freight receipts and completed recurring access must survive.
-- Re-record the changed Thunder Run briefing before enabling its voice again;
-  the current text follows Junction and the retired relay-introduction audio is disabled.
+- Audition the revised Thunder Run briefing in the live mix; it should introduce
+  the open junction and match the displayed convoy terms.
 - Thunder Run: clear the three road sites, observe the two staging stops and final
   road ambush, and escort surviving carriers through the exit. Withdraw after a
   delivery, save/reload, then verify only unresolved cargo retries. Cargo lost on
