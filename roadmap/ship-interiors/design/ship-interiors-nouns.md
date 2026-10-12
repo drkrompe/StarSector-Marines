@@ -1269,6 +1269,16 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     Structural shell cells receive that material even where vacuum remains
     beneath them. Open vacuum never receives a floor through this material pass.
 
+    Floor identity follows use within that common shell. Passages have a darker
+    nonslip surface; lounge seating gathers on broad muted insets; clinical
+    spaces distinguish the stretcher aisle from the bed banks; engineering
+    separates machinery pads and service approaches from the working floor.
+    These regions follow the room's pose with its furniture. Architectural
+    trim follows existing wall edges, material boundaries and hatch jambs.
+    Ribs remain on structural cells, while flush floor accents remain
+    traversable and beneath furniture. Neither trim nor a floor boundary
+    creates a physical barrier, new job, or facility capacity.
+
     A bulkhead is one cell thick with open deck on both sides, which is not
     what the wall autotile was built for. A building's interior wall sits under
     a roof and is never seen, so a wall with no exterior face resolves to the

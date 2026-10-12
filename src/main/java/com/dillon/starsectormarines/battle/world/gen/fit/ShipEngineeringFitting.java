@@ -29,10 +29,15 @@ public final class ShipEngineeringFitting implements RoomFitting {
         reserve(floor, 0, 0, 1, h); reserve(floor, w-1, 0, 1, h);
         for (Doorway door : floor.localDoors())
             floor.reserveLane(door.x()-1, door.y()-1, 3, 3);
+        paint(floor, 0, 0, w, h, "engineering");
         if (drive) drive(floor); else auxiliary(floor);
     }
 
     private void drive(RoomFloor floor) {
+        paint(floor, 1, 2, 22, 7, "service-pad");
+        paint(floor, 1, 11, 22, 5, "service-pad");
+        paint(floor, 1, 9, 22, 2, "service-aisle");
+        paint(floor, 1, 18, 22, 3, "service-aisle");
         reserve(floor, 0, 9, 24, 3);
         reserve(floor, 0, 16, 24, 2);
         if (put(floor, 3, 3, "drive-train")) {
@@ -49,6 +54,10 @@ public final class ShipEngineeringFitting implements RoomFitting {
     }
 
     private void auxiliary(RoomFloor floor) {
+        paint(floor, 1, 1, 7, 5, "service-pad");
+        paint(floor, 11, 1, 7, 5, "service-pad");
+        paint(floor, 1, 6, 18, 2, "service-aisle");
+        paint(floor, 1, 9, 18, 4, "service-aisle");
         reserve(floor, 0, 6, 20, 2);
         reserve(floor, 9, 0, 2, 8);
         if (put(floor, 2, 2, "cooling")) task(floor, 4, 6, 4, 5, Affordance.REPAIR);
@@ -76,6 +85,11 @@ public final class ShipEngineeringFitting implements RoomFitting {
         int[] stand = floor.toLocal(x, y), fixture = floor.toLocal(fx, fy);
         floor.fixtureTask(stand[0], stand[1], work, fixture[0], fixture[1]);
     }
+    private void paint(RoomFloor floor, int x, int y, int w, int h, String material) {
+        int[] r = floor.toLocalRect(x, y, w, h);
+        floor.markFloorSurface(r[0], r[1], r[2], r[3], "ship-floor-trim." + material);
+    }
+
     private void reserve(RoomFloor floor, int x, int y, int w, int h) {
         int[] rect = floor.toLocalRect(x, y, w, h);
         floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
