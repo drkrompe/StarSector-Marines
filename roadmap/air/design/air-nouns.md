@@ -794,7 +794,10 @@ second and a beam nearly twice that; a clip per round is not a louder gun, it is
 wall of overlapping voices in which nothing else in the battle can be heard.
 Fire cues are thinned to a cadence that reads as a burst, and the beam — which
 is one continuous sound rather than a series of events — is a held loop left to
-lapse when the firing stops.
+lapse when the firing stops. A warship's lance follows the same rule: its
+`fireSoundOne` sounds once as the sweep lights, and its `fireSoundTwo` is
+re-requested at the beam's tip on every tick the sweep burns (a weapon naming
+only the second has no separate loop and keeps its single report).
 
 Every clip is one of the base game's own mono weapon files, registered under our
 own id against the read-only install rather than copied, the same way the
