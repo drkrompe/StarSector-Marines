@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.VehicleCorridor;
 import com.dillon.starsectormarines.battle.nav.Direction;
@@ -160,6 +161,7 @@ public final class FortressWallStamper implements GenStage {
                 compoundExclusion, w, h);
         sealOrphanedPockets(grid, topology, ctx.tactical, w, h);
         dropBunkersWithoutWindows(grid, ctx.tactical, axis);
+        InstallationWalls.perimeter(ctx, wallMask);
     }
 
     /**

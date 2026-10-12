@@ -705,6 +705,18 @@ Frozen ground accepts the same defense footprints as other walkable outdoor
 ground; changing a margin's surface must not reroll emplacements and later
 spawn choices.
 
+Installation shells also own a material identity: accommodation uses masonry,
+command and clinical rooms use ceramic, and service buildings and perimeter
+fortifications use olive structural panels. The identity follows the actual
+packed wall ring after apertures and fittings, preserving floor, fixture and
+doorway surfaces. Shared walls retain one material. These are ordinary combat
+walls with connected caps, paired opening trim and material-matched rubble;
+changing their skin does not create a prop or alter collision. Finalization
+supplies missing wall strength only; it must preserve a fortification's
+authored durability rather than flattening reinforced walls to the default.
+Turret mounts are non-structural fixtures: entity destruction releases them,
+and wall damage cannot bypass the turret's own durability.
+
 Open country includes the thin scraps between a precinct's claim and its
 surroundings. A minimum-sized nature rectangle cannot cover them all, so the
 unclaimed, unroaded ground receives its planet's base before larger nature
