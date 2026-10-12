@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,6 +34,48 @@ class ShipDutyWatchTest {
         assertEquals(12.5f, posts.get(1).route().stops().get(0).worldX());
         assertTrue(posts.stream().allMatch(post -> post.route().stops().size() == 1));
         assertEquals(0, ShipDutyWatch.plan(List.of(bridge), tasks, null, 0).size());
+    }
+
+    @Test void sideBanksUseExistingDutyBudgetWithoutTakingEngineeringOrGuard() {
+        var bridge = room(0, RoomPurpose.BRIDGE);
+        var engine = room(1, RoomPurpose.ENGINE_ROOM);
+        var ward = room(2, RoomPurpose.PATIENT_WARD);
+        var mess = room(3, RoomPurpose.MESS_HALL);
+        var armory = room(4, RoomPurpose.ARMORY);
+        // Authored order: plot, helm, systems, west, east, then second seats.
+        var tasks = new ArrayList<FixtureTask>();
+        for (int x = 0; x < 7; x++) tasks.add(FixtureTask.at(x, 2, Affordance.WATCH, x, 3));
+        tasks.add(FixtureTask.at(1, 0, Affordance.GUARD, 0, -1));
+        tasks.add(FixtureTask.at(11, 1, Affordance.TEND, 11, 2));
+        tasks.add(FixtureTask.at(12, 1, Affordance.TEND, 12, 2));
+        tasks.add(FixtureTask.at(21, 1, Affordance.TREAT, 21, 2));
+        tasks.add(FixtureTask.at(31, 1, Affordance.COOK, 31, 2));
+        tasks.add(FixtureTask.at(41, 1, Affordance.ISSUE, 41, 2));
+        var rooms = List.of(ward, armory, engine, bridge, mess);
+        for (int budget = 0; budget <= 10; budget++) {
+            var posts = ShipDutyWatch.plan(rooms, tasks, null, budget);
+            assertEquals(budget, posts.size());
+            assertEquals(budget, posts.stream().map(post -> post.route().id()).distinct().count());
+            if (budget >= 6) {
+                assertEquals(2, posts.stream().filter(post -> post.role() == CrewRole.ENGINE_WATCH).count());
+                assertEquals(1, posts.stream().filter(post -> post.role() == CrewRole.SECURITY).count());
+            }
+            if (budget >= 8) {
+                var conn = posts.stream().filter(post -> post.role() == CrewRole.BRIDGE_WATCH).toList();
+                assertEquals(List.of(.5f, 1.5f, 2.5f, 3.5f, 4.5f),
+                        conn.stream().map(post -> post.route().stops().get(0).worldX()).toList());
+                assertTrue(conn.stream().allMatch(post -> post.route().stops().size() == 1));
+            }
+        }
+        var full = ShipDutyWatch.plan(rooms, tasks, null, 10);
+        assertEquals(CrewRole.MEDIC, full.get(8).role());
+        assertEquals(CrewRole.COOK, full.get(9).role());
+        // A missing first side station must not prevent other live work from being staffed.
+        tasks.set(3, tasks.get(3).wrecked());
+        var damaged = ShipDutyWatch.plan(rooms, tasks, null, 10);
+        assertEquals(10, damaged.size());
+        assertTrue(damaged.stream().filter(post -> post.role() == CrewRole.BRIDGE_WATCH)
+                .noneMatch(post -> post.route().stops().get(0).worldX() == 3.5f));
     }
 
     @Test void brokenFixturesAndEmptyBerthsDoNotCreateDutyCrew() {
