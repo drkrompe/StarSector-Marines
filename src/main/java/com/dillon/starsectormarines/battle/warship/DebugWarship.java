@@ -187,10 +187,12 @@ public final class DebugWarship {
 
     private static String describe(Warship ship) {
         String source = ship.isDirected() ? "director " : "";
-        WarshipOrder order = ship.order();
-        if (order instanceof WarshipOrder.FireOnArea area) {
-            return String.format(Locale.ROOT, "%sFireOnArea(%.0f,%.0f r%.0f)", source, area.x(), area.y(), area.radius());
+        if (ship.areas().isEmpty()) return source + "HoldFire";
+        StringBuilder out = new StringBuilder(source);
+        for (WarshipOrder.FireOnArea area : ship.areas()) {
+            if (out.length() > source.length()) out.append(" + ");
+            out.append(String.format(Locale.ROOT, "FireOnArea(%.0f,%.0f r%.0f)", area.x(), area.y(), area.radius()));
         }
-        return source + "HoldFire";
+        return out.toString();
     }
 }
