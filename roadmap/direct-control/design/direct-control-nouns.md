@@ -1,12 +1,13 @@
 # Direct control nouns
 
-Status: ACTIVE — Marine, Mech, and deployed APC control are implemented; live acceptance remains open.
+Status: ACTIVE — Marine, Mech, deployed APC, and friendly Warship control are implemented; live acceptance remains open.
 
 Written: 2026-09-23
 
-Updated: 2026-10-11 — the takeover shortcut is a compact contextual action beside eligible selection details.
+Updated: 2026-10-12 — a friendly Warship is a fourth carrier: it lays areas for its batteries rather than aiming a barrel.
 
-Direct control lets the player temporarily inhabit one of their ground units in
+Direct control lets the player temporarily inhabit one of their ground units, or a
+friendly capital hovering over the battle, in
 the Marine Operations battle. It changes who supplies that body's movement and
 fire intent; it does not turn the player into a second mission commander.
 
@@ -165,7 +166,7 @@ Wheel zoom remains available, reaching twice the former close-up limit in
 strategic and action views. Action zoom preserves the body’s screen framing;
 strategic zoom retains its cursor anchor. Camera projection remains shared
 with point aiming and the crosshair. Right-click issues no world order while
-controlling.
+controlling; a Warship reads it as its second trigger (see Warship carrier).
 
 The mode is a freely entered one-unit intervention. It consumes
 the player's attention and excludes simultaneous control of another body.
@@ -386,6 +387,68 @@ indirect missiles, need their own ground-point targeting contract before they ca
 triggered manually. Mech mounts also retain their
 hardpoint arcs and per-mount clocks; a vehicle turret retains its independent
 aim and fire authority.
+
+## Warship carrier
+
+A friendly capital over the battle (see `air-nouns.md` and `warship-behaviours.md`) is a
+fourth carrier of the same session, not a second input mode. It is not a roster body and
+has no entity identity; the session holds the hull itself, and selection offers it the
+same compact enter/exit action. A click on the hull selects it only where no unit was
+under the cursor, since it hovers over the fight. Only a live hull on the player's side
+that is not departing may be entered. Entry is refused while any other carrier is held,
+and a hull destroyed, departing, or removed from the battle releases control at the next
+validation. A mission-bounded ship that runs out of station time departs and releases.
+
+Vocabulary. A **laid area** is a ground circle the pilot has put on one battery of the
+ship (`FireOnArea`, ten cells, bring guns to bear). The **gun battery** is every
+area-fire mount that is not a missile, lances included; the **missile battery** is the
+missile mounts. Point defence belongs to neither: it keeps shooting at the air under
+the ship's own rules. A laid area stands in for the ship's own held areas for its
+battery only; a battery with nothing laid keeps whatever the ship holds. A pilot's
+area is a hand order for its battery, so a posture's range and battery limits do not
+refuse it, but it is never exempt from the physical pipeline: flux, ordnance,
+traverse, arc, reach, shields, armour, point defence, spread, and friendly fire all
+stay the ship's. The telegraph ring turns red when a round aimed at hostiles inside it
+would reach a friendly.
+
+Input. WASD supplies travel demand in world axes; the mouse is the aim point. The left
+button, held, lays the gun area at the cursor and drags it with the cursor; the right
+button does the same for the missile area. Letting go leaves the area where it was
+laid, so the ship keeps firing until the pilot takes it back. Ground the player has not
+observed, or off the map, is not laid: the fog rule is the aim lane's, so shelling cannot
+scout. Number keys are commands rather than weapon choices: 1 holds fire (lays nothing,
+drops the director's ground, stops the director), 2 hands targeting to the ship's own
+director or takes it back, 3 steps the missile preset, 4 steps the ground-fire policy
+(all, heavy only, none). E raises or drops the shield, leaving its automatic mode, on a
+hull that has one. The policy was chosen over the flux toggle for key 4 because turning
+flux off would be free ammunition; the policy only withholds fire. Tab and Escape are
+unchanged, strategic chrome hides as for the other carriers, and pause, chrome and
+lost focus zero the drive demand without dropping ground already laid.
+
+Flight. The hull accelerates toward the demanded velocity at its own acceleration,
+brakes at its own deceleration when nothing is demanded, never exceeds its table
+speed, and is stopped by the map edge; it does not teleport. It points along its travel
+while the pilot asks for travel. Stopped with ground laid, it swings at its own turn
+rate to the heading that brings the most firepower onto that ground and holds it.
+
+Authority and handback. Entry stands down the ship's own targeting and station-keeping:
+its director, held ground, route or station, ground-fire policy and shield mode are
+remembered, the director is off, and its doctrine stops assessing until release. Handback
+restores exactly those, discards every laid area and any order the pilot gave, zeroes
+the drive demand, and flies the hull back to its station if it had one. A hull that was
+manually ordered keeps that order. The missile preset is a setting of the ship rather
+than an order and stays as the pilot left it. Switching the director on for a ship that
+was never on flux puts it on its hull's flux, as it would any directed ship.
+
+The equipment strip shows hull above armour, the flux gauge in the heat row, and
+read-only cards for the gun battery, lances, missile battery, point defence, shield and
+the automation (director, missile preset, ground-fire policy), each with its laid area
+or a no-area/auto note and a readiness fill. Armour is a rating in this model and is
+never spent down, so its line is shown whole. The camera frames the hull by its beam so
+the cursor can lead beyond the bow. The hull outline, the two laid rings and a
+crosshair are drawn in the world; there is no aim lane, since a ship fires on ground
+and not along a line. The F6-F11 debug keys of the debug mission still work outside
+control and are hidden during it.
 
 ## Boundaries
 

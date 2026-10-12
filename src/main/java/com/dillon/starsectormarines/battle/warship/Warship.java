@@ -8,6 +8,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -70,7 +71,35 @@ public final class Warship {
         public boolean pointDefence() {
             return weapon.pointDefenceOnly();
         }
+
+        /** Which battery a pilot lays this mount's area with: missiles apart, every other area-fire gun (lances included) together. */
+        public FireGroup group() {
+            return weapon.missile() ? FireGroup.MISSILES : FireGroup.GUNS;
+        }
+
+        /** Whether this is a beam strong enough to cut ground; weaker beams are anti-ship and silent against it. */
+        public boolean lance() {
+            return weapon.beam() && weapon.damagePerSecond() >= WarshipSystem.LANCE_MIN_DPS;
+        }
+
+        /** Seconds until the mount may start another burst; zero or less when it is ready. */
+        public float cooldownSeconds() {
+            return cooldown;
+        }
+
+        /** Rounds left in the burst under way. */
+        public int burstRemaining() {
+            return burstRemaining;
+        }
+
+        /** Whether a lance sweep is committed and still lasting. */
+        public boolean sweeping() {
+            return lance != null;
+        }
     }
+
+    /** The two batteries a pilot lays areas for. Point defence is neither: it shoots at the air on its own. */
+    public enum FireGroup { GUNS, MISSILES }
 
     /** A hit whose strength is under this share of the armour glances off and does nothing. */
     static final float GLANCE_SHARE = 0.1f;
@@ -140,7 +169,11 @@ public final class Warship {
     private boolean manual;
     private final List<Held> held = new ArrayList<>();
     private final List<WarshipOrder.FireOnArea> areasView = new ArrayList<>();
-    private final List<WarshipOrder.FireOnArea> areasReadOnly = Collections.unmodifiableList(areasView);
+    private final List<WarshipOrder.FireOnArea> allAreas = new ArrayList<>();
+    private final List<WarshipOrder.FireOnArea> areasReadOnly = Collections.unmodifiableList(allAreas);
+    /** Areas a pilot has laid, one per battery; each stands in for the held areas for its own battery only. */
+    private final EnumMap<FireGroup, WarshipOrder.FireOnArea> laid = new EnumMap<>(FireGroup.class);
+    private final EnumMap<FireGroup, List<WarshipOrder.FireOnArea>> laidLists = new EnumMap<>(FireGroup.class);
     float retrySeconds;
     /** Rotates the areas the mounts are dealt, so a battery spreads over all of them. */
     int dealCounter;
@@ -473,7 +506,7 @@ public final class Warship {
         return ready;
     }
 
-    /** Every area the ship is firing on now, densest first; empty when it holds fire. */
+    /** Every area the ship is firing on now, densest first, then any a pilot laid; empty when it holds fire. */
     public List<WarshipOrder.FireOnArea> areas() {
         return areasReadOnly;
     }
@@ -499,6 +532,9 @@ public final class Warship {
     private void refreshAreas() {
         areasView.clear();
         for (Held h : held) areasView.add(h.area);
+        allAreas.clear();
+        allAreas.addAll(areasView);
+        allAreas.addAll(laid.values());
     }
 
     List<Held> held() {
@@ -532,7 +568,82 @@ public final class Warship {
     /** Whether {@code (px, py)} lies in any area the ship holds. */
     boolean holdsGround(float px, float py) {
         for (Held h : held) if (h.area.contains(px, py)) return true;
+        for (WarshipOrder.FireOnArea a : laid.values()) if (a.contains(px, py)) return true;
         return false;
+    }
+
+    /** Whether {@code (px, py)} lies in an area {@code m} may be dealt: its battery's laid one, else any the ship holds. */
+    boolean holdsGround(Mount m, float px, float py) {
+        for (WarshipOrder.FireOnArea a : areasFor(m)) if (a.contains(px, py)) return true;
+        return false;
+    }
+
+    /**
+     * The areas {@code m} is dealt from. A pilot's laid area for the mount's battery
+     * stands alone for it; a battery with none uses the areas the ship holds.
+     */
+    List<WarshipOrder.FireOnArea> areasFor(Mount m) {
+        if (laid.isEmpty()) return areasView;
+        List<WarshipOrder.FireOnArea> own = laidLists.get(m.group());
+        return own != null ? own : areasView;
+    }
+
+    /**
+     * Whether the ship's own limits on directed fire (a posture's range and battery
+     * limit) do not apply to what {@code m} is aimed at: the ship was ordered onto
+     * the ground by hand, or a pilot laid it.
+     */
+    boolean exempt(Mount m, float px, float py) {
+        if (manual) return true;
+        WarshipOrder.FireOnArea own = laid.get(m.group());
+        return own != null && own.contains(px, py);
+    }
+
+    /** Whether {@code area} is one a pilot laid. */
+    boolean isLaid(WarshipOrder.FireOnArea area) {
+        for (WarshipOrder.FireOnArea a : laid.values()) if (a == area) return true;
+        return false;
+    }
+
+    /** The area a pilot has laid for {@code group}, or {@code null}. */
+    public WarshipOrder.FireOnArea laidArea(FireGroup group) {
+        return laid.get(group);
+    }
+
+    /** A laid area moved more than this far asks the hull to choose its heading again. */
+    static final float REHEADING_CELLS = 3f;
+
+    /**
+     * Lays {@code area} for {@code group}, replacing that battery's earlier one and nothing
+     * else. A pilot's area is a hand order for its battery: never refused for a posture's
+     * range or a friendly in the blast.
+     */
+    public void layArea(FireGroup group, WarshipOrder.FireOnArea area) {
+        if (group == null || area == null) throw new IllegalArgumentException("lay an area for a battery");
+        WarshipOrder.FireOnArea before = laid.put(group, area);
+        laidLists.put(group, List.of(area));
+        if (before == null || Math.hypot(before.x() - area.x(), before.y() - area.y()) > REHEADING_CELLS) {
+            headingChosen = false;
+        }
+        refreshAreas();
+    }
+
+    /** Takes back the area laid for {@code group}; its battery goes back to the areas the ship holds. */
+    public void clearLaidArea(FireGroup group) {
+        if (laid.remove(group) == null) return;
+        laidLists.remove(group);
+        refreshAreas();
+        headingChosen = false;
+        for (Mount mount : mounts) {
+            if (mount.pointDefence() || mount.group() != group) continue;
+            mount.aimed = false;
+            mount.burstRemaining = 0;
+        }
+    }
+
+    /** Takes back every area a pilot laid. */
+    public void clearLaidAreas() {
+        for (FireGroup g : FireGroup.values()) clearLaidArea(g);
     }
 
     public float hitPoints() {
@@ -594,6 +705,10 @@ public final class Warship {
 
     boolean headingChosen() {
         return headingChosen;
+    }
+
+    void forgetHeadingChoice() {
+        headingChosen = false;
     }
 
     void markHeadingChosen() {
@@ -722,6 +837,7 @@ public final class Warship {
 
     /** Begins leaving: no order, no director, and every burst in progress is abandoned. */
     void beginDeparture() {
+        releaseHelm();
         departing = true;
         stationSecondsRemaining = 0f;
         directing = false;
@@ -776,6 +892,164 @@ public final class Warship {
     void spendOrdnance(Mount m) {
         if (ordnanceRemaining > 0) ordnanceRemaining--;
         if (m.ammoRemaining > 0) m.ammoRemaining--;
+    }
+
+    // ---- the helm: what a pilot takes over and what is given back ---------------------------------------
+
+    /** What the ship was doing on its own when a pilot took the helm, to be given back when the pilot lets go. */
+    private record Autonomy(boolean directing, float directorRadius, boolean directorBringsGunsToBear,
+                            int directorMaxAreas, List<Held> held, boolean manual,
+                            boolean hasStation, float stationX, float stationY,
+                            float[][] route, int routeIndex, boolean routeLoops,
+                            GroundFire groundFire, boolean shieldAuto, boolean shieldUp) {}
+
+    private Autonomy autonomy;
+    private float pilotMoveX;
+    private float pilotMoveY;
+
+    /** Whether a pilot has the helm: the hull goes where it is flown and the pilot lays the areas. */
+    public boolean piloted() {
+        return autonomy != null;
+    }
+
+    /**
+     * Hands the hull to a pilot. What the ship was doing on its own (its director,
+     * the ground it held, its station or route, its fire policy and shield mode)
+     * is remembered and given back by {@link #releaseHelm}; meanwhile the doctrine
+     * stands still and the station does not pull the hull. The flux, ordnance,
+     * shield, armour and point defence stay the ship's own.
+     */
+    public void takeHelm() {
+        if (autonomy != null) return;
+        autonomy = new Autonomy(directing, directorRadius, directorBringsGunsToBear, directorMaxAreas,
+                new ArrayList<>(held), manual, hasStation, stationX, stationY,
+                route == null ? null : route.clone(), routeIndex, routeLoops,
+                groundFire, shield.auto(), shieldUp());
+        // The pilot's hands replace the ship's own targeting and station-keeping until the pilot
+        // chooses to hand targeting back (the director key) or lets go of the helm.
+        route = null;
+        hasStation = false;
+        directing = false;
+        manual = false;
+        held.clear();
+        refreshAreas();
+        pilotMoveX = 0f;
+        pilotMoveY = 0f;
+        headingChosen = false;
+        dropAims();
+    }
+
+    /**
+     * Gives the ship back to itself as it was when {@link #takeHelm} found it: no area a
+     * pilot laid survives, and no hand order the pilot gave either. The hull flies back to
+     * its station if it had one. The missile preset is a setting of the ship, not an order,
+     * and stays as the pilot left it.
+     */
+    public void releaseHelm() {
+        Autonomy a = autonomy;
+        if (a == null) return;
+        autonomy = null;
+        pilotMoveX = 0f;
+        pilotMoveY = 0f;
+        laid.clear();
+        laidLists.clear();
+        held.clear();
+        held.addAll(a.held());
+        manual = a.manual();
+        directing = a.directing();
+        directorRadius = a.directorRadius();
+        directorBringsGunsToBear = a.directorBringsGunsToBear();
+        directorMaxAreas = a.directorMaxAreas();
+        retrySeconds = Float.MAX_VALUE;
+        route = a.route();
+        routeIndex = a.routeIndex();
+        routeLoops = a.routeLoops();
+        hasStation = a.hasStation();
+        stationX = a.stationX();
+        stationY = a.stationY();
+        refreshAreas();
+        headingChosen = false;
+        groundFire(a.groundFire());
+        if (a.shieldAuto()) shield.auto(true);
+        else shield.raise(a.shieldUp());
+        dropAims();
+    }
+
+    private void dropAims() {
+        for (Mount m : mounts) {
+            if (m.pointDefence()) continue;
+            m.aimed = false;
+            m.burstRemaining = 0;
+        }
+    }
+
+    /** Whether the ship carries any area-fire mount of {@code group}; a pilot has nothing to lay for a battery it lacks. */
+    public boolean hasBattery(FireGroup group) {
+        for (Mount m : mounts) if (!m.pointDefence() && m.group() == group) return true;
+        return false;
+    }
+
+    /** The pilot's drive demand: world-axis travel in [-1, 1]; a longer vector is brought back to unit length. */
+    public void pilotMove(float moveX, float moveY) {
+        float x = Float.isFinite(moveX) ? moveX : 0f;
+        float y = Float.isFinite(moveY) ? moveY : 0f;
+        float len = (float) Math.sqrt(x * x + y * y);
+        if (len > 1f) {
+            x /= len;
+            y /= len;
+        }
+        pilotMoveX = x;
+        pilotMoveY = y;
+    }
+
+    float pilotMoveX() {
+        return pilotMoveX;
+    }
+
+    float pilotMoveY() {
+        return pilotMoveY;
+    }
+
+    /** Whether the pilot is asking the hull to travel. */
+    public boolean pilotUnderWay() {
+        return pilotMoveX != 0f || pilotMoveY != 0f;
+    }
+
+    /** The hull's velocity in cells per second, for the pilot's readout and for evidence. */
+    public float speed() {
+        return (float) Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+    }
+
+    /**
+     * Turns the ship's own targeting on or off for a pilot. On, the director picks
+     * ground for every battery that has no area of the pilot's laid; off, the director
+     * stops and the areas it chose are dropped.
+     */
+    public void pilotDirector(boolean on) {
+        if (on) {
+            if (!directing) direct(directorRadius > 0f ? directorRadius : PILOT_DIRECTOR_RADIUS, true, directorMaxAreas);
+            return;
+        }
+        directing = false;
+        if (!manual) {
+            held.clear();
+            refreshAreas();
+            dropAims();
+        }
+    }
+
+    /** The area size the director uses when a pilot switches it on for a ship that never had one, in cells. */
+    public static final float PILOT_DIRECTOR_RADIUS = 10f;
+
+    /** Steps the ship's ground-fire policy: all batteries, then heavy only, then none, then all again. */
+    public void cycleGroundFire() {
+        GroundFire[] all = GroundFire.values();
+        groundFire(all[(groundFire.ordinal() + 2) % all.length]);
+    }
+
+    /** Which batteries may fire at ground. */
+    public GroundFire groundFire() {
+        return groundFire;
     }
 
     // ---- doctrine: posture, stance and the mission's declarations -------------------------------------
@@ -1082,7 +1356,8 @@ public final class Warship {
         this.directing = false;
     }
 
-    boolean isDirected() {
+    /** Whether the ship's own director is choosing ground for it. */
+    public boolean isDirected() {
         return directing;
     }
 

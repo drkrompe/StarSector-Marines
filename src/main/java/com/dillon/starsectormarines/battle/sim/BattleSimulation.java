@@ -909,7 +909,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         fogOfWar.init(grid, 256);
         this.directControl = new DirectControlSession(this, rosterService,
-                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete);
+                id -> transport.isRiding(id) || ambientTasks.isControlling(id), this::isComplete,
+                warships, (x, y) -> fogOfWar.isCellRevealed(x, y));
     }
 
     public DirectControlSession directControl() { return directControl; }
@@ -2216,7 +2217,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         swarmAvoidance.tick(TICK_DT, directControl.activeUnitId());
         separation.tick(TICK_DT, directControl.activeUnitId());
         mechCollisionEscape.tick(TICK_DT);
-        if (directControl.active()) {
+        if (directControl.unitActive()) {
             MitigationSystem.faceManual(directControl.activeUnitId(), rosterService.mitigations(),
                     world, directControl.pointAim());
         }

@@ -1393,6 +1393,12 @@ concave authored polygon; a hit belongs to the true contact point, not an
 enclosing circle or box. That fidelity is the standing contract, not a claim
 that overhead ships are implemented today.
 
+A friendly capital can also be flown by the player through the one direct-control
+session (`direct-control-nouns.md`, Warship carrier). The pilot supplies the hull's
+travel and lays areas per battery; the ship's flux, ordnance, shield, armour, point
+defence and friendly-fire rules stay its own, and on handback the ship returns to its
+director, doctrine and station with no pilot order standing.
+
 **A warship on station is not an aircraft that happens to be large.** The shared
 density ladder (`AirScale`) puts even a capital at a few tens of cells, small
 beside a 560x336 map, so size does not keep a capital off the map. What keeps it
