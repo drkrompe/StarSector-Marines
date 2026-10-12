@@ -227,6 +227,47 @@ public final class Warship {
         this.hasStation = true;
     }
 
+    /** The waypoints of a scripted flight, or {@code null} when the ship is not flying one. */
+    private float[][] route;
+    private int routeIndex;
+    private boolean routeLoops;
+
+    /**
+     * Scripts a continuous flight: the ship passes through each waypoint at speed
+     * without stopping, brakes onto the last, or, if {@code loop}, goes round
+     * again forever. Whatever it has been ordered to fire on, it keeps firing.
+     */
+    public void flyRoute(float[][] waypoints, boolean loop) {
+        if (waypoints == null || waypoints.length == 0) {
+            this.route = null;
+            return;
+        }
+        this.route = waypoints.clone();
+        this.routeIndex = 0;
+        this.routeLoops = loop;
+        stationTo(waypoints[0][0], waypoints[0][1]);
+    }
+
+    /** Whether the ship is still on legs it passes through rather than stops at. */
+    public boolean isPassingThrough() {
+        return route != null && (routeLoops || routeIndex < route.length - 1);
+    }
+
+    /** Index of the waypoint the ship is flying to, or -1 when it has no route. */
+    public int routeIndex() {
+        return route == null ? -1 : routeIndex;
+    }
+
+    /** Moves on to the next waypoint once the ship is within {@code radius} cells of this one. */
+    void advanceRoute(float radius) {
+        if (!isPassingThrough()) return;
+        float dx = route[routeIndex][0] - x;
+        float dy = route[routeIndex][1] - y;
+        if (dx * dx + dy * dy > radius * radius) return;
+        routeIndex = (routeIndex + 1) % route.length;
+        stationTo(route[routeIndex][0], route[routeIndex][1]);
+    }
+
     boolean hasStation() {
         return hasStation;
     }
